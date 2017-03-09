@@ -5,13 +5,13 @@ webpackJsonp([1],{
 
 	'use strict';
 	
-	var CreateModule = __webpack_require__(5);
 	var LinkListModule = __webpack_require__(103);
 	var FolderTreeModule = __webpack_require__(107);
+	var CreateLinkModule = __webpack_require__(5);
 	
-	CreateModule.init();
-	LinkListModule.init();
 	FolderTreeModule.init();
+	LinkListModule.init();
+	CreateLinkModule.init();
 
 /***/ },
 
@@ -171,7 +171,6 @@ webpackJsonp([1],{
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.ls = undefined;
 	
 	var _stringify = __webpack_require__(6);
 	
@@ -204,32 +203,12 @@ webpackJsonp([1],{
 	var DOMHelpers = __webpack_require__(2);
 	var HandlebarsHelpers = __webpack_require__(3);
 	var APIModule = __webpack_require__(89);
+	var FolderTreeModule = __webpack_require__(107);
 	
 	var newGUID = null;
 	var refreshIntervalIds = [];
 	var spinner;
 	var organizations = {};
-	var localStorageKey = Helpers.variables.localStorageKey;
-	
-	var ls = exports.ls = {
-	  getAll: function getAll() {
-	    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
-	    return folders || {};
-	  },
-	  getCurrent: function getCurrent() {
-	    var folders = ls.getAll();
-	    return folders[current_user.id] || {};
-	  },
-	  setCurrent: function setCurrent(orgId, folderIds) {
-	    folderIds = folderIds ? folderIds : ['default'];
-	
-	    var selectedFolders = ls.getAll();
-	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
-	
-	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-	    exports.updateLinker(); // call via exports to enable Jasmine spyOn
-	  }
-	};
 	
 	// Get parameter by name
 	// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -238,18 +217,6 @@ webpackJsonp([1],{
 	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
 	      results = regex.exec(location.search);
 	  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-	}
-	
-	function getSelectedFolder() {
-	  // Look up the ID of the currently selected folder (if any) from localStorage.
-	  var folderIds = ls.getCurrent().folderIds;
-	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
-	  return null;
-	}
-	
-	function getSelectedOrg() {
-	  // Look up the ID of the currently selected org (if any) from localStorage.
-	  return ls.getCurrent().orgId;
 	}
 	
 	function linkIt(data) {
@@ -468,12 +435,15 @@ webpackJsonp([1],{
 	  }
 	}
 	
+	// This handles the dropdown menu for selecting a folder, which only appears for
+	// org users, registrar users, and admins, and alters related UI elements depending
+	// on what has been selected.
 	function updateLinker() {
-	  var currentOrg = getSelectedOrg();
+	  var currentOrg = FolderTreeModule.getSavedOrg();
 	  var organizationsExist = (0, _keys2.default)(organizations).length;
 	
 	  // if user has organizations available but hasn't picked one yet, require them to pick
-	  if (!getSelectedFolder() && organizationsExist) {
+	  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
 	    $('#addlink').attr('disabled', 'disabled');
 	    return;
 	  }
@@ -506,6 +476,14 @@ webpackJsonp([1],{
 	  }
 	}
 	
+	function handleSelectionChange(data) {
+	  updateLinker();
+	
+	  if (data && data.path) {
+	    updateAffiliationPath(data.orgId, data.path);
+	  }
+	}
+	
 	function updateAffiliationPath(currentOrg, path) {
 	
 	  var stringPath = path.join(" &gt; ");
@@ -527,14 +505,6 @@ webpackJsonp([1],{
 	  DOMHelpers.changeText('.links-remaining', links_remaining);
 	}
 	
-	function handleSelectionChange(data) {
-	  updateLinker();
-	
-	  if (data && data.path) {
-	    updateAffiliationPath(data.orgId, data.path);
-	  }
-	}
-	
 	function setupEventHandlers() {
 	  $(window).off('FolderTreeModule.selectionChange').off('FolderTreeModule.updateLinksRemaining').on('FolderTreeModule.selectionChange', function (evt, data) {
 	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
@@ -548,7 +518,7 @@ webpackJsonp([1],{
 	    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
 	    DOMHelpers.toggleBtnDisable('.cancel', true);
 	    var extraUploadData = {},
-	        selectedFolder = getSelectedFolder();
+	        selectedFolder = FolderTreeModule.getSavedFolder();
 	    if (selectedFolder) extraUploadData.folder = selectedFolder;
 	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
 	    spinner.spin(this);
@@ -572,7 +542,7 @@ webpackJsonp([1],{
 	      url: $this.find("input[name=url]").val(),
 	      human: true
 	    };
-	    var selectedFolder = getSelectedFolder();
+	    var selectedFolder = FolderTreeModule.getSavedFolder();
 	
 	    if (selectedFolder) linker_data.folder = selectedFolder;
 	
@@ -636,19 +606,12 @@ webpackJsonp([1],{
 	
 	      $organization_select.append("<li class='personal-links'><a href='#' data-folderid='" + current_user.top_level_folders[0].id + "'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
 	      updateLinker();
-	    } else {
-	      // select My Folder for users with no orgs and no saved selections
-	      var selectedFolder = getSelectedFolder();
-	      if (!selectedFolder) {
-	        ls.setCurrent();
-	        Helpers.triggerOnWindow("dropdown.selectionChange");
-	      }
 	    }
 	  });
 	
 	  // handle dropdown changes
 	  $organization_select.on('click', 'a', function () {
-	    ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+	    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
 	    Helpers.triggerOnWindow("dropdown.selectionChange");
 	  });
 	
@@ -708,7 +671,7 @@ webpackJsonp([1],{
 /***/ 59:
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(52);
+	exports.f = __webpack_require__(875);
 
 /***/ },
 
@@ -737,28 +700,28 @@ webpackJsonp([1],{
 	// ECMAScript 6 symbols shim
 	var global         = __webpack_require__(19)
 	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(27)
+	  , DESCRIPTORS    = __webpack_require__(872)
 	  , $export        = __webpack_require__(18)
 	  , redefine       = __webpack_require__(32)
 	  , META           = __webpack_require__(63).KEY
 	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(47)
+	  , shared         = __webpack_require__(866)
 	  , setToStringTag = __webpack_require__(51)
 	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(52)
+	  , wks            = __webpack_require__(875)
 	  , wksExt         = __webpack_require__(59)
 	  , wksDefine      = __webpack_require__(64)
 	  , keyOf          = __webpack_require__(65)
 	  , enumKeys       = __webpack_require__(66)
 	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(24)
+	  , anObject       = __webpack_require__(870)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(874)
 	  , createDesc     = __webpack_require__(31)
 	  , _create        = __webpack_require__(36)
 	  , gOPNExt        = __webpack_require__(70)
 	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(23)
+	  , $DP            = __webpack_require__(869)
 	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
@@ -961,7 +924,7 @@ webpackJsonp([1],{
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(868)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -977,7 +940,7 @@ webpackJsonp([1],{
 	var META     = __webpack_require__(48)('meta')
 	  , isObject = __webpack_require__(25)
 	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(23).f
+	  , setDesc  = __webpack_require__(869).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
@@ -1037,7 +1000,7 @@ webpackJsonp([1],{
 	  , core           = __webpack_require__(8)
 	  , LIBRARY        = __webpack_require__(17)
 	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(23).f;
+	  , defineProperty = __webpack_require__(869).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -1097,7 +1060,15 @@ webpackJsonp([1],{
 /***/ },
 
 /***/ 69:
-[329, 42],
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.2.2 IsArray(argument)
+	var cof = __webpack_require__(42);
+	module.exports = Array.isArray || function isArray(arg){
+	  return cof(arg) == 'Array';
+	};
+
+/***/ },
 
 /***/ 70:
 /***/ function(module, exports, __webpack_require__) {
@@ -1144,12 +1115,12 @@ webpackJsonp([1],{
 	var pIE            = __webpack_require__(68)
 	  , createDesc     = __webpack_require__(31)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(874)
 	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
+	  , IE8_DOM_DEFINE = __webpack_require__(871)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(872) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -4379,94 +4350,78 @@ webpackJsonp([1],{
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.folderTree = undefined;
+	exports.ls = exports.folderTree = undefined;
 	
 	var _stringify = __webpack_require__(6);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
 	exports.init = init;
+	exports.getSavedFolder = getSavedFolder;
+	exports.getSavedOrg = getSavedOrg;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	__webpack_require__(108); // add jquery support for .tree
+	__webpack_require__(296);
 	__webpack_require__(109);
-	__webpack_require__(116);
 	
 	var APIModule = __webpack_require__(89);
-	var CreateLinkModule = __webpack_require__(5);
+	var Helpers = __webpack_require__(88);
 	
+	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
 	var lastSelectedFolder = null;
-	var foldersToSelect;
 	var folderTree = exports.folderTree = null;
 	
 	function init() {
-	  loadSavedFolderSelection();
 	  domTreeInit();
 	  setupEventHandlers();
 	  folderTree.deselect_all();
 	}
 	
-	function setupEventHandlers() {
-	  $(window).on('dropdown.selectionChange', handleSelectionChange).on('LinksListModule.moveLink', function (evt, data) {
-	    data = JSON.parse(data);
-	    moveLink(data.folderId, data.linkId);
-	  });
-	
-	  // set body class during drag'n'drop
-	  $(document).on('dnd_start.vakata', function (e, data) {
-	    $('body').addClass("dragging");
-	  }).on('dnd_stop.vakata', function (e, data) {
-	    $('body').removeClass("dragging");
-	  });
-	
-	  // folder buttons
-	  $('a.new-folder').on('click', function () {
-	    folderTree.create_node(getSelectedNode(), {}, "last");
-	    return false;
-	  });
-	  $('a.edit-folder').on('click', function () {
-	    editNodeName(getSelectedNode());
-	    return false;
-	  });
-	  $('a.delete-folder').on('click', function () {
-	    var node = getSelectedNode();
-	    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
-	    folderTree.delete_node(node);
-	    return false;
-	  });
-	}
-	
-	function handleSelectionChange() {
-	  folderTree.close_all();
-	  folderTree.deselect_all();
-	  loadSavedFolderSelection();
-	  selectSavedFolder();
-	}
-	
-	function loadSavedFolderSelection() {
-	  foldersToSelect = CreateLinkModule.ls.getCurrent().folderIds;
-	}
-	
-	function selectSavedFolder() {
-	  if (foldersToSelect && foldersToSelect.length) {
-	    if (foldersToSelect[0] === "default") {
-	      folderTree.select_node('ul > li:first');
-	      foldersToSelect = null;
-	    } else {
-	      var targetNode = getNodeByFolderID(foldersToSelect[foldersToSelect.length - 1]);
-	      if (targetNode) {
-	        folderTree.deselect_all();
-	        folderTree.select_node(targetNode);
-	        foldersToSelect = null;
-	      }
-	    }
+	// When a user selects a folder, we store that choice in Local Storage
+	// and attempt to reselect on subsequent page loads.
+	var ls = exports.ls = {
+	  // This data structure was built such that multiple users' last-used folders could be
+	  // stored simultaneously. At present, this feature is not in use: when a user logs out,
+	  // local storage is cleared. getAll remains in the codebase, with getCurrent, in case we ever
+	  // decide to change that behavior (not recommended at present due to the complications it may
+	  // introduce to user support: we don't want to have to walk people through clearing local
+	  // storage if unexpected behavior surfaces)
+	  getAll: function getAll() {
+	    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+	    return folders || {};
+	  },
+	  getCurrent: function getCurrent() {
+	    var folders = ls.getAll();
+	    return folders[current_user.id] || {};
+	  },
+	  setCurrent: function setCurrent(orgId, folderIds) {
+	    var selectedFolders = ls.getAll();
+	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
+	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
+	    Helpers.triggerOnWindow("FolderTreeModule.selectionChange", selectedFolders[current_user.id]);
 	  }
+	};
+	
+	function getSavedFolder() {
+	  // Look up the ID of the previously selected folder (if any) from localStorage.
+	  var folderIds = ls.getCurrent().folderIds;
+	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
+	  return null;
+	}
+	function getSavedOrg() {
+	  // Look up the ID of the previously selected folder's org (if any) from localStorage.
+	  return ls.getCurrent().orgId;
 	}
 	
 	function getSelectedNode() {
 	  return folderTree.get_selected(true)[0];
+	}
+	
+	function getSelectedFolderID() {
+	  return getSelectedNode().data.folder_id;
 	}
 	
 	function getNodeByFolderID(folderId) {
@@ -4479,14 +4434,29 @@ webpackJsonp([1],{
 	  return null;
 	}
 	
-	function getSelectedFolderID() {
-	  return getSelectedNode().data.folder_id;
+	function handleSelectionChange() {
+	  folderTree.close_all();
+	  folderTree.deselect_all();
+	  selectSavedFolder();
 	}
 	
-	function editNodeName(node) {
-	  setTimeout(function () {
-	    folderTree.edit(node);
-	  }, 0);
+	function selectSavedFolder() {
+	  var folderToSelect = getSavedFolder();
+	  if (!folderToSelect && current_user.top_level_folders.length == 1) {
+	    folderToSelect = current_user.top_level_folders[0].id;
+	  }
+	  folderTree.select_node(getNodeByFolderID(folderToSelect));
+	}
+	
+	function setSavedFolder(node) {
+	  var data = node.data;
+	  if (data) {
+	    var folderIds = folderTree.get_path(node, false, true).map(function (id) {
+	      return folderTree.get_node(id).data.folder_id;
+	    });
+	    ls.setCurrent(data.organization_id, folderIds);
+	  }
+	  sendSelectionChangeEvent(node);
 	}
 	
 	function sendSelectionChangeEvent(node) {
@@ -4499,41 +4469,6 @@ webpackJsonp([1],{
 	  $(window).trigger("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
 	}
 	
-	function setSelectedFolder(node) {
-	  var data = node.data;
-	  if (data) {
-	    var folderIds = folderTree.get_path(node, false, true).map(function (id) {
-	      return folderTree.get_node(id).data.folder_id;
-	    });
-	    CreateLinkModule.ls.setCurrent(data.organization_id, folderIds);
-	  }
-	  sendSelectionChangeEvent(node);
-	}
-	
-	function createFolder(parentFolderID, newName) {
-	  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", { name: newName });
-	}
-	
-	function renameFolder(folderID, newName) {
-	  return APIModule.request("PATCH", "/folders/" + folderID + "/", { name: newName });
-	}
-	
-	function moveFolder(parentID, childID) {
-	  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
-	}
-	
-	function deleteFolder(folderID) {
-	  return APIModule.request("DELETE", "/folders/" + folderID + "/");
-	}
-	
-	function moveLink(folderID, linkID) {
-	  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
-	    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
-	    // once we're done moving the link, hide it from the current folder
-	    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
-	  });
-	}
-	
 	function handleShowFoldersEvent(currentFolder, callback) {
 	  // This function gets called by jsTree with the current folder, and a callback to return subfolders.
 	  // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
@@ -4544,7 +4479,8 @@ webpackJsonp([1],{
 	  if (currentFolder.data) {
 	    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
 	  } else {
-	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), CreateLinkModule.ls.getCurrent().folderIds, simpleCallback);
+	    //select default for users with no orgs and no saved selections
+	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), ls.getCurrent().folderIds, simpleCallback);
 	  }
 	}
 	
@@ -4585,9 +4521,10 @@ webpackJsonp([1],{
 	    return;
 	  }
 	
-	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path:
+	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
+	  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user, and the folder list remains pending.)
 	  $.when.apply($, subfoldersToPreload.map(function (folderId) {
-	    return APIModule.request("GET", "/folders/" + folderId + "/folders/");
+	    return APIModule.request("GET", "/folders/" + folderId + "/folders/", null, { "error": null });
 	  }))
 	
 	  // When all API requests have returned, loop through the responses and build the folder tree:
@@ -4624,6 +4561,9 @@ webpackJsonp([1],{
 	    }
 	
 	    // pass our folder tree to jsTree for display
+	    callback(preloadedData);
+	  }).fail(function () {
+	    localStorage.clear();
 	    callback(preloadedData);
 	  });
 	}
@@ -4722,7 +4662,7 @@ webpackJsonp([1],{
 	    }
 	
 	    var lastSelectedNode = data.node;
-	    setSelectedFolder(lastSelectedNode);
+	    setSavedFolder(lastSelectedNode);
 	
 	    // handle open/close folder icon
 	  }).on('open_node.jstree', function (e, data) {
@@ -4730,10 +4670,71 @@ webpackJsonp([1],{
 	  }).on('close_node.jstree', function (e, data) {
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-close-alt");
 	  }).on('load_node.jstree', function (e, data) {
-	    // when a new node is loaded, see if it should be selected based on a user's previous visit
+	    // when a new node is loaded, see if it should be selected based on a user's previous visit.
+	    // (without this, doesn't select saved folders on load.)
 	    selectSavedFolder();
 	  });
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
+	}
+	
+	function createFolder(parentFolderID, newName) {
+	  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", { name: newName });
+	}
+	
+	function renameFolder(folderID, newName) {
+	  return APIModule.request("PATCH", "/folders/" + folderID + "/", { name: newName });
+	}
+	
+	function moveFolder(parentID, childID) {
+	  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+	}
+	
+	function deleteFolder(folderID) {
+	  return APIModule.request("DELETE", "/folders/" + folderID + "/");
+	}
+	
+	function moveLink(folderID, linkID) {
+	  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
+	    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
+	    // once we're done moving the link, hide it from the current folder
+	    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
+	  });
+	}
+	
+	function setupEventHandlers() {
+	  $(window).on('dropdown.selectionChange', handleSelectionChange).on('LinksListModule.moveLink', function (evt, data) {
+	    data = JSON.parse(data);
+	    moveLink(data.folderId, data.linkId);
+	  });
+	
+	  // set body class during drag'n'drop
+	  $(document).on('dnd_start.vakata', function (e, data) {
+	    $('body').addClass("dragging");
+	  }).on('dnd_stop.vakata', function (e, data) {
+	    $('body').removeClass("dragging");
+	  });
+	
+	  // folder buttons
+	  $('a.new-folder').on('click', function () {
+	    folderTree.create_node(getSelectedNode(), {}, "last");
+	    return false;
+	  });
+	  $('a.edit-folder').on('click', function () {
+	    editNodeName(getSelectedNode());
+	    return false;
+	  });
+	  $('a.delete-folder').on('click', function () {
+	    var node = getSelectedNode();
+	    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
+	    folderTree.delete_node(node);
+	    return false;
+	  });
+	}
+	
+	function editNodeName(node) {
+	  setTimeout(function () {
+	    folderTree.edit(node);
+	  }, 0);
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -12946,21 +12947,21 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 116:
+/***/ 296:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(117);
-	module.exports = __webpack_require__(120).Array.find;
+	__webpack_require__(297);
+	module.exports = __webpack_require__(300).Array.find;
 
 /***/ },
 
-/***/ 117:
+/***/ 297:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
-	var $export = __webpack_require__(118)
-	  , $find   = __webpack_require__(136)(5)
+	var $export = __webpack_require__(298)
+	  , $find   = __webpack_require__(316)(5)
 	  , KEY     = 'find'
 	  , forced  = true;
 	// Shouldn't skip holes
@@ -12970,18 +12971,18 @@ webpackJsonp([1],{
 	    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 	  }
 	});
-	__webpack_require__(148)(KEY);
+	__webpack_require__(328)(KEY);
 
 /***/ },
 
-/***/ 118:
+/***/ 298:
 /***/ function(module, exports, __webpack_require__) {
 
-	var global    = __webpack_require__(119)
-	  , core      = __webpack_require__(120)
-	  , hide      = __webpack_require__(121)
-	  , redefine  = __webpack_require__(131)
-	  , ctx       = __webpack_require__(134)
+	var global    = __webpack_require__(299)
+	  , core      = __webpack_require__(300)
+	  , hide      = __webpack_require__(301)
+	  , redefine  = __webpack_require__(311)
+	  , ctx       = __webpack_require__(314)
 	  , PROTOTYPE = 'prototype';
 	
 	var $export = function(type, name, source){
@@ -13023,54 +13024,54 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 119:
+/***/ 299:
 19,
 
-/***/ 120:
+/***/ 300:
 8,
 
-/***/ 121:
-[335, 122, 130, 126],
+/***/ 301:
+[881, 302, 310, 306],
 
-/***/ 122:
-[336, 123, 125, 129, 126],
+/***/ 302:
+[882, 303, 305, 309, 306],
 
-/***/ 123:
-[337, 124],
+/***/ 303:
+[883, 304],
 
-/***/ 124:
+/***/ 304:
 25,
 
-/***/ 125:
-[338, 126, 127, 128],
+/***/ 305:
+[884, 306, 307, 308],
 
-/***/ 126:
-[339, 127],
+/***/ 306:
+[885, 307],
 
-/***/ 127:
+/***/ 307:
 28,
 
-/***/ 128:
-[340, 124, 119],
+/***/ 308:
+[886, 304, 299],
 
-/***/ 129:
-[341, 124],
+/***/ 309:
+[887, 304],
 
-/***/ 130:
+/***/ 310:
 31,
 
-/***/ 131:
+/***/ 311:
 /***/ function(module, exports, __webpack_require__) {
 
-	var global    = __webpack_require__(119)
-	  , hide      = __webpack_require__(121)
-	  , has       = __webpack_require__(132)
-	  , SRC       = __webpack_require__(133)('src')
+	var global    = __webpack_require__(299)
+	  , hide      = __webpack_require__(301)
+	  , has       = __webpack_require__(312)
+	  , SRC       = __webpack_require__(313)('src')
 	  , TO_STRING = 'toString'
 	  , $toString = Function[TO_STRING]
 	  , TPL       = ('' + $toString).split(TO_STRING);
 	
-	__webpack_require__(120).inspectSource = function(it){
+	__webpack_require__(300).inspectSource = function(it){
 	  return $toString.call(it);
 	};
 	
@@ -13097,19 +13098,19 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 132:
+/***/ 312:
 33,
 
-/***/ 133:
+/***/ 313:
 48,
 
-/***/ 134:
-[334, 135],
+/***/ 314:
+[880, 315],
 
-/***/ 135:
+/***/ 315:
 21,
 
-/***/ 136:
+/***/ 316:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 0 -> Array#forEach
@@ -13119,11 +13120,11 @@ webpackJsonp([1],{
 	// 4 -> Array#every
 	// 5 -> Array#find
 	// 6 -> Array#findIndex
-	var ctx      = __webpack_require__(134)
-	  , IObject  = __webpack_require__(137)
-	  , toObject = __webpack_require__(139)
-	  , toLength = __webpack_require__(141)
-	  , asc      = __webpack_require__(143);
+	var ctx      = __webpack_require__(314)
+	  , IObject  = __webpack_require__(317)
+	  , toObject = __webpack_require__(319)
+	  , toLength = __webpack_require__(321)
+	  , asc      = __webpack_require__(323);
 	module.exports = function(TYPE, $create){
 	  var IS_MAP        = TYPE == 1
 	    , IS_FILTER     = TYPE == 2
@@ -13159,29 +13160,29 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 137:
-[331, 138],
+/***/ 317:
+[877, 318],
 
-/***/ 138:
+/***/ 318:
 42,
 
-/***/ 139:
-[330, 140],
+/***/ 319:
+[876, 320],
 
-/***/ 140:
+/***/ 320:
 15,
 
-/***/ 141:
-[332, 142],
+/***/ 321:
+[878, 322],
 
-/***/ 142:
+/***/ 322:
 14,
 
-/***/ 143:
+/***/ 323:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-	var speciesConstructor = __webpack_require__(144);
+	var speciesConstructor = __webpack_require__(324);
 	
 	module.exports = function(original, length){
 	  return new (speciesConstructor(original))(length);
@@ -13189,12 +13190,12 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 144:
+/***/ 324:
 /***/ function(module, exports, __webpack_require__) {
 
-	var isObject = __webpack_require__(124)
-	  , isArray  = __webpack_require__(145)
-	  , SPECIES  = __webpack_require__(146)('species');
+	var isObject = __webpack_require__(304)
+	  , isArray  = __webpack_require__(325)
+	  , SPECIES  = __webpack_require__(326)('species');
 	
 	module.exports = function(original){
 	  var C;
@@ -13211,22 +13212,22 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 145:
-[329, 138],
+/***/ 325:
+[329, 318],
 
-/***/ 146:
-[342, 147, 133, 119],
+/***/ 326:
+[888, 327, 313, 299],
 
-/***/ 147:
-[333, 119],
+/***/ 327:
+[879, 299],
 
-/***/ 148:
+/***/ 328:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 22.1.3.31 Array.prototype[@@unscopables]
-	var UNSCOPABLES = __webpack_require__(146)('unscopables')
+	var UNSCOPABLES = __webpack_require__(326)('unscopables')
 	  , ArrayProto  = Array.prototype;
-	if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(121)(ArrayProto, UNSCOPABLES, {});
+	if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(301)(ArrayProto, UNSCOPABLES, {});
 	module.exports = function(key){
 	  ArrayProto[UNSCOPABLES][key] = true;
 	};
