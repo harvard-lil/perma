@@ -169,6 +169,9 @@ def single_linky(request, guid):
 
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
 
+    if not link.submitted_description:
+        link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
+
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
