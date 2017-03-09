@@ -184,7 +184,7 @@ def json_serial(obj):
 ### rate limiting ###
 
 def ratelimit_ip_key(group, request):
-    return request.META.get('HTTP_X_FORWARDED_FOR', request.META['REMOTE_ADDR'])
+    return get_client_ip(request)
 
 ### monitoring ###
 
@@ -231,3 +231,15 @@ def url_in_allowed_ip_range(url):
     except socket.gaierror:
         return False
     return ip_in_allowed_ip_range(ip)
+
+def get_client_ip(request):
+    if settings.LIMIT_TO_TRUSTED_PROXY:
+        proxy_ip = IPAddress(request.META['REMOTE_ADDR'])
+        if any(proxy_ip in IPNetwork(trusted_ip_range) for trusted_ip_range in settings.TRUSTED_PROXIES):
+            try:
+                return request.META[settings.TRUSTED_PROXY_HEADER]
+            except KeyError:
+                raise PermissionDenied
+        raise PermissionDenied
+    else:
+        return request.META.get('HTTP_X_FORWARDED_FOR', request.META['REMOTE_ADDR'])

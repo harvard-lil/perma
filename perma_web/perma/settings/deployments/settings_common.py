@@ -302,6 +302,14 @@ BANNED_IP_RANGES = [
     "ff00::/8",
 ]
 
+# Trusted Proxies (opt in)
+# If true, IP-examining functions should reject requests from anyone except trusted proxies
+LIMIT_TO_TRUSTED_PROXY = False
+TRUSTED_PROXIES = []
+# If LIMIT_TO_TRUSTED_PROXY is True, this is the only http header we will use to
+# determine/test/validate a client's IP address.
+TRUSTED_PROXY_HEADER = ''
+
 # Celery settings
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 CELERY_ACCEPT_CONTENT = ['json']
