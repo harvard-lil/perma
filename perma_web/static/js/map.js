@@ -1,33 +1,35 @@
-var Raphael = require('raphael');
-require('./helpers/mapping/usmap.js');
+let Datamap = require('datamaps');
 
-var width=950,
-    height=590,
-    paperContainer = $('#plot-map-container'),
-    paper = new Raphael(paperContainer.attr('id'), width, height),
-    map = paper.USMap();
-
-
-// via http://bertanguven.com/raphael-js-setsize-function
-paper.setViewBox(0, 0, width, height);
-paper.canvas.setAttribute('preserveAspectRatio', 'none');  // allow resizing svg
-
-// handle resizing
-$(window).resize(()=>{
-  var newWidth = paperContainer.parent().width();
-  paperContainer.find("svg").attr('width', newWidth).attr('height', newWidth/width*height);
-}).trigger('resize');
-
-// plot points
-for(var point of partnerPoints){
-  map.plot(...point);
-}
-
-// show bootstrap tooltips? not working ...
-/*
-require('bootstrap/js/tooltip');
-paperContainer.find("svg circle").tooltip({
-  'container': 'body',
-  'placement': 'bottom',
+// show world map
+let partnerMap = new Datamap({
+  element: document.getElementById("plot-map-container"),
+  geographyConfig: {
+    popupOnHover: false,
+    highlightOnHover: false
+  },
+  fills: {
+    defaultFill: '#74bbfa',
+    partner: '#DD671A',
+  },
+  responsive: true
 });
-*/
+
+// add partner circles
+partnerMap.bubbles(partnerPoints.map((partner)=>({
+    name: partner[2],
+    radius: 5,
+    latitude: partner[0],
+    longitude: partner[1],
+    fillKey: 'partner',
+  })), {
+  popupTemplate: function(geo, data) {
+    return '<div class="hoverinfo">' + data.name + '</div>';
+  },
+  borderWidth: 1,
+  fillOpacity: 1
+});
+
+// resize map on window change
+$(window).on('resize', function() {
+  partnerMap.resize();
+});
