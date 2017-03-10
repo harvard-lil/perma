@@ -5,12 +5,12 @@ webpackJsonp([7],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	__webpack_require__(182); // add .datepicker to jquery
+	__webpack_require__(215); // add .datepicker to jquery
 	
 	var DOMHelpers = __webpack_require__(2);
 	var HandlebarsHelpers = __webpack_require__(3);
-	var APIModule = __webpack_require__(89);
-	var LinkHelpers = __webpack_require__(105);
+	var APIModule = __webpack_require__(78);
+	var LinkHelpers = __webpack_require__(77);
 	
 	var linkRows;
 	var searchSubmit;
@@ -369,7 +369,7 @@ webpackJsonp([7],{
 /***/ 59:
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(875);
+	exports.f = __webpack_require__(52);
 
 /***/ },
 
@@ -398,28 +398,28 @@ webpackJsonp([7],{
 	// ECMAScript 6 symbols shim
 	var global         = __webpack_require__(19)
 	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(872)
+	  , DESCRIPTORS    = __webpack_require__(27)
 	  , $export        = __webpack_require__(18)
 	  , redefine       = __webpack_require__(32)
 	  , META           = __webpack_require__(63).KEY
 	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(866)
+	  , shared         = __webpack_require__(47)
 	  , setToStringTag = __webpack_require__(51)
 	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(875)
+	  , wks            = __webpack_require__(52)
 	  , wksExt         = __webpack_require__(59)
 	  , wksDefine      = __webpack_require__(64)
 	  , keyOf          = __webpack_require__(65)
 	  , enumKeys       = __webpack_require__(66)
 	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(870)
+	  , anObject       = __webpack_require__(24)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(874)
+	  , toPrimitive    = __webpack_require__(30)
 	  , createDesc     = __webpack_require__(31)
 	  , _create        = __webpack_require__(36)
 	  , gOPNExt        = __webpack_require__(70)
 	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(869)
+	  , $DP            = __webpack_require__(23)
 	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
@@ -622,7 +622,7 @@ webpackJsonp([7],{
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(868)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -638,7 +638,7 @@ webpackJsonp([7],{
 	var META     = __webpack_require__(48)('meta')
 	  , isObject = __webpack_require__(25)
 	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(869).f
+	  , setDesc  = __webpack_require__(23).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
@@ -698,7 +698,7 @@ webpackJsonp([7],{
 	  , core           = __webpack_require__(8)
 	  , LIBRARY        = __webpack_require__(17)
 	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(869).f;
+	  , defineProperty = __webpack_require__(23).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -813,12 +813,12 @@ webpackJsonp([7],{
 	var pIE            = __webpack_require__(68)
 	  , createDesc     = __webpack_require__(31)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(874)
+	  , toPrimitive    = __webpack_require__(30)
 	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(871)
+	  , IE8_DOM_DEFINE = __webpack_require__(26)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(872) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -850,7 +850,70 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 89:
+/***/ 77:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.findFaviconURL = findFaviconURL;
+	exports.generateLinkFields = generateLinkFields;
+	exports.saveInput = saveInput;
+	var DOMHelpers = __webpack_require__(2);
+	var APIModule = __webpack_require__(78);
+	__webpack_require__(102); // add .format() to Date object
+	
+	
+	function findFaviconURL(linkObj) {
+	  if (!linkObj.captures) return '';
+	
+	  var favCapture = linkObj.captures.filter(function (capture) {
+	    return capture.role == 'favicon' && capture.status == 'success';
+	  });
+	
+	  return favCapture[0] ? favCapture[0].playback_url : '';
+	}
+	
+	function generateLinkFields(link, query) {
+	  link.favicon_url = this.findFaviconURL(link);
+	  if (window.host) {
+	    link.local_url = window.host + '/' + link.guid;
+	  }
+	  if (query && link.notes) {
+	    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
+	  }
+	  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
+	  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
+	  if (Date.now() < Date.parse(link.archive_timestamp)) {
+	    link.delete_available = true;
+	  }
+	  return link;
+	}
+	
+	var timeouts = {};
+	// save changes in a given text box to the server
+	function saveInput(guid, inputElement, statusElement, name, callback) {
+	  DOMHelpers.changeHTML(statusElement, 'Saving...');
+	
+	  var timeoutKey = guid + name;
+	  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
+	
+	  // use a setTimeout so notes are only saved once every half second
+	  timeouts[timeoutKey] = setTimeout(function () {
+	    var data = {};
+	    data[name] = DOMHelpers.getValue(inputElement);
+	    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
+	      DOMHelpers.changeHTML(statusElement, 'Saved!');
+	      if (callback) callback(data);
+	    });
+	  }, 500);
+	}
+
+/***/ },
+
+/***/ 78:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -872,8 +935,8 @@ webpackJsonp([7],{
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(90);
-	var Helpers = __webpack_require__(88);
+	var ErrorHandler = __webpack_require__(79);
+	var Helpers = __webpack_require__(92);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -926,70 +989,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 105:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.findFaviconURL = findFaviconURL;
-	exports.generateLinkFields = generateLinkFields;
-	exports.saveInput = saveInput;
-	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(89);
-	__webpack_require__(106); // add .format() to Date object
-	
-	
-	function findFaviconURL(linkObj) {
-	  if (!linkObj.captures) return '';
-	
-	  var favCapture = linkObj.captures.filter(function (capture) {
-	    return capture.role == 'favicon' && capture.status == 'success';
-	  });
-	
-	  return favCapture[0] ? favCapture[0].playback_url : '';
-	}
-	
-	function generateLinkFields(link, query) {
-	  link.favicon_url = this.findFaviconURL(link);
-	  if (window.host) {
-	    link.local_url = window.host + '/' + link.guid;
-	  }
-	  if (query && link.notes) {
-	    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
-	  }
-	  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
-	  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
-	  if (Date.now() < Date.parse(link.archive_timestamp)) {
-	    link.delete_available = true;
-	  }
-	  return link;
-	}
-	
-	var timeouts = {};
-	// save changes in a given text box to the server
-	function saveInput(guid, inputElement, statusElement, name, callback) {
-	  DOMHelpers.changeHTML(statusElement, 'Saving...');
-	
-	  var timeoutKey = guid + name;
-	  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
-	
-	  // use a setTimeout so notes are only saved once every half second
-	  timeouts[timeoutKey] = setTimeout(function () {
-	    var data = {};
-	    data[name] = DOMHelpers.getValue(inputElement);
-	    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
-	      DOMHelpers.changeHTML(statusElement, 'Saved!');
-	      if (callback) callback(data);
-	    });
-	  }, 500);
-	}
-
-/***/ },
-
-/***/ 106:
+/***/ 102:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1098,7 +1098,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 182:
+/***/ 215:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// jscs:disable maximumLineLength
@@ -1127,8 +1127,8 @@ webpackJsonp([7],{
 			// AMD. Register as an anonymous module.
 			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
 				__webpack_require__(1),
-				__webpack_require__(183),
-				__webpack_require__(184)
+				__webpack_require__(216),
+				__webpack_require__(217)
 			], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 		} else {
 	
@@ -3225,7 +3225,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 183:
+/***/ 216:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;( function( factory ) {
@@ -3249,7 +3249,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 184:
+/***/ 217:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -3270,7 +3270,7 @@ webpackJsonp([7],{
 		if ( true ) {
 	
 			// AMD. Register as an anonymous module.
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(1), __webpack_require__(183) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(1), __webpack_require__(216) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 		} else {
 	
 			// Browser globals
