@@ -6,7 +6,7 @@ var localStorage;
 var current_user;
 
 
-describe("Test create.module.js", function() {
+describe("Test create-link.module.js", function() {
   it("defines CreateLinkModule", function(){
     expect(CreateLinkModule).toBeDefined();
   });
