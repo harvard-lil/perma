@@ -1956,9 +1956,12 @@ webpackJsonp([1],{
 	
 	function selectSavedFolder() {
 	  var folderToSelect = getSavedFolder();
+	
+	  //select default for users with no orgs and no saved selections
 	  if (!folderToSelect && current_user.top_level_folders.length == 1) {
 	    folderToSelect = current_user.top_level_folders[0].id;
 	  }
+	
 	  folderTree.select_node(getNodeByFolderID(folderToSelect));
 	}
 	
@@ -1993,7 +1996,6 @@ webpackJsonp([1],{
 	  if (currentFolder.data) {
 	    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
 	  } else {
-	    //select default for users with no orgs and no saved selections
 	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), ls.getCurrent().folderIds, simpleCallback);
 	  }
 	}
@@ -2036,7 +2038,7 @@ webpackJsonp([1],{
 	  }
 	
 	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
-	  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user, and the folder list remains pending.)
+	  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
 	  $.when.apply($, subfoldersToPreload.map(function (folderId) {
 	    return APIModule.request("GET", "/folders/" + folderId + "/folders/", null, { "error": null });
 	  }))
@@ -2076,7 +2078,11 @@ webpackJsonp([1],{
 	
 	    // pass our folder tree to jsTree for display
 	    callback(preloadedData);
-	  }).fail(function () {
+	  })
+	
+	  // If fetching saved folders threw any API errors, something is wrong with the saved folder path (like maybe another user
+	  // moved the target folder) -- wipe the path and show top-level folders only.
+	  .fail(function () {
 	    localStorage.clear();
 	    callback(preloadedData);
 	  });
