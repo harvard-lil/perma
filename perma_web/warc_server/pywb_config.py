@@ -323,9 +323,13 @@ class PermaMementoTimemapView(MementoTimemapView):
 
 
 class PermaTemplateView(object):
+    """
+        Class to render Django templates for Pywb views. Uses a fake request from the Django testing library
+        to get Django to render a template without a real Django request object available.
+    """
     def __init__(self, filename):
         self.filename = filename
-        self.fake_request = RequestFactory().get('/fake')
+        self.fake_request = RequestFactory(HTTP_HOST=settings.WARC_HOST).get('/fake')
 
     def render_response(self, status='200 OK', content_type='text/html; charset=utf-8', **template_kwargs):
         template_context = dict(
