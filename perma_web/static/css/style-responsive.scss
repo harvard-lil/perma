@@ -1016,6 +1016,11 @@ div.col-right {
   user-select: none;
   box-shadow: none !important;
   @include link-highlight($color-white, $color-white);
+  @include respond-mobile {
+    & + .btn {
+      margin-left: $double;
+    }
+  }
   @include respond-tablet {
     white-space: nowrap;
     margin: $double 0;
