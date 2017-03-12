@@ -114,7 +114,7 @@ Further reading:
 
 ## Hosting fonts locally
 
-We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
+We like to host our fonts locally. If you're linking a font from Google fonts and the licensing allows, check out [fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
 
 
 ##  Schema and data migrations
