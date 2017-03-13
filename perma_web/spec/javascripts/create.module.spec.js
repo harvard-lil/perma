@@ -1,7 +1,6 @@
 var DOMHelpers = require('../../static/js/helpers/dom.helpers');
 var Helpers = require('../../static/js/helpers/general.helpers');
 var CreateLinkModule = require('../../static/js/create-link.module');
-
 var localStorage;
 var current_user;
 
@@ -10,7 +9,6 @@ describe("Test create-link.module.js", function() {
   it("defines CreateLinkModule", function(){
     expect(CreateLinkModule).toBeDefined();
   });
-
   describe("populateWithUrl", function(){
     beforeEach(function(){
       spyOn(DOMHelpers, "setInputValue");
@@ -36,6 +34,14 @@ describe("Test create-link.module.js", function() {
       CreateLinkModule.updateLinksRemaining(8);
       expect(window.links_remaining).toEqual(8);
       expect(DOMHelpers.changeText).toHaveBeenCalledWith('.links-remaining', 8);
+    });
+  });
+  describe("updateLinker", function(){
+    it("is called on event broadcast", function(){
+      spyOn(CreateLinkModule, "updateLinker", function(){
+        Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
+        expect(CreateLinkModule.updateLinker).toHaveBeenCalle();
+      });
     });
   });
 });

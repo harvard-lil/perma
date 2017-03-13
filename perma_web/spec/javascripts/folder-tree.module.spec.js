@@ -17,7 +17,6 @@ describe("Test folder-tree.module.js", function() {
   it("defines FolderTreeModule", function(){
     expect(FolderTreeModule).toBeDefined();
   });
-
   describe("localStorage", function(){
     /* ls related methods */
     it("defines ls", function(){
@@ -77,8 +76,12 @@ describe("Test folder-tree.module.js", function() {
         var orgId = 2;
         FolderTreeModule.ls.setCurrent(orgId);
         expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderIds":undefined,"orgId":orgId}});
-        expect(Helpers.triggerOnWindow).toHaveBeenCalled()
+      });
+      it("triggers a call to updateLinker", function(){
+        var orgId = 2;
+        FolderTreeModule.ls.setCurrent(orgId);
+        expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("CreateLinkModule.updateLinker");
       });
     });
-  })
+  });
 });

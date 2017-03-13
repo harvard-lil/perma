@@ -1915,7 +1915,7 @@ webpackJsonp([1],{
 	    var selectedFolders = ls.getAll();
 	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
 	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-	    Helpers.triggerOnWindow("FolderTreeModule.selectionChange", selectedFolders[current_user.id]);
+	    Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
 	  }
 	};
 	
@@ -1925,6 +1925,7 @@ webpackJsonp([1],{
 	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
 	  return null;
 	}
+	
 	function getSavedOrg() {
 	  // Look up the ID of the previously selected folder's org (if any) from localStorage.
 	  return ls.getCurrent().orgId;
@@ -1983,7 +1984,7 @@ webpackJsonp([1],{
 	    data.orgId = node.data.organization_id;
 	    data.path = folderTree.get_path(node);
 	  }
-	  $(window).trigger("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
+	  Helpers.triggerOnWindow("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
 	}
 	
 	function handleShowFoldersEvent(currentFolder, callback) {
@@ -11097,9 +11098,11 @@ webpackJsonp([1],{
 	}
 	
 	function setupEventHandlers() {
-	  $(window).off('FolderTreeModule.selectionChange').off('FolderTreeModule.updateLinksRemaining').on('FolderTreeModule.selectionChange', function (evt, data) {
+	  $(window).on('FolderTreeModule.selectionChange', function (evt, data) {
 	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
 	    handleSelectionChange(data);
+	  }).on('CreateLinkModule.updateLinker', function () {
+	    updateLinker();
 	  }).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
 	    updateLinksRemaining(data);
 	  });
