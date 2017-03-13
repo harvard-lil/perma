@@ -313,11 +313,12 @@ export function updateLinksRemaining (links_num) {
 
 function setupEventHandlers () {
   $(window)
-    .off('FolderTreeModule.selectionChange')
-    .off('FolderTreeModule.updateLinksRemaining')
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
       handleSelectionChange(data);
+    })
+    .on('CreateLinkModule.updateLinker', function(){
+      updateLinker();
     })
     .on('FolderTreeModule.updateLinksRemaining', function(evt, data){
       updateLinksRemaining(data)

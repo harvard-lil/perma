@@ -37,7 +37,7 @@ export var ls = {
     var selectedFolders = ls.getAll();
     selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
     Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-    Helpers.triggerOnWindow("FolderTreeModule.selectionChange", selectedFolders[current_user.id]);
+    Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
   }
 };
 
@@ -48,6 +48,7 @@ export function getSavedFolder(){
     return folderIds[folderIds.length - 1];
   return null;
 }
+
 export function getSavedOrg(){
   // Look up the ID of the previously selected folder's org (if any) from localStorage.
   return ls.getCurrent().orgId;
@@ -108,7 +109,7 @@ function sendSelectionChangeEvent (node) {
     data.orgId = node.data.organization_id;
     data.path = folderTree.get_path(node);
   }
-  $(window).trigger("FolderTreeModule.selectionChange", JSON.stringify(data) );
+  Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
 }
 
 function handleShowFoldersEvent(currentFolder, callback){
