@@ -584,7 +584,7 @@ def proxy_capture(capture_job):
 
                 # get all meta tags
                 meta_tags = repeat_while_exception(lambda: browser.find_elements_by_tag_name('meta'),
-                                                   timeout=10)
+                                                   timeout=30)
 
                 # if that retrieves even one meta tag, we need to succeed at parsing
                 # them before we can confidently make a link public
