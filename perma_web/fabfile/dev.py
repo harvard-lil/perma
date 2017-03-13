@@ -16,12 +16,17 @@ def run_django(port="0.0.0.0:8000"):
     """
         Run django test server on open port, so it's accessible outside Vagrant.
     """
-    commands = [
-        # This causes a documented memory leak: commented out for convenience.
-        # Turn on if you need it.
-        # 'celery -A perma worker --loglevel=info -B',
-        'npm start'
-    ]
+    commands = []
+
+    if settings.RUN_TASKS_ASYNC:
+        print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
+              " RUN_TASKS_ASYNC=False is usually easier unless you're specifically testing a Django-Celery interaction.")
+        commands.append('celery -A perma worker --loglevel=info -B')
+
+    # Only run the webpack background process in debug mode -- with debug False, dev server uses static assets,
+    # and running webpack just messes up the webpack stats file.
+    if settings.DEBUG:
+        commands.append('npm start')
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
 
