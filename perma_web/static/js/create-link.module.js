@@ -6,34 +6,13 @@ var Helpers = require('./helpers/general.helpers.js');
 var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
+var FolderTreeModule = require('./folder-tree.module.js');
 
 var newGUID = null;
 var refreshIntervalIds = [];
 var spinner;
 var organizations = {};
-var localStorageKey = Helpers.variables.localStorageKey;
 
-
-export var ls = {
-  getAll: function () {
-    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
-    return folders || {};
-  },
-  getCurrent: function () {
-    var folders = ls.getAll();
-    return folders[current_user.id] || {};
-  },
-  setCurrent: function (orgId, folderId) {
-    folderId = folderId ? folderId : 'default';
-
-    var selectedFolders = ls.getAll();
-    selectedFolders[current_user.id] = {'folderId': folderId, 'orgId': orgId};
-
-    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-    exports.updateLinker();  // call via exports to enable Jasmine spyOn
-    Helpers.triggerOnWindow("dropdown.selectionChange");
-  }
-};
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -247,45 +226,59 @@ export function populateWithUrl () {
   }
 }
 
+// This handles the dropdown menu for selecting a folder, which only appears for
+// org users, registrar users, and admins, and alters related UI elements depending
+// on what has been selected.
 export function updateLinker () {
-  var userSettings = ls.getCurrent();
-  var currentOrg = userSettings.orgId;
+  var currentOrg = FolderTreeModule.getSavedOrg();
   var organizationsExist = Object.keys(organizations).length;
-  if (!userSettings.folderId && organizationsExist) {
+
+  // if user has organizations available but hasn't picked one yet, require them to pick
+  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
     $('#addlink').attr('disabled', 'disabled');
     return;
   }
 
+  // disable button if user is out of links
   if (!currentOrg && links_remaining < 1) {
     $('#addlink').attr('disabled', 'disabled');
   } else {
     $('#addlink').removeAttr('disabled');
   }
 
+  // UI indications that links saved to current org will default to private
   if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
     $('#addlink').text("Create Private Perma Link");
-  } else {
-    $('#addlink').text("Create Perma Link");
-  }
-
-  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
     $('#linker').addClass('_isPrivate');
-    // add the little eye icon if org is private
+    // add the little eye icon to the dropdown
     $('#organization_select_form')
       .find('.dropdown-toggle > span')
       .addClass('ui-private');
   } else {
+    $('#addlink').text("Create Perma Link");
     $('#linker').removeClass('_isPrivate')
+    $('#organization_select_form')
+      .find('.dropdown-toggle > span')
+      .removeClass('ui-private');
   }
 
+  // suggest switching folder if user has orgs and is running out of personal links
   var already_warned = Helpers.getCookie("suppress_link_warning");
   if (already_warned != "true" &&
-      currentOrg == 'None' &&
-      is_org_user == "True" &&
+      !currentOrg &&
+      organizationsExist &&
       links_remaining == 3){
     var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
     Helpers.informUser(message, 'danger');
     Helpers.setCookie("suppress_link_warning", "true", 120);
+  }
+}
+
+function handleSelectionChange (data) {
+  updateLinker();
+
+  if (data && data.path) {
+    updateAffiliationPath(data.orgId, data.path);
   }
 }
 
@@ -317,14 +310,6 @@ export function updateLinksRemaining (links_num) {
   DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
-function handleSelectionChange (data) {
-  updateLinker();
-
-  if (data && data.path) {
-    updateAffiliationPath(data.orgId, data.path);
-  }
-}
-
 
 function setupEventHandlers () {
   $(window)
@@ -343,7 +328,7 @@ function setupEventHandlers () {
     DOMHelpers.toggleBtnDisable('#uploadLinky', true);
     DOMHelpers.toggleBtnDisable('.cancel', true);
     var extraUploadData = {},
-      selectedFolder = ls.getCurrent().folderId;
+      selectedFolder = FolderTreeModule.getSavedFolder();
     if(selectedFolder)
       extraUploadData.folder = selectedFolder;
     spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
@@ -367,7 +352,7 @@ function setupEventHandlers () {
       url: $this.find("input[name=url]").val(),
       human: true
     };
-    var selectedFolder = ls.getCurrent().folderId;
+    var selectedFolder = FolderTreeModule.getSavedFolder();
 
     if(selectedFolder)
       linker_data.folder = selectedFolder;
@@ -428,21 +413,18 @@ export function init () {
           if (organization.default_to_private) {
             opt_text += ' <span class="ui-private">(Private)</span>';
           }
-          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-orgfolderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
+          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-folderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
         });
 
-        $organization_select.append("<li class='personal-links'><a href='#'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+        $organization_select.append("<li class='personal-links'><a href='#' data-folderid='"+current_user.top_level_folders[0].id+"'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         updateLinker();
-      } else {
-        // select My Folder for users with no orgs and no saved selections
-        var selectedFolder = ls.getCurrent().folderId;
-        if (!selectedFolder) { ls.setCurrent(); }
       }
     });
 
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){
-    ls.setCurrent(+$(this).attr('data-orgid'), +$(this).attr('data-orgfolderid'));
+    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+    Helpers.triggerOnWindow("dropdown.selectionChange");
   });
 
   // handle upload form button

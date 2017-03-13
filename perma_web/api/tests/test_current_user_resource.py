@@ -20,6 +20,7 @@ class CurrentUserResourceTestCase(ApiResourceTransactionTestCase):
             'last_name',
             'short_name',
             'full_name',
+            'top_level_folders',
         ]
 
     def test_get_schema_json(self):

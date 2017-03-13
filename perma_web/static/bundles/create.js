@@ -1,20 +1,21 @@
-webpackJsonp([1],[
-/* 0 */
+webpackJsonp([1],{
+
+/***/ 0:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var CreateModule = __webpack_require__(5);
-	var LinkListModule = __webpack_require__(103);
-	var FolderTreeModule = __webpack_require__(107);
+	var LinkListModule = __webpack_require__(5);
+	var FolderTreeModule = __webpack_require__(103);
+	var CreateLinkModule = __webpack_require__(145);
 	
-	CreateModule.init();
-	LinkListModule.init();
 	FolderTreeModule.init();
+	LinkListModule.init();
+	CreateLinkModule.init();
 
 /***/ },
-/* 1 */,
-/* 2 */
+
+/***/ 2:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -81,7 +82,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 3 */
+
+/***/ 3:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -125,7 +127,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 4 */
+
+/***/ 4:
 /***/ function(module, exports, __webpack_require__) {
 
 	/*!
@@ -159,15 +162,15 @@ webpackJsonp([1],[
 	d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},assignToHash:function(a){var b=this.popStack(),c=void 0,d=void 0,e=void 0;this.trackIds&&(e=this.popStack()),this.stringParams&&(d=this.popStack(),c=this.popStack());var f=this.hash;c&&(f.contexts[a]=c),d&&(f.types[a]=d),e&&(f.ids[a]=e),f.values[a]=b},pushId:function(a,b,c){"BlockParam"===a?this.pushStackLiteral("blockParams["+b[0]+"].path["+b[1]+"]"+(c?" + "+JSON.stringify("."+c):"")):"PathExpression"===a?this.pushString(b):"SubExpression"===a?this.pushStackLiteral("true"):this.pushStackLiteral("null")},compiler:e,compileChildren:function(a,b){for(var c=a.children,d=void 0,e=void 0,f=0,g=c.length;g>f;f++){d=c[f],e=new this.compiler;var h=this.matchExistingProgram(d);null==h?(this.context.programs.push(""),h=this.context.programs.length,d.index=h,d.name="program"+h,this.context.programs[h]=e.compile(d,b,this.context,!this.precompile),this.context.decorators[h]=e.decorators,this.context.environments[h]=d,this.useDepths=this.useDepths||e.useDepths,this.useBlockParams=this.useBlockParams||e.useBlockParams):(d.index=h,d.name="program"+h,this.useDepths=this.useDepths||d.useDepths,this.useBlockParams=this.useBlockParams||d.useBlockParams)}},matchExistingProgram:function(a){for(var b=0,c=this.context.environments.length;c>b;b++){var d=this.context.environments[b];if(d&&d.equals(a))return b}},programExpression:function(a){var b=this.environment.children[a],c=[b.index,"data",b.blockParams];return(this.useBlockParams||this.useDepths)&&c.push("blockParams"),this.useDepths&&c.push("depths"),"container.program("+c.join(", ")+")"},useRegister:function(a){this.registers[a]||(this.registers[a]=!0,this.registers.list.push(a))},push:function(a){return a instanceof d||(a=this.source.wrap(a)),this.inlineStack.push(a),a},pushStackLiteral:function(a){this.push(new d(a))},pushSource:function(a){this.pendingContent&&(this.source.push(this.appendToBuffer(this.source.quotedString(this.pendingContent),this.pendingLocation)),this.pendingContent=void 0),a&&this.source.push(a)},replaceStack:function(a){var b=["("],c=void 0,e=void 0,f=void 0;if(!this.isInline())throw new j["default"]("replaceStack on non-inline");var g=this.popStack(!0);if(g instanceof d)c=[g.value],b=["(",c],f=!0;else{e=!0;var h=this.incrStack();b=["((",this.push(h)," = ",g,")"],c=this.topStack()}var i=a.call(this,c);f||this.popStack(),e&&this.stackSlot--,this.push(b.concat(i,")"))},incrStack:function(){return this.stackSlot++,this.stackSlot>this.stackVars.length&&this.stackVars.push("stack"+this.stackSlot),this.topStackName()},topStackName:function(){return"stack"+this.stackSlot},flushInline:function(){var a=this.inlineStack;this.inlineStack=[];for(var b=0,c=a.length;c>b;b++){var e=a[b];if(e instanceof d)this.compileStack.push(e);else{var f=this.incrStack();this.pushSource([f," = ",e,";"]),this.compileStack.push(f)}}},isInline:function(){return this.inlineStack.length},popStack:function(a){var b=this.isInline(),c=(b?this.inlineStack:this.compileStack).pop();if(!a&&c instanceof d)return c.value;if(!b){if(!this.stackSlot)throw new j["default"]("Invalid stack pop");this.stackSlot--}return c},topStack:function(){var a=this.isInline()?this.inlineStack:this.compileStack,b=a[a.length-1];return b instanceof d?b.value:b},contextName:function(a){return this.useDepths&&a?"depths["+a+"]":"depth"+a},quotedString:function(a){return this.source.quotedString(a)},objectLiteral:function(a){return this.source.objectLiteral(a)},aliasable:function(a){var b=this.aliases[a];return b?(b.referenceCount++,b):(b=this.aliases[a]=this.source.wrap(a),b.aliasable=!0,b.referenceCount=1,b)},setupHelper:function(a,b,c){var d=[],e=this.setupHelperArgs(b,a,d,c),f=this.nameLookup("helpers",b,"helper"),g=this.aliasable(this.contextName(0)+" != null ? "+this.contextName(0)+" : {}");return{params:d,paramsInit:e,name:f,callParams:[g].concat(d)}},setupParams:function(a,b,c){var d={},e=[],f=[],g=[],h=!c,i=void 0;h&&(c=[]),d.name=this.quotedString(a),d.hash=this.popStack(),this.trackIds&&(d.hashIds=this.popStack()),this.stringParams&&(d.hashTypes=this.popStack(),d.hashContexts=this.popStack());var j=this.popStack(),k=this.popStack();(k||j)&&(d.fn=k||"container.noop",d.inverse=j||"container.noop");for(var l=b;l--;)i=this.popStack(),c[l]=i,this.trackIds&&(g[l]=this.popStack()),this.stringParams&&(f[l]=this.popStack(),e[l]=this.popStack());return h&&(d.args=this.source.generateArray(c)),this.trackIds&&(d.ids=this.source.generateArray(g)),this.stringParams&&(d.types=this.source.generateArray(f),d.contexts=this.source.generateArray(e)),this.options.data&&(d.data="data"),this.useBlockParams&&(d.blockParams="blockParams"),d},setupHelperArgs:function(a,b,c,d){var e=this.setupParams(a,b,c);return e=this.objectLiteral(e),d?(this.useRegister("options"),c.push("options"),["options=",e]):c?(c.push(e),""):e}},function(){for(var a="break else new var case finally return void catch for switch while continue function this with default if throw delete in try do instanceof typeof abstract enum int short boolean export interface static byte extends long super char final native synchronized class float package throws const goto private transient debugger implements protected volatile double import public let yield await null true false".split(" "),b=e.RESERVED_WORDS={},c=0,d=a.length;d>c;c++)b[a[c]]=!0}(),e.isValidJavaScriptVariableName=function(a){return!e.RESERVED_WORDS[a]&&/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(a)},b["default"]=e,a.exports=b["default"]},function(a,b,c){"use strict";function d(a,b,c){if(f.isArray(a)){for(var d=[],e=0,g=a.length;g>e;e++)d.push(b.wrap(a[e],c));return d}return"boolean"==typeof a||"number"==typeof a?a+"":a}function e(a){this.srcFile=a,this.source=[]}b.__esModule=!0;var f=c(5),g=void 0;try{}catch(h){}g||(g=function(a,b,c,d){this.src="",d&&this.add(d)},g.prototype={add:function(a){f.isArray(a)&&(a=a.join("")),this.src+=a},prepend:function(a){f.isArray(a)&&(a=a.join("")),this.src=a+this.src},toStringWithSourceMap:function(){return{code:this.toString()}},toString:function(){return this.src}}),e.prototype={isEmpty:function(){return!this.source.length},prepend:function(a,b){this.source.unshift(this.wrap(a,b))},push:function(a,b){this.source.push(this.wrap(a,b))},merge:function(){var a=this.empty();return this.each(function(b){a.add(["  ",b,"\n"])}),a},each:function(a){for(var b=0,c=this.source.length;c>b;b++)a(this.source[b])},empty:function(){var a=this.currentLocation||{start:{}};return new g(a.start.line,a.start.column,this.srcFile)},wrap:function(a){var b=arguments.length<=1||void 0===arguments[1]?this.currentLocation||{start:{}}:arguments[1];return a instanceof g?a:(a=d(a,this,b),new g(b.start.line,b.start.column,this.srcFile,a))},functionCall:function(a,b,c){return c=this.generateList(c),this.wrap([a,b?"."+b+"(":"(",c,")"])},quotedString:function(a){return'"'+(a+"").replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g,"\\n").replace(/\r/g,"\\r").replace(/\u2028/g,"\\u2028").replace(/\u2029/g,"\\u2029")+'"'},objectLiteral:function(a){var b=[];for(var c in a)if(a.hasOwnProperty(c)){var e=d(a[c],this);"undefined"!==e&&b.push([this.quotedString(c),":",e])}var f=this.generateList(b);return f.prepend("{"),f.add("}"),f},generateList:function(a){for(var b=this.empty(),c=0,e=a.length;e>c;c++)c&&b.add(","),b.add(d(a[c],this));return b},generateArray:function(a){var b=this.generateList(a);return b.prepend("["),b.add("]"),b}},b["default"]=e,a.exports=b["default"]}])});
 
 /***/ },
-/* 5 */
+
+/***/ 5:
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($, jQuery) {'use strict';
+	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.ls = undefined;
 	
 	var _stringify = __webpack_require__(6);
 	
@@ -177,476 +180,247 @@ webpackJsonp([1],[
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
-	var _keys = __webpack_require__(76);
-	
-	var _keys2 = _interopRequireDefault(_keys);
-	
-	var _getIterator2 = __webpack_require__(80);
-	
-	var _getIterator3 = _interopRequireDefault(_getIterator2);
-	
-	exports.populateWithUrl = populateWithUrl;
-	exports.updateLinker = updateLinker;
-	exports.updateLinksRemaining = updateLinksRemaining;
 	exports.init = init;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var Spinner = __webpack_require__(85);
-	__webpack_require__(86); // add jquery support for ajaxSubmit/ajaxForm
-	__webpack_require__(87); // add .modal to jquery
+	__webpack_require__(76); // add .waypoint to jquery
 	
-	var Helpers = __webpack_require__(88);
 	var DOMHelpers = __webpack_require__(2);
+	var LinkHelpers = __webpack_require__(77);
 	var HandlebarsHelpers = __webpack_require__(3);
-	var APIModule = __webpack_require__(89);
+	var APIModule = __webpack_require__(78);
 	
-	var newGUID = null;
-	var refreshIntervalIds = [];
-	var spinner;
-	var organizations = {};
-	var localStorageKey = Helpers.variables.localStorageKey;
+	var FolderTreeModule = __webpack_require__(103);
 	
-	var ls = exports.ls = {
-	  getAll: function getAll() {
-	    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
-	    return folders || {};
-	  },
-	  getCurrent: function getCurrent() {
-	    var folders = ls.getAll();
-	    return folders[current_user.id] || {};
-	  },
-	  setCurrent: function setCurrent(orgId, folderId) {
-	    folderId = folderId ? folderId : 'default';
+	var linkTable = null;
+	var dragStartPosition = null;
+	var lastRowToggleTime = 0;
+	var selectedFolderID = null;
 	
-	    var selectedFolders = ls.getAll();
-	    selectedFolders[current_user.id] = { 'folderId': folderId, 'orgId': orgId };
-	
-	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-	    exports.updateLinker(); // call via exports to enable Jasmine spyOn
-	    Helpers.triggerOnWindow("dropdown.selectionChange");
-	  }
-	};
-	
-	// Get parameter by name
-	// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-	function getParameterByName(name) {
-	  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-	      results = regex.exec(location.search);
-	  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-	}
-	
-	function linkIt(data) {
-	  // Success message from API. We should have a GUID now (but the
-	  // archive is still be generated)
-	  // Clear any error messages out
-	  DOMHelpers.removeElement('.error-row');
-	
-	  newGUID = data.guid;
-	
-	  refreshIntervalIds.push(setInterval(check_status, 2000));
-	}
-	
-	function linkNot(jqXHR) {
-	  // The API told us something went wrong.
-	
-	  if (jqXHR.status == 401) {
-	    // special handling if user becomes unexpectedly logged out
-	    APIModule.showError(jqXHR);
-	  } else {
-	    var message = "";
-	    if (jqXHR.status == 400 && jqXHR.responseText) {
-	      var errors = JSON.parse(jqXHR.responseText).archives;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-	
-	      try {
-	        for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(errors)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var prop = _step.value;
-	
-	          message += errors[prop] + " ";
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-	    }
-	
-	    var upload_allowed = true;
-	    if (message.indexOf("limit") > -1) {
-	      $('.links-remaining').text('0');
-	      upload_allowed = false;
-	    }
-	
-	    var templateArgs = {
-	      message: message || "Error " + jqXHR.status,
-	      upload_allowed: upload_allowed,
-	      contact_url: contact_url
-	    };
-	
-	    changeTemplate('#error-template', templateArgs, '#error-container');
-	
-	    $('.create-errors').addClass('_active');
-	    $('#error-container').hide().fadeIn(0);
-	  }
-	  toggleCreateAvailable();
-	}
-	
-	/* Handle an upload - start */
-	function uploadNot(jqXHR) {
-	  // Display an error message in our upload modal
-	
-	  // special handling if user becomes unexpectedly logged out
-	  if (jqXHR.status == 401) {
-	    APIModule.showError(jqXHR);
-	    return;
-	  }
-	  var reasons = [],
-	      response;
-	
-	  try {
-	    response = jQuery.parseJSON(jqXHR.responseText);
-	  } catch (e) {
-	    response = jqXHR.responseText;
-	  }
-	
-	  DOMHelpers.hideElement('.spinner');
-	
-	  $('.js-warning').remove();
-	  $('.has-error').removeClass('has-error');
-	  if (response.archives) {
-	    // If error message comes in as {archive:{file:"message",url:"message"}},
-	    // show appropriate error message next to each field.
-	    for (var key in response.archives) {
-	      if (response.archives.hasOwnProperty(key)) {
-	        var input = $('#' + key);
-	        if (input.length) {
-	          input.after('<span class="help-block js-warning">' + response.archives[key] + '</span>');
-	          input.closest('div').addClass('has-error');
-	        } else {
-	          reasons.push(response.archives[key]);
-	        }
-	      }
-	    }
-	  } else if (response.reason) {
-	    reasons.push(response.reason);
-	  } else {
-	    reasons.push(response);
-	  }
-	
-	  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
-	  DOMHelpers.toggleBtnDisable('#uploadLinky', false);
-	  DOMHelpers.toggleBtnDisable('.cancel', false);
-	}
-	
-	function uploadIt(data) {
-	  // If a user wants to upload their own screen capture, we display
-	  // a modal and the form in that modal is handled here
-	  $('#archive-upload').modal('hide');
-	
-	  window.location.href = '/' + data.guid;
-	}
-	
-	function upload_form() {
-	  $('#upload-error').text('');
-	  $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
-	  $('#archive-upload').modal('show');
-	  return false;
-	}
-	
-	/* Handle the the main action (enter url, hit the button) button - start */
-	
-	function toggleCreateAvailable() {
-	  // Get our spinner going and display a "we're working" message
-	  var $addlink = $('#addlink');
-	  if ($addlink.hasClass('_isWorking')) {
-	    $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-	    spinner.stop();
-	    $('#rawUrl, #organization_select_form button').removeAttr('disabled');
-	    $('#links-remaining-message').removeClass('_isWorking');
-	  } else {
-	    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
-	    // spinner opts -- see http://spin.js.org/
-	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
-	    spinner.spin($addlink[0]);
-	    $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
-	    $('#links-remaining-message').addClass('_isWorking');
-	  }
-	}
-	
-	/* The plan is to set a timer to periodically check if the thumbnail
-	 exists. Once it does, we append it to the page and clear the
-	 thumbnail. The reason we're keeping a list of interval IDs rather
-	 than just one is as a hacky solution to the problem of a user
-	 creating a Perma link for some URL and then immediately clicking
-	 the button again for the same URL. Since all these requests are
-	 done with AJAX, that results in two different interval IDs getting
-	 created. Both requests will end up completing but the old interval
-	 ID will be overwritten and never cleared, causing a bunch of copies
-	 of the screenshot to get appended to the page. We thus just append
-	 them to the list and then clear the whole list once the request
-	 succeeds. */
-	
-	function check_status() {
-	
-	  // Check our status service to see if we have archiving jobs pending
-	  var request = APIModule.request("GET", "/user/capture_jobs/" + newGUID + "/");
-	  request.done(function (data) {
-	    // While status is pending or in progress, update progress display
-	    if (data.status == "pending") {
-	      // todo -- could display data.queue_position here
-	
-	    } else if (data.status == "in_progress") {
-	
-	      // add progress bar if doesn't exist
-	      if (!$('#capture-progress-bar').length) {
-	        $('#addlink').append('<div style="position: relative; width: 100%; height: 0">' + '  <div id="capture-progress-bar" class="progress" style="width: 100%; height: 0.3em; position:absolute; margin-bottom: 0">' + '    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0; background-color: #2D76EE">' + '      <span class="sr-only">0% Complete</span>' + '    </div>' + '  </div>' + '</div>');
-	      }
-	
-	      // update progress
-	      var progress = data.step_count / 5 * 100;
-	      $('#capture-progress-bar .progress-bar').attr('aria-valuenow', progress).css('width', progress + '%').find('span').text(progress + '% Complete');
-	    } else {
-	
-	      // Capture is done (one way or another) -- clear out our pending jobs
-	      $.each(refreshIntervalIds, function (ndx, id) {
-	        clearInterval(id);
-	      });
-	
-	      // If we succeeded, forward to the new archive
-	      if (data.status == "completed") {
-	        window.location.href = "/" + newGUID;
-	
-	        // Else show failure message and reset form.
-	      } else {
-	        var templateArgs = { message: "Error: URL capture failed." };
-	        changeTemplate('#error-template', templateArgs, '#error-container');
-	
-	        $('#error-container').removeClass('_hide _success _wait').addClass('_error');
-	
-	        // Toggle our create button
-	        toggleCreateAvailable();
-	      }
-	    }
-	  });
-	}
-	
-	/* Our polling function for the thumbnail completion - end */
-	function populateWithUrl() {
-	  var url = Helpers.getWindowLocationSearch().split("url=")[1];
-	  if (url) {
-	    url = decodeURIComponent(url);
-	    DOMHelpers.setInputValue("#rawUrl", url);
-	    return url;
-	  }
-	}
-	
-	function updateLinker() {
-	  var userSettings = ls.getCurrent();
-	  var currentOrg = userSettings.orgId;
-	  var organizationsExist = (0, _keys2.default)(organizations).length;
-	  if (!userSettings.folderId && organizationsExist) {
-	    $('#addlink').attr('disabled', 'disabled');
-	    return;
-	  }
-	
-	  if (!currentOrg && links_remaining < 1) {
-	    $('#addlink').attr('disabled', 'disabled');
-	  } else {
-	    $('#addlink').removeAttr('disabled');
-	  }
-	
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-	    $('#addlink').text("Create Private Perma Link");
-	  } else {
-	    $('#addlink').text("Create Perma Link");
-	  }
-	
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-	    $('#linker').addClass('_isPrivate');
-	    // add the little eye icon if org is private
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
-	  } else {
-	    $('#linker').removeClass('_isPrivate');
-	  }
-	
-	  var already_warned = Helpers.getCookie("suppress_link_warning");
-	  if (already_warned != "true" && currentOrg == 'None' && is_org_user == "True" && links_remaining == 3) {
-	    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders.";
-	    Helpers.informUser(message, 'danger');
-	    Helpers.setCookie("suppress_link_warning", "true", 120);
-	  }
-	}
-	
-	function updateAffiliationPath(currentOrg, path) {
-	
-	  var stringPath = path.join(" &gt; ");
-	  stringPath += "<span></span>";
-	
-	  $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
-	
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
-	  }
-	
-	  if (!currentOrg || currentOrg === "None") {
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('links-remaining').text(links_remaining);
-	  }
-	}
-	
-	function updateLinksRemaining(links_num) {
-	  links_remaining = links_num;
-	  DOMHelpers.changeText('.links-remaining', links_remaining);
-	}
-	
-	function handleSelectionChange(data) {
-	  updateLinker();
-	
-	  if (data && data.path) {
-	    updateAffiliationPath(data.orgId, data.path);
-	  }
+	function init() {
+	  linkTable = $('.item-rows');
+	  setupEventHandlers();
+	  setupLinksTableEventHandlers();
 	}
 	
 	function setupEventHandlers() {
-	  $(window).off('FolderTreeModule.selectionChange').off('FolderTreeModule.updateLinksRemaining').on('FolderTreeModule.selectionChange', function (evt, data) {
+	  $(window).on("FolderTreeModule.selectionChange", function (evt, data) {
 	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
-	    handleSelectionChange(data);
-	  }).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
-	    updateLinksRemaining(data);
+	    selectedFolderID = data.folderId;
+	    showFolderContents(data.folderId);
 	  });
-	
-	  // When a user uploads their own capture
-	  $(document).on('submit', '#archive_upload_form', function () {
-	    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
-	    DOMHelpers.toggleBtnDisable('.cancel', true);
-	    var extraUploadData = {},
-	        selectedFolder = ls.getCurrent().folderId;
-	    if (selectedFolder) extraUploadData.folder = selectedFolder;
-	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
-	    spinner.spin(this);
-	    $(this).ajaxSubmit({
-	      data: extraUploadData,
-	      success: uploadIt,
-	      error: uploadNot
-	    });
-	    return false;
-	  });
-	
-	  // Toggle users dropdown
-	  $('#dashboard-users').click(function () {
-	    $('.users-secondary').toggle();
-	  });
-	
-	  // When a new url is entered into our form
-	  $('#linker').submit(function () {
-	    var $this = $(this);
-	    var linker_data = {
-	      url: $this.find("input[name=url]").val(),
-	      human: true
-	    };
-	    var selectedFolder = ls.getCurrent().folderId;
-	
-	    if (selectedFolder) linker_data.folder = selectedFolder;
-	
-	    // Start our spinner and disable our input field with just a tiny delay
-	    window.setTimeout(toggleCreateAvailable, 150);
-	
-	    $.ajax($this.attr('action'), {
-	      method: $this.attr('method'),
-	      contentType: 'application/json',
-	      data: (0, _stringify2.default)(linker_data),
-	      success: linkIt,
-	      error: linkNot
-	    });
-	
-	    return false;
-	  });
-	}
-	
-	/* templateContainer: DOM selector, where the newly rendered template will live */
-	function changeTemplate(template, args, templateContainer) {
-	  var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args);
-	  DOMHelpers.changeHTML(templateContainer, renderedTemplate);
-	}
-	
-	function init() {
-	  // Dismiss browser tools message
-	  $('.close-browser-tools').click(function () {
-	    $('#browser-tools-message').hide();
-	    Helpers.setCookie("suppress_reminder", "true", 120);
-	  });
-	
-	  var $organization_select = $("#organization_select");
-	
-	  // populate organization dropdown
-	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).success(function (data) {
-	
-	    var sorted = [];
-	    (0, _keys2.default)(data.objects).sort(function (a, b) {
-	      return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
-	    }).forEach(function (key) {
-	      sorted.push(data.objects[key]);
-	    });
-	    data.objects = sorted;
-	
-	    if (data.objects.length > 0) {
-	      var optgroup = data.objects[0].registrar;
-	      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-	      data.objects.map(function (organization) {
-	        organizations[organization.id] = organization;
-	
-	        if (organization.registrar !== optgroup) {
-	          optgroup = organization.registrar;
-	          $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-	        }
-	        var opt_text = organization.name;
-	        if (organization.default_to_private) {
-	          opt_text += ' <span class="ui-private">(Private)</span>';
-	        }
-	        $organization_select.append("<li><a href='#' data-orgid='" + organization.id + "' data-orgfolderid='" + organization.shared_folder.id + "'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
-	      });
-	
-	      $organization_select.append("<li class='personal-links'><a href='#'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
-	      updateLinker();
-	    } else {
-	      // select My Folder for users with no orgs and no saved selections
-	      var selectedFolder = ls.getCurrent().folderId;
-	      if (!selectedFolder) {
-	        ls.setCurrent();
-	      }
+	  // search form
+	  $('.search-query-form').on('submit', function (e) {
+	    e.preventDefault();
+	    var query = DOMHelpers.getValue('.search-query');
+	    if (query && query.trim()) {
+	      showFolderContents(selectedFolderID, query);
 	    }
 	  });
-	
-	  // handle dropdown changes
-	  $organization_select.on('click', 'a', function () {
-	    ls.setCurrent(+$(this).attr('data-orgid'), +$(this).attr('data-orgfolderid'));
-	  });
-	
-	  // handle upload form button
-	  $(document.body).on('click', '#upload-form-button', upload_form);
-	
-	  setupEventHandlers();
-	  populateWithUrl();
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
+	
+	function getLinkIDForFormElement(element) {
+	  return element.closest('.item-container').find('.item-row').data('link_id');
+	}
+	
+	function setupLinksTableEventHandlers() {
+	  linkTable.on('click', 'a.clear-search', function (e) {
+	    e.preventDefault();
+	    showFolderContents(selectedFolderID);
+	  }).on('mousedown touchstart', '.item-row', function (e) {
+	    handleMouseDown(e);
+	  })
+	
+	  // .item-row mouseup -- hide and show link details, if not dragging
+	  .on('mouseup touchend', '.item-row', function (e) {
+	    handleMouseUp(e);
+	  })
+	
+	  // save changes to notes field
+	  .on('input propertychange change', '.link-notes', function () {
+	    var textarea = $(this);
+	    var guid = getLinkIDForFormElement(textarea);
+	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
+	  })
+	
+	  // save changes to title field
+	  .on('input', '.link-title', function () {
+	    var textarea = $(this);
+	    var guid = getLinkIDForFormElement(textarea);
+	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
+	      // update display title when saved
+	      textarea.closest('.item-container').find('.item-title span').text(data.title);
+	    });
+	  }).on('input', '.link-description', function () {
+	    var textarea = $(this);
+	    var guid = getLinkIDForFormElement(textarea);
+	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description');
+	  })
+	
+	  // handle move-to-folder dropdown
+	  .on('change', '.move-to-folder', function () {
+	    var moveSelect = $(this);
+	    var data = (0, _stringify2.default)({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) });
+	    $(window).trigger("LinksListModule.moveLink", data);
+	  });
+	}
+	
+	// *** actions ***
+	
+	var showLoadingMessage = false;
+	function initShowFolderDOM(query) {
+	  if (!query || !query.trim()) {
+	    // clear query after user clicks a folder
+	    DOMHelpers.setInputValue('.search-query', '');
+	  }
+	
+	  // if fetching folder contents takes more than 500ms, show a loading message
+	  showLoadingMessage = true;
+	  setTimeout(function () {
+	    if (showLoadingMessage) {
+	      DOMHelpers.emptyElement(linkTable);
+	      DOMHelpers.changeHTML(linkTable, '<div class="alert-info">Loading folder contents...</div>');
+	    }
+	  }, 500);
+	}
+	
+	function generateLinkFields(query, link) {
+	  return LinkHelpers.generateLinkFields(link, query);
+	};
+	
+	function showFolderContents(folderID, query) {
+	  initShowFolderDOM(query);
+	
+	  var requestCount = 20,
+	      requestData = { limit: requestCount, offset: 0 },
+	      endpoint;
+	
+	  if (query) {
+	    requestData.q = query;
+	    endpoint = '/archives/';
+	  } else {
+	    endpoint = '/folders/' + folderID + '/archives/';
+	  }
+	  // Content fetcher.
+	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
+	  function getNextContents() {
+	    APIModule.request("GET", endpoint, requestData).success(function (response) {
+	      showLoadingMessage = false;
+	      var links = response.objects.map(generateLinkFields.bind(this, query));
+	
+	      // append HTML
+	      if (requestData.offset === 0) {
+	        // first run -- initialize folder
+	        DOMHelpers.emptyElement(linkTable);
+	      } else {
+	        // subsequent run -- appending to folder
+	        var linksLoadingMore = linkTable.find('.links-loading-more');
+	        DOMHelpers.removeElement(linksLoadingMore);
+	        if (!links.length) return;
+	      }
+	
+	      displayLinks(links, query);
+	
+	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
+	      // Set a waypoint event to trigger when the last link comes into view.
+	      if (links.length == requestCount) {
+	        requestData.offset += requestCount;
+	        linkTable.find('.item-container:last').waypoint(function (direction) {
+	          this.destroy(); // cancel waypoint
+	          linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+	          getNextContents();
+	        }, {
+	          offset: '100%' // trigger waypoint when element hits bottom of window
+	        });
+	      }
+	    });
+	  }
+	  getNextContents();
+	}
+	
+	function displayLinks(links, query) {
+	  var templateId = '#created-link-items-template';
+	  var templateArgs = { links: links, query: query };
+	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+	  linkTable.append(template);
+	}
+	
+	function handleMouseDown(e) {
+	  if ($(e.target).hasClass('no-drag')) return;
+	
+	  $.vakata.dnd.start(e, {
+	    jstree: true,
+	    obj: $(e.currentTarget),
+	    nodes: [{ id: $(e.currentTarget).data('link_id') }]
+	  }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
+	
+	  // record drag start position so we can check how far we were dragged on mouseup
+	  dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
+	}
+	
+	function handleMouseUp(e) {
+	  // prevent JSTree's tap-to-drag behavior
+	  $.vakata.dnd.stop(e);
+	
+	  // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
+	  if (dragStartPosition && Math.sqrt(Math.pow(e.pageX - dragStartPosition[0], 2) * Math.pow(e.pageY - dragStartPosition[1], 2)) > 5) return;
+	
+	  // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
+	  if (new Date().getTime() - lastRowToggleTime < 500) return;
+	  lastRowToggleTime = new Date().getTime();
+	
+	  // hide/show link details
+	  var linkContainer = $(e.target).closest('.item-container'),
+	      details = linkContainer.find('.item-details');
+	
+	  if (details.is(':visible')) {
+	    details.hide();
+	    linkContainer.toggleClass('_active');
+	  } else {
+	    var currentFolderID, moveSelect;
+	
+	    (function () {
+	
+	      // recursively populate select ...
+	      var addChildren = function addChildren(node, depth) {
+	        for (var i = 0; i < node.children.length; i++) {
+	          var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
+	
+	          // For each node, we create an <option> using text() for the folder name,
+	          // and then prepend some &nbsp; to show the tree structure using html().
+	          // Using html for the whole thing would be an XSS risk.
+	          moveSelect.append($("<option/>", {
+	            value: childNode.data.folder_id,
+	            text: childNode.text.trim(),
+	            selected: childNode.data.folder_id == currentFolderID
+	          }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
+	
+	          // recurse
+	          if (childNode.children && childNode.children.length) addChildren(childNode, depth + 1);
+	        }
+	      };
+	
+	      // when showing link details, update the move-to-folder select input
+	      // based on the current folderTree structure
+	
+	      // first clear the select ...
+	      currentFolderID = selectedFolderID;
+	      moveSelect = details.find('.move-to-folder');
+	
+	      moveSelect.find('option').remove();
+	      addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+	
+	      details.show();
+	      linkContainer.toggleClass('_active');
+	    })();
+	  }
+	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */
+
+/***/ 9:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -672,13 +446,15 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 10 */
+
+/***/ 10:
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(11), __esModule: true };
 
 /***/ },
-/* 11 */
+
+/***/ 11:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(12);
@@ -686,66 +462,22 @@ webpackJsonp([1],[
 	module.exports = __webpack_require__(59).f('iterator');
 
 /***/ },
-/* 12 */,
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */,
-/* 18 */,
-/* 19 */,
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */,
-/* 24 */,
-/* 25 */,
-/* 26 */,
-/* 27 */,
-/* 28 */,
-/* 29 */,
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */,
-/* 34 */,
-/* 35 */,
-/* 36 */,
-/* 37 */,
-/* 38 */,
-/* 39 */,
-/* 40 */,
-/* 41 */,
-/* 42 */,
-/* 43 */,
-/* 44 */,
-/* 45 */,
-/* 46 */,
-/* 47 */,
-/* 48 */,
-/* 49 */,
-/* 50 */,
-/* 51 */,
-/* 52 */,
-/* 53 */,
-/* 54 */,
-/* 55 */,
-/* 56 */,
-/* 57 */,
-/* 58 */,
-/* 59 */
+
+/***/ 59:
 /***/ function(module, exports, __webpack_require__) {
 
 	exports.f = __webpack_require__(52);
 
 /***/ },
-/* 60 */
+
+/***/ 60:
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(61), __esModule: true };
 
 /***/ },
-/* 61 */
+
+/***/ 61:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(62);
@@ -755,7 +487,8 @@ webpackJsonp([1],[
 	module.exports = __webpack_require__(8).Symbol;
 
 /***/ },
-/* 62 */
+
+/***/ 62:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -995,7 +728,8 @@ webpackJsonp([1],[
 	setToStringTag(global.JSON, 'JSON', true);
 
 /***/ },
-/* 63 */
+
+/***/ 63:
 /***/ function(module, exports, __webpack_require__) {
 
 	var META     = __webpack_require__(48)('meta')
@@ -1053,7 +787,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 64 */
+
+/***/ 64:
 /***/ function(module, exports, __webpack_require__) {
 
 	var global         = __webpack_require__(19)
@@ -1067,7 +802,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 65 */
+
+/***/ 65:
 /***/ function(module, exports, __webpack_require__) {
 
 	var getKeys   = __webpack_require__(38)
@@ -1082,7 +818,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 66 */
+
+/***/ 66:
 /***/ function(module, exports, __webpack_require__) {
 
 	// all enumerable object keys, includes symbols
@@ -1102,29 +839,25 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 67 */
+
+/***/ 67:
 /***/ function(module, exports) {
 
 	exports.f = Object.getOwnPropertySymbols;
 
 /***/ },
-/* 68 */
+
+/***/ 68:
 /***/ function(module, exports) {
 
 	exports.f = {}.propertyIsEnumerable;
 
 /***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
 
-	// 7.2.2 IsArray(argument)
-	var cof = __webpack_require__(42);
-	module.exports = Array.isArray || function isArray(arg){
-	  return cof(arg) == 'Array';
-	};
+/***/ 69:
+[329, 42],
 
-/***/ },
-/* 70 */
+/***/ 70:
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
@@ -1149,7 +882,8 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 71 */
+
+/***/ 71:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
@@ -1161,7 +895,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 72 */
+
+/***/ 72:
 /***/ function(module, exports, __webpack_require__) {
 
 	var pIE            = __webpack_require__(68)
@@ -1182,2392 +917,29 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 73 */
+
+/***/ 73:
 /***/ function(module, exports) {
 
 
 
 /***/ },
-/* 74 */
+
+/***/ 74:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(64)('asyncIterator');
 
 /***/ },
-/* 75 */
+
+/***/ 75:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(64)('observable');
 
 /***/ },
-/* 76 */,
-/* 77 */,
-/* 78 */,
-/* 79 */,
-/* 80 */,
-/* 81 */,
-/* 82 */,
-/* 83 */,
-/* 84 */,
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
-	 * Copyright (c) 2011-2014 Felix Gnass
-	 * Licensed under the MIT license
-	 * http://spin.js.org/
-	 *
-	 * Example:
-	    var opts = {
-	      lines: 12             // The number of lines to draw
-	    , length: 7             // The length of each line
-	    , width: 5              // The line thickness
-	    , radius: 10            // The radius of the inner circle
-	    , scale: 1.0            // Scales overall size of the spinner
-	    , corners: 1            // Roundness (0..1)
-	    , color: '#000'         // #rgb or #rrggbb
-	    , opacity: 1/4          // Opacity of the lines
-	    , rotate: 0             // Rotation offset
-	    , direction: 1          // 1: clockwise, -1: counterclockwise
-	    , speed: 1              // Rounds per second
-	    , trail: 100            // Afterglow percentage
-	    , fps: 20               // Frames per second when using setTimeout()
-	    , zIndex: 2e9           // Use a high z-index by default
-	    , className: 'spinner'  // CSS class to assign to the element
-	    , top: '50%'            // center vertically
-	    , left: '50%'           // center horizontally
-	    , shadow: false         // Whether to render a shadow
-	    , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
-	    , position: 'absolute'  // Element positioning
-	    }
-	    var target = document.getElementById('foo')
-	    var spinner = new Spinner(opts).spin(target)
-	 */
-	;(function (root, factory) {
-	
-	  /* CommonJS */
-	  if (typeof module == 'object' && module.exports) module.exports = factory()
-	
-	  /* AMD module */
-	  else if (true) !(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-	
-	  /* Browser global */
-	  else root.Spinner = factory()
-	}(this, function () {
-	  "use strict"
-	
-	  var prefixes = ['webkit', 'Moz', 'ms', 'O'] /* Vendor prefixes */
-	    , animations = {} /* Animation rules keyed by their name */
-	    , useCssAnimations /* Whether to use CSS animations or setTimeout */
-	    , sheet /* A stylesheet to hold the @keyframe or VML rules. */
-	
-	  /**
-	   * Utility function to create elements. If no tag name is given,
-	   * a DIV is created. Optionally properties can be passed.
-	   */
-	  function createEl (tag, prop) {
-	    var el = document.createElement(tag || 'div')
-	      , n
-	
-	    for (n in prop) el[n] = prop[n]
-	    return el
-	  }
-	
-	  /**
-	   * Appends children and returns the parent.
-	   */
-	  function ins (parent /* child1, child2, ...*/) {
-	    for (var i = 1, n = arguments.length; i < n; i++) {
-	      parent.appendChild(arguments[i])
-	    }
-	
-	    return parent
-	  }
-	
-	  /**
-	   * Creates an opacity keyframe animation rule and returns its name.
-	   * Since most mobile Webkits have timing issues with animation-delay,
-	   * we create separate rules for each line/segment.
-	   */
-	  function addAnimation (alpha, trail, i, lines) {
-	    var name = ['opacity', trail, ~~(alpha * 100), i, lines].join('-')
-	      , start = 0.01 + i/lines * 100
-	      , z = Math.max(1 - (1-alpha) / trail * (100-start), alpha)
-	      , prefix = useCssAnimations.substring(0, useCssAnimations.indexOf('Animation')).toLowerCase()
-	      , pre = prefix && '-' + prefix + '-' || ''
-	
-	    if (!animations[name]) {
-	      sheet.insertRule(
-	        '@' + pre + 'keyframes ' + name + '{' +
-	        '0%{opacity:' + z + '}' +
-	        start + '%{opacity:' + alpha + '}' +
-	        (start+0.01) + '%{opacity:1}' +
-	        (start+trail) % 100 + '%{opacity:' + alpha + '}' +
-	        '100%{opacity:' + z + '}' +
-	        '}', sheet.cssRules.length)
-	
-	      animations[name] = 1
-	    }
-	
-	    return name
-	  }
-	
-	  /**
-	   * Tries various vendor prefixes and returns the first supported property.
-	   */
-	  function vendor (el, prop) {
-	    var s = el.style
-	      , pp
-	      , i
-	
-	    prop = prop.charAt(0).toUpperCase() + prop.slice(1)
-	    if (s[prop] !== undefined) return prop
-	    for (i = 0; i < prefixes.length; i++) {
-	      pp = prefixes[i]+prop
-	      if (s[pp] !== undefined) return pp
-	    }
-	  }
-	
-	  /**
-	   * Sets multiple style properties at once.
-	   */
-	  function css (el, prop) {
-	    for (var n in prop) {
-	      el.style[vendor(el, n) || n] = prop[n]
-	    }
-	
-	    return el
-	  }
-	
-	  /**
-	   * Fills in default values.
-	   */
-	  function merge (obj) {
-	    for (var i = 1; i < arguments.length; i++) {
-	      var def = arguments[i]
-	      for (var n in def) {
-	        if (obj[n] === undefined) obj[n] = def[n]
-	      }
-	    }
-	    return obj
-	  }
-	
-	  /**
-	   * Returns the line color from the given string or array.
-	   */
-	  function getColor (color, idx) {
-	    return typeof color == 'string' ? color : color[idx % color.length]
-	  }
-	
-	  // Built-in defaults
-	
-	  var defaults = {
-	    lines: 12             // The number of lines to draw
-	  , length: 7             // The length of each line
-	  , width: 5              // The line thickness
-	  , radius: 10            // The radius of the inner circle
-	  , scale: 1.0            // Scales overall size of the spinner
-	  , corners: 1            // Roundness (0..1)
-	  , color: '#000'         // #rgb or #rrggbb
-	  , opacity: 1/4          // Opacity of the lines
-	  , rotate: 0             // Rotation offset
-	  , direction: 1          // 1: clockwise, -1: counterclockwise
-	  , speed: 1              // Rounds per second
-	  , trail: 100            // Afterglow percentage
-	  , fps: 20               // Frames per second when using setTimeout()
-	  , zIndex: 2e9           // Use a high z-index by default
-	  , className: 'spinner'  // CSS class to assign to the element
-	  , top: '50%'            // center vertically
-	  , left: '50%'           // center horizontally
-	  , shadow: false         // Whether to render a shadow
-	  , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
-	  , position: 'absolute'  // Element positioning
-	  }
-	
-	  /** The constructor */
-	  function Spinner (o) {
-	    this.opts = merge(o || {}, Spinner.defaults, defaults)
-	  }
-	
-	  // Global defaults that override the built-ins:
-	  Spinner.defaults = {}
-	
-	  merge(Spinner.prototype, {
-	    /**
-	     * Adds the spinner to the given target element. If this instance is already
-	     * spinning, it is automatically removed from its previous target b calling
-	     * stop() internally.
-	     */
-	    spin: function (target) {
-	      this.stop()
-	
-	      var self = this
-	        , o = self.opts
-	        , el = self.el = createEl(null, {className: o.className})
-	
-	      css(el, {
-	        position: o.position
-	      , width: 0
-	      , zIndex: o.zIndex
-	      , left: o.left
-	      , top: o.top
-	      })
-	
-	      if (target) {
-	        target.insertBefore(el, target.firstChild || null)
-	      }
-	
-	      el.setAttribute('role', 'progressbar')
-	      self.lines(el, self.opts)
-	
-	      if (!useCssAnimations) {
-	        // No CSS animation support, use setTimeout() instead
-	        var i = 0
-	          , start = (o.lines - 1) * (1 - o.direction) / 2
-	          , alpha
-	          , fps = o.fps
-	          , f = fps / o.speed
-	          , ostep = (1 - o.opacity) / (f * o.trail / 100)
-	          , astep = f / o.lines
-	
-	        ;(function anim () {
-	          i++
-	          for (var j = 0; j < o.lines; j++) {
-	            alpha = Math.max(1 - (i + (o.lines - j) * astep) % f * ostep, o.opacity)
-	
-	            self.opacity(el, j * o.direction + start, alpha, o)
-	          }
-	          self.timeout = self.el && setTimeout(anim, ~~(1000 / fps))
-	        })()
-	      }
-	      return self
-	    }
-	
-	    /**
-	     * Stops and removes the Spinner.
-	     */
-	  , stop: function () {
-	      var el = this.el
-	      if (el) {
-	        clearTimeout(this.timeout)
-	        if (el.parentNode) el.parentNode.removeChild(el)
-	        this.el = undefined
-	      }
-	      return this
-	    }
-	
-	    /**
-	     * Internal method that draws the individual lines. Will be overwritten
-	     * in VML fallback mode below.
-	     */
-	  , lines: function (el, o) {
-	      var i = 0
-	        , start = (o.lines - 1) * (1 - o.direction) / 2
-	        , seg
-	
-	      function fill (color, shadow) {
-	        return css(createEl(), {
-	          position: 'absolute'
-	        , width: o.scale * (o.length + o.width) + 'px'
-	        , height: o.scale * o.width + 'px'
-	        , background: color
-	        , boxShadow: shadow
-	        , transformOrigin: 'left'
-	        , transform: 'rotate(' + ~~(360/o.lines*i + o.rotate) + 'deg) translate(' + o.scale*o.radius + 'px' + ',0)'
-	        , borderRadius: (o.corners * o.scale * o.width >> 1) + 'px'
-	        })
-	      }
-	
-	      for (; i < o.lines; i++) {
-	        seg = css(createEl(), {
-	          position: 'absolute'
-	        , top: 1 + ~(o.scale * o.width / 2) + 'px'
-	        , transform: o.hwaccel ? 'translate3d(0,0,0)' : ''
-	        , opacity: o.opacity
-	        , animation: useCssAnimations && addAnimation(o.opacity, o.trail, start + i * o.direction, o.lines) + ' ' + 1 / o.speed + 's linear infinite'
-	        })
-	
-	        if (o.shadow) ins(seg, css(fill('#000', '0 0 4px #000'), {top: '2px'}))
-	        ins(el, ins(seg, fill(getColor(o.color, i), '0 0 1px rgba(0,0,0,.1)')))
-	      }
-	      return el
-	    }
-	
-	    /**
-	     * Internal method that adjusts the opacity of a single line.
-	     * Will be overwritten in VML fallback mode below.
-	     */
-	  , opacity: function (el, i, val) {
-	      if (i < el.childNodes.length) el.childNodes[i].style.opacity = val
-	    }
-	
-	  })
-	
-	
-	  function initVML () {
-	
-	    /* Utility function to create a VML tag */
-	    function vml (tag, attr) {
-	      return createEl('<' + tag + ' xmlns="urn:schemas-microsoft.com:vml" class="spin-vml">', attr)
-	    }
-	
-	    // No CSS transforms but VML support, add a CSS rule for VML elements:
-	    sheet.addRule('.spin-vml', 'behavior:url(#default#VML)')
-	
-	    Spinner.prototype.lines = function (el, o) {
-	      var r = o.scale * (o.length + o.width)
-	        , s = o.scale * 2 * r
-	
-	      function grp () {
-	        return css(
-	          vml('group', {
-	            coordsize: s + ' ' + s
-	          , coordorigin: -r + ' ' + -r
-	          })
-	        , { width: s, height: s }
-	        )
-	      }
-	
-	      var margin = -(o.width + o.length) * o.scale * 2 + 'px'
-	        , g = css(grp(), {position: 'absolute', top: margin, left: margin})
-	        , i
-	
-	      function seg (i, dx, filter) {
-	        ins(
-	          g
-	        , ins(
-	            css(grp(), {rotation: 360 / o.lines * i + 'deg', left: ~~dx})
-	          , ins(
-	              css(
-	                vml('roundrect', {arcsize: o.corners})
-	              , { width: r
-	                , height: o.scale * o.width
-	                , left: o.scale * o.radius
-	                , top: -o.scale * o.width >> 1
-	                , filter: filter
-	                }
-	              )
-	            , vml('fill', {color: getColor(o.color, i), opacity: o.opacity})
-	            , vml('stroke', {opacity: 0}) // transparent stroke to fix color bleeding upon opacity change
-	            )
-	          )
-	        )
-	      }
-	
-	      if (o.shadow)
-	        for (i = 1; i <= o.lines; i++) {
-	          seg(i, -2, 'progid:DXImageTransform.Microsoft.Blur(pixelradius=2,makeshadow=1,shadowopacity=.3)')
-	        }
-	
-	      for (i = 1; i <= o.lines; i++) seg(i)
-	      return ins(el, g)
-	    }
-	
-	    Spinner.prototype.opacity = function (el, i, val, o) {
-	      var c = el.firstChild
-	      o = o.shadow && o.lines || 0
-	      if (c && i + o < c.childNodes.length) {
-	        c = c.childNodes[i + o]; c = c && c.firstChild; c = c && c.firstChild
-	        if (c) c.opacity = val
-	      }
-	    }
-	  }
-	
-	  if (typeof document !== 'undefined') {
-	    sheet = (function () {
-	      var el = createEl('style', {type : 'text/css'})
-	      ins(document.getElementsByTagName('head')[0], el)
-	      return el.sheet || el.styleSheet
-	    }())
-	
-	    var probe = css(createEl('group'), {behavior: 'url(#default#VML)'})
-	
-	    if (!vendor(probe, 'transform') && probe.adj) initVML()
-	    else useCssAnimations = vendor(probe, 'animation')
-	  }
-	
-	  return Spinner
-	
-	}));
-
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery Form Plugin
-	 * version: 3.50.0-2014.02.05
-	 * Requires jQuery v1.5 or later
-	 * Copyright (c) 2013 M. Alsup
-	 * Examples and documentation at: http://malsup.com/jquery/form/
-	 * Project repository: https://github.com/malsup/form
-	 * Dual licensed under the MIT and GPL licenses.
-	 * https://github.com/malsup/form#copyright-and-license
-	 */
-	/*global ActiveXObject */
-	
-	// AMD support
-	(function (factory) {
-	    "use strict";
-	    if (true) {
-	        // using AMD; register as anon module
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else {
-	        // no AMD; invoke directly
-	        factory( (typeof(jQuery) != 'undefined') ? jQuery : window.Zepto );
-	    }
-	}
-	
-	(function($) {
-	"use strict";
-	
-	/*
-	    Usage Note:
-	    -----------
-	    Do not use both ajaxSubmit and ajaxForm on the same form.  These
-	    functions are mutually exclusive.  Use ajaxSubmit if you want
-	    to bind your own submit handler to the form.  For example,
-	
-	    $(document).ready(function() {
-	        $('#myForm').on('submit', function(e) {
-	            e.preventDefault(); // <-- important
-	            $(this).ajaxSubmit({
-	                target: '#output'
-	            });
-	        });
-	    });
-	
-	    Use ajaxForm when you want the plugin to manage all the event binding
-	    for you.  For example,
-	
-	    $(document).ready(function() {
-	        $('#myForm').ajaxForm({
-	            target: '#output'
-	        });
-	    });
-	
-	    You can also use ajaxForm with delegation (requires jQuery v1.7+), so the
-	    form does not have to exist when you invoke ajaxForm:
-	
-	    $('#myForm').ajaxForm({
-	        delegation: true,
-	        target: '#output'
-	    });
-	
-	    When using ajaxForm, the ajaxSubmit function will be invoked for you
-	    at the appropriate time.
-	*/
-	
-	/**
-	 * Feature detection
-	 */
-	var feature = {};
-	feature.fileapi = $("<input type='file'/>").get(0).files !== undefined;
-	feature.formdata = window.FormData !== undefined;
-	
-	var hasProp = !!$.fn.prop;
-	
-	// attr2 uses prop when it can but checks the return type for
-	// an expected string.  this accounts for the case where a form 
-	// contains inputs with names like "action" or "method"; in those
-	// cases "prop" returns the element
-	$.fn.attr2 = function() {
-	    if ( ! hasProp ) {
-	        return this.attr.apply(this, arguments);
-	    }
-	    var val = this.prop.apply(this, arguments);
-	    if ( ( val && val.jquery ) || typeof val === 'string' ) {
-	        return val;
-	    }
-	    return this.attr.apply(this, arguments);
-	};
-	
-	/**
-	 * ajaxSubmit() provides a mechanism for immediately submitting
-	 * an HTML form using AJAX.
-	 */
-	$.fn.ajaxSubmit = function(options) {
-	    /*jshint scripturl:true */
-	
-	    // fast fail if nothing selected (http://dev.jquery.com/ticket/2752)
-	    if (!this.length) {
-	        log('ajaxSubmit: skipping submit process - no element selected');
-	        return this;
-	    }
-	
-	    var method, action, url, $form = this;
-	
-	    if (typeof options == 'function') {
-	        options = { success: options };
-	    }
-	    else if ( options === undefined ) {
-	        options = {};
-	    }
-	
-	    method = options.type || this.attr2('method');
-	    action = options.url  || this.attr2('action');
-	
-	    url = (typeof action === 'string') ? $.trim(action) : '';
-	    url = url || window.location.href || '';
-	    if (url) {
-	        // clean url (don't include hash vaue)
-	        url = (url.match(/^([^#]+)/)||[])[1];
-	    }
-	
-	    options = $.extend(true, {
-	        url:  url,
-	        success: $.ajaxSettings.success,
-	        type: method || $.ajaxSettings.type,
-	        iframeSrc: /^https/i.test(window.location.href || '') ? 'javascript:false' : 'about:blank'
-	    }, options);
-	
-	    // hook for manipulating the form data before it is extracted;
-	    // convenient for use with rich editors like tinyMCE or FCKEditor
-	    var veto = {};
-	    this.trigger('form-pre-serialize', [this, options, veto]);
-	    if (veto.veto) {
-	        log('ajaxSubmit: submit vetoed via form-pre-serialize trigger');
-	        return this;
-	    }
-	
-	    // provide opportunity to alter form data before it is serialized
-	    if (options.beforeSerialize && options.beforeSerialize(this, options) === false) {
-	        log('ajaxSubmit: submit aborted via beforeSerialize callback');
-	        return this;
-	    }
-	
-	    var traditional = options.traditional;
-	    if ( traditional === undefined ) {
-	        traditional = $.ajaxSettings.traditional;
-	    }
-	
-	    var elements = [];
-	    var qx, a = this.formToArray(options.semantic, elements);
-	    if (options.data) {
-	        options.extraData = options.data;
-	        qx = $.param(options.data, traditional);
-	    }
-	
-	    // give pre-submit callback an opportunity to abort the submit
-	    if (options.beforeSubmit && options.beforeSubmit(a, this, options) === false) {
-	        log('ajaxSubmit: submit aborted via beforeSubmit callback');
-	        return this;
-	    }
-	
-	    // fire vetoable 'validate' event
-	    this.trigger('form-submit-validate', [a, this, options, veto]);
-	    if (veto.veto) {
-	        log('ajaxSubmit: submit vetoed via form-submit-validate trigger');
-	        return this;
-	    }
-	
-	    var q = $.param(a, traditional);
-	    if (qx) {
-	        q = ( q ? (q + '&' + qx) : qx );
-	    }
-	    if (options.type.toUpperCase() == 'GET') {
-	        options.url += (options.url.indexOf('?') >= 0 ? '&' : '?') + q;
-	        options.data = null;  // data is null for 'get'
-	    }
-	    else {
-	        options.data = q; // data is the query string for 'post'
-	    }
-	
-	    var callbacks = [];
-	    if (options.resetForm) {
-	        callbacks.push(function() { $form.resetForm(); });
-	    }
-	    if (options.clearForm) {
-	        callbacks.push(function() { $form.clearForm(options.includeHidden); });
-	    }
-	
-	    // perform a load on the target only if dataType is not provided
-	    if (!options.dataType && options.target) {
-	        var oldSuccess = options.success || function(){};
-	        callbacks.push(function(data) {
-	            var fn = options.replaceTarget ? 'replaceWith' : 'html';
-	            $(options.target)[fn](data).each(oldSuccess, arguments);
-	        });
-	    }
-	    else if (options.success) {
-	        callbacks.push(options.success);
-	    }
-	
-	    options.success = function(data, status, xhr) { // jQuery 1.4+ passes xhr as 3rd arg
-	        var context = options.context || this ;    // jQuery 1.4+ supports scope context
-	        for (var i=0, max=callbacks.length; i < max; i++) {
-	            callbacks[i].apply(context, [data, status, xhr || $form, $form]);
-	        }
-	    };
-	
-	    if (options.error) {
-	        var oldError = options.error;
-	        options.error = function(xhr, status, error) {
-	            var context = options.context || this;
-	            oldError.apply(context, [xhr, status, error, $form]);
-	        };
-	    }
-	
-	     if (options.complete) {
-	        var oldComplete = options.complete;
-	        options.complete = function(xhr, status) {
-	            var context = options.context || this;
-	            oldComplete.apply(context, [xhr, status, $form]);
-	        };
-	    }
-	
-	    // are there files to upload?
-	
-	    // [value] (issue #113), also see comment:
-	    // https://github.com/malsup/form/commit/588306aedba1de01388032d5f42a60159eea9228#commitcomment-2180219
-	    var fileInputs = $('input[type=file]:enabled', this).filter(function() { return $(this).val() !== ''; });
-	
-	    var hasFileInputs = fileInputs.length > 0;
-	    var mp = 'multipart/form-data';
-	    var multipart = ($form.attr('enctype') == mp || $form.attr('encoding') == mp);
-	
-	    var fileAPI = feature.fileapi && feature.formdata;
-	    log("fileAPI :" + fileAPI);
-	    var shouldUseFrame = (hasFileInputs || multipart) && !fileAPI;
-	
-	    var jqxhr;
-	
-	    // options.iframe allows user to force iframe mode
-	    // 06-NOV-09: now defaulting to iframe mode if file input is detected
-	    if (options.iframe !== false && (options.iframe || shouldUseFrame)) {
-	        // hack to fix Safari hang (thanks to Tim Molendijk for this)
-	        // see:  http://groups.google.com/group/jquery-dev/browse_thread/thread/36395b7ab510dd5d
-	        if (options.closeKeepAlive) {
-	            $.get(options.closeKeepAlive, function() {
-	                jqxhr = fileUploadIframe(a);
-	            });
-	        }
-	        else {
-	            jqxhr = fileUploadIframe(a);
-	        }
-	    }
-	    else if ((hasFileInputs || multipart) && fileAPI) {
-	        jqxhr = fileUploadXhr(a);
-	    }
-	    else {
-	        jqxhr = $.ajax(options);
-	    }
-	
-	    $form.removeData('jqxhr').data('jqxhr', jqxhr);
-	
-	    // clear element array
-	    for (var k=0; k < elements.length; k++) {
-	        elements[k] = null;
-	    }
-	
-	    // fire 'notify' event
-	    this.trigger('form-submit-notify', [this, options]);
-	    return this;
-	
-	    // utility fn for deep serialization
-	    function deepSerialize(extraData){
-	        var serialized = $.param(extraData, options.traditional).split('&');
-	        var len = serialized.length;
-	        var result = [];
-	        var i, part;
-	        for (i=0; i < len; i++) {
-	            // #252; undo param space replacement
-	            serialized[i] = serialized[i].replace(/\+/g,' ');
-	            part = serialized[i].split('=');
-	            // #278; use array instead of object storage, favoring array serializations
-	            result.push([decodeURIComponent(part[0]), decodeURIComponent(part[1])]);
-	        }
-	        return result;
-	    }
-	
-	     // XMLHttpRequest Level 2 file uploads (big hat tip to francois2metz)
-	    function fileUploadXhr(a) {
-	        var formdata = new FormData();
-	
-	        for (var i=0; i < a.length; i++) {
-	            formdata.append(a[i].name, a[i].value);
-	        }
-	
-	        if (options.extraData) {
-	            var serializedData = deepSerialize(options.extraData);
-	            for (i=0; i < serializedData.length; i++) {
-	                if (serializedData[i]) {
-	                    formdata.append(serializedData[i][0], serializedData[i][1]);
-	                }
-	            }
-	        }
-	
-	        options.data = null;
-	
-	        var s = $.extend(true, {}, $.ajaxSettings, options, {
-	            contentType: false,
-	            processData: false,
-	            cache: false,
-	            type: method || 'POST'
-	        });
-	
-	        if (options.uploadProgress) {
-	            // workaround because jqXHR does not expose upload property
-	            s.xhr = function() {
-	                var xhr = $.ajaxSettings.xhr();
-	                if (xhr.upload) {
-	                    xhr.upload.addEventListener('progress', function(event) {
-	                        var percent = 0;
-	                        var position = event.loaded || event.position; /*event.position is deprecated*/
-	                        var total = event.total;
-	                        if (event.lengthComputable) {
-	                            percent = Math.ceil(position / total * 100);
-	                        }
-	                        options.uploadProgress(event, position, total, percent);
-	                    }, false);
-	                }
-	                return xhr;
-	            };
-	        }
-	
-	        s.data = null;
-	        var beforeSend = s.beforeSend;
-	        s.beforeSend = function(xhr, o) {
-	            //Send FormData() provided by user
-	            if (options.formData) {
-	                o.data = options.formData;
-	            }
-	            else {
-	                o.data = formdata;
-	            }
-	            if(beforeSend) {
-	                beforeSend.call(this, xhr, o);
-	            }
-	        };
-	        return $.ajax(s);
-	    }
-	
-	    // private function for handling file uploads (hat tip to YAHOO!)
-	    function fileUploadIframe(a) {
-	        var form = $form[0], el, i, s, g, id, $io, io, xhr, sub, n, timedOut, timeoutHandle;
-	        var deferred = $.Deferred();
-	
-	        // #341
-	        deferred.abort = function(status) {
-	            xhr.abort(status);
-	        };
-	
-	        if (a) {
-	            // ensure that every serialized input is still enabled
-	            for (i=0; i < elements.length; i++) {
-	                el = $(elements[i]);
-	                if ( hasProp ) {
-	                    el.prop('disabled', false);
-	                }
-	                else {
-	                    el.removeAttr('disabled');
-	                }
-	            }
-	        }
-	
-	        s = $.extend(true, {}, $.ajaxSettings, options);
-	        s.context = s.context || s;
-	        id = 'jqFormIO' + (new Date().getTime());
-	        if (s.iframeTarget) {
-	            $io = $(s.iframeTarget);
-	            n = $io.attr2('name');
-	            if (!n) {
-	                $io.attr2('name', id);
-	            }
-	            else {
-	                id = n;
-	            }
-	        }
-	        else {
-	            $io = $('<iframe name="' + id + '" src="'+ s.iframeSrc +'" />');
-	            $io.css({ position: 'absolute', top: '-1000px', left: '-1000px' });
-	        }
-	        io = $io[0];
-	
-	
-	        xhr = { // mock object
-	            aborted: 0,
-	            responseText: null,
-	            responseXML: null,
-	            status: 0,
-	            statusText: 'n/a',
-	            getAllResponseHeaders: function() {},
-	            getResponseHeader: function() {},
-	            setRequestHeader: function() {},
-	            abort: function(status) {
-	                var e = (status === 'timeout' ? 'timeout' : 'aborted');
-	                log('aborting upload... ' + e);
-	                this.aborted = 1;
-	
-	                try { // #214, #257
-	                    if (io.contentWindow.document.execCommand) {
-	                        io.contentWindow.document.execCommand('Stop');
-	                    }
-	                }
-	                catch(ignore) {}
-	
-	                $io.attr('src', s.iframeSrc); // abort op in progress
-	                xhr.error = e;
-	                if (s.error) {
-	                    s.error.call(s.context, xhr, e, status);
-	                }
-	                if (g) {
-	                    $.event.trigger("ajaxError", [xhr, s, e]);
-	                }
-	                if (s.complete) {
-	                    s.complete.call(s.context, xhr, e);
-	                }
-	            }
-	        };
-	
-	        g = s.global;
-	        // trigger ajax global events so that activity/block indicators work like normal
-	        if (g && 0 === $.active++) {
-	            $.event.trigger("ajaxStart");
-	        }
-	        if (g) {
-	            $.event.trigger("ajaxSend", [xhr, s]);
-	        }
-	
-	        if (s.beforeSend && s.beforeSend.call(s.context, xhr, s) === false) {
-	            if (s.global) {
-	                $.active--;
-	            }
-	            deferred.reject();
-	            return deferred;
-	        }
-	        if (xhr.aborted) {
-	            deferred.reject();
-	            return deferred;
-	        }
-	
-	        // add submitting element to data if we know it
-	        sub = form.clk;
-	        if (sub) {
-	            n = sub.name;
-	            if (n && !sub.disabled) {
-	                s.extraData = s.extraData || {};
-	                s.extraData[n] = sub.value;
-	                if (sub.type == "image") {
-	                    s.extraData[n+'.x'] = form.clk_x;
-	                    s.extraData[n+'.y'] = form.clk_y;
-	                }
-	            }
-	        }
-	
-	        var CLIENT_TIMEOUT_ABORT = 1;
-	        var SERVER_ABORT = 2;
-	                
-	        function getDoc(frame) {
-	            /* it looks like contentWindow or contentDocument do not
-	             * carry the protocol property in ie8, when running under ssl
-	             * frame.document is the only valid response document, since
-	             * the protocol is know but not on the other two objects. strange?
-	             * "Same origin policy" http://en.wikipedia.org/wiki/Same_origin_policy
-	             */
-	            
-	            var doc = null;
-	            
-	            // IE8 cascading access check
-	            try {
-	                if (frame.contentWindow) {
-	                    doc = frame.contentWindow.document;
-	                }
-	            } catch(err) {
-	                // IE8 access denied under ssl & missing protocol
-	                log('cannot get iframe.contentWindow document: ' + err);
-	            }
-	
-	            if (doc) { // successful getting content
-	                return doc;
-	            }
-	
-	            try { // simply checking may throw in ie8 under ssl or mismatched protocol
-	                doc = frame.contentDocument ? frame.contentDocument : frame.document;
-	            } catch(err) {
-	                // last attempt
-	                log('cannot get iframe.contentDocument: ' + err);
-	                doc = frame.document;
-	            }
-	            return doc;
-	        }
-	
-	        // Rails CSRF hack (thanks to Yvan Barthelemy)
-	        var csrf_token = $('meta[name=csrf-token]').attr('content');
-	        var csrf_param = $('meta[name=csrf-param]').attr('content');
-	        if (csrf_param && csrf_token) {
-	            s.extraData = s.extraData || {};
-	            s.extraData[csrf_param] = csrf_token;
-	        }
-	
-	        // take a breath so that pending repaints get some cpu time before the upload starts
-	        function doSubmit() {
-	            // make sure form attrs are set
-	            var t = $form.attr2('target'), 
-	                a = $form.attr2('action'), 
-	                mp = 'multipart/form-data',
-	                et = $form.attr('enctype') || $form.attr('encoding') || mp;
-	
-	            // update form attrs in IE friendly way
-	            form.setAttribute('target',id);
-	            if (!method || /post/i.test(method) ) {
-	                form.setAttribute('method', 'POST');
-	            }
-	            if (a != s.url) {
-	                form.setAttribute('action', s.url);
-	            }
-	
-	            // ie borks in some cases when setting encoding
-	            if (! s.skipEncodingOverride && (!method || /post/i.test(method))) {
-	                $form.attr({
-	                    encoding: 'multipart/form-data',
-	                    enctype:  'multipart/form-data'
-	                });
-	            }
-	
-	            // support timout
-	            if (s.timeout) {
-	                timeoutHandle = setTimeout(function() { timedOut = true; cb(CLIENT_TIMEOUT_ABORT); }, s.timeout);
-	            }
-	
-	            // look for server aborts
-	            function checkState() {
-	                try {
-	                    var state = getDoc(io).readyState;
-	                    log('state = ' + state);
-	                    if (state && state.toLowerCase() == 'uninitialized') {
-	                        setTimeout(checkState,50);
-	                    }
-	                }
-	                catch(e) {
-	                    log('Server abort: ' , e, ' (', e.name, ')');
-	                    cb(SERVER_ABORT);
-	                    if (timeoutHandle) {
-	                        clearTimeout(timeoutHandle);
-	                    }
-	                    timeoutHandle = undefined;
-	                }
-	            }
-	
-	            // add "extra" data to form if provided in options
-	            var extraInputs = [];
-	            try {
-	                if (s.extraData) {
-	                    for (var n in s.extraData) {
-	                        if (s.extraData.hasOwnProperty(n)) {
-	                           // if using the $.param format that allows for multiple values with the same name
-	                           if($.isPlainObject(s.extraData[n]) && s.extraData[n].hasOwnProperty('name') && s.extraData[n].hasOwnProperty('value')) {
-	                               extraInputs.push(
-	                               $('<input type="hidden" name="'+s.extraData[n].name+'">').val(s.extraData[n].value)
-	                                   .appendTo(form)[0]);
-	                           } else {
-	                               extraInputs.push(
-	                               $('<input type="hidden" name="'+n+'">').val(s.extraData[n])
-	                                   .appendTo(form)[0]);
-	                           }
-	                        }
-	                    }
-	                }
-	
-	                if (!s.iframeTarget) {
-	                    // add iframe to doc and submit the form
-	                    $io.appendTo('body');
-	                }
-	                if (io.attachEvent) {
-	                    io.attachEvent('onload', cb);
-	                }
-	                else {
-	                    io.addEventListener('load', cb, false);
-	                }
-	                setTimeout(checkState,15);
-	
-	                try {
-	                    form.submit();
-	                } catch(err) {
-	                    // just in case form has element with name/id of 'submit'
-	                    var submitFn = document.createElement('form').submit;
-	                    submitFn.apply(form);
-	                }
-	            }
-	            finally {
-	                // reset attrs and remove "extra" input elements
-	                form.setAttribute('action',a);
-	                form.setAttribute('enctype', et); // #380
-	                if(t) {
-	                    form.setAttribute('target', t);
-	                } else {
-	                    $form.removeAttr('target');
-	                }
-	                $(extraInputs).remove();
-	            }
-	        }
-	
-	        if (s.forceSync) {
-	            doSubmit();
-	        }
-	        else {
-	            setTimeout(doSubmit, 10); // this lets dom updates render
-	        }
-	
-	        var data, doc, domCheckCount = 50, callbackProcessed;
-	
-	        function cb(e) {
-	            if (xhr.aborted || callbackProcessed) {
-	                return;
-	            }
-	            
-	            doc = getDoc(io);
-	            if(!doc) {
-	                log('cannot access response document');
-	                e = SERVER_ABORT;
-	            }
-	            if (e === CLIENT_TIMEOUT_ABORT && xhr) {
-	                xhr.abort('timeout');
-	                deferred.reject(xhr, 'timeout');
-	                return;
-	            }
-	            else if (e == SERVER_ABORT && xhr) {
-	                xhr.abort('server abort');
-	                deferred.reject(xhr, 'error', 'server abort');
-	                return;
-	            }
-	
-	            if (!doc || doc.location.href == s.iframeSrc) {
-	                // response not received yet
-	                if (!timedOut) {
-	                    return;
-	                }
-	            }
-	            if (io.detachEvent) {
-	                io.detachEvent('onload', cb);
-	            }
-	            else {
-	                io.removeEventListener('load', cb, false);
-	            }
-	
-	            var status = 'success', errMsg;
-	            try {
-	                if (timedOut) {
-	                    throw 'timeout';
-	                }
-	
-	                var isXml = s.dataType == 'xml' || doc.XMLDocument || $.isXMLDoc(doc);
-	                log('isXml='+isXml);
-	                if (!isXml && window.opera && (doc.body === null || !doc.body.innerHTML)) {
-	                    if (--domCheckCount) {
-	                        // in some browsers (Opera) the iframe DOM is not always traversable when
-	                        // the onload callback fires, so we loop a bit to accommodate
-	                        log('requeing onLoad callback, DOM not available');
-	                        setTimeout(cb, 250);
-	                        return;
-	                    }
-	                    // let this fall through because server response could be an empty document
-	                    //log('Could not access iframe DOM after mutiple tries.');
-	                    //throw 'DOMException: not available';
-	                }
-	
-	                //log('response detected');
-	                var docRoot = doc.body ? doc.body : doc.documentElement;
-	                xhr.responseText = docRoot ? docRoot.innerHTML : null;
-	                xhr.responseXML = doc.XMLDocument ? doc.XMLDocument : doc;
-	                if (isXml) {
-	                    s.dataType = 'xml';
-	                }
-	                xhr.getResponseHeader = function(header){
-	                    var headers = {'content-type': s.dataType};
-	                    return headers[header.toLowerCase()];
-	                };
-	                // support for XHR 'status' & 'statusText' emulation :
-	                if (docRoot) {
-	                    xhr.status = Number( docRoot.getAttribute('status') ) || xhr.status;
-	                    xhr.statusText = docRoot.getAttribute('statusText') || xhr.statusText;
-	                }
-	
-	                var dt = (s.dataType || '').toLowerCase();
-	                var scr = /(json|script|text)/.test(dt);
-	                if (scr || s.textarea) {
-	                    // see if user embedded response in textarea
-	                    var ta = doc.getElementsByTagName('textarea')[0];
-	                    if (ta) {
-	                        xhr.responseText = ta.value;
-	                        // support for XHR 'status' & 'statusText' emulation :
-	                        xhr.status = Number( ta.getAttribute('status') ) || xhr.status;
-	                        xhr.statusText = ta.getAttribute('statusText') || xhr.statusText;
-	                    }
-	                    else if (scr) {
-	                        // account for browsers injecting pre around json response
-	                        var pre = doc.getElementsByTagName('pre')[0];
-	                        var b = doc.getElementsByTagName('body')[0];
-	                        if (pre) {
-	                            xhr.responseText = pre.textContent ? pre.textContent : pre.innerText;
-	                        }
-	                        else if (b) {
-	                            xhr.responseText = b.textContent ? b.textContent : b.innerText;
-	                        }
-	                    }
-	                }
-	                else if (dt == 'xml' && !xhr.responseXML && xhr.responseText) {
-	                    xhr.responseXML = toXml(xhr.responseText);
-	                }
-	
-	                try {
-	                    data = httpData(xhr, dt, s);
-	                }
-	                catch (err) {
-	                    status = 'parsererror';
-	                    xhr.error = errMsg = (err || status);
-	                }
-	            }
-	            catch (err) {
-	                log('error caught: ',err);
-	                status = 'error';
-	                xhr.error = errMsg = (err || status);
-	            }
-	
-	            if (xhr.aborted) {
-	                log('upload aborted');
-	                status = null;
-	            }
-	
-	            if (xhr.status) { // we've set xhr.status
-	                status = (xhr.status >= 200 && xhr.status < 300 || xhr.status === 304) ? 'success' : 'error';
-	            }
-	
-	            // ordering of these callbacks/triggers is odd, but that's how $.ajax does it
-	            if (status === 'success') {
-	                if (s.success) {
-	                    s.success.call(s.context, data, 'success', xhr);
-	                }
-	                deferred.resolve(xhr.responseText, 'success', xhr);
-	                if (g) {
-	                    $.event.trigger("ajaxSuccess", [xhr, s]);
-	                }
-	            }
-	            else if (status) {
-	                if (errMsg === undefined) {
-	                    errMsg = xhr.statusText;
-	                }
-	                if (s.error) {
-	                    s.error.call(s.context, xhr, status, errMsg);
-	                }
-	                deferred.reject(xhr, 'error', errMsg);
-	                if (g) {
-	                    $.event.trigger("ajaxError", [xhr, s, errMsg]);
-	                }
-	            }
-	
-	            if (g) {
-	                $.event.trigger("ajaxComplete", [xhr, s]);
-	            }
-	
-	            if (g && ! --$.active) {
-	                $.event.trigger("ajaxStop");
-	            }
-	
-	            if (s.complete) {
-	                s.complete.call(s.context, xhr, status);
-	            }
-	
-	            callbackProcessed = true;
-	            if (s.timeout) {
-	                clearTimeout(timeoutHandle);
-	            }
-	
-	            // clean up
-	            setTimeout(function() {
-	                if (!s.iframeTarget) {
-	                    $io.remove();
-	                }
-	                else { //adding else to clean up existing iframe response.
-	                    $io.attr('src', s.iframeSrc);
-	                }
-	                xhr.responseXML = null;
-	            }, 100);
-	        }
-	
-	        var toXml = $.parseXML || function(s, doc) { // use parseXML if available (jQuery 1.5+)
-	            if (window.ActiveXObject) {
-	                doc = new ActiveXObject('Microsoft.XMLDOM');
-	                doc.async = 'false';
-	                doc.loadXML(s);
-	            }
-	            else {
-	                doc = (new DOMParser()).parseFromString(s, 'text/xml');
-	            }
-	            return (doc && doc.documentElement && doc.documentElement.nodeName != 'parsererror') ? doc : null;
-	        };
-	        var parseJSON = $.parseJSON || function(s) {
-	            /*jslint evil:true */
-	            return window['eval']('(' + s + ')');
-	        };
-	
-	        var httpData = function( xhr, type, s ) { // mostly lifted from jq1.4.4
-	
-	            var ct = xhr.getResponseHeader('content-type') || '',
-	                xml = type === 'xml' || !type && ct.indexOf('xml') >= 0,
-	                data = xml ? xhr.responseXML : xhr.responseText;
-	
-	            if (xml && data.documentElement.nodeName === 'parsererror') {
-	                if ($.error) {
-	                    $.error('parsererror');
-	                }
-	            }
-	            if (s && s.dataFilter) {
-	                data = s.dataFilter(data, type);
-	            }
-	            if (typeof data === 'string') {
-	                if (type === 'json' || !type && ct.indexOf('json') >= 0) {
-	                    data = parseJSON(data);
-	                } else if (type === "script" || !type && ct.indexOf("javascript") >= 0) {
-	                    $.globalEval(data);
-	                }
-	            }
-	            return data;
-	        };
-	
-	        return deferred;
-	    }
-	};
-	
-	/**
-	 * ajaxForm() provides a mechanism for fully automating form submission.
-	 *
-	 * The advantages of using this method instead of ajaxSubmit() are:
-	 *
-	 * 1: This method will include coordinates for <input type="image" /> elements (if the element
-	 *    is used to submit the form).
-	 * 2. This method will include the submit element's name/value data (for the element that was
-	 *    used to submit the form).
-	 * 3. This method binds the submit() method to the form for you.
-	 *
-	 * The options argument for ajaxForm works exactly as it does for ajaxSubmit.  ajaxForm merely
-	 * passes the options argument along after properly binding events for submit elements and
-	 * the form itself.
-	 */
-	$.fn.ajaxForm = function(options) {
-	    options = options || {};
-	    options.delegation = options.delegation && $.isFunction($.fn.on);
-	
-	    // in jQuery 1.3+ we can fix mistakes with the ready state
-	    if (!options.delegation && this.length === 0) {
-	        var o = { s: this.selector, c: this.context };
-	        if (!$.isReady && o.s) {
-	            log('DOM not ready, queuing ajaxForm');
-	            $(function() {
-	                $(o.s,o.c).ajaxForm(options);
-	            });
-	            return this;
-	        }
-	        // is your DOM ready?  http://docs.jquery.com/Tutorials:Introducing_$(document).ready()
-	        log('terminating; zero elements found by selector' + ($.isReady ? '' : ' (DOM not ready)'));
-	        return this;
-	    }
-	
-	    if ( options.delegation ) {
-	        $(document)
-	            .off('submit.form-plugin', this.selector, doAjaxSubmit)
-	            .off('click.form-plugin', this.selector, captureSubmittingElement)
-	            .on('submit.form-plugin', this.selector, options, doAjaxSubmit)
-	            .on('click.form-plugin', this.selector, options, captureSubmittingElement);
-	        return this;
-	    }
-	
-	    return this.ajaxFormUnbind()
-	        .bind('submit.form-plugin', options, doAjaxSubmit)
-	        .bind('click.form-plugin', options, captureSubmittingElement);
-	};
-	
-	// private event handlers
-	function doAjaxSubmit(e) {
-	    /*jshint validthis:true */
-	    var options = e.data;
-	    if (!e.isDefaultPrevented()) { // if event has been canceled, don't proceed
-	        e.preventDefault();
-	        $(e.target).ajaxSubmit(options); // #365
-	    }
-	}
-	
-	function captureSubmittingElement(e) {
-	    /*jshint validthis:true */
-	    var target = e.target;
-	    var $el = $(target);
-	    if (!($el.is("[type=submit],[type=image]"))) {
-	        // is this a child element of the submit el?  (ex: a span within a button)
-	        var t = $el.closest('[type=submit]');
-	        if (t.length === 0) {
-	            return;
-	        }
-	        target = t[0];
-	    }
-	    var form = this;
-	    form.clk = target;
-	    if (target.type == 'image') {
-	        if (e.offsetX !== undefined) {
-	            form.clk_x = e.offsetX;
-	            form.clk_y = e.offsetY;
-	        } else if (typeof $.fn.offset == 'function') {
-	            var offset = $el.offset();
-	            form.clk_x = e.pageX - offset.left;
-	            form.clk_y = e.pageY - offset.top;
-	        } else {
-	            form.clk_x = e.pageX - target.offsetLeft;
-	            form.clk_y = e.pageY - target.offsetTop;
-	        }
-	    }
-	    // clear form vars
-	    setTimeout(function() { form.clk = form.clk_x = form.clk_y = null; }, 100);
-	}
-	
-	
-	// ajaxFormUnbind unbinds the event handlers that were bound by ajaxForm
-	$.fn.ajaxFormUnbind = function() {
-	    return this.unbind('submit.form-plugin click.form-plugin');
-	};
-	
-	/**
-	 * formToArray() gathers form element data into an array of objects that can
-	 * be passed to any of the following ajax functions: $.get, $.post, or load.
-	 * Each object in the array has both a 'name' and 'value' property.  An example of
-	 * an array for a simple login form might be:
-	 *
-	 * [ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]
-	 *
-	 * It is this array that is passed to pre-submit callback functions provided to the
-	 * ajaxSubmit() and ajaxForm() methods.
-	 */
-	$.fn.formToArray = function(semantic, elements) {
-	    var a = [];
-	    if (this.length === 0) {
-	        return a;
-	    }
-	
-	    var form = this[0];
-	    var formId = this.attr('id');
-	    var els = semantic ? form.getElementsByTagName('*') : form.elements;
-	    var els2;
-	
-	    if (els && !/MSIE [678]/.test(navigator.userAgent)) { // #390
-	        els = $(els).get();  // convert to standard array
-	    }
-	
-	    // #386; account for inputs outside the form which use the 'form' attribute
-	    if ( formId ) {
-	        els2 = $(':input[form=' + formId + ']').get();
-	        if ( els2.length ) {
-	            els = (els || []).concat(els2);
-	        }
-	    }
-	
-	    if (!els || !els.length) {
-	        return a;
-	    }
-	
-	    var i,j,n,v,el,max,jmax;
-	    for(i=0, max=els.length; i < max; i++) {
-	        el = els[i];
-	        n = el.name;
-	        if (!n || el.disabled) {
-	            continue;
-	        }
-	
-	        if (semantic && form.clk && el.type == "image") {
-	            // handle image inputs on the fly when semantic == true
-	            if(form.clk == el) {
-	                a.push({name: n, value: $(el).val(), type: el.type });
-	                a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
-	            }
-	            continue;
-	        }
-	
-	        v = $.fieldValue(el, true);
-	        if (v && v.constructor == Array) {
-	            if (elements) {
-	                elements.push(el);
-	            }
-	            for(j=0, jmax=v.length; j < jmax; j++) {
-	                a.push({name: n, value: v[j]});
-	            }
-	        }
-	        else if (feature.fileapi && el.type == 'file') {
-	            if (elements) {
-	                elements.push(el);
-	            }
-	            var files = el.files;
-	            if (files.length) {
-	                for (j=0; j < files.length; j++) {
-	                    a.push({name: n, value: files[j], type: el.type});
-	                }
-	            }
-	            else {
-	                // #180
-	                a.push({ name: n, value: '', type: el.type });
-	            }
-	        }
-	        else if (v !== null && typeof v != 'undefined') {
-	            if (elements) {
-	                elements.push(el);
-	            }
-	            a.push({name: n, value: v, type: el.type, required: el.required});
-	        }
-	    }
-	
-	    if (!semantic && form.clk) {
-	        // input type=='image' are not found in elements array! handle it here
-	        var $input = $(form.clk), input = $input[0];
-	        n = input.name;
-	        if (n && !input.disabled && input.type == 'image') {
-	            a.push({name: n, value: $input.val()});
-	            a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
-	        }
-	    }
-	    return a;
-	};
-	
-	/**
-	 * Serializes form data into a 'submittable' string. This method will return a string
-	 * in the format: name1=value1&amp;name2=value2
-	 */
-	$.fn.formSerialize = function(semantic) {
-	    //hand off to jQuery.param for proper encoding
-	    return $.param(this.formToArray(semantic));
-	};
-	
-	/**
-	 * Serializes all field elements in the jQuery object into a query string.
-	 * This method will return a string in the format: name1=value1&amp;name2=value2
-	 */
-	$.fn.fieldSerialize = function(successful) {
-	    var a = [];
-	    this.each(function() {
-	        var n = this.name;
-	        if (!n) {
-	            return;
-	        }
-	        var v = $.fieldValue(this, successful);
-	        if (v && v.constructor == Array) {
-	            for (var i=0,max=v.length; i < max; i++) {
-	                a.push({name: n, value: v[i]});
-	            }
-	        }
-	        else if (v !== null && typeof v != 'undefined') {
-	            a.push({name: this.name, value: v});
-	        }
-	    });
-	    //hand off to jQuery.param for proper encoding
-	    return $.param(a);
-	};
-	
-	/**
-	 * Returns the value(s) of the element in the matched set.  For example, consider the following form:
-	 *
-	 *  <form><fieldset>
-	 *      <input name="A" type="text" />
-	 *      <input name="A" type="text" />
-	 *      <input name="B" type="checkbox" value="B1" />
-	 *      <input name="B" type="checkbox" value="B2"/>
-	 *      <input name="C" type="radio" value="C1" />
-	 *      <input name="C" type="radio" value="C2" />
-	 *  </fieldset></form>
-	 *
-	 *  var v = $('input[type=text]').fieldValue();
-	 *  // if no values are entered into the text inputs
-	 *  v == ['','']
-	 *  // if values entered into the text inputs are 'foo' and 'bar'
-	 *  v == ['foo','bar']
-	 *
-	 *  var v = $('input[type=checkbox]').fieldValue();
-	 *  // if neither checkbox is checked
-	 *  v === undefined
-	 *  // if both checkboxes are checked
-	 *  v == ['B1', 'B2']
-	 *
-	 *  var v = $('input[type=radio]').fieldValue();
-	 *  // if neither radio is checked
-	 *  v === undefined
-	 *  // if first radio is checked
-	 *  v == ['C1']
-	 *
-	 * The successful argument controls whether or not the field element must be 'successful'
-	 * (per http://www.w3.org/TR/html4/interact/forms.html#successful-controls).
-	 * The default value of the successful argument is true.  If this value is false the value(s)
-	 * for each element is returned.
-	 *
-	 * Note: This method *always* returns an array.  If no valid value can be determined the
-	 *    array will be empty, otherwise it will contain one or more values.
-	 */
-	$.fn.fieldValue = function(successful) {
-	    for (var val=[], i=0, max=this.length; i < max; i++) {
-	        var el = this[i];
-	        var v = $.fieldValue(el, successful);
-	        if (v === null || typeof v == 'undefined' || (v.constructor == Array && !v.length)) {
-	            continue;
-	        }
-	        if (v.constructor == Array) {
-	            $.merge(val, v);
-	        }
-	        else {
-	            val.push(v);
-	        }
-	    }
-	    return val;
-	};
-	
-	/**
-	 * Returns the value of the field element.
-	 */
-	$.fieldValue = function(el, successful) {
-	    var n = el.name, t = el.type, tag = el.tagName.toLowerCase();
-	    if (successful === undefined) {
-	        successful = true;
-	    }
-	
-	    if (successful && (!n || el.disabled || t == 'reset' || t == 'button' ||
-	        (t == 'checkbox' || t == 'radio') && !el.checked ||
-	        (t == 'submit' || t == 'image') && el.form && el.form.clk != el ||
-	        tag == 'select' && el.selectedIndex == -1)) {
-	            return null;
-	    }
-	
-	    if (tag == 'select') {
-	        var index = el.selectedIndex;
-	        if (index < 0) {
-	            return null;
-	        }
-	        var a = [], ops = el.options;
-	        var one = (t == 'select-one');
-	        var max = (one ? index+1 : ops.length);
-	        for(var i=(one ? index : 0); i < max; i++) {
-	            var op = ops[i];
-	            if (op.selected) {
-	                var v = op.value;
-	                if (!v) { // extra pain for IE...
-	                    v = (op.attributes && op.attributes.value && !(op.attributes.value.specified)) ? op.text : op.value;
-	                }
-	                if (one) {
-	                    return v;
-	                }
-	                a.push(v);
-	            }
-	        }
-	        return a;
-	    }
-	    return $(el).val();
-	};
-	
-	/**
-	 * Clears the form data.  Takes the following actions on the form's input fields:
-	 *  - input text fields will have their 'value' property set to the empty string
-	 *  - select elements will have their 'selectedIndex' property set to -1
-	 *  - checkbox and radio inputs will have their 'checked' property set to false
-	 *  - inputs of type submit, button, reset, and hidden will *not* be effected
-	 *  - button elements will *not* be effected
-	 */
-	$.fn.clearForm = function(includeHidden) {
-	    return this.each(function() {
-	        $('input,select,textarea', this).clearFields(includeHidden);
-	    });
-	};
-	
-	/**
-	 * Clears the selected form elements.
-	 */
-	$.fn.clearFields = $.fn.clearInputs = function(includeHidden) {
-	    var re = /^(?:color|date|datetime|email|month|number|password|range|search|tel|text|time|url|week)$/i; // 'hidden' is not in this list
-	    return this.each(function() {
-	        var t = this.type, tag = this.tagName.toLowerCase();
-	        if (re.test(t) || tag == 'textarea') {
-	            this.value = '';
-	        }
-	        else if (t == 'checkbox' || t == 'radio') {
-	            this.checked = false;
-	        }
-	        else if (tag == 'select') {
-	            this.selectedIndex = -1;
-	        }
-			else if (t == "file") {
-				if (/MSIE/.test(navigator.userAgent)) {
-					$(this).replaceWith($(this).clone(true));
-				} else {
-					$(this).val('');
-				}
-			}
-	        else if (includeHidden) {
-	            // includeHidden can be the value true, or it can be a selector string
-	            // indicating a special test; for example:
-	            //  $('#myForm').clearForm('.special:hidden')
-	            // the above would clean hidden inputs that have the class of 'special'
-	            if ( (includeHidden === true && /hidden/.test(t)) ||
-	                 (typeof includeHidden == 'string' && $(this).is(includeHidden)) ) {
-	                this.value = '';
-	            }
-	        }
-	    });
-	};
-	
-	/**
-	 * Resets the form data.  Causes all form elements to be reset to their original value.
-	 */
-	$.fn.resetForm = function() {
-	    return this.each(function() {
-	        // guard against an input with the name of 'reset'
-	        // note that IE reports the reset function as an 'object'
-	        if (typeof this.reset == 'function' || (typeof this.reset == 'object' && !this.reset.nodeType)) {
-	            this.reset();
-	        }
-	    });
-	};
-	
-	/**
-	 * Enables or disables any matching elements.
-	 */
-	$.fn.enable = function(b) {
-	    if (b === undefined) {
-	        b = true;
-	    }
-	    return this.each(function() {
-	        this.disabled = !b;
-	    });
-	};
-	
-	/**
-	 * Checks/unchecks any matching checkboxes or radio buttons and
-	 * selects/deselects and matching option elements.
-	 */
-	$.fn.selected = function(select) {
-	    if (select === undefined) {
-	        select = true;
-	    }
-	    return this.each(function() {
-	        var t = this.type;
-	        if (t == 'checkbox' || t == 'radio') {
-	            this.checked = select;
-	        }
-	        else if (this.tagName.toLowerCase() == 'option') {
-	            var $sel = $(this).parent('select');
-	            if (select && $sel[0] && $sel[0].type == 'select-one') {
-	                // deselect all other options
-	                $sel.find('option').selected(false);
-	            }
-	            this.selected = select;
-	        }
-	    });
-	};
-	
-	// expose debug var
-	$.fn.ajaxSubmit.debug = false;
-	
-	// helper fn for console logging
-	function log() {
-	    if (!$.fn.ajaxSubmit.debug) {
-	        return;
-	    }
-	    var msg = '[jquery.form] ' + Array.prototype.join.call(arguments,'');
-	    if (window.console && window.console.log) {
-	        window.console.log(msg);
-	    }
-	    else if (window.opera && window.opera.postError) {
-	        window.opera.postError(msg);
-	    }
-	}
-	
-	}));
-	
-
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
-	 * Bootstrap: modal.js v3.3.7
-	 * http://getbootstrap.com/javascript/#modals
-	 * ========================================================================
-	 * Copyright 2011-2016 Twitter, Inc.
-	 * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-	 * ======================================================================== */
-	
-	
-	+function ($) {
-	  'use strict';
-	
-	  // MODAL CLASS DEFINITION
-	  // ======================
-	
-	  var Modal = function (element, options) {
-	    this.options             = options
-	    this.$body               = $(document.body)
-	    this.$element            = $(element)
-	    this.$dialog             = this.$element.find('.modal-dialog')
-	    this.$backdrop           = null
-	    this.isShown             = null
-	    this.originalBodyPad     = null
-	    this.scrollbarWidth      = 0
-	    this.ignoreBackdropClick = false
-	
-	    if (this.options.remote) {
-	      this.$element
-	        .find('.modal-content')
-	        .load(this.options.remote, $.proxy(function () {
-	          this.$element.trigger('loaded.bs.modal')
-	        }, this))
-	    }
-	  }
-	
-	  Modal.VERSION  = '3.3.7'
-	
-	  Modal.TRANSITION_DURATION = 300
-	  Modal.BACKDROP_TRANSITION_DURATION = 150
-	
-	  Modal.DEFAULTS = {
-	    backdrop: true,
-	    keyboard: true,
-	    show: true
-	  }
-	
-	  Modal.prototype.toggle = function (_relatedTarget) {
-	    return this.isShown ? this.hide() : this.show(_relatedTarget)
-	  }
-	
-	  Modal.prototype.show = function (_relatedTarget) {
-	    var that = this
-	    var e    = $.Event('show.bs.modal', { relatedTarget: _relatedTarget })
-	
-	    this.$element.trigger(e)
-	
-	    if (this.isShown || e.isDefaultPrevented()) return
-	
-	    this.isShown = true
-	
-	    this.checkScrollbar()
-	    this.setScrollbar()
-	    this.$body.addClass('modal-open')
-	
-	    this.escape()
-	    this.resize()
-	
-	    this.$element.on('click.dismiss.bs.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this))
-	
-	    this.$dialog.on('mousedown.dismiss.bs.modal', function () {
-	      that.$element.one('mouseup.dismiss.bs.modal', function (e) {
-	        if ($(e.target).is(that.$element)) that.ignoreBackdropClick = true
-	      })
-	    })
-	
-	    this.backdrop(function () {
-	      var transition = $.support.transition && that.$element.hasClass('fade')
-	
-	      if (!that.$element.parent().length) {
-	        that.$element.appendTo(that.$body) // don't move modals dom position
-	      }
-	
-	      that.$element
-	        .show()
-	        .scrollTop(0)
-	
-	      that.adjustDialog()
-	
-	      if (transition) {
-	        that.$element[0].offsetWidth // force reflow
-	      }
-	
-	      that.$element.addClass('in')
-	
-	      that.enforceFocus()
-	
-	      var e = $.Event('shown.bs.modal', { relatedTarget: _relatedTarget })
-	
-	      transition ?
-	        that.$dialog // wait for modal to slide in
-	          .one('bsTransitionEnd', function () {
-	            that.$element.trigger('focus').trigger(e)
-	          })
-	          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
-	        that.$element.trigger('focus').trigger(e)
-	    })
-	  }
-	
-	  Modal.prototype.hide = function (e) {
-	    if (e) e.preventDefault()
-	
-	    e = $.Event('hide.bs.modal')
-	
-	    this.$element.trigger(e)
-	
-	    if (!this.isShown || e.isDefaultPrevented()) return
-	
-	    this.isShown = false
-	
-	    this.escape()
-	    this.resize()
-	
-	    $(document).off('focusin.bs.modal')
-	
-	    this.$element
-	      .removeClass('in')
-	      .off('click.dismiss.bs.modal')
-	      .off('mouseup.dismiss.bs.modal')
-	
-	    this.$dialog.off('mousedown.dismiss.bs.modal')
-	
-	    $.support.transition && this.$element.hasClass('fade') ?
-	      this.$element
-	        .one('bsTransitionEnd', $.proxy(this.hideModal, this))
-	        .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
-	      this.hideModal()
-	  }
-	
-	  Modal.prototype.enforceFocus = function () {
-	    $(document)
-	      .off('focusin.bs.modal') // guard against infinite focus loop
-	      .on('focusin.bs.modal', $.proxy(function (e) {
-	        if (document !== e.target &&
-	            this.$element[0] !== e.target &&
-	            !this.$element.has(e.target).length) {
-	          this.$element.trigger('focus')
-	        }
-	      }, this))
-	  }
-	
-	  Modal.prototype.escape = function () {
-	    if (this.isShown && this.options.keyboard) {
-	      this.$element.on('keydown.dismiss.bs.modal', $.proxy(function (e) {
-	        e.which == 27 && this.hide()
-	      }, this))
-	    } else if (!this.isShown) {
-	      this.$element.off('keydown.dismiss.bs.modal')
-	    }
-	  }
-	
-	  Modal.prototype.resize = function () {
-	    if (this.isShown) {
-	      $(window).on('resize.bs.modal', $.proxy(this.handleUpdate, this))
-	    } else {
-	      $(window).off('resize.bs.modal')
-	    }
-	  }
-	
-	  Modal.prototype.hideModal = function () {
-	    var that = this
-	    this.$element.hide()
-	    this.backdrop(function () {
-	      that.$body.removeClass('modal-open')
-	      that.resetAdjustments()
-	      that.resetScrollbar()
-	      that.$element.trigger('hidden.bs.modal')
-	    })
-	  }
-	
-	  Modal.prototype.removeBackdrop = function () {
-	    this.$backdrop && this.$backdrop.remove()
-	    this.$backdrop = null
-	  }
-	
-	  Modal.prototype.backdrop = function (callback) {
-	    var that = this
-	    var animate = this.$element.hasClass('fade') ? 'fade' : ''
-	
-	    if (this.isShown && this.options.backdrop) {
-	      var doAnimate = $.support.transition && animate
-	
-	      this.$backdrop = $(document.createElement('div'))
-	        .addClass('modal-backdrop ' + animate)
-	        .appendTo(this.$body)
-	
-	      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
-	        if (this.ignoreBackdropClick) {
-	          this.ignoreBackdropClick = false
-	          return
-	        }
-	        if (e.target !== e.currentTarget) return
-	        this.options.backdrop == 'static'
-	          ? this.$element[0].focus()
-	          : this.hide()
-	      }, this))
-	
-	      if (doAnimate) this.$backdrop[0].offsetWidth // force reflow
-	
-	      this.$backdrop.addClass('in')
-	
-	      if (!callback) return
-	
-	      doAnimate ?
-	        this.$backdrop
-	          .one('bsTransitionEnd', callback)
-	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
-	        callback()
-	
-	    } else if (!this.isShown && this.$backdrop) {
-	      this.$backdrop.removeClass('in')
-	
-	      var callbackRemove = function () {
-	        that.removeBackdrop()
-	        callback && callback()
-	      }
-	      $.support.transition && this.$element.hasClass('fade') ?
-	        this.$backdrop
-	          .one('bsTransitionEnd', callbackRemove)
-	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
-	        callbackRemove()
-	
-	    } else if (callback) {
-	      callback()
-	    }
-	  }
-	
-	  // these following methods are used to handle overflowing modals
-	
-	  Modal.prototype.handleUpdate = function () {
-	    this.adjustDialog()
-	  }
-	
-	  Modal.prototype.adjustDialog = function () {
-	    var modalIsOverflowing = this.$element[0].scrollHeight > document.documentElement.clientHeight
-	
-	    this.$element.css({
-	      paddingLeft:  !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
-	      paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
-	    })
-	  }
-	
-	  Modal.prototype.resetAdjustments = function () {
-	    this.$element.css({
-	      paddingLeft: '',
-	      paddingRight: ''
-	    })
-	  }
-	
-	  Modal.prototype.checkScrollbar = function () {
-	    var fullWindowWidth = window.innerWidth
-	    if (!fullWindowWidth) { // workaround for missing window.innerWidth in IE8
-	      var documentElementRect = document.documentElement.getBoundingClientRect()
-	      fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left)
-	    }
-	    this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth
-	    this.scrollbarWidth = this.measureScrollbar()
-	  }
-	
-	  Modal.prototype.setScrollbar = function () {
-	    var bodyPad = parseInt((this.$body.css('padding-right') || 0), 10)
-	    this.originalBodyPad = document.body.style.paddingRight || ''
-	    if (this.bodyIsOverflowing) this.$body.css('padding-right', bodyPad + this.scrollbarWidth)
-	  }
-	
-	  Modal.prototype.resetScrollbar = function () {
-	    this.$body.css('padding-right', this.originalBodyPad)
-	  }
-	
-	  Modal.prototype.measureScrollbar = function () { // thx walsh
-	    var scrollDiv = document.createElement('div')
-	    scrollDiv.className = 'modal-scrollbar-measure'
-	    this.$body.append(scrollDiv)
-	    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth
-	    this.$body[0].removeChild(scrollDiv)
-	    return scrollbarWidth
-	  }
-	
-	
-	  // MODAL PLUGIN DEFINITION
-	  // =======================
-	
-	  function Plugin(option, _relatedTarget) {
-	    return this.each(function () {
-	      var $this   = $(this)
-	      var data    = $this.data('bs.modal')
-	      var options = $.extend({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
-	
-	      if (!data) $this.data('bs.modal', (data = new Modal(this, options)))
-	      if (typeof option == 'string') data[option](_relatedTarget)
-	      else if (options.show) data.show(_relatedTarget)
-	    })
-	  }
-	
-	  var old = $.fn.modal
-	
-	  $.fn.modal             = Plugin
-	  $.fn.modal.Constructor = Modal
-	
-	
-	  // MODAL NO CONFLICT
-	  // =================
-	
-	  $.fn.modal.noConflict = function () {
-	    $.fn.modal = old
-	    return this
-	  }
-	
-	
-	  // MODAL DATA-API
-	  // ==============
-	
-	  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
-	    var $this   = $(this)
-	    var href    = $this.attr('href')
-	    var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
-	    var option  = $target.data('bs.modal') ? 'toggle' : $.extend({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
-	
-	    if ($this.is('a')) e.preventDefault()
-	
-	    $target.one('show.bs.modal', function (showEvent) {
-	      if (showEvent.isDefaultPrevented()) return // only register focus restorer if modal will actually get shown
-	      $target.one('hidden.bs.modal', function () {
-	        $this.is(':visible') && $this.trigger('focus')
-	      })
-	    })
-	    Plugin.call($target, option, this)
-	  })
-	
-	}(jQuery);
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-/* 88 */,
-/* 89 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _typeof2 = __webpack_require__(9);
-	
-	var _typeof3 = _interopRequireDefault(_typeof2);
-	
-	var _stringify = __webpack_require__(6);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
-	exports.request = request;
-	exports.showError = showError;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var ErrorHandler = __webpack_require__(90);
-	var Helpers = __webpack_require__(88);
-	
-	function request(method, url, data, requestArgs) {
-	  // set up arguments for API request
-	  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
-	
-	  if (data) {
-	    if (method == 'GET') {
-	      requestArgs.data = data;
-	    } else {
-	      requestArgs.data = (0, _stringify2.default)(data);
-	      requestArgs.contentType = 'application/json';
-	    }
-	  }
-	
-	  requestArgs.url = api_path + url;
-	  requestArgs.method = method;
-	
-	  if (!('error' in requestArgs)) requestArgs.error = showError;
-	
-	  return $.ajax(requestArgs);
-	}
-	
-	// parse and display error results from API
-	function showError(jqXHR) {
-	  var message;
-	
-	  if (jqXHR.status == 400 && jqXHR.responseText) {
-	    try {
-	      var parsedResponse = JSON.parse(jqXHR.responseText);
-	      while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
-	        for (var key in parsedResponse) {
-	          if (parsedResponse.hasOwnProperty(key)) {
-	            parsedResponse = parsedResponse[key];
-	            break;
-	          }
-	        }
-	      }
-	      message = parsedResponse;
-	    } catch (SyntaxError) {
-	      ErrorHandler.airbrake.notify(SyntaxError);
-	    }
-	  } else if (jqXHR.status == 401) {
-	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
-	  } else {
-	    message = 'Error ' + jqXHR.status;
-	  }
-	  Helpers.informUser(message, 'danger');
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-/* 90 */,
-/* 91 */,
-/* 92 */,
-/* 93 */,
-/* 94 */,
-/* 95 */,
-/* 96 */,
-/* 97 */,
-/* 98 */,
-/* 99 */,
-/* 100 */,
-/* 101 */,
-/* 102 */,
-/* 103 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _stringify = __webpack_require__(6);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
-	var _typeof2 = __webpack_require__(9);
-	
-	var _typeof3 = _interopRequireDefault(_typeof2);
-	
-	exports.init = init;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	__webpack_require__(104); // add .waypoint to jquery
-	
-	var DOMHelpers = __webpack_require__(2);
-	var LinkHelpers = __webpack_require__(105);
-	var HandlebarsHelpers = __webpack_require__(3);
-	var APIModule = __webpack_require__(89);
-	
-	var FolderTreeModule = __webpack_require__(107);
-	
-	var linkTable = null;
-	var dragStartPosition = null;
-	var lastRowToggleTime = 0;
-	var selectedFolderID = null;
-	
-	function init() {
-	  linkTable = $('.item-rows');
-	  setupEventHandlers();
-	  setupLinksTableEventHandlers();
-	}
-	
-	function setupEventHandlers() {
-	  $(window).on("FolderTreeModule.selectionChange", function (evt, data) {
-	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
-	    selectedFolderID = data.folderId;
-	    showFolderContents(data.folderId);
-	  });
-	  // search form
-	  $('.search-query-form').on('submit', function (e) {
-	    e.preventDefault();
-	    var query = DOMHelpers.getValue('.search-query');
-	    if (query && query.trim()) {
-	      showFolderContents(selectedFolderID, query);
-	    }
-	  });
-	}
-	
-	function getLinkIDForFormElement(element) {
-	  return element.closest('.item-container').find('.item-row').data('link_id');
-	}
-	
-	function setupLinksTableEventHandlers() {
-	  linkTable.on('click', 'a.clear-search', function (e) {
-	    e.preventDefault();
-	    showFolderContents(selectedFolderID);
-	  }).on('mousedown touchstart', '.item-row', function (e) {
-	    handleMouseDown(e);
-	  })
-	
-	  // .item-row mouseup -- hide and show link details, if not dragging
-	  .on('mouseup touchend', '.item-row', function (e) {
-	    handleMouseUp(e);
-	  })
-	
-	  // save changes to notes field
-	  .on('input propertychange change', '.link-notes', function () {
-	    var textarea = $(this);
-	    var guid = getLinkIDForFormElement(textarea);
-	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
-	  })
-	
-	  // save changes to title field
-	  .on('input', '.link-title', function () {
-	    var textarea = $(this);
-	    var guid = getLinkIDForFormElement(textarea);
-	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
-	      // update display title when saved
-	      textarea.closest('.item-container').find('.item-title span').text(data.title);
-	    });
-	  }).on('input', '.link-description', function () {
-	    var textarea = $(this);
-	    var guid = getLinkIDForFormElement(textarea);
-	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description');
-	  })
-	
-	  // handle move-to-folder dropdown
-	  .on('change', '.move-to-folder', function () {
-	    var moveSelect = $(this);
-	    var data = (0, _stringify2.default)({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) });
-	    $(window).trigger("LinksListModule.moveLink", data);
-	  });
-	}
-	
-	// *** actions ***
-	
-	var showLoadingMessage = false;
-	function initShowFolderDOM(query) {
-	  if (!query || !query.trim()) {
-	    // clear query after user clicks a folder
-	    DOMHelpers.setInputValue('.search-query', '');
-	  }
-	
-	  // if fetching folder contents takes more than 500ms, show a loading message
-	  showLoadingMessage = true;
-	  setTimeout(function () {
-	    if (showLoadingMessage) {
-	      DOMHelpers.emptyElement(linkTable);
-	      DOMHelpers.changeHTML(linkTable, '<div class="alert-info">Loading folder contents...</div>');
-	    }
-	  }, 500);
-	}
-	
-	function generateLinkFields(query, link) {
-	  return LinkHelpers.generateLinkFields(link, query);
-	};
-	
-	function showFolderContents(folderID, query) {
-	  initShowFolderDOM(query);
-	
-	  var requestCount = 20,
-	      requestData = { limit: requestCount, offset: 0 },
-	      endpoint;
-	
-	  if (query) {
-	    requestData.q = query;
-	    endpoint = '/archives/';
-	  } else {
-	    endpoint = '/folders/' + folderID + '/archives/';
-	  }
-	  // Content fetcher.
-	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
-	  function getNextContents() {
-	    APIModule.request("GET", endpoint, requestData).success(function (response) {
-	      showLoadingMessage = false;
-	      var links = response.objects.map(generateLinkFields.bind(this, query));
-	
-	      // append HTML
-	      if (requestData.offset === 0) {
-	        // first run -- initialize folder
-	        DOMHelpers.emptyElement(linkTable);
-	      } else {
-	        // subsequent run -- appending to folder
-	        var linksLoadingMore = linkTable.find('.links-loading-more');
-	        DOMHelpers.removeElement(linksLoadingMore);
-	        if (!links.length) return;
-	      }
-	
-	      displayLinks(links, query);
-	
-	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
-	      // Set a waypoint event to trigger when the last link comes into view.
-	      if (links.length == requestCount) {
-	        requestData.offset += requestCount;
-	        linkTable.find('.item-container:last').waypoint(function (direction) {
-	          this.destroy(); // cancel waypoint
-	          linkTable.append('<div class="links-loading-more">Loading more ...</div>');
-	          getNextContents();
-	        }, {
-	          offset: '100%' // trigger waypoint when element hits bottom of window
-	        });
-	      }
-	    });
-	  }
-	  getNextContents();
-	}
-	
-	function displayLinks(links, query) {
-	  var templateId = '#created-link-items-template';
-	  var templateArgs = { links: links, query: query };
-	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
-	  linkTable.append(template);
-	}
-	
-	function handleMouseDown(e) {
-	  if ($(e.target).hasClass('no-drag')) return;
-	
-	  $.vakata.dnd.start(e, {
-	    jstree: true,
-	    obj: $(e.currentTarget),
-	    nodes: [{ id: $(e.currentTarget).data('link_id') }]
-	  }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
-	
-	  // record drag start position so we can check how far we were dragged on mouseup
-	  dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
-	}
-	
-	function handleMouseUp(e) {
-	  // prevent JSTree's tap-to-drag behavior
-	  $.vakata.dnd.stop(e);
-	
-	  // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
-	  if (dragStartPosition && Math.sqrt(Math.pow(e.pageX - dragStartPosition[0], 2) * Math.pow(e.pageY - dragStartPosition[1], 2)) > 5) return;
-	
-	  // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
-	  if (new Date().getTime() - lastRowToggleTime < 500) return;
-	  lastRowToggleTime = new Date().getTime();
-	
-	  // hide/show link details
-	  var linkContainer = $(e.target).closest('.item-container'),
-	      details = linkContainer.find('.item-details');
-	
-	  if (details.is(':visible')) {
-	    details.hide();
-	    linkContainer.toggleClass('_active');
-	  } else {
-	    var currentFolderID, moveSelect;
-	
-	    (function () {
-	
-	      // recursively populate select ...
-	      var addChildren = function addChildren(node, depth) {
-	        for (var i = 0; i < node.children.length; i++) {
-	          var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-	
-	          // For each node, we create an <option> using text() for the folder name,
-	          // and then prepend some &nbsp; to show the tree structure using html().
-	          // Using html for the whole thing would be an XSS risk.
-	          moveSelect.append($("<option/>", {
-	            value: childNode.data.folder_id,
-	            text: childNode.text.trim(),
-	            selected: childNode.data.folder_id == currentFolderID
-	          }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
-	
-	          // recurse
-	          if (childNode.children && childNode.children.length) addChildren(childNode, depth + 1);
-	        }
-	      };
-	
-	      // when showing link details, update the move-to-folder select input
-	      // based on the current folderTree structure
-	
-	      // first clear the select ...
-	      currentFolderID = selectedFolderID;
-	      moveSelect = details.find('.move-to-folder');
-	
-	      moveSelect.find('option').remove();
-	      addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
-	
-	      details.show();
-	      linkContainer.toggleClass('_active');
-	    })();
-	  }
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-/* 104 */
+/***/ 76:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {/*!
@@ -4235,7 +1607,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 105 */
+
+/***/ 77:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4247,8 +1620,8 @@ webpackJsonp([1],[
 	exports.generateLinkFields = generateLinkFields;
 	exports.saveInput = saveInput;
 	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(89);
-	__webpack_require__(106); // add .format() to Date object
+	var APIModule = __webpack_require__(78);
+	__webpack_require__(102); // add .format() to Date object
 	
 	
 	function findFaviconURL(linkObj) {
@@ -4297,7 +1670,84 @@ webpackJsonp([1],[
 	}
 
 /***/ },
-/* 106 */
+
+/***/ 78:
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function($) {'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _typeof2 = __webpack_require__(9);
+	
+	var _typeof3 = _interopRequireDefault(_typeof2);
+	
+	var _stringify = __webpack_require__(6);
+	
+	var _stringify2 = _interopRequireDefault(_stringify);
+	
+	exports.request = request;
+	exports.showError = showError;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var ErrorHandler = __webpack_require__(79);
+	var Helpers = __webpack_require__(92);
+	
+	function request(method, url, data, requestArgs) {
+	  // set up arguments for API request
+	  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
+	
+	  if (data) {
+	    if (method == 'GET') {
+	      requestArgs.data = data;
+	    } else {
+	      requestArgs.data = (0, _stringify2.default)(data);
+	      requestArgs.contentType = 'application/json';
+	    }
+	  }
+	
+	  requestArgs.url = api_path + url;
+	  requestArgs.method = method;
+	
+	  if (!('error' in requestArgs)) requestArgs.error = showError;
+	
+	  return $.ajax(requestArgs);
+	}
+	
+	// parse and display error results from API
+	function showError(jqXHR) {
+	  var message;
+	
+	  if (jqXHR.status == 400 && jqXHR.responseText) {
+	    try {
+	      var parsedResponse = JSON.parse(jqXHR.responseText);
+	      while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
+	        for (var key in parsedResponse) {
+	          if (parsedResponse.hasOwnProperty(key)) {
+	            parsedResponse = parsedResponse[key];
+	            break;
+	          }
+	        }
+	      }
+	      message = parsedResponse;
+	    } catch (SyntaxError) {
+	      ErrorHandler.airbrake.notify(SyntaxError);
+	    }
+	  } else if (jqXHR.status == 401) {
+	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+	  } else {
+	    message = 'Error ' + jqXHR.status;
+	  }
+	  Helpers.informUser(message, 'danger');
+	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ },
+
+/***/ 102:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4405,7 +1855,8 @@ webpackJsonp([1],[
 	  } };
 
 /***/ },
-/* 107 */
+
+/***/ 103:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -4413,21 +1864,26 @@ webpackJsonp([1],[
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.folderTree = undefined;
+	exports.ls = exports.folderTree = undefined;
 	
 	var _stringify = __webpack_require__(6);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
 	exports.init = init;
+	exports.getSavedFolder = getSavedFolder;
+	exports.getSavedOrg = getSavedOrg;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	__webpack_require__(108); // add jquery support for .tree
-	__webpack_require__(109);
+	__webpack_require__(104); // add jquery support for .tree
+	__webpack_require__(105);
+	__webpack_require__(138);
 	
-	var APIModule = __webpack_require__(89);
+	var APIModule = __webpack_require__(78);
+	var Helpers = __webpack_require__(92);
 	
+	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
 	var lastSelectedFolder = null;
 	var folderTree = exports.folderTree = null;
@@ -4435,125 +1891,200 @@ webpackJsonp([1],[
 	function init() {
 	  domTreeInit();
 	  setupEventHandlers();
-	
 	  folderTree.deselect_all();
-	
-	  var firstNode = getSelectedNode();
-	  if (firstNode) folderTree.select_node(firstNode);
 	}
 	
-	function setupEventHandlers() {
-	  $(window).on('dropdown.selectionChange', handleSelectionChange).on('LinksListModule.moveLink', function (evt, data) {
-	    data = JSON.parse(data);
-	    moveLink(data.folderId, data.linkId);
-	  });
-	
-	  // set body class during drag'n'drop
-	  $(document).on('dnd_start.vakata', function (e, data) {
-	    $('body').addClass("dragging");
-	  }).on('dnd_stop.vakata', function (e, data) {
-	    $('body').removeClass("dragging");
-	  });
-	
-	  // folder buttons
-	  $('a.new-folder').on('click', function () {
-	    folderTree.create_node(getSelectedNode(), {}, "last");
-	    return false;
-	  });
-	  $('a.edit-folder').on('click', function () {
-	    editNodeName(getSelectedNode());
-	    return false;
-	  });
-	  $('a.delete-folder').on('click', function () {
-	    var node = getSelectedNode();
-	    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
-	    folderTree.delete_node(node);
-	    return false;
-	  });
-	}
-	
-	function handleSelectionChange() {
-	  folderTree.close_all();
-	  folderTree.deselect_all();
-	  var node = findNodeBySavedFolder();
-	  folderTree.select_node(node);
-	}
-	
-	function findNodeBySavedFolder() {
-	  var selections = JSON.parse(localStorage.getItem("perma_selection")),
-	      folderData = folderTree._model.data,
-	      node;
-	  if (selections && selections[current_user.id] && selections[current_user.id].folderId === "default") {
-	    node = folderTree.get_node('ul > li:first');
-	    return node;
+	// When a user selects a folder, we store that choice in Local Storage
+	// and attempt to reselect on subsequent page loads.
+	var ls = exports.ls = {
+	  // This data structure was built such that multiple users' last-used folders could be
+	  // stored simultaneously. At present, this feature is not in use: when a user logs out,
+	  // local storage is cleared. getAll remains in the codebase, with getCurrent, in case we ever
+	  // decide to change that behavior (not recommended at present due to the complications it may
+	  // introduce to user support: we don't want to have to walk people through clearing local
+	  // storage if unexpected behavior surfaces)
+	  getAll: function getAll() {
+	    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+	    return folders || {};
+	  },
+	  getCurrent: function getCurrent() {
+	    var folders = ls.getAll();
+	    return folders[current_user.id] || {};
+	  },
+	  setCurrent: function setCurrent(orgId, folderIds) {
+	    var selectedFolders = ls.getAll();
+	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
+	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
+	    Helpers.triggerOnWindow("FolderTreeModule.selectionChange", selectedFolders[current_user.id]);
 	  }
+	};
 	
-	  if (selections && selections[current_user.id]) {
-	    for (var i in folderData) {
-	      if (folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections[current_user.id].folderId) {
-	        break;
-	      }
-	    }
-	  }
-	  return folderTree.get_node(i);
+	function getSavedFolder() {
+	  // Look up the ID of the previously selected folder (if any) from localStorage.
+	  var folderIds = ls.getCurrent().folderIds;
+	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
+	  return null;
+	}
+	function getSavedOrg() {
+	  // Look up the ID of the previously selected folder's org (if any) from localStorage.
+	  return ls.getCurrent().orgId;
 	}
 	
 	function getSelectedNode() {
-	  return findNodeBySavedFolder();
+	  return folderTree.get_selected(true)[0];
 	}
 	
 	function getSelectedFolderID() {
 	  return getSelectedNode().data.folder_id;
 	}
 	
-	function editNodeName(node) {
-	  setTimeout(function () {
-	    folderTree.edit(node);
-	  }, 0);
+	function getNodeByFolderID(folderId) {
+	  var folderData = folderTree._model.data;
+	  for (var i in folderData) {
+	    if (folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folderId) {
+	      return folderTree.get_node(i);
+	    }
+	  }
+	  return null;
 	}
 	
-	function getNodeData(node) {
+	function handleSelectionChange() {
+	  folderTree.close_all();
+	  folderTree.deselect_all();
+	  selectSavedFolder();
+	}
+	
+	function selectSavedFolder() {
+	  var folderToSelect = getSavedFolder();
+	
+	  //select default for users with no orgs and no saved selections
+	  if (!folderToSelect && current_user.top_level_folders.length == 1) {
+	    folderToSelect = current_user.top_level_folders[0].id;
+	  }
+	
+	  folderTree.select_node(getNodeByFolderID(folderToSelect));
+	}
+	
+	function setSavedFolder(node) {
+	  var data = node.data;
+	  if (data) {
+	    var folderIds = folderTree.get_path(node, false, true).map(function (id) {
+	      return folderTree.get_node(id).data.folder_id;
+	    });
+	    ls.setCurrent(data.organization_id, folderIds);
+	  }
+	  sendSelectionChangeEvent(node);
+	}
+	
+	function sendSelectionChangeEvent(node) {
 	  var data = {};
 	  if (node.data) {
 	    data.folderId = node.data.folder_id;
 	    data.orgId = node.data.organization_id;
 	    data.path = folderTree.get_path(node);
 	  }
-	  return data;
-	}
-	
-	function setSelectedFolder(node) {
-	  var data = getNodeData(node);
-	  var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
-	
-	  if (data.folderId || data.orgId) {
-	    savedSelections[current_user.id] = { 'folderId': data.folderId, 'orgId': data.orgId };
-	    localStorage.setItem("perma_selection", (0, _stringify2.default)(savedSelections));
-	  }
 	  $(window).trigger("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
 	}
 	
-	function createFolder(parentFolderID, newName) {
-	  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", { name: newName });
+	function handleShowFoldersEvent(currentFolder, callback) {
+	  // This function gets called by jsTree with the current folder, and a callback to return subfolders.
+	  // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
+	  var simpleCallback = function simpleCallback(callbackData) {
+	    return callback.call(folderTree, callbackData);
+	  };
+	
+	  if (currentFolder.data) {
+	    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
+	  } else {
+	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), ls.getCurrent().folderIds, simpleCallback);
+	  }
 	}
 	
-	function renameFolder(folderID, newName) {
-	  return APIModule.request("PATCH", "/folders/" + folderID + "/", { name: newName });
+	function apiFoldersToJsTreeFolders(apiFolders) {
+	  // Helper to process a list of folders from our API into the form expected by jsTree.
+	  return apiFolders.map(function (folder) {
+	    var jsTreeFolder = {
+	      text: folder.name,
+	      data: {
+	        folder_id: folder.id,
+	        organization_id: folder.organization
+	      },
+	      li_attr: {
+	        "data-folder_id": folder.id,
+	        "data-organization_id": folder.organization
+	      },
+	      "children": folder.has_children
+	    };
+	    if (folder.organization && !folder.parent) jsTreeFolder.type = "shared_folder";
+	    return jsTreeFolder;
+	  });
 	}
 	
-	function moveFolder(parentID, childID) {
-	  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+	function loadSingleFolder(folderId, callback) {
+	  // Grab a single folder ID from the server and pass back to jsTree.
+	  APIModule.request("GET", "/folders/" + folderId + "/folders/").done(function (data) {
+	    callback(apiFoldersToJsTreeFolders(data.objects));
+	  });
 	}
 	
-	function deleteFolder(folderID) {
-	  return APIModule.request("DELETE", "/folders/" + folderID + "/");
-	}
+	function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
+	  // This runs once at startup. Starting from the list of the user's root folders, fetch any
+	  // subfolders in the tree that the user previously had open, and load the entire tree into jsTree at the end.
 	
-	function moveLink(folderID, linkID) {
-	  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
-	    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
-	    // once we're done moving the link, hide it from the current folder
-	    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
+	  // simple case -- user has no folders selected
+	  if (!subfoldersToPreload) {
+	    callback(preloadedData);
+	    return;
+	  }
+	
+	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
+	  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
+	  $.when.apply($, subfoldersToPreload.map(function (folderId) {
+	    return APIModule.request("GET", "/folders/" + folderId + "/folders/", null, { "error": null });
+	  }))
+	
+	  // When all API requests have returned, loop through the responses and build the folder tree:
+	  .done(function () {
+	    var apiResponses = arguments;
+	    var parentFolders = preloadedData;
+	
+	    // for each folder in the path ...
+	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	
+	      // find the parent folder to load subfolders into, and mark it opened:
+	      var folderId = subfoldersToPreload[i];
+	      var parentFolder = parentFolders.find(function (folder) {
+	        return folderId == folder.data.folder_id;
+	      });
+	      if (!parentFolder)
+	        // tree must have changed since last time user visited
+	        break;
+	      parentFolder.state = { opened: true };
+	
+	      // find the subfolders and load them in:
+	      var apiResponse = apiResponses[i][0];
+	      var subfolders = apiResponse ? apiResponse.objects : null; // if API response doesn't make sense, we'll just stop loading the tree here
+	      if (subfolders && subfolders.length) {
+	        parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
+	
+	        // set the loaded subfolders as the target for the next pass through this loop
+	        parentFolders = parentFolder.children;
+	
+	        // if no subfolders, we're done
+	      } else {
+	        break;
+	      }
+	    }
+	
+	    // pass our folder tree to jsTree for display
+	    callback(preloadedData);
+	  })
+	
+	  // If fetching saved folders threw any API errors, something is wrong with the saved folder path (like maybe another user
+	  // moved the target folder) -- wipe the path and show top-level folders only.
+	  .fail(function () {
+	    localStorage.clear();
+	    callback(preloadedData);
 	  });
 	}
 	
@@ -4563,6 +2094,9 @@ webpackJsonp([1],[
 	      strings: {
 	        'New node': 'New Folder'
 	      },
+	
+	      'data': handleShowFoldersEvent,
+	
 	      check_callback: function check_callback(operation, node, node_parent, node_position, more) {
 	        // Here we handle all actions on folders that have to be checked with the server.
 	        // That means we have to intercept the jsTree event, cancel it,
@@ -4594,9 +2128,7 @@ webpackJsonp([1],[
 	            renameFolder(node.data.folder_id, newName).done(function () {
 	              allowedEventsCount++;
 	              folderTree.rename_node(node, newName);
-	              var data = getNodeData(node);
-	              data = (0, _stringify2.default)(data);
-	              $(window).trigger("FolderTreeModule.selectionChange", data);
+	              sendSelectionChangeEvent(node);
 	            });
 	          } else if (operation == 'move_node') {
 	            var targetNode = getDropTarget();
@@ -4650,20 +2182,85 @@ webpackJsonp([1],[
 	    }
 	
 	    var lastSelectedNode = data.node;
-	    setSelectedFolder(lastSelectedNode);
+	    setSavedFolder(lastSelectedNode);
 	
 	    // handle open/close folder icon
 	  }).on('open_node.jstree', function (e, data) {
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-open-alt");
 	  }).on('close_node.jstree', function (e, data) {
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-close-alt");
+	  }).on('load_node.jstree', function (e, data) {
+	    // when a new node is loaded, see if it should be selected based on a user's previous visit.
+	    // (without this, doesn't select saved folders on load.)
+	    selectSavedFolder();
 	  });
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
+	}
+	
+	function createFolder(parentFolderID, newName) {
+	  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", { name: newName });
+	}
+	
+	function renameFolder(folderID, newName) {
+	  return APIModule.request("PATCH", "/folders/" + folderID + "/", { name: newName });
+	}
+	
+	function moveFolder(parentID, childID) {
+	  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+	}
+	
+	function deleteFolder(folderID) {
+	  return APIModule.request("DELETE", "/folders/" + folderID + "/");
+	}
+	
+	function moveLink(folderID, linkID) {
+	  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
+	    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
+	    // once we're done moving the link, hide it from the current folder
+	    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
+	  });
+	}
+	
+	function setupEventHandlers() {
+	  $(window).on('dropdown.selectionChange', handleSelectionChange).on('LinksListModule.moveLink', function (evt, data) {
+	    data = JSON.parse(data);
+	    moveLink(data.folderId, data.linkId);
+	  });
+	
+	  // set body class during drag'n'drop
+	  $(document).on('dnd_start.vakata', function (e, data) {
+	    $('body').addClass("dragging");
+	  }).on('dnd_stop.vakata', function (e, data) {
+	    $('body').removeClass("dragging");
+	  });
+	
+	  // folder buttons
+	  $('a.new-folder').on('click', function () {
+	    folderTree.create_node(getSelectedNode(), {}, "last");
+	    return false;
+	  });
+	  $('a.edit-folder').on('click', function () {
+	    editNodeName(getSelectedNode());
+	    return false;
+	  });
+	  $('a.delete-folder').on('click', function () {
+	    var node = getSelectedNode();
+	    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
+	    folderTree.delete_node(node);
+	    return false;
+	  });
+	}
+	
+	function editNodeName(node) {
+	  setTimeout(function () {
+	    folderTree.edit(node);
+	  }, 0);
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 108 */
+
+/***/ 104:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*globals jQuery, define, module, exports, require, window, document, postMessage */
@@ -12862,11 +10459,2789 @@ webpackJsonp([1],[
 	}));
 
 /***/ },
-/* 109 */
+
+/***/ 105:
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(106);
+	module.exports = __webpack_require__(109).Array.find;
+
+/***/ },
+
+/***/ 106:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
+	var $export = __webpack_require__(107)
+	  , $find   = __webpack_require__(125)(5)
+	  , KEY     = 'find'
+	  , forced  = true;
+	// Shouldn't skip holes
+	if(KEY in [])Array(1)[KEY](function(){ forced = false; });
+	$export($export.P + $export.F * forced, 'Array', {
+	  find: function find(callbackfn/*, that = undefined */){
+	    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+	  }
+	});
+	__webpack_require__(137)(KEY);
+
+/***/ },
+
+/***/ 107:
+/***/ function(module, exports, __webpack_require__) {
+
+	var global    = __webpack_require__(108)
+	  , core      = __webpack_require__(109)
+	  , hide      = __webpack_require__(110)
+	  , redefine  = __webpack_require__(120)
+	  , ctx       = __webpack_require__(123)
+	  , PROTOTYPE = 'prototype';
+	
+	var $export = function(type, name, source){
+	  var IS_FORCED = type & $export.F
+	    , IS_GLOBAL = type & $export.G
+	    , IS_STATIC = type & $export.S
+	    , IS_PROTO  = type & $export.P
+	    , IS_BIND   = type & $export.B
+	    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] || (global[name] = {}) : (global[name] || {})[PROTOTYPE]
+	    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
+	    , expProto  = exports[PROTOTYPE] || (exports[PROTOTYPE] = {})
+	    , key, own, out, exp;
+	  if(IS_GLOBAL)source = name;
+	  for(key in source){
+	    // contains in native
+	    own = !IS_FORCED && target && target[key] !== undefined;
+	    // export native or passed
+	    out = (own ? target : source)[key];
+	    // bind timers to global for call from export context
+	    exp = IS_BIND && own ? ctx(out, global) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+	    // extend global
+	    if(target)redefine(target, key, out, type & $export.U);
+	    // export
+	    if(exports[key] != out)hide(exports, key, exp);
+	    if(IS_PROTO && expProto[key] != out)expProto[key] = out;
+	  }
+	};
+	global.core = core;
+	// type bitmap
+	$export.F = 1;   // forced
+	$export.G = 2;   // global
+	$export.S = 4;   // static
+	$export.P = 8;   // proto
+	$export.B = 16;  // bind
+	$export.W = 32;  // wrap
+	$export.U = 64;  // safe
+	$export.R = 128; // real proto method for `library` 
+	module.exports = $export;
+
+/***/ },
+
+/***/ 108:
+19,
+
+/***/ 109:
+8,
+
+/***/ 110:
+[335, 111, 119, 115],
+
+/***/ 111:
+[336, 112, 114, 118, 115],
+
+/***/ 112:
+[337, 113],
+
+/***/ 113:
+25,
+
+/***/ 114:
+[338, 115, 116, 117],
+
+/***/ 115:
+[339, 116],
+
+/***/ 116:
+28,
+
+/***/ 117:
+[340, 113, 108],
+
+/***/ 118:
+[341, 113],
+
+/***/ 119:
+31,
+
+/***/ 120:
+/***/ function(module, exports, __webpack_require__) {
+
+	var global    = __webpack_require__(108)
+	  , hide      = __webpack_require__(110)
+	  , has       = __webpack_require__(121)
+	  , SRC       = __webpack_require__(122)('src')
+	  , TO_STRING = 'toString'
+	  , $toString = Function[TO_STRING]
+	  , TPL       = ('' + $toString).split(TO_STRING);
+	
+	__webpack_require__(109).inspectSource = function(it){
+	  return $toString.call(it);
+	};
+	
+	(module.exports = function(O, key, val, safe){
+	  var isFunction = typeof val == 'function';
+	  if(isFunction)has(val, 'name') || hide(val, 'name', key);
+	  if(O[key] === val)return;
+	  if(isFunction)has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+	  if(O === global){
+	    O[key] = val;
+	  } else {
+	    if(!safe){
+	      delete O[key];
+	      hide(O, key, val);
+	    } else {
+	      if(O[key])O[key] = val;
+	      else hide(O, key, val);
+	    }
+	  }
+	// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
+	})(Function.prototype, TO_STRING, function toString(){
+	  return typeof this == 'function' && this[SRC] || $toString.call(this);
+	});
+
+/***/ },
+
+/***/ 121:
+33,
+
+/***/ 122:
+48,
+
+/***/ 123:
+[334, 124],
+
+/***/ 124:
+21,
+
+/***/ 125:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 0 -> Array#forEach
+	// 1 -> Array#map
+	// 2 -> Array#filter
+	// 3 -> Array#some
+	// 4 -> Array#every
+	// 5 -> Array#find
+	// 6 -> Array#findIndex
+	var ctx      = __webpack_require__(123)
+	  , IObject  = __webpack_require__(126)
+	  , toObject = __webpack_require__(128)
+	  , toLength = __webpack_require__(130)
+	  , asc      = __webpack_require__(132);
+	module.exports = function(TYPE, $create){
+	  var IS_MAP        = TYPE == 1
+	    , IS_FILTER     = TYPE == 2
+	    , IS_SOME       = TYPE == 3
+	    , IS_EVERY      = TYPE == 4
+	    , IS_FIND_INDEX = TYPE == 6
+	    , NO_HOLES      = TYPE == 5 || IS_FIND_INDEX
+	    , create        = $create || asc;
+	  return function($this, callbackfn, that){
+	    var O      = toObject($this)
+	      , self   = IObject(O)
+	      , f      = ctx(callbackfn, that, 3)
+	      , length = toLength(self.length)
+	      , index  = 0
+	      , result = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined
+	      , val, res;
+	    for(;length > index; index++)if(NO_HOLES || index in self){
+	      val = self[index];
+	      res = f(val, index, O);
+	      if(TYPE){
+	        if(IS_MAP)result[index] = res;            // map
+	        else if(res)switch(TYPE){
+	          case 3: return true;                    // some
+	          case 5: return val;                     // find
+	          case 6: return index;                   // findIndex
+	          case 2: result.push(val);               // filter
+	        } else if(IS_EVERY)return false;          // every
+	      }
+	    }
+	    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
+	  };
+	};
+
+/***/ },
+
+/***/ 126:
+[331, 127],
+
+/***/ 127:
+42,
+
+/***/ 128:
+[330, 129],
+
+/***/ 129:
+15,
+
+/***/ 130:
+[332, 131],
+
+/***/ 131:
+14,
+
+/***/ 132:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+	var speciesConstructor = __webpack_require__(133);
+	
+	module.exports = function(original, length){
+	  return new (speciesConstructor(original))(length);
+	};
+
+/***/ },
+
+/***/ 133:
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(113)
+	  , isArray  = __webpack_require__(134)
+	  , SPECIES  = __webpack_require__(135)('species');
+	
+	module.exports = function(original){
+	  var C;
+	  if(isArray(original)){
+	    C = original.constructor;
+	    // cross-realm fallback
+	    if(typeof C == 'function' && (C === Array || isArray(C.prototype)))C = undefined;
+	    if(isObject(C)){
+	      C = C[SPECIES];
+	      if(C === null)C = undefined;
+	    }
+	  } return C === undefined ? Array : C;
+	};
+
+/***/ },
+
+/***/ 134:
+[329, 127],
+
+/***/ 135:
+[342, 136, 122, 108],
+
+/***/ 136:
+[333, 108],
+
+/***/ 137:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 22.1.3.31 Array.prototype[@@unscopables]
+	var UNSCOPABLES = __webpack_require__(135)('unscopables')
+	  , ArrayProto  = Array.prototype;
+	if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(110)(ArrayProto, UNSCOPABLES, {});
+	module.exports = function(key){
+	  ArrayProto[UNSCOPABLES][key] = true;
+	};
+
+/***/ },
+
+/***/ 138:
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
+/***/ },
+
+/***/ 145:
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function($, jQuery) {'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _stringify = __webpack_require__(6);
+	
+	var _stringify2 = _interopRequireDefault(_stringify);
+	
+	var _typeof2 = __webpack_require__(9);
+	
+	var _typeof3 = _interopRequireDefault(_typeof2);
+	
+	var _keys = __webpack_require__(93);
+	
+	var _keys2 = _interopRequireDefault(_keys);
+	
+	var _getIterator2 = __webpack_require__(97);
+	
+	var _getIterator3 = _interopRequireDefault(_getIterator2);
+	
+	exports.populateWithUrl = populateWithUrl;
+	exports.updateLinker = updateLinker;
+	exports.updateLinksRemaining = updateLinksRemaining;
+	exports.init = init;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Spinner = __webpack_require__(146);
+	__webpack_require__(147); // add jquery support for ajaxSubmit/ajaxForm
+	__webpack_require__(148); // add .modal to jquery
+	
+	var Helpers = __webpack_require__(92);
+	var DOMHelpers = __webpack_require__(2);
+	var HandlebarsHelpers = __webpack_require__(3);
+	var APIModule = __webpack_require__(78);
+	var FolderTreeModule = __webpack_require__(103);
+	
+	var newGUID = null;
+	var refreshIntervalIds = [];
+	var spinner;
+	var organizations = {};
+	
+	// Get parameter by name
+	// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+	function getParameterByName(name) {
+	  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+	      results = regex.exec(location.search);
+	  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+	
+	function linkIt(data) {
+	  // Success message from API. We should have a GUID now (but the
+	  // archive is still be generated)
+	  // Clear any error messages out
+	  DOMHelpers.removeElement('.error-row');
+	
+	  newGUID = data.guid;
+	
+	  refreshIntervalIds.push(setInterval(check_status, 2000));
+	}
+	
+	function linkNot(jqXHR) {
+	  // The API told us something went wrong.
+	
+	  if (jqXHR.status == 401) {
+	    // special handling if user becomes unexpectedly logged out
+	    APIModule.showError(jqXHR);
+	  } else {
+	    var message = "";
+	    if (jqXHR.status == 400 && jqXHR.responseText) {
+	      var errors = JSON.parse(jqXHR.responseText).archives;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+	
+	      try {
+	        for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(errors)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var prop = _step.value;
+	
+	          message += errors[prop] + " ";
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    }
+	
+	    var upload_allowed = true;
+	    if (message.indexOf("limit") > -1) {
+	      $('.links-remaining').text('0');
+	      upload_allowed = false;
+	    }
+	
+	    var templateArgs = {
+	      message: message || "Error " + jqXHR.status,
+	      upload_allowed: upload_allowed,
+	      contact_url: contact_url
+	    };
+	
+	    changeTemplate('#error-template', templateArgs, '#error-container');
+	
+	    $('.create-errors').addClass('_active');
+	    $('#error-container').hide().fadeIn(0);
+	  }
+	  toggleCreateAvailable();
+	}
+	
+	/* Handle an upload - start */
+	function uploadNot(jqXHR) {
+	  // Display an error message in our upload modal
+	
+	  // special handling if user becomes unexpectedly logged out
+	  if (jqXHR.status == 401) {
+	    APIModule.showError(jqXHR);
+	    return;
+	  }
+	  var reasons = [],
+	      response;
+	
+	  try {
+	    response = jQuery.parseJSON(jqXHR.responseText);
+	  } catch (e) {
+	    response = jqXHR.responseText;
+	  }
+	
+	  DOMHelpers.hideElement('.spinner');
+	
+	  $('.js-warning').remove();
+	  $('.has-error').removeClass('has-error');
+	  if (response.archives) {
+	    // If error message comes in as {archive:{file:"message",url:"message"}},
+	    // show appropriate error message next to each field.
+	    for (var key in response.archives) {
+	      if (response.archives.hasOwnProperty(key)) {
+	        var input = $('#' + key);
+	        if (input.length) {
+	          input.after('<span class="help-block js-warning">' + response.archives[key] + '</span>');
+	          input.closest('div').addClass('has-error');
+	        } else {
+	          reasons.push(response.archives[key]);
+	        }
+	      }
+	    }
+	  } else if (response.reason) {
+	    reasons.push(response.reason);
+	  } else {
+	    reasons.push(response);
+	  }
+	
+	  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
+	  DOMHelpers.toggleBtnDisable('#uploadLinky', false);
+	  DOMHelpers.toggleBtnDisable('.cancel', false);
+	}
+	
+	function uploadIt(data) {
+	  // If a user wants to upload their own screen capture, we display
+	  // a modal and the form in that modal is handled here
+	  $('#archive-upload').modal('hide');
+	
+	  window.location.href = '/' + data.guid;
+	}
+	
+	function upload_form() {
+	  $('#upload-error').text('');
+	  $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
+	  $('#archive-upload').modal('show');
+	  return false;
+	}
+	
+	/* Handle the the main action (enter url, hit the button) button - start */
+	
+	function toggleCreateAvailable() {
+	  // Get our spinner going and display a "we're working" message
+	  var $addlink = $('#addlink');
+	  if ($addlink.hasClass('_isWorking')) {
+	    $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+	    spinner.stop();
+	    $('#rawUrl, #organization_select_form button').removeAttr('disabled');
+	    $('#links-remaining-message').removeClass('_isWorking');
+	  } else {
+	    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
+	    // spinner opts -- see http://spin.js.org/
+	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
+	    spinner.spin($addlink[0]);
+	    $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
+	    $('#links-remaining-message').addClass('_isWorking');
+	  }
+	}
+	
+	/* The plan is to set a timer to periodically check if the thumbnail
+	 exists. Once it does, we append it to the page and clear the
+	 thumbnail. The reason we're keeping a list of interval IDs rather
+	 than just one is as a hacky solution to the problem of a user
+	 creating a Perma link for some URL and then immediately clicking
+	 the button again for the same URL. Since all these requests are
+	 done with AJAX, that results in two different interval IDs getting
+	 created. Both requests will end up completing but the old interval
+	 ID will be overwritten and never cleared, causing a bunch of copies
+	 of the screenshot to get appended to the page. We thus just append
+	 them to the list and then clear the whole list once the request
+	 succeeds. */
+	
+	function check_status() {
+	
+	  // Check our status service to see if we have archiving jobs pending
+	  var request = APIModule.request("GET", "/user/capture_jobs/" + newGUID + "/");
+	  request.done(function (data) {
+	    // While status is pending or in progress, update progress display
+	    if (data.status == "pending") {
+	      // todo -- could display data.queue_position here
+	
+	    } else if (data.status == "in_progress") {
+	
+	      // add progress bar if doesn't exist
+	      if (!$('#capture-progress-bar').length) {
+	        $('#addlink').append('<div style="position: relative; width: 100%; height: 0">' + '  <div id="capture-progress-bar" class="progress" style="width: 100%; height: 0.3em; position:absolute; margin-bottom: 0">' + '    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0; background-color: #2D76EE">' + '      <span class="sr-only">0% Complete</span>' + '    </div>' + '  </div>' + '</div>');
+	      }
+	
+	      // update progress
+	      var progress = data.step_count / 5 * 100;
+	      $('#capture-progress-bar .progress-bar').attr('aria-valuenow', progress).css('width', progress + '%').find('span').text(progress + '% Complete');
+	    } else {
+	
+	      // Capture is done (one way or another) -- clear out our pending jobs
+	      $.each(refreshIntervalIds, function (ndx, id) {
+	        clearInterval(id);
+	      });
+	
+	      // If we succeeded, forward to the new archive
+	      if (data.status == "completed") {
+	        window.location.href = "/" + newGUID;
+	
+	        // Else show failure message and reset form.
+	      } else {
+	        var templateArgs = { message: "Error: URL capture failed." };
+	        changeTemplate('#error-template', templateArgs, '#error-container');
+	
+	        $('#error-container').removeClass('_hide _success _wait').addClass('_error');
+	
+	        // Toggle our create button
+	        toggleCreateAvailable();
+	      }
+	    }
+	  });
+	}
+	
+	/* Our polling function for the thumbnail completion - end */
+	function populateWithUrl() {
+	  var url = Helpers.getWindowLocationSearch().split("url=")[1];
+	  if (url) {
+	    url = decodeURIComponent(url);
+	    DOMHelpers.setInputValue("#rawUrl", url);
+	    return url;
+	  }
+	}
+	
+	// This handles the dropdown menu for selecting a folder, which only appears for
+	// org users, registrar users, and admins, and alters related UI elements depending
+	// on what has been selected.
+	function updateLinker() {
+	  var currentOrg = FolderTreeModule.getSavedOrg();
+	  var organizationsExist = (0, _keys2.default)(organizations).length;
+	
+	  // if user has organizations available but hasn't picked one yet, require them to pick
+	  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
+	    $('#addlink').attr('disabled', 'disabled');
+	    return;
+	  }
+	
+	  // disable button if user is out of links
+	  if (!currentOrg && links_remaining < 1) {
+	    $('#addlink').attr('disabled', 'disabled');
+	  } else {
+	    $('#addlink').removeAttr('disabled');
+	  }
+	
+	  // UI indications that links saved to current org will default to private
+	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+	    $('#addlink').text("Create Private Perma Link");
+	    $('#linker').addClass('_isPrivate');
+	    // add the little eye icon to the dropdown
+	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
+	  } else {
+	    $('#addlink').text("Create Perma Link");
+	    $('#linker').removeClass('_isPrivate');
+	    $('#organization_select_form').find('.dropdown-toggle > span').removeClass('ui-private');
+	  }
+	
+	  // suggest switching folder if user has orgs and is running out of personal links
+	  var already_warned = Helpers.getCookie("suppress_link_warning");
+	  if (already_warned != "true" && !currentOrg && organizationsExist && links_remaining == 3) {
+	    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders.";
+	    Helpers.informUser(message, 'danger');
+	    Helpers.setCookie("suppress_link_warning", "true", 120);
+	  }
+	}
+	
+	function handleSelectionChange(data) {
+	  updateLinker();
+	
+	  if (data && data.path) {
+	    updateAffiliationPath(data.orgId, data.path);
+	  }
+	}
+	
+	function updateAffiliationPath(currentOrg, path) {
+	
+	  var stringPath = path.join(" &gt; ");
+	  stringPath += "<span></span>";
+	
+	  $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
+	
+	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
+	  }
+	
+	  if (!currentOrg || currentOrg === "None") {
+	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('links-remaining').text(links_remaining);
+	  }
+	}
+	
+	function updateLinksRemaining(links_num) {
+	  links_remaining = links_num;
+	  DOMHelpers.changeText('.links-remaining', links_remaining);
+	}
+	
+	function setupEventHandlers() {
+	  $(window).off('FolderTreeModule.selectionChange').off('FolderTreeModule.updateLinksRemaining').on('FolderTreeModule.selectionChange', function (evt, data) {
+	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
+	    handleSelectionChange(data);
+	  }).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
+	    updateLinksRemaining(data);
+	  });
+	
+	  // When a user uploads their own capture
+	  $(document).on('submit', '#archive_upload_form', function () {
+	    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
+	    DOMHelpers.toggleBtnDisable('.cancel', true);
+	    var extraUploadData = {},
+	        selectedFolder = FolderTreeModule.getSavedFolder();
+	    if (selectedFolder) extraUploadData.folder = selectedFolder;
+	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
+	    spinner.spin(this);
+	    $(this).ajaxSubmit({
+	      data: extraUploadData,
+	      success: uploadIt,
+	      error: uploadNot
+	    });
+	    return false;
+	  });
+	
+	  // Toggle users dropdown
+	  $('#dashboard-users').click(function () {
+	    $('.users-secondary').toggle();
+	  });
+	
+	  // When a new url is entered into our form
+	  $('#linker').submit(function () {
+	    var $this = $(this);
+	    var linker_data = {
+	      url: $this.find("input[name=url]").val(),
+	      human: true
+	    };
+	    var selectedFolder = FolderTreeModule.getSavedFolder();
+	
+	    if (selectedFolder) linker_data.folder = selectedFolder;
+	
+	    // Start our spinner and disable our input field with just a tiny delay
+	    window.setTimeout(toggleCreateAvailable, 150);
+	
+	    $.ajax($this.attr('action'), {
+	      method: $this.attr('method'),
+	      contentType: 'application/json',
+	      data: (0, _stringify2.default)(linker_data),
+	      success: linkIt,
+	      error: linkNot
+	    });
+	
+	    return false;
+	  });
+	}
+	
+	/* templateContainer: DOM selector, where the newly rendered template will live */
+	function changeTemplate(template, args, templateContainer) {
+	  var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args);
+	  DOMHelpers.changeHTML(templateContainer, renderedTemplate);
+	}
+	
+	function init() {
+	  // Dismiss browser tools message
+	  $('.close-browser-tools').click(function () {
+	    $('#browser-tools-message').hide();
+	    Helpers.setCookie("suppress_reminder", "true", 120);
+	  });
+	
+	  var $organization_select = $("#organization_select");
+	
+	  // populate organization dropdown
+	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).success(function (data) {
+	
+	    var sorted = [];
+	    (0, _keys2.default)(data.objects).sort(function (a, b) {
+	      return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
+	    }).forEach(function (key) {
+	      sorted.push(data.objects[key]);
+	    });
+	    data.objects = sorted;
+	
+	    if (data.objects.length > 0) {
+	      var optgroup = data.objects[0].registrar;
+	      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+	      data.objects.map(function (organization) {
+	        organizations[organization.id] = organization;
+	
+	        if (organization.registrar !== optgroup) {
+	          optgroup = organization.registrar;
+	          $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+	        }
+	        var opt_text = organization.name;
+	        if (organization.default_to_private) {
+	          opt_text += ' <span class="ui-private">(Private)</span>';
+	        }
+	        $organization_select.append("<li><a href='#' data-orgid='" + organization.id + "' data-folderid='" + organization.shared_folder.id + "'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
+	      });
+	
+	      $organization_select.append("<li class='personal-links'><a href='#' data-folderid='" + current_user.top_level_folders[0].id + "'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+	      updateLinker();
+	    }
+	  });
+	
+	  // handle dropdown changes
+	  $organization_select.on('click', 'a', function () {
+	    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+	    Helpers.triggerOnWindow("dropdown.selectionChange");
+	  });
+	
+	  // handle upload form button
+	  $(document.body).on('click', '#upload-form-button', upload_form);
+	
+	  setupEventHandlers();
+	  populateWithUrl();
+	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
+
+/***/ },
+
+/***/ 146:
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
+	 * Copyright (c) 2011-2014 Felix Gnass
+	 * Licensed under the MIT license
+	 * http://spin.js.org/
+	 *
+	 * Example:
+	    var opts = {
+	      lines: 12             // The number of lines to draw
+	    , length: 7             // The length of each line
+	    , width: 5              // The line thickness
+	    , radius: 10            // The radius of the inner circle
+	    , scale: 1.0            // Scales overall size of the spinner
+	    , corners: 1            // Roundness (0..1)
+	    , color: '#000'         // #rgb or #rrggbb
+	    , opacity: 1/4          // Opacity of the lines
+	    , rotate: 0             // Rotation offset
+	    , direction: 1          // 1: clockwise, -1: counterclockwise
+	    , speed: 1              // Rounds per second
+	    , trail: 100            // Afterglow percentage
+	    , fps: 20               // Frames per second when using setTimeout()
+	    , zIndex: 2e9           // Use a high z-index by default
+	    , className: 'spinner'  // CSS class to assign to the element
+	    , top: '50%'            // center vertically
+	    , left: '50%'           // center horizontally
+	    , shadow: false         // Whether to render a shadow
+	    , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
+	    , position: 'absolute'  // Element positioning
+	    }
+	    var target = document.getElementById('foo')
+	    var spinner = new Spinner(opts).spin(target)
+	 */
+	;(function (root, factory) {
+	
+	  /* CommonJS */
+	  if (typeof module == 'object' && module.exports) module.exports = factory()
+	
+	  /* AMD module */
+	  else if (true) !(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+	
+	  /* Browser global */
+	  else root.Spinner = factory()
+	}(this, function () {
+	  "use strict"
+	
+	  var prefixes = ['webkit', 'Moz', 'ms', 'O'] /* Vendor prefixes */
+	    , animations = {} /* Animation rules keyed by their name */
+	    , useCssAnimations /* Whether to use CSS animations or setTimeout */
+	    , sheet /* A stylesheet to hold the @keyframe or VML rules. */
+	
+	  /**
+	   * Utility function to create elements. If no tag name is given,
+	   * a DIV is created. Optionally properties can be passed.
+	   */
+	  function createEl (tag, prop) {
+	    var el = document.createElement(tag || 'div')
+	      , n
+	
+	    for (n in prop) el[n] = prop[n]
+	    return el
+	  }
+	
+	  /**
+	   * Appends children and returns the parent.
+	   */
+	  function ins (parent /* child1, child2, ...*/) {
+	    for (var i = 1, n = arguments.length; i < n; i++) {
+	      parent.appendChild(arguments[i])
+	    }
+	
+	    return parent
+	  }
+	
+	  /**
+	   * Creates an opacity keyframe animation rule and returns its name.
+	   * Since most mobile Webkits have timing issues with animation-delay,
+	   * we create separate rules for each line/segment.
+	   */
+	  function addAnimation (alpha, trail, i, lines) {
+	    var name = ['opacity', trail, ~~(alpha * 100), i, lines].join('-')
+	      , start = 0.01 + i/lines * 100
+	      , z = Math.max(1 - (1-alpha) / trail * (100-start), alpha)
+	      , prefix = useCssAnimations.substring(0, useCssAnimations.indexOf('Animation')).toLowerCase()
+	      , pre = prefix && '-' + prefix + '-' || ''
+	
+	    if (!animations[name]) {
+	      sheet.insertRule(
+	        '@' + pre + 'keyframes ' + name + '{' +
+	        '0%{opacity:' + z + '}' +
+	        start + '%{opacity:' + alpha + '}' +
+	        (start+0.01) + '%{opacity:1}' +
+	        (start+trail) % 100 + '%{opacity:' + alpha + '}' +
+	        '100%{opacity:' + z + '}' +
+	        '}', sheet.cssRules.length)
+	
+	      animations[name] = 1
+	    }
+	
+	    return name
+	  }
+	
+	  /**
+	   * Tries various vendor prefixes and returns the first supported property.
+	   */
+	  function vendor (el, prop) {
+	    var s = el.style
+	      , pp
+	      , i
+	
+	    prop = prop.charAt(0).toUpperCase() + prop.slice(1)
+	    if (s[prop] !== undefined) return prop
+	    for (i = 0; i < prefixes.length; i++) {
+	      pp = prefixes[i]+prop
+	      if (s[pp] !== undefined) return pp
+	    }
+	  }
+	
+	  /**
+	   * Sets multiple style properties at once.
+	   */
+	  function css (el, prop) {
+	    for (var n in prop) {
+	      el.style[vendor(el, n) || n] = prop[n]
+	    }
+	
+	    return el
+	  }
+	
+	  /**
+	   * Fills in default values.
+	   */
+	  function merge (obj) {
+	    for (var i = 1; i < arguments.length; i++) {
+	      var def = arguments[i]
+	      for (var n in def) {
+	        if (obj[n] === undefined) obj[n] = def[n]
+	      }
+	    }
+	    return obj
+	  }
+	
+	  /**
+	   * Returns the line color from the given string or array.
+	   */
+	  function getColor (color, idx) {
+	    return typeof color == 'string' ? color : color[idx % color.length]
+	  }
+	
+	  // Built-in defaults
+	
+	  var defaults = {
+	    lines: 12             // The number of lines to draw
+	  , length: 7             // The length of each line
+	  , width: 5              // The line thickness
+	  , radius: 10            // The radius of the inner circle
+	  , scale: 1.0            // Scales overall size of the spinner
+	  , corners: 1            // Roundness (0..1)
+	  , color: '#000'         // #rgb or #rrggbb
+	  , opacity: 1/4          // Opacity of the lines
+	  , rotate: 0             // Rotation offset
+	  , direction: 1          // 1: clockwise, -1: counterclockwise
+	  , speed: 1              // Rounds per second
+	  , trail: 100            // Afterglow percentage
+	  , fps: 20               // Frames per second when using setTimeout()
+	  , zIndex: 2e9           // Use a high z-index by default
+	  , className: 'spinner'  // CSS class to assign to the element
+	  , top: '50%'            // center vertically
+	  , left: '50%'           // center horizontally
+	  , shadow: false         // Whether to render a shadow
+	  , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
+	  , position: 'absolute'  // Element positioning
+	  }
+	
+	  /** The constructor */
+	  function Spinner (o) {
+	    this.opts = merge(o || {}, Spinner.defaults, defaults)
+	  }
+	
+	  // Global defaults that override the built-ins:
+	  Spinner.defaults = {}
+	
+	  merge(Spinner.prototype, {
+	    /**
+	     * Adds the spinner to the given target element. If this instance is already
+	     * spinning, it is automatically removed from its previous target b calling
+	     * stop() internally.
+	     */
+	    spin: function (target) {
+	      this.stop()
+	
+	      var self = this
+	        , o = self.opts
+	        , el = self.el = createEl(null, {className: o.className})
+	
+	      css(el, {
+	        position: o.position
+	      , width: 0
+	      , zIndex: o.zIndex
+	      , left: o.left
+	      , top: o.top
+	      })
+	
+	      if (target) {
+	        target.insertBefore(el, target.firstChild || null)
+	      }
+	
+	      el.setAttribute('role', 'progressbar')
+	      self.lines(el, self.opts)
+	
+	      if (!useCssAnimations) {
+	        // No CSS animation support, use setTimeout() instead
+	        var i = 0
+	          , start = (o.lines - 1) * (1 - o.direction) / 2
+	          , alpha
+	          , fps = o.fps
+	          , f = fps / o.speed
+	          , ostep = (1 - o.opacity) / (f * o.trail / 100)
+	          , astep = f / o.lines
+	
+	        ;(function anim () {
+	          i++
+	          for (var j = 0; j < o.lines; j++) {
+	            alpha = Math.max(1 - (i + (o.lines - j) * astep) % f * ostep, o.opacity)
+	
+	            self.opacity(el, j * o.direction + start, alpha, o)
+	          }
+	          self.timeout = self.el && setTimeout(anim, ~~(1000 / fps))
+	        })()
+	      }
+	      return self
+	    }
+	
+	    /**
+	     * Stops and removes the Spinner.
+	     */
+	  , stop: function () {
+	      var el = this.el
+	      if (el) {
+	        clearTimeout(this.timeout)
+	        if (el.parentNode) el.parentNode.removeChild(el)
+	        this.el = undefined
+	      }
+	      return this
+	    }
+	
+	    /**
+	     * Internal method that draws the individual lines. Will be overwritten
+	     * in VML fallback mode below.
+	     */
+	  , lines: function (el, o) {
+	      var i = 0
+	        , start = (o.lines - 1) * (1 - o.direction) / 2
+	        , seg
+	
+	      function fill (color, shadow) {
+	        return css(createEl(), {
+	          position: 'absolute'
+	        , width: o.scale * (o.length + o.width) + 'px'
+	        , height: o.scale * o.width + 'px'
+	        , background: color
+	        , boxShadow: shadow
+	        , transformOrigin: 'left'
+	        , transform: 'rotate(' + ~~(360/o.lines*i + o.rotate) + 'deg) translate(' + o.scale*o.radius + 'px' + ',0)'
+	        , borderRadius: (o.corners * o.scale * o.width >> 1) + 'px'
+	        })
+	      }
+	
+	      for (; i < o.lines; i++) {
+	        seg = css(createEl(), {
+	          position: 'absolute'
+	        , top: 1 + ~(o.scale * o.width / 2) + 'px'
+	        , transform: o.hwaccel ? 'translate3d(0,0,0)' : ''
+	        , opacity: o.opacity
+	        , animation: useCssAnimations && addAnimation(o.opacity, o.trail, start + i * o.direction, o.lines) + ' ' + 1 / o.speed + 's linear infinite'
+	        })
+	
+	        if (o.shadow) ins(seg, css(fill('#000', '0 0 4px #000'), {top: '2px'}))
+	        ins(el, ins(seg, fill(getColor(o.color, i), '0 0 1px rgba(0,0,0,.1)')))
+	      }
+	      return el
+	    }
+	
+	    /**
+	     * Internal method that adjusts the opacity of a single line.
+	     * Will be overwritten in VML fallback mode below.
+	     */
+	  , opacity: function (el, i, val) {
+	      if (i < el.childNodes.length) el.childNodes[i].style.opacity = val
+	    }
+	
+	  })
+	
+	
+	  function initVML () {
+	
+	    /* Utility function to create a VML tag */
+	    function vml (tag, attr) {
+	      return createEl('<' + tag + ' xmlns="urn:schemas-microsoft.com:vml" class="spin-vml">', attr)
+	    }
+	
+	    // No CSS transforms but VML support, add a CSS rule for VML elements:
+	    sheet.addRule('.spin-vml', 'behavior:url(#default#VML)')
+	
+	    Spinner.prototype.lines = function (el, o) {
+	      var r = o.scale * (o.length + o.width)
+	        , s = o.scale * 2 * r
+	
+	      function grp () {
+	        return css(
+	          vml('group', {
+	            coordsize: s + ' ' + s
+	          , coordorigin: -r + ' ' + -r
+	          })
+	        , { width: s, height: s }
+	        )
+	      }
+	
+	      var margin = -(o.width + o.length) * o.scale * 2 + 'px'
+	        , g = css(grp(), {position: 'absolute', top: margin, left: margin})
+	        , i
+	
+	      function seg (i, dx, filter) {
+	        ins(
+	          g
+	        , ins(
+	            css(grp(), {rotation: 360 / o.lines * i + 'deg', left: ~~dx})
+	          , ins(
+	              css(
+	                vml('roundrect', {arcsize: o.corners})
+	              , { width: r
+	                , height: o.scale * o.width
+	                , left: o.scale * o.radius
+	                , top: -o.scale * o.width >> 1
+	                , filter: filter
+	                }
+	              )
+	            , vml('fill', {color: getColor(o.color, i), opacity: o.opacity})
+	            , vml('stroke', {opacity: 0}) // transparent stroke to fix color bleeding upon opacity change
+	            )
+	          )
+	        )
+	      }
+	
+	      if (o.shadow)
+	        for (i = 1; i <= o.lines; i++) {
+	          seg(i, -2, 'progid:DXImageTransform.Microsoft.Blur(pixelradius=2,makeshadow=1,shadowopacity=.3)')
+	        }
+	
+	      for (i = 1; i <= o.lines; i++) seg(i)
+	      return ins(el, g)
+	    }
+	
+	    Spinner.prototype.opacity = function (el, i, val, o) {
+	      var c = el.firstChild
+	      o = o.shadow && o.lines || 0
+	      if (c && i + o < c.childNodes.length) {
+	        c = c.childNodes[i + o]; c = c && c.firstChild; c = c && c.firstChild
+	        if (c) c.opacity = val
+	      }
+	    }
+	  }
+	
+	  if (typeof document !== 'undefined') {
+	    sheet = (function () {
+	      var el = createEl('style', {type : 'text/css'})
+	      ins(document.getElementsByTagName('head')[0], el)
+	      return el.sheet || el.styleSheet
+	    }())
+	
+	    var probe = css(createEl('group'), {behavior: 'url(#default#VML)'})
+	
+	    if (!vendor(probe, 'transform') && probe.adj) initVML()
+	    else useCssAnimations = vendor(probe, 'animation')
+	  }
+	
+	  return Spinner
+	
+	}));
+
+
+/***/ },
+
+/***/ 147:
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * jQuery Form Plugin
+	 * version: 3.50.0-2014.02.05
+	 * Requires jQuery v1.5 or later
+	 * Copyright (c) 2013 M. Alsup
+	 * Examples and documentation at: http://malsup.com/jquery/form/
+	 * Project repository: https://github.com/malsup/form
+	 * Dual licensed under the MIT and GPL licenses.
+	 * https://github.com/malsup/form#copyright-and-license
+	 */
+	/*global ActiveXObject */
+	
+	// AMD support
+	(function (factory) {
+	    "use strict";
+	    if (true) {
+	        // using AMD; register as anon module
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    } else {
+	        // no AMD; invoke directly
+	        factory( (typeof(jQuery) != 'undefined') ? jQuery : window.Zepto );
+	    }
+	}
+	
+	(function($) {
+	"use strict";
+	
+	/*
+	    Usage Note:
+	    -----------
+	    Do not use both ajaxSubmit and ajaxForm on the same form.  These
+	    functions are mutually exclusive.  Use ajaxSubmit if you want
+	    to bind your own submit handler to the form.  For example,
+	
+	    $(document).ready(function() {
+	        $('#myForm').on('submit', function(e) {
+	            e.preventDefault(); // <-- important
+	            $(this).ajaxSubmit({
+	                target: '#output'
+	            });
+	        });
+	    });
+	
+	    Use ajaxForm when you want the plugin to manage all the event binding
+	    for you.  For example,
+	
+	    $(document).ready(function() {
+	        $('#myForm').ajaxForm({
+	            target: '#output'
+	        });
+	    });
+	
+	    You can also use ajaxForm with delegation (requires jQuery v1.7+), so the
+	    form does not have to exist when you invoke ajaxForm:
+	
+	    $('#myForm').ajaxForm({
+	        delegation: true,
+	        target: '#output'
+	    });
+	
+	    When using ajaxForm, the ajaxSubmit function will be invoked for you
+	    at the appropriate time.
+	*/
+	
+	/**
+	 * Feature detection
+	 */
+	var feature = {};
+	feature.fileapi = $("<input type='file'/>").get(0).files !== undefined;
+	feature.formdata = window.FormData !== undefined;
+	
+	var hasProp = !!$.fn.prop;
+	
+	// attr2 uses prop when it can but checks the return type for
+	// an expected string.  this accounts for the case where a form 
+	// contains inputs with names like "action" or "method"; in those
+	// cases "prop" returns the element
+	$.fn.attr2 = function() {
+	    if ( ! hasProp ) {
+	        return this.attr.apply(this, arguments);
+	    }
+	    var val = this.prop.apply(this, arguments);
+	    if ( ( val && val.jquery ) || typeof val === 'string' ) {
+	        return val;
+	    }
+	    return this.attr.apply(this, arguments);
+	};
+	
+	/**
+	 * ajaxSubmit() provides a mechanism for immediately submitting
+	 * an HTML form using AJAX.
+	 */
+	$.fn.ajaxSubmit = function(options) {
+	    /*jshint scripturl:true */
+	
+	    // fast fail if nothing selected (http://dev.jquery.com/ticket/2752)
+	    if (!this.length) {
+	        log('ajaxSubmit: skipping submit process - no element selected');
+	        return this;
+	    }
+	
+	    var method, action, url, $form = this;
+	
+	    if (typeof options == 'function') {
+	        options = { success: options };
+	    }
+	    else if ( options === undefined ) {
+	        options = {};
+	    }
+	
+	    method = options.type || this.attr2('method');
+	    action = options.url  || this.attr2('action');
+	
+	    url = (typeof action === 'string') ? $.trim(action) : '';
+	    url = url || window.location.href || '';
+	    if (url) {
+	        // clean url (don't include hash vaue)
+	        url = (url.match(/^([^#]+)/)||[])[1];
+	    }
+	
+	    options = $.extend(true, {
+	        url:  url,
+	        success: $.ajaxSettings.success,
+	        type: method || $.ajaxSettings.type,
+	        iframeSrc: /^https/i.test(window.location.href || '') ? 'javascript:false' : 'about:blank'
+	    }, options);
+	
+	    // hook for manipulating the form data before it is extracted;
+	    // convenient for use with rich editors like tinyMCE or FCKEditor
+	    var veto = {};
+	    this.trigger('form-pre-serialize', [this, options, veto]);
+	    if (veto.veto) {
+	        log('ajaxSubmit: submit vetoed via form-pre-serialize trigger');
+	        return this;
+	    }
+	
+	    // provide opportunity to alter form data before it is serialized
+	    if (options.beforeSerialize && options.beforeSerialize(this, options) === false) {
+	        log('ajaxSubmit: submit aborted via beforeSerialize callback');
+	        return this;
+	    }
+	
+	    var traditional = options.traditional;
+	    if ( traditional === undefined ) {
+	        traditional = $.ajaxSettings.traditional;
+	    }
+	
+	    var elements = [];
+	    var qx, a = this.formToArray(options.semantic, elements);
+	    if (options.data) {
+	        options.extraData = options.data;
+	        qx = $.param(options.data, traditional);
+	    }
+	
+	    // give pre-submit callback an opportunity to abort the submit
+	    if (options.beforeSubmit && options.beforeSubmit(a, this, options) === false) {
+	        log('ajaxSubmit: submit aborted via beforeSubmit callback');
+	        return this;
+	    }
+	
+	    // fire vetoable 'validate' event
+	    this.trigger('form-submit-validate', [a, this, options, veto]);
+	    if (veto.veto) {
+	        log('ajaxSubmit: submit vetoed via form-submit-validate trigger');
+	        return this;
+	    }
+	
+	    var q = $.param(a, traditional);
+	    if (qx) {
+	        q = ( q ? (q + '&' + qx) : qx );
+	    }
+	    if (options.type.toUpperCase() == 'GET') {
+	        options.url += (options.url.indexOf('?') >= 0 ? '&' : '?') + q;
+	        options.data = null;  // data is null for 'get'
+	    }
+	    else {
+	        options.data = q; // data is the query string for 'post'
+	    }
+	
+	    var callbacks = [];
+	    if (options.resetForm) {
+	        callbacks.push(function() { $form.resetForm(); });
+	    }
+	    if (options.clearForm) {
+	        callbacks.push(function() { $form.clearForm(options.includeHidden); });
+	    }
+	
+	    // perform a load on the target only if dataType is not provided
+	    if (!options.dataType && options.target) {
+	        var oldSuccess = options.success || function(){};
+	        callbacks.push(function(data) {
+	            var fn = options.replaceTarget ? 'replaceWith' : 'html';
+	            $(options.target)[fn](data).each(oldSuccess, arguments);
+	        });
+	    }
+	    else if (options.success) {
+	        callbacks.push(options.success);
+	    }
+	
+	    options.success = function(data, status, xhr) { // jQuery 1.4+ passes xhr as 3rd arg
+	        var context = options.context || this ;    // jQuery 1.4+ supports scope context
+	        for (var i=0, max=callbacks.length; i < max; i++) {
+	            callbacks[i].apply(context, [data, status, xhr || $form, $form]);
+	        }
+	    };
+	
+	    if (options.error) {
+	        var oldError = options.error;
+	        options.error = function(xhr, status, error) {
+	            var context = options.context || this;
+	            oldError.apply(context, [xhr, status, error, $form]);
+	        };
+	    }
+	
+	     if (options.complete) {
+	        var oldComplete = options.complete;
+	        options.complete = function(xhr, status) {
+	            var context = options.context || this;
+	            oldComplete.apply(context, [xhr, status, $form]);
+	        };
+	    }
+	
+	    // are there files to upload?
+	
+	    // [value] (issue #113), also see comment:
+	    // https://github.com/malsup/form/commit/588306aedba1de01388032d5f42a60159eea9228#commitcomment-2180219
+	    var fileInputs = $('input[type=file]:enabled', this).filter(function() { return $(this).val() !== ''; });
+	
+	    var hasFileInputs = fileInputs.length > 0;
+	    var mp = 'multipart/form-data';
+	    var multipart = ($form.attr('enctype') == mp || $form.attr('encoding') == mp);
+	
+	    var fileAPI = feature.fileapi && feature.formdata;
+	    log("fileAPI :" + fileAPI);
+	    var shouldUseFrame = (hasFileInputs || multipart) && !fileAPI;
+	
+	    var jqxhr;
+	
+	    // options.iframe allows user to force iframe mode
+	    // 06-NOV-09: now defaulting to iframe mode if file input is detected
+	    if (options.iframe !== false && (options.iframe || shouldUseFrame)) {
+	        // hack to fix Safari hang (thanks to Tim Molendijk for this)
+	        // see:  http://groups.google.com/group/jquery-dev/browse_thread/thread/36395b7ab510dd5d
+	        if (options.closeKeepAlive) {
+	            $.get(options.closeKeepAlive, function() {
+	                jqxhr = fileUploadIframe(a);
+	            });
+	        }
+	        else {
+	            jqxhr = fileUploadIframe(a);
+	        }
+	    }
+	    else if ((hasFileInputs || multipart) && fileAPI) {
+	        jqxhr = fileUploadXhr(a);
+	    }
+	    else {
+	        jqxhr = $.ajax(options);
+	    }
+	
+	    $form.removeData('jqxhr').data('jqxhr', jqxhr);
+	
+	    // clear element array
+	    for (var k=0; k < elements.length; k++) {
+	        elements[k] = null;
+	    }
+	
+	    // fire 'notify' event
+	    this.trigger('form-submit-notify', [this, options]);
+	    return this;
+	
+	    // utility fn for deep serialization
+	    function deepSerialize(extraData){
+	        var serialized = $.param(extraData, options.traditional).split('&');
+	        var len = serialized.length;
+	        var result = [];
+	        var i, part;
+	        for (i=0; i < len; i++) {
+	            // #252; undo param space replacement
+	            serialized[i] = serialized[i].replace(/\+/g,' ');
+	            part = serialized[i].split('=');
+	            // #278; use array instead of object storage, favoring array serializations
+	            result.push([decodeURIComponent(part[0]), decodeURIComponent(part[1])]);
+	        }
+	        return result;
+	    }
+	
+	     // XMLHttpRequest Level 2 file uploads (big hat tip to francois2metz)
+	    function fileUploadXhr(a) {
+	        var formdata = new FormData();
+	
+	        for (var i=0; i < a.length; i++) {
+	            formdata.append(a[i].name, a[i].value);
+	        }
+	
+	        if (options.extraData) {
+	            var serializedData = deepSerialize(options.extraData);
+	            for (i=0; i < serializedData.length; i++) {
+	                if (serializedData[i]) {
+	                    formdata.append(serializedData[i][0], serializedData[i][1]);
+	                }
+	            }
+	        }
+	
+	        options.data = null;
+	
+	        var s = $.extend(true, {}, $.ajaxSettings, options, {
+	            contentType: false,
+	            processData: false,
+	            cache: false,
+	            type: method || 'POST'
+	        });
+	
+	        if (options.uploadProgress) {
+	            // workaround because jqXHR does not expose upload property
+	            s.xhr = function() {
+	                var xhr = $.ajaxSettings.xhr();
+	                if (xhr.upload) {
+	                    xhr.upload.addEventListener('progress', function(event) {
+	                        var percent = 0;
+	                        var position = event.loaded || event.position; /*event.position is deprecated*/
+	                        var total = event.total;
+	                        if (event.lengthComputable) {
+	                            percent = Math.ceil(position / total * 100);
+	                        }
+	                        options.uploadProgress(event, position, total, percent);
+	                    }, false);
+	                }
+	                return xhr;
+	            };
+	        }
+	
+	        s.data = null;
+	        var beforeSend = s.beforeSend;
+	        s.beforeSend = function(xhr, o) {
+	            //Send FormData() provided by user
+	            if (options.formData) {
+	                o.data = options.formData;
+	            }
+	            else {
+	                o.data = formdata;
+	            }
+	            if(beforeSend) {
+	                beforeSend.call(this, xhr, o);
+	            }
+	        };
+	        return $.ajax(s);
+	    }
+	
+	    // private function for handling file uploads (hat tip to YAHOO!)
+	    function fileUploadIframe(a) {
+	        var form = $form[0], el, i, s, g, id, $io, io, xhr, sub, n, timedOut, timeoutHandle;
+	        var deferred = $.Deferred();
+	
+	        // #341
+	        deferred.abort = function(status) {
+	            xhr.abort(status);
+	        };
+	
+	        if (a) {
+	            // ensure that every serialized input is still enabled
+	            for (i=0; i < elements.length; i++) {
+	                el = $(elements[i]);
+	                if ( hasProp ) {
+	                    el.prop('disabled', false);
+	                }
+	                else {
+	                    el.removeAttr('disabled');
+	                }
+	            }
+	        }
+	
+	        s = $.extend(true, {}, $.ajaxSettings, options);
+	        s.context = s.context || s;
+	        id = 'jqFormIO' + (new Date().getTime());
+	        if (s.iframeTarget) {
+	            $io = $(s.iframeTarget);
+	            n = $io.attr2('name');
+	            if (!n) {
+	                $io.attr2('name', id);
+	            }
+	            else {
+	                id = n;
+	            }
+	        }
+	        else {
+	            $io = $('<iframe name="' + id + '" src="'+ s.iframeSrc +'" />');
+	            $io.css({ position: 'absolute', top: '-1000px', left: '-1000px' });
+	        }
+	        io = $io[0];
+	
+	
+	        xhr = { // mock object
+	            aborted: 0,
+	            responseText: null,
+	            responseXML: null,
+	            status: 0,
+	            statusText: 'n/a',
+	            getAllResponseHeaders: function() {},
+	            getResponseHeader: function() {},
+	            setRequestHeader: function() {},
+	            abort: function(status) {
+	                var e = (status === 'timeout' ? 'timeout' : 'aborted');
+	                log('aborting upload... ' + e);
+	                this.aborted = 1;
+	
+	                try { // #214, #257
+	                    if (io.contentWindow.document.execCommand) {
+	                        io.contentWindow.document.execCommand('Stop');
+	                    }
+	                }
+	                catch(ignore) {}
+	
+	                $io.attr('src', s.iframeSrc); // abort op in progress
+	                xhr.error = e;
+	                if (s.error) {
+	                    s.error.call(s.context, xhr, e, status);
+	                }
+	                if (g) {
+	                    $.event.trigger("ajaxError", [xhr, s, e]);
+	                }
+	                if (s.complete) {
+	                    s.complete.call(s.context, xhr, e);
+	                }
+	            }
+	        };
+	
+	        g = s.global;
+	        // trigger ajax global events so that activity/block indicators work like normal
+	        if (g && 0 === $.active++) {
+	            $.event.trigger("ajaxStart");
+	        }
+	        if (g) {
+	            $.event.trigger("ajaxSend", [xhr, s]);
+	        }
+	
+	        if (s.beforeSend && s.beforeSend.call(s.context, xhr, s) === false) {
+	            if (s.global) {
+	                $.active--;
+	            }
+	            deferred.reject();
+	            return deferred;
+	        }
+	        if (xhr.aborted) {
+	            deferred.reject();
+	            return deferred;
+	        }
+	
+	        // add submitting element to data if we know it
+	        sub = form.clk;
+	        if (sub) {
+	            n = sub.name;
+	            if (n && !sub.disabled) {
+	                s.extraData = s.extraData || {};
+	                s.extraData[n] = sub.value;
+	                if (sub.type == "image") {
+	                    s.extraData[n+'.x'] = form.clk_x;
+	                    s.extraData[n+'.y'] = form.clk_y;
+	                }
+	            }
+	        }
+	
+	        var CLIENT_TIMEOUT_ABORT = 1;
+	        var SERVER_ABORT = 2;
+	                
+	        function getDoc(frame) {
+	            /* it looks like contentWindow or contentDocument do not
+	             * carry the protocol property in ie8, when running under ssl
+	             * frame.document is the only valid response document, since
+	             * the protocol is know but not on the other two objects. strange?
+	             * "Same origin policy" http://en.wikipedia.org/wiki/Same_origin_policy
+	             */
+	            
+	            var doc = null;
+	            
+	            // IE8 cascading access check
+	            try {
+	                if (frame.contentWindow) {
+	                    doc = frame.contentWindow.document;
+	                }
+	            } catch(err) {
+	                // IE8 access denied under ssl & missing protocol
+	                log('cannot get iframe.contentWindow document: ' + err);
+	            }
+	
+	            if (doc) { // successful getting content
+	                return doc;
+	            }
+	
+	            try { // simply checking may throw in ie8 under ssl or mismatched protocol
+	                doc = frame.contentDocument ? frame.contentDocument : frame.document;
+	            } catch(err) {
+	                // last attempt
+	                log('cannot get iframe.contentDocument: ' + err);
+	                doc = frame.document;
+	            }
+	            return doc;
+	        }
+	
+	        // Rails CSRF hack (thanks to Yvan Barthelemy)
+	        var csrf_token = $('meta[name=csrf-token]').attr('content');
+	        var csrf_param = $('meta[name=csrf-param]').attr('content');
+	        if (csrf_param && csrf_token) {
+	            s.extraData = s.extraData || {};
+	            s.extraData[csrf_param] = csrf_token;
+	        }
+	
+	        // take a breath so that pending repaints get some cpu time before the upload starts
+	        function doSubmit() {
+	            // make sure form attrs are set
+	            var t = $form.attr2('target'), 
+	                a = $form.attr2('action'), 
+	                mp = 'multipart/form-data',
+	                et = $form.attr('enctype') || $form.attr('encoding') || mp;
+	
+	            // update form attrs in IE friendly way
+	            form.setAttribute('target',id);
+	            if (!method || /post/i.test(method) ) {
+	                form.setAttribute('method', 'POST');
+	            }
+	            if (a != s.url) {
+	                form.setAttribute('action', s.url);
+	            }
+	
+	            // ie borks in some cases when setting encoding
+	            if (! s.skipEncodingOverride && (!method || /post/i.test(method))) {
+	                $form.attr({
+	                    encoding: 'multipart/form-data',
+	                    enctype:  'multipart/form-data'
+	                });
+	            }
+	
+	            // support timout
+	            if (s.timeout) {
+	                timeoutHandle = setTimeout(function() { timedOut = true; cb(CLIENT_TIMEOUT_ABORT); }, s.timeout);
+	            }
+	
+	            // look for server aborts
+	            function checkState() {
+	                try {
+	                    var state = getDoc(io).readyState;
+	                    log('state = ' + state);
+	                    if (state && state.toLowerCase() == 'uninitialized') {
+	                        setTimeout(checkState,50);
+	                    }
+	                }
+	                catch(e) {
+	                    log('Server abort: ' , e, ' (', e.name, ')');
+	                    cb(SERVER_ABORT);
+	                    if (timeoutHandle) {
+	                        clearTimeout(timeoutHandle);
+	                    }
+	                    timeoutHandle = undefined;
+	                }
+	            }
+	
+	            // add "extra" data to form if provided in options
+	            var extraInputs = [];
+	            try {
+	                if (s.extraData) {
+	                    for (var n in s.extraData) {
+	                        if (s.extraData.hasOwnProperty(n)) {
+	                           // if using the $.param format that allows for multiple values with the same name
+	                           if($.isPlainObject(s.extraData[n]) && s.extraData[n].hasOwnProperty('name') && s.extraData[n].hasOwnProperty('value')) {
+	                               extraInputs.push(
+	                               $('<input type="hidden" name="'+s.extraData[n].name+'">').val(s.extraData[n].value)
+	                                   .appendTo(form)[0]);
+	                           } else {
+	                               extraInputs.push(
+	                               $('<input type="hidden" name="'+n+'">').val(s.extraData[n])
+	                                   .appendTo(form)[0]);
+	                           }
+	                        }
+	                    }
+	                }
+	
+	                if (!s.iframeTarget) {
+	                    // add iframe to doc and submit the form
+	                    $io.appendTo('body');
+	                }
+	                if (io.attachEvent) {
+	                    io.attachEvent('onload', cb);
+	                }
+	                else {
+	                    io.addEventListener('load', cb, false);
+	                }
+	                setTimeout(checkState,15);
+	
+	                try {
+	                    form.submit();
+	                } catch(err) {
+	                    // just in case form has element with name/id of 'submit'
+	                    var submitFn = document.createElement('form').submit;
+	                    submitFn.apply(form);
+	                }
+	            }
+	            finally {
+	                // reset attrs and remove "extra" input elements
+	                form.setAttribute('action',a);
+	                form.setAttribute('enctype', et); // #380
+	                if(t) {
+	                    form.setAttribute('target', t);
+	                } else {
+	                    $form.removeAttr('target');
+	                }
+	                $(extraInputs).remove();
+	            }
+	        }
+	
+	        if (s.forceSync) {
+	            doSubmit();
+	        }
+	        else {
+	            setTimeout(doSubmit, 10); // this lets dom updates render
+	        }
+	
+	        var data, doc, domCheckCount = 50, callbackProcessed;
+	
+	        function cb(e) {
+	            if (xhr.aborted || callbackProcessed) {
+	                return;
+	            }
+	            
+	            doc = getDoc(io);
+	            if(!doc) {
+	                log('cannot access response document');
+	                e = SERVER_ABORT;
+	            }
+	            if (e === CLIENT_TIMEOUT_ABORT && xhr) {
+	                xhr.abort('timeout');
+	                deferred.reject(xhr, 'timeout');
+	                return;
+	            }
+	            else if (e == SERVER_ABORT && xhr) {
+	                xhr.abort('server abort');
+	                deferred.reject(xhr, 'error', 'server abort');
+	                return;
+	            }
+	
+	            if (!doc || doc.location.href == s.iframeSrc) {
+	                // response not received yet
+	                if (!timedOut) {
+	                    return;
+	                }
+	            }
+	            if (io.detachEvent) {
+	                io.detachEvent('onload', cb);
+	            }
+	            else {
+	                io.removeEventListener('load', cb, false);
+	            }
+	
+	            var status = 'success', errMsg;
+	            try {
+	                if (timedOut) {
+	                    throw 'timeout';
+	                }
+	
+	                var isXml = s.dataType == 'xml' || doc.XMLDocument || $.isXMLDoc(doc);
+	                log('isXml='+isXml);
+	                if (!isXml && window.opera && (doc.body === null || !doc.body.innerHTML)) {
+	                    if (--domCheckCount) {
+	                        // in some browsers (Opera) the iframe DOM is not always traversable when
+	                        // the onload callback fires, so we loop a bit to accommodate
+	                        log('requeing onLoad callback, DOM not available');
+	                        setTimeout(cb, 250);
+	                        return;
+	                    }
+	                    // let this fall through because server response could be an empty document
+	                    //log('Could not access iframe DOM after mutiple tries.');
+	                    //throw 'DOMException: not available';
+	                }
+	
+	                //log('response detected');
+	                var docRoot = doc.body ? doc.body : doc.documentElement;
+	                xhr.responseText = docRoot ? docRoot.innerHTML : null;
+	                xhr.responseXML = doc.XMLDocument ? doc.XMLDocument : doc;
+	                if (isXml) {
+	                    s.dataType = 'xml';
+	                }
+	                xhr.getResponseHeader = function(header){
+	                    var headers = {'content-type': s.dataType};
+	                    return headers[header.toLowerCase()];
+	                };
+	                // support for XHR 'status' & 'statusText' emulation :
+	                if (docRoot) {
+	                    xhr.status = Number( docRoot.getAttribute('status') ) || xhr.status;
+	                    xhr.statusText = docRoot.getAttribute('statusText') || xhr.statusText;
+	                }
+	
+	                var dt = (s.dataType || '').toLowerCase();
+	                var scr = /(json|script|text)/.test(dt);
+	                if (scr || s.textarea) {
+	                    // see if user embedded response in textarea
+	                    var ta = doc.getElementsByTagName('textarea')[0];
+	                    if (ta) {
+	                        xhr.responseText = ta.value;
+	                        // support for XHR 'status' & 'statusText' emulation :
+	                        xhr.status = Number( ta.getAttribute('status') ) || xhr.status;
+	                        xhr.statusText = ta.getAttribute('statusText') || xhr.statusText;
+	                    }
+	                    else if (scr) {
+	                        // account for browsers injecting pre around json response
+	                        var pre = doc.getElementsByTagName('pre')[0];
+	                        var b = doc.getElementsByTagName('body')[0];
+	                        if (pre) {
+	                            xhr.responseText = pre.textContent ? pre.textContent : pre.innerText;
+	                        }
+	                        else if (b) {
+	                            xhr.responseText = b.textContent ? b.textContent : b.innerText;
+	                        }
+	                    }
+	                }
+	                else if (dt == 'xml' && !xhr.responseXML && xhr.responseText) {
+	                    xhr.responseXML = toXml(xhr.responseText);
+	                }
+	
+	                try {
+	                    data = httpData(xhr, dt, s);
+	                }
+	                catch (err) {
+	                    status = 'parsererror';
+	                    xhr.error = errMsg = (err || status);
+	                }
+	            }
+	            catch (err) {
+	                log('error caught: ',err);
+	                status = 'error';
+	                xhr.error = errMsg = (err || status);
+	            }
+	
+	            if (xhr.aborted) {
+	                log('upload aborted');
+	                status = null;
+	            }
+	
+	            if (xhr.status) { // we've set xhr.status
+	                status = (xhr.status >= 200 && xhr.status < 300 || xhr.status === 304) ? 'success' : 'error';
+	            }
+	
+	            // ordering of these callbacks/triggers is odd, but that's how $.ajax does it
+	            if (status === 'success') {
+	                if (s.success) {
+	                    s.success.call(s.context, data, 'success', xhr);
+	                }
+	                deferred.resolve(xhr.responseText, 'success', xhr);
+	                if (g) {
+	                    $.event.trigger("ajaxSuccess", [xhr, s]);
+	                }
+	            }
+	            else if (status) {
+	                if (errMsg === undefined) {
+	                    errMsg = xhr.statusText;
+	                }
+	                if (s.error) {
+	                    s.error.call(s.context, xhr, status, errMsg);
+	                }
+	                deferred.reject(xhr, 'error', errMsg);
+	                if (g) {
+	                    $.event.trigger("ajaxError", [xhr, s, errMsg]);
+	                }
+	            }
+	
+	            if (g) {
+	                $.event.trigger("ajaxComplete", [xhr, s]);
+	            }
+	
+	            if (g && ! --$.active) {
+	                $.event.trigger("ajaxStop");
+	            }
+	
+	            if (s.complete) {
+	                s.complete.call(s.context, xhr, status);
+	            }
+	
+	            callbackProcessed = true;
+	            if (s.timeout) {
+	                clearTimeout(timeoutHandle);
+	            }
+	
+	            // clean up
+	            setTimeout(function() {
+	                if (!s.iframeTarget) {
+	                    $io.remove();
+	                }
+	                else { //adding else to clean up existing iframe response.
+	                    $io.attr('src', s.iframeSrc);
+	                }
+	                xhr.responseXML = null;
+	            }, 100);
+	        }
+	
+	        var toXml = $.parseXML || function(s, doc) { // use parseXML if available (jQuery 1.5+)
+	            if (window.ActiveXObject) {
+	                doc = new ActiveXObject('Microsoft.XMLDOM');
+	                doc.async = 'false';
+	                doc.loadXML(s);
+	            }
+	            else {
+	                doc = (new DOMParser()).parseFromString(s, 'text/xml');
+	            }
+	            return (doc && doc.documentElement && doc.documentElement.nodeName != 'parsererror') ? doc : null;
+	        };
+	        var parseJSON = $.parseJSON || function(s) {
+	            /*jslint evil:true */
+	            return window['eval']('(' + s + ')');
+	        };
+	
+	        var httpData = function( xhr, type, s ) { // mostly lifted from jq1.4.4
+	
+	            var ct = xhr.getResponseHeader('content-type') || '',
+	                xml = type === 'xml' || !type && ct.indexOf('xml') >= 0,
+	                data = xml ? xhr.responseXML : xhr.responseText;
+	
+	            if (xml && data.documentElement.nodeName === 'parsererror') {
+	                if ($.error) {
+	                    $.error('parsererror');
+	                }
+	            }
+	            if (s && s.dataFilter) {
+	                data = s.dataFilter(data, type);
+	            }
+	            if (typeof data === 'string') {
+	                if (type === 'json' || !type && ct.indexOf('json') >= 0) {
+	                    data = parseJSON(data);
+	                } else if (type === "script" || !type && ct.indexOf("javascript") >= 0) {
+	                    $.globalEval(data);
+	                }
+	            }
+	            return data;
+	        };
+	
+	        return deferred;
+	    }
+	};
+	
+	/**
+	 * ajaxForm() provides a mechanism for fully automating form submission.
+	 *
+	 * The advantages of using this method instead of ajaxSubmit() are:
+	 *
+	 * 1: This method will include coordinates for <input type="image" /> elements (if the element
+	 *    is used to submit the form).
+	 * 2. This method will include the submit element's name/value data (for the element that was
+	 *    used to submit the form).
+	 * 3. This method binds the submit() method to the form for you.
+	 *
+	 * The options argument for ajaxForm works exactly as it does for ajaxSubmit.  ajaxForm merely
+	 * passes the options argument along after properly binding events for submit elements and
+	 * the form itself.
+	 */
+	$.fn.ajaxForm = function(options) {
+	    options = options || {};
+	    options.delegation = options.delegation && $.isFunction($.fn.on);
+	
+	    // in jQuery 1.3+ we can fix mistakes with the ready state
+	    if (!options.delegation && this.length === 0) {
+	        var o = { s: this.selector, c: this.context };
+	        if (!$.isReady && o.s) {
+	            log('DOM not ready, queuing ajaxForm');
+	            $(function() {
+	                $(o.s,o.c).ajaxForm(options);
+	            });
+	            return this;
+	        }
+	        // is your DOM ready?  http://docs.jquery.com/Tutorials:Introducing_$(document).ready()
+	        log('terminating; zero elements found by selector' + ($.isReady ? '' : ' (DOM not ready)'));
+	        return this;
+	    }
+	
+	    if ( options.delegation ) {
+	        $(document)
+	            .off('submit.form-plugin', this.selector, doAjaxSubmit)
+	            .off('click.form-plugin', this.selector, captureSubmittingElement)
+	            .on('submit.form-plugin', this.selector, options, doAjaxSubmit)
+	            .on('click.form-plugin', this.selector, options, captureSubmittingElement);
+	        return this;
+	    }
+	
+	    return this.ajaxFormUnbind()
+	        .bind('submit.form-plugin', options, doAjaxSubmit)
+	        .bind('click.form-plugin', options, captureSubmittingElement);
+	};
+	
+	// private event handlers
+	function doAjaxSubmit(e) {
+	    /*jshint validthis:true */
+	    var options = e.data;
+	    if (!e.isDefaultPrevented()) { // if event has been canceled, don't proceed
+	        e.preventDefault();
+	        $(e.target).ajaxSubmit(options); // #365
+	    }
+	}
+	
+	function captureSubmittingElement(e) {
+	    /*jshint validthis:true */
+	    var target = e.target;
+	    var $el = $(target);
+	    if (!($el.is("[type=submit],[type=image]"))) {
+	        // is this a child element of the submit el?  (ex: a span within a button)
+	        var t = $el.closest('[type=submit]');
+	        if (t.length === 0) {
+	            return;
+	        }
+	        target = t[0];
+	    }
+	    var form = this;
+	    form.clk = target;
+	    if (target.type == 'image') {
+	        if (e.offsetX !== undefined) {
+	            form.clk_x = e.offsetX;
+	            form.clk_y = e.offsetY;
+	        } else if (typeof $.fn.offset == 'function') {
+	            var offset = $el.offset();
+	            form.clk_x = e.pageX - offset.left;
+	            form.clk_y = e.pageY - offset.top;
+	        } else {
+	            form.clk_x = e.pageX - target.offsetLeft;
+	            form.clk_y = e.pageY - target.offsetTop;
+	        }
+	    }
+	    // clear form vars
+	    setTimeout(function() { form.clk = form.clk_x = form.clk_y = null; }, 100);
+	}
+	
+	
+	// ajaxFormUnbind unbinds the event handlers that were bound by ajaxForm
+	$.fn.ajaxFormUnbind = function() {
+	    return this.unbind('submit.form-plugin click.form-plugin');
+	};
+	
+	/**
+	 * formToArray() gathers form element data into an array of objects that can
+	 * be passed to any of the following ajax functions: $.get, $.post, or load.
+	 * Each object in the array has both a 'name' and 'value' property.  An example of
+	 * an array for a simple login form might be:
+	 *
+	 * [ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]
+	 *
+	 * It is this array that is passed to pre-submit callback functions provided to the
+	 * ajaxSubmit() and ajaxForm() methods.
+	 */
+	$.fn.formToArray = function(semantic, elements) {
+	    var a = [];
+	    if (this.length === 0) {
+	        return a;
+	    }
+	
+	    var form = this[0];
+	    var formId = this.attr('id');
+	    var els = semantic ? form.getElementsByTagName('*') : form.elements;
+	    var els2;
+	
+	    if (els && !/MSIE [678]/.test(navigator.userAgent)) { // #390
+	        els = $(els).get();  // convert to standard array
+	    }
+	
+	    // #386; account for inputs outside the form which use the 'form' attribute
+	    if ( formId ) {
+	        els2 = $(':input[form=' + formId + ']').get();
+	        if ( els2.length ) {
+	            els = (els || []).concat(els2);
+	        }
+	    }
+	
+	    if (!els || !els.length) {
+	        return a;
+	    }
+	
+	    var i,j,n,v,el,max,jmax;
+	    for(i=0, max=els.length; i < max; i++) {
+	        el = els[i];
+	        n = el.name;
+	        if (!n || el.disabled) {
+	            continue;
+	        }
+	
+	        if (semantic && form.clk && el.type == "image") {
+	            // handle image inputs on the fly when semantic == true
+	            if(form.clk == el) {
+	                a.push({name: n, value: $(el).val(), type: el.type });
+	                a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
+	            }
+	            continue;
+	        }
+	
+	        v = $.fieldValue(el, true);
+	        if (v && v.constructor == Array) {
+	            if (elements) {
+	                elements.push(el);
+	            }
+	            for(j=0, jmax=v.length; j < jmax; j++) {
+	                a.push({name: n, value: v[j]});
+	            }
+	        }
+	        else if (feature.fileapi && el.type == 'file') {
+	            if (elements) {
+	                elements.push(el);
+	            }
+	            var files = el.files;
+	            if (files.length) {
+	                for (j=0; j < files.length; j++) {
+	                    a.push({name: n, value: files[j], type: el.type});
+	                }
+	            }
+	            else {
+	                // #180
+	                a.push({ name: n, value: '', type: el.type });
+	            }
+	        }
+	        else if (v !== null && typeof v != 'undefined') {
+	            if (elements) {
+	                elements.push(el);
+	            }
+	            a.push({name: n, value: v, type: el.type, required: el.required});
+	        }
+	    }
+	
+	    if (!semantic && form.clk) {
+	        // input type=='image' are not found in elements array! handle it here
+	        var $input = $(form.clk), input = $input[0];
+	        n = input.name;
+	        if (n && !input.disabled && input.type == 'image') {
+	            a.push({name: n, value: $input.val()});
+	            a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
+	        }
+	    }
+	    return a;
+	};
+	
+	/**
+	 * Serializes form data into a 'submittable' string. This method will return a string
+	 * in the format: name1=value1&amp;name2=value2
+	 */
+	$.fn.formSerialize = function(semantic) {
+	    //hand off to jQuery.param for proper encoding
+	    return $.param(this.formToArray(semantic));
+	};
+	
+	/**
+	 * Serializes all field elements in the jQuery object into a query string.
+	 * This method will return a string in the format: name1=value1&amp;name2=value2
+	 */
+	$.fn.fieldSerialize = function(successful) {
+	    var a = [];
+	    this.each(function() {
+	        var n = this.name;
+	        if (!n) {
+	            return;
+	        }
+	        var v = $.fieldValue(this, successful);
+	        if (v && v.constructor == Array) {
+	            for (var i=0,max=v.length; i < max; i++) {
+	                a.push({name: n, value: v[i]});
+	            }
+	        }
+	        else if (v !== null && typeof v != 'undefined') {
+	            a.push({name: this.name, value: v});
+	        }
+	    });
+	    //hand off to jQuery.param for proper encoding
+	    return $.param(a);
+	};
+	
+	/**
+	 * Returns the value(s) of the element in the matched set.  For example, consider the following form:
+	 *
+	 *  <form><fieldset>
+	 *      <input name="A" type="text" />
+	 *      <input name="A" type="text" />
+	 *      <input name="B" type="checkbox" value="B1" />
+	 *      <input name="B" type="checkbox" value="B2"/>
+	 *      <input name="C" type="radio" value="C1" />
+	 *      <input name="C" type="radio" value="C2" />
+	 *  </fieldset></form>
+	 *
+	 *  var v = $('input[type=text]').fieldValue();
+	 *  // if no values are entered into the text inputs
+	 *  v == ['','']
+	 *  // if values entered into the text inputs are 'foo' and 'bar'
+	 *  v == ['foo','bar']
+	 *
+	 *  var v = $('input[type=checkbox]').fieldValue();
+	 *  // if neither checkbox is checked
+	 *  v === undefined
+	 *  // if both checkboxes are checked
+	 *  v == ['B1', 'B2']
+	 *
+	 *  var v = $('input[type=radio]').fieldValue();
+	 *  // if neither radio is checked
+	 *  v === undefined
+	 *  // if first radio is checked
+	 *  v == ['C1']
+	 *
+	 * The successful argument controls whether or not the field element must be 'successful'
+	 * (per http://www.w3.org/TR/html4/interact/forms.html#successful-controls).
+	 * The default value of the successful argument is true.  If this value is false the value(s)
+	 * for each element is returned.
+	 *
+	 * Note: This method *always* returns an array.  If no valid value can be determined the
+	 *    array will be empty, otherwise it will contain one or more values.
+	 */
+	$.fn.fieldValue = function(successful) {
+	    for (var val=[], i=0, max=this.length; i < max; i++) {
+	        var el = this[i];
+	        var v = $.fieldValue(el, successful);
+	        if (v === null || typeof v == 'undefined' || (v.constructor == Array && !v.length)) {
+	            continue;
+	        }
+	        if (v.constructor == Array) {
+	            $.merge(val, v);
+	        }
+	        else {
+	            val.push(v);
+	        }
+	    }
+	    return val;
+	};
+	
+	/**
+	 * Returns the value of the field element.
+	 */
+	$.fieldValue = function(el, successful) {
+	    var n = el.name, t = el.type, tag = el.tagName.toLowerCase();
+	    if (successful === undefined) {
+	        successful = true;
+	    }
+	
+	    if (successful && (!n || el.disabled || t == 'reset' || t == 'button' ||
+	        (t == 'checkbox' || t == 'radio') && !el.checked ||
+	        (t == 'submit' || t == 'image') && el.form && el.form.clk != el ||
+	        tag == 'select' && el.selectedIndex == -1)) {
+	            return null;
+	    }
+	
+	    if (tag == 'select') {
+	        var index = el.selectedIndex;
+	        if (index < 0) {
+	            return null;
+	        }
+	        var a = [], ops = el.options;
+	        var one = (t == 'select-one');
+	        var max = (one ? index+1 : ops.length);
+	        for(var i=(one ? index : 0); i < max; i++) {
+	            var op = ops[i];
+	            if (op.selected) {
+	                var v = op.value;
+	                if (!v) { // extra pain for IE...
+	                    v = (op.attributes && op.attributes.value && !(op.attributes.value.specified)) ? op.text : op.value;
+	                }
+	                if (one) {
+	                    return v;
+	                }
+	                a.push(v);
+	            }
+	        }
+	        return a;
+	    }
+	    return $(el).val();
+	};
+	
+	/**
+	 * Clears the form data.  Takes the following actions on the form's input fields:
+	 *  - input text fields will have their 'value' property set to the empty string
+	 *  - select elements will have their 'selectedIndex' property set to -1
+	 *  - checkbox and radio inputs will have their 'checked' property set to false
+	 *  - inputs of type submit, button, reset, and hidden will *not* be effected
+	 *  - button elements will *not* be effected
+	 */
+	$.fn.clearForm = function(includeHidden) {
+	    return this.each(function() {
+	        $('input,select,textarea', this).clearFields(includeHidden);
+	    });
+	};
+	
+	/**
+	 * Clears the selected form elements.
+	 */
+	$.fn.clearFields = $.fn.clearInputs = function(includeHidden) {
+	    var re = /^(?:color|date|datetime|email|month|number|password|range|search|tel|text|time|url|week)$/i; // 'hidden' is not in this list
+	    return this.each(function() {
+	        var t = this.type, tag = this.tagName.toLowerCase();
+	        if (re.test(t) || tag == 'textarea') {
+	            this.value = '';
+	        }
+	        else if (t == 'checkbox' || t == 'radio') {
+	            this.checked = false;
+	        }
+	        else if (tag == 'select') {
+	            this.selectedIndex = -1;
+	        }
+			else if (t == "file") {
+				if (/MSIE/.test(navigator.userAgent)) {
+					$(this).replaceWith($(this).clone(true));
+				} else {
+					$(this).val('');
+				}
+			}
+	        else if (includeHidden) {
+	            // includeHidden can be the value true, or it can be a selector string
+	            // indicating a special test; for example:
+	            //  $('#myForm').clearForm('.special:hidden')
+	            // the above would clean hidden inputs that have the class of 'special'
+	            if ( (includeHidden === true && /hidden/.test(t)) ||
+	                 (typeof includeHidden == 'string' && $(this).is(includeHidden)) ) {
+	                this.value = '';
+	            }
+	        }
+	    });
+	};
+	
+	/**
+	 * Resets the form data.  Causes all form elements to be reset to their original value.
+	 */
+	$.fn.resetForm = function() {
+	    return this.each(function() {
+	        // guard against an input with the name of 'reset'
+	        // note that IE reports the reset function as an 'object'
+	        if (typeof this.reset == 'function' || (typeof this.reset == 'object' && !this.reset.nodeType)) {
+	            this.reset();
+	        }
+	    });
+	};
+	
+	/**
+	 * Enables or disables any matching elements.
+	 */
+	$.fn.enable = function(b) {
+	    if (b === undefined) {
+	        b = true;
+	    }
+	    return this.each(function() {
+	        this.disabled = !b;
+	    });
+	};
+	
+	/**
+	 * Checks/unchecks any matching checkboxes or radio buttons and
+	 * selects/deselects and matching option elements.
+	 */
+	$.fn.selected = function(select) {
+	    if (select === undefined) {
+	        select = true;
+	    }
+	    return this.each(function() {
+	        var t = this.type;
+	        if (t == 'checkbox' || t == 'radio') {
+	            this.checked = select;
+	        }
+	        else if (this.tagName.toLowerCase() == 'option') {
+	            var $sel = $(this).parent('select');
+	            if (select && $sel[0] && $sel[0].type == 'select-one') {
+	                // deselect all other options
+	                $sel.find('option').selected(false);
+	            }
+	            this.selected = select;
+	        }
+	    });
+	};
+	
+	// expose debug var
+	$.fn.ajaxSubmit.debug = false;
+	
+	// helper fn for console logging
+	function log() {
+	    if (!$.fn.ajaxSubmit.debug) {
+	        return;
+	    }
+	    var msg = '[jquery.form] ' + Array.prototype.join.call(arguments,'');
+	    if (window.console && window.console.log) {
+	        window.console.log(msg);
+	    }
+	    else if (window.opera && window.opera.postError) {
+	        window.opera.postError(msg);
+	    }
+	}
+	
+	}));
+	
+
+
+/***/ },
+
+/***/ 148:
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
+	 * Bootstrap: modal.js v3.3.7
+	 * http://getbootstrap.com/javascript/#modals
+	 * ========================================================================
+	 * Copyright 2011-2016 Twitter, Inc.
+	 * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+	 * ======================================================================== */
+	
+	
+	+function ($) {
+	  'use strict';
+	
+	  // MODAL CLASS DEFINITION
+	  // ======================
+	
+	  var Modal = function (element, options) {
+	    this.options             = options
+	    this.$body               = $(document.body)
+	    this.$element            = $(element)
+	    this.$dialog             = this.$element.find('.modal-dialog')
+	    this.$backdrop           = null
+	    this.isShown             = null
+	    this.originalBodyPad     = null
+	    this.scrollbarWidth      = 0
+	    this.ignoreBackdropClick = false
+	
+	    if (this.options.remote) {
+	      this.$element
+	        .find('.modal-content')
+	        .load(this.options.remote, $.proxy(function () {
+	          this.$element.trigger('loaded.bs.modal')
+	        }, this))
+	    }
+	  }
+	
+	  Modal.VERSION  = '3.3.7'
+	
+	  Modal.TRANSITION_DURATION = 300
+	  Modal.BACKDROP_TRANSITION_DURATION = 150
+	
+	  Modal.DEFAULTS = {
+	    backdrop: true,
+	    keyboard: true,
+	    show: true
+	  }
+	
+	  Modal.prototype.toggle = function (_relatedTarget) {
+	    return this.isShown ? this.hide() : this.show(_relatedTarget)
+	  }
+	
+	  Modal.prototype.show = function (_relatedTarget) {
+	    var that = this
+	    var e    = $.Event('show.bs.modal', { relatedTarget: _relatedTarget })
+	
+	    this.$element.trigger(e)
+	
+	    if (this.isShown || e.isDefaultPrevented()) return
+	
+	    this.isShown = true
+	
+	    this.checkScrollbar()
+	    this.setScrollbar()
+	    this.$body.addClass('modal-open')
+	
+	    this.escape()
+	    this.resize()
+	
+	    this.$element.on('click.dismiss.bs.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this))
+	
+	    this.$dialog.on('mousedown.dismiss.bs.modal', function () {
+	      that.$element.one('mouseup.dismiss.bs.modal', function (e) {
+	        if ($(e.target).is(that.$element)) that.ignoreBackdropClick = true
+	      })
+	    })
+	
+	    this.backdrop(function () {
+	      var transition = $.support.transition && that.$element.hasClass('fade')
+	
+	      if (!that.$element.parent().length) {
+	        that.$element.appendTo(that.$body) // don't move modals dom position
+	      }
+	
+	      that.$element
+	        .show()
+	        .scrollTop(0)
+	
+	      that.adjustDialog()
+	
+	      if (transition) {
+	        that.$element[0].offsetWidth // force reflow
+	      }
+	
+	      that.$element.addClass('in')
+	
+	      that.enforceFocus()
+	
+	      var e = $.Event('shown.bs.modal', { relatedTarget: _relatedTarget })
+	
+	      transition ?
+	        that.$dialog // wait for modal to slide in
+	          .one('bsTransitionEnd', function () {
+	            that.$element.trigger('focus').trigger(e)
+	          })
+	          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+	        that.$element.trigger('focus').trigger(e)
+	    })
+	  }
+	
+	  Modal.prototype.hide = function (e) {
+	    if (e) e.preventDefault()
+	
+	    e = $.Event('hide.bs.modal')
+	
+	    this.$element.trigger(e)
+	
+	    if (!this.isShown || e.isDefaultPrevented()) return
+	
+	    this.isShown = false
+	
+	    this.escape()
+	    this.resize()
+	
+	    $(document).off('focusin.bs.modal')
+	
+	    this.$element
+	      .removeClass('in')
+	      .off('click.dismiss.bs.modal')
+	      .off('mouseup.dismiss.bs.modal')
+	
+	    this.$dialog.off('mousedown.dismiss.bs.modal')
+	
+	    $.support.transition && this.$element.hasClass('fade') ?
+	      this.$element
+	        .one('bsTransitionEnd', $.proxy(this.hideModal, this))
+	        .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+	      this.hideModal()
+	  }
+	
+	  Modal.prototype.enforceFocus = function () {
+	    $(document)
+	      .off('focusin.bs.modal') // guard against infinite focus loop
+	      .on('focusin.bs.modal', $.proxy(function (e) {
+	        if (document !== e.target &&
+	            this.$element[0] !== e.target &&
+	            !this.$element.has(e.target).length) {
+	          this.$element.trigger('focus')
+	        }
+	      }, this))
+	  }
+	
+	  Modal.prototype.escape = function () {
+	    if (this.isShown && this.options.keyboard) {
+	      this.$element.on('keydown.dismiss.bs.modal', $.proxy(function (e) {
+	        e.which == 27 && this.hide()
+	      }, this))
+	    } else if (!this.isShown) {
+	      this.$element.off('keydown.dismiss.bs.modal')
+	    }
+	  }
+	
+	  Modal.prototype.resize = function () {
+	    if (this.isShown) {
+	      $(window).on('resize.bs.modal', $.proxy(this.handleUpdate, this))
+	    } else {
+	      $(window).off('resize.bs.modal')
+	    }
+	  }
+	
+	  Modal.prototype.hideModal = function () {
+	    var that = this
+	    this.$element.hide()
+	    this.backdrop(function () {
+	      that.$body.removeClass('modal-open')
+	      that.resetAdjustments()
+	      that.resetScrollbar()
+	      that.$element.trigger('hidden.bs.modal')
+	    })
+	  }
+	
+	  Modal.prototype.removeBackdrop = function () {
+	    this.$backdrop && this.$backdrop.remove()
+	    this.$backdrop = null
+	  }
+	
+	  Modal.prototype.backdrop = function (callback) {
+	    var that = this
+	    var animate = this.$element.hasClass('fade') ? 'fade' : ''
+	
+	    if (this.isShown && this.options.backdrop) {
+	      var doAnimate = $.support.transition && animate
+	
+	      this.$backdrop = $(document.createElement('div'))
+	        .addClass('modal-backdrop ' + animate)
+	        .appendTo(this.$body)
+	
+	      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
+	        if (this.ignoreBackdropClick) {
+	          this.ignoreBackdropClick = false
+	          return
+	        }
+	        if (e.target !== e.currentTarget) return
+	        this.options.backdrop == 'static'
+	          ? this.$element[0].focus()
+	          : this.hide()
+	      }, this))
+	
+	      if (doAnimate) this.$backdrop[0].offsetWidth // force reflow
+	
+	      this.$backdrop.addClass('in')
+	
+	      if (!callback) return
+	
+	      doAnimate ?
+	        this.$backdrop
+	          .one('bsTransitionEnd', callback)
+	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+	        callback()
+	
+	    } else if (!this.isShown && this.$backdrop) {
+	      this.$backdrop.removeClass('in')
+	
+	      var callbackRemove = function () {
+	        that.removeBackdrop()
+	        callback && callback()
+	      }
+	      $.support.transition && this.$element.hasClass('fade') ?
+	        this.$backdrop
+	          .one('bsTransitionEnd', callbackRemove)
+	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+	        callbackRemove()
+	
+	    } else if (callback) {
+	      callback()
+	    }
+	  }
+	
+	  // these following methods are used to handle overflowing modals
+	
+	  Modal.prototype.handleUpdate = function () {
+	    this.adjustDialog()
+	  }
+	
+	  Modal.prototype.adjustDialog = function () {
+	    var modalIsOverflowing = this.$element[0].scrollHeight > document.documentElement.clientHeight
+	
+	    this.$element.css({
+	      paddingLeft:  !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
+	      paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
+	    })
+	  }
+	
+	  Modal.prototype.resetAdjustments = function () {
+	    this.$element.css({
+	      paddingLeft: '',
+	      paddingRight: ''
+	    })
+	  }
+	
+	  Modal.prototype.checkScrollbar = function () {
+	    var fullWindowWidth = window.innerWidth
+	    if (!fullWindowWidth) { // workaround for missing window.innerWidth in IE8
+	      var documentElementRect = document.documentElement.getBoundingClientRect()
+	      fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left)
+	    }
+	    this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth
+	    this.scrollbarWidth = this.measureScrollbar()
+	  }
+	
+	  Modal.prototype.setScrollbar = function () {
+	    var bodyPad = parseInt((this.$body.css('padding-right') || 0), 10)
+	    this.originalBodyPad = document.body.style.paddingRight || ''
+	    if (this.bodyIsOverflowing) this.$body.css('padding-right', bodyPad + this.scrollbarWidth)
+	  }
+	
+	  Modal.prototype.resetScrollbar = function () {
+	    this.$body.css('padding-right', this.originalBodyPad)
+	  }
+	
+	  Modal.prototype.measureScrollbar = function () { // thx walsh
+	    var scrollDiv = document.createElement('div')
+	    scrollDiv.className = 'modal-scrollbar-measure'
+	    this.$body.append(scrollDiv)
+	    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth
+	    this.$body[0].removeChild(scrollDiv)
+	    return scrollbarWidth
+	  }
+	
+	
+	  // MODAL PLUGIN DEFINITION
+	  // =======================
+	
+	  function Plugin(option, _relatedTarget) {
+	    return this.each(function () {
+	      var $this   = $(this)
+	      var data    = $this.data('bs.modal')
+	      var options = $.extend({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
+	
+	      if (!data) $this.data('bs.modal', (data = new Modal(this, options)))
+	      if (typeof option == 'string') data[option](_relatedTarget)
+	      else if (options.show) data.show(_relatedTarget)
+	    })
+	  }
+	
+	  var old = $.fn.modal
+	
+	  $.fn.modal             = Plugin
+	  $.fn.modal.Constructor = Modal
+	
+	
+	  // MODAL NO CONFLICT
+	  // =================
+	
+	  $.fn.modal.noConflict = function () {
+	    $.fn.modal = old
+	    return this
+	  }
+	
+	
+	  // MODAL DATA-API
+	  // ==============
+	
+	  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+	    var $this   = $(this)
+	    var href    = $this.attr('href')
+	    var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
+	    var option  = $target.data('bs.modal') ? 'toggle' : $.extend({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
+	
+	    if ($this.is('a')) e.preventDefault()
+	
+	    $target.one('show.bs.modal', function (showEvent) {
+	      if (showEvent.isDefaultPrevented()) return // only register focus restorer if modal will actually get shown
+	      $target.one('hidden.bs.modal', function () {
+	        $this.is(':visible') && $this.trigger('focus')
+	      })
+	    })
+	    Plugin.call($target, option, this)
+	  })
+	
+	}(jQuery);
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ },
+
+/***/ 329:
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// 7.2.2 IsArray(argument)
+	var cof = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = Array.isArray || function isArray(arg){
+	  return cof(arg) == 'Array';
+	};
+
 /***/ }
-]);
+
+});
 //# sourceMappingURL=create.js.map

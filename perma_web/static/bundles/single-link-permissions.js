@@ -5,11 +5,11 @@ webpackJsonp([9],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var SingleLinkModule = __webpack_require__(185);
+	var SingleLinkModule = __webpack_require__(218);
 	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(89);
-	var Helpers = __webpack_require__(88);
-	var LinkHelpers = __webpack_require__(105);
+	var APIModule = __webpack_require__(78);
+	var Helpers = __webpack_require__(92);
+	var LinkHelpers = __webpack_require__(77);
 	
 	var updateBtnID = '#updateLinky',
 	    cancelBtnID = '#cancelUpdateLinky';
@@ -712,7 +712,70 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 89:
+/***/ 77:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.findFaviconURL = findFaviconURL;
+	exports.generateLinkFields = generateLinkFields;
+	exports.saveInput = saveInput;
+	var DOMHelpers = __webpack_require__(2);
+	var APIModule = __webpack_require__(78);
+	__webpack_require__(102); // add .format() to Date object
+	
+	
+	function findFaviconURL(linkObj) {
+	  if (!linkObj.captures) return '';
+	
+	  var favCapture = linkObj.captures.filter(function (capture) {
+	    return capture.role == 'favicon' && capture.status == 'success';
+	  });
+	
+	  return favCapture[0] ? favCapture[0].playback_url : '';
+	}
+	
+	function generateLinkFields(link, query) {
+	  link.favicon_url = this.findFaviconURL(link);
+	  if (window.host) {
+	    link.local_url = window.host + '/' + link.guid;
+	  }
+	  if (query && link.notes) {
+	    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
+	  }
+	  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
+	  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
+	  if (Date.now() < Date.parse(link.archive_timestamp)) {
+	    link.delete_available = true;
+	  }
+	  return link;
+	}
+	
+	var timeouts = {};
+	// save changes in a given text box to the server
+	function saveInput(guid, inputElement, statusElement, name, callback) {
+	  DOMHelpers.changeHTML(statusElement, 'Saving...');
+	
+	  var timeoutKey = guid + name;
+	  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
+	
+	  // use a setTimeout so notes are only saved once every half second
+	  timeouts[timeoutKey] = setTimeout(function () {
+	    var data = {};
+	    data[name] = DOMHelpers.getValue(inputElement);
+	    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
+	      DOMHelpers.changeHTML(statusElement, 'Saved!');
+	      if (callback) callback(data);
+	    });
+	  }, 500);
+	}
+
+/***/ },
+
+/***/ 78:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -734,8 +797,8 @@ webpackJsonp([9],{
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(90);
-	var Helpers = __webpack_require__(88);
+	var ErrorHandler = __webpack_require__(79);
+	var Helpers = __webpack_require__(92);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -788,70 +851,7 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 105:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.findFaviconURL = findFaviconURL;
-	exports.generateLinkFields = generateLinkFields;
-	exports.saveInput = saveInput;
-	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(89);
-	__webpack_require__(106); // add .format() to Date object
-	
-	
-	function findFaviconURL(linkObj) {
-	  if (!linkObj.captures) return '';
-	
-	  var favCapture = linkObj.captures.filter(function (capture) {
-	    return capture.role == 'favicon' && capture.status == 'success';
-	  });
-	
-	  return favCapture[0] ? favCapture[0].playback_url : '';
-	}
-	
-	function generateLinkFields(link, query) {
-	  link.favicon_url = this.findFaviconURL(link);
-	  if (window.host) {
-	    link.local_url = window.host + '/' + link.guid;
-	  }
-	  if (query && link.notes) {
-	    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
-	  }
-	  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
-	  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
-	  if (Date.now() < Date.parse(link.archive_timestamp)) {
-	    link.delete_available = true;
-	  }
-	  return link;
-	}
-	
-	var timeouts = {};
-	// save changes in a given text box to the server
-	function saveInput(guid, inputElement, statusElement, name, callback) {
-	  DOMHelpers.changeHTML(statusElement, 'Saving...');
-	
-	  var timeoutKey = guid + name;
-	  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
-	
-	  // use a setTimeout so notes are only saved once every half second
-	  timeouts[timeoutKey] = setTimeout(function () {
-	    var data = {};
-	    data[name] = DOMHelpers.getValue(inputElement);
-	    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
-	      DOMHelpers.changeHTML(statusElement, 'Saved!');
-	      if (callback) callback(data);
-	    });
-	  }, 500);
-	}
-
-/***/ },
-
-/***/ 106:
+/***/ 102:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -960,7 +960,7 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 185:
+/***/ 218:
 /***/ function(module, exports) {
 
 	"use strict";

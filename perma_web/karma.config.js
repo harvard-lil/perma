@@ -25,7 +25,7 @@ module.exports = function(config) {
     webpack: {
       module: webpackConfig.module,
       resolve: webpackConfig.resolve,
-      plugins: [webpackConfig.plugins[1]],
+      plugins: [webpackConfig.plugins[1], webpackConfig.plugins[3]],
       devtool: "source-map-inline",
       watchOptions: webpackConfig.watchOptions,
     },
