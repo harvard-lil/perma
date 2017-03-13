@@ -27,6 +27,7 @@ from werkzeug.wsgi import DispatcherMiddleware
 from django.core.wsgi import get_wsgi_application
 from warc_server.app import application as warc_application
 
+# Pywb request rewriting for the /timegate route
 class PywbRedirectMiddleware(object):
     def __init__(self, pywb):
         self.pywb = pywb
@@ -53,7 +54,8 @@ if perma.settings.USE_OPBEAT:
         )
     )
 
-# set up application
+
+# Main application setup
 application = DispatcherMiddleware(
     get_wsgi_application(),  # Django app
     {
@@ -61,6 +63,45 @@ application = DispatcherMiddleware(
         perma.settings.WARC_ROUTE: warc_application,  # pywb for record playback
     }
 )
+
+# Middleware to whitelist X-Forwarded-For proxy IP addresses
+if perma.settings.TRUSTED_PROXIES:
+    from netaddr import IPNetwork
+    from werkzeug.wrappers import Response
+    class ForwardedForWhitelistMiddleware(object):
+
+        def __init__(self, app, whitelists):
+            self.app = app
+            self.whitelists = [[IPNetwork(trusted_ip_range) for trusted_ip_range in whitelist] for whitelist in whitelists]
+
+        def bad_request(self, environ, start_response, reason=''):
+            response = Response(reason, 400)
+            return response(environ, start_response)
+
+        def __call__(self, environ, start_response):
+            # Parse X-Forwarded-For header into list of IPs.
+            # First IP in list is client IP, then each proxy up to the closest one.
+            # Final IP is from the REMOTE_ADDR header -- closest proxy of all.
+            forwarded_for = environ.get('HTTP_X_FORWARDED_FOR', '')
+            remote_addr = environ.get('REMOTE_ADDR', '').strip()
+            proxy_ips = [x for x in [x.strip() for x in forwarded_for.split(',')] if x] + [remote_addr]
+
+            # List must include at least one IP per proxy in our whitelists, plus one for the client IP.
+            if len(proxy_ips) < len(self.whitelists) + 1:
+                return self.bad_request(environ, start_response)  #, 'Header %s has insufficient entries' % self.header)
+
+            # Each of the final IPs in the list must match the relevant whitelist. If a whitelist is empty, any IP is accepted for that proxy.
+            for whitelist, proxy_ip in zip(self.whitelists, proxy_ips[-len(self.whitelists):]):
+                if whitelist and not any(proxy_ip in trusted_ip_range for trusted_ip_range in whitelist):
+                    return self.bad_request(environ, start_response)  #, 'Header %s has invalid proxy IP. Value: %s' % (self.header, forwarded_for_header))
+
+            # Set REMOTE_ADDR to client IP reported by proxies.
+            environ['REMOTE_ADDR'] = proxy_ips[-len(self.whitelists)-1]
+
+            # Continue processing as normal.
+            return self.app(environ, start_response)
+
+    application = ForwardedForWhitelistMiddleware(application, whitelists=perma.settings.TRUSTED_PROXIES)
 
 # add newrelic app wrapper
 if use_newrelic:

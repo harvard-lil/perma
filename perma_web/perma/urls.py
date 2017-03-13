@@ -138,3 +138,10 @@ urlpatterns = [
 # debug-only serving of media assets
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# views that only load when running our tests:
+if settings.TESTING:
+    import tests.views
+    urlpatterns += [
+        url(r'tests/client_ip$', tests.views.client_ip)
+    ]
