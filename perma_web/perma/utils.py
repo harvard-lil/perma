@@ -184,7 +184,7 @@ def json_serial(obj):
 ### rate limiting ###
 
 def ratelimit_ip_key(group, request):
-    return request.META.get('HTTP_X_FORWARDED_FOR', request.META['REMOTE_ADDR'])
+    return get_client_ip(request)
 
 ### monitoring ###
 
@@ -231,3 +231,6 @@ def url_in_allowed_ip_range(url):
     except socket.gaierror:
         return False
     return ip_in_allowed_ip_range(ip)
+
+def get_client_ip(request):
+    return request.META[settings.CLIENT_IP_HEADER]

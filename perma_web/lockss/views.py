@@ -11,6 +11,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, Http404, Streaming
 from django.shortcuts import get_object_or_404, render
 
 from perma.models import Link
+from perma.utils import get_client_ip
 from .models import *
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,7 @@ def django_url_prefix(request):
 
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
-        # We are unsure if CloudFlare consistently uses HTTP_CF_CONNECTING_IP (current belief)
-        # or HTTP_X_REAL_IP (previous belief). Research and data needed.
-        user_ip = request.META.get('HTTP_CF_CONNECTING_IP', request.META['REMOTE_ADDR'])
+        user_ip = get_client_ip(request)
         logger.warn(Mirror.get_cached_mirrors())
         for mirror in Mirror.get_cached_mirrors():
             logger.warn(user_ip)
