@@ -318,7 +318,6 @@ BANNED_IP_RANGES = [
 
 # then wsgi.py will make sure that request.META['REMOTE_ADDR'] = '<client ip>'. But if <nginx server ip> or <cloudflare ip>
 # fail to match, wsgi.py will return a 400 Bad Request.
-# NOTE: The security of this scheme requires that each trusted proxy verify the REMOTE_ADDR of the proxy that came before it.
 
 TRUSTED_PROXIES = []
 
