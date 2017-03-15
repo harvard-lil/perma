@@ -47,3 +47,10 @@ class FolderResourceTestCase(ApiResourceTransactionTestCase):
         data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=user)
 
         self.assertIn(obj, data['objects'])
+
+    def test_should_reject_duplicate_folder_name(self):
+        result = self.rejected_post(self.nested_url(self.empty_child_folder.parent),
+                                    data={'name': self.empty_child_folder.name},
+                                    user=self.empty_child_folder.created_by,
+                                    expected_status_code=400,
+                                    expected_data={u'folders': {u'name': u'A folder with that name already exists at that location.'}})

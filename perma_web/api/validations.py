@@ -1,3 +1,4 @@
+from perma.models import Folder
 from perma.utils import ip_in_allowed_ip_range
 from requests import TooManyRedirects
 from tastypie.validation import Validation
@@ -148,5 +149,10 @@ class FolderValidation(DefaultValidation):
                 errors['parent'] = "Can't move organization's shared folder."
             elif bundle.obj.is_root_folder:
                 errors['parent'] = "Can't move user's main folder."
+
+        # Check for duplicate names
+        if bundle.obj.parent_id:
+            if Folder.objects.filter(parent_id=bundle.obj.parent_id, name=bundle.obj.name).exclude(pk=bundle.obj.pk).exists():
+                errors['name'] = "A folder with that name already exists at that location."
 
         return errors
