@@ -121,4 +121,6 @@ def daemon_settings(request):
         'static_url_prefix': static_url_prefix,
         'mirrors': list(Mirror.objects.filter(enabled=True)),
         'content_ips': settings.LOCKSS_CONTENT_IPS,
+        'quorum': settings.LOCKSS_QUORUM,
+        'crawl_interval': settings.LOCKSS_CRAWL_INTERVAL,
     }, content_type="text/plain")
