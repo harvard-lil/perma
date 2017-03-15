@@ -22,3 +22,7 @@ org.lockss.proxy.start=false
 
 # allowed IP address ranges for content playback
 org.lockss.proxy.access.ip.include={{ content_ips }}
+
+# reduce quorum size from default of 5
+org.lockss.poll.quorum=3
+org.lockss.poll.v3.quorum=3
