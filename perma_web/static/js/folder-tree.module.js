@@ -8,6 +8,7 @@ var Helpers = require('./helpers/general.helpers.js');
 var localStorageKey = Helpers.variables.localStorageKey;
 var allowedEventsCount = 0;
 var lastSelectedFolder = null;
+var hoveredNode = null;  // track currently hovered node in jsTree
 export var folderTree = null;
 
 export function init () {
@@ -236,14 +237,11 @@ function domTreeInit () {
             return true;
           }
 
-          function getDropTarget(){
-            return folderTree.get_node($('.jstree-hovered').parent());
-          }
+          var targetNode = hoveredNode;
 
           if (more && more.is_foreign) {
             // link dragged onto folder
             if (operation == 'copy_node') {
-              var targetNode = getDropTarget();
               moveLink(targetNode.data.folder_id, node.id);
             }
           } else {
@@ -257,7 +255,6 @@ function domTreeInit () {
                   sendSelectionChangeEvent(node);
                 });
             } else if (operation == 'move_node') {
-              var targetNode = getDropTarget();
               moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
                 allowedEventsCount++;
                 folderTree.move_node(node, targetNode);
@@ -281,6 +278,14 @@ function domTreeInit () {
           }
           return false; // cancel first instance of event while we check with server
         },
+
+        error: (errorInfo) => {
+          if(errorInfo.reason.substr(0, 11) != "User config" // "User config" means we canceled the operation ourself while we talk to the server
+            && errorInfo.reason != "Moving parent inside child"){  // error is self-explanatory
+            Helpers.informUser(errorInfo.reason);
+          }
+        },
+
         multiple: true
       },
       plugins: ['contextmenu', 'dnd', 'unique', 'types'],
@@ -326,7 +331,12 @@ function domTreeInit () {
       // (without this, doesn't select saved folders on load.)
       selectSavedFolder();
 
-    });
+    })
+
+    // track currently hovered node in the hoveredNode variable:
+    .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
+    .on('dehover_node.jstree', (e, data) => hoveredNode = null);
+
   folderTree = $.jstree.reference('#folder-tree');
 }
 
