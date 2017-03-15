@@ -304,7 +304,7 @@ BANNED_IP_RANGES = [
 
 # Proxy whitelisting:
 # If TRUSTED_PROXIES is set, wsgi.py will validate that requests come through these proxies,
-# and then set request.META['REMOTE_ATTR'] to match the client IP that comes before the trusted proxy chain in the
+# and then set request.META['REMOTE_ADDR'] to match the client IP that comes before the trusted proxy chain in the
 # X-Forwarded-For header.
 # TRUSTED_PROXIES should be a list of reverse proxies in the chain, where each proxy is a whitelist of IP ranges
 # for that proxy. Proxies should be in order from client to server. For example, given:
