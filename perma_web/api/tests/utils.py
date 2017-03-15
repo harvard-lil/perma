@@ -232,13 +232,15 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
             req_kwargs['format'] = kwargs['format']
         if kwargs.get('user', None):
             req_kwargs['authentication'] = self.get_credentials(kwargs['user'])
+        if kwargs.get('data', None):
+            req_kwargs['data'] = kwargs['data']
 
         return req_kwargs
 
-    def successful_get(self, url, data=None, **kwargs):
+    def successful_get(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
-        resp = self.api_client.get(url, data=data, **req_kwargs)
+        resp = self.api_client.get(url, **req_kwargs)
         self.assertHttpOK(resp)
         self.assertValidJSONResponse(resp)
         data = self.deserialize(resp)
@@ -251,19 +253,11 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
         return data
 
-    def rejected_get(self, url, expected_status_code=None, **kwargs):
-        req_kwargs = self.get_req_kwargs(kwargs)
-
-        resp = self.api_client.get(url, **req_kwargs)
-        self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)
-
-        return resp
-
     def successful_post(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
         count = self.resource._meta.queryset.count()
-        resp = self.api_client.post(url, data=kwargs['data'], **req_kwargs)
+        resp = self.api_client.post(url, **req_kwargs)
         self.assertHttpCreated(resp)
         self.assertValidJSONResponse(resp)
 
@@ -272,21 +266,8 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
         return self.deserialize(resp)
 
-    def rejected_post(self, url, expected_status_code=None, **kwargs):
-        req_kwargs = self.get_req_kwargs(kwargs)
-
-        count = self.resource._meta.queryset.count()
-        resp = self.api_client.post(url, data=kwargs['data'], **req_kwargs)
-
-        self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)
-        self.assertEqual(self.resource._meta.queryset.count(), count)
-
-        return resp
-
     def successful_put(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
-        if kwargs.get('data', None):
-            req_kwargs['data'] = kwargs['data']
 
         count = self.resource._meta.queryset.count()
         resp = self.api_client.put(url, **req_kwargs)
@@ -295,38 +276,28 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         # Make sure the count hasn't changed
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
-    def rejected_put(self, url, expected_status_code=None, **kwargs):
-        req_kwargs = self.get_req_kwargs(kwargs)
-        if kwargs.get('data', None):
-            req_kwargs['data'] = kwargs['data']
-
-        count = self.resource._meta.queryset.count()
-        resp = self.api_client.put(url, **req_kwargs)
-        self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)
-
-        # Make sure the count hasn't changed
-        self.assertEqual(self.resource._meta.queryset.count(), count)
-
     def successful_patch(self, url, check_results=True, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
+        get_kwargs = req_kwargs.copy()
+        get_kwargs.pop('data', None)
 
         new_data = kwargs['data']
         if check_results:
             # Fetch the existing data for comparison.
-            resp = self.api_client.get(url, **req_kwargs)
+            resp = self.api_client.get(url, **get_kwargs)
             self.assertHttpOK(resp)
             self.assertValidJSONResponse(resp)
             old_data = self.deserialize(resp)
 
         count = self.resource._meta.queryset.count()
-        patch_resp = self.api_client.patch(url, data=new_data, **req_kwargs)
+        patch_resp = self.api_client.patch(url, **req_kwargs)
         self.assertHttpAccepted(patch_resp)
 
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
         if check_results:
-            fresh_data = self.deserialize(self.api_client.get(url, **req_kwargs))
+            fresh_data = self.deserialize(self.api_client.get(url, **get_kwargs))
 
             for attr in kwargs['data'].keys():
                 try:
@@ -348,26 +319,6 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         else:
             return self.deserialize(patch_resp)
 
-    def rejected_patch(self, url, expected_status_code=None, expected_data=None, **kwargs):
-        req_kwargs = self.get_req_kwargs(kwargs)
-
-        get_response = self.api_client.get(url, **req_kwargs)
-        old_data = None if get_response.status_code == 401 else self.deserialize(get_response)
-
-        new_data = kwargs['data']
-        count = self.resource._meta.queryset.count()
-        resp = self.api_client.patch(url, data=new_data, **req_kwargs)
-        self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)
-
-        if expected_data:
-            self.assertDictEqual(self.deserialize(resp), expected_data)
-
-        self.assertEqual(self.resource._meta.queryset.count(), count)
-        if old_data:
-            self.assertEqual(self.deserialize(self.api_client.get(url, **req_kwargs)), old_data)
-
-        return resp
-
     def successful_delete(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
@@ -384,20 +335,53 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         self.assertHttpNotFound(
             self.api_client.get(url, **req_kwargs))
 
-    def rejected_delete(self, url, expected_status_code=None, expected_data=None, **kwargs):
+    ### helpers for api requests that should be rejected ###
+
+    def rejected_method(self, method, url, expected_status_code=None, expected_data=None, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
-        count = self.resource._meta.queryset.count()
+        if method != "get":
+            count = self.resource._meta.queryset.count()
 
-        delete_resp = self.api_client.delete(url, **req_kwargs)
-        self.assertEqual(delete_resp.status_code, expected_status_code or self.rejected_status_code)
+        resp = getattr(self.api_client, method)(url, **req_kwargs)
+        self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)
 
         if expected_data:
-            self.assertDictEqual(self.deserialize(delete_resp), expected_data)
+            self.assertDictEqual(self.deserialize(resp), expected_data)
 
-        self.assertEqual(self.resource._meta.queryset.count(), count)
+        if method != "get":
+            self.assertEqual(self.resource._meta.queryset.count(), count)
 
-        resp = self.api_client.get(url, **req_kwargs)
+        return resp
+
+    def rejected_get(self, url, *args, **kwargs):
+        return self.rejected_method("get", url, *args, **kwargs)
+
+    def rejected_post(self, url, *args, **kwargs):
+        return self.rejected_method("post", url, *args, **kwargs)
+
+    def rejected_put(self, url, *args, **kwargs):
+        return self.rejected_method("put", url, *args, **kwargs)
+
+    def rejected_patch(self, url, *args, **kwargs):
+        get_kwargs = self.get_req_kwargs(kwargs)
+        get_kwargs.pop('data', None)
+        get_response = self.api_client.get(url, **get_kwargs)
+        old_data = None if get_response.status_code == 401 else self.deserialize(get_response)
+
+        result = self.rejected_method("patch", url, *args, **kwargs)
+
+        if old_data:
+            self.assertEqual(self.deserialize(self.api_client.get(url, **get_kwargs)), old_data)
+
+        return result
+
+    def rejected_delete(self, url, *args, **kwargs):
+        get_kwargs = self.get_req_kwargs(kwargs)
+
+        result = self.rejected_method("delete", url, *args, **kwargs)
+
+        resp = self.api_client.get(url, **get_kwargs)
         try:
             # If the user doesn't have access, that's okay -
             # we were testing delete from an unauthorized user
@@ -407,7 +391,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
             # that shows up as the failure if it doesn't pass
             self.assertHttpOK(resp)
 
-        return delete_resp
+        return result
 
 
 class ApiResourceTestCase(ApiResourceTestCaseMixin):
