@@ -2168,7 +2168,10 @@ webpackJsonp([1],{
 	    dnd: {
 	      check_while_dragging: false,
 	      drag_target: '.item-row',
-	      drag_finish: function drag_finish(data) {}
+	      drag_finish: function drag_finish(data) {},
+	      // Disable opening of closed folders on drag-n-drop hover -- hover-opening causes problems because moving a folder finishes
+	      // on the server before starting on the client, resulting in a moved folder colliding with itself.
+	      open_timeout: 0
 	    },
 	    types: {
 	      "default": { // requires quotes because reserved word in IE8
