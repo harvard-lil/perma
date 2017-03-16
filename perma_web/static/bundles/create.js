@@ -1886,6 +1886,7 @@ webpackJsonp([1],{
 	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
 	var lastSelectedFolder = null;
+	var hoveredNode = null; // track currently hovered node in jsTree
 	var folderTree = exports.folderTree = null;
 	
 	function init() {
@@ -2112,14 +2113,11 @@ webpackJsonp([1],{
 	          return true;
 	        }
 	
-	        function getDropTarget() {
-	          return folderTree.get_node($('.jstree-hovered').parent());
-	        }
+	        var targetNode = hoveredNode;
 	
 	        if (more && more.is_foreign) {
 	          // link dragged onto folder
 	          if (operation == 'copy_node') {
-	            var targetNode = getDropTarget();
 	            moveLink(targetNode.data.folder_id, node.id);
 	          }
 	        } else {
@@ -2132,7 +2130,6 @@ webpackJsonp([1],{
 	              sendSelectionChangeEvent(node);
 	            });
 	          } else if (operation == 'move_node') {
-	            var targetNode = getDropTarget();
 	            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
 	              allowedEventsCount++;
 	              folderTree.move_node(node, targetNode);
@@ -2156,6 +2153,15 @@ webpackJsonp([1],{
 	        }
 	        return false; // cancel first instance of event while we check with server
 	      },
+	
+	      error: function error(errorInfo) {
+	        if (errorInfo.reason.substr(0, 11) != "User config" // "User config" means we canceled the operation ourself while we talk to the server
+	        && errorInfo.reason != "Moving parent inside child") {
+	          // error is self-explanatory
+	          Helpers.informUser(errorInfo.reason);
+	        }
+	      },
+	
 	      multiple: true
 	    },
 	    plugins: ['contextmenu', 'dnd', 'unique', 'types'],
@@ -2194,7 +2200,15 @@ webpackJsonp([1],{
 	    // when a new node is loaded, see if it should be selected based on a user's previous visit.
 	    // (without this, doesn't select saved folders on load.)
 	    selectSavedFolder();
+	  })
+	
+	  // track currently hovered node in the hoveredNode variable:
+	  .on('hover_node.jstree', function (e, data) {
+	    return hoveredNode = data.node;
+	  }).on('dehover_node.jstree', function (e, data) {
+	    return hoveredNode = null;
 	  });
+	
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
 	}
 	
