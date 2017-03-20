@@ -561,18 +561,6 @@ def proxy_capture(capture_job):
 
         if have_html:
 
-            if browser_still_running(browser):
-                # get page title
-                progress = int(progress) + 1
-                display_progress(progress, "Getting page title")
-                def get_title():
-                    if browser.title:
-                        save_fields(link, submitted_title=browser.title)
-                    else:
-                        title_element = browser.find_element_by_tag_name("title")
-                        save_fields(link, submitted_title=title_element.get_attribute("text"))
-                repeat_while_exception(get_title, timeout=10, raise_after_timeout=False)
-
             # check meta tags
             print "Checking meta tags."
 
@@ -638,91 +626,103 @@ def proxy_capture(capture_job):
             else:
                 meta_analysis_failed()
 
+            # Skip all these things if the browser has died.
+            if browser_still_running(browser):
+                # get page title
+                progress = int(progress) + 1
+                display_progress(progress, "Getting page title")
+                def get_title():
+                    if browser.title:
+                        save_fields(link, submitted_title=browser.title)
+                    else:
+                        title_element = browser.find_element_by_tag_name("title")
+                        save_fields(link, submitted_title=title_element.get_attribute("text"))
+                repeat_while_exception(get_title, timeout=10, raise_after_timeout=False)
 
-            # scroll to bottom of page, in case that prompts anything else to load
-            # TODO: This doesn't scroll horizontally or scroll frames
-            progress += .5
-            display_progress(progress, "Checking for scroll-loaded assets")
-            def scroll_browser():
-                try:
-                    scroll_delay = browser.execute_script("""
-                        // Scroll down the page in a series of jumps the size of the window height.
-                        // The actual scrolling is done in a setTimeout with a 50ms delay so the browser has
-                        // time to render at each position.
-                        var delay=50,
-                            height=document.body.scrollHeight,
-                            jump=window.innerHeight,
-                            scrollTo=function(scrollY){ window.scrollTo(0, scrollY) },
-                            i=1;
-                        for(;i*jump<height;i++){
-                            setTimeout(scrollTo, i*delay, i*jump);
-                        }
+                # scroll to bottom of page, in case that prompts anything else to load
+                # TODO: This doesn't scroll horizontally or scroll frames
+                progress += .5
+                display_progress(progress, "Checking for scroll-loaded assets")
+                def scroll_browser():
+                    try:
+                        scroll_delay = browser.execute_script("""
+                            // Scroll down the page in a series of jumps the size of the window height.
+                            // The actual scrolling is done in a setTimeout with a 50ms delay so the browser has
+                            // time to render at each position.
+                            var delay=50,
+                                height=document.body.scrollHeight,
+                                jump=window.innerHeight,
+                                scrollTo=function(scrollY){ window.scrollTo(0, scrollY) },
+                                i=1;
+                            for(;i*jump<height;i++){
+                                setTimeout(scrollTo, i*delay, i*jump);
+                            }
 
-                        // Scroll back to top before taking screenshot.
-                        setTimeout(scrollTo, i*delay, 0);
+                            // Scroll back to top before taking screenshot.
+                            setTimeout(scrollTo, i*delay, 0);
 
-                        // Return how long all this scrolling will take.
-                        return (i*delay)/1000;
-                    """)
+                            // Return how long all this scrolling will take.
+                            return (i*delay)/1000;
+                        """)
 
-                    # In python, wait for javascript background scrolling to finish.
-                    time.sleep(min(scroll_delay,1))
-                except (WebDriverException, URLError):
-                    # Don't panic if we can't scroll -- we've already captured something useful anyway.
-                    # WebDriverException: the page can't execute JS for some reason.
-                    # URLError: the headless browser has gone away for some reason.
-                    pass
-            repeat_while_exception(scroll_browser)
+                        # In python, wait for javascript background scrolling to finish.
+                        time.sleep(min(scroll_delay,1))
+                    except (WebDriverException, URLError):
+                        # Don't panic if we can't scroll -- we've already captured something useful anyway.
+                        # WebDriverException: the page can't execute JS for some reason.
+                        # URLError: the headless browser has gone away for some reason.
+                        pass
+                repeat_while_exception(scroll_browser)
 
-            # load media
-            progress = int(progress) + 1
-            display_progress(progress, "Fetching media")
-            with warn_on_exception("Error fetching media"):
-                # running in each frame ...
-                def get_media_tags(browser):
-                    url_set = []
-                    base_url = browser.current_url
+                # load media
+                progress = int(progress) + 1
+                display_progress(progress, "Fetching media")
+                with warn_on_exception("Error fetching media"):
+                    # running in each frame ...
+                    def get_media_tags(browser):
+                        url_set = []
+                        base_url = browser.current_url
 
-                    def make_absolute_urls(urls):
-                        '''collect resource urls, converted to absolute urls relative to current browser frame'''
-                        return [urlparse.urljoin(base_url, url) for url in urls if url]
+                        def make_absolute_urls(urls):
+                            '''collect resource urls, converted to absolute urls relative to current browser frame'''
+                            return [urlparse.urljoin(base_url, url) for url in urls if url]
 
-                    # get all images in srcsets
-                    print("Fetching images in srcsets")
-                    for img in browser.find_elements_by_css_selector('img[srcset], source[srcset]'):
-                        urls = [src.strip().split(' ')[0] for src in img.get_attribute('srcset').split(',')]
-                        url_set.extend(make_absolute_urls(urls))
-
-                    # fetch each audio/video/object/embed element
-                    if settings.ENABLE_AV_CAPTURE:
-                        print("Fetching audio/video objects")
-                        media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
-                        for tag in media_tags:
-                            # for each tag, extract all resource urls
-                            if tag.tag_name == 'object':
-                                # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
-                                # as well as any <param name="movie" value="url"> elements
-                                codebase_url = tag.get_attribute('codebase') or base_url
-                                urls = [
-                                    urlparse.urljoin(codebase_url, url) for url in
-                                    [tag.get_attribute('data')] +
-                                    (tag.get_attribute('archive') or '').split()
-                                ]+[
-                                    param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
-                                ]
-                            else:
-                                # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
-                                urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
-
+                        # get all images in srcsets
+                        print("Fetching images in srcsets")
+                        for img in browser.find_elements_by_css_selector('img[srcset], source[srcset]'):
+                            urls = [src.strip().split(' ')[0] for src in img.get_attribute('srcset').split(',')]
                             url_set.extend(make_absolute_urls(urls))
 
-                    return url_set
+                        # fetch each audio/video/object/embed element
+                        if settings.ENABLE_AV_CAPTURE:
+                            print("Fetching audio/video objects")
+                            media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
+                            for tag in media_tags:
+                                # for each tag, extract all resource urls
+                                if tag.tag_name == 'object':
+                                    # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
+                                    # as well as any <param name="movie" value="url"> elements
+                                    codebase_url = tag.get_attribute('codebase') or base_url
+                                    urls = [
+                                        urlparse.urljoin(codebase_url, url) for url in
+                                        [tag.get_attribute('data')] +
+                                        (tag.get_attribute('archive') or '').split()
+                                    ]+[
+                                        param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
+                                    ]
+                                else:
+                                    # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
+                                    urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
 
-                media_urls = run_in_frames(browser, get_media_tags)
+                                url_set.extend(make_absolute_urls(urls))
 
-                # grab all media urls that aren't already being grabbed
-                for media_url in set(media_urls) - set(proxied_requests):
-                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
+                        return url_set
+
+                    media_urls = run_in_frames(browser, get_media_tags)
+
+                    # grab all media urls that aren't already being grabbed
+                    for media_url in set(media_urls) - set(proxied_requests):
+                        add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         progress = int(progress) + 1
