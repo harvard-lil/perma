@@ -437,3 +437,5 @@ CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'
 
 # Directs contact form to registrar users under certain circumstances
 CONTACT_REGISTRARS = False
+
+TAGGIT_CASE_INSENSITIVE = True
