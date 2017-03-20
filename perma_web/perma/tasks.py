@@ -301,6 +301,9 @@ def warn_on_exception(message="Exception in block:", exception_type=Exception):
     except exception_type as e:
         print message, e
 
+def browser_still_running(browser):
+    return browser.service.process.poll() is None
+
 
 ### TASKS ##
 
@@ -508,7 +511,7 @@ def proxy_capture(capture_job):
         # But we only record a favicon as our favicon_capture_url if it passes a mimetype whitelist.
         def favicon_thread():
             favicon_urls = []
-            if have_html:
+            if have_html and browser_still_running(browser):
                 favicons = repeat_while_exception(lambda: browser.find_elements_by_css_selector('link[rel="shortcut icon"],link[rel="icon"]'),
                                                   timeout=10)
                 for candidate_favicon in favicons:
@@ -557,73 +560,83 @@ def proxy_capture(capture_job):
         add_thread(thread_list, robots_txt_thread)
 
         if have_html:
-            # get page title
-            progress = int(progress) + 1
-            display_progress(progress, "Getting page title")
-            def get_title():
-                if browser.title:
-                    save_fields(link, submitted_title=browser.title)
-                else:
-                    title_element = browser.find_element_by_tag_name("title")
-                    save_fields(link, submitted_title=title_element.get_attribute("text"))
-            repeat_while_exception(get_title, timeout=10, raise_after_timeout=False)
+
+            if browser_still_running(browser):
+                # get page title
+                progress = int(progress) + 1
+                display_progress(progress, "Getting page title")
+                def get_title():
+                    if browser.title:
+                        save_fields(link, submitted_title=browser.title)
+                    else:
+                        title_element = browser.find_element_by_tag_name("title")
+                        save_fields(link, submitted_title=title_element.get_attribute("text"))
+                repeat_while_exception(get_title, timeout=10, raise_after_timeout=False)
 
             # check meta tags
             print "Checking meta tags."
-            def meta_thread():
 
-                def js_get_tags():
-                    return browser.execute_script("""
-                        var meta_tags = document.getElementsByTagName('meta');
-                        var tags = [];
-                        for (var i = 0; i < meta_tags.length; i++){
-                            tags.push({"name":meta_tags[i].name, "content":meta_tags[i].content});
-                        }
-                        return tags
-                    """)
+            def meta_analysis_failed():
+                # for now, make these links priviate by default
+                save_fields(link, is_private=True, private_reason='failure')
+                print "Meta tag retrieval failure, darchiving"
 
-                # get all meta tags
-                meta_tags = repeat_while_exception(lambda: browser.find_elements_by_tag_name('meta'),
-                                                   timeout=30)
+            if browser_still_running(browser):
+                def meta_thread():
 
-                # if that retrieves even one meta tag, we need to succeed at parsing
-                # them before we can confidently make a link public
-                if meta_tags:
-                    meta_list = None
-                    try:
-                        # assemble required attributes for processing.
-                        # this sometimes fails because javascript alters the DOM sufficiently
-                        # that the elements found above are no longer available by the time
-                        # we wish to iterate through them. in that case, a StaleElementReferenceException
-                        # is thrown.
-                        # http://www.seleniumhq.org/exceptions/stale_element_reference.jsp
-                        # but, since this is important to get right, catch all exceptions,
-                        # not just StaleElementReferenceException. If an exception is thrown, we want
-                        # to try the javascript method regardless.
-                        meta_list = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
-                    except:
-                        meta_list = repeat_until_truthy(js_get_tags, sleep_time=1)
-                        if not meta_list:
-                            # if still no meta tags at all, then this process has failed.
-                            # default to private, and allow the user to override.
-                            save_fields(link, is_private=True, private_reason='failure')
-                            print "Meta tag retrieval failure, darchiving"
+                    def js_get_tags():
+                        return browser.execute_script("""
+                            var meta_tags = document.getElementsByTagName('meta');
+                            var tags = [];
+                            for (var i = 0; i < meta_tags.length; i++){
+                                tags.push({"name":meta_tags[i].name, "content":meta_tags[i].content});
+                            }
+                            return tags
+                        """)
 
-                    # first look for <meta name='perma'>
-                    meta_tag = next((tag for tag in meta_list if tag['name'].lower()=='perma'), None)
-                    # else look for <meta name='robots'>
-                    if not meta_tag:
-                        meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'robots'), None)
-                    # if we found a relevant meta tag, check for noarchive
-                    if meta_tag and 'noarchive' in meta_tag["content"].lower():
-                        save_fields(link, is_private=True, private_reason='policy')
-                        print "Meta found, darchiving"
+                    # get all meta tags
+                    meta_tags = repeat_while_exception(lambda: browser.find_elements_by_tag_name('meta'),
+                                                       timeout=30)
 
-                    description_meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'description'), '')
-                    if description_meta_tag and description_meta_tag['content']:
-                        save_fields(link, submitted_description=description_meta_tag['content'])
+                    # if that retrieves even one meta tag, we need to succeed at parsing
+                    # them before we can confidently make a link public
+                    if meta_tags:
+                        meta_list = None
+                        try:
+                            # assemble required attributes for processing.
+                            # this sometimes fails because javascript alters the DOM sufficiently
+                            # that the elements found above are no longer available by the time
+                            # we wish to iterate through them. in that case, a StaleElementReferenceException
+                            # is thrown.
+                            # http://www.seleniumhq.org/exceptions/stale_element_reference.jsp
+                            # but, since this is important to get right, catch all exceptions,
+                            # not just StaleElementReferenceException. If an exception is thrown, we want
+                            # to try the javascript method regardless.
+                            meta_list = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
+                        except:
+                            meta_list = repeat_until_truthy(js_get_tags, sleep_time=1)
+                            if not meta_list:
+                                # if still no meta tags at all, then this process has failed.
+                                meta_analysis_failed()
 
-            add_thread(thread_list, meta_thread)
+                        # first look for <meta name='perma'>
+                        meta_tag = next((tag for tag in meta_list if tag['name'].lower()=='perma'), None)
+                        # else look for <meta name='robots'>
+                        if not meta_tag:
+                            meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'robots'), None)
+                        # if we found a relevant meta tag, check for noarchive
+                        if meta_tag and 'noarchive' in meta_tag["content"].lower():
+                            save_fields(link, is_private=True, private_reason='policy')
+                            print "Meta found, darchiving"
+
+                        description_meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'description'), '')
+                        if description_meta_tag and description_meta_tag['content']:
+                            save_fields(link, submitted_description=description_meta_tag['content'])
+
+                add_thread(thread_list, meta_thread)
+            else:
+                meta_analysis_failed()
+
 
             # scroll to bottom of page, in case that prompts anything else to load
             # TODO: This doesn't scroll horizontally or scroll frames
@@ -716,7 +729,7 @@ def proxy_capture(capture_job):
         time.sleep(.5)
         unfinished_proxied_pairs = [pair for pair in proxied_pairs if not pair[1]]
         start_time = time.time()
-        while unfinished_proxied_pairs:
+        while unfinished_proxied_pairs and browser_still_running(browser):
 
             print "Waiting for %s pending requests" % len(unfinished_proxied_pairs)
 
@@ -743,7 +756,8 @@ def proxy_capture(capture_job):
             time.sleep(.5)
             unfinished_proxied_pairs = [pair for pair in unfinished_proxied_pairs if not pair[1]]
 
-        if have_html:
+        # screenshot capture
+        if have_html and browser_still_running(browser):
             # get page size to decide whether to take a screenshot
             capture_screenshot = False
             pixel_count = 0
