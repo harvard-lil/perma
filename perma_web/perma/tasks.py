@@ -577,9 +577,10 @@ def proxy_capture(capture_job):
             print "Checking meta tags."
 
             def meta_analysis_failed():
-                # for now, make these links priviate by default
-                save_fields(link, is_private=True, private_reason='failure')
-                print "Meta tag retrieval failure, darchiving"
+                if settings.PRIVATE_LINKS_ON_FAILURE:
+                    save_fields(link, is_private=True, private_reason='failure')
+                link.tags.add('meta-tag-retrieval-failure')
+                print "Meta tag retrieval failure."
 
             if browser_still_running(browser):
                 def meta_thread():
