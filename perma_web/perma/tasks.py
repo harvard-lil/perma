@@ -317,7 +317,7 @@ def run_next_capture():
         traceback.print_exc()
     finally:
         capture_job.link.captures.filter(status='pending').update(status='failed')
-        if capture_job.status == 'pending':
+        if capture_job.status == 'in_progress':
             capture_job.mark_completed('failed')
     run_task(run_next_capture.s())
 
