@@ -459,3 +459,9 @@ CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'
 
 # Directs contact form to registrar users under certain circumstances
 CONTACT_REGISTRARS = False
+
+TAGGIT_CASE_INSENSITIVE = True
+
+# If technical problems prevent proper analysis of a capture,
+# should we default to private?
+PRIVATE_LINKS_ON_FAILURE = False

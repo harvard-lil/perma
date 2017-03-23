@@ -40,6 +40,7 @@ from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
+from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .utils import copy_file_data
 
@@ -105,6 +106,14 @@ class DeletableModel(models.Model):
     def safe_delete(self):
         self.user_deleted = True
         self.user_deleted_timestamp = timezone.now()
+
+# django-taggit assumes the model being tagged has an integer primary key.
+# per http://django-taggit.readthedocs.io/en/latest/custom_tagging.html,
+# tag "through" this class if your model has a string as primary key.
+# tags = TaggableManager(through=GenericStringTaggedItem)
+# (copied straight from their docs)
+class GenericStringTaggedItem(CommonGenericTaggedItemBase, TaggedItemBase):
+    object_id = models.CharField(max_length=50, db_index=True)
 
 ### MODELS ###
 
@@ -635,6 +644,7 @@ class Link(DeletableModel):
     objects = LinkManager()
     tracker = FieldTracker()
     history = HistoricalRecords()
+    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
     @cached_property
     def safe_url(self):
