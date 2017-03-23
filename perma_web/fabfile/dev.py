@@ -573,3 +573,89 @@ def check_s3_hashes():
                 m.update(buf)
         if m.hexdigest() != remote_paths[local_path]:
             print "Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path])
+
+
+@task
+def check_storage():
+    """
+        Confirm that, for every link, there is a WARC in primary storage and in
+        secondary storage, and that their hashes match.
+
+        Derived from check_s3_hashes
+    """
+    from django.core.files.storage import default_storage
+    from perma.models import Link
+    from tqdm import tqdm
+
+    if not hasattr(default_storage, 'secondary_storage'):
+        print("No secondary storage to compare.")
+        return
+
+    counter = {
+        'match': 0,
+        'mismatch': 0,
+        'primary_only': 0,
+        'secondary_only': 0,
+        'no_warc': 0
+    }
+    cache_path = '/tmp/perma_path_list'
+
+    if not os.path.exists(cache_path):
+        print("Building state ...")
+        with open(cache_path, 'w') as tmp_file:
+            for link in tqdm(Link.objects.all()):
+                tmp_file.write("%s\n" % (link.warc_storage_file(),))
+    else:
+        print("Using cached state from %s" % cache_path)
+
+    print("Comparing primary and secondary ...")
+    for path in open(cache_path):
+        # drop newline
+        path = path[:-1]
+        primary = default_storage.exists(path)
+        secondary = default_storage.secondary_storage.exists(path)
+        if primary and secondary:
+            # file exists in both places -- check hashes
+            # consider getting hashes on the S3 side from Storage Inventory:
+            # http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-inventory.html
+            primary_hash = md5hash(path, default_storage)
+            secondary_hash = md5hash(path, default_storage.secondary_storage)
+            if primary_hash != secondary_hash:
+                print("Hash mismatch at %s! Primary: %s Secondary: %s" % (path, primary_hash, secondary_hash))
+                counter['mismatch'] += 1
+            else:
+                counter['match'] += 1
+        elif primary:
+            # file exists only in primary storage
+            print("%s only exists on primary" % (path,))
+            counter['primary_only'] += 1
+        elif secondary:
+            # file exists only in secondary storage
+            print("%s only exists on secondary" % (path,))
+            counter['secondary_only'] += 1
+        else:
+            # file exists nowhere -- completely failed capture?
+            print("%s does not exist" % (path,))
+            counter['no_warc'] += 1
+
+    print("Totals:")
+    for key in counter:
+        print("%s: %d" % (key, counter[key]))
+
+
+def md5hash(path, storage):
+    """
+    helper function to calculate MD5 hash of a file
+
+    """
+    import hashlib
+
+    blocksize = 2 ** 20
+    m = hashlib.md5()
+    with storage.open(path) as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update(buf)
+        return m.hexdigest()
