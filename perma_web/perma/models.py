@@ -107,6 +107,11 @@ class DeletableModel(models.Model):
         self.user_deleted = True
         self.user_deleted_timestamp = timezone.now()
 
+# django-taggit assumes the model being tagged has an integer primary key.
+# per http://django-taggit.readthedocs.io/en/latest/custom_tagging.html,
+# tag "through" this class if your model has a string as primary key.
+# tags = TaggableManager(through=GenericStringTaggedItem)
+# (copied straight from their docs)
 class GenericStringTaggedItem(CommonGenericTaggedItemBase, TaggedItemBase):
     object_id = models.CharField(max_length=50, db_index=True)
 
