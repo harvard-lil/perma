@@ -578,69 +578,93 @@ def check_s3_hashes():
 @task
 def check_storage():
     """
-        Confirm that, for every link, there is a WARC in primary storage and in
-        secondary storage, and that their hashes match.
+        Confirm that, for every link, there is a WARC in each storage, and that their hashes match.
+
+        Ground truth is the list of link objects: compare its list of warcs with those of each storage,
+        and compare hashes when more than one such file is present.
 
         Derived from check_s3_hashes
     """
     from django.core.files.storage import default_storage
-    from perma.models import Link
+    from django.db.models import Q
+    from perma.models import Link, Capture
     from tqdm import tqdm
 
-    if not hasattr(default_storage, 'secondary_storage'):
-        print("No secondary storage to compare.")
-        return
+    # this can be generalized later to an arbitrary number of storages
+    storages = {'primary': {'storage': default_storage, 'lookup': {}}}
+    if hasattr(default_storage, 'secondary_storage'):
+        storages.update({'secondary': {'storage': default_storage.secondary_storage, 'lookup': {}}})
 
-    counter = {
-        'match': 0,
-        'mismatch': 0,
-        'primary_only': 0,
-        'secondary_only': 0,
-        'no_warc': 0
-    }
-    cache_path = '/tmp/perma_path_list'
+    # only use cache files when all are present: link cache, and one for each storage
+    link_cache = '/tmp/perma_link_cache.txt'
+    caches = [link_cache]
+    for key in storages:
+        caches.append('/tmp/perma_storage_cache_{0}.txt'.format(key))
 
-    if not os.path.exists(cache_path):
-        print("Building state ...")
-        with open(cache_path, 'w') as tmp_file:
-            for link in tqdm(Link.objects.all()):
-                tmp_file.write("%s\n" % (link.warc_storage_file(),))
+    if not all(map(os.path.exists, caches)):
+        print("Building link cache ...")
+        with open(link_cache, 'w') as tmp_file:
+            capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
+            for link in tqdm(Link.objects.filter(captures__in=Capture.objects.filter(capture_filter)).distinct()):
+                tmp_file.write("{0}\n".format(link.warc_storage_file()))
+                # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
+                # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
+        print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
+        for key in storages:
+            storage = storages[key]['storage']
+            with open('/tmp/perma_storage_cache_{0}.txt'.format(key), 'w') as tmp_file:
+                if hasattr(storage, 'bucket'):
+                    # S3
+                    for f in tqdm(storage.bucket.list('generated/warcs/')):
+                        # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
+                        # knock off the extra quotation marks
+                        # note that etags are not always md5sums, but should be in these cases; we can rewrite
+                        # or replace md5hash if necessary
+                        path = f.key[(len(storage.location)):]
+                        hash = f.etag[1:-1]
+                        tmp_file.write("{0}\t{1}\n".format(path, hash))
+                        storages[key]['lookup'][path] = hash
+                else:
+                    if hasattr(storage, '_root_path'):
+                        # SFTP
+                        base = storage._root_path
+                    else:
+                        # local file storage -- are there other possibilities to consider?
+                        base = storage.base_location
+                    for f in tqdm(storage.walk(os.path.join(base, 'warcs'))):
+                        # os.walk: "For each directory in the tree rooted at directory top (including top itself),
+                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- there should be exactly one WARC
+                        # per directory, so:
+                        if len(f[2]) == 1:
+                            full_path = os.path.join(f[0], f[2][0])
+                            path = full_path[len(base):]
+                            hash = md5hash(full_path, storage)
+                            tmp_file.write("{0}\t{1}\n".format(path, hash))
+                            storages[key]['lookup'][path] = hash
     else:
-        print("Using cached state from %s" % cache_path)
+        print("Reading storage caches ...")
+        for key in storages:
+            with open('/tmp/perma_storage_cache_{0}.txt'.format(key)) as f:
+                for line in f:
+                    path, hash = line[:-1].split("\t")
+                    storages[key]['lookup'][path] = hash
 
-    print("Comparing primary and secondary ...")
-    for path in open(cache_path):
-        # drop newline
-        path = path[:-1]
-        primary = default_storage.exists(path)
-        secondary = default_storage.secondary_storage.exists(path)
-        if primary and secondary:
-            # file exists in both places -- check hashes
-            # consider getting hashes on the S3 side from Storage Inventory:
-            # http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-inventory.html
-            primary_hash = md5hash(path, default_storage)
-            secondary_hash = md5hash(path, default_storage.secondary_storage)
-            if primary_hash != secondary_hash:
-                print("Hash mismatch at %s! Primary: %s Secondary: %s" % (path, primary_hash, secondary_hash))
-                counter['mismatch'] += 1
-            else:
-                counter['match'] += 1
-        elif primary:
-            # file exists only in primary storage
-            print("%s only exists on primary" % (path,))
-            counter['primary_only'] += 1
-        elif secondary:
-            # file exists only in secondary storage
-            print("%s only exists on secondary" % (path,))
-            counter['secondary_only'] += 1
-        else:
-            # file exists nowhere -- completely failed capture?
-            print("%s does not exist" % (path,))
-            counter['no_warc'] += 1
-
-    print("Totals:")
-    for key in counter:
-        print("%s: %d" % (key, counter[key]))
+    # now check ground truth against storage lookup tables
+    print("Comparing link cache against storage caches ...")
+    with open(link_cache) as f:
+        for line in f:
+            path = line[:-1]
+            file_present = True
+            for key in storages:
+                if path not in storages[key]['lookup']:
+                    print("{0} not in {1}".format(path, key))
+                    file_present = False
+            if file_present and len(storages) > 1:
+                hashes = []
+                for key in storages:
+                    hashes.append(storages[key]['lookup'][path])
+                if hashes.count(hashes[0]) != len(hashes):
+                    print("Hash mismatch for {0}: {1}".format(path, str(zip(storages.keys(), hashes))))
 
 
 def md5hash(path, storage):
