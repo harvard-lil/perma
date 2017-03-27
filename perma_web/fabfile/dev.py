@@ -601,7 +601,7 @@ def check_storage():
     for key in storages:
         caches.append('/tmp/perma_storage_cache_{0}.txt'.format(key))
 
-    if not all(map(os.path.exists, caches)):
+    if not all(os.path.exists(p) for p in caches):
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
@@ -616,11 +616,10 @@ def check_storage():
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in tqdm(storage.bucket.list('generated/warcs/')):
+                        # here we chop off the prefix aka storage.location
+                        path = f.key[(len(storage.location)):]
                         # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
                         # knock off the extra quotation marks
-                        # note that etags are not always md5sums, but should be in these cases; we can rewrite
-                        # or replace md5hash if necessary
-                        path = f.key[(len(storage.location)):]
                         hash = f.etag[1:-1]
                         tmp_file.write("{0}\t{1}\n".format(path, hash))
                         storages[key]['lookup'][path] = hash
@@ -637,7 +636,10 @@ def check_storage():
                         # per directory, so:
                         if len(f[2]) == 1:
                             full_path = os.path.join(f[0], f[2][0])
+                            # here we chop off the prefix, whether storage._root_path or storage.base_location
                             path = full_path[len(base):]
+                            # note that etags are not always md5sums, but should be in these cases; we can rewrite
+                            # or replace md5hash if necessary
                             hash = md5hash(full_path, storage)
                             tmp_file.write("{0}\t{1}\n".format(path, hash))
                             storages[key]['lookup'][path] = hash
@@ -663,6 +665,8 @@ def check_storage():
                 hashes = []
                 for key in storages:
                     hashes.append(storages[key]['lookup'][path])
+                # this looks funny (and is unnecessary here) but is faster than using set, per
+                # http://stackoverflow.com/a/3844948/4074877
                 if hashes.count(hashes[0]) != len(hashes):
                     print("Hash mismatch for {0}: {1}".format(path, str(zip(storages.keys(), hashes))))
 
