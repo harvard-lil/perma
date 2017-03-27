@@ -573,3 +573,117 @@ def check_s3_hashes():
                 m.update(buf)
         if m.hexdigest() != remote_paths[local_path]:
             print "Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path])
+
+
+@task
+def check_storage():
+    """
+        Confirm that, for every link, there is a WARC in each storage, and that their hashes match.
+
+        Ground truth is the list of link objects: compare its list of warcs with those of each storage,
+        and compare hashes when more than one such file is present.
+
+        Derived from check_s3_hashes
+    """
+    from django.core.files.storage import default_storage
+    from django.db.models import Q
+    from perma.models import Link, Capture
+    from tqdm import tqdm
+
+    # this can be generalized later to an arbitrary number of storages
+    storages = {'primary': {'storage': default_storage, 'lookup': {}}}
+    if hasattr(default_storage, 'secondary_storage'):
+        storages.update({'secondary': {'storage': default_storage.secondary_storage, 'lookup': {}}})
+
+    # only use cache files when all are present: link cache, and one for each storage
+    link_cache = '/tmp/perma_link_cache.txt'
+    caches = [link_cache]
+    for key in storages:
+        caches.append('/tmp/perma_storage_cache_{0}.txt'.format(key))
+
+    if not all(os.path.exists(p) for p in caches):
+        print("Building link cache ...")
+        with open(link_cache, 'w') as tmp_file:
+            capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
+            for link in tqdm(Link.objects.filter(captures__in=Capture.objects.filter(capture_filter)).distinct()):
+                tmp_file.write("{0}\n".format(link.warc_storage_file()))
+                # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
+                # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
+        print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
+        for key in storages:
+            storage = storages[key]['storage']
+            with open('/tmp/perma_storage_cache_{0}.txt'.format(key), 'w') as tmp_file:
+                if hasattr(storage, 'bucket'):
+                    # S3
+                    for f in tqdm(storage.bucket.list('generated/warcs/')):
+                        # here we chop off the prefix aka storage.location
+                        path = f.key[(len(storage.location)):]
+                        # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
+                        # knock off the extra quotation marks
+                        hash = f.etag[1:-1]
+                        tmp_file.write("{0}\t{1}\n".format(path, hash))
+                        storages[key]['lookup'][path] = hash
+                else:
+                    if hasattr(storage, '_root_path'):
+                        # SFTP
+                        base = storage._root_path
+                    else:
+                        # local file storage -- are there other possibilities to consider?
+                        base = storage.base_location
+                    for f in tqdm(storage.walk(os.path.join(base, 'warcs'))):
+                        # os.walk: "For each directory in the tree rooted at directory top (including top itself),
+                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- there should be exactly one WARC
+                        # per directory, so:
+                        if len(f[2]) == 1:
+                            full_path = os.path.join(f[0], f[2][0])
+                            # here we chop off the prefix, whether storage._root_path or storage.base_location
+                            path = full_path[len(base):]
+                            # note that etags are not always md5sums, but should be in these cases; we can rewrite
+                            # or replace md5hash if necessary
+                            hash = md5hash(full_path, storage)
+                            tmp_file.write("{0}\t{1}\n".format(path, hash))
+                            storages[key]['lookup'][path] = hash
+    else:
+        print("Reading storage caches ...")
+        for key in storages:
+            with open('/tmp/perma_storage_cache_{0}.txt'.format(key)) as f:
+                for line in f:
+                    path, hash = line[:-1].split("\t")
+                    storages[key]['lookup'][path] = hash
+
+    # now check ground truth against storage lookup tables
+    print("Comparing link cache against storage caches ...")
+    with open(link_cache) as f:
+        for line in f:
+            path = line[:-1]
+            file_present = True
+            for key in storages:
+                if path not in storages[key]['lookup']:
+                    print("{0} not in {1}".format(path, key))
+                    file_present = False
+            if file_present and len(storages) > 1:
+                hashes = []
+                for key in storages:
+                    hashes.append(storages[key]['lookup'][path])
+                # this looks funny (and is unnecessary here) but is faster than using set, per
+                # http://stackoverflow.com/a/3844948/4074877
+                if hashes.count(hashes[0]) != len(hashes):
+                    print("Hash mismatch for {0}: {1}".format(path, str(zip(storages.keys(), hashes))))
+
+
+def md5hash(path, storage):
+    """
+    helper function to calculate MD5 hash of a file
+
+    """
+    import hashlib
+
+    blocksize = 2 ** 20
+    m = hashlib.md5()
+    with storage.open(path) as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update(buf)
+        return m.hexdigest()
