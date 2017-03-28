@@ -588,7 +588,6 @@ def check_storage():
     from django.core.files.storage import default_storage
     from django.db.models import Q
     from perma.models import Link, Capture
-    from tqdm import tqdm
 
     # this can be generalized later to an arbitrary number of storages
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
@@ -605,7 +604,7 @@ def check_storage():
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
-            for link in tqdm(Link.objects.filter(captures__in=Capture.objects.filter(capture_filter)).distinct()):
+            for link in Link.objects.filter(captures__in=Capture.objects.filter(capture_filter)).distinct():
                 tmp_file.write("{0}\n".format(link.warc_storage_file()))
                 # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
                 # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
@@ -615,7 +614,7 @@ def check_storage():
             with open('/tmp/perma_storage_cache_{0}.txt'.format(key), 'w') as tmp_file:
                 if hasattr(storage, 'bucket'):
                     # S3
-                    for f in tqdm(storage.bucket.list('generated/warcs/')):
+                    for f in storage.bucket.list('generated/warcs/'):
                         # here we chop off the prefix aka storage.location
                         path = f.key[(len(storage.location)):]
                         # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
@@ -630,7 +629,7 @@ def check_storage():
                     else:
                         # local file storage -- are there other possibilities to consider?
                         base = storage.base_location
-                    for f in tqdm(storage.walk(os.path.join(base, 'warcs'))):
+                    for f in storage.walk(os.path.join(base, 'warcs')):
                         # os.walk: "For each directory in the tree rooted at directory top (including top itself),
                         # it yields a 3-tuple (dirpath, dirnames, filenames)" -- there should be exactly one WARC
                         # per directory, so:
