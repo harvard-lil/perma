@@ -12236,7 +12236,7 @@ footer #boilerplate a {
 }
 
 .item-container._isFailed {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(100, 100, 100, 0.07);
   border-top: none;
 }
 
