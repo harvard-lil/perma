@@ -589,6 +589,9 @@ def check_storage():
     from django.db.models import Q
     from perma.models import Link, Capture
 
+    from datetime import date
+    from dateutil.relativedelta import relativedelta
+
     # this can be generalized later to an arbitrary number of storages
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
     if hasattr(default_storage, 'secondary_storage'):
@@ -604,10 +607,21 @@ def check_storage():
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
-            for link in Link.objects.filter(captures__in=Capture.objects.filter(capture_filter)).distinct():
-                tmp_file.write("{0}\n".format(link.warc_storage_file()))
-                # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
-                # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
+            # assemble list of links by year-month, as in lockss/views.titledb:
+            first_archive_date = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
+            start_month = date(year=first_archive_date.year, month=first_archive_date.month, day=1)
+            today = date.today()
+            while start_month <= today:
+                for link in Link.objects.filter(
+                        creation_timestamp__year=start_month.year,
+                        creation_timestamp__month=start_month.month,
+                        captures__in=Capture.objects.filter(capture_filter)
+                ).distinct():
+                    tmp_file.write("{0}\n".format(link.warc_storage_file()))
+                    # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
+                    # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
+                start_month += relativedelta(months=1)
+
         print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
         for key in storages:
             storage = storages[key]['storage']
