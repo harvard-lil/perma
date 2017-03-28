@@ -16,6 +16,8 @@
     <script id="random-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Random:</h3>
 
+      <br>
+
       <div class="row">
         <div class="col-sm-3">Total links:</div>
         <div class="col-sm-9">{{ total_link_count }}</div>
@@ -47,6 +49,13 @@
       </div>
 
       <div class="row">
+        <div class="col-sm-3">Links tagged "meta-tag-retrieval-failure":</div>
+        <div class="col-sm-9">{{ links_w_meta_failure_tag }} ({{ tagged_meta_failure_percentage_of_total }}% of total)</div>
+      </div>
+
+      <hr>
+
+      <div class="row">
         <div class="col-sm-3">Total users:</div>
         <div class="col-sm-1">{{ total_user_count }}</div>
       </div>
@@ -55,6 +64,8 @@
         <div class="col-sm-3">Unconfirmed users:</div>
         <div class="col-sm-9">{{ unconfirmed_user_count }} ({{ unconfirmed_user_percentage }}%)</div>
       </div>
+
+      <br>
     </script>
 
     <script id="days-template" type="text/x-handlebars-template">
