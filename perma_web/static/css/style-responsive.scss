@@ -3677,7 +3677,7 @@ footer {
 }
 
 .item-container {
-  padding: $double 0;
+  padding: $double $double;
   border: 1px solid transparent;
   border-top: 1px solid $color-trans-lightgray;
   position: relative;
@@ -3706,6 +3706,10 @@ footer {
       color: $color-black;
       border-color: $color-black;
     }
+  }
+  &._isFailed {
+    background-color: $color-trans-lightgray;
+    border-top: none;
   }
   p.warning {
     margin-top: $half;
@@ -3740,6 +3744,12 @@ footer {
       margin-top: 2px;
     }
   }
+}
+
+.failed_header {
+  font-size: 18px;
+  margin-bottom: 8px;
+  font-weight: lighter;
 }
 
 .item-title {

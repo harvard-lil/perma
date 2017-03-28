@@ -751,6 +751,11 @@ webpackJsonp([9],{
 	  if (Date.now() < Date.parse(link.archive_timestamp)) {
 	    link.delete_available = true;
 	  }
+	  if (!link.captures.some(function (c) {
+	    return c.role == "primary" && c.status == "success" || c.role == "screenshot" && c.role == "success";
+	  })) {
+	    link.is_failed = true;
+	  };
 	  return link;
 	}
 	
