@@ -582,8 +582,6 @@ def check_storage(start_date=None):
 
         start_date is in the format YYYY-MM-DD
 
-        NOTE that the last-used start_date is implicit if comparing caches -- so delete those cache files
-
         Ground truth is the list of link objects: compare its list of warcs with those of each storage,
         and compare hashes when more than one such file is present.
 
@@ -596,6 +594,18 @@ def check_storage(start_date=None):
     from datetime import date, datetime
     from dateutil.relativedelta import relativedelta
     import pytz
+    import re
+
+    # check the arg
+    if not start_date:
+        # use first archive date
+        start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
+    elif re.match(r'^\d\d\d\d-\d\d-\d\d$', start_date):
+        start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
+    else:
+        print("Bad argument")
+        return
+    end_datetime = pytz.utc.localize(datetime.now())
 
     # this can be generalized later to an arbitrary number of storages
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
@@ -603,21 +613,16 @@ def check_storage(start_date=None):
         storages.update({'secondary': {'storage': default_storage.secondary_storage, 'lookup': {}}})
 
     # only use cache files when all are present: link cache, and one for each storage
-    link_cache = '/tmp/perma_link_cache.txt'
+    link_cache = '/tmp/perma_link_cache{0}.txt'.format("" if start_date is None else start_date)
     caches = [link_cache]
     for key in storages:
-        caches.append('/tmp/perma_storage_cache_{0}.txt'.format(key))
+        caches.append('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date))
 
     if not all(os.path.exists(p) for p in caches):
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
             # assemble list of links by year-month, as in lockss/views.titledb:
-            if not start_date:
-                # use first archive date
-                start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
-            else:
-                start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
             start_month = date(year=start_datetime.year, month=start_datetime.month, day=1)
             today = date.today()
             while start_month <= today:
@@ -625,6 +630,7 @@ def check_storage(start_date=None):
                         creation_timestamp__year=start_month.year,
                         creation_timestamp__month=start_month.month,
                         creation_timestamp__gte=start_datetime,
+                        creation_timestamp__lt=end_datetime,
                         captures__in=Capture.objects.filter(capture_filter)
                 ).distinct():
                     tmp_file.write("{0}\n".format(link.warc_storage_file()))
@@ -635,11 +641,11 @@ def check_storage(start_date=None):
         print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
         for key in storages:
             storage = storages[key]['storage']
-            with open('/tmp/perma_storage_cache_{0}.txt'.format(key), 'w') as tmp_file:
+            with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date), 'w') as tmp_file:
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        if (not start_date) or (datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') >= start_datetime):
+                        if (not start_date) or (start_datetime <= datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') < end_datetime):
                             # here we chop off the prefix aka storage.location
                             path = f.key[(len(storage.location)):]
                             # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
@@ -660,7 +666,7 @@ def check_storage(start_date=None):
                         # per directory, so:
                         if len(f[2]) == 1:
                             full_path = os.path.join(f[0], f[2][0])
-                            if (not start_date) or (datetime.fromtimestamp(os.path.getmtime(full_path), tz=pytz.utc) >= start_datetime):
+                            if (not start_date) or (start_datetime <= datetime.fromtimestamp(os.path.getmtime(full_path), tz=pytz.utc) < end_datetime):
                                 # here we chop off the prefix, whether storage._root_path or storage.base_location
                                 path = full_path[len(base):]
                                 # note that etags are not always md5sums, but should be in these cases; we can rewrite
