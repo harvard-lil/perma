@@ -576,9 +576,13 @@ def check_s3_hashes():
 
 
 @task
-def check_storage():
+def check_storage(start_date=None):
     """
         Confirm that, for every link, there is a WARC in each storage, and that their hashes match.
+
+        start_date is in the format YYYY-MM-DD
+
+        NOTE that the last-used start_date is implicit if comparing caches -- so delete those cache files
 
         Ground truth is the list of link objects: compare its list of warcs with those of each storage,
         and compare hashes when more than one such file is present.
@@ -589,8 +593,9 @@ def check_storage():
     from django.db.models import Q
     from perma.models import Link, Capture
 
-    from datetime import date
+    from datetime import date, datetime
     from dateutil.relativedelta import relativedelta
+    import pytz
 
     # this can be generalized later to an arbitrary number of storages
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
@@ -608,13 +613,18 @@ def check_storage():
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
             # assemble list of links by year-month, as in lockss/views.titledb:
-            first_archive_date = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
-            start_month = date(year=first_archive_date.year, month=first_archive_date.month, day=1)
+            if not start_date:
+                # use first archive date
+                start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
+            else:
+                start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
+            start_month = date(year=start_datetime.year, month=start_datetime.month, day=1)
             today = date.today()
             while start_month <= today:
                 for link in Link.objects.filter(
                         creation_timestamp__year=start_month.year,
                         creation_timestamp__month=start_month.month,
+                        creation_timestamp__gte=start_datetime,
                         captures__in=Capture.objects.filter(capture_filter)
                 ).distinct():
                     tmp_file.write("{0}\n".format(link.warc_storage_file()))
@@ -629,13 +639,14 @@ def check_storage():
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        # here we chop off the prefix aka storage.location
-                        path = f.key[(len(storage.location)):]
-                        # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
-                        # knock off the extra quotation marks
-                        hash = f.etag[1:-1]
-                        tmp_file.write("{0}\t{1}\n".format(path, hash))
-                        storages[key]['lookup'][path] = hash
+                        if (not start_date) or (datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') >= start_datetime):
+                            # here we chop off the prefix aka storage.location
+                            path = f.key[(len(storage.location)):]
+                            # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
+                            # knock off the extra quotation marks
+                            hash = f.etag[1:-1]
+                            tmp_file.write("{0}\t{1}\n".format(path, hash))
+                            storages[key]['lookup'][path] = hash
                 else:
                     if hasattr(storage, '_root_path'):
                         # SFTP
@@ -649,13 +660,14 @@ def check_storage():
                         # per directory, so:
                         if len(f[2]) == 1:
                             full_path = os.path.join(f[0], f[2][0])
-                            # here we chop off the prefix, whether storage._root_path or storage.base_location
-                            path = full_path[len(base):]
-                            # note that etags are not always md5sums, but should be in these cases; we can rewrite
-                            # or replace md5hash if necessary
-                            hash = md5hash(full_path, storage)
-                            tmp_file.write("{0}\t{1}\n".format(path, hash))
-                            storages[key]['lookup'][path] = hash
+                            if (not start_date) or (datetime.fromtimestamp(os.path.getmtime(full_path), tz=pytz.utc) >= start_datetime):
+                                # here we chop off the prefix, whether storage._root_path or storage.base_location
+                                path = full_path[len(base):]
+                                # note that etags are not always md5sums, but should be in these cases; we can rewrite
+                                # or replace md5hash if necessary
+                                hash = md5hash(full_path, storage)
+                                tmp_file.write("{0}\t{1}\n".format(path, hash))
+                                storages[key]['lookup'][path] = hash
     else:
         print("Reading storage caches ...")
         for key in storages:
