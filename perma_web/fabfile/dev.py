@@ -676,7 +676,7 @@ def check_storage(start_date=None):
     else:
         print("Reading storage caches ...")
         for key in storages:
-            with open('/tmp/perma_storage_cache_{0}.txt'.format(key)) as f:
+            with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date)) as f:
                 for line in f:
                     path, hash = line[:-1].split("\t")
                     storages[key]['lookup'][path] = hash
