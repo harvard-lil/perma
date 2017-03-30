@@ -662,10 +662,9 @@ def check_storage(start_date=None):
                         base = storage.base_location
                     for f in storage.walk(os.path.join(base, 'warcs')):
                         # os.walk: "For each directory in the tree rooted at directory top (including top itself),
-                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- there should be exactly one WARC
-                        # per directory, so:
-                        if len(f[2]) == 1:
-                            full_path = os.path.join(f[0], f[2][0])
+                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- so:
+                        for filename in f[2]:
+                            full_path = os.path.join(f[0], filename)
                             if (not start_date) or (start_datetime <= datetime.fromtimestamp(os.path.getmtime(full_path), tz=pytz.utc) < end_datetime):
                                 # here we chop off the prefix, whether storage._root_path or storage.base_location
                                 path = full_path[len(base):]
