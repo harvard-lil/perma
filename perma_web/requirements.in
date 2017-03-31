@@ -70,5 +70,7 @@ sauceclient==0.1.0
 pytest-xdist==1.10
 fakeredis==0.7.0                # simulate redis backend for tests
 flake8==2.5.4                   # code linting
-beautifulsoup4==4.5.1           # parses html of responses
+beautifulsoup4==4.5.3           # parses html of responses
 mock                            # safe monkey patching
+
+

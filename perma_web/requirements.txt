@@ -14,7 +14,7 @@ appdirs==1.4.3            # via setuptools
 argh==0.26.2              # via watchdog
 argparse==1.4.0           # via jasmine
 args==0.1.0               # via clint
-beautifulsoup4==4.5.1
+beautifulsoup4==4.5.3
 billiard==3.3.0.23        # via celery
 boto==2.42.0
 brotlipy==0.6.0           # via pywb
@@ -106,6 +106,7 @@ requests[security]==2.11.1
 sauceclient==0.1.0
 schema==0.5.0             # via internetarchive
 selenium==2.47.3
+simhash==1.7.1
 six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, setuptools, surt
 smhasher==0.150.1
 sorl-thumbnail==12.3
@@ -115,6 +116,7 @@ tldextract==2.0.2         # via surt
 tqdm==4.11.2
 ua-parser==0.7.1
 Wand==0.4
+warc==0.2.1
 warctools==4.10.0
 watchdog==0.8.3           # via pywb
 webencodings==0.5         # via pywb
