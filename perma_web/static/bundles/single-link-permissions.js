@@ -798,6 +798,7 @@ webpackJsonp([9],{
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
 	exports.request = request;
+	exports.getErrorMessage = getErrorMessage;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -826,8 +827,8 @@ webpackJsonp([9],{
 	  return $.ajax(requestArgs);
 	}
 	
-	// parse and display error results from API
-	function showError(jqXHR) {
+	// parse error results from API into string for display to user
+	function getErrorMessage(jqXHR) {
 	  var message;
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -850,6 +851,13 @@ webpackJsonp([9],{
 	  } else {
 	    message = 'Error ' + jqXHR.status;
 	  }
+	
+	  return message;
+	}
+	
+	// display error results from API
+	function showError(jqXHR) {
+	  var message = getErrorMessage(jqXHR);
 	  Helpers.informUser(message, 'danger');
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))

@@ -324,12 +324,12 @@ class FunctionalTest(BaseTestCase):
             get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
             # don't provide a URL
             get_id('addlink').click() # submit
-            assert_text_displayed('URL cannot be empty. ', 'p')
+            assert_text_displayed('URL cannot be empty.', 'p')
             # don't provide a URL or a file on the Upload a file form
             get_element_with_text("upload your own archive", 'button').click()
             get_id('uploadLinky').click()
             assert_text_displayed('URL cannot be empty.')
-            assert_text_displayed('You must upload a file.')
+            assert_text_displayed('File cannot be blank.')
 
             info("Creating archive.")
             self.driver.get(self.server_url + '/manage/create')
