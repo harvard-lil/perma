@@ -6,6 +6,7 @@
 #
 -e git+git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 -e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
+-e git+git://github.com/anastasia/htmldiff.git@a8fd08afe6dc22afa2aa4eedbb55c4ff206b699c#egg=htmldiff
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
 anyjson==0.3.3            # via kombu
@@ -106,7 +107,6 @@ requests[security]==2.11.1
 sauceclient==0.1.0
 schema==0.5.0             # via internetarchive
 selenium==2.47.3
-simhash==1.7.1
 six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, setuptools, surt
 smhasher==0.150.1
 sorl-thumbnail==12.3
@@ -116,7 +116,6 @@ tldextract==2.0.2         # via surt
 tqdm==4.11.2
 ua-parser==0.7.1
 Wand==0.4
-warc==0.2.1
 warctools==4.10.0
 watchdog==0.8.3           # via pywb
 webencodings==0.5         # via pywb
