@@ -35,7 +35,7 @@ def is_unminified(script_str, type_of_script):
             params_found = re.compile('function\s+\w+\(\w{2,}').search(script_str).group()
         except:
             params_found = None
-        
+
         if params_found:
             return True
 
@@ -73,12 +73,10 @@ def decompress_payload(payload, record_type, record_url):
         res.begin()
         result = zlib.decompress(res.read(), 16+zlib.MAX_WBITS)
     except Exception as e:
-        # print record_type, record_url
+        print e, record_url
         result = payload
         # try:
         #     result = '.'.join(str(ord(c)) for c in payload)
-        # except:
-        #     result = payload
     return result
 
 def sort_resources(collection_one, collection_two):

@@ -1,7 +1,4 @@
-import json
-
 from django.shortcuts import render
-import warc_compare_text
 
 def diff_entry(request, guid):
     """

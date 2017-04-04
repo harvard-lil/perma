@@ -2,10 +2,6 @@ import sys
 from utils import *
 from htmldiff import diff
 
-warc_one = "./assets/sample_sites/wapo/RCH3-889C.warc.gz"
-warc_two = "./assets/sample_sites/wapo/NTN7-ADFS.warc.gz"
-submitted_url = 'https://www.washingtonpost.com/news/wonk/wp/2013/06/06/how-congress-unknowingly-legalized-prism-in-2007/'
-
 def compare_warcs(warc_one, warc_two, submitted_url_one, submitted_url_two, deletions_file=None, insertions_file=None, both_file=None):
     warc_one_index, urls_one = get_warc_parts(warc_one, submitted_url_one)
     warc_two_index, urls_two = get_warc_parts(warc_two, submitted_url_two)
@@ -15,6 +11,8 @@ def compare_warcs(warc_one, warc_two, submitted_url_one, submitted_url_two, dele
 
     text_simhash_distance = get_simhash_distance(warc_one_text, warc_two_text)
     missing_resources, added_resources, common_resources = sort_resources(urls_one, urls_two)
+
+    print text_simhash_distance, missing_resources, added_resources, common_resources
 
     write_diffs(warc_one_index, warc_two_index, deletions_file=None, insertions_file=None, both_file=None)
 
