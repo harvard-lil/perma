@@ -262,7 +262,7 @@ class PublicLinkListView(BaseView):
     permission_classes = ()  # no login required
     serializer_class = LinkSerializer
     filter_class = LinkFilter
-    search_fields = ('guid', 'submitted_url', 'submitted_title', 'notes')  # fields that can be searched with q= query string
+    search_fields = ('guid', 'submitted_url', 'submitted_title')  # fields that can be searched with q= query string
 
     def get(self, request, format=None):
         """ List public links. """
