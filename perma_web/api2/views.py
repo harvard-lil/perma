@@ -205,10 +205,8 @@ class FolderDetailView(BaseView):
         folder = self.get_object_for_user_by_pk(request.user, pk)
 
         # delete validations
-        if folder.is_shared_folder:
-            raise_validation_error("Shared folders cannot be deleted.")
-        elif folder.is_root_folder:
-            raise_validation_error("Root folders cannot be deleted.")
+        if folder.is_shared_folder or folder.is_root_folder:
+            raise_validation_error("Top-level folders cannot be deleted.")
         elif not folder.is_empty():
             raise_validation_error("Folders can only be deleted if they are empty.")
 

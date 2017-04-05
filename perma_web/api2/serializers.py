@@ -65,10 +65,8 @@ class FolderSerializer(BaseSerializer):
     def validate_name(self, name):
         if self.instance:
             # renaming
-            if self.instance.is_shared_folder:
-                raise serializers.ValidationError("Shared folders cannot be renamed.")
-            if self.instance.is_root_folder:
-                raise serializers.ValidationError("User's main folder cannot be renamed.")
+            if self.instance.is_shared_folder or self.instance.is_root_folder:
+                raise serializers.ValidationError("Top-level folders cannot be renamed.")
         return name
 
     def validate_parent(self, parent):

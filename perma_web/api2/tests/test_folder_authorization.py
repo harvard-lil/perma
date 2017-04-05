@@ -236,13 +236,13 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_reject_delete_of_shared_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_shared_folder),
                              expected_status_code=400,
-                             expected_data={"error": ["Shared folders cannot be deleted."]},
+                             expected_data={"error": ["Top-level folders cannot be deleted."]},
                              user=self.org_user)
 
     def test_reject_delete_of_root_folder(self):
         self.rejected_delete(self.detail_url(self.org_user.root_folder),
                              expected_status_code=400,
-                             expected_data={"error": ["Root folders cannot be deleted."]},
+                             expected_data={"error": ["Top-level folders cannot be deleted."]},
                              user=self.org_user)
 
     def test_reject_delete_of_nonempty_folder(self):
