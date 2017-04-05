@@ -176,17 +176,18 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         # since 'file' is not a field on the model, we have to access it through request.data rather than data
         uploaded_file = self.context['request'].data.get('file')
 
-        # handle private_reason:
-        if not user.is_staff:
-            # only staff can manually set private_reason
-            data.pop('private_reason', None)
+        # handle is_private and private_reason:
         if self.instance:
-            # if updating privacy, make sure user is allowed to change private status
-            if not user.is_staff and 'is_private' in data and self.instance.is_private != bool(data['is_private']):
-                if self.instance.private_reason and self.instance.private_reason != 'user':
-                    errors['is_private'] = 'Cannot change link privacy.'
-                else:
-                    data['private_reason'] = 'user' if data['is_private'] else None
+            if not user.is_staff:
+                # only staff can manually change private_reason
+                data.pop('private_reason', None)
+
+                # if updating privacy, make sure user is allowed to change private status
+                if 'is_private' in data and self.instance.is_private != bool(data['is_private']):
+                    if self.instance.private_reason and self.instance.private_reason != 'user':
+                        errors['is_private'] = 'Cannot change link privacy.'
+                    else:
+                        data['private_reason'] = 'user' if data['is_private'] else None
         else:
             # for new links, set private_reason based on is_private
             data['private_reason'] = 'user' if data.get('is_private') else None
