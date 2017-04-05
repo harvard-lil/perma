@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, render
 from perma.models import Link
 from perma.utils import get_client_ip
 from .models import *
+import perma.settings
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ def django_url_prefix(request):
 
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
+        if perma.settings.DEBUG:
+            return view_func(request, *args, **kwargs)
         user_ip = get_client_ip(request)
         logger.warn(Mirror.get_cached_mirrors())
         for mirror in Mirror.get_cached_mirrors():
