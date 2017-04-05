@@ -3,7 +3,7 @@ from rest_framework.routers import APIRootView
 
 from perma.urls import guid_pattern
 
-import views
+from . import views
 
 
 # list views that should appear in the HTML version of the API root

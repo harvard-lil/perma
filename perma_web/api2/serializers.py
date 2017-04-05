@@ -4,9 +4,10 @@ from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
 
-from utils import get_mime_type, mime_type_lookup
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization
 from perma.utils import ip_in_allowed_ip_range
+
+from .utils import get_mime_type, mime_type_lookup
 
 
 class BaseSerializer(serializers.ModelSerializer):
