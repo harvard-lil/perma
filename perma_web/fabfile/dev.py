@@ -645,7 +645,7 @@ def check_storage(start_date=None):
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        if (not start_date) or (start_datetime <= datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') < end_datetime):
+                        if (not start_date) or (start_datetime <= pytz.utc.localize(datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')) < end_datetime):
                             # here we chop off the prefix aka storage.location
                             path = f.key[(len(storage.location)):]
                             # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
@@ -665,7 +665,7 @@ def check_storage(start_date=None):
                         # it yields a 3-tuple (dirpath, dirnames, filenames)" -- so:
                         for filename in f[2]:
                             full_path = os.path.join(f[0], filename)
-                            if (not start_date) or (start_datetime <= datetime.fromtimestamp(os.path.getmtime(full_path), tz=pytz.utc) < end_datetime):
+                            if (not start_date) or (start_datetime <= pytz.utc.localize(storage.modified_time(full_path)) < end_datetime):
                                 # here we chop off the prefix, whether storage._root_path or storage.base_location
                                 path = full_path[len(base):]
                                 # note that etags are not always md5sums, but should be in these cases; we can rewrite
