@@ -172,6 +172,9 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         user = self.context['request'].user
         errors = {}
 
+        # since 'file' is not a field on the model, we have to access it through request.data rather than data
+        uploaded_file = self.context['request'].data.get('file')
+
         # handle private_reason:
         if not user.is_staff:
             # only staff can manually set private_reason
@@ -198,7 +201,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     validate(temp_link.safe_url)
 
                     # Don't force URL resolution validation if a file is provided
-                    if not data.get('file'):
+                    if not uploaded_file:
                         if not temp_link.ip:
                             errors['url'] = "Couldn't resolve domain."
                         elif not ip_in_allowed_ip_range(temp_link.ip):
@@ -222,7 +225,6 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     errors['url'] = "URL caused a redirect loop."
 
         # check uploaded file
-        uploaded_file = self.context['request'].data.get('file')
         if uploaded_file == '':
             errors['file'] = "File cannot be blank."
         elif uploaded_file:
