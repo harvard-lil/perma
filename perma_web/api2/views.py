@@ -458,8 +458,7 @@ class MoveLinkView(BaseView):
     @load_parent
     def put(self, request, guid, format=None):
         """
-            Move folder.
-            For nested endpoint, PUT /archives/:guid into /folders/:parent_id.
+            Move link to new folder.
         """
         link = self.get_object_for_user_by_pk(request.user, guid)
         link.move_to_folder_for_user(request.parent, request.user)
