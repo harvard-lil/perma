@@ -55,7 +55,7 @@ class FolderSerializer(BaseSerializer):
     class Meta:
         model = Folder
         fields = ('id', 'name', 'parent', 'has_children', 'organization')
-        extra_kwargs = {'parent': {'required': True}}
+        extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
     def get_has_children(self, folder):

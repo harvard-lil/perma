@@ -132,25 +132,37 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
             user=user
         )
 
-        # Make sure it's listed in the folder
-        obj = self.successful_get(self.detail_url(child_folder), user=user)
-        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=user)
-        self.assertIn(obj, data['objects'])
+        # Make sure move worked
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, parent_folder.id)
 
     def rejected_folder_move(self, user, parent_folder, child_folder, expected_status_code=401):
+        original_parent_id = child_folder.parent_id
+
         self.rejected_put(
             "{0}/folders/{1}".format(self.detail_url(parent_folder), child_folder.pk),
             expected_status_code=expected_status_code,
             user=user
         )
 
-        # Make sure it's not listed in the folder
-        obj = self.successful_get(self.detail_url(child_folder), user=child_folder.owned_by or self.admin_user)
-        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=parent_folder.owned_by or self.admin_user)
-        self.assertNotIn(obj, data['objects'])
+        # Make sure move didn't work
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, original_parent_id)
+        self.assertNotEqual(child_folder.parent_id, parent_folder.id)
 
-    def test_should_allow_folder_owner_to_move_to_new_parent(self):
+    def test_should_allow_move_to_new_folder_via_put(self):
+        # PUT /folders/:new_parent_id/folders/:id
         self.successful_folder_move(self.regular_user_empty_child_folder.owned_by, self.regular_user_nonempty_child_folder, self.regular_user_empty_child_folder)
+
+    def test_should_allow_move_to_new_folder_via_patch(self):
+        # PATCH /folders/:id {'parent': new_parent_id}
+        child_folder = self.regular_user_empty_child_folder
+        parent_folder = self.regular_user_nonempty_child_folder
+        self.successful_patch(self.detail_url(child_folder),
+                              data={"parent": parent_folder.pk},
+                              user=child_folder.owned_by)
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, parent_folder.pk)
 
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
         self.successful_folder_move(self.registrar_user, self.registrar_user.root_folder, self.test_journal_subfolder_with_link_b)
@@ -199,6 +211,13 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.rejected_folder_move(self.registrar_user, self.test_journal_shared_folder,
                                   self.registrar_user.root_folder,
                                   expected_status_code=400)
+
+    def test_should_reject_move_to_blank_folder(self):
+        self.rejected_patch(self.detail_url(self.regular_user_empty_child_folder),
+                            user=self.regular_user_empty_child_folder.owned_by,
+                            data={'parent':None},
+                            expected_status_code=400,
+                            expected_data={"parent": ["This field may not be null."]})
 
 
     ############
