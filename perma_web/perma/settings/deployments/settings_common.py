@@ -130,7 +130,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
-    'perma.middleware.ReadOnlyMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -401,10 +400,6 @@ TASTYPIE_FULL_DEBUG = True  # Better Tastypie error handling for debugging. Only
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERYBEAT_JOB_NAMES = []
-
-
-# Set to true to disable database/file writes for maintenance.
-READ_ONLY_MODE = False
 
 
 # tests
