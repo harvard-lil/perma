@@ -113,17 +113,14 @@ def get_warc_parts(warc_path, submitted_url):
         if record.type == 'response':
             path = urlparse.urlparse(record.url).path
             ext = os.path.splitext(path)[1]
-            record_url = record.url
+
+            if record.url[:-1] == submitted_url or record.url == submitted_url:
+                payload = decompress_payload(record.payload.read(), 'response', record.url)
+                ext = 'index'
+
             if ext in response_urls:
                 response_urls[ext].append(record.url)
             else:
                 response_urls[ext] = [record.url]
-
-            if record.url[-1] == '/':
-                if record.url[:-1] == submitted_url:
-                    payload = decompress_payload(record.payload.read(), 'response', record.url)
-            else:
-                if record.url == submitted_url:
-                    payload = decompress_payload(record.payload.read(), 'response', record.url)
 
     return payload, response_urls
