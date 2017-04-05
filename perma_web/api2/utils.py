@@ -59,17 +59,17 @@ def load_parent(func):
     """
         Decorator to set request.parent for nested views. For example, if we have
 
-            /folders/1/archives/2
+            /folders/1/folders/2
 
         And
 
-            class LinkDetailView():
+            class FolderDetailView():
 
                 @load_parent
                 def get(request, pk):
                     ...
 
-        This decorator will make sure that request.parent is set to Folder(pk=2),
+        This decorator will make sure that request.parent is set to Folder(pk=1),
         and that request.user is allowed to access that folder.
 
         For this to work, "folders" should be captured as parent_type in the urlconf, and "1" should be captured as parent_id.
