@@ -90,27 +90,40 @@ def sort_resources(collection_one, collection_two):
     missing_resources, added_resources, common_resources = dict(), dict(), dict()
 
     for key in collection_one.keys():
-        set_a = set(collection_one[key])
-        set_b = set(collection_two[key])
-        common_resources[key] = list(set_a & set_b)
-        missing_resources[key] = list(set_a - set_b)
-        added_resources[key] = list(set_b - set_a)
-
+        if key in collection_two.keys():
+            set_a = set(collection_one[key])
+            set_b = set(collection_two[key])
+            common_resources[key] = list(set_a & set_b)
+            missing_resources[key] = list(set_a - set_b)
+            added_resources[key] = list(set_b - set_a)
+        else:
+            missing_resources[key] = collection_one[key]
     return (missing_resources, added_resources, common_resources)
 
 
 def get_warc_parts(warc_path, submitted_url):
     warc_open = warc.open(warc_path)
-    response_urls = {}
+    response_urls = dict()
+    payload = ''
+
+    if submitted_url[-1] == '/':
+        submitted_url = submitted_url[:-1]
+
     for record in warc_open:
         if record.type == 'response':
             path = urlparse.urlparse(record.url).path
             ext = os.path.splitext(path)[1]
+            record_url = record.url
             if ext in response_urls:
                 response_urls[ext].append(record.url)
             else:
                 response_urls[ext] = [record.url]
 
-            if record.url == submitted_url:
-                payload = decompress_payload(record.payload.read(), 'response', record.url)
+            if record.url[-1] == '/':
+                if record.url[:-1] == submitted_url:
+                    payload = decompress_payload(record.payload.read(), 'response', record.url)
+            else:
+                if record.url == submitted_url:
+                    payload = decompress_payload(record.payload.read(), 'response', record.url)
+
     return payload, response_urls
