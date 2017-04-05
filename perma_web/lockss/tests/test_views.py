@@ -7,7 +7,6 @@ class LockssTestCase(PermaTestCase):
     def setUp(self):
         c = Client()
         self.client = c
-        self.yearmonths = []
 
     def test_daemon_settings(self):
         response = self.client.get('/lockss/daemon_settings.txt')
