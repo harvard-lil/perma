@@ -1,0 +1,14 @@
+[
+  {
+    "pk": 1,
+    "model": "lockss.mirror",
+    "fields": {
+      "name": "Test Mirror",
+      "ip": "203.0.113.3",
+      "hostname": "mirror.example.com",
+      "peer_port": 9729,
+      "content_url": "https://mirror.example.com:8080/",
+      "enabled": true
+    }
+  }
+]
