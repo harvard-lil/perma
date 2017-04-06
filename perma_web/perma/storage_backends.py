@@ -12,7 +12,6 @@ from storages.backends.s3boto import S3BotoStorage
 from storages.backends.sftpstorage import SFTPStorage
 from whitenoise.storage import CompressedManifestStaticFilesStorage
 
-from perma.utils import ReadOnlyException
 
 file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
 
@@ -39,8 +38,6 @@ class BaseMediaStorage(object):
             File name will only change if file_path conflicts with an existing file.
             If overwrite=True, existing file will instead be deleted and overwritten.
         """
-        if settings.READ_ONLY_MODE:
-            raise ReadOnlyException("Read only mode enabled.")
 
         if overwrite:
             if self.exists(file_path):
