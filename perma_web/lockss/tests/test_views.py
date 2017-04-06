@@ -5,7 +5,7 @@ from perma.tests.utils import PermaTestCase
 class LockssTestCase(PermaTestCase):
 
     def setUp(self):
-        c = Client()
+        c = Client(REMOTE_ADDR='203.0.113.3')
         self.client = c
 
     def test_daemon_settings(self):

@@ -22,7 +22,8 @@ def reset_failed_test_files_folder():
 class PermaTestCase(TransactionTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
-                'fixtures/archive.json']
+                'fixtures/archive.json',
+                'fixtures/mirrors.json']
 
     def tearDown(self):
         # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
