@@ -15,7 +15,7 @@ class LockssTestCase(PermaTestCase):
     def test_titledb_and_search(self):
         response = self.client.get('/lockss/titledb.xml')
         self.assertEqual(response.status_code, 200)
-        for ym in [ ym[0:7] for ym in response.content.split('Perma.cc Captures For ')][1:]:
+        for ym in [ym[0:7] for ym in response.content.split('Perma.cc Captures For ')][1:]:
             (year, month) = ym.split('-')
             response = self.client.get('/lockss/search/?creation_year={0}&creation_month={1}'.format(year, month))
             self.assertEqual(response.status_code, 200)
