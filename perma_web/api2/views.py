@@ -266,7 +266,10 @@ class PublicLinkListView(BaseView):
 
     def get(self, request, format=None):
         """ List public links. """
-        queryset = Link.objects.order_by('-creation_timestamp').prefetch_related('captures').discoverable()
+        queryset = Link.objects\
+            .order_by('-creation_timestamp')\
+            .select_related('capture_job')\
+            .prefetch_related('captures').discoverable()
         return self.simple_list(request, queryset)
 
 # /public/archives/:guid
@@ -307,7 +310,7 @@ class AuthenticatedLinkListView(BaseView):
         """ List links for user. """
         queryset = Link.objects\
             .order_by('-creation_timestamp')\
-            .select_related('organization', 'organization__registrar','capture_job')\
+            .select_related('organization', 'organization__registrar', 'organization__shared_folder', 'capture_job', 'created_by')\
             .prefetch_related('captures')\
             .accessible_to(request.user)
 
