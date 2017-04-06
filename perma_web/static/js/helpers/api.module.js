@@ -23,8 +23,8 @@ export function request (method, url, data, requestArgs){
   return $.ajax(requestArgs);
 }
 
-// parse and display error results from API
-export function showError (jqXHR) {
+// parse error results from API into string for display to user
+export function getErrorMessage (jqXHR) {
   var message;
 
   if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -47,5 +47,12 @@ export function showError (jqXHR) {
   } else {
     message = 'Error ' + jqXHR.status;
   }
+
+  return message;
+}
+
+// display error results from API
+export function showError (jqXHR) {
+  var message = getErrorMessage(jqXHR);
   Helpers.informUser(message, 'danger');
 }

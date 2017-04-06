@@ -14,13 +14,16 @@
         {% endif %}
       </p>
       <div class="modal-body">
-        <form id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
+        <form id="archive_upload_form" method="post">
+
+          {# can be removed when Tastypie is no longer used #}
           <input type="hidden" name="file_required" value="true">
+
           {% if link.guid %}
             <div class="modal-actions">
               <div class="form-group">
-                <label class="control-label" for="file_input">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
-                <input  id="file_input" class="file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.pdf">
+                <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+                <input  id="file" class="file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.pdf">
               </div>
               <button type="submit" id="updateLinky" class="btn btn-primary btn-large">Upload</button>
               <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
@@ -39,8 +42,8 @@
                 <input id="url" name="url" class="" type="text" placeholder="www.example.com">
             </div>
             <div class="form-group">
-              <label class="control-label" for="file_input">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
-              <input id="file_input" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
+              <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+              <input id="file" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
             </div>
             <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Create a Perma Link</button>
             <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>

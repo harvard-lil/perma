@@ -170,6 +170,11 @@ INSTALLED_APPS = (
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
 
+    # api
+    'api2',
+    'rest_framework',
+    'django_filters',
+
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
     'tastypie'
@@ -467,3 +472,20 @@ TAGGIT_CASE_INSENSITIVE = True
 # If technical problems prevent proper analysis of a capture,
 # should we default to private?
 PRIVATE_LINKS_ON_FAILURE = False
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'api2.authentication.TokenAuthentication',  # authenticate with ApiKey token
+        'rest_framework.authentication.SessionAuthentication',  # authenticate with Django login
+    ),
+    'NON_FIELD_ERRORS_KEY': 'error',  # default key for {'fieldname': 'error message'} error responses
+    'PAGE_SIZE': 300,  # max results per page
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'SEARCH_PARAM': 'q',  # query string key for plain text searches
+    'ORDERING_PARAM': 'order_by',  # query string key to specify ordering of results
+}
+
+# for rest framework -- cause django_filters to raise exceptions for malformed filters so our API can return them to the user
+from django_filters import STRICTNESS
+FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR

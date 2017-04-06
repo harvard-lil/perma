@@ -50,6 +50,11 @@ django_webpack_loader==0.3.3    # frontend assets building
 -e git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 tqdm==4.11.2                    # progress bar in dev fab tasks
 
+# api
+djangorestframework==3.6.2
+django-crispy-forms==1.6.1  # interactive docs
+django-filter==1.0.2        # searching
+
 # deployment
 gunicorn==19.3.0
 gevent==1.0.2
