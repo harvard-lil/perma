@@ -76,7 +76,7 @@ def test_python(apps=_default_tests):
 
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps:
+    if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
         local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
