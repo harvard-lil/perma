@@ -6,7 +6,7 @@ from django.shortcuts import render
 from perma.models import *
 from api.tests.utils import *
 from django.conf import settings
-from diff.warc_compare_text import *
+from warc_diff_tools import *
 
 @login_required
 def diff_entry(request, guid):

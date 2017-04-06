@@ -7,6 +7,7 @@
 -e git+git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 -e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 -e git+git://github.com/anastasia/htmldiff.git@a8fd08afe6dc22afa2aa4eedbb55c4ff206b699c#egg=htmldiff
+-e git+git://github.com/anastasia/WARC-diff-tools.git@0fa75985eda28c01c0ad14fee6911729d3927b78#egg=warc_diff_tools
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
 anyjson==0.3.3            # via kombu
