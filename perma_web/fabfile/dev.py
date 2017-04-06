@@ -34,7 +34,11 @@ def run_django(port="0.0.0.0:8000"):
         try:
             # use runserver_plus if installed
             import django_extensions  # noqa
-            local("python manage.py runserver_plus %s --threaded" % port)
+            # use --reloader-type stat because:
+            #  (1) we have to have watchdog installed for pywb, which causes runserver_plus to attempt to use it as the reloader, which depends on inotify, but
+            #  (2) we are using a Vagrant NFS mount, which does not support inotify
+            # see https://github.com/django-extensions/django-extensions/pull/1041
+            local("python manage.py runserver_plus %s --threaded --reloader-type stat" % port)
         except ImportError:
             local("python manage.py runserver %s" % port)
     finally:
