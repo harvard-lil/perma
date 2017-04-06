@@ -13,7 +13,6 @@ from django.shortcuts import get_object_or_404, render
 from perma.models import Link
 from perma.utils import get_client_ip
 from .models import *
-import perma.settings
 
 logger = logging.getLogger(__name__)
 
