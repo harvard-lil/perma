@@ -25,8 +25,6 @@ def django_url_prefix(request):
 
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
-        if perma.settings.DEBUG:
-            return view_func(request, *args, **kwargs)
         user_ip = get_client_ip(request)
         logger.warn(Mirror.get_cached_mirrors())
         for mirror in Mirror.get_cached_mirrors():
