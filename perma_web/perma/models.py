@@ -1,6 +1,5 @@
 import hashlib
 import io
-import json
 import os
 import logging
 import random
@@ -904,13 +903,6 @@ class Link(DeletableModel):
     def write_warc_resource_record(self, source_file_handle_or_data, url, content_type, warc_date=None, out_file=None):
         data = source_file_handle_or_data.read() if hasattr(source_file_handle_or_data, 'read') else source_file_handle_or_data
         return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, content_type, warc_date, out_file)
-
-    def write_warc_metadata_record(self, metadata, url, concurrent_to, warc_date=None, out_file=None):
-        data = json.dumps(metadata)
-        extra_headers = [
-            (warctools.WarcRecord.CONCURRENT_TO, concurrent_to)
-        ]
-        return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, "application/json", warc_date, out_file, extra_headers)
 
     def write_warc_record(self, record_type, url, data, content_type, warc_date=None, out_file=None, extra_headers=None):
         # set default date and convert to string if necessary
