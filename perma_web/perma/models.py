@@ -1,6 +1,5 @@
 import hashlib
 import io
-import json
 import os
 import logging
 import random
