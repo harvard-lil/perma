@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.utils import timezone
 
 from perma.models import *
 
@@ -19,8 +20,8 @@ class ModelsTestCase(PermaTestCase):
             If end date is before start date, should raise an exception
         '''
         no_links = Link.objects.none()
-        now = datetime(datetime.now().year, 1, 1)
-        later = datetime(datetime.now().year + 1, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        later = timezone.make_aware(datetime(timezone.now().year + 1, 1, 1))
         with self.assertRaises(ValueError):
             link_count_in_time_period(no_links, later, now)
 
@@ -28,7 +29,7 @@ class ModelsTestCase(PermaTestCase):
         '''
             If end date = start date, links are only counted once
         '''
-        now = datetime(datetime.now().year, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
         user = LinkUser()
         user.save()
         link = Link(creation_timestamp=now, guid="AAAA-AAAA", created_by=user)
@@ -42,9 +43,9 @@ class ModelsTestCase(PermaTestCase):
         '''
             Should include links created only in the target year
         '''
-        now = datetime(datetime.now().year, 1, 1)
-        two_years_ago = datetime(now.year - 2, 1, 1)
-        three_years_ago = datetime(now.year - 3, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        two_years_ago = timezone.make_aware(datetime(now.year - 2, 1, 1))
+        three_years_ago = timezone.make_aware(datetime(now.year - 3, 1, 1))
         user = LinkUser()
         user.save()
         link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE"]
@@ -74,8 +75,8 @@ class ModelsTestCase(PermaTestCase):
         o.save()
         self.assertEqual(o.link_count_this_year(), 0)
 
-        now = datetime(datetime.now().year, 1, 1)
-        two_years_ago = datetime(now.year - 2, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        two_years_ago = timezone.make_aware(datetime(now.year - 2, 1, 1))
         user = LinkUser()
         user.save()
         link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC"]
@@ -102,8 +103,8 @@ class ModelsTestCase(PermaTestCase):
         o2 = Organization(registrar=r)
         o2.save()
 
-        now = datetime(datetime.now().year, 1, 1)
-        two_years_ago = datetime(now.year - 2, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        two_years_ago = timezone.make_aware(datetime(now.year - 2, 1, 1))
         user = LinkUser()
         user.save()
         link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD"]
@@ -138,8 +139,8 @@ class ModelsTestCase(PermaTestCase):
         '''
         r = Registrar()
         r.save()
-        now = datetime(datetime.now().year, 1, 1)
-        later = datetime(datetime.now().year + 1, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        later = timezone.make_aware(datetime(now.year + 1, 1, 1))
         with self.assertRaises(ValueError):
             most_active_org_in_time_period(r.organizations, later, now)
 
@@ -147,9 +148,9 @@ class ModelsTestCase(PermaTestCase):
         '''
             Should include links created only in the target year
         '''
-        now = datetime(datetime.now().year, 1, 1)
-        two_years_ago = datetime(now.year - 2, 1, 1)
-        three_years_ago = datetime(now.year - 3, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        two_years_ago = timezone.make_aware(datetime(now.year - 2, 1, 1))
+        three_years_ago = timezone.make_aware(datetime(now.year - 3, 1, 1))
 
         r = Registrar()
         r.save()
@@ -195,8 +196,8 @@ class ModelsTestCase(PermaTestCase):
         o2 = Organization(registrar=r)
         o2.save()
 
-        now = datetime(datetime.now().year, 1, 1)
-        two_years_ago = datetime(now.year - 2, 1, 1)
+        now = timezone.make_aware(datetime(timezone.now().year, 1, 1))
+        two_years_ago = timezone.make_aware(datetime(now.year - 2, 1, 1))
         user = LinkUser()
         user.save()
         link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE", "FFFF-FFFF"]
