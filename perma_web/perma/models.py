@@ -13,7 +13,6 @@ import simple_history
 import requests
 import itertools
 import time
-from datetime import datetime
 
 from hanzo import warctools
 from mptt.managers import TreeManager

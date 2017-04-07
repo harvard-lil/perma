@@ -1,7 +1,6 @@
 import logging
 from createsend import Subscriber, List
 from collections import defaultdict
-from datetime import datetime
 
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
