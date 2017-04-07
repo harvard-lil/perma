@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 from .models import Registrar, LinkUser
-
+from .utils import tz_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +92,8 @@ def registrar_users_plus_stats(destination=None, registrars=None, year=None):
     users = []
     if year is None:
         year = timezone.now().year
-    start_time = timezone.make_aware(datetime(year, 1, 1))
-    end_time = timezone.make_aware(datetime(year + 1, 1, 1))
+    start_time = tz_datetime(year, 1, 1)
+    end_time = tz_datetime(year + 1, 1, 1)
     if registrars is None:
         registrars = Registrar.objects.all()
     for registrar in registrars:

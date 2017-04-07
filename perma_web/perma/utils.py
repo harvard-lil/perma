@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 
 logger = logging.getLogger(__name__)
@@ -229,3 +230,8 @@ def url_in_allowed_ip_range(url):
 
 def get_client_ip(request):
     return request.META[settings.CLIENT_IP_HEADER]
+
+### timezone ###
+
+def tz_datetime(*args, **kwargs):
+    return timezone.make_aware(datetime(*args, **kwargs))

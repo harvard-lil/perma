@@ -42,7 +42,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .utils import copy_file_data
+from .utils import copy_file_data, tz_datetime
 
 
 logger = logging.getLogger(__name__)
@@ -154,13 +154,13 @@ class Registrar(models.Model):
         return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
-        return self.link_count_in_time_period(timezone.make_aware(datetime(timezone.now().year, 1, 1)))
+        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
 
     def most_active_org_in_time_period(self, start_time=None, end_time=None):
         return most_active_org_in_time_period(self.organizations, start_time, end_time)
 
     def most_active_org_this_year(self):
-        return most_active_org_in_time_period(self.organizations, timezone.make_aware(datetime(timezone.now().year, 1, 1)))
+        return most_active_org_in_time_period(self.organizations, tz_datetime(timezone.now().year, 1, 1))
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
@@ -229,7 +229,7 @@ class Organization(DeletableModel):
         return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
-        return self.link_count_in_time_period(timezone.make_aware(datetime(timezone.now().year, 1, 1)))
+        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
 
     def accessible_to(self, user):
         if user.is_staff:
