@@ -162,7 +162,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertIn("favicon.ico", link.favicon_capture.url)
 
     def test_should_dark_archive_when_disallowed_in_robots_txt(self):
-        with self.serve_file('target_capture_files/robots.txt'):
+        with self.serve_file('extra_capture_files/robots.txt'):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
                                        user=self.org_user)
@@ -363,7 +363,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        with self.serve_file('target_capture_files/robots.txt'):
+        with self.serve_file('extra_capture_files/robots.txt'):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
                                        user=self.org_user)
