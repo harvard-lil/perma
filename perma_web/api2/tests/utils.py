@@ -219,8 +219,9 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         """
         if not getattr(self.__class__, "_server_process", None):
             self.__class__.start_server()
-
         dst = os.path.join(self._server_tmp, os.path.basename(src))
+        if os.path.exists(dst):
+            raise Exception("%s already exists -- can't serve_file." % dst)
         try:
             copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, src), dst)
             yield
