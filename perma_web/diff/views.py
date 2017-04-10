@@ -1,7 +1,6 @@
 import os
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
-import requests
 from django.shortcuts import render
 from perma.models import *
 from api.tests.utils import *
@@ -15,13 +14,12 @@ def diff_entry(request, guid):
     we then do a diff on that archive using diff.warc_compare_text.*
     """
     # limitation: can only compare public links for now
-        # maybe this is solved by temporarily allowing users to view, until archive gets deleted or transferred over
+    # maybe this is solved by temporarily allowing users to view, until archive gets deleted or transferred over
 
     # create link using diff_user@example.com's api key
     # move warc over the actual user if they want to keep it
     # all warcs should be deleted forever from diff user every 24 hours
 
-    diff_user = LinkUser.objects.get(email='diff_user@example.com')
     # old_archive = Link.objects.get(guid=guid)
     api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % settings.DIFF_API_KEY
 
