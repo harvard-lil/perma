@@ -10,6 +10,7 @@ module.exports = {
   entry: {
     'single-link': ['./static/js/single-link.module'],
     'single-link-styles':'./static/css/style-responsive-archive.scss',
+    'compare-warcs':'./static/css/compare_warcs.scss',
 
     'global': './static/js/global',
     'global-styles': [

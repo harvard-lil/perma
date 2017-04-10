@@ -1,0 +1,11 @@
+#left_frame {
+    width: calc(50% - 4px);
+}
+#right_frame {
+    width: calc(50% - 4px);
+}
+#left_frame,
+#right_frame {
+  float: left;
+  height: 100%;
+}
