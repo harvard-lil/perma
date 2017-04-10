@@ -263,6 +263,16 @@ class FunctionalTest(BaseTestCase):
                         raise
                     time.sleep(sleep_time)
 
+        def repeat_while_false(func, timeout=10, sleep_time=.1):
+            end_time = time.time()+timeout
+            while True:
+                result = func()
+                if result:
+                    return result
+                if time.time()>end_time:
+                    raise Exception("%s timed out after %s seconds" % (func, timeout))
+                time.sleep(sleep_time)
+
         def fix_host(url):
             if REMOTE_SERVER_URL:
                 return url
@@ -274,6 +284,8 @@ class FunctionalTest(BaseTestCase):
 
         def test_js_error_handling():
             # helper to throw a javascript error and confirm it was recorded on the backend
+            if REMOTE_SERVER_URL:
+                return  # can only check this on local server
             err_count = UncaughtError.objects.count()
             self.driver.execute_script("setTimeout(function(){doesNotExist()})")
             repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
@@ -324,12 +336,12 @@ class FunctionalTest(BaseTestCase):
             get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
             # don't provide a URL
             get_id('addlink').click() # submit
-            assert_text_displayed('URL cannot be empty. ', 'p')
+            assert_text_displayed('URL cannot be empty.', 'p')
             # don't provide a URL or a file on the Upload a file form
             get_element_with_text("upload your own archive", 'button').click()
             get_id('uploadLinky').click()
             assert_text_displayed('URL cannot be empty.')
-            assert_text_displayed('You must upload a file.')
+            assert_text_displayed('File cannot be blank.')
 
             info("Creating archive.")
             self.driver.get(self.server_url + '/manage/create')
@@ -338,7 +350,9 @@ class FunctionalTest(BaseTestCase):
             # choose folder from dropdown
             get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
 
-            get_id('addlink').click() # submit
+            # wait until API call enables create archive button
+            repeat_while_false(lambda: get_id('addlink').is_enabled(), 5)
+            get_id('addlink').click()  # submit
 
             info("Viewing playback (logged in).")
             # wait 60 seconds to be forwarded to archive page
@@ -419,7 +433,7 @@ class FunctionalTest(BaseTestCase):
             for urlpattern in urlpatterns:
                 if '?P<' not in urlpattern.regex.pattern and urlpattern.name and urlpattern.name != "error_management_post_new":
                     self.driver.get(self.server_url + reverse(urlpattern.name))
-            if UncaughtError.objects.exclude(message__contains="doesNotExist").count():
+            if not REMOTE_SERVER_URL and UncaughtError.objects.exclude(message__contains="doesNotExist").count():
                 self.assertTrue(False, "Unexpected javascript errors (see log for details)")
 
             #
@@ -442,7 +456,7 @@ class FunctionalTest(BaseTestCase):
             info("Loading about page.")
             self.driver.get(self.server_url + "/about")
             partners = self.driver.execute_script("return partnerPoints")
-            self.assertEqual(len(partners), 2)
+            self.assertGreater(len(partners), 0)
 
             info("Loading docs.")
             try:

@@ -12204,7 +12204,7 @@ footer #boilerplate a {
 }
 
 .item-container {
-  padding: 16px 0;
+  padding: 16px 16px;
   border: 1px solid transparent;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
@@ -12233,6 +12233,11 @@ footer #boilerplate a {
 .item-container._isPrivate a.perma {
   color: #222;
   border-color: #222;
+}
+
+.item-container._isFailed {
+  background-color: rgba(100, 100, 100, 0.07);
+  border-top: none;
 }
 
 .item-container p.warning {
@@ -12276,6 +12281,12 @@ footer #boilerplate a {
     margin-left: 8px;
     margin-top: 2px;
   }
+}
+
+.failed_header {
+  font-size: 18px;
+  margin-bottom: 8px;
+  font-weight: lighter;
 }
 
 .item-title {

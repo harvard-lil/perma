@@ -21,7 +21,6 @@
     <div class="container cont-full-bleed cont-sm-fixed">
       <form class="form-priority"
             id="linker"
-            action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}"
             method="post">
         <fieldset class="form-priority-fieldset">
           <input id="rawUrl"
@@ -169,11 +168,12 @@
 
 
       {{#each links}}
-        <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
+        <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}{{#if is_failed }} _isFailed{{/if}}">
 
           <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
             <div class="row">
               <div class="col col-sm-6 col-md-60">
+                {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
                 <div class="item-title">
                   {{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
                 </div>

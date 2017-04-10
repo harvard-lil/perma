@@ -173,6 +173,8 @@ Welcome to the Perma.cc developer guide.
       <h3 id="create-an-archive" class="body-bh">Create an archive</h3>
       <p class="body-text">Create a new archive by POSTing (as JSON) the URL and the Title.</p>
       <pre>curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com", "title": "This is an example site"}' https://api.{{ request.get_host }}/v1/archives/?api_key=your-api-key</pre>
+      <p class="body-text">Create an archive in a specific folder (the folder id is 27 in this instance). If you don't include a folder id, your archive will be created in the "Personal Links" folder.</p>
+      <pre>curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com", "title": "This is an example site", "folder": 27}' https://api.{{ request.get_host }}/v1/archives/?api_key=your-api-key</pre>
       <p class="body-text">Response includes detailed information about the newly created archive</p>
       <pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/21/41/8H4S-TNRA", "favicon": null, "image_capture": "pending", "pdf_capture": null, "warc_capture": "pending"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T16:41:15Z", "is_private": false, "expiration_date": "2017-01-21T16:41:15Z", "folders": ["/v1/folders/25/"], "guid": "8H4S-TNRA", "notes": "", "title": "This is a test page", "url": "http://example.com", "organization": null}</pre>
 

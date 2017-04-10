@@ -112,7 +112,7 @@ class LinkValidation(DefaultValidation):
 
         uploaded_file = bundle.data.get('file')
         if bundle.data.get('file_required', '') and not uploaded_file:
-            errors['file'] = "You must upload a file."
+            errors['file'] = "File cannot be blank."
         if uploaded_file:
             mime_type = get_mime_type(uploaded_file.name)
 

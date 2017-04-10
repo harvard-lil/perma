@@ -34,7 +34,11 @@ def run_django(port="0.0.0.0:8000"):
         try:
             # use runserver_plus if installed
             import django_extensions  # noqa
-            local("python manage.py runserver_plus %s --threaded" % port)
+            # use --reloader-type stat because:
+            #  (1) we have to have watchdog installed for pywb, which causes runserver_plus to attempt to use it as the reloader, which depends on inotify, but
+            #  (2) we are using a Vagrant NFS mount, which does not support inotify
+            # see https://github.com/django-extensions/django-extensions/pull/1041
+            local("python manage.py runserver_plus %s --threaded --reloader-type stat" % port)
         except ImportError:
             local("python manage.py runserver %s" % port)
     finally:
@@ -48,7 +52,7 @@ def run_ssl(port="0.0.0.0:8000"):
     """
     local("python manage.py runsslserver %s" % port)
 
-_default_tests = "perma api functional_tests"
+_default_tests = "perma api api2 functional_tests lockss"
 
 @task
 def test(apps=_default_tests):
@@ -72,7 +76,7 @@ def test_python(apps=_default_tests):
 
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps:
+    if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
         local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
@@ -576,9 +580,11 @@ def check_s3_hashes():
 
 
 @task
-def check_storage():
+def check_storage(start_date=None):
     """
         Confirm that, for every link, there is a WARC in each storage, and that their hashes match.
+
+        start_date is in the format YYYY-MM-DD
 
         Ground truth is the list of link objects: compare its list of warcs with those of each storage,
         and compare hashes when more than one such file is present.
@@ -589,8 +595,21 @@ def check_storage():
     from django.db.models import Q
     from perma.models import Link, Capture
 
-    from datetime import date
+    from datetime import date, datetime
     from dateutil.relativedelta import relativedelta
+    import pytz
+    import re
+
+    # check the arg
+    if not start_date:
+        # use first archive date
+        start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
+    elif re.match(r'^\d\d\d\d-\d\d-\d\d$', start_date):
+        start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
+    else:
+        print("Bad argument")
+        return
+    end_datetime = pytz.utc.localize(datetime.now())
 
     # this can be generalized later to an arbitrary number of storages
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
@@ -598,23 +617,24 @@ def check_storage():
         storages.update({'secondary': {'storage': default_storage.secondary_storage, 'lookup': {}}})
 
     # only use cache files when all are present: link cache, and one for each storage
-    link_cache = '/tmp/perma_link_cache.txt'
+    link_cache = '/tmp/perma_link_cache{0}.txt'.format("" if start_date is None else start_date)
     caches = [link_cache]
     for key in storages:
-        caches.append('/tmp/perma_storage_cache_{0}.txt'.format(key))
+        caches.append('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date))
 
     if not all(os.path.exists(p) for p in caches):
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
             # assemble list of links by year-month, as in lockss/views.titledb:
-            first_archive_date = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
-            start_month = date(year=first_archive_date.year, month=first_archive_date.month, day=1)
+            start_month = date(year=start_datetime.year, month=start_datetime.month, day=1)
             today = date.today()
             while start_month <= today:
                 for link in Link.objects.filter(
                         creation_timestamp__year=start_month.year,
                         creation_timestamp__month=start_month.month,
+                        creation_timestamp__gte=start_datetime,
+                        creation_timestamp__lt=end_datetime,
                         captures__in=Capture.objects.filter(capture_filter)
                 ).distinct():
                     tmp_file.write("{0}\n".format(link.warc_storage_file()))
@@ -625,17 +645,18 @@ def check_storage():
         print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
         for key in storages:
             storage = storages[key]['storage']
-            with open('/tmp/perma_storage_cache_{0}.txt'.format(key), 'w') as tmp_file:
+            with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date), 'w') as tmp_file:
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        # here we chop off the prefix aka storage.location
-                        path = f.key[(len(storage.location)):]
-                        # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
-                        # knock off the extra quotation marks
-                        hash = f.etag[1:-1]
-                        tmp_file.write("{0}\t{1}\n".format(path, hash))
-                        storages[key]['lookup'][path] = hash
+                        if (not start_date) or (start_datetime <= pytz.utc.localize(datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')) < end_datetime):
+                            # here we chop off the prefix aka storage.location
+                            path = f.key[(len(storage.location)):]
+                            # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
+                            # knock off the extra quotation marks
+                            hash = f.etag[1:-1]
+                            tmp_file.write("{0}\t{1}\n".format(path, hash))
+                            storages[key]['lookup'][path] = hash
                 else:
                     if hasattr(storage, '_root_path'):
                         # SFTP
@@ -645,21 +666,21 @@ def check_storage():
                         base = storage.base_location
                     for f in storage.walk(os.path.join(base, 'warcs')):
                         # os.walk: "For each directory in the tree rooted at directory top (including top itself),
-                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- there should be exactly one WARC
-                        # per directory, so:
-                        if len(f[2]) == 1:
-                            full_path = os.path.join(f[0], f[2][0])
-                            # here we chop off the prefix, whether storage._root_path or storage.base_location
-                            path = full_path[len(base):]
-                            # note that etags are not always md5sums, but should be in these cases; we can rewrite
-                            # or replace md5hash if necessary
-                            hash = md5hash(full_path, storage)
-                            tmp_file.write("{0}\t{1}\n".format(path, hash))
-                            storages[key]['lookup'][path] = hash
+                        # it yields a 3-tuple (dirpath, dirnames, filenames)" -- so:
+                        for filename in f[2]:
+                            full_path = os.path.join(f[0], filename)
+                            if (not start_date) or (start_datetime <= pytz.utc.localize(storage.modified_time(full_path)) < end_datetime):
+                                # here we chop off the prefix, whether storage._root_path or storage.base_location
+                                path = full_path[len(base):]
+                                # note that etags are not always md5sums, but should be in these cases; we can rewrite
+                                # or replace md5hash if necessary
+                                hash = md5hash(full_path, storage)
+                                tmp_file.write("{0}\t{1}\n".format(path, hash))
+                                storages[key]['lookup'][path] = hash
     else:
         print("Reading storage caches ...")
         for key in storages:
-            with open('/tmp/perma_storage_cache_{0}.txt'.format(key)) as f:
+            with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date)) as f:
                 for line in f:
                     path, hash = line[:-1].split("\t")
                     storages[key]['lookup'][path] = hash

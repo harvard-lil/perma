@@ -1,6 +1,5 @@
 import hashlib
 import io
-import json
 import os
 import logging
 import random
@@ -13,7 +12,6 @@ import simple_history
 import requests
 import itertools
 import time
-from datetime import datetime
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -42,7 +40,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .utils import copy_file_data
+from .utils import copy_file_data, tz_datetime
 
 
 logger = logging.getLogger(__name__)
@@ -154,13 +152,13 @@ class Registrar(models.Model):
         return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
-        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
+        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
 
     def most_active_org_in_time_period(self, start_time=None, end_time=None):
         return most_active_org_in_time_period(self.organizations, start_time, end_time)
 
     def most_active_org_this_year(self):
-        return most_active_org_in_time_period(self.organizations, datetime(datetime.now().year, 1, 1))
+        return most_active_org_in_time_period(self.organizations, tz_datetime(timezone.now().year, 1, 1))
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
@@ -229,7 +227,15 @@ class Organization(DeletableModel):
         return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
-        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
+        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
+
+    def accessible_to(self, user):
+        if user.is_staff:
+            return True
+        if user.is_registrar_user():
+            return self.registrar_id == user.registrar_id
+        return self.users.filter(pk=user.pk).exists()
+
 
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
@@ -569,6 +575,23 @@ class Folder(MPTTModel):
         """
         return self.level + (1 if self.organization_id else 0)
 
+    def accessible_to(self, user):
+        # staff can access any folder
+        if user.is_staff:
+            return True
+
+        # private folders
+        if self.owned_by_id == user.pk:
+            return True
+
+        # shared folders
+        elif self.organization_id:
+            if user.is_registrar_user():
+                # if user is registrar, must be registrar for this org
+                return user.registrar_id == self.organization.registrar_id
+            else:
+                # else, user must belong to this org
+                return user.organizations.filter(pk=self.organization_id).exists()
 
 class LinkQuerySet(QuerySet):
     def user_access_filter(self, user):
@@ -880,13 +903,6 @@ class Link(DeletableModel):
         data = source_file_handle_or_data.read() if hasattr(source_file_handle_or_data, 'read') else source_file_handle_or_data
         return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, content_type, warc_date, out_file)
 
-    def write_warc_metadata_record(self, metadata, url, concurrent_to, warc_date=None, out_file=None):
-        data = json.dumps(metadata)
-        extra_headers = [
-            (warctools.WarcRecord.CONCURRENT_TO, concurrent_to)
-        ]
-        return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, "application/json", warc_date, out_file, extra_headers)
-
     def write_warc_record(self, record_type, url, data, content_type, warc_date=None, out_file=None, extra_headers=None):
         # set default date and convert to string if necessary
         warc_date = warc_date or timezone.now()
@@ -921,6 +937,32 @@ class Link(DeletableModel):
             out_file.write(source_file_handle_or_data)
         if close_file:
             self.close_warc_after_writing(out_file)
+
+    def write_uploaded_file(self, uploaded_file, cache_break=False):
+        """
+            Given a file uploaded by a user, create a Capture record and warc.
+        """
+        from api2.utils import get_mime_type, mime_type_lookup  # local import to avoid circular import
+
+        # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
+        mime_type = get_mime_type(uploaded_file.name)
+        file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
+        warc_url = "file:///%s/%s" % (self.guid, file_name)
+
+        # append a random number to warc_url if we're replacing a file, to avoid browser cache
+        if cache_break:
+            warc_url += "?version=%s" % (str(random.random()).replace('.', ''))
+
+        capture = Capture(link=self,
+                          role='primary',
+                          status='success',
+                          record_type='resource',
+                          user_upload='True',
+                          content_type=mime_type,
+                          url=warc_url)
+        uploaded_file.file.seek(0)
+        capture.write_warc_resource_record(uploaded_file)
+        capture.save()
 
     def open_warc_for_writing(self):
         out = tempfile.TemporaryFile()
@@ -1000,6 +1042,9 @@ class Link(DeletableModel):
     def clear_cache(self):
         cache.delete(Link.get_cdx_cache_key(self.guid))
         cache.delete(Link.get_warc_cache_key(self.warc_storage_file()))
+
+    def accessible_to(self, user):
+        return user.can_edit(self)
 
 
 class Capture(models.Model):
@@ -1195,6 +1240,9 @@ class CaptureJob(models.Model):
         self.status = status
         self.capture_end_time = timezone.now()
         self.save(update_fields=['status', 'capture_end_time'])
+
+    def accessible_to(self, user):
+        return self.link.accessible_to(user)
 
 
 #########################

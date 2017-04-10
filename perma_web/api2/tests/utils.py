@@ -1,16 +1,5 @@
-from django.utils.encoding import force_text
-from django.test.utils import override_settings
-from django.conf import settings
-from django.test import TransactionTestCase, SimpleTestCase
-from tastypie.test import TestApiClient, ResourceTestCaseMixin
-from api.serializers import MultipartSerializer
-from perma import models
-
+from functools import wraps
 import socket
-import perma.tasks
-
-# for web server
-from django.utils.functional import cached_property
 import os
 import errno
 import tempfile
@@ -20,9 +9,17 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
-from django.test.client import MULTIPART_CONTENT
 import urlparse
 import json
+
+from django.test.utils import override_settings
+from django.conf import settings
+from django.test import TransactionTestCase, SimpleTestCase
+from django.utils.functional import cached_property
+from rest_framework.test import APIClient
+
+from perma import models
+import perma.tasks
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
@@ -66,24 +63,55 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
         return SimpleHTTPRequestHandler.end_headers(self)
 
 
-class PermaTestApiClient(TestApiClient):
-    def patch(self, uri, format='json', data=None, authentication=None, **kwargs):
-        """ Override Tastypie's patch method to encode multipart data. """
-        if format == 'multipart':
-            # same as django.test.client.RequestFactory.post()
-            data = self.client._encode_data(data, MULTIPART_CONTENT)
-        return super(PermaTestApiClient, self).patch(uri, format, data, authentication, **kwargs)
+def log_api_call(func):
+    """
+        Handy wrapper to log all API calls during tests. To enable, use:
+
+         LOG_API_CALLS=1 fab test
+    """
+    if not os.environ.get('LOG_API_CALLS'):
+        return func
+    @wraps(func)
+    def func_wrapper(self, *args, **kwargs):
+        print func.__name__, "called as user", self.handler._force_user, "with", args, kwargs
+        try:
+            result = func(self, *args, **kwargs)
+        except Exception as e:
+            print "returning exception:", e
+            raise
+        print "returning:", result
+        return result
+    return func_wrapper
+
+class LoggingAPIClient(APIClient):
+    """
+        Subclass of DRF's APIClient that uses log_api_call wrapper.
+    """
+    @log_api_call
+    def get(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).get(*args, **kwargs)
+    @log_api_call
+    def post(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).post(*args, **kwargs)
+    @log_api_call
+    def put(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).put(*args, **kwargs)
+    @log_api_call
+    def patch(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).patch(*args, **kwargs)
+    @log_api_call
+    def delete(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).delete(*args, **kwargs)
 
 
-@override_settings(# ROOT_URLCONF='api.urls',
-                   BANNED_IP_RANGES=[])
-class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
+@override_settings(BANNED_IP_RANGES=[])
+class ApiResourceTestCaseMixin(SimpleTestCase):
 
     # TODO: Using the regular ROOT_URLCONF avoids a problem where failing tests print useless error messages,
     # because the 500.html error template includes a {% url %} lookup that isn't included in api.urls.
     # There could be a better way to handle this.
     # url_base = "/v1"
-    url_base = "/api/v1"
+    url_base = "/api/v2"
 
     server_domain = "perma.dev"
     server_port = 8999
@@ -107,7 +135,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
     def setUp(self):
         super(ApiResourceTestCaseMixin, self).setUp()
 
-        self.api_client = PermaTestApiClient(serializer=MultipartSerializer())
+        self.api_client = LoggingAPIClient()
 
         self._media_org = settings.MEDIA_ROOT
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
@@ -191,7 +219,6 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         """
         if not getattr(self.__class__, "_server_process", None):
             self.__class__.start_server()
-
         dst = os.path.join(self._server_tmp, os.path.basename(src))
         if os.path.exists(dst):
             raise Exception("%s already exists -- can't serve_file." % dst)
@@ -214,17 +241,6 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         finally:
             models.HEADER_CHECK_TIMEOUT = prev_t
 
-    def assertValidJSONResponse(self, resp):
-        # Modified from tastypie to allow 201's as well
-        # https://github.com/toastdriven/django-tastypie/blob/master/tastypie/test.py#L448
-        try:
-            self.assertHttpOK(resp)
-        except AssertionError:
-            self.assertHttpCreated(resp)
-
-        self.assertTrue(resp['Content-Type'].startswith('application/json'))
-        self.assertValidJSON(force_text(resp.content))
-
     def detail_url(self, obj):
         return "{0}/{1}".format(self.list_url, obj.pk)
 
@@ -232,10 +248,11 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         req_kwargs = {}
         if kwargs.get('format', None):
             req_kwargs['format'] = kwargs['format']
-        if kwargs.get('user', None):
-            req_kwargs['authentication'] = self.get_credentials(kwargs['user'])
         if kwargs.get('data', None):
             req_kwargs['data'] = kwargs['data']
+
+        # authentication
+        self.api_client.force_authenticate(user=kwargs.get('user', None))
 
         return req_kwargs
 
@@ -273,7 +290,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
         count = self.resource._meta.queryset.count()
         resp = self.api_client.put(url, **req_kwargs)
-        self.assertHttpAccepted(resp)
+        self.assertHttpOK(resp)
 
         # Make sure the count hasn't changed
         self.assertEqual(self.resource._meta.queryset.count(), count)
@@ -293,7 +310,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
         count = self.resource._meta.queryset.count()
         patch_resp = self.api_client.patch(url, **req_kwargs)
-        self.assertHttpAccepted(patch_resp)
+        self.assertHttpOK(patch_resp)
 
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(self.resource._meta.queryset.count(), count)
@@ -384,16 +401,63 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         result = self.rejected_method("delete", url, *args, **kwargs)
 
         resp = self.api_client.get(url, **get_kwargs)
-        try:
-            # If the user doesn't have access, that's okay -
-            # we were testing delete from an unauthorized user
-            self.assertHttpUnauthorized(resp)
-        except AssertionError:
-            # Check for OK last so that this is the assertion
-            # that shows up as the failure if it doesn't pass
-            self.assertHttpOK(resp)
+        self.assertIn(resp.status_code, [200, 401, 403])  # make sure we don't get a 404 back
 
         return result
+
+    ### assert methods copied from Tastypie ###
+
+    def deserialize(self, resp):
+        return json.loads(resp.content)
+
+    def assertValidJSONResponse(self, resp):
+        # Modified from tastypie to allow 201's as well
+        # https://github.com/toastdriven/django-tastypie/blob/master/tastypie/test.py#L448
+        self.assertIn(resp.status_code, [200, 201])
+        self.assertTrue(resp['Content-Type'].startswith('application/json'))
+        return self.deserialize(resp)
+
+    def assertHttpUnauthorized(self, resp):
+        """
+        Ensures the response is returning a HTTP 401.
+        """
+        return self.assertEqual(resp.status_code, 401)
+
+    def assertHttpNotFound(self, resp):
+        """
+        Ensures the response is returning a HTTP 404.
+        """
+        return self.assertEqual(resp.status_code, 404)
+
+    def assertHttpOK(self, resp):
+        """
+        Ensures the response is returning a HTTP 200.
+        """
+        return self.assertEqual(resp.status_code, 200)
+
+    def assertHttpCreated(self, resp):
+        """
+        Ensures the response is returning a HTTP 201.
+        """
+        return self.assertEqual(resp.status_code, 201)
+
+    def assertHttpAccepted(self, resp):
+        """
+        Ensures the response is returning either a HTTP 202 or a HTTP 204.
+        """
+        self.assertIn(resp.status_code, [202, 204])
+
+    def assertKeys(self, data, expected):
+        """
+        This method ensures that the keys of the ``data`` match up to the keys
+        of ``expected``.
+
+        It covers the (extremely) common case where you want to make sure the
+        keys of a response match up to what is expected. This is typically less
+        fragile than testing the full structure, which can be prone to data
+        changes.
+        """
+        self.assertEqual(sorted(data.keys()), sorted(expected))
 
 
 class ApiResourceTestCase(ApiResourceTestCaseMixin):

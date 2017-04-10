@@ -7,7 +7,7 @@
 
 # Package:                      # Used for:
 
-Django==1.9.11
+Django==1.9.13
 MySQL-python==1.2.5
 celery==3.1.20
 requests[security]==2.11.1
@@ -16,7 +16,7 @@ django-ratelimit==1.0.0
 smhasher==0.150.1
 jasmine==2.4.0
 pytz==2013b
-django-mptt==0.8.5
+django-mptt==0.8.7
 Werkzeug==0.11.1
 Fabric==1.11.1
 pexpect==3.1
@@ -35,9 +35,9 @@ sorl-thumbnail==12.3			# Used to create our thumbnails
 redis==2.10.5					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==4.4.3             # use redis as django's cache backend
 django-sslserver==0.14          # For testing SSL locally.
-django-model-utils==2.2         # for tracking dirty models
+django-model-utils==2.6.1         # for tracking dirty models
 django-settings-context-processor==0.2 # make settings available in templates
-django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
+django-admin-smoke-tests==0.3.0    # basic tests for the Django admin
 Pillow==3.3.2                   # Used by the Django admin for ImageField display
 whitenoise==3.2.2               # serve static assets
 django-simple-history==1.8.1    # track changes to certain models
@@ -51,6 +51,11 @@ django_webpack_loader==0.3.3    # frontend assets building
 tqdm==4.11.2                    # progress bar in dev fab tasks
 -e git://github.com/anastasia/htmldiff.git@a8fd08afe6dc22afa2aa4eedbb55c4ff206b699c#egg=htmldiff  # diffing html utils
 -e git://github.com/anastasia/WARC-diff-tools.git@0fa75985eda28c01c0ad14fee6911729d3927b78#egg=warc_diff_tools # WARC comparison tools
+
+# api
+djangorestframework==3.6.2
+django-crispy-forms==1.6.1  # interactive docs
+django-filter==1.0.2        # searching
 
 # deployment
 gunicorn==19.3.0

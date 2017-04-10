@@ -1647,6 +1647,11 @@ webpackJsonp([1],{
 	  if (Date.now() < Date.parse(link.archive_timestamp)) {
 	    link.delete_available = true;
 	  }
+	  if (!link.captures.some(function (c) {
+	    return c.role == "primary" && c.status == "success" || c.role == "screenshot" && c.role == "success";
+	  })) {
+	    link.is_failed = true;
+	  };
 	  return link;
 	}
 	
@@ -1689,6 +1694,7 @@ webpackJsonp([1],{
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
 	exports.request = request;
+	exports.getErrorMessage = getErrorMessage;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1717,8 +1723,8 @@ webpackJsonp([1],{
 	  return $.ajax(requestArgs);
 	}
 	
-	// parse and display error results from API
-	function showError(jqXHR) {
+	// parse error results from API into string for display to user
+	function getErrorMessage(jqXHR) {
 	  var message;
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -1741,6 +1747,13 @@ webpackJsonp([1],{
 	  } else {
 	    message = 'Error ' + jqXHR.status;
 	  }
+	
+	  return message;
+	}
+	
+	// display error results from API
+	function showError(jqXHR) {
+	  var message = getErrorMessage(jqXHR);
 	  Helpers.informUser(message, 'danger');
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
@@ -10781,10 +10794,6 @@ webpackJsonp([1],{
 	  value: true
 	});
 	
-	var _stringify = __webpack_require__(6);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
 	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
@@ -10792,10 +10801,6 @@ webpackJsonp([1],{
 	var _keys = __webpack_require__(93);
 	
 	var _keys2 = _interopRequireDefault(_keys);
-	
-	var _getIterator2 = __webpack_require__(97);
-	
-	var _getIterator3 = _interopRequireDefault(_getIterator2);
 	
 	exports.populateWithUrl = populateWithUrl;
 	exports.updateLinker = updateLinker;
@@ -10841,57 +10846,25 @@ webpackJsonp([1],{
 	
 	function linkNot(jqXHR) {
 	  // The API told us something went wrong.
+	  var message = APIModule.getErrorMessage(jqXHR);
 	
-	  if (jqXHR.status == 401) {
-	    // special handling if user becomes unexpectedly logged out
-	    APIModule.showError(jqXHR);
-	  } else {
-	    var message = "";
-	    if (jqXHR.status == 400 && jqXHR.responseText) {
-	      var errors = JSON.parse(jqXHR.responseText).archives;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-	
-	      try {
-	        for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(errors)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var prop = _step.value;
-	
-	          message += errors[prop] + " ";
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-	    }
-	
-	    var upload_allowed = true;
-	    if (message.indexOf("limit") > -1) {
-	      $('.links-remaining').text('0');
-	      upload_allowed = false;
-	    }
-	
-	    var templateArgs = {
-	      message: message || "Error " + jqXHR.status,
-	      upload_allowed: upload_allowed,
-	      contact_url: contact_url
-	    };
-	
-	    changeTemplate('#error-template', templateArgs, '#error-container');
-	
-	    $('.create-errors').addClass('_active');
-	    $('#error-container').hide().fadeIn(0);
+	  var upload_allowed = true;
+	  if (message.indexOf("limit") > -1) {
+	    $('.links-remaining').text('0');
+	    upload_allowed = false;
 	  }
+	
+	  var templateArgs = {
+	    message: message,
+	    upload_allowed: upload_allowed,
+	    contact_url: contact_url
+	  };
+	
+	  changeTemplate('#error-template', templateArgs, '#error-container');
+	
+	  $('.create-errors').addClass('_active');
+	  $('#error-container').hide().fadeIn(0);
+	
 	  toggleCreateAvailable();
 	}
 	
@@ -10910,31 +10883,31 @@ webpackJsonp([1],{
 	  try {
 	    response = jQuery.parseJSON(jqXHR.responseText);
 	  } catch (e) {
-	    response = jqXHR.responseText;
+	    reasons = [jqXHR.responseText];
 	  }
 	
 	  DOMHelpers.hideElement('.spinner');
 	
 	  $('.js-warning').remove();
 	  $('.has-error').removeClass('has-error');
-	  if (response.archives) {
-	    // If error message comes in as {archive:{file:"message",url:"message"}},
+	
+	  if (response) {
+	    // Can be removed when Tastypie API no longer used
+	    if (response.archives) response = response.archives;
+	
+	    // If error message comes in as {file:"message",url:"message"},
 	    // show appropriate error message next to each field.
-	    for (var key in response.archives) {
-	      if (response.archives.hasOwnProperty(key)) {
+	    for (var key in response) {
+	      if (response.hasOwnProperty(key)) {
 	        var input = $('#' + key);
 	        if (input.length) {
-	          input.after('<span class="help-block js-warning">' + response.archives[key] + '</span>');
+	          input.after('<span class="help-block js-warning">' + response[key] + '</span>');
 	          input.closest('div').addClass('has-error');
 	        } else {
-	          reasons.push(response.archives[key]);
+	          reasons.push(response[key]);
 	        }
 	      }
 	    }
-	  } else if (response.reason) {
-	    reasons.push(response.reason);
-	  } else {
-	    reasons.push(response);
 	  }
 	
 	  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
@@ -11134,6 +11107,7 @@ webpackJsonp([1],{
 	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
 	    spinner.spin(this);
 	    $(this).ajaxSubmit({
+	      url: api_path + "/archives/",
 	      data: extraUploadData,
 	      success: uploadIt,
 	      error: uploadNot
@@ -11160,13 +11134,7 @@ webpackJsonp([1],{
 	    // Start our spinner and disable our input field with just a tiny delay
 	    window.setTimeout(toggleCreateAvailable, 150);
 	
-	    $.ajax($this.attr('action'), {
-	      method: $this.attr('method'),
-	      contentType: 'application/json',
-	      data: (0, _stringify2.default)(linker_data),
-	      success: linkIt,
-	      error: linkNot
-	    });
+	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).success(linkIt);
 	
 	    return false;
 	  });

@@ -130,7 +130,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
-    'perma.middleware.ReadOnlyMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -170,6 +169,11 @@ INSTALLED_APPS = (
     'simple_history',  # record model changes
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
+
+    # api
+    'api2',
+    'rest_framework',
+    'django_filters',
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
@@ -331,6 +335,8 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
+CELERYD_TASK_TIME_LIMIT = 300     # If a task is running longer than five minutes, kill it
+CELERYD_TASK_SOFT_TIME_LIMIT=290  # provide 10 seconds to catch SoftTimeLimitExceeded
 
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
@@ -404,10 +410,6 @@ TASTYPIE_FULL_DEBUG = True  # Better Tastypie error handling for debugging. Only
 CELERYBEAT_JOB_NAMES = []
 
 
-# Set to true to disable database/file writes for maintenance.
-READ_ONLY_MODE = False
-
-
 # tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
 USE_SAUCE = False  # Default to local functional tests
@@ -466,3 +468,20 @@ TAGGIT_CASE_INSENSITIVE = True
 # If technical problems prevent proper analysis of a capture,
 # should we default to private?
 PRIVATE_LINKS_ON_FAILURE = False
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'api2.authentication.TokenAuthentication',  # authenticate with ApiKey token
+        'rest_framework.authentication.SessionAuthentication',  # authenticate with Django login
+    ),
+    'NON_FIELD_ERRORS_KEY': 'error',  # default key for {'fieldname': 'error message'} error responses
+    'PAGE_SIZE': 300,  # max results per page
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'SEARCH_PARAM': 'q',  # query string key for plain text searches
+    'ORDERING_PARAM': 'order_by',  # query string key to specify ordering of results
+}
+
+# for rest framework -- cause django_filters to raise exceptions for malformed filters so our API can return them to the user
+from django_filters import STRICTNESS
+FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR

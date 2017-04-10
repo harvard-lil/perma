@@ -92,12 +92,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     # GET #
     #######
 
-    def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.org_user)
-
-    def test_get_public_schema_json(self):
-        self.successful_get(self.public_list_url + '/schema', user=self.org_user)
-
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=4)
 
@@ -336,12 +330,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_updates_to_disallowed_fields(self):
         result = self.rejected_patch(self.unrelated_link_detail_url,
                                      user=self.unrelated_link.created_by,
-                                     data={'nonexistent_field':'foo'})
-        self.assertIn("Only updates on these fields are allowed", result.content)
-
-        result = self.rejected_patch(self.unrelated_link_detail_url,
-                                     user=self.unrelated_link.created_by,
-                                     data={'url': 'foo'})
+                                     data={'url':'foo'})
         self.assertIn("Only updates on these fields are allowed", result.content)
 
     ##################
@@ -427,15 +416,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(len(objs), 2)
         self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
 
-    def test_should_allow_filtering_submitted_url(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter'}, user=self.regular_user)
+    def test_should_allow_filtering_url(self):
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter'}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
@@ -443,16 +432,13 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
 
     def test_should_allow_filtering_by_date_range_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"2"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={
+            'url': 'metafilter',
+            'min_date':"2016-12-06T18:55:37Z",
+            'max_date':"2016-12-08T18:55:37Z",
+        }, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
         self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
-
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"40"}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-        self.assertEqual(objs[1]['title'], 'MetaFilter | Community Weblog')

@@ -17,9 +17,6 @@ CELERYBEAT_JOB_NAMES = [
     'send-links-to-internet-archives',
     ]
 
-# If a task is running longer than five minutes, kill it
-CELERYD_TASK_TIME_LIMIT = 300
-
 # logging
 LOGGING['handlers']['default']['filename'] = '/var/log/perma/perma.log'
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'

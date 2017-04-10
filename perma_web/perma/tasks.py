@@ -13,6 +13,7 @@ import os.path
 import threading
 import urlparse
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 from pyvirtualdisplay import Display
 import re
 from requests.structures import CaseInsensitiveDict
@@ -315,6 +316,8 @@ def run_next_capture():
         return  # no jobs waiting
     try:
         proxy_capture(capture_job)
+    except SoftTimeLimitExceeded:
+        capture_job.link.tags.add('timeout-failure')
     except:
         print "Exception while processing capture job %s:" % capture_job.link_id
         traceback.print_exc()
@@ -323,7 +326,6 @@ def run_next_capture():
         if capture_job.status == 'in_progress':
             capture_job.mark_completed('failed')
     run_task(run_next_capture.s())
-
 
 @tempdir.run_in_tempdir()
 def proxy_capture(capture_job):

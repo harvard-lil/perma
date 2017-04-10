@@ -56,9 +56,15 @@ v1a_api = NamespacedApi(api_name='v1a', urlconf_namespace='v1a')
 v1a_api._registry = v1_api._registry.copy()
 v1a_api._canonicals = v1_api._canonicals.copy()
 
+### v2 ###
+
+v2_api_urls = [
+    url(r'^v2/', include('api2.urls')),
+]
+
 ### add API versions to urlpatters ###
 
-urlpatterns = v1_api.urls + v1a_api.urls + collateral_urls
+urlpatterns = v1_api.urls + v1a_api.urls + v2_api_urls + collateral_urls
 
 ### error handlers ###
 
