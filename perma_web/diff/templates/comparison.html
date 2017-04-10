@@ -26,7 +26,6 @@
   <meta name="twitter:title" content="{{ old_archive.submitted_title }}">
   <meta name="twitter:description" content="{{ old_archive.submitted_description | archive_description:''  }}">
   <meta name="twitter:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
-
 {% endblock %}
 
 {% block styles %}
@@ -115,58 +114,14 @@
           {% endif %}
         {% endcomment %}
       </div>
-      <div class="tray-actions col-xs-12">
-        {% if not can_edit %}
-          <a href="{% url 'contact' %}?flag={{old_archive.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
-        {% endif %}
-        {# user edit buttons #}
-        {% if can_toggle_private %}
-          <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if old_archive.is_private %}Public{% else %}Private{% endif %}</button>
-          {% if request.user.is_staff %}
-            {% if old_archive.is_private %}
-              (Private reason: {{ old_archive.get_private_reason_display }})
-            {% else %}
-              <select name="private_reason">
-                <option value="user"> At user direction</option>
-                <option value="policy"> robots.txt or noarchive meta tag</option>
-                <option value="takedown"> At content owner's request</option>
-              </select>
-            {% endif %}
-          {% endif %}
-        {% endif %}
-      </div>
     </div>
-
-    {% if can_view and old_archive.is_private %}
-      <div class="banner banner-status row _isDarchive">
-        <strong>This record is private{% if old_archive.private_reason == 'policy' %} by Perma.cc policy{% elif old_archive.private_reason == 'takedown' %} at the content owner's request, and it cannot be made public on Perma.cc{% endif %}.</strong>
-          It’s only visible to {% if old_archive.organization %}members of {{ old_archive.organization }} and the {{ old_archive.organization.registrar }} registrar{% else %}you{% endif %}.
-          {% if old_archive.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
-      </div>
-    {% endif %}
-
-    {% if new_record %}
-      <div class="banner banner-status row _isNewRecord">
-        <span class="success">Success!</span>
-        <span class="message verbose">Your new Perma Link is <strong>https://{{ request.get_host }}{% url 'single_linky' old_archive.guid %}</strong></span>
-        <span class="link-options verbose">
-          <a class="edit-link" style="cursor:pointer;">Edit<span class="_verbose _toDesktop"> link details</span></a>
-          <span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span>
-        </span>
-        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
-      </div>
-    {% endif %}
-
   </header>
 {% endblock %}
 
 {% block mainContent %}
 <div style="display: block;" class="capture-wrapper">
-  <!-- class="archive-iframe" -->
-  <iframe id="left_frame" src="{{ old_archive_capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
-  <!-- <div style="border-left: thick solid #ff0000; height: 100%;" class="verticalLine"></div> -->
+  <iframe id="left_frame" src="{{ old_archive_capture.playback_url_with_access_token }}?" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
   <iframe id="right_frame" src="{{ new_archive_capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
-
 </div>
 {% endblock %}
 
@@ -174,6 +129,8 @@
   <script>
     var archive = { guid: "{{ old_archive.guid }}" };
     var current_user = {id:"{{request.user.id}}"};
+    var simhash_distance = "{{simhash_distance}}"
+    // var test_html = "{{test_html}}"
   </script>
   {% render_bundle 'warc-compare' 'js' %}
   {% if request.user.is_authenticated %}
