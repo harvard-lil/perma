@@ -5,10 +5,10 @@ from django.shortcuts import render
 from perma.models import *
 from api.tests.utils import *
 from django.conf import settings
-from warc_diff_tools import *
+from warc_diff_tools.warc_diff_tools import expand_warcs
 
 @login_required
-def diff_entry(request, guid):
+def main(request, guid):
     """
     here, we want to grab the guid coming in, and create a new archive of it
     we then do a diff on that archive using diff.warc_compare_text.*
@@ -32,7 +32,11 @@ def diff_entry(request, guid):
 
     warc_one = os.path.join(default_storage.base_location, old_archive.warc_storage_file())
     warc_two = os.path.join(default_storage.base_location, new_archive.warc_storage_file())
-    compare_warcs(warc_one, warc_two, old_archive.submitted_url, new_archive.submitted_url)
+
+    expanded = expand_warcs(warc_one, warc_two, old_archive.submitted_url, new_archive.submitted_url)
+
+    warc_one_index = old_archive.replay_url(old_archive.submitted_url).data
+    warc_two_index = new_archive.replay_url(new_archive.submitted_url).data
 
     context = {
         'old_archive': old_archive,
@@ -40,7 +44,6 @@ def diff_entry(request, guid):
         'can_delete': request.user.can_delete(old_archive),
         'can_toggle_private': request.user.can_toggle_private(old_archive),
         'old_archive_capture': old_archive.primary_capture,
-        'serve_type': 'sdfsdf',
         'this_page': 'single_link',
         'max_size': max_size,
         'link_url': settings.HOST + '/' + old_archive.guid,
@@ -49,5 +52,4 @@ def diff_entry(request, guid):
     }
 
 
-    response = render(request, 'panoramic.html', context)
-    return response
+    return render(request, 'comparison.html', context)
