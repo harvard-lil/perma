@@ -9,7 +9,7 @@
 
 Django==1.9.13
 MySQL-python==1.2.5
-celery==3.1.20
+celery==3.1.25
 requests[security]==2.11.1
 wsgiref==0.1.2
 django-ratelimit==1.0.0
