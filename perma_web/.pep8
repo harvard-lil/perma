@@ -1,8 +1,0 @@
-[flake8]
-ignore = E12,
-         E2,W2,
-         E3,W3,
-         E4,
-         E501,
-         F403
-exclude = node_modules,static

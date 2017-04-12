@@ -1,4 +1,4 @@
-from settings_dev import PROJECT_ROOT
+from ..settings import *
 
 #########
 # Setup #

@@ -193,7 +193,14 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
             copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
 
         # start server
-        cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
+        for i in range(100):
+            try:
+                cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
+                break
+            except socket.error:
+                cls.server_port += 1
+        else:
+            raise Exception("Cannot find an open port to host TestHTTPServer.")
         cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
         cls._server_process = Process(target=cls._httpd.serve_forever)
         cls._server_process.start()
