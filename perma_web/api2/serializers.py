@@ -166,7 +166,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         if url and url[:4] != 'http':
             url = 'http://' + url
 
-        # Somehow it's possible for some control characters to the server
+        # Somehow it's possible for some control characters to get to the server
         if url_is_invalid_unicode(url):
             raise serializers.ValidationError({'url': "Unicode error while processing URL."})
         return url
