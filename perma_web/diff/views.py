@@ -5,7 +5,7 @@ from django.shortcuts import render
 from perma.models import *
 from api.tests.utils import *
 from django.conf import settings
-from warc_diff_tools.warc_diff_tools import expand_warcs
+from warc_diff_tools.warc_diff_tools import expand_warcs, get_visual_diffs
 
 @login_required
 def main(request, guid):
@@ -20,12 +20,11 @@ def main(request, guid):
     # move warc over the actual user if they want to keep it
     # all warcs should be deleted forever from diff user every 24 hours
 
-    # old_archive = Link.objects.get(guid=guid)
-    api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % settings.DIFF_API_KEY
-
+    old_archive = Link.objects.get(guid=guid)
+    # api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % settings.DIFF_API_KEY
     # response = requests.post(api_url, data={'url': old_archive.submitted_url})
     # new_guid = response.json().get('guid')
-    old_archive = Link.objects.get(guid="AA3S-SQ55")
+    # old_archive = Link.objects.get(guid="AA3S-SQ55")
     new_archive = Link.objects.get(guid="U75F-W8DK")
     max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
@@ -37,6 +36,15 @@ def main(request, guid):
 
     warc_one_index = old_archive.replay_url(old_archive.submitted_url).data
     warc_two_index = new_archive.replay_url(new_archive.submitted_url).data
+
+    deleted, inserted, combined = get_visual_diffs(warc_one_index, warc_two_index)
+    #
+    # with open('original_html.html', 'w+') as f:
+    #     f.write(warc_one_index)
+    #
+    # with open('original_html2.html', 'w+') as f:
+    #     f.write(warc_two_index)
+
 
     context = {
         'old_archive': old_archive,

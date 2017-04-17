@@ -120,8 +120,8 @@
 
 {% block mainContent %}
 <div style="display: block;" class="capture-wrapper">
-  <iframe id="left_frame" src="{{ old_archive_capture.playback_url_with_access_token }}?" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
-  <iframe id="right_frame" src="{{ new_archive_capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+  <iframe id="left_frame" src="{{ old_archive_capture.playback_url_with_access_token }}#_left" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+  <iframe id="right_frame" src="{{ new_archive_capture.playback_url_with_access_token }}#_right" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
 </div>
 {% endblock %}
 
@@ -132,7 +132,7 @@
     var simhash_distance = "{{simhash_distance}}"
     // var test_html = "{{test_html}}"
   </script>
-  {% render_bundle 'warc-compare' 'js' %}
+
   {% if request.user.is_authenticated %}
     {% render_bundle 'global' 'js' %}
     {% render_bundle 'single-link-permissions' 'js' %}
