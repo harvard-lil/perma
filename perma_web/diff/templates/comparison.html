@@ -120,8 +120,8 @@
 
 {% block mainContent %}
 <div style="display: block;" class="capture-wrapper">
-  <iframe id="left_frame" src="{{ old_archive_capture.playback_url_with_access_token }}#_left" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
-  <iframe id="right_frame" src="{{ new_archive_capture.playback_url_with_access_token }}#_right" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+  <iframe id="left_frame" src="{{ archive_one_capture.playback_url_with_access_token }}#_perma_diff_deleted_{{ archive_one.guid }}_{{ archive_two.guid }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+  <iframe id="right_frame" src="{{ archive_two_capture.playback_url_with_access_token }}#_perma_diff_inserted_{{ archive_one.guid }}_{{ archive_two.guid }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
 </div>
 {% endblock %}
 
