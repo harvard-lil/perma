@@ -43,7 +43,7 @@ def main(request, guid):
     rewritten_html_one = utils.rewrite_html(html_one, archive_one.guid)
     rewritten_html_two = utils.rewrite_html(html_two, archive_two.guid)
 
-    deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two)
+    deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two, style_str=settings.DIFF_STYLE_STR)
 
     utils.write_to_static(deleted, '_deleted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
     utils.write_to_static(inserted, '_inserted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
@@ -53,11 +53,10 @@ def main(request, guid):
         'archive_one': archive_one,
         'archive_two': archive_two,
         'archive_one_capture': archive_one.primary_capture,
+        'archive_two_capture': archive_two.primary_capture,
         'this_page': 'single_link',
-        'max_size': max_size,
         'link_url': settings.HOST + '/' + archive_one.guid,
         'protocol': protocol,
-        'archive_two_capture': archive_two.primary_capture,
     }
 
 
