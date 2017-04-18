@@ -1,3 +1,4 @@
+import unicodedata
 import imghdr
 from collections import OrderedDict
 from functools import wraps
@@ -132,3 +133,10 @@ def get_mime_type(file_name):
     """ Return mime type (for a valid file extension) or None if file extension is unknown. """
     file_extension = file_name.rsplit('.', 1)[-1].lower()
     return file_extension_lookup.get(file_extension)
+
+def url_is_invalid_unicode(url_string):
+    """ Check for unicode control characters in URL """
+    for x in unicode(url_string):
+        if unicodedata.category(x)[0] == "C":
+            return True
+    return False

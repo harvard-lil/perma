@@ -7,7 +7,7 @@ from rest_framework import serializers
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization
 from perma.utils import ip_in_allowed_ip_range
 
-from .utils import get_mime_type, mime_type_lookup
+from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode
 
 
 class BaseSerializer(serializers.ModelSerializer):
@@ -165,6 +165,10 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         url = url.strip()
         if url and url[:4] != 'http':
             url = 'http://' + url
+
+        # Somehow it's possible for some control characters to get to the server
+        if url_is_invalid_unicode(url):
+            raise serializers.ValidationError({'url': "Unicode error while processing URL."})
         return url
 
     def validate(self, data):

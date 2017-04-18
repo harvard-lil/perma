@@ -56,6 +56,11 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            user=self.org_user,
                            data={'url': 'httpexamplecom'})
 
+    def test_should_reject_bad_unicode_url(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': 'https://www.ntanet.org/some-article.pdf\x00'})
+
     def test_should_reject_unresolvable_domain_url(self):
         with self.header_timeout(0.25):  # only wait 1/4 second before giving up
             self.rejected_post(self.list_url,
