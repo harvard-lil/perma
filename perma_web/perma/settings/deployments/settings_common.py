@@ -159,7 +159,7 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'lockss',
-    'diff',
+    'compare',
 
     # third party apps
     'ratelimit',
