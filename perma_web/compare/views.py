@@ -7,8 +7,7 @@ from perma.models import Link
 from compare.models import Compare
 from django.conf import settings
 from warc_diff_tools.warc_diff_tools import expand_warcs, get_visual_diffs
-from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.http import HttpResponseRedirect
 import requests
 import utils
 
