@@ -1037,6 +1037,10 @@ def upload_to_internet_archive(self, link_guid):
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
 
+    except SoftTimeLimitExceeded as e:
+        logger.exception("Upload to Internet Archive task failed because soft time limit was exceeded. \nLink GUID: %s\nError: %s" % (link.pk, e))
+        return
+
 @shared_task()
 def cm_sync():
     '''
