@@ -6,9 +6,9 @@ from compare.models import *
 from perma.models import Link
 from compare.models import Compare
 from django.conf import settings
+import htmldiff
 from warc_diff_tools.warc_diff_tools import expand_warcs, get_visual_diffs
-from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.http import HttpResponseRedirect
 import requests
 import utils
 
@@ -61,7 +61,14 @@ def capture_compare(request, original_guid, new_guid):
     rewritten_html_one = utils.rewrite_html(html_one, archive_one.guid)
     rewritten_html_two = utils.rewrite_html(html_two, archive_two.guid)
 
-    deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two, style_str=settings.DIFF_STYLE_STR)
+    # ignore guids in html
+    htmldiff.settings.EXCLUDE_STRINGS_A.append(str(original_guid))
+    htmldiff.settings.EXCLUDE_STRINGS_B.append(str(new_guid))
+
+    # add own style string
+    htmldiff.settings.STYLE_STR = settings.DIFF_STYLE_STR
+
+    deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two)
 
     utils.write_to_static(deleted, '_deleted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
     utils.write_to_static(inserted, '_inserted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
