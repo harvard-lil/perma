@@ -389,7 +389,15 @@ def proxy_capture(capture_job):
                     proxied_pair = [self.url, None]
                     proxied_requests.append(proxied_pair[0])
                     proxied_pairs.append(proxied_pair)
-                response = WarcProxyHandler._proxy_request(self)
+                try:
+                    response = WarcProxyHandler._proxy_request(self)
+                except:
+                    # If warcprox can't handle a request/response for some reason,
+                    # remove the proxied pair so that it doesn't keep trying and
+                    # the capture process can proceed
+                    proxied_requests.remove(proxied_pair[0])
+                    proxied_pairs.remove(proxied_pair)
+                    raise
                 with count_lock:
                     proxied_responses.append(response)
                     proxied_pair[1] = response
