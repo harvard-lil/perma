@@ -1,4 +1,5 @@
 import json, pytz
+from datetime import timedelta, datetime
 
 from django.core import serializers
 from django.core.urlresolvers import reverse
@@ -26,16 +27,26 @@ def stats_sums(request):
 def stats_now(request):
     """
     Serve up our up-to-the-minute stats.
-    Todo: make this time-zone friendly.
     """
+    
+    # Get all events since minute one of this day
 
-    # Get all events since minute one of this day in NY
-    # this is where we should get the timezone from the client's browser (JS post on stats page load)
-    ny = pytz.timezone('America/New_York')
-    ny_now = timezone.now().astimezone(ny)
-    midnight_ny = ny_now.replace(hour=0, minute=0, second=0)
+    # if our request comes with a utcoffset, use that 
+    offset_param = request.GET.get('offset', '')
+    offset_value = 0
+    
+    if offset_param:
+        offset_value = int(offset_param)
+        offset_time = datetime.utcnow() + timedelta(minutes=offset_value)
+        midnight = offset_time.replace(hour=0, minute=0, second=0)
 
-    todays_events = MinuteStats.objects.filter(creation_timestamp__gte=midnight_ny)
+    else:
+        ny = pytz.timezone('America/New_York')
+        ny_now = timezone.now().astimezone(ny)
+        offset_value = ny_now.utcoffset().seconds/60
+        midnight = ny_now.replace(hour=0, minute=0, second=0)
+
+    todays_events = MinuteStats.objects.filter(creation_timestamp__gte=midnight)
 
     # Package our data in a way that's easy to parse in our JS visualization
     links = []
@@ -44,7 +55,8 @@ def stats_now(request):
     registrars = []
 
     for event in todays_events:
-        tz_adjusted = event.creation_timestamp.astimezone(ny)
+        tz_adjusted = event.creation_timestamp + timedelta(minutes=offset_value)
+
         if event.links_sum:
             links.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
@@ -77,20 +89,3 @@ def bookmarklet_create(request):
     tocapture = request.GET.get('url', '')
     add_url = "{}?url={}".format(reverse('create_link'), tocapture)
     return redirect(add_url)
-
-# @login_required
-# def get_thumbnail(request, guid):
-#     """
-#         This is our thumbnailing service. Pass it the guid of an archive and get back the thumbnail.
-#     """
-#
-#     link = get_object_or_404(Link, guid=guid)
-#
-#     if link.thumbnail_status == 'generating':
-#         return HttpResponse(status=202)
-#
-#     thumbnail_contents = link.get_thumbnail()
-#     if not thumbnail_contents:
-#         raise Http404
-#
-#     return HttpResponse(thumbnail_contents.read(), content_type='image/png')
