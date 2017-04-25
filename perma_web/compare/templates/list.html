@@ -33,99 +33,40 @@
 {% endblock %}
 
 {% block header %}
-
-  <header{% if old_archive.is_private %} class="_isPrivate"{% endif %}>
-    {% if request.user.is_authenticated %}
-    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-    </button>
-  {% endif %}
-
-    <div class="primary-segment row">
-      <div class="col col-sm-2 _details">
-        <div class="content">
-          <button id="details-button" class="btn btn-ui-small details" type="button">
-            <span>Show record details</span>
-          </button>
-        </div>
-      </div>
-      <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
-        <div class="content">
-          <p class="title"><span class="_verbose">This is a </span>{% if old_archive.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ old_archive.creation_timestamp|local_datetime }}
-            {% if serve_type != 'image' %}
-              {% if old_archive.screenshot_capture and old_archive.screenshot_capture.status == 'success' %}
-                <span class="action">
-                  <span class="_verbose">
-                    Looks wrong?
-                    <a href="{% url 'single_linky' old_archive.guid %}?type=image">
-                    See the Screenshot View
-                    </a>
-                  </span>
-                </span>
-              {% endif %}
-            {% else %}
-              <span class="action">
-                <span class="_verbose">This is a screenshot. </span>
-                {% if old_archive.primary_capture and old_archive.primary_capture.status == 'success' %}
-                  <a href="{% url 'single_linky' old_archive.guid %}">See the Capture View</a>
-                {% endif %}
-              </span>
-            {% endif %}
-            {% if request.user.is_authenticated %}
-            {% else %}
-              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-            {% endif %}
-          </p>
-        </div>
-      </div>
-      <div class="col col-sm-2 _livepage">
-        <div class="content">
-          <a class="btn btn-outside" href="{{old_archive.submitted_url}}" target="_blank">
-          <span>View the live page</span></a>
-        </div>
-      </div>
-      <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
-        <div class="content">
-          {% if request.user.is_authenticated %}
-            {% include 'includes/upper_right_menu.html' %}
-          {% else %}
-            <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div id="collapse-details" class="details-segment ui-tray row collapse">
-      <div class="tray-details">
-        <div class="tray-detail-group">
-          <label class="tray-detail-title" for="source_url">Source page URL {% if capture.user_upload %}(unverified){% endif %}</label>
-          <input id="source_url" class="tray-detail-entry" value="{{old_archive.submitted_url}}" readonly>
-        </div>
-
-        {% comment %}
-          {% if old_archive.organization %}
-            <dl class="tray-detail-group">
-              <dt class="tray-detail-title">Archiving Organization</dt>
-              <dd class="tray-detail-entry">{{ old_archive.organization }}</dd>
-            </dl>
-          {% endif %}
-        {% endcomment %}
-      </div>
-    </div>
-  </header>
+  {% include 'includes/header.html' %}
 {% endblock %}
-{% block mainContent %}
-<div style="display: block;" class="capture-wrapper">
-  <ul>
 
-    {% for archive in archives %}
-     <li>
-       <a href="http://localhost:8000/{{archive.original_guid}}/compare/{{ archive.guid }}">http://localhost:8000/{{archive.original_guid}}/compare/{{ archive.guid }}</a>
-     </li>
- </ul>
+{% block mainContent %}
+
+<div style="display: block;" class="capture-wrapper">
+  <div class="container cont-reading cont-fixed">
+    <div class="row">
+      <div class="col-sm-8">
+        <p>
+          Original Perma.cc record:
+          <a href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}">
+            {{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}
+          </a>
+        </p>
+        <p>
+        Original URL: <a href="{{ original_archive.submitted_url }}">{{ original_archive.submitted_url }}</a>
+        </p>
+        <ul class="compare-list">
+          <li>
+            <a type="button" class="blue-button btn-sm" href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/create">
+              Create a new comparison
+            </a>
+          </li>
+          {% for archive in archives %}
+          <li>
+             <a href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/{{ archive.guid }}">
+               {{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/{{ archive.guid }}
+             </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+ </div>
 </div>
 {% endfor %}
 

@@ -1,0 +1,70 @@
+
+  <header{% if original_archive.is_private %} class="_isPrivate"{% endif %}>
+    {% if request.user.is_authenticated %}
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  {% endif %}
+
+    <div class="primary-segment row">
+      <div class="col col-sm-2 _details">
+        <div class="content">
+          <button id="details-button" class="btn btn-ui-small details" type="button">
+            <span>Show more details</span>
+          </button>
+        </div>
+      </div>
+      <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+          <p class="title">Comparing Perma.cc records</p>
+          <p class="creation">
+            {% if new_archive %}
+              {{ original_archive.creation_timestamp }}
+            {% endif %}
+            {% if serve_type != 'image' and new_archive %}
+              <span class="action">
+                <span class="_verbose">
+                  <a href="">
+                  See the Screenshot View
+                  </a>
+                </span>
+              </span>
+            {% else %}
+              <span class="action">
+                {% if original_archive.primary_capture and original_archive.primary_capture.status == 'success' %}
+                {% endif %}
+              </span>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+            {% else %}
+              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+            <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+        </div>
+      </div>
+    </div>
+    <div id="collapse-details" class="details-segment ui-tray row collapse">
+      <div class="tray-details tray-inverse">
+        <div class="tray-detail-group">
+          <label class="tray-detail-title" for="source_url">Original page URL</label>
+          <input id="source_url" class="tray-detail-entry" value="{{ original_archive.submitted_url }}" readonly>
+        </div>
+        {% if new_archive %}
+
+        <div class="tray-detail-group">
+          <label class="tray-detail-title" for="source_url">Original page URL</label>
+          <input id="source_url" class="tray-detail-entry" value="{{ original_archive.submitted_url }}" readonly>
+        </div>
+
+        {% endif %}
+
+      </div>
+    </div>
+  </header>

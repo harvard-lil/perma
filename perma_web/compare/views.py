@@ -9,6 +9,7 @@ from django.conf import settings
 import htmldiff
 from warc_diff_tools.warc_diff_tools import expand_warcs, get_visual_diffs
 from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 import requests
 import utils
 
@@ -40,57 +41,68 @@ def capture_create(request, original_guid):
     # archive_two = Link.objects.get(guid=new_guid)
 
     # context = { 'original_guid': original_guid, 'new_guid': new_guid }
-    return HttpResponseRedirect('/%s?type=capture' % new_guid)
+    return HttpResponseRedirect(reverse('capture_compare', kwargs={ 'original_guid': original_guid, 'new_guid': new_guid}))
 
 def capture_compare(request, original_guid, new_guid):
-    # RCH3-889C_RLV7-H7SZ
-
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
 
-    archive_one = Link.objects.get(guid=original_guid)
-    archive_two = Link.objects.get(guid=new_guid)
+    if request.GET.get('type'):
+        # if type "image", serve here
+        return
+    else:
 
-    warc_one = os.path.join(default_storage.base_location, archive_one.warc_storage_file())
-    warc_two = os.path.join(default_storage.base_location, archive_two.warc_storage_file())
+        archive_one = Link.objects.get(guid=original_guid)
+        archive_two = Link.objects.get(guid=new_guid)
 
-    expanded_one, expanded_two = expand_warcs(warc_one, warc_two, archive_one.submitted_url, archive_two.submitted_url)
+        warc_one = os.path.join(default_storage.base_location, archive_one.warc_storage_file())
+        warc_two = os.path.join(default_storage.base_location, archive_two.warc_storage_file())
 
-    html_one = archive_one.replay_url(archive_one.submitted_url).data
-    html_two = archive_two.replay_url(archive_two.submitted_url).data
+        expanded_one, expanded_two = expand_warcs(warc_one, warc_two, archive_one.submitted_url, archive_two.submitted_url)
 
-    rewritten_html_one = utils.rewrite_html(html_one, archive_one.guid)
-    rewritten_html_two = utils.rewrite_html(html_two, archive_two.guid)
+        html_one = archive_one.replay_url(archive_one.submitted_url).data
+        html_two = archive_two.replay_url(archive_two.submitted_url).data
 
-    # ignore guids in html
-    htmldiff.settings.EXCLUDE_STRINGS_A.append(str(original_guid))
-    htmldiff.settings.EXCLUDE_STRINGS_B.append(str(new_guid))
+        rewritten_html_one = utils.rewrite_html(html_one, archive_one.guid)
+        rewritten_html_two = utils.rewrite_html(html_two, archive_two.guid)
 
-    # add own style string
-    htmldiff.settings.STYLE_STR = settings.DIFF_STYLE_STR
+        # ignore guids in html
+        htmldiff.settings.EXCLUDE_STRINGS_A.append(str(original_guid))
+        htmldiff.settings.EXCLUDE_STRINGS_B.append(str(new_guid))
 
-    deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two)
+        # add own style string
+        htmldiff.settings.STYLE_STR = settings.DIFF_STYLE_STR
 
-    utils.write_to_static(deleted, '_deleted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
-    utils.write_to_static(inserted, '_inserted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
-    utils.write_to_static(combined, '_combined_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
+        deleted, inserted, combined = get_visual_diffs(rewritten_html_one, rewritten_html_two)
 
-    context = {
-        'archive_one': archive_one,
-        'archive_two': archive_two,
-        'archive_one_capture': archive_one.primary_capture,
-        'archive_two_capture': archive_two.primary_capture,
-        'this_page': 'single_link',
-        'link_url': settings.HOST + '/' + archive_one.guid,
-        'protocol': protocol,
-    }
+        utils.write_to_static(deleted, '_deleted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
+        utils.write_to_static(inserted, '_inserted_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
+        utils.write_to_static(combined, '_combined_{0}_{1}.html'.format(archive_one.guid, archive_two.guid))
 
+        context = {
+            'original_archive': archive_one,
+            'new_archive': archive_two,
+            'original_archive_capture': archive_one.primary_capture,
+            'new_archive_capture': archive_two.primary_capture,
+            'this_page': 'comparison',
+            'link_url': settings.HOST + '/' + archive_one.guid,
+            'protocol': protocol,
+        }
 
-    return render(request, 'comparison.html', context)
+        return render(request, 'comparison.html', context)
 
 def image_compare(request, original_guid, new_guid):
     return render(request)
 
 def list(request, original_guid):
+    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+
     compared_archives = Compare.objects.filter(original_guid=original_guid)
-    context = { 'archives': compared_archives }
+    original_archive = Link.objects.get(pk=original_guid)
+
+    context = {
+        'original_archive': original_archive,
+        'archives': compared_archives,
+        'protocol': protocol,
+    }
+
     return render(request, 'list.html', context)
