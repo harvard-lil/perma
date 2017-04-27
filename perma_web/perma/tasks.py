@@ -371,6 +371,22 @@ def proxy_capture(capture_job):
     thread_list = []
     successful_favicon_urls = []
 
+    def sleep_unless_seconds_passed(seconds):
+        delta = time.time() - start_time
+        if delta < seconds:
+            wait = seconds - delta
+            print("Sleeping for {}s".format(wait))
+            time.sleep(wait)
+
+    # By domain, code to run after the target_url's page onload event.
+    # (Wrap in a lambda function to delay execution.)
+    special_domains = {
+        # Wait for splash page to auto redirect
+        "www.forbes.com": lambda: sleep_unless_seconds_passed(24),
+        "forbes.com": lambda: sleep_unless_seconds_passed(24)
+    }
+    post_load_function = special_domains.get(link.url_details.netloc)
+
     try:
 
         # create a request handler class that counts requests and responses
@@ -452,6 +468,9 @@ def proxy_capture(capture_job):
         page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
         page_load_thread.start()
         page_load_thread.join(ONLOAD_EVENT_TIMEOUT)
+        if post_load_function:
+            print("Running domain's post-load function")
+            post_load_function()
 
         # wait until warcprox records a response that isn't a forward
         have_response = False
