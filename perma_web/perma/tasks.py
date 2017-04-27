@@ -382,7 +382,8 @@ def proxy_capture(capture_job):
     # (Wrap in a lambda function to delay execution.)
     special_domains = {
         # Wait for splash page to auto redirect
-        "www.forbes.com": lambda: sleep_unless_seconds_passed(24)
+        "www.forbes.com": lambda: sleep_unless_seconds_passed(24),
+        "forbes.com": lambda: sleep_unless_seconds_passed(24)
     }
     post_load_function = special_domains.get(link.url_details.netloc)
 
