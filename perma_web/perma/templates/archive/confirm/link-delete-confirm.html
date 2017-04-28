@@ -1,5 +1,4 @@
 {% extends "archive/confirm/base-archive-confirm.html" %}
-{% load as_json %}
 {% load render_bundle from webpack_loader %}
 
 {% block confirm %}
@@ -13,7 +12,7 @@
 {% block scripts %}
   <script>
     var url_link_browser = "{% url 'create_link' %}",
-      archive = {% as_json link %},
+      archive = { guid: "{{ link.guid }}" },
       refer_url = "{{ request.META.HTTP_REFERER }}";
   </script>
 
