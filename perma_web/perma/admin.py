@@ -154,11 +154,15 @@ class LinkAdmin(SimpleHistoryAdmin):
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
+        new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
+                   fields=['status', 'step_count', 'step_description', 'human'],
+                   readonly_fields=['step_count', 'step_description', 'human'],
+                   can_delete=False)
     ]
     raw_id_fields = ['created_by','replacement_link']
 
     def get_queryset(self, request):
-        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',).prefetch_related('tags')
+        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',).prefetch_related('tags', 'capture_job')
         qs.query.where = WhereNode()  # reset filters to include "deleted" objs
         return qs
 
