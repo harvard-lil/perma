@@ -140,8 +140,8 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_title', 'submitted_description', 'created_by', 'creation_timestamp','user_deleted']
-    search_fields = ['guid', 'submitted_url', 'submitted_title', 'submitted_description']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted']
+    search_fields = ['guid', 'submitted_url', 'tags__name']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
@@ -158,9 +158,12 @@ class LinkAdmin(SimpleHistoryAdmin):
     raw_id_fields = ['created_by','replacement_link']
 
     def get_queryset(self, request):
-        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',)
+        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',).prefetch_related('tags')
         qs.query.where = WhereNode()  # reset filters to include "deleted" objs
         return qs
+
+    def tag_list(self, obj):
+        return u", ".join(o.name for o in obj.tags.all())
 
 
 class FolderAdmin(MPTTModelAdmin):

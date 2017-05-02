@@ -8371,6 +8371,10 @@ a.cc:active {
   background-color: #222;
 }
 
+.stats-container a {
+  text-decoration: underline;
+}
+
 .style-container-padding,
 .cont-full,
 .cont-fixed {

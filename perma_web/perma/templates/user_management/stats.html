@@ -48,14 +48,21 @@
         <div class="col-sm-9">{{ private_link_count }} ({{ private_link_percentage }}%)</div>
       </div>
 
+      <hr>
+
       <div class="row">
         <div class="col-sm-3">Links tagged "meta-tag-retrieval-failure":</div>
-        <div class="col-sm-9">{{ links_w_meta_failure_tag }} ({{ tagged_meta_failure_percentage_of_total }}% of total)</div>
+        <div class="col-sm-9"><a href="/admin/perma/link/?q=meta-tag-retrieval-failure">{{ links_w_meta_failure_tag }} ({{ tagged_meta_failure_percentage_of_total }}% of total</a>)</div>
       </div>
 
       <div class="row">
         <div class="col-sm-3">Links tagged "timeout-failure":</div>
-        <div class="col-sm-9">{{ links_w_timeout_failure_tag }} ({{ tagged_timeout_failure_percentage_of_total }}% of total)</div>
+        <div class="col-sm-9"><a href="/admin/perma/link/?q=timeout-failure">{{ links_w_timeout_failure_tag }} ({{ tagged_timeout_failure_percentage_of_total }}% of total)</a></div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Links tagged "browser-crashed":</div>
+        <div class="col-sm-9"><a href="/admin/perma/link/?q=browser-crashed">{{ links_w_browser_crashed_tag }} ({{ tagged_browser_crashed_percentage_of_total }}% of total)</a></div>
       </div>
 
       <hr>
