@@ -334,8 +334,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
-CELERYD_TASK_TIME_LIMIT = 300     # If a task is running longer than five minutes, kill it
-CELERYD_TASK_SOFT_TIME_LIMIT=290  # provide 10 seconds to catch SoftTimeLimitExceeded
+# If a task is running longer than five minutes, ask it to shut down
+CELERYD_TASK_SOFT_TIME_LIMIT=300
+# If a task is running longer than seven minutes, kill it
+CELERYD_TASK_TIME_LIMIT = 420
 
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
@@ -392,6 +394,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
 # Default user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
+THREADED_CAPTURES = True
 
 ### Tastypie
 # http://django-tastypie.readthedocs.org/en/latest/settings.html
