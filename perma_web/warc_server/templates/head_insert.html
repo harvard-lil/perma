@@ -42,8 +42,32 @@ Perma replay{% if wbrequest.mirror_name %} courtesy of {{ wbrequest.mirror_name 
     window._wb_wombat = new _WBWombat(wbinfo);
   }
 </script>
+
 {% endif %}
 
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+<script>
+  $(document).ready(
+    function(){
+      if (location.hash.includes("_perma_diff_deleted")) {
+        location.href = "http://perma.dev:8000/static/" + location.hash.split('_perma_diff')[1] + ".html"
+      } else if (location.hash.includes("_perma_diff_inserted")) {
+        location.href = "http://perma.dev:8000/static/" + location.hash.split('_perma_diff')[1] + ".html"
+      }
+    }
+  );
+</script>
+
+<!-- <script>
+/* 1. get specific html page
+2. look at query params passed into the iframe to see if it is "left" or "right"
+3. replace all index.html with new html page according to left or right
+*/
+</script> -->
 <script src='{{ static_path }}/wb.js'> </script>
 <script src='{{ static_path }}/vidrw.js'> </script>
 
@@ -63,5 +87,5 @@ Perma replay{% if wbrequest.mirror_name %} courtesy of {{ wbrequest.mirror_name 
 {% endif %}
 #}
 
-<!-- End WB Insert -->
 
+<!-- End WB Insert -->

@@ -40,61 +40,12 @@
 /******/ 	return __webpack_require__(0);
 /******/ })
 /************************************************************************/
-/******/ ({
-
-/***/ 0:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(219);
-
-
-/***/ },
-
-/***/ 219:
+/******/ ([
+/* 0 */
 /***/ function(module, exports) {
 
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.handleShowDetails = handleShowDetails;
-	var resizeTimeout, wrapper;
-	
-	var detailsButton = exports.detailsButton = document.getElementById("details-button");
-	var detailsTray = document.getElementById("collapse-details");
-	
-	function init() {
-	  adjustTopMargin();
-	  var clicked = false;
-	  if (detailsButton) {
-	    detailsButton.onclick = function () {
-	      clicked = !clicked;
-	      handleShowDetails(clicked);
-	    };
-	  }
-	
-	  window.onresize = function () {
-	    if (resizeTimeout != null) clearTimeout(resizeTimeout);
-	    resizeTimeout = setTimeout(adjustTopMargin, 200);
-	  };
-	}
-	
-	function handleShowDetails(open) {
-	  detailsButton.textContent = open ? "Hide record details" : "Show record details";
-	  detailsTray.style.display = open ? "block" : "none";
-	}
-	
-	function adjustTopMargin() {
-	  wrapper = document.getElementsByClassName("capture-wrapper")[0];
-	  var header = document.getElementsByTagName('header')[0];
-	  if (!wrapper) return;
-	  wrapper.style.marginTop = header.offsetHeight + "px";
-	}
-	
-	init();
+	// removed by extract-text-webpack-plugin
 
 /***/ }
-
-/******/ });
-//# sourceMappingURL=single-link.js.map
+/******/ ]);
+//# sourceMappingURL=compare-warcs.js.map

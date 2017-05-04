@@ -48,6 +48,8 @@ ua-parser==0.7.1                # user agent parsing to detect Safari browser fo
 django_webpack_loader==0.3.3    # frontend assets building
 -e git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 tqdm==4.11.2                    # progress bar in dev fab tasks
+-e git://github.com/anastasia/htmldiff.git@master#egg=htmldiff  # diffing html utils
+-e git://github.com/anastasia/WARC-diff-tools.git@master#egg=warc_diff_tools # WARC comparison tools
 
 # api
 djangorestframework==3.6.2
@@ -76,6 +78,6 @@ pytest-django==3.1.2
 pytest-xdist==1.15.0
 fakeredis==0.7.0                # simulate redis backend for tests
 flake8==2.5.4                   # code linting
-beautifulsoup4==4.5.1           # parses html of responses
+beautifulsoup4==4.5.3           # parses html of responses
 mock                            # safe monkey patching
 coverage==4.3.4                 # record code coverage

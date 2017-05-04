@@ -1,0 +1,143 @@
+{% extends "archive/base-archive-responsive.html" %}
+{% load local_datetime as_json archive_description %}
+{% load render_bundle from webpack_loader %}
+
+{% block header_scripts %}
+  {% local_datetime_js %}{# allow local_datetime filter to work #}
+{% endblock %}
+
+{% block title %} | {{old_archive.submitted_title}}{% endblock %}
+
+{% block meta_description %}
+{{ old_archive.submitted_description | archive_description:''  }}
+{% endblock %}
+
+{% block meta-head %}
+  <meta name="robots" content="noindex, noimageindex">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ protocol }}{{ link_url }}">
+  <meta property="og:title" content="{{ old_archive.submitted_title }}">
+  <meta property="og:description" content="{{ old_archive.submitted_description | archive_description:''  }}">
+  <meta property="og:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="{{ protocol }}{{ link_url }}">
+  <meta name="twitter:title" content="{{ old_archive.submitted_title }}">
+  <meta name="twitter:description" content="{{ old_archive.submitted_description | archive_description:''  }}">
+  <meta name="twitter:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+{% endblock %}
+
+{% block styles %}
+  {% render_bundle 'compare-warcs' 'css' %}
+{% endblock %}
+
+{% block header %}
+
+  <header{% if old_archive.is_private %} class="_isPrivate"{% endif %}>
+    {% if request.user.is_authenticated %}
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  {% endif %}
+
+    <div class="primary-segment row">
+      <div class="col col-sm-2 _details">
+        <div class="content">
+          <button id="details-button" class="btn btn-ui-small details" type="button">
+            <span>Show record details</span>
+          </button>
+        </div>
+      </div>
+      <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+          <p class="title"><span class="_verbose">This is a </span>{% if old_archive.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
+          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ old_archive.creation_timestamp|local_datetime }}
+            {% if serve_type != 'image' %}
+              {% if old_archive.screenshot_capture and old_archive.screenshot_capture.status == 'success' %}
+                <span class="action">
+                  <span class="_verbose">
+                    Looks wrong?
+                    <a href="{% url 'single_linky' old_archive.guid %}?type=image">
+                    See the Screenshot View
+                    </a>
+                  </span>
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="action">
+                <span class="_verbose">This is a screenshot. </span>
+                {% if old_archive.primary_capture and old_archive.primary_capture.status == 'success' %}
+                  <a href="{% url 'single_linky' old_archive.guid %}">See the Capture View</a>
+                {% endif %}
+              </span>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+            {% else %}
+              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="col col-sm-2 _livepage">
+        <div class="content">
+          <a class="btn btn-outside" href="{{old_archive.submitted_url}}" target="_blank">
+          <span>View the live page</span></a>
+        </div>
+      </div>
+      <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+          {% if request.user.is_authenticated %}
+            {% include 'includes/upper_right_menu.html' %}
+          {% else %}
+            <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div id="collapse-details" class="details-segment ui-tray row collapse">
+      <div class="tray-details">
+        <div class="tray-detail-group">
+          <label class="tray-detail-title" for="source_url">Source page URL {% if capture.user_upload %}(unverified){% endif %}</label>
+          <input id="source_url" class="tray-detail-entry" value="{{old_archive.submitted_url}}" readonly>
+        </div>
+
+        {% comment %}
+          {% if old_archive.organization %}
+            <dl class="tray-detail-group">
+              <dt class="tray-detail-title">Archiving Organization</dt>
+              <dd class="tray-detail-entry">{{ old_archive.organization }}</dd>
+            </dl>
+          {% endif %}
+        {% endcomment %}
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block mainContent %}
+<div style="display: block;" class="capture-wrapper">
+  <iframe id="left_frame" src="{{ archive_one_capture.playback_url_with_access_token }}#_perma_diff_deleted_{{ archive_one.guid }}_{{ archive_two.guid }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+  <iframe id="right_frame" src="{{ archive_two_capture.playback_url_with_access_token }}#_perma_diff_inserted_{{ archive_one.guid }}_{{ archive_two.guid }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    var archive = { guid: "{{ old_archive.guid }}" };
+    var current_user = {id:"{{request.user.id}}"};
+    var simhash_distance = "{{simhash_distance}}"
+    // var test_html = "{{test_html}}"
+  </script>
+
+  {% if request.user.is_authenticated %}
+    {% render_bundle 'global' 'js' %}
+    {% render_bundle 'single-link-permissions' 'js' %}
+  {% else %}
+    {% render_bundle 'single-link' 'js' %}
+  {% endif %}
+
+{% endblock %}
