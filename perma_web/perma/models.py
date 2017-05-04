@@ -1233,6 +1233,11 @@ class CaptureJob(models.Model):
 
         return queue_position
 
+    def inc_progress(self, inc, description):
+        self.step_count = int(self.step_count) + inc
+        self.step_description = description
+        self.save(update_fields=['step_count', 'step_description'])
+
     def mark_completed(self, status='completed'):
         """
             Record completion time and status for this job.
