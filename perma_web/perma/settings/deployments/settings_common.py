@@ -12,6 +12,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(t
 # make sure mysql uses innodb and utf8
 _mysql_connection_options = {
     "init_command": "SET storage_engine=INNODB; SET NAMES 'utf8';",
+    # for mysql 5.7+, use:
+    # "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
     "charset": "utf8",
 }
 
