@@ -49,3 +49,6 @@ ghostdriver.log
 node_modules
 # ignore sourcemaps
 *.map
+
+# pytest
+.cache
