@@ -1,11 +1,10 @@
 from .utils import ApiResourceTransactionTestCase
-from api.resources import FolderResource
 from perma.models import LinkUser, Folder
 
 
 class FolderResourceTestCase(ApiResourceTransactionTestCase):
 
-    resource = FolderResource
+    resource_url = '/folders'
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
@@ -20,9 +19,6 @@ class FolderResourceTestCase(ApiResourceTransactionTestCase):
 
     def nested_url(self, obj):
         return self.detail_url(obj) + "/folders"
-
-    def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.org_user)
 
     def test_should_strip_whitespace_from_name(self):
         name = 'This is a folder name'
@@ -53,4 +49,4 @@ class FolderResourceTestCase(ApiResourceTransactionTestCase):
                             data={'name': self.empty_child_folder.name},
                             user=self.empty_child_folder.created_by,
                             expected_status_code=400,
-                            expected_data={u'folders': {u'name': u'A folder with that name already exists at that location.'}})
+                            expected_data={"name":["A folder with that name already exists at that location."]})

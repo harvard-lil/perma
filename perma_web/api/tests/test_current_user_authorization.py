@@ -41,7 +41,9 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.detail_url + 'folders/%s/' % (self.org_user.root_folder.pk,), user=self.org_user)
 
     def test_should_reject_folder_detail_for_other_user(self):
-        self.rejected_get(self.detail_url + 'folders/%s/' % (self.org_user.root_folder.pk,), user=self.regular_user)
+        self.rejected_get(self.detail_url + 'folders/%s/' % (self.org_user.root_folder.pk,),
+                          user=self.regular_user,
+                          expected_status_code=403)
 
     # archives
 
@@ -57,7 +59,9 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_archive_detail_for_other_user(self):
         link = Link.objects.exclude(created_by=self.regular_user)[0]
-        self.rejected_get(self.detail_url + 'archives/%s/' % (link.pk,), user=self.regular_user)
+        self.rejected_get(self.detail_url + 'archives/%s/' % (link.pk,),
+                          user=self.regular_user,
+                          expected_status_code=403)
 
     # organizations
 
@@ -72,7 +76,9 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.detail_url + 'organizations/%s/' % (self.org_user.organizations.first().pk,), user=self.org_user)
 
     def test_should_reject_org_detail_for_other_user(self):
-        self.rejected_get(self.detail_url + 'organizations/%s/' % (self.org_user.organizations.first().pk,), user=self.regular_user)
+        self.rejected_get(self.detail_url + 'organizations/%s/' % (self.org_user.organizations.first().pk,),
+                          user=self.regular_user,
+                          expected_status_code=403)
 
     # capture jobs
 
@@ -92,5 +98,6 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_capture_job_detail_for_other_user(self):
         job = create_capture_job(self.org_user)
-        self.rejected_get(self.detail_url + 'capture_jobs/%s/' % (job.link_id,), user=self.regular_user)
+        self.rejected_get(self.detail_url + 'capture_jobs/%s/' % (job.link_id,), user=self.regular_user,
+                          expected_status_code=403)
 

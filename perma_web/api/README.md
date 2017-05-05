@@ -18,9 +18,9 @@ When an API test fails, a great first step (and often the only required step) is
 called by the test, what user is calling them, and what they are returning.  You can enable logging of that information
 by setting the LOG_API_CALLS environment variable. For example:
 
-    LOG_API_CALLS=1 fab test:api2.tests.test_folder_authorization.FolderAuthorizationTestCase.test_reject_delete_of_shared_folder
+    LOG_API_CALLS=1 fab test:api.tests.test_folder_authorization.FolderAuthorizationTestCase.test_reject_delete_of_shared_folder
 
-(This variable is checked by our custom APIClient in api2/tests/utils.py, which does the logging.)
+(This variable is checked by our custom APIClient in api/tests/utils.py, which does the logging.)
 
 Once you find the endpoint that is returning something unexpected, if it's still not clear what's wrong, you'll at least
 have a good idea where to set a breakpoint to start to figure out what's happening.

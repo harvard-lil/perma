@@ -1,6 +1,8 @@
 import os
+
+from django.core.urlresolvers import reverse
+
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
-from api.resources import LinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, Folder, Capture, CDXLine
 from django.utils import timezone
 from datetime import timedelta
@@ -8,7 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
-    resource = LinkResource
+    resource_url = '/archives'
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
@@ -33,9 +35,9 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
         self.unlisted_link = Link.objects.get(pk="ABCD-0005")
 
-        self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
+        self.public_list_url = reverse('api:public_archives')
 
-        self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
+        self.list_url = reverse('api:archives')
         self.link_url = self.get_link_url(self.link)
         self.unrelated_link_url = self.get_link_url(self.unrelated_link)
 
@@ -62,7 +64,8 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.get_public_link_url(self.link))
 
     def test_should_reject_logged_out_users_getting_private_detail(self):
-        self.rejected_get(self.get_public_link_url(self.private_link_by_user))
+        self.rejected_get(self.get_public_link_url(self.private_link_by_user),
+                          expected_status_code=404)
 
     def test_should_allow_logged_in_users_to_get_logged_in_list(self):
         self.successful_get(self.list_url, user=self.regular_user)
@@ -71,8 +74,10 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.unrelated_link_url, user=self.org_user)
 
     def test_should_reject_logged_in_users_getting_detail_of_unowned_links(self):
-        self.rejected_get(self.unrelated_link_url, user=self.regular_user)
-        self.rejected_get(self.unrelated_link_url, user=self.registrar_user)
+        self.rejected_get(self.unrelated_link_url, user=self.regular_user,
+                          expected_status_code=403)
+        self.rejected_get(self.unrelated_link_url, user=self.registrar_user,
+                          expected_status_code=403)
 
     def test_should_reject_logged_out_users_getting_logged_in_list(self):
         self.rejected_get(self.list_url)
@@ -100,9 +105,12 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.unrelated_link_url, user=self.org_user, data=self.patch_data)
 
     def test_should_reject_patch_from_users_who_dont_own_unrelated_link(self):
-        self.rejected_patch(self.unrelated_link_url, user=self.registrar_user, data=self.patch_data)
-        self.rejected_patch(self.unrelated_link_url, user=self.related_org_user, data=self.patch_data)
-        self.rejected_patch(self.unrelated_link_url, user=self.regular_user, data=self.patch_data)
+        self.rejected_patch(self.unrelated_link_url, user=self.registrar_user, data=self.patch_data,
+                            expected_status_code=403)
+        self.rejected_patch(self.unrelated_link_url, user=self.related_org_user, data=self.patch_data,
+                            expected_status_code=403)
+        self.rejected_patch(self.unrelated_link_url, user=self.regular_user, data=self.patch_data,
+                            expected_status_code=403)
 
     def test_should_allow_patch_from_staff(self):
         self.successful_patch(self.unrelated_link_url, user=self.admin_user, data=self.patch_data)
@@ -120,7 +128,8 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.link_url, user=user, data=self.patch_data)
 
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.link_url, user=self.unrelated_org_user, data=self.patch_data)
+        self.rejected_patch(self.link_url, user=self.unrelated_org_user, data=self.patch_data,
+                            expected_status_code=403)
 
 
     def test_should_allow_user_to_patch_with_file(self):
@@ -144,7 +153,8 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             self.rejected_patch(self.link_url,
                                 user=self.registrar_user,
                                 format="multipart",
-                                data={'file':file_content})
+                                data={'file':file_content},
+                                expected_status_code=400)
         self.successful_get(self.link_url, user=self.org_user)
 
     ######################
@@ -167,17 +177,25 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.link_url, user=user, data={'is_private': False, 'private_reason': None})
 
     def test_should_reject_private_toggle_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.link_url, user=self.unrelated_org_user, data={'is_private': True, 'private_reason':'user'})
-        self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_org_user, data={'is_private': False, 'private_reason':None})
+        self.rejected_patch(self.link_url, user=self.unrelated_org_user, data={'is_private': True, 'private_reason':'user'},
+                            expected_status_code=403)
+        self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_org_user, data={'is_private': False, 'private_reason':None},
+                            expected_status_code=403)
 
     def test_should_allow_admin_user_to_toggle_takedown(self):
         self.successful_patch(self.link_url, user=self.admin_user, data={'is_private': True, 'private_reason': 'takedown'})
         self.successful_patch(self.link_url, user=self.admin_user, data={'is_private': False, 'private_reason': None})
 
+    def test_should_ignore_private_reason_from_nonadmin_user(self):
+        user = self.link.organization.registrar.users.first()
+        self.successful_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'takedown'}, check_results=False)
+        self.link.refresh_from_db()
+        self.assertEqual(self.link.private_reason, 'user')
+
     def test_should_reject_takedown_toggle_from_nonadmin_user(self):
         user = self.link.organization.registrar.users.first()
-        self.rejected_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'takedown'})
-        self.rejected_patch(self.get_link_url(self.private_link_by_takedown), user=user, data={'is_private': False, 'private_reason': None})
+        self.rejected_patch(self.get_link_url(self.private_link_by_takedown), user=user, data={'is_private': False, 'private_reason': None},
+                            expected_status_code=400)
 
     ##########
     # Moving #
@@ -210,10 +228,12 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_link_move(self.org_user, self.link, self.link.organization.shared_folder.children.first())
 
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_link_move(self.regular_user, self.link, self.org_user.root_folder)
+        self.rejected_link_move(self.regular_user, self.link, self.org_user.root_folder,
+                                expected_status_code=403)
 
     def test_should_reject_move_from_user_lacking_link_owner_access(self):
-        self.rejected_link_move(self.regular_user, self.unrelated_link, self.regular_user.root_folder)
+        self.rejected_link_move(self.regular_user, self.unrelated_link, self.regular_user.root_folder,
+                                expected_status_code=403)
 
     ############
     # Deleting #
@@ -238,11 +258,15 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
 
     def test_should_reject_delete_for_out_of_window_link(self):
-        self.rejected_delete(self.link_url, user=self.org_user)
+        self.rejected_delete(self.link_url, user=self.org_user,
+                             expected_status_code=403)
         self.successful_get(self.link_url, user=self.org_user)
 
     def test_should_reject_delete_from_users_who_dont_own_link(self):
-        self.rejected_delete(self.unrelated_link_url, user=self.regular_user)
-        self.rejected_delete(self.unrelated_link_url, user=self.registrar_user)
-        self.rejected_delete(self.unrelated_link_url, user=self.related_org_user)
+        self.rejected_delete(self.unrelated_link_url, user=self.regular_user,
+                             expected_status_code=403)
+        self.rejected_delete(self.unrelated_link_url, user=self.registrar_user,
+                             expected_status_code=403)
+        self.rejected_delete(self.unrelated_link_url, user=self.related_org_user,
+                             expected_status_code=403)
         self.successful_get(self.link_url, user=self.org_user)

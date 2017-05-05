@@ -1,70 +1,85 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.http import HttpResponse
-from django.views.generic.base import RedirectView
+from django.views.generic import RedirectView
+from rest_framework.routers import APIRootView
 
-from tastypie.api import Api, NamespacedApi
-from api.resources import (LinkResource,
-                           FolderResource,
-                           CurrentUserResource,
-                           CurrentUserLinkResource,
-                           CurrentUserFolderResource,
-                           CurrentUserOrganizationResource,
-                           PublicLinkResource,
-                           CurrentUserCaptureJobResource)
+from perma.urls import guid_pattern
 
-### collateral ###
+from . import views
 
+
+# helpers
 class RedirectWithRootDomain(RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         url = super(RedirectWithRootDomain, self).get_redirect_url(*args, **kwargs)
         return self.request.scheme + '://' + settings.HOST + url
 
-collateral_urls = [
-  url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer', permanent=True))
+# list views that should appear in the HTML version of the API root
+root_view = APIRootView.as_view(api_root_dict={
+    'folders': 'folders',
+    'capture_jobs': 'capture_jobs',
+    'archives': 'archives',
+    'public_archives': 'public_archives',
+    'organizations': 'organizations',
+    'user': 'user',
+})
+
+# reverse() URL namespace
+app_name = 'api'
+
+# The previous version of the API had a number of endpoints under /user instead of at the top level.
+# This regex lets endpoints work with or without /user at the start.
+legacy_user_prefix = r'^(?:user/)?'
+
+urlpatterns = [
+    # /v1
+    url('^v1/', include([
+        # /folders
+        url(legacy_user_prefix + r'folders/?$', views.FolderListView.as_view(), name='folders'),
+        # /folders/:id
+        url(legacy_user_prefix + r'folders/(?P<pk>[0-9]+)/?$', views.FolderDetailView.as_view()),
+        # /folders/:id/folders
+        url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/folders/?$', views.FolderListView.as_view()),
+        # /folders/:id/folders/:id
+        url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/folders/(?P<pk>[0-9]+)/?$', views.FolderDetailView.as_view()),
+        # /folders/:id/archives
+        url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/archives/?$', views.AuthenticatedLinkListView.as_view()),
+        # /folders/:id/archives/:guid
+        url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/archives/%s/?$' % guid_pattern, views.MoveLinkView.as_view()),
+
+        # /public/archives
+        url(r'^public/archives/?$', views.PublicLinkListView.as_view(), name='public_archives'),
+        # /public/archives/:guid
+        url(r'^public/archives/%s/?$' % guid_pattern, views.PublicLinkDetailView.as_view(), name='public_archives'),
+
+        # /archives
+        url(legacy_user_prefix + r'archives/?$', views.AuthenticatedLinkListView.as_view(), name='archives'),
+        # /archives/:guid
+        url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
+
+        # /capture_jobs
+        url(legacy_user_prefix + r'capture_jobs/?$', views.CaptureJobListView.as_view(), name='capture_jobs'),
+        # /capture_jobs/:id
+        url(legacy_user_prefix + r'capture_jobs/(?P<pk>[0-9]+)/?$', views.CaptureJobDetailView.as_view()),
+        # /capture_jobs/:guid
+        url(legacy_user_prefix + r'capture_jobs/%s/?$' % guid_pattern, views.CaptureJobDetailView.as_view()),
+
+        # /organizations
+        url(legacy_user_prefix + r'organizations/?$', views.OrganizationListView.as_view(), name='organizations'),
+        # /organizations/:id
+        url(legacy_user_prefix + r'organizations/(?P<pk>[0-9]+)/?$', views.OrganizationDetailView.as_view()),
+
+        # /user
+        url(r'^user/?$', views.LinkUserView.as_view(), name='user'),
+
+        # /
+        url(r'^$', root_view)
+    ])),
+
+    # redirect plain api.perma.cc/ and perma.cc/api/ to docs:
+    url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer'))
 ]
-
-### v1 ###
-
-v1_api = Api(api_name='v1')
-
-# /public/archives
-v1_api.register(PublicLinkResource())
-
-# /archives
-# /folders/<id>/archives
-v1_api.register(LinkResource())
-
-# /folders
-# /folders/<id>/folders
-v1_api.register(FolderResource())
-
-# /user
-# /user/archives
-# /user/folders
-# /user/organizations
-# /user/capture_jobs
-v1_api.register(CurrentUserResource())
-v1_api.register(CurrentUserLinkResource())
-v1_api.register(CurrentUserFolderResource())
-v1_api.register(CurrentUserOrganizationResource())
-v1_api.register(CurrentUserCaptureJobResource())
-
-### v1a ###
-
-v1a_api = NamespacedApi(api_name='v1a', urlconf_namespace='v1a')
-v1a_api._registry = v1_api._registry.copy()
-v1a_api._canonicals = v1_api._canonicals.copy()
-
-### v2 ###
-
-v2_api_urls = [
-    url(r'^v2/', include('api2.urls')),
-]
-
-### add API versions to urlpatters ###
-
-urlpatterns = v1_api.urls + v1a_api.urls + v2_api_urls + collateral_urls
 
 ### error handlers ###
 

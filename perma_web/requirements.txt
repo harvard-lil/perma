@@ -5,7 +5,6 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 -e git+git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
--e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
 anyjson==0.3.3            # via kombu
@@ -40,7 +39,6 @@ django-simple-history==1.8.1
 django-sslserver==0.14
 django-storages==1.1.8
 django-taggit==0.20.2
-django-tastypie==0.13.3
 Django==1.9.13            # via django-admin-smoke-tests, django-model-utils, django-sslserver
 django_webpack_loader==0.3.3
 djangorestframework==3.6.2
@@ -100,7 +98,6 @@ pytest-django==3.1.2
 pytest-xdist==1.15.0
 pytest==3.0.7
 python-dateutil==2.2
-python-mimeparse==1.6.0   # via django-tastypie
 pytz==2013b0
 PyVirtualDisplay==0.1.5
 pywb==0.33
