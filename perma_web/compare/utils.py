@@ -10,7 +10,7 @@ def rewrite_html(html_page, guid):
 
 def write_to_static(new_string, filename,  old_guid, new_guid):
     dirpath = get_compare_dir_path(old_guid, new_guid)
-    filepath = os.join(dirpath, filename)
+    filepath = os.path.join(dirpath, filename)
     with open(filepath, 'w+') as f:
         f.write(new_string)
 
@@ -25,4 +25,4 @@ def compare_dir_exists(old_guid, new_guid):
 
 def get_compare_dir_path(old_guid, new_guid):
     dirname = "{0}_compare_{1}".format(old_guid, new_guid)
-    return os.path.join(settings.STATIC_COMPARE_ROOT, dirname)
+    return os.path.join(settings.STATIC_ROOT, dirname)

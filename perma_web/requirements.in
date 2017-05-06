@@ -50,6 +50,7 @@ django_webpack_loader==0.3.3    # frontend assets building
 -e git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 tqdm==4.11.2                    # progress bar in dev fab tasks
 -e git://github.com/anastasia/htmldiff.git@master#egg=htmldiff  # diffing html utils
+-e git://github.com/anastasia/minhash.git@master#egg=minhash
 -e git://github.com/anastasia/WARC-diff-tools.git@master#egg=warc_diff_tools # WARC comparison tools
 
 # api
