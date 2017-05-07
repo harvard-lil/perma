@@ -27,6 +27,7 @@ module.exports = {
     'search': './static/js/search.module',
     'stats': './static/js/stats',
     'admin-stats': './static/js/admin-stats',
+    'compare': './static/js/compare',
   },
 
   output: {

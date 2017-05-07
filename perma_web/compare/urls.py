@@ -8,4 +8,5 @@ urlpatterns = [
     url(r'^%s/compare/?$' % old_guid_pattern, views.list, name='main'),
     url(r'^%s/compare/create?$' % old_guid_pattern, views.capture_create, name='capture_create'),
     url(r'^%s/compare/%s?$' % (old_guid_pattern, new_guid_pattern), views.capture_compare, name='capture_compare'),
+    url(r'^%s/compare/%s/get-resource-list?$' % (old_guid_pattern, new_guid_pattern), views.get_resource_list, name='get_resource_list'),
 ]

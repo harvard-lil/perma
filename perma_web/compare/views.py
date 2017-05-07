@@ -1,18 +1,22 @@
 import os
+import requests
+
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.shortcuts import render
-from compare.models import *
-from perma.models import Link
-from compare.models import Compare
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.conf import settings
+
+from compare.models import *
+from compare.models import Compare
+import compare.utils as utils
+
+from perma.models import Link
 from htmldiff import diff
 from htmldiff import settings as diff_settings
 from warc_compare import WARCCompare
-from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
-import requests
-import utils
 
 @login_required
 def capture_create(request, old_guid):
@@ -52,9 +56,9 @@ def capture_compare(request, old_guid, new_guid):
         # check if comparison directory exists yet
         old_archive = Link.objects.get(guid=old_guid)
         new_archive = Link.objects.get(guid=new_guid)
-        # old_warc_path = os.path.join(default_storage.base_location, old_archive.warc_storage_file())
-        # new_warc_path = os.path.join(default_storage.base_location, new_archive.warc_storage_file())
-        # wc = WARCCompare(old_warc_path, new_warc_path)
+        old_warc_path = os.path.join(default_storage.base_location, old_archive.warc_storage_file())
+        new_warc_path = os.path.join(default_storage.base_location, new_archive.warc_storage_file())
+        wc = WARCCompare(old_warc_path, new_warc_path)
 
         if not utils.compare_dir_exists(old_guid, new_guid):
             """
@@ -80,7 +84,12 @@ def capture_compare(request, old_guid, new_guid):
             utils.write_to_static(deleted, 'deleted.html', old_guid, new_guid)
             utils.write_to_static(inserted, 'inserted.html', old_guid, new_guid)
             utils.write_to_static(combined, 'combined.html', old_guid, new_guid)
-
+        resource_count = {
+            'missing': len(wc.resources['missing']),
+            'added': len(wc.resources['added']),
+            'modified': len(wc.resources['modified']),
+            'unchanged': len(wc.resources['unchanged']),
+        }
         context = {
             'old_archive': old_archive,
             'new_archive': new_archive,
@@ -89,6 +98,7 @@ def capture_compare(request, old_guid, new_guid):
             'this_page': 'comparison',
             'link_url': settings.HOST + '/' + old_archive.guid,
             'protocol': protocol,
+            'resource_count': resource_count,
         }
 
         return render(request, 'comparison.html', context)
@@ -108,4 +118,37 @@ def list(request, old_guid):
         'protocol': protocol,
     }
 
-    return render(request, 'list.html', context)
+    return render(request, 'list.hcomtml', context)
+
+def get_resource_list(request, old_guid, new_guid):
+    old_archive = Link.objects.get(guid=old_guid)
+    new_archive = Link.objects.get(guid=new_guid)
+    old_warc_path = os.path.join(default_storage.base_location, old_archive.warc_storage_file())
+    new_warc_path = os.path.join(default_storage.base_location, new_archive.warc_storage_file())
+    wc = WARCCompare(old_warc_path, new_warc_path)
+
+    ### TODO: ordering
+
+    similarity = wc.calculate_similarity()
+    resources = []
+    for status in wc.resources:
+        for content_type in wc.resources[status]:
+            urls = wc.resources[status][content_type]
+            for url in urls:
+                resource = {
+                    'url':url,
+                    'content_type': content_type,
+                    'status': status,
+                }
+
+                if status == 'modified' and 'image' not in content_type:
+                    resource['simhash'] = similarity[url]['simhash']
+                    resource['minhash'] = similarity[url]['minhash']
+
+                if url == old_archive.submitted_url:
+                    resources.insert(0, resource)
+                else:
+                    resources.append(resource)
+
+
+    return JsonResponse(resources, safe=False)

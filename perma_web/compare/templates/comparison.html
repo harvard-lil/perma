@@ -44,10 +44,15 @@
 {% endblock %}
 
 {% block scripts %}
+
   <script>
     var archive = { guid: "{{ old_archive.guid }}" };
     var current_user = {id:"{{ request.user.id }}"};
     var simhash_distance = "{{ simhash_distance }}"
+    var compare_resources_url = "{{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}/compare/{{ new_archive.guid }}/get-resource-list"
   </script>
+  {% render_bundle 'global' 'js' %}
+  {% render_bundle 'single-link-permissions' 'js' %}
+  {% render_bundle 'compare' 'js' %}
 
 {% endblock %}
