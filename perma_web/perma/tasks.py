@@ -289,6 +289,8 @@ def repeat_while_exception(func, arglist=[], exception=Exception, timeout=10, sl
     while True:
         try:
             return func(*arglist)
+        except SoftTimeLimitExceeded:
+            raise
         except exception:
             if time.time() > end_time:
                 if raise_after_timeout:
@@ -993,7 +995,7 @@ def run_next_capture():
             safe_save_fields(link.screenshot_capture, status='failed')
 
     except HaltCaptureException:
-            print("HaltCaptureException thrown")
+        print("HaltCaptureException thrown")
     except SoftTimeLimitExceeded:
         link.tags.add('timeout-failure')
     except:
