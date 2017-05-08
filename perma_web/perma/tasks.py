@@ -289,6 +289,8 @@ def repeat_while_exception(func, arglist=[], exception=Exception, timeout=10, sl
     while True:
         try:
             return func(*arglist)
+        except SoftTimeLimitExceeded:
+            raise
         except exception:
             if time.time() > end_time:
                 if raise_after_timeout:
