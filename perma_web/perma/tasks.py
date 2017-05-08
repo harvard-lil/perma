@@ -995,7 +995,7 @@ def run_next_capture():
             safe_save_fields(link.screenshot_capture, status='failed')
 
     except HaltCaptureException:
-            print("HaltCaptureException thrown")
+        print("HaltCaptureException thrown")
     except SoftTimeLimitExceeded:
         link.tags.add('timeout-failure')
     except:
