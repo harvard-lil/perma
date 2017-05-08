@@ -429,7 +429,7 @@ def get_meta_tags(link, browser):
         Uses js instead of selenium for speed.
     """
     def get_meta():
-        with browser_running(link, browser, lambda: meta_tag_analysis_failed(link)):
+        with browser_running(link, browser):
             return browser.execute_script("""
                 var meta_tags = document.getElementsByTagName('meta');
                 var tags = {};
