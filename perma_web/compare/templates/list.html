@@ -44,23 +44,23 @@
       <div class="col-sm-8">
         <p>
           Original Perma.cc record:
-          <a href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}">
-            {{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}
+          <a href="{{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}">
+            {{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}
           </a>
         </p>
         <p>
-        Original URL: <a href="{{ original_archive.submitted_url }}">{{ original_archive.submitted_url }}</a>
+        Original URL: <a href="{{ old_archive.submitted_url }}">{{ old_archive.submitted_url }}</a>
         </p>
         <ul class="compare-list">
           <li>
-            <a type="button" class="blue-button btn-sm" href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/create">
+            <a type="button" class="blue-button btn-sm" href="{{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}/compare/create">
               Create a new comparison
             </a>
           </li>
           {% for archive in archives %}
           <li>
-             <a href="{{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/{{ archive.guid }}">
-               {{ protocol }}{{ request.get_host }}/{{ original_archive.guid }}/compare/{{ archive.guid }}
+             <a href="{{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}/compare/{{ archive.guid }}">
+               {{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}/compare/{{ archive.guid }}
              </a>
           </li>
         </ul>

@@ -53,10 +53,14 @@ Perma replay{% if wbrequest.mirror_name %} courtesy of {{ wbrequest.mirror_name 
 <script>
   $(document).ready(
     function(){
-      if (location.hash.includes("_perma_diff_deleted")) {
-        location.href = "http://perma.dev:8000/static/" + location.hash.split('_perma_diff')[1] + ".html"
-      } else if (location.hash.includes("_perma_diff_inserted")) {
-        location.href = "http://perma.dev:8000/static/" + location.hash.split('_perma_diff')[1] + ".html"
+      if (location.hash.includes("_perma_diff")) {
+        var guids = location.hash.split(/_perma_diff_\w+_/)[1].split("_")
+        var new_location = "http://perma.dev:8000/static/" + guids[0] + "_compare_" + guids[1]  + "/"
+        if (location.hash.includes("_deleted_")) {
+          location.href = new_location + "deleted.html"
+        } else {
+          location.href = new_location + "inserted.html"
+        }
       }
     }
   );
