@@ -10892,9 +10892,6 @@ webpackJsonp([1],{
 	  $('.has-error').removeClass('has-error');
 	
 	  if (response) {
-	    // Can be removed when Tastypie API no longer used
-	    if (response.archives) response = response.archives;
-	
 	    // If error message comes in as {file:"message",url:"message"},
 	    // show appropriate error message next to each field.
 	    for (var key in response) {

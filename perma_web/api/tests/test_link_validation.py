@@ -2,14 +2,13 @@
 
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
-from api.resources import LinkResource
 from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
 
 class LinkValidationTestCase(ApiResourceTransactionTestCase):
 
-    resource = LinkResource
+    resource_url = '/archives'
     rejected_status_code = 400  # Bad Request
 
     fixtures = ['fixtures/users.json',
@@ -28,8 +27,6 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
 
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
-
-        self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
 
         self.unrelated_url = "{0}{1}/".format(self.list_url, self.unrelated_link.pk)
 
@@ -55,6 +52,11 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            data={'url': 'httpexamplecom'})
+
+    def test_should_reject_bad_unicode_url(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': 'https://www.ntanet.org/some-article.pdf\x00'})
 
     def test_should_reject_unresolvable_domain_url(self):
         with self.header_timeout(0.25):  # only wait 1/4 second before giving up

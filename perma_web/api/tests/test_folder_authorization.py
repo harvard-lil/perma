@@ -1,11 +1,10 @@
 from .utils import ApiResourceTransactionTestCase
-from api.resources import FolderResource
 from perma.models import LinkUser, Folder
 
 
 class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
-    resource = FolderResource
+    resource_url = '/folders'
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
@@ -31,12 +30,6 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.test_journal_subfolder_with_link_a = Folder.objects.get(pk=34)
         self.test_journal_subfolder_with_link_b = Folder.objects.get(pk=35)
 
-
-        # self.list_url = self.url_base + '/user/folders'
-        # self.nested_url = "{0}/{1}/folders".format(self.list_url, self.nonempty_root_folder.pk)
-        self.list_url = "{0}/{1}".format(self.url_base, FolderResource.Meta.resource_name)
-        #self.nested_url = "{0}/folders".format(self.detail_url(self.nonempty_root_folder))
-
     # helpers
 
     def nested_url(self, obj):
@@ -54,6 +47,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_folder_create_without_parent(self):
         self.rejected_post(self.list_url,
                            user=self.regular_user,
+                           expected_status_code=400,
                            data={'name': 'Test Folder'})
 
     def test_should_reject_create_from_logged_out_user(self):
@@ -64,6 +58,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_create_from_user_without_access_to_parent(self):
         self.rejected_post(self.nested_url(self.regular_user.root_folder),
                            user=self.org_user,
+                           expected_status_code=403,
                            data={'name': 'Test Folder'})
 
     ###########
@@ -80,7 +75,9 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.org_user)
 
     def test_should_reject_view_from_user_lacking_owner_and_registrar_and_org_access(self):
-        self.rejected_get(self.detail_url(self.test_journal_shared_folder), user=self.regular_user)
+        self.rejected_get(self.detail_url(self.test_journal_shared_folder),
+                          user=self.regular_user,
+                          expected_status_code=403)
 
     ############
     # Renaming #
@@ -94,6 +91,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_rename_from_user_lacking_owner_access(self):
         self.rejected_patch(self.detail_url(self.regular_user_nonempty_child_folder),
                             user=self.registrar_user,
+                            expected_status_code=403,
                             data={'name': 'A new name'})
 
     def test_should_reject_rename_of_shared_folder_from_all_users(self):
@@ -127,25 +125,37 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
             user=user
         )
 
-        # Make sure it's listed in the folder
-        obj = self.successful_get(self.detail_url(child_folder), user=user)
-        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=user)
-        self.assertIn(obj, data['objects'])
+        # Make sure move worked
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, parent_folder.id)
 
     def rejected_folder_move(self, user, parent_folder, child_folder, expected_status_code=401):
+        original_parent_id = child_folder.parent_id
+
         self.rejected_put(
             "{0}/folders/{1}".format(self.detail_url(parent_folder), child_folder.pk),
             expected_status_code=expected_status_code,
             user=user
         )
 
-        # Make sure it's not listed in the folder
-        obj = self.successful_get(self.detail_url(child_folder), user=child_folder.created_by)
-        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=parent_folder.created_by)
-        self.assertNotIn(obj, data['objects'])
+        # Make sure move didn't work
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, original_parent_id)
+        self.assertNotEqual(child_folder.parent_id, parent_folder.id)
 
-    def test_should_allow_folder_owner_to_move_to_new_parent(self):
+    def test_should_allow_move_to_new_folder_via_put(self):
+        # PUT /folders/:new_parent_id/folders/:id
         self.successful_folder_move(self.regular_user_empty_child_folder.owned_by, self.regular_user_nonempty_child_folder, self.regular_user_empty_child_folder)
+
+    def test_should_allow_move_to_new_folder_via_patch(self):
+        # PATCH /folders/:id {'parent': new_parent_id}
+        child_folder = self.regular_user_empty_child_folder
+        parent_folder = self.regular_user_nonempty_child_folder
+        self.successful_patch(self.detail_url(child_folder),
+                              data={"parent": parent_folder.pk},
+                              user=child_folder.owned_by)
+        child_folder.refresh_from_db()
+        self.assertEquals(child_folder.parent_id, parent_folder.pk)
 
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
         self.successful_folder_move(self.registrar_user, self.registrar_user.root_folder, self.test_journal_subfolder_with_link_b)
@@ -154,10 +164,16 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_folder_move(self.org_user, self.org_user.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_folder_move(self.regular_user, self.org_user.root_folder, self.regular_user_empty_child_folder)
+        self.rejected_folder_move(self.regular_user,
+                                  self.org_user.root_folder,
+                                  self.regular_user_empty_child_folder,
+                                  expected_status_code=403)
 
     def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
-        self.rejected_folder_move(self.regular_user, self.regular_user.root_folder, self.test_journal_subfolder_with_link_b)
+        self.rejected_folder_move(self.regular_user,
+                                  self.regular_user.root_folder,
+                                  self.test_journal_subfolder_with_link_b,
+                                  expected_status_code=403)
 
     def test_should_reject_move_of_folder_into_its_own_subfolder(self):
         # move A into B ...
@@ -169,14 +185,14 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
                             data={"parent": self.test_journal_subfolder_with_link_a.pk},
                             expected_status_code=400,
-                            expected_data={"parent": "A node may not be made a child of any of its descendants."},
+                            expected_data={"parent": ["A node may not be made a child of any of its descendants."]},
                             user=self.org_user)
 
     def test_should_reject_move_of_folder_into_itself(self):
         self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
                             data={"parent": self.test_journal_subfolder_with_link_b.pk},
                             expected_status_code=400,
-                            expected_data={"parent":"A node may not be made a child of itself."},
+                            expected_data={"parent": ["A node may not be made a child of itself."]},
                             user=self.org_user)
 
     def test_should_reject_move_of_org_shared_folder(self):
@@ -189,6 +205,13 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
                                   self.registrar_user.root_folder,
                                   expected_status_code=400)
 
+    def test_should_reject_move_to_blank_folder(self):
+        self.rejected_patch(self.detail_url(self.regular_user_empty_child_folder),
+                            user=self.regular_user_empty_child_folder.owned_by,
+                            data={'parent':None},
+                            expected_status_code=400,
+                            expected_data={"parent": ["This field may not be null."]})
+
 
     ############
     # Deleting #
@@ -200,22 +223,24 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_delete_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_delete(self.detail_url(self.regular_user_empty_child_folder),
+                             expected_status_code=403,
                              user=self.org_user)
 
     def test_reject_delete_of_shared_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_shared_folder),
                              expected_status_code=400,
-                             expected_data={"error": "Shared folders cannot be deleted."},
+                             expected_data={"error": ["Top-level folders cannot be deleted."]},
                              user=self.org_user)
 
     def test_reject_delete_of_root_folder(self):
         self.rejected_delete(self.detail_url(self.org_user.root_folder),
                              expected_status_code=400,
-                             expected_data={"error": "Root folders cannot be deleted."},
+                             expected_data={"error": ["Top-level folders cannot be deleted."]},
                              user=self.org_user)
 
     def test_reject_delete_of_nonempty_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_subfolder_with_link_b),
                              expected_status_code=400,
-                             expected_data={"error": "Folders can only be deleted if they are empty."},
+                             expected_data={"error": ["Folders can only be deleted if they are empty."]},
                              user=self.org_user)
+

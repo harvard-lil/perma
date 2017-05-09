@@ -9,7 +9,6 @@ from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from ratelimit.decorators import ratelimit
-from tastypie.models import ApiKey
 
 from django.views.generic import UpdateView
 from django.conf import settings
@@ -41,7 +40,7 @@ from perma.forms import (
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm)
-from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, \
    get_form_data, ratelimit_ip_key, user_passes_test_or_403
 from perma.email import send_admin_email, send_user_email

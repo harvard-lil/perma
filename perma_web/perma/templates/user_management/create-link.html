@@ -1,5 +1,4 @@
 {% extends "base-responsive.html" %}
-{% load as_json %}
 {% load render_bundle from webpack_loader %}
 
 {% block title %} | Create a Perma link{% endblock %}
@@ -126,7 +125,7 @@
   <script>
     var contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
-        current_user = {% as_json request.user %},
+        current_user = {{ request.user.as_json|safe }},
         host = "{{ request.get_host }}";
   </script>
 

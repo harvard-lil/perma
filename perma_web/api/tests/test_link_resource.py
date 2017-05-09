@@ -3,19 +3,19 @@ from glob import glob
 import os
 import dateutil.parser
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from surt import surt
 import json
 import urllib
 
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
-from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, CDXLine
 
 
 # Use a TransactionTestCase here because archive capture is threaded
 class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
-    resource = LinkResource
+    resource_url = '/archives'
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
                 'fixtures/archive.json',
@@ -42,15 +42,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.link = Link.objects.get(pk="3SLN-JHX9")
 
-        self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
         self.unrelated_link_detail_url = "{0}/{1}".format(self.list_url, self.unrelated_link.pk)
         self.link_detail_url = "{0}/{1}".format(self.list_url, self.link.pk)
 
-        self.logged_in_list_url = "{0}/{1}".format(self.url_base, CurrentUserLinkResource.Meta.resource_name)
-        self.logged_in_unrelated_link_detail_url = "{0}/{1}".format(self.logged_in_list_url, self.unrelated_link.pk)
+        self.logged_in_list_url = self.list_url
+        self.logged_in_unrelated_link_detail_url = reverse('api:archives', args=[self.unrelated_link.pk])
 
-        self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_link_detail_url = "{0}/{1}".format(self.public_list_url, self.link.pk)
+        self.public_list_url = reverse('api:public_archives')
+        self.public_link_detail_url = reverse('api:public_archives', args=[self.link.pk])
 
         self.logged_out_fields = [
             'title',
@@ -91,12 +90,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #######
     # GET #
     #######
-
-    def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.org_user)
-
-    def test_get_public_schema_json(self):
-        self.successful_get(self.public_list_url + '/schema', user=self.org_user)
 
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=4)
@@ -336,12 +329,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_updates_to_disallowed_fields(self):
         result = self.rejected_patch(self.unrelated_link_detail_url,
                                      user=self.unrelated_link.created_by,
-                                     data={'nonexistent_field':'foo'})
-        self.assertIn("Only updates on these fields are allowed", result.content)
-
-        result = self.rejected_patch(self.unrelated_link_detail_url,
-                                     user=self.unrelated_link.created_by,
-                                     data={'url': 'foo'})
+                                     data={'url':'foo'})
         self.assertIn("Only updates on these fields are allowed", result.content)
 
     ##################
@@ -427,15 +415,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(len(objs), 2)
         self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
 
-    def test_should_allow_filtering_submitted_url(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter'}, user=self.regular_user)
+    def test_should_allow_filtering_url(self):
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter'}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
@@ -443,16 +431,13 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
 
     def test_should_allow_filtering_by_date_range_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"2"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={
+            'url': 'metafilter',
+            'min_date':"2016-12-06T18:55:37Z",
+            'max_date':"2016-12-08T18:55:37Z",
+        }, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
         self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
-
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"40"}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-        self.assertEqual(objs[1]['title'], 'MetaFilter | Community Weblog')

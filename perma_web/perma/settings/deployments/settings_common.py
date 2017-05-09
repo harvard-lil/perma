@@ -159,7 +159,6 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
-    'api',
     'lockss',
 
     # third party apps
@@ -172,13 +171,12 @@ INSTALLED_APPS = (
     'webpack_loader',  # track frontend assets
 
     # api
-    'api2',
+    'api',
     'rest_framework',
     'django_filters',
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
-    'tastypie'
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -397,16 +395,7 @@ CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
 # Default user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
 
-### Tastypie
-# http://django-tastypie.readthedocs.org/en/latest/settings.html
-
-TASTYPIE_ALLOW_MISSING_SLASH = True
 APPEND_SLASH = False
-
-TASTYPIE_DEFAULT_FORMATS = ['json']
-
-TASTYPIE_FULL_DEBUG = True  # Better Tastypie error handling for debugging. Only has an effect when DEBUG=True.
-
 
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
@@ -475,7 +464,7 @@ PRIVATE_LINKS_ON_FAILURE = False
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api2.authentication.TokenAuthentication',  # authenticate with ApiKey token
+        'api.authentication.TokenAuthentication',  # authenticate with ApiKey token
         'rest_framework.authentication.SessionAuthentication',  # authenticate with Django login
     ),
     'NON_FIELD_ERRORS_KEY': 'error',  # default key for {'fieldname': 'error message'} error responses

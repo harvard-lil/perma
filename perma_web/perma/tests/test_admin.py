@@ -6,7 +6,6 @@ from .utils import PermaTestCase
 
 class AdminTestCase(AdminSiteSmokeTestMixin, PermaTestCase):
     fixtures = PermaTestCase.fixtures
-    exclude_apps = ['tastypie', ]
 
     def setUp(self):
         # monkey-patch create_superuser, which is relied on by the django_admin_smoke_tests package

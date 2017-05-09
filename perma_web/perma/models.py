@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import os
 import logging
 import random
@@ -12,6 +13,8 @@ import simple_history
 import requests
 import itertools
 import time
+import hmac
+import uuid
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -371,9 +374,9 @@ class LinkUser(AbstractBaseUser):
         self.root_folder = root_folder
         self.save()
 
-    def as_json(self, request=None):
-        from api.resources import CurrentUserResource
-        return CurrentUserResource().as_json(self, request)
+    def as_json(self):
+        from api.serializers import LinkUserSerializer  # local import to avoid circular import
+        return json.dumps(LinkUserSerializer(self).data)
 
     ### permissions ###
 
@@ -479,6 +482,29 @@ class LinkUser(AbstractBaseUser):
 
     def can_edit_organization(self, organization):
         return self.organizations.filter(pk=organization.pk).exists()
+
+
+class ApiKey(models.Model):
+    """
+        Based on tastypie.models: https://github.com/django-tastypie/django-tastypie/blob/master/tastypie/models.py#L35
+    """
+    user = models.OneToOneField(LinkUser, related_name='api_key')
+    key = models.CharField(max_length=128, blank=True, default='', db_index=True)
+    created = models.DateTimeField(default=timezone.now)
+
+    def __unicode__(self):
+        return u"%s for %s" % (self.key, self.user)
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super(ApiKey, self).save(*args, **kwargs)
+
+    def generate_key(self):
+        # Get a random UUID.
+        new_uuid = uuid.uuid4()
+        # Hmac that beast.
+        return hmac.new(new_uuid.bytes, digestmod=hashlib.sha1).hexdigest()
 
 
 # special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
@@ -791,10 +817,6 @@ class Link(DeletableModel):
         """ Return True if this link is appropriate for upload to IA. """
         return self.is_discoverable()
 
-    def as_json(self, request=None):
-        from api.resources import LinkResource
-        return LinkResource().as_json(self, request)
-
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.
         stripped_guid = re.sub('[^0-9A-Za-z]+', '', self.guid)
@@ -942,7 +964,7 @@ class Link(DeletableModel):
         """
             Given a file uploaded by a user, create a Capture record and warc.
         """
-        from api2.utils import get_mime_type, mime_type_lookup  # local import to avoid circular import
+        from api.utils import get_mime_type, mime_type_lookup  # local import to avoid circular import
 
         # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
         mime_type = get_mime_type(uploaded_file.name)

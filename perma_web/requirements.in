@@ -28,8 +28,6 @@ netaddr==0.7.12                 # to check archive IPs against banned ranges
 internetarchive==1.0.10         # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
 Wand==0.4           			# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
-django-tastypie==0.13.3         # API framework
--e git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==12.3			# Used to create our thumbnails
 redis==2.10.5					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==4.4.3             # use redis as django's cache backend
