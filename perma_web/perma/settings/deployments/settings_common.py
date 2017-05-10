@@ -272,6 +272,7 @@ LOGGING = {
         },
     }
 }
+LOG_PLAYBACK_404 = False
 
 # IP ranges we won't archive.
 # Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
@@ -421,6 +422,7 @@ USE_LOCKSS_REPLAY = False  # whether to replay captures from LOCKSS, if servers 
 LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"
 LOCKSS_CRAWL_INTERVAL = "12h"
 LOCKSS_QUORUM = 3
+LOCKSS_DEBUG_IPS = False
 
 CELERY_ROUTES = {
     'perma.tasks.upload_to_internet_archive': {'queue': 'background'},

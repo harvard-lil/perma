@@ -25,10 +25,11 @@ def django_url_prefix(request):
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
         user_ip = get_client_ip(request)
-        logger.warn(Mirror.get_cached_mirrors())
+        if settings.LOCKSS_DEBUG_IPS:
+            logger.warn("CACHED MIRRORS: {}".format(Mirror.get_cached_mirrors()))
+            logger.warn("CLIENT IP: {}".format(user_ip))
+            logger.warn("request.META: {}\n".format(request.META))
         for mirror in Mirror.get_cached_mirrors():
-            logger.warn(user_ip)
-            logger.warn(request.META)
             if user_ip == mirror['ip']:
                 return view_func(request, *args, **kwargs)
         return HttpResponseForbidden()
