@@ -25,7 +25,7 @@ def django_url_prefix(request):
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
         user_ip = get_client_ip(request)
-        if LOCKSS_DEBUG_IPS:
+        if settings.LOCKSS_DEBUG_IPS:
             logger.warn("CACHED MIRRORS: {}".format(Mirror.get_cached_mirrors()))
             logger.warn("CLIENT IP: {}".format(user_ip))
             logger.warn("request.META: {}\n".format(request.META))
