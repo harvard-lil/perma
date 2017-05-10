@@ -12,7 +12,12 @@ def copy_keys(apps, schema_editor):
         return
     cursor = schema_editor.connection.cursor()
     try:
-        cursor.execute("INSERT INTO perma_apikey SELECT * FROM tastypie_apikey")
+        # this did not work, as there's a column order mismatch between the two tables
+        # cursor.execute("INSERT INTO perma_apikey SELECT * FROM tastypie_apikey")
+        # instead, we ran this:
+        cursor.execute("INSERT INTO perma_apikey (`id`, `key`, `created`, `user_id`) SELECT `id`, `key`, `created`, `user_id` FROM tastypie_apikey")
+        # and then faked the migration:
+        # ./manage.py migrate --fake perma 0023_apikey
     except django.db.utils.ProgrammingError:
         pass  # old tastypie api_key table doesn't exist for this deployment
 
