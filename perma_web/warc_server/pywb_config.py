@@ -89,6 +89,14 @@ def get_archive_path():
     return archive_path.encode('ascii', 'ignore')
 
 def raise_not_found(url):
+    if not settings.LOG_PLAYBACK_404:
+        # use a custom error to skip pywb printing of exceptions
+        raise CustomTemplateException(status='404 Not Found',
+                                      template_path='archive/archive-error.html',
+                                      template_kwargs={
+                                          'content_host': settings.WARC_HOST,
+                                          'err_url': url
+                                      })
     raise NotFoundException('No Captures found for: %s' % url, url=url)
 
 

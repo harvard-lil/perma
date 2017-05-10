@@ -274,6 +274,7 @@ LOGGING = {
         },
     }
 }
+LOG_PLAYBACK_404 = False
 
 # IP ranges we won't archive.
 # Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
