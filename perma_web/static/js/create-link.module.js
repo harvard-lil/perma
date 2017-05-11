@@ -28,15 +28,17 @@ function linkIt (data) {
   // archive is still be generated)
   // Clear any error messages out
   DOMHelpers.removeElement('.error-row');
-
   newGUID = data.guid;
-
   refreshIntervalIds.push(setInterval(check_status, 2000));
 }
 
 function linkNot (jqXHR) {
-  // The API told us something went wrong.
-  var message = APIModule.getErrorMessage(jqXHR);
+  if (typeof jqXHR == 'undefined') {
+    var message = "Capture Failed";
+  } else {
+    // The API told us something went wrong.
+    var message = APIModule.getErrorMessage(jqXHR);
+  }
 
   var upload_allowed = true;
   if (message.indexOf("limit") > -1) {
@@ -54,6 +56,7 @@ function linkNot (jqXHR) {
 
   $('.create-errors').addClass('_active');
   $('#error-container').hide().fadeIn(0);
+  $('#error-container').removeClass('_hide');
 
   toggleCreateAvailable();
 }
@@ -187,16 +190,9 @@ function check_status () {
       // If we succeeded, forward to the new archive
       if (data.status == "completed") {
         window.location.href = "/" + newGUID;
-
-        // Else show failure message and reset form.
       } else {
-        var templateArgs = {message: "Error: URL capture failed."};
-        changeTemplate('#error-template', templateArgs, '#error-container');
-
-        $('#error-container').removeClass('_hide _success _wait').addClass('_error');
-
-        // Toggle our create button
-        toggleCreateAvailable();
+        // Else show failure message and reset form.
+        linkNot();
       }
     }
   });
