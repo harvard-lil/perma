@@ -5,7 +5,7 @@ import traceback
 from cStringIO import StringIO
 from contextlib import contextmanager
 
-from httplib import HTTPResponse
+from httplib import HTTPResponse, HTTPException
 from urllib2 import URLError
 
 import os
@@ -59,6 +59,8 @@ RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load b
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
 AFTER_LOAD_TIMEOUT = 30 # seconds to allow page to keep loading additional resources after onLoad event fires
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
+BROWSER_SIZE = [1024, 800]
+
 
 ### THREAD HELPERS ###
 
@@ -146,8 +148,17 @@ ProxyingRecorder._update_payload_digest = _update_payload_digest
 
 # BROWSER HELPERS
 
+def start_virtual_display():
+    display = Display(visible=0, size=BROWSER_SIZE)
+    display.start()
+    return display
+
 def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
+
+    display = None
+    print "Using browser: %s" % settings.CAPTURE_BROWSER
+
     # PhantomJS
     if settings.CAPTURE_BROWSER == 'PhantomJS':
         desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
@@ -166,6 +177,8 @@ def get_browser(user_agent, proxy_address, cert_path):
 
     # Firefox
     elif settings.CAPTURE_BROWSER == 'Firefox':
+        display = start_virtual_display()
+
         desired_capabilities = dict(DesiredCapabilities.FIREFOX)
         proxy = Proxy({
             'proxyType': ProxyType.MANUAL,
@@ -183,12 +196,21 @@ def get_browser(user_agent, proxy_address, cert_path):
 
     # Chrome
     elif settings.CAPTURE_BROWSER == 'Chrome':
+        display = start_virtual_display()
+
         # http://blog.likewise.org/2015/01/setting-up-chromedriver-and-the-selenium-webdriver-python-bindings-on-ubuntu-14-dot-04/
         download_dir = os.path.abspath('./downloads')
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
+
+        # To use Chrome beta channel, if installed:
+        # chrome_options.binary_location = '/usr/bin/google-chrome-beta'
+
         chrome_options.add_argument('--proxy-server=%s' % proxy_address)
-        chrome_options.add_argument('--test-type')
+        chrome_options.add_argument('--test-type')  # needed?
+        # chrome_options.add_argument('--headless')  # not selenium compatible yet, keep using start_virtual_display for now
+        chrome_options.add_argument('--disable-gpu')  # needed?
+        chrome_options.add_argument('--hide-scrollbars')  # not currently working -- see workaround in get_screenshot
         chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
                                                          "download.default_directory": download_dir,
                                                          "download.prompt_for_download": "false"})
@@ -208,7 +230,7 @@ def get_browser(user_agent, proxy_address, cert_path):
     browser.implicitly_wait(ELEMENT_DISCOVERY_TIMEOUT)
     browser.set_page_load_timeout(ROBOTS_TXT_TIMEOUT)
 
-    return browser
+    return browser, display
 
 def browser_still_running(browser):
     return browser.service.process.poll() is None
@@ -440,7 +462,7 @@ def get_meta_tags(link, browser):
                 }
                 return tags
             """)
-    return repeat_until_truthy(get_meta)
+    return repeat_while_exception(lambda: repeat_until_truthy(get_meta), exception=HTTPException)
 
 def get_title(link, browser):
     def get():
@@ -480,7 +502,7 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address)
 # favicons
 
 def favicon_thread(successful_favicon_urls, browser, content_url, thread_list, proxy_address):
-    favicon_urls = favicon_get_urls(browser, content_url)
+    favicon_urls = repeat_while_exception(lambda: favicon_get_urls(browser, content_url), exception=HTTPException)
     for favicon_url in favicon_urls:
         favicon = favicon_fetch(favicon_url, thread_list, proxy_address)
         if favicon:
@@ -608,18 +630,32 @@ def get_object_urls(url_list, base_url, browser):
 # screenshot
 
 def get_screenshot(link, browser):
-    pixels = get_page_pixel_count(browser)
-    if page_pixels_in_allowed_range(pixels):
+    page_size = get_page_size(browser)
+    if page_pixels_in_allowed_range(page_size):
+
+        if settings.CAPTURE_BROWSER == 'Chrome':
+            # workaround for failure of --hide-scrollbars flag in Chrome:
+            browser.execute_script("""
+                ['body', 'html', 'frameset'].forEach(function(elType){
+                    try {
+                        document.getElementsByTagName(elType)[0].style.overflow = 'hidden';
+                    } catch(e) {}
+                });
+            """)
+
+            # set window size to page size in Chrome, so we get a full-page screenshot:
+            browser.set_window_size(max(page_size['width'], BROWSER_SIZE[0]), max(page_size['height'], BROWSER_SIZE[1]))
+
         screenshot_data = browser.get_screenshot_as_png()
         link.screenshot_capture.write_warc_resource_record(screenshot_data)
         safe_save_fields(link.screenshot_capture, status='success')
     else:
-        print "Not taking screenshot! %s" % ("Page size is %s pixels." % pixels if pixels else "(none)")
+        print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
         safe_save_fields(link.screenshot_capture, status='failed')
 
-def get_page_pixel_count(browser):
+def get_page_size(browser):
     try:
-        root_element = browser.find_element_by_tag_name('body')
+        root_element = browser.find_element_by_tag_name('html')
     except (NoSuchElementException, URLError):
         try:
             root_element = browser.find_element_by_tag_name('frameset')
@@ -628,11 +664,10 @@ def get_page_pixel_count(browser):
             # URLError: the headless browser has gone away for some reason.
             root_element = None
     if root_element:
-        page_size = root_element.size
-        return page_size['width'] * page_size['height']
+        return root_element.size
 
-def page_pixels_in_allowed_range(pixel_count):
-    return pixel_count and pixel_count < settings.MAX_IMAGE_SIZE
+def page_pixels_in_allowed_range(page_size):
+    return page_size and page_size['width'] * page_size['height'] < settings.MAX_IMAGE_SIZE
 
 ### CAPTURE COMPLETION
 
@@ -846,13 +881,8 @@ def run_next_capture():
         print "WarcProx opened."
         # END WARCPROX SETUP
 
-        # start virtual display
-        if settings.CAPTURE_BROWSER != "PhantomJS":
-            display = Display(visible=0, size=(1024, 800))
-            display.start()
-
-        browser = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, proxy.ca.ca_file)
-        browser.set_window_size(1024, 800)
+        browser, display = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, proxy.ca.ca_file)
+        browser.set_window_size(*BROWSER_SIZE)
 
         # fetch page in the background
         inc_progress(capture_job, 1, "Fetching target URL")
