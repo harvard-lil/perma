@@ -9,7 +9,7 @@
   <p>Do you really want to delete <strong>{{ target_org.name }}</strong> forever?</p>
     <form action="" method="POST">
       {% csrf_token %}
-      <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Delete {{ target_org.name }} forever</button>
+      <a class="btn cancel" href="{% url 'user_management_manage_organization' %}">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Delete {{ target_org.name }} forever</button>
     </form>
 </div>
 {% endblock %}
