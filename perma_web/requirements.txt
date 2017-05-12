@@ -28,6 +28,7 @@ click==6.7                # via flask, pip-tools
 clint==0.5.1              # via internetarchive
 coverage==4.3.4
 cryptography==1.8.1       # via pyopenssl
+cssselect==1.0.1          # via pyquery
 django-admin-smoke-tests==0.3.0
 django-crispy-forms==1.6.1
 django-filter==1.0.2
@@ -72,6 +73,7 @@ jsmin==2.0.9
 jsonpatch==0.4            # via internetarchive
 kombu==3.0.37             # via celery
 LinkHeader==0.4.3
+lxml==3.7.3               # via pyquery
 MarkupSafe==1.0           # via jinja2
 mccabe==0.4.0             # via flake8
 mock==2.0.0
@@ -97,6 +99,7 @@ pycrypto==2.6.1           # via paramiko
 pyflakes==1.0.0           # via flake8
 pyopenssl==16.2.0         # via certauth, ndg-httpsclient, requests
 pyparsing==2.2.0          # via packaging
+pyquery==1.2.17
 pyScss==1.3.4
 pytest-django==3.1.2
 pytest-xdist==1.15.0

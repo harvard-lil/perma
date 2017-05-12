@@ -3,9 +3,11 @@ from __future__ import absolute_import # to avoid importing local .celery instea
 import tempfile
 import traceback
 from cStringIO import StringIO
+from collections import OrderedDict
 from contextlib import contextmanager
+from pyquery import PyQuery
 
-from httplib import HTTPResponse, HTTPException
+from httplib import HTTPResponse
 from urllib2 import URLError
 
 import os
@@ -34,6 +36,7 @@ from warcprox.warcwriter import WarcWriter, WarcWriterThread
 import requests
 from requests.structures import CaseInsensitiveDict
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import internetarchive
 
@@ -47,6 +50,7 @@ from django.http import HttpRequest
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
 from perma.utils import run_task, url_in_allowed_ip_range, copy_file_data
+from perma import site_scripts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -80,12 +84,12 @@ def safe_save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=kwargs.keys())
 
-def get_url(url, thread_list, proxy_address):
+def get_url(url, thread_list, proxy_address, requested_urls):
     """
         Get a url, via proxied python requests.get(), in a way that is interruptable from other threads.
         Blocks calling thread. (Recommended: only call in sub-threads.)
     """
-    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url))
+    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url, requested_urls))
     request_thread.join()
     return request_thread.response, request_thread.response_exception
 
@@ -96,17 +100,19 @@ class ProxiedRequestThread(threading.Thread):
         While the thread is running, see `self.pending_data` for how much has been downloaded so far.
         Once the thread is done, see `self.response` and `self.response_exception` for the results.
     """
-    def __init__(self, proxy_address, url, *args, **kwargs):
+    def __init__(self, proxy_address, url, requested_urls, *args, **kwargs):
         self.url = url
         self.proxy_address = proxy_address
         self.pending_data = 0
         self.stop = threading.Event()
         self.response = None
         self.response_exception = None
+        self.requested_urls = requested_urls
         super(ProxiedRequestThread, self).__init__(*args, **kwargs)
 
     def run(self):
         try:
+            self.requested_urls.add(self.url)
             self.response = requests.get(self.url,
                                          headers={'User-Agent': settings.CAPTURE_USER_AGENT},
                                          proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
@@ -266,13 +272,37 @@ def scroll_browser(browser):
         # URLError: the headless browser has gone away for some reason.
         pass
 
-def run_in_frames(link, browser, func, output_collector=None):
+def get_page_source(browser):
+    """ 
+        Get page source.
+        Use JS rather than browser.page_source so we get the parsed, properly formatted DOM instead of raw user HTML.
+    """
+    return browser.execute_script("return document.documentElement.outerHTML")
+
+def parse_page_source(source):
+    """
+        Return page source as a parsed PyQuery object for querying.
+         
+        PyQuery here works the same as `$(source)` in jQuery. So for example you can do `parsed_source(selector)` 
+        with the returned value to get a list of LXML elements matching the selector.
+    """
+    return PyQuery(source, parser='html')
+
+def get_dom_tree(browser):
+    with browser_running(browser):
+        return parse_page_source(get_page_source(browser))
+
+def get_all_dom_trees(browser):
+    with browser_running(browser):
+        return run_in_frames(browser, lambda browser: [[browser.current_url, get_dom_tree(browser)]])
+
+def run_in_frames(browser, func, output_collector=None):
     # setup
     browser.implicitly_wait(0)
 
     if output_collector is None:
         output_collector = []
-    run_in_frames_recursive(link, browser, func, output_collector)
+    run_in_frames_recursive(browser, func, output_collector)
 
     # reset
     browser.implicitly_wait(ELEMENT_DISCOVERY_TIMEOUT)
@@ -280,14 +310,13 @@ def run_in_frames(link, browser, func, output_collector=None):
 
     return output_collector
 
-def run_in_frames_recursive(link, browser, func, output_collector, frame_path=None):
+def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
     DEPTH_LIMIT = 3  # deepest frame level we'll visit
     FRAME_LIMIT = 20  # max total frames we'll visit
-
     if frame_path is None:
         frame_path = []
 
-    with browser_running(link, browser):
+    with browser_running(browser):
         # slow to run, so only uncomment logging if needed for debugging:
         # import hashlib
         # print frame_path, browser.find_elements_by_tag_name('html')[0]._id, hashlib.sha256(browser.page_source.encode('utf8')).hexdigest(), browser.execute_script("return window.location.href")
@@ -314,7 +343,7 @@ def run_in_frames_recursive(link, browser, func, output_collector, frame_path=No
             # call self recursively in child frame i
             try:
                 browser.switch_to.frame(i)
-                run_in_frames_recursive(link, browser, func, output_collector, frame_path + [i])
+                run_in_frames_recursive(browser, func, output_collector, frame_path + [i])
             except NoSuchFrameException:
                 # we've run out of subframes
                 break
@@ -443,6 +472,19 @@ def parse_response(response_text):
 
 ### CAPTURE COMPONENTS ###
 
+# on load
+
+# By domain, code to run after the target_url's page onload event.
+post_load_function_lookup = {
+    "^https?://www.forbes.com/forbes/welcome": site_scripts.forbes_post_load
+}
+def get_post_load_function(browser):
+    current_url = browser.current_url
+    for regex, post_load_function in post_load_function_lookup.items():
+        if re.search(regex, current_url.lower()):
+            return post_load_function
+    return None
+
 # x-robots headers
 
 def xrobots_blacklists_perma(robots_directives):
@@ -466,16 +508,16 @@ def xrobots_blacklists_perma(robots_directives):
 
 # page metadata
 
-def get_metadata(page_metadata, link, browser):
+def get_metadata(page_metadata, dom_tree):
     """
         Retrieve html page metadata.
     """
     page_metadata.update({
-        'meta_tags': get_meta_tags(link, browser),
-        'title': get_title(link, browser)
+        'meta_tags': get_meta_tags(dom_tree),
+        'title': get_title(dom_tree)
     })
 
-def get_meta_tags(link, browser):
+def get_meta_tags(dom_tree):
     """
         Retrieves meta tags as a dict (e.g. {"robots": "noarchive"}).
 
@@ -485,29 +527,13 @@ def get_meta_tags(link, browser):
         "name" attribute is duplicated in the html. Tags without name
         attributes are thrown away (their "content" attribute is mapped
         to the key "", the empty string).
-
-        Uses js instead of selenium for speed.
     """
-    def get_meta():
-        with browser_running(link, browser):
-            return browser.execute_script("""
-                var meta_tags = document.getElementsByTagName('meta');
-                var tags = {};
-                for (var i = 0; i < meta_tags.length; i++){
-                    tags[meta_tags[i].name.toLowerCase()] = meta_tags[i].content
-                }
-                return tags
-            """)
-    return repeat_while_exception(lambda: repeat_until_truthy(get_meta), exception=HTTPException)
+    return {tag.attrib['name'].lower(): tag.attrib.get('content', '')
+            for tag in dom_tree('meta')
+            if tag.attrib.get('name')}
 
-def get_title(link, browser):
-    def get():
-        if browser.title:
-            return browser.title
-        else:
-            return browser.find_element_by_tag_name('title').get_attribute('text')
-    return repeat_while_exception(get, raise_after_timeout=False)
-
+def get_title(dom_tree):
+    return dom_tree('head > title').text()
 
 def meta_tag_analysis_failed(link):
     """What to do if analysis of a link's meta tags fails"""
@@ -518,9 +544,9 @@ def meta_tag_analysis_failed(link):
 
 # robots.txt
 
-def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address):
+def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls):
     robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
-    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address)
+    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls)
     if e or not robots_txt_response or not robots_txt_response.ok:
         print "Couldn't reach robots.txt"
         return
@@ -537,35 +563,33 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address)
 
 # favicons
 
-def favicon_thread(successful_favicon_urls, browser, content_url, thread_list, proxy_address):
-    favicon_urls = repeat_while_exception(lambda: favicon_get_urls(browser, content_url), exception=HTTPException)
+def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, proxy_address, requested_urls):
+    favicon_urls = favicon_get_urls(dom_tree, content_url)
     for favicon_url in favicon_urls:
-        favicon = favicon_fetch(favicon_url, thread_list, proxy_address)
+        favicon = favicon_fetch(favicon_url, thread_list, proxy_address, requested_urls)
         if favicon:
             successful_favicon_urls.append(favicon)
     if not successful_favicon_urls:
         print "Couldn't get any favicons"
 
-def favicon_get_urls(browser, content_url):
+def favicon_get_urls(dom_tree, content_url):
     """
-        Retrieves favicon urls.
-        Uses js instead of selenium for speed.
+        Retrieve favicon URLs from DOM. 
     """
-    urls = []
-    urls = browser.execute_script("""
-        var links = document.querySelectorAll('link[rel="shortcut icon"],link[rel="icon"]');
-        var urls = [];
-        for (var i = 0; i < links.length; i++){
-            urls.push(links[i].getAttribute('href'))
-        }
-        return urls
-    """)
+    urls = []  # order here matters so that we prefer meta tag favicon over /favicon.ico
+    for el in dom_tree('link'):
+        if el.attrib.get('rel', '').lower() in ("shortcut icon", "icon"):
+            href = el.attrib.get('href')
+            if href:
+                urls.append(href)
     urls.append('/favicon.ico')
-    return (make_absolute_urls(content_url, urls))
+    urls = make_absolute_urls(content_url, urls)
+    urls = list(OrderedDict((url, True) for url in urls).keys())  # remove duplicates without changing list order
+    return urls
 
-def favicon_fetch(url, thread_list, proxy_address):
+def favicon_fetch(url, thread_list, proxy_address, requested_urls):
     print "Fetching favicon from %s ..." % url
-    response, e = get_url(url, thread_list, proxy_address)
+    response, e = get_url(url, thread_list, proxy_address, requested_urls)
     if e or not response or not response.ok:
         print "Favicon failed:", e, response
         return
@@ -576,92 +600,59 @@ def favicon_fetch(url, thread_list, proxy_address):
 
 # media
 
-def get_media_tags(browser):
-    url_list = []
-    base_url = browser.current_url
-    print("Fetching images in srcsets")
-    get_srcset_image_urls(url_list, base_url, browser)
-    if settings.ENABLE_AV_CAPTURE:
-        print("Fetching audio/video objects")
-        get_audio_video_urls(url_list, base_url, browser)
-        get_object_urls(url_list, base_url, browser)
-    return url_list
+def get_media_tags(dom_trees):
+    urls = set()
+    for base_url, dom_tree in dom_trees:
+        print("Fetching images in srcsets")
+        new_urls = get_srcset_image_urls(dom_tree)
+        if settings.ENABLE_AV_CAPTURE:
+            print("Fetching audio/video objects")
+            new_urls += get_audio_video_urls(dom_tree)
+            new_urls += get_object_urls(dom_tree)
+        urls |= set(make_absolute_urls(base_url, new_urls))
+    return urls
 
-def get_srcset_image_urls(url_list, base_url, browser):
+def get_srcset_image_urls(dom_tree):
     """
-       Appends all urls listed in img/src srcset attributes
-       to a passed in url_list.
-       Uses js instead of selenium for speed.
+       Return all urls listed in img/src srcset attributes.
     """
-    urls = browser.execute_script("""
-        var images = document.querySelectorAll('img[srcset], source[srcset]');
-        var urls = [];
-        for (var i = 0; i < images.length; i++){
-            var srcs = images[i].getAttribute('srcset').split(',');
-            for (var j = 0; j < srcs.length; j++){
-                urls.push(srcs[j].trim().split(' ')[0])
-            }
-        }
-        return urls
-    """)
-    url_list.extend(make_absolute_urls(base_url, urls))
+    urls = []
+    for el in dom_tree('img[srcset], source[srcset]'):
+        for src in el.attrib.get('srcset', '').split(','):
+            src = src.strip().split()[0]
+            if src:
+                urls.append(src)
+    return urls
 
-def get_audio_video_urls(url_list, base_url, browser):
+def get_audio_video_urls(dom_tree):
     """
-       Appends urls from 'video', 'audio', 'embed' tags
-       to a passed in url_list.
-
-       Get src attribute and any <source src="url"> elements.
-       Uses js instead of selenium for speed.
+       Return urls listed in video/audio/embed/source tag src attributes.
     """
-    urls = browser.execute_script("""
-        var media_tags = document.querySelectorAll('video, audio, embed');
-        var urls = [];
-        for (var i = 0; i < media_tags.length; i++){
-            urls.push(media_tags[i].getAttribute('src'))
-            var srcs = media_tags[i].getElementsByTagName('source');
-            for (var j = 0; j < srcs.length; j++){
-                urls.push(srcs[j].getAttribute('src'))
-            }
-        }
-        return urls
-    """)
-    url_list.extend(make_absolute_urls(base_url, urls))
+    urls = []
+    for el in dom_tree('video, audio, embed, source'):
+        src = el.attrib.get('src', '').strip()
+        if src:
+            urls.append(src)
+    return urls
 
-def get_object_urls(url_list, base_url, browser):
+def get_object_urls(dom_tree):
     """
-        Appends urls from 'object' tags to a passed in url_list.
-
-        Get the data and archive attributes, prepended with codebase attribute if it exists,
-        as well as any <param name="movie" value="url"> elements
+        Return urls in object tag data/archive attributes, as well as object -> param[name="movie"] tag value attributes.
+        Urls will be relative to the object tag codebase attribute if it exists.
     """
-    url_pairs = browser.execute_script("""
-        var base_url = "%s";
-        var url_pairs = [];
-        var object_tags = document.querySelectorAll('object');
-        for (var i = 0; i < object_tags.length; i++){
-            var tag = object_tags[i];
-            var codebase_url = tag.getAttribute('codebase') || base_url;
-
-            // data attribute
-            url_pairs.push([codebase_url, tag.getAttribute('data')]);
-
-            // archive attribute can be a space-separated list
-            var archive = (tag.getAttribute('archive') || '').split(' ');
-            for (var j = 0; j < archive.length; j++){
-                url_pairs.push([codebase_url, archive[j]]);
-            }
-
-            // params
-            var params = tag.querySelectorAll('param[name="movie"]')
-            for (var j = 0; j < params.length; j++){
-                url_pairs.push([codebase_url, params[j].getAttribute('value')]);
-            }
-        }
-        return url_pairs
-    """ % (base_url,))
-    urls = [urlparse.urljoin(url[0], url[1]) for url in url_pairs if url[1]]
-    url_list.extend(make_absolute_urls(base_url, urls))
+    urls = []
+    for el in dom_tree('object'):
+        codebase_url = el.attrib.get('codebase')
+        el_urls = [el.attrib.get('data', '')] + \
+                  el.attrib.get('archive', '').split() + \
+                  [param.attrib.get('value', '') for param in PyQuery(el)('param[name="movie"]')]
+        for url in el_urls:
+            url = url.strip()
+            if url:
+                if codebase_url:
+                    url = urlparse.urljoin(codebase_url, url)
+                urls.append(url)
+    return urls
 
 # screenshot
 
@@ -707,7 +698,7 @@ def page_pixels_in_allowed_range(page_size):
 
 ### CAPTURE COMPLETION
 
-def teardown(thread_list, browser, display, warcprox_controller, warcprox_thread):
+def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_thread):
     print("Shutting down browser and proxies.")
     for thread in thread_list:
         # wait until threads are done (have to do this before closing phantomjs)
@@ -715,6 +706,8 @@ def teardown(thread_list, browser, display, warcprox_controller, warcprox_thread
             thread.stop.set()
         thread.join()
     if browser:
+        if not browser_still_running(browser):
+            link.tags.add('browser-crashed')
         browser.quit()  # shut down phantomjs
     if display:
         display.stop()  # shut down virtual display
@@ -781,12 +774,11 @@ def warn_on_exception(message="Exception in block:", exception_type=Exception):
         print message, e
 
 @contextmanager
-def browser_running(link, browser, onfailure=None):
+def browser_running(browser, onfailure=None):
     if browser_still_running(browser):
         yield
     else:
         print("Browser crashed")
-        link.tags.add('browser-crashed')
         if onfailure:
             onfailure()
         raise HaltCaptureException
@@ -821,15 +813,7 @@ def run_next_capture():
         thread_list = []
         page_metadata = {}
         successful_favicon_urls = []
-
-        # By domain, code to run after the target_url's page onload event.
-        # (Wrap in a lambda function to delay execution.)
-        special_domains = {
-            # Wait for splash page to auto redirect
-            "www.forbes.com": lambda: sleep_unless_seconds_passed(24, start_time),
-            "forbes.com": lambda: sleep_unless_seconds_passed(24, start_time)
-        }
-        post_load_function = special_domains.get(link.url_details.netloc)
+        requested_urls = set()  # all URLs we have requested -- used to avoid duplicate requests
 
         # Get started, unless the user has deleted the capture in the meantime
         inc_progress(capture_job, 0, "Starting capture")
@@ -844,7 +828,6 @@ def run_next_capture():
         # Create a request handler class that tracks requests and responses
         # via in-scope, shared mutable containers. (Define inside capture function
         # so the containers are initialized empty for every new capture.)
-        proxied_requests = []
         proxied_responses = {
           "any": False,
           "size": 0,
@@ -869,7 +852,7 @@ def run_next_capture():
 
                 with tracker_lock:
                     proxied_pair = [self.url, None]
-                    proxied_requests.append(proxied_pair[0])
+                    requested_urls.add(proxied_pair[0])
                     proxied_pairs.append(proxied_pair)
                 try:
                     response = WarcProxyHandler._proxy_request(self)
@@ -877,7 +860,6 @@ def run_next_capture():
                     # If warcprox can't handle a request/response for some reason,
                     # remove the proxied pair so that it doesn't keep trying and
                     # the capture process can proceed
-                    proxied_requests.remove(proxied_pair[0])
                     proxied_pairs.remove(proxied_pair)
                     print("WarcProx exception: %s parsing response from %s" % (e.__class__.__name__, proxied_pair[0]))
                     return  # swallow exception
@@ -927,7 +909,7 @@ def run_next_capture():
         page_load_thread.start()
 
         # before proceeding further, wait until warcprox records a response that isn't a forward
-        with browser_running(link, browser):
+        with browser_running(browser):
             while not have_content:
                 if proxied_responses["any"]:
                     for request, response in proxied_pairs:
@@ -968,7 +950,8 @@ def run_next_capture():
             target_url,
             content_url,
             thread_list,
-            proxy_address
+            proxy_address,
+            requested_urls
         ))
 
         inc_progress(capture_job, 1, "Checking x-robots-tag directives.")
@@ -977,66 +960,61 @@ def run_next_capture():
             print "x-robots-tag found, darchiving"
 
         if have_html:
+
             # Get a copy of the page's metadata immediately, without
             # waiting for the page's onload event (which can take a
             # long time, and might even crash the browser)
-            with browser_running(link, browser):
-                print "Retrieving page metadata (first time)"
-                add_thread(thread_list, get_metadata, args=(
-                    page_metadata,
-                    link,
-                    browser
-                ))
+            print("Retrieving DOM (pre-onload)")
+            dom_tree = get_dom_tree(browser)
+            get_metadata(page_metadata, dom_tree)
 
             # get favicon urls (saved as favicon_capture_url later)
-            with browser_running(link, browser):
+            with browser_running(browser):
                 print "Fetching favicons ..."
                 add_thread(thread_list, favicon_thread, args=(
                     successful_favicon_urls,
-                    browser,
+                    dom_tree,
                     content_url,
                     thread_list,
-                    proxy_address
+                    proxy_address,
+                    requested_urls
                 ))
 
             print("Waiting for onload event before proceeding.")
             page_load_thread.join(max(0, ONLOAD_EVENT_TIMEOUT - (time.time() - start_time)))
             if page_load_thread.is_alive():
                 print("Onload timed out")
+            post_load_function = get_post_load_function(browser)
             if post_load_function:
                 print("Running domain's post-load function")
-                post_load_function()
+                post_load_function(browser)
 
-            print("Finished fetching URL.")
+            # Get a fresh copy of the page's metadata, if possible.
+            print("Retrieving DOM (post-onload)")
+            dom_tree = get_dom_tree(browser)
+            get_metadata(page_metadata, dom_tree)
 
-            # Get a fresh copy of the page's metadata, if possible
-            with browser_running(link, browser):
-                inc_progress(capture_job, 1, "Retrieving page metadata (after onload)")
-                add_thread(thread_list, get_metadata, args=(
-                    page_metadata,
-                    link,
-                    browser
-                ))
-
-            with browser_running(link, browser):
+            with browser_running(browser):
                 inc_progress(capture_job, 0.5, "Checking for scroll-loaded assets")
                 repeat_while_exception(scroll_browser, arglist=[browser], raise_after_timeout=False)
 
-            with browser_running(link, browser):
-                inc_progress(capture_job, 1, "Fetching media")
-                with warn_on_exception("Error fetching media"):
-                    media_urls = run_in_frames(link, browser, get_media_tags)
-                    # grab all media urls that aren't already being grabbed,
-                    # each in its own background thread
-                    for media_url in set(media_urls) - set(proxied_requests):
-                        add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
+
+            inc_progress(capture_job, 1, "Fetching media")
+            with warn_on_exception("Error fetching media"):
+                dom_trees = get_all_dom_trees(browser)
+                get_metadata(page_metadata, dom_trees[0][1])
+                media_urls = get_media_tags(dom_trees)
+                # grab all media urls that aren't already being grabbed,
+                # each in its own background thread
+                for media_url in media_urls - requested_urls:
+                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls))
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         inc_progress(capture_job, 1, "Waiting for post-load requests")
         time.sleep(.5)
         unfinished_proxied_pairs = [pair for pair in proxied_pairs if not pair[1]]
         load_time = time.time()
-        with browser_running(link, browser):
+        with browser_running(browser):
             while unfinished_proxied_pairs and browser_still_running(browser):
 
                 print "Waiting for %s pending requests" % len(unfinished_proxied_pairs)
@@ -1070,7 +1048,7 @@ def run_next_capture():
         traceback.print_exc()
     finally:
         try:
-            teardown(thread_list, browser, display, warcprox_controller, warcprox_thread)
+            teardown(link, thread_list, browser, display, warcprox_controller, warcprox_thread)
 
             # un-suppress logging
             logging.disable(logging.NOTSET)

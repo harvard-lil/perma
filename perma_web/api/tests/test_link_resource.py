@@ -273,8 +273,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             "test1.jpg", "test2.png", "test_fallback.jpg",
             "wide1.png", "wide2.png", "narrow.png"
         )
+        failures = []
         for expected_capture in expected_captures:
-            self.assertEqual('200', CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid']).parsed['status'])
+            try:
+                cdxline = CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid'])
+                if cdxline.parsed['status'] != '200':
+                    failures.append("%s returned HTTP status %s." % (expected_capture, cdxline.parsed['status']))
+            except CDXLine.DoesNotExist:
+                failures.append("%s not captured." % expected_capture)
+        self.assertFalse(bool(failures), "Failures in fetching media from iframes: %s" % failures)
 
     #########################
     # File Archive Creation #
