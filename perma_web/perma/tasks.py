@@ -281,21 +281,57 @@ def run_in_frames(link, browser, func, output_collector=None):
     return output_collector
 
 def run_in_frames_recursive(link, browser, func, output_collector, frame_path=None):
+    DEPTH_LIMIT = 3  # deepest frame level we'll visit
+    FRAME_LIMIT = 20  # max total frames we'll visit
+
     if frame_path is None:
         frame_path = []
+
     with browser_running(link, browser):
+        # slow to run, so only uncomment logging if needed for debugging:
+        # import hashlib
+        # print frame_path, browser.find_elements_by_tag_name('html')[0]._id, hashlib.sha256(browser.page_source.encode('utf8')).hexdigest(), browser.execute_script("return window.location.href")
+
+        # skip about:blank, about:srcdoc, and any other non-http frames
+        current_url = browser.current_url
+        if not (current_url.startswith('http:') or current_url.startswith('https:')):
+            return
+
+        # run func in current frame
         output_collector += func(browser)
-        for child_frame in browser.find_elements_by_tag_name('frame') + browser.find_elements_by_tag_name('iframe'):
-            browser.switch_to.default_content()
-            for frame in frame_path:
-                browser.switch_to.frame(frame)
+
+        # stop looking for subframes if we hit depth limit
+        if len(frame_path) > DEPTH_LIMIT:
+            return
+
+        # run in subframes of current frame
+        for i in range(FRAME_LIMIT):
+
+            # stop looking for subframes if we hit total frames limit
+            if len(output_collector) > FRAME_LIMIT:
+                return
+
+            # call self recursively in child frame i
             try:
-                browser.switch_to.frame(child_frame)
-                run_in_frames_recursive(link, browser, func, output_collector, frame_path + [child_frame])
-            except (ValueError, NoSuchFrameException):
-                # switching to frame failed for some reason
+                browser.switch_to.frame(i)
+                run_in_frames_recursive(link, browser, func, output_collector, frame_path + [i])
+            except NoSuchFrameException:
+                # we've run out of subframes
+                break
+            except ValueError:
+                # switching to frame failed for some reason (does this still apply?)
                 print "run_in_frames_recursive caught exception switching to iframe:"
                 traceback.print_exc()
+
+            # return to current frame
+            browser.switch_to.default_content()
+            try:
+                for frame in frame_path:
+                    browser.switch_to.frame(frame)
+            except NoSuchFrameException:
+                # frame hierarchy changed; frame_path is invalid
+                print "frame hierarchy changed while running run_in_frames_recursive"
+                break
 
 
 ### UTILS ###
