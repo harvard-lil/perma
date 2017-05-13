@@ -999,7 +999,7 @@ def run_next_capture():
                     proxy_address
                 ))
 
-            print("Waiting for onload event before proceding.")
+            print("Waiting for onload event before proceeding.")
             page_load_thread.join(max(0, ONLOAD_EVENT_TIMEOUT - (time.time() - start_time)))
             if page_load_thread.is_alive():
                 print("Onload timed out")
