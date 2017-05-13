@@ -1,8 +1,13 @@
-import os
-import requests
+import os, subprocess, uuid
+from io import BytesIO
+from StringIO import StringIO
+from tempfile import NamedTemporaryFile
 
+import requests
+from PIL import Image, ImageOps, ImageEnhance
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -15,18 +20,27 @@ import compare.utils as utils
 
 from perma.models import Link
 from htmldiff import diff
-from htmldiff import settings as diff_settings
+#from htmldiff import settings as diff_settings
 from warc_compare import WARCCompare
+
+
+# ignore guids in html
+diff_settings = {'EXCLUDE_STRINGS_A': [], 'EXCLUDE_STRINGS_B': [],
+                 'STYLE_STR': '',
+                 'DIFF_API_KEY': '5485b838d0745944383f38835a98d825affbb9d8',}
+
+# add own style string
+#diff_settings.STYLE_STR = settings.DIFF_STYLE_STR
 
 @login_required
 def capture_create(request, old_guid):
     """
     here, we want to grab the guid coming in, and create a new archive of it
     we then do a diff on that archive using diff.warc_compare_text
-    """
+    OUTL"""
 
     old_archive = Link.objects.get(guid=old_guid)
-    api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % settings.DIFF_API_KEY
+    api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % '5485b838d0745944383f38835a98d825affbb9d8'
     response = requests.post(api_url, data={'url': old_archive.submitted_url})
     # limitation: can only compare public links for now
     # maybe this is solved by temporarily allowing users to view, until archive gets deleted or transferred over
@@ -103,8 +117,149 @@ def capture_compare(request, old_guid, new_guid):
 
         return render(request, 'comparison.html', context)
 
-def image_compare(request, old_guid, new_guid):
-    return render(request)
+def image_compare(request, old_guid):
+    '''
+    here we get the old guid, and the new guid and create two three different
+    images that we'll display the user
+
+    1  the new_guid - the old_guid with the additions in blue
+    2  the old_giud - the new_guid with the subtractions in orange
+    3  a thumbnail that is a summary of the changes that we can display the the user
+
+    '''
+
+
+    # todo: some super basic validation on our existing screen caps
+    # if they look weird at all, surface a message
+
+    ####
+    ## generate image described in 1
+    ####
+
+    # get old archive and if we have a screenshot, get the replay url
+    # for that image and download it
+    #old_guid = 'YV6W-FRBY'
+    old_archive = Link.objects.get(guid=old_guid)
+    old_screenshot_capture = old_archive.captures.filter(role='screenshot').first()
+
+    if old_screenshot_capture.status == 'success':
+        capture_replay_url = 'http:%s' % old_screenshot_capture.playback_url_with_access_token()
+        #u'//perma-archives.dev:8000/warc/JRN5-UQAX/id_/file:///JRN5-UQAX/cap.png'
+        r = requests.get(capture_replay_url)
+        old_image = Image.open(StringIO(r.content))
+        old_image_temp_file = NamedTemporaryFile(delete=False)
+        old_image.save(old_image_temp_file, 'PNG', quality=90)
+        print "~~~~~~~~~~~~~~~~~~old_giud, %s is %s in height " % (old_guid, old_image.height)
+
+
+
+        api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % '5485b838d0745944383f38835a98d825affbb9d8'
+        response = requests.post(api_url, data={'url': old_archive.submitted_url})
+        new_guid = response.json().get('guid')
+        #new_guid = 'B5CT-6C33'
+
+        new_archive = Link.objects.get(guid=new_guid)
+        new_screenshot_capture = new_archive.captures.filter(role='screenshot').first()
+        capture_replay_url = 'http:%s' % new_screenshot_capture.playback_url_with_access_token()
+        r = requests.get(capture_replay_url)
+        new_image = Image.open(StringIO(r.content))
+        new_image_temp_file = NamedTemporaryFile(delete=False)
+
+
+
+
+        #img_temp.write(urllib2.urlopen(url).read())
+        #img_temp.flush()
+        #im.file.save(img_filename, File(img_temp))
+
+        new_image.save(new_image_temp_file, 'PNG', quality=80)
+        print "~~~~~~~~~~~~~~~~~~new guid, %s is %s in height " % (new_guid, new_image.height)
+
+
+        diff_image_temp_file = NamedTemporaryFile(delete=False)
+
+
+
+        print subprocess.call(['/usr/local/bin/convert', new_image_temp_file.name,
+            old_image_temp_file.name, '-alpha', 'off', '+repage', '(',
+            '-clone', '0', '-clone', '1', '-compose', 'difference', '-composite',
+            '-threshold', '0', ')', '-delete', '1', '-alpha', 'off', '-compose', 'copy_opacity',
+            '-composite', diff_image_temp_file.name])
+
+
+
+        compare = Compare(original_guid=old_guid, guid=new_guid, created_by=old_archive.created_by,)
+        compare.save()
+        compare.image_diff.save(diff_image_temp_file.name, ContentFile(diff_image_temp_file.read()))
+
+
+        diff_image = Image.open(compare.image_diff)
+
+
+        def tint_image(src, color="#FFFFFF"):
+            src.load()
+            r, g, b, alpha = src.split()
+            gray = ImageOps.grayscale(src)
+            result = ImageOps.colorize(gray, (0, 0, 0, 0), color)
+            result.putalpha(alpha)
+            return result
+
+
+
+        diff_image = tint_image(diff_image, "#ff2200")
+
+
+
+        f = BytesIO()
+        try:
+            diff_image.save(f, format='png')
+            compare.image_diff.save(compare.image_diff.name,    ContentFile(f.getvalue()))
+        finally:
+            f.close()
+
+
+
+
+
+        # create thumbnial of compare
+        background = old_image
+        enhancer = ImageEnhance.Contrast(background)
+        background = enhancer.enhance(.3)
+
+        foreground = Image.open(compare.image_diff)
+        background.paste(foreground, (0, 0), foreground)
+
+        basewidth = 150
+        wpercent = (basewidth/float(background.size[0]))
+        hsize = int((float(background.size[1])*float(wpercent)))
+        thumbed = background.resize((basewidth,hsize), Image.ANTIALIAS)
+
+        f = BytesIO()
+        try:
+            thumbed.save(f, format='png')
+            compare.image_diff_thumb.save(str(uuid.uuid4()), ContentFile(f.getvalue()))
+        finally:
+            f.close()
+
+        new_image.close()
+        old_image.close()
+        diff_image_temp_file.close()
+
+    #return single comparison view with the three images and the two guids
+
+    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+
+    context = {
+        'old_archive': old_archive,
+        'old_archive_capture': old_screenshot_capture.playback_url_with_access_token(),
+        'new_archive': new_archive,
+        'compare': compare,
+        'link_url': settings.HOST + '/' + old_archive.guid,
+        'protocol': protocol,
+    }
+
+
+    return render(request, 'comparison-single-pane.html', context)
 
 def list(request, old_guid):
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"

@@ -13,5 +13,30 @@
   resize: both;
 }
 
+.archive-image-layers {
+  position: relative;
+}
+
+.archive-image-layers img {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.imga {
+  z-index: 10;
+  opacity: 0.5;
+}
+
+.imgb {
+  z-index: 20;
+}
+
+.thumb {
+  top: 120px;
+  right: 5px;
+  position: fixed;
+}
+
 
 /*# sourceMappingURL=compare-warcs.css.map*/

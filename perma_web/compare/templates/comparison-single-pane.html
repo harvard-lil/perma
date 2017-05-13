@@ -39,15 +39,17 @@
 {% block mainContent %}
 
 <div class="capture-wrapper">
-  <div class="h_iframe">
 
-      <div id="archive-image-layers">
-           <img id="imga" src="{{ old_archive_capture }}" />
-           <img id="imgb" src="{{ compare.image_diff.url }}" />
+  <div class="h_iframe">
+      <img class="thumb" src="{{ compare.image_diff_thumb.url }}" />
+      <div  class="archive-image-layers">
+           <img class="imga" src="{{ old_archive_capture }}" />
+           <img class="imgb" src="{{ compare.image_diff.url }}" />
        </div>
 
 
   </div> <!-- /h_iframe -->
+
 </div> <!-- /capture-wrapper -->
 {% endblock %}
 
