@@ -873,13 +873,14 @@ def run_next_capture():
                     proxied_pairs.append(proxied_pair)
                 try:
                     response = WarcProxyHandler._proxy_request(self)
-                except:
+                except Exception as e:
                     # If warcprox can't handle a request/response for some reason,
                     # remove the proxied pair so that it doesn't keep trying and
                     # the capture process can proceed
                     proxied_requests.remove(proxied_pair[0])
                     proxied_pairs.remove(proxied_pair)
-                    raise
+                    print("WarcProx exception: %s parsing response from %s" % (e.__class__.__name__, proxied_pair[0]))
+                    return  # swallow exception
                 with tracker_lock:
                     proxied_responses["any"] = True
                     proxied_responses["size"] += response.response_recorder.len
