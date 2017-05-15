@@ -1,5 +1,13 @@
 <html>
   <body>
-    <iframe src="test_media_inner.html"></iframe>
+    <!--
+        Parent file to test our ability to traverse iframes. Hierarchy:
+            test_media_outer.html
+                test_media_a.html
+                test_media_b.html
+                    test_media_c.html
+     -->
+    <iframe src="test_media_a.html"></iframe>
+    <iframe src="test_media_b.html"></iframe>
   </body>
 </html>

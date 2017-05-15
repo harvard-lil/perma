@@ -252,21 +252,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
 
-    def test_should_capture_all_srcset_images(self):
-        target_folder = self.org_user.root_folder
-        obj = self.successful_post(self.list_url,
-                                   data={
-                                       'url': self.server_url + "/test_media_outer.html",
-                                       'folder': target_folder.pk,
-                                   },
-                                   user=self.org_user)
-
-        # verify that all images in src and srcset were found and captured
-        expected_captures = ("test1.jpg", "test2.png", "test_fallback.jpg", "wide1.png", "wide2.png", "narrow.png")
-        for expected_capture in expected_captures:
-            self.assertEqual('200', CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid']).parsed['status'])
-
-    def test_should_capture_nested_audio_file(self):
+    def test_media_capture_in_iframes(self):
         settings.ENABLE_AV_CAPTURE = True
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
@@ -276,8 +262,17 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    },
                                    user=self.org_user)
 
-        # verify that embedded /test.* files in iframe were found and captured
-        expected_captures = ("test.wav", "test2.wav", "test.mp4", "test2.mp4", "test.swf", "test2.swf", "test3.swf")
+        # verify that all images in src and srcset were found and captured
+        expected_captures = (
+            # test_media_a.html
+            "test.wav", "test2.wav",
+            # test_media_b.html
+            "test.mp4", "test2.mp4",
+            # test_media_c.html
+            "test.swf", "test2.swf", "test3.swf",
+            "test1.jpg", "test2.png", "test_fallback.jpg",
+            "wide1.png", "wide2.png", "narrow.png"
+        )
         for expected_capture in expected_captures:
             self.assertEqual('200', CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid']).parsed['status'])
 
