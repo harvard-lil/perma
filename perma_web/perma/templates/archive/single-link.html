@@ -189,6 +189,9 @@
         {% endcomment %}
       </div>
       <div class="tray-actions col-xs-12">
+          <a href="{% url 'single_linky' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
+
+
         {% if not can_edit %}
           <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
         {% endif %}
