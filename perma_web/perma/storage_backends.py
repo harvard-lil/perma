@@ -12,6 +12,8 @@ from storages.backends.s3boto3 import S3Boto3Storage
 from storages.backends.sftpstorage import SFTPStorage
 from whitenoise.storage import CompressedManifestStaticFilesStorage
 
+import logging
+
 
 file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
 
@@ -83,6 +85,7 @@ class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
 
 class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
     location = settings.MEDIA_ROOT
+    logging.getLogger('s3transfer').setLevel(logging.WARNING)
 
 
 class SFTPMediaStorage(BaseMediaStorage, SFTPStorage):
