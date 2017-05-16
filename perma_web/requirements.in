@@ -46,6 +46,7 @@ ua-parser==0.7.1                # user agent parsing to detect Safari browser fo
 django_webpack_loader==0.3.3    # frontend assets building
 -e git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 tqdm==4.11.2                    # progress bar in dev fab tasks
+pyquery==1.2.17                 # extract data from HTML in capture task
 
 # api
 djangorestframework==3.6.2
