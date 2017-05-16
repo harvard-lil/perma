@@ -273,7 +273,7 @@ def scroll_browser(browser):
         pass
 
 def get_page_source(browser):
-    """ 
+    """
         Get page source.
         Use JS rather than browser.page_source so we get the parsed, properly formatted DOM instead of raw user HTML.
     """
@@ -282,8 +282,8 @@ def get_page_source(browser):
 def parse_page_source(source):
     """
         Return page source as a parsed PyQuery object for querying.
-         
-        PyQuery here works the same as `$(source)` in jQuery. So for example you can do `parsed_source(selector)` 
+
+        PyQuery here works the same as `$(source)` in jQuery. So for example you can do `parsed_source(selector)`
         with the returned value to get a list of LXML elements matching the selector.
     """
     return PyQuery(source, parser='html')
@@ -574,7 +574,7 @@ def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, 
 
 def favicon_get_urls(dom_tree, content_url):
     """
-        Retrieve favicon URLs from DOM. 
+        Retrieve favicon URLs from DOM.
     """
     urls = []  # order here matters so that we prefer meta tag favicon over /favicon.ico
     for el in dom_tree('link'):
