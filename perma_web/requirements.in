@@ -64,8 +64,8 @@ pywb==0.33
 -e git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox  # unreleased 1/4/16 version of warcprox
 
 # alternate storages
-django-storages==1.1.8
-boto==2.42.0
+django-storages==1.5.2
+boto3==1.4.4  # required for django-storages to use s3 backend
 
 # testing
 sauceclient==0.1.0
