@@ -85,7 +85,8 @@ class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
 
 class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
     location = settings.MEDIA_ROOT
-    logging.getLogger('s3transfer').setLevel(logging.WARNING)
+    logging.getLogger('boto3').setLevel(logging.WARNING)
+    logging.getLogger('botocore').setLevel(logging.WARNING)
 
 
 class SFTPMediaStorage(BaseMediaStorage, SFTPStorage):
