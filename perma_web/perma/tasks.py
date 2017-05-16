@@ -984,10 +984,11 @@ def run_next_capture():
             page_load_thread.join(max(0, ONLOAD_EVENT_TIMEOUT - (time.time() - start_time)))
             if page_load_thread.is_alive():
                 print("Onload timed out")
-            post_load_function = get_post_load_function(browser)
-            if post_load_function:
-                print("Running domain's post-load function")
-                post_load_function(browser)
+            with browser_running(browser):
+                post_load_function = get_post_load_function(browser)
+                if post_load_function:
+                    print("Running domain's post-load function")
+                    post_load_function(browser)
 
             # Get a fresh copy of the page's metadata, if possible.
             print("Retrieving DOM (post-onload)")
