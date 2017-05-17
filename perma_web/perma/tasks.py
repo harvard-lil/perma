@@ -7,7 +7,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from pyquery import PyQuery
 
-from httplib import HTTPResponse
+from httplib import HTTPResponse, CannotSendRequest
 from urllib2 import URLError
 
 import os
@@ -283,7 +283,10 @@ def get_page_source(browser):
         Get page source.
         Use JS rather than browser.page_source so we get the parsed, properly formatted DOM instead of raw user HTML.
     """
-    return browser.execute_script("return document.documentElement.outerHTML")
+    try:
+        return browser.execute_script("return document.documentElement.outerHTML")
+    except (WebDriverException, CannotSendRequest):
+        return browser.page_source
 
 def parse_page_source(source):
     """
