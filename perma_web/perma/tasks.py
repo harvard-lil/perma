@@ -330,8 +330,14 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
         # import hashlib
         # print frame_path, browser.find_elements_by_tag_name('html')[0]._id, hashlib.sha256(browser.page_source.encode('utf8')).hexdigest(), browser.execute_script("return window.location.href")
 
+        # attempt to get iframe url, skipping the iframe if attempt fails
+        # (usually due to content security policy)
+        try:
+            current_url = browser.current_url
+        except WebDriverException:
+            return
+
         # skip about:blank, about:srcdoc, and any other non-http frames
-        current_url = browser.current_url
         if not (current_url.startswith('http:') or current_url.startswith('https:')):
             return
 
@@ -487,8 +493,7 @@ def parse_response(response_text):
 post_load_function_lookup = {
     "^https?://www.forbes.com/forbes/welcome": site_scripts.forbes_post_load
 }
-def get_post_load_function(browser):
-    current_url = browser.current_url
+def get_post_load_function(current_url):
     for regex, post_load_function in post_load_function_lookup.items():
         if re.search(regex, current_url.lower()):
             return post_load_function
@@ -994,7 +999,10 @@ def run_next_capture():
             if page_load_thread.is_alive():
                 print("Onload timed out")
             with browser_running(browser):
-                post_load_function = get_post_load_function(browser)
+                try:
+                    post_load_function = get_post_load_function(browser.current_url)
+                except WebDriverException:
+                    post_load_function = get_post_load_function(content_url)
                 if post_load_function:
                     print("Running domain's post-load function")
                     post_load_function(browser)
@@ -1008,11 +1016,9 @@ def run_next_capture():
                 inc_progress(capture_job, 0.5, "Checking for scroll-loaded assets")
                 repeat_while_exception(scroll_browser, arglist=[browser], raise_after_timeout=False)
 
-
             inc_progress(capture_job, 1, "Fetching media")
             with warn_on_exception("Error fetching media"):
                 dom_trees = get_all_dom_trees(browser)
-                get_metadata(page_metadata, dom_trees[0][1])
                 media_urls = get_media_tags(dom_trees)
                 # grab all media urls that aren't already being grabbed,
                 # each in its own background thread
