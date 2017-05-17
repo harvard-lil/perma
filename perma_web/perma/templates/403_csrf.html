@@ -1,0 +1,16 @@
+{% extends "base-responsive.html" %}
+{% block title %} | Login Request Failed{% endblock %}
+
+{% block mainContent %}
+<div class="container cont-fixed">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1 class="page-title">Login Request Failed</h1>
+      <p class="page-dek">
+        Your attempt to log in failed. If you believe you reached this
+        page in error, please <a href="{% url 'contact' %}?subject=Log%20In%20Attempt%20Failed">contact us</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
