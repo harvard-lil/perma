@@ -30,6 +30,7 @@ from selenium.common.exceptions import WebDriverException, NoSuchElementExceptio
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from pyvirtualdisplay import Display
+import warcprox
 from warcprox.controller import WarcproxController
 from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
@@ -150,6 +151,11 @@ def _update_payload_digest(self, hunk):
         self.headers = re.sub(br'(\r?\n\r?\n).*', r'\1', self.headers)  # remove any part of hunk that came after headers
     return _orig_update_payload_digest(self, hunk)
 ProxyingRecorder._update_payload_digest = _update_payload_digest
+
+# monkeypatch WarcProxy so request threads are daemons, and don't stop
+# the parent python process from quitting normally
+_orig_threading_mixin = warcprox.warcprox.socketserver.ThreadingMixIn
+_orig_threading_mixin.daemon_threads = True
 
 
 # BROWSER HELPERS
