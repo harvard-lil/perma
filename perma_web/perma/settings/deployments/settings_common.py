@@ -138,6 +138,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
+CSRF_FAILURE_VIEW = 'perma.views.error_management.csrf_failure'
 
 ROOT_URLCONF = 'urls'
 
