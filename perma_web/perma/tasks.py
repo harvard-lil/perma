@@ -779,6 +779,8 @@ def save_favicons(link, successful_favicon_urls):
 def warn_on_exception(message="Exception in block:", exception_type=Exception):
     try:
         yield
+    except SoftTimeLimitExceeded:
+        raise
     except exception_type as e:
         print message, e
 
