@@ -182,3 +182,12 @@ def backup_code():
         out_file_path = os.path.join(env.CODE_BACKUP_DIR, "perma_web_%s.tar.gz" % date.today().isoformat())
         # || [[ $? -eq 1 ]] makes sure that we still consider an exit code of 1 (meaning files changed during tar) a success
         run_as_web_user("cd .. && tar -cvzf %s perma_web || [[ $? -eq 1 ]]" % out_file_path)
+
+@task
+def bulk_sync_cdxline_flags(primary_defaults_file, cdxline_defaults_file):
+    """ This task will be required when migrating the database to RDS. """
+    print("Creating perma_link table on cdxline server ...")
+    local("mysqldump --defaults-extra-file='%s' --tables perma_link --no-create-info perma | mysql --defaults-extra-file='%s' perma_cdxline" % (primary_defaults_file, cdxline_defaults_file))
+    print("Updating cdxline table ...")
+    local("mysql --defaults-extra-file='%s' 'update perma_cdxline as c, perma_link as l set c.is_private=l.is_private, c.is_unlisted=l.unlisted where c.link_id=l.guid; drop table perma_link;'" % (cdxline_defaults_file,))
+    print("Done.")
