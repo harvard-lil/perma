@@ -1,7 +1,10 @@
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.conf.urls import *
 
 admin.autodiscover()
+
+handler500 = 'perma.views.error_management.server_error'
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),  # Django admin
