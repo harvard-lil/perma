@@ -1,0 +1,68 @@
+{% extends "archive/base-archive-responsive.html" %}
+{% load local_datetime as_json archive_description %}
+{% load render_bundle from webpack_loader %}
+
+{% block header_scripts %}
+  {% local_datetime_js %}{# allow local_datetime filter to work #}
+{% endblock %}
+
+{% block title %} | {{ old_archive.submitted_title}}{% endblock %}
+
+{% block meta_description %}
+{{ old_archive.submitted_description | archive_description:''  }}
+{% endblock %}
+
+{% block meta-head %}
+  <meta name="robots" content="noindex, noimageindex">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ protocol }}{{ link_url }}">
+  <meta property="og:title" content="{{ old_archive.submitted_title }}">
+  <meta property="og:description" content="{{ old_archive.submitted_description | archive_description:''  }}">
+  <meta property="og:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="{{ protocol }}{{ link_url }}">
+  <meta name="twitter:title" content="{{ old_archive.submitted_title }}">
+  <meta name="twitter:description" content="{{ old_archive.submitted_description | archive_description:''  }}">
+  <meta name="twitter:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+{% endblock %}
+
+{% block styles %}
+  {% render_bundle 'compare-warcs' 'css' %}
+{% endblock %}
+
+{% block header %}
+  {% include 'includes/header.html' %}
+{% endblock %}
+
+{% block mainContent %}
+
+<div class="capture-wrapper">
+
+  <div class="h_iframe">
+      <img class="thumb" src="{{ compare.image_diff_thumb.url }}" />
+      <div  class="archive-image-layers">
+           <img class="imga" src="{{ old_archive_capture }}" />
+           <img class="imgb" src="{{ compare.image_diff.url }}" />
+       </div>
+
+
+  </div> <!-- /h_iframe -->
+
+</div> <!-- /capture-wrapper -->
+{% endblock %}
+
+{% block scripts %}
+
+  <script>
+    var archive = { guid: "{{ old_archive.guid }}" };
+    var current_user = {id:"{{ request.user.id }}"};
+    var simhash_distance = "{{ simhash_distance }}"
+    var compare_resources_url = "{{ protocol }}{{ request.get_host }}/{{ old_archive.guid }}/compare/{{ new_archive.guid }}/get-resource-list"
+  </script>
+  {% render_bundle 'global' 'js' %}
+  {% render_bundle 'single-link-permissions' 'js' %}
+  {% render_bundle 'compare' 'js' %}
+
+{% endblock %}

@@ -12,31 +12,19 @@
       <div class="col col-sm-2 _details">
         <div class="content">
           <button id="details-button" class="btn btn-ui-small details" type="button">
-            <span>Show more details</span>
+            <span>Slider here</span>
           </button>
         </div>
       </div>
       <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
-          <p class="title">Comparing Perma.cc records</p>
+          <p class="title"></p>
           <p class="creation">
             {% if new_archive %}
-              {{ original_archive.creation_timestamp }}
+              <p>Old archive is on bottom  {{ old_archive.creation_timestamp }}</p>
+              <p>Old archive is layered on top in red {{ new_archive.creation_timestamp }}</p>
             {% endif %}
-            {% if serve_type != 'image' and new_archive %}
-              <span class="action">
-                <span class="_verbose">
-                  <a href="">
-                  See the Screenshot View
-                  </a>
-                </span>
-              </span>
-            {% else %}
-              <span class="action">
-                {% if original_archive.primary_capture and original_archive.primary_capture.status == 'success' %}
-                {% endif %}
-              </span>
-            {% endif %}
+
             {% if request.user.is_authenticated %}
             {% else %}
               <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
