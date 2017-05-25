@@ -148,7 +148,7 @@ def image_compare(request, old_guid):
         r = requests.get(capture_replay_url)
         old_image = Image.open(StringIO(r.content))
         old_image_temp_file = NamedTemporaryFile(delete=False)
-        old_image.save(old_image_temp_file, 'PNG', quality=90)
+        old_image.save(old_image_temp_file, 'PNG', quality=98)
         print "~~~~~~~~~~~~~~~~~~old_giud, %s is %s in height " % (old_guid, old_image.height)
 
 
@@ -172,7 +172,7 @@ def image_compare(request, old_guid):
         #img_temp.flush()
         #im.file.save(img_filename, File(img_temp))
 
-        new_image.save(new_image_temp_file, 'PNG', quality=80)
+        new_image.save(new_image_temp_file, 'PNG', quality=98)
         print "~~~~~~~~~~~~~~~~~~new guid, %s is %s in height " % (new_guid, new_image.height)
 
 
@@ -183,7 +183,7 @@ def image_compare(request, old_guid):
         print subprocess.call(['/usr/local/bin/convert', new_image_temp_file.name,
             old_image_temp_file.name, '-alpha', 'off', '+repage', '(',
             '-clone', '0', '-clone', '1', '-compose', 'difference', '-composite',
-            '-threshold', '0', ')', '-delete', '1', '-alpha', 'off', '-compose', 'copy_opacity',
+            '-threshold', '0', ')', '-delete', '1', '-fuzz', '70%', '-alpha', 'off', '-compose', 'copy_opacity',
             '-composite', diff_image_temp_file.name])
 
 
@@ -206,7 +206,7 @@ def image_compare(request, old_guid):
 
 
 
-        diff_image = tint_image(diff_image, "#ff2200")
+        diff_image = tint_image(diff_image, "#DD671A")
 
 
 
@@ -225,6 +225,9 @@ def image_compare(request, old_guid):
         background = old_image
         enhancer = ImageEnhance.Contrast(background)
         background = enhancer.enhance(.3)
+
+        enhancer = ImageEnhance.Brightness(background)
+        background = enhancer.enhance(1.1)
 
         foreground = Image.open(compare.image_diff)
         background.paste(foreground, (0, 0), foreground)
