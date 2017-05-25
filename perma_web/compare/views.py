@@ -20,14 +20,18 @@ import compare.utils as utils
 
 from perma.models import Link
 from htmldiff import diff
-#from htmldiff import settings as diff_settings
+from htmldiff import settings as diff_settings
 from warc_compare import WARCCompare
-
 
 # ignore guids in html
 diff_settings = {'EXCLUDE_STRINGS_A': [], 'EXCLUDE_STRINGS_B': [],
                  'STYLE_STR': '',
-                 'DIFF_API_KEY': '5485b838d0745944383f38835a98d825affbb9d8',}
+                 'DIFF_API_KEY': '5485b838d0745944383f38835a98d825affbb9d8',
+				}
+
+diff_settings['API_URL'] = "http://localhost:8000/api/v1/archives/?api_key=%s" % diff_settings['DIFF_API_KEY']
+
+
 
 # add own style string
 #diff_settings.STYLE_STR = settings.DIFF_STYLE_STR
@@ -40,8 +44,7 @@ def capture_create(request, old_guid):
     OUTL"""
 
     old_archive = Link.objects.get(guid=old_guid)
-    api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % '5485b838d0745944383f38835a98d825affbb9d8'
-    response = requests.post(api_url, data={'url': old_archive.submitted_url})
+    response = requests.post(diff_settings['API_URL'], data={'url': old_archive.submitted_url})
     # limitation: can only compare public links for now
     # maybe this is solved by temporarily allowing users to view, until archive gets deleted or transferred over
 
@@ -147,8 +150,7 @@ def image_compare(request, old_guid):
         # We now have our old_image, let's create a new image
         # of the same url
 
-        api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % '5485b838d0745944383f38835a98d825affbb9d8'
-        response = requests.post(api_url, data={'url': old_archive.submitted_url})
+        response = requests.post(diff_settings['API_URL'], data={'url': old_archive.submitted_url})
         new_guid = response.json().get('guid')
 
         new_archive = Link.objects.get(guid=new_guid)
