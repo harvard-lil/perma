@@ -159,6 +159,9 @@ def image_compare(request, old_guid):
         new_image_temp_file = NamedTemporaryFile(delete=False)
         new_image.save(new_image_temp_file, 'PNG', quality=98)
 
+        # TODO: our images need to be the same size to compare
+        #if old_image.height != new_image.height:
+
         # And we have our newly created png of the archive, let's create
         # a difference image
         diff_image_temp_file = NamedTemporaryFile(delete=False)
@@ -193,7 +196,6 @@ def image_compare(request, old_guid):
             compare.image_diff.save(compare.image_diff.name,  ContentFile(f.getvalue()))
         finally:
             f.close()
-
 
         # Now that we have a good diff image, let's create a good looking,
         # thumbnial of it
