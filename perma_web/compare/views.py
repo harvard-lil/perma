@@ -128,35 +128,28 @@ def image_compare(request, old_guid):
 
     '''
 
-
-    # todo: some super basic validation on our existing screen caps
-    # if they look weird at all, surface a message
-
     ####
     ## generate image described in 1
     ####
 
     # get old archive and if we have a screenshot, get the replay url
     # for that image and download it
-    #old_guid = 'YV6W-FRBY'
     old_archive = Link.objects.get(guid=old_guid)
     old_screenshot_capture = old_archive.captures.filter(role='screenshot').first()
 
     if old_screenshot_capture.status == 'success':
         capture_replay_url = 'http:%s' % old_screenshot_capture.playback_url_with_access_token()
-        #u'//perma-archives.dev:8000/warc/JRN5-UQAX/id_/file:///JRN5-UQAX/cap.png'
         r = requests.get(capture_replay_url)
         old_image = Image.open(StringIO(r.content))
         old_image_temp_file = NamedTemporaryFile(delete=False)
         old_image.save(old_image_temp_file, 'PNG', quality=98)
-        print "~~~~~~~~~~~~~~~~~~old_giud, %s is %s in height " % (old_guid, old_image.height)
 
-
+        # We now have our old_image, let's create a new image
+        # of the same url
 
         api_url = "http://localhost:8000/api/v1/archives/?api_key=%s" % '5485b838d0745944383f38835a98d825affbb9d8'
         response = requests.post(api_url, data={'url': old_archive.submitted_url})
         new_guid = response.json().get('guid')
-        #new_guid = 'B5CT-6C33'
 
         new_archive = Link.objects.get(guid=new_guid)
         new_screenshot_capture = new_archive.captures.filter(role='screenshot').first()
@@ -164,38 +157,25 @@ def image_compare(request, old_guid):
         r = requests.get(capture_replay_url)
         new_image = Image.open(StringIO(r.content))
         new_image_temp_file = NamedTemporaryFile(delete=False)
-
-
-
-
-        #img_temp.write(urllib2.urlopen(url).read())
-        #img_temp.flush()
-        #im.file.save(img_filename, File(img_temp))
-
         new_image.save(new_image_temp_file, 'PNG', quality=98)
-        print "~~~~~~~~~~~~~~~~~~new guid, %s is %s in height " % (new_guid, new_image.height)
 
-
+        # And we have our newly created png of the archive, let's create
+        # a difference image
         diff_image_temp_file = NamedTemporaryFile(delete=False)
-
-
-
         print subprocess.call(['/usr/local/bin/convert', new_image_temp_file.name,
             old_image_temp_file.name, '-alpha', 'off', '+repage', '(',
             '-clone', '0', '-clone', '1', '-compose', 'difference', '-composite',
             '-threshold', '0', ')', '-delete', '1', '-fuzz', '70%', '-alpha', 'off', '-compose', 'copy_opacity',
             '-composite', diff_image_temp_file.name])
 
-
-
+        # save our compare work into our model along wiht our newly created difference image
         compare = Compare(original_guid=old_guid, guid=new_guid, created_by=old_archive.created_by,)
         compare.save()
         compare.image_diff.save(diff_image_temp_file.name, ContentFile(diff_image_temp_file.read()))
 
-
         diff_image = Image.open(compare.image_diff)
 
-
+        # our diff image appears too dark, lighten it up
         def tint_image(src, color="#FFFFFF"):
             src.load()
             r, g, b, alpha = src.split()
@@ -204,24 +184,19 @@ def image_compare(request, old_guid):
             result.putalpha(alpha)
             return result
 
-
-
         diff_image = tint_image(diff_image, "#DD671A")
 
-
-
+        # save our lightened diff image back to our model
         f = BytesIO()
         try:
             diff_image.save(f, format='png')
-            compare.image_diff.save(compare.image_diff.name,    ContentFile(f.getvalue()))
+            compare.image_diff.save(compare.image_diff.name,  ContentFile(f.getvalue()))
         finally:
             f.close()
 
 
-
-
-
-        # create thumbnial of compare
+        # Now that we have a good diff image, let's create a good looking,
+        # thumbnial of it
         background = old_image
         enhancer = ImageEnhance.Contrast(background)
         background = enhancer.enhance(.3)
@@ -237,6 +212,7 @@ def image_compare(request, old_guid):
         hsize = int((float(background.size[1])*float(wpercent)))
         thumbed = background.resize((basewidth,hsize), Image.ANTIALIAS)
 
+        # and again, save our claned up image (thumbnail) back our model
         f = BytesIO()
         try:
             thumbed.save(f, format='png')
@@ -248,7 +224,7 @@ def image_compare(request, old_guid):
         old_image.close()
         diff_image_temp_file.close()
 
-    #return single comparison view with the three images and the two guids
+    # Done processing. files closed. return images to user
 
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
 
