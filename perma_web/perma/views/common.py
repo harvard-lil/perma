@@ -11,7 +11,7 @@ from urllib import urlencode
 
 from django.core.files.storage import default_storage
 from django.forms import widgets
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, Http404
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, StreamingHttpResponse
 from django.core.urlresolvers import reverse
@@ -131,7 +131,9 @@ def single_linky(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        if request.user.can_view(link):
+        if link.user_deleted:
+            raise Http404
+        elif request.user.can_view(link):
             response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
                                              content_type="application/gzip")
             response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
