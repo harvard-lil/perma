@@ -5,692 +5,22840 @@ webpackJsonp([6],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var _toConsumableArray2 = __webpack_require__(193);
+	var Datamap = __webpack_require__(193);
 	
-	var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+	// show world map
+	var partnerMap = new Datamap({
+	  element: document.getElementById("plot-map-container"),
+	  geographyConfig: {
+	    popupOnHover: false,
+	    highlightOnHover: false
+	  },
+	  fills: {
+	    defaultFill: '#74bbfa',
+	    partner: '#DD671A'
+	  },
+	  responsive: true
+	});
 	
-	var _getIterator2 = __webpack_require__(97);
+	// add partner circles
+	partnerMap.bubbles(partnerPoints.map(function (partner) {
+	  return {
+	    name: partner[2],
+	    radius: 5,
+	    latitude: partner[0],
+	    longitude: partner[1],
+	    fillKey: 'partner'
+	  };
+	}), {
+	  popupTemplate: function popupTemplate(geo, data) {
+	    return '<div class="hoverinfo">' + data.name + '</div>';
+	  },
+	  borderWidth: 1,
+	  fillOpacity: 1
+	});
 	
-	var _getIterator3 = _interopRequireDefault(_getIterator2);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Raphael = __webpack_require__(201);
-	__webpack_require__(202);
-	
-	var width = 950,
-	    height = 590,
-	    paperContainer = $('#plot-map-container'),
-	    paper = new Raphael(paperContainer.attr('id'), width, height),
-	    map = paper.USMap();
-	
-	// via http://bertanguven.com/raphael-js-setsize-function
-	paper.setViewBox(0, 0, width, height);
-	paper.canvas.setAttribute('preserveAspectRatio', 'none'); // allow resizing svg
-	
-	// handle resizing
-	$(window).resize(function () {
-	  var newWidth = paperContainer.parent().width();
-	  paperContainer.find("svg").attr('width', newWidth).attr('height', newWidth / width * height);
-	}).trigger('resize');
-	
-	// plot points
-	var _iteratorNormalCompletion = true;
-	var _didIteratorError = false;
-	var _iteratorError = undefined;
-	
-	try {
-	  for (var _iterator = (0, _getIterator3.default)(partnerPoints), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	    var point = _step.value;
-	
-	    map.plot.apply(map, (0, _toConsumableArray3.default)(point));
-	  }
-	
-	  // show bootstrap tooltips? not working ...
-	  /*
-	  require('bootstrap/js/tooltip');
-	  paperContainer.find("svg circle").tooltip({
-	    'container': 'body',
-	    'placement': 'bottom',
-	  });
-	  */
-	} catch (err) {
-	  _didIteratorError = true;
-	  _iteratorError = err;
-	} finally {
-	  try {
-	    if (!_iteratorNormalCompletion && _iterator.return) {
-	      _iterator.return();
-	    }
-	  } finally {
-	    if (_didIteratorError) {
-	      throw _iteratorError;
-	    }
-	  }
-	}
+	// resize map on window change
+	$(window).on('resize', function () {
+	  partnerMap.resize();
+	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-
-/***/ 68:
-/***/ function(module, exports) {
-
-	exports.f = {}.propertyIsEnumerable;
 
 /***/ },
 
 /***/ 193:
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	/* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {(function() {
+	  var svg;
 	
-	exports.__esModule = true;
+	  // Save off default references
+	  var d3 = window.d3, topojson = window.topojson;
 	
-	var _from = __webpack_require__(194);
+	  var defaultOptions = {
+	    scope: 'world',
+	    responsive: false,
+	    aspectRatio: 0.5625,
+	    setProjection: setProjection,
+	    projection: 'equirectangular',
+	    dataType: 'json',
+	    data: {},
+	    done: function() {},
+	    fills: {
+	      defaultFill: '#ABDDA4'
+	    },
+	    filters: {},
+	    geographyConfig: {
+	        dataUrl: null,
+	        hideAntarctica: true,
+	        hideHawaiiAndAlaska : false,
+	        borderWidth: 1,
+	        borderOpacity: 1,
+	        borderColor: '#FDFDFD',
+	        popupTemplate: function(geography, data) {
+	          return '<div class="hoverinfo"><strong>' + geography.properties.name + '</strong></div>';
+	        },
+	        popupOnHover: true,
+	        highlightOnHover: true,
+	        highlightFillColor: '#FC8D59',
+	        highlightBorderColor: 'rgba(250, 15, 160, 0.2)',
+	        highlightBorderWidth: 2,
+	        highlightBorderOpacity: 1
+	    },
+	    projectionConfig: {
+	      rotation: [97, 0]
+	    },
+	    bubblesConfig: {
+	        borderWidth: 2,
+	        borderOpacity: 1,
+	        borderColor: '#FFFFFF',
+	        popupOnHover: true,
+	        radius: null,
+	        popupTemplate: function(geography, data) {
+	          return '<div class="hoverinfo"><strong>' + data.name + '</strong></div>';
+	        },
+	        fillOpacity: 0.75,
+	        animate: true,
+	        highlightOnHover: true,
+	        highlightFillColor: '#FC8D59',
+	        highlightBorderColor: 'rgba(250, 15, 160, 0.2)',
+	        highlightBorderWidth: 2,
+	        highlightBorderOpacity: 1,
+	        highlightFillOpacity: 0.85,
+	        exitDelay: 100,
+	        key: JSON.stringify
+	    },
+	    arcConfig: {
+	      strokeColor: '#DD1C77',
+	      strokeWidth: 1,
+	      arcSharpness: 1,
+	      animationSpeed: 600,
+	      popupOnHover: false,
+	      popupTemplate: function(geography, data) {
+	        // Case with latitude and longitude
+	        if ( ( data.origin && data.destination ) && data.origin.latitude && data.origin.longitude && data.destination.latitude && data.destination.longitude ) {
+	          return '<div class="hoverinfo"><strong>Arc</strong><br>Origin: ' + JSON.stringify(data.origin) + '<br>Destination: ' + JSON.stringify(data.destination) + '</div>';
+	        }
+	        // Case with only country name
+	        else if ( data.origin && data.destination ) {
+	          return '<div class="hoverinfo"><strong>Arc</strong><br>' + data.origin + ' -> ' + data.destination + '</div>';
+	        }
+	        // Missing information
+	        else {
+	          return '';
+	        }
+	      }
+	    }
+	  };
 	
-	var _from2 = _interopRequireDefault(_from);
+	  /*
+	    Getter for value. If not declared on datumValue, look up the chain into optionsValue
+	  */
+	  function val( datumValue, optionsValue, context ) {
+	    if ( typeof context === 'undefined' ) {
+	      context = optionsValue;
+	      optionsValues = undefined;
+	    }
+	    var value = typeof datumValue !== 'undefined' ? datumValue : optionsValue;
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	exports.default = function (arr) {
-	  if (Array.isArray(arr)) {
-	    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-	      arr2[i] = arr[i];
+	    if (typeof value === 'undefined') {
+	      return  null;
 	    }
 	
-	    return arr2;
-	  } else {
-	    return (0, _from2.default)(arr);
+	    if ( typeof value === 'function' ) {
+	      var fnContext = [context];
+	      if ( context.geography ) {
+	        fnContext = [context.geography, context.data];
+	      }
+	      return value.apply(null, fnContext);
+	    }
+	    else {
+	      return value;
+	    }
 	  }
-	};
+	
+	  function addContainer( element, height, width ) {
+	    this.svg = d3.select( element ).append('svg')
+	      .attr('width', width || element.offsetWidth)
+	      .attr('data-width', width || element.offsetWidth)
+	      .attr('class', 'datamap')
+	      .attr('height', height || element.offsetHeight)
+	      .style('overflow', 'hidden'); // IE10+ doesn't respect height/width when map is zoomed in
+	
+	    if (this.options.responsive) {
+	      d3.select(this.options.element).style({'position': 'relative', 'padding-bottom': (this.options.aspectRatio*100) + '%'});
+	      d3.select(this.options.element).select('svg').style({'position': 'absolute', 'width': '100%', 'height': '100%'});
+	      d3.select(this.options.element).select('svg').select('g').selectAll('path').style('vector-effect', 'non-scaling-stroke');
+	
+	    }
+	
+	    return this.svg;
+	  }
+	
+	  // setProjection takes the svg element and options
+	  function setProjection( element, options ) {
+	    var width = options.width || element.offsetWidth;
+	    var height = options.height || element.offsetHeight;
+	    var projection, path;
+	    var svg = this.svg;
+	
+	    if ( options && typeof options.scope === 'undefined') {
+	      options.scope = 'world';
+	    }
+	
+	    if ( options.scope === 'usa' ) {
+	      projection = d3.geo.albersUsa()
+	        .scale(width)
+	        .translate([width / 2, height / 2]);
+	    }
+	    else if ( options.scope === 'world' ) {
+	      projection = d3.geo[options.projection]()
+	        .scale((width + 1) / 2 / Math.PI)
+	        .translate([width / 2, height / (options.projection === "mercator" ? 1.45 : 1.8)]);
+	    }
+	
+	    if ( options.projection === 'orthographic' ) {
+	
+	      svg.append("defs").append("path")
+	        .datum({type: "Sphere"})
+	        .attr("id", "sphere")
+	        .attr("d", path);
+	
+	      svg.append("use")
+	          .attr("class", "stroke")
+	          .attr("xlink:href", "#sphere");
+	
+	      svg.append("use")
+	          .attr("class", "fill")
+	          .attr("xlink:href", "#sphere");
+	      projection.scale(250).clipAngle(90).rotate(options.projectionConfig.rotation)
+	    }
+	
+	    path = d3.geo.path()
+	      .projection( projection );
+	
+	    return {path: path, projection: projection};
+	  }
+	
+	  function addStyleBlock() {
+	    if ( d3.select('.datamaps-style-block').empty() ) {
+	      d3.select('head').append('style').attr('class', 'datamaps-style-block')
+	      .html('.datamap path.datamaps-graticule { fill: none; stroke: #777; stroke-width: 0.5px; stroke-opacity: .5; pointer-events: none; } .datamap .labels {pointer-events: none;} .datamap path:not(.datamaps-arc), .datamap circle, .datamap line {stroke: #FFFFFF; vector-effect: non-scaling-stroke; stroke-width: 1px;} .datamaps-legend dt, .datamaps-legend dd { float: left; margin: 0 3px 0 0;} .datamaps-legend dd {width: 20px; margin-right: 6px; border-radius: 3px;} .datamaps-legend {padding-bottom: 20px; z-index: 1001; position: absolute; left: 4px; font-size: 12px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;} .datamaps-hoverover {display: none; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; } .hoverinfo {padding: 4px; border-radius: 1px; background-color: #FFF; box-shadow: 1px 1px 5px #CCC; font-size: 12px; border: 1px solid #CCC; } .hoverinfo hr {border:1px dotted #CCC; }');
+	    }
+	  }
+	
+	  function drawSubunits( data ) {
+	    var fillData = this.options.fills,
+	        colorCodeData = this.options.data || {},
+	        geoConfig = this.options.geographyConfig;
+	
+	    var subunits = this.svg.select('g.datamaps-subunits');
+	    if ( subunits.empty() ) {
+	      subunits = this.addLayer('datamaps-subunits', null, true);
+	    }
+	
+	    var geoData = topojson.feature( data, data.objects[ this.options.scope ] ).features;
+	    if ( geoConfig.hideAntarctica ) {
+	      geoData = geoData.filter(function(feature) {
+	        return feature.id !== "ATA";
+	      });
+	    }
+	
+	    if ( geoConfig.hideHawaiiAndAlaska ) {
+	      geoData = geoData.filter(function(feature) {
+	        return feature.id !== "HI" && feature.id !== 'AK';
+	      });
+	    }
+	
+	    var geo = subunits.selectAll('path.datamaps-subunit').data( geoData );
+	
+	    geo.enter()
+	      .append('path')
+	      .attr('d', this.path)
+	      .attr('class', function(d) {
+	        return 'datamaps-subunit ' + d.id;
+	      })
+	      .attr('data-info', function(d) {
+	        return JSON.stringify( colorCodeData[d.id]);
+	      })
+	      .style('fill', function(d) {
+	        // If fillKey - use that
+	        // Otherwise check 'fill'
+	        // Otherwise check 'defaultFill'
+	        var fillColor;
+	
+	        var datum = colorCodeData[d.id];
+	        if ( datum && datum.fillKey ) {
+	          fillColor = fillData[ val(datum.fillKey, {data: colorCodeData[d.id], geography: d}) ];
+	        }
+	
+	        if ( typeof fillColor === 'undefined' ) {
+	          fillColor = val(datum && datum.fillColor, fillData.defaultFill, {data: colorCodeData[d.id], geography: d});
+	        }
+	
+	        return fillColor;
+	      })
+	      .style('stroke-width', geoConfig.borderWidth)
+	      .style('stroke-opacity', geoConfig.borderOpacity)
+	      .style('stroke', geoConfig.borderColor);
+	  }
+	
+	  function handleGeographyConfig () {
+	    var hoverover;
+	    var svg = this.svg;
+	    var self = this;
+	    var options = this.options.geographyConfig;
+	
+	    if ( options.highlightOnHover || options.popupOnHover ) {
+	      svg.selectAll('.datamaps-subunit')
+	        .on('mouseover', function(d) {
+	          var $this = d3.select(this);
+	          var datum = self.options.data[d.id] || {};
+	          if ( options.highlightOnHover ) {
+	            var previousAttributes = {
+	              'fill':  $this.style('fill'),
+	              'stroke': $this.style('stroke'),
+	              'stroke-width': $this.style('stroke-width'),
+	              'fill-opacity': $this.style('fill-opacity')
+	            };
+	
+	            $this
+	              .style('fill', val(datum.highlightFillColor, options.highlightFillColor, datum))
+	              .style('stroke', val(datum.highlightBorderColor, options.highlightBorderColor, datum))
+	              .style('stroke-width', val(datum.highlightBorderWidth, options.highlightBorderWidth, datum))
+	              .style('stroke-opacity', val(datum.highlightBorderOpacity, options.highlightBorderOpacity, datum))
+	              .style('fill-opacity', val(datum.highlightFillOpacity, options.highlightFillOpacity, datum))
+	              .attr('data-previousAttributes', JSON.stringify(previousAttributes));
+	
+	            // As per discussion on https://github.com/markmarkoh/datamaps/issues/19
+	            if ( ! /((MSIE)|(Trident))/.test(navigator.userAgent) ) {
+	             moveToFront.call(this);
+	            }
+	          }
+	
+	          if ( options.popupOnHover ) {
+	            self.updatePopup($this, d, options, svg);
+	          }
+	        })
+	        .on('mouseout', function() {
+	          var $this = d3.select(this);
+	
+	          if (options.highlightOnHover) {
+	            // Reapply previous attributes
+	            var previousAttributes = JSON.parse( $this.attr('data-previousAttributes') );
+	            for ( var attr in previousAttributes ) {
+	              $this.style(attr, previousAttributes[attr]);
+	            }
+	          }
+	          $this.on('mousemove', null);
+	          d3.selectAll('.datamaps-hoverover').style('display', 'none');
+	        });
+	    }
+	
+	    function moveToFront() {
+	      this.parentNode.appendChild(this);
+	    }
+	  }
+	
+	  // Plugin to add a simple map legend
+	  function addLegend(layer, data, options) {
+	    data = data || {};
+	    if ( !this.options.fills ) {
+	      return;
+	    }
+	
+	    var html = '<dl>';
+	    var label = '';
+	    if ( data.legendTitle ) {
+	      html = '<h2>' + data.legendTitle + '</h2>' + html;
+	    }
+	    for ( var fillKey in this.options.fills ) {
+	
+	      if ( fillKey === 'defaultFill') {
+	        if (! data.defaultFillName ) {
+	          continue;
+	        }
+	        label = data.defaultFillName;
+	      } else {
+	        if (data.labels && data.labels[fillKey]) {
+	          label = data.labels[fillKey];
+	        } else {
+	          label= fillKey + ': ';
+	        }
+	      }
+	      html += '<dt>' + label + '</dt>';
+	      html += '<dd style="background-color:' +  this.options.fills[fillKey] + '">&nbsp;</dd>';
+	    }
+	    html += '</dl>';
+	
+	    var hoverover = d3.select( this.options.element ).append('div')
+	      .attr('class', 'datamaps-legend')
+	      .html(html);
+	  }
+	
+	    function addGraticule ( layer, options ) {
+	      var graticule = d3.geo.graticule();
+	      this.svg.insert("path", '.datamaps-subunits')
+	        .datum(graticule)
+	        .attr("class", "datamaps-graticule")
+	        .attr("d", this.path);
+	  }
+	
+	  function handleArcs (layer, data, options) {
+	    var self = this,
+	        svg = this.svg;
+	
+	    if ( !data || (data && !data.slice) ) {
+	      throw "Datamaps Error - arcs must be an array";
+	    }
+	
+	    // For some reason arc options were put in an `options` object instead of the parent arc
+	    // I don't like this, so to match bubbles and other plugins I'm moving it
+	    // This is to keep backwards compatability
+	    for ( var i = 0; i < data.length; i++ ) {
+	      data[i] = defaults(data[i], data[i].options);
+	      delete data[i].options;
+	    }
+	
+	    if ( typeof options === "undefined" ) {
+	      options = defaultOptions.arcConfig;
+	    }
+	
+	    var arcs = layer.selectAll('path.datamaps-arc').data( data, JSON.stringify );
+	
+	    var path = d3.geo.path()
+	        .projection(self.projection);
+	
+	    arcs
+	      .enter()
+	        .append('svg:path')
+	        .attr('class', 'datamaps-arc')
+	        .style('stroke-linecap', 'round')
+	        .style('stroke', function(datum) {
+	          return val(datum.strokeColor, options.strokeColor, datum);
+	        })
+	        .style('fill', 'none')
+	        .style('stroke-width', function(datum) {
+	            return val(datum.strokeWidth, options.strokeWidth, datum);
+	        })
+	        .attr('d', function(datum) {
+	
+	            var originXY, destXY;
+	
+	            if (typeof datum.origin === "string") {
+	              switch (datum.origin) {
+	                   case "CAN":
+	                       originXY = self.latLngToXY(56.624472, -114.665293);
+	                       break;
+	                   case "CHL":
+	                       originXY = self.latLngToXY(-33.448890, -70.669265);
+	                       break;
+	                   case "IDN":
+	                       originXY = self.latLngToXY(-6.208763, 106.845599);
+	                       break;
+	                   case "JPN":
+	                       originXY = self.latLngToXY(35.689487, 139.691706);
+	                       break;
+	                   case "MYS":
+	                       originXY = self.latLngToXY(3.139003, 101.686855);
+	                       break;
+	                   case "NOR":
+	                       originXY = self.latLngToXY(59.913869, 10.752245);
+	                       break;
+	                   case "USA":
+	                       originXY = self.latLngToXY(41.140276, -100.760145);
+	                       break;
+	                   case "VNM":
+	                       originXY = self.latLngToXY(21.027764, 105.834160);
+	                       break;
+	                   default:
+	                       originXY = self.path.centroid(svg.select('path.' + datum.origin).data()[0]);
+	               }
+	            } else {
+	              originXY = self.latLngToXY(val(datum.origin.latitude, datum), val(datum.origin.longitude, datum))
+	            }
+	
+	            if (typeof datum.destination === 'string') {
+	              switch (datum.destination) {
+	                     case "CAN":
+	                        destXY = self.latLngToXY(56.624472, -114.665293);
+	                        break;
+	                    case "CHL":
+	                        destXY = self.latLngToXY(-33.448890, -70.669265);
+	                        break;
+	                    case "IDN":
+	                        destXY = self.latLngToXY(-6.208763, 106.845599);
+	                        break;
+	                    case "JPN":
+	                        destXY = self.latLngToXY(35.689487, 139.691706);
+	                        break;
+	                    case "MYS":
+	                        destXY = self.latLngToXY(3.139003, 101.686855);
+	                        break;
+	                    case "NOR":
+	                        destXY = self.latLngToXY(59.913869, 10.752245);
+	                        break;
+	                    case "USA":
+	                        destXY = self.latLngToXY(41.140276, -100.760145);
+	                        break;
+	                    case "VNM":
+	                        destXY = self.latLngToXY(21.027764, 105.834160);
+	                        break;
+	                    default:
+	                        destXY = self.path.centroid(svg.select('path.' + datum.destination).data()[0]);
+	              }
+	            } else {
+	              destXY = self.latLngToXY(val(datum.destination.latitude, datum), val(datum.destination.longitude, datum));
+	            }
+	            var midXY = [ (originXY[0] + destXY[0]) / 2, (originXY[1] + destXY[1]) / 2];
+	            if (options.greatArc) {
+	                  // TODO: Move this to inside `if` clause when setting attr `d`
+	              var greatArc = d3.geo.greatArc()
+	                  .source(function(d) { return [val(d.origin.longitude, d), val(d.origin.latitude, d)]; })
+	                  .target(function(d) { return [val(d.destination.longitude, d), val(d.destination.latitude, d)]; });
+	
+	              return path(greatArc(datum))
+	            }
+	            var sharpness = val(datum.arcSharpness, options.arcSharpness, datum);
+	            return "M" + originXY[0] + ',' + originXY[1] + "S" + (midXY[0] + (50 * sharpness)) + "," + (midXY[1] - (75 * sharpness)) + "," + destXY[0] + "," + destXY[1];
+	        })
+	        .attr('data-info', function(datum) {
+	          return JSON.stringify(datum);
+	        })
+	        .on('mouseover', function ( datum ) {
+	          var $this = d3.select(this);
+	
+	          if (options.popupOnHover) {
+	            self.updatePopup($this, datum, options, svg);
+	          }
+	        })
+	        .on('mouseout', function ( datum ) {
+	          var $this = d3.select(this);
+	
+	          d3.selectAll('.datamaps-hoverover').style('display', 'none');
+	        })
+	        .transition()
+	          .delay(100)
+	          .style('fill', function(datum) {
+	            /*
+	              Thank you Jake Archibald, this is awesome.
+	              Source: http://jakearchibald.com/2013/animated-line-drawing-svg/
+	            */
+	            var length = this.getTotalLength();
+	            this.style.transition = this.style.WebkitTransition = 'none';
+	            this.style.strokeDasharray = length + ' ' + length;
+	            this.style.strokeDashoffset = length;
+	            this.getBoundingClientRect();
+	            this.style.transition = this.style.WebkitTransition = 'stroke-dashoffset ' + val(datum.animationSpeed, options.animationSpeed, datum) + 'ms ease-out';
+	            this.style.strokeDashoffset = '0';
+	            return 'none';
+	          })
+	
+	    arcs.exit()
+	      .transition()
+	      .style('opacity', 0)
+	      .remove();
+	  }
+	
+	  function handleLabels ( layer, options ) {
+	    var self = this;
+	    options = options || {};
+	    var labelStartCoodinates = this.projection([-67.707617, 42.722131]);
+	    this.svg.selectAll(".datamaps-subunit")
+	      .attr("data-foo", function(d) {
+	        var center = self.path.centroid(d);
+	        var xOffset = 7.5, yOffset = 5;
+	
+	        if ( ["FL", "KY", "MI"].indexOf(d.id) > -1 ) xOffset = -2.5;
+	        if ( d.id === "NY" ) xOffset = -1;
+	        if ( d.id === "MI" ) yOffset = 18;
+	        if ( d.id === "LA" ) xOffset = 13;
+	
+	        var x,y;
+	
+	        x = center[0] - xOffset;
+	        y = center[1] + yOffset;
+	
+	        var smallStateIndex = ["VT", "NH", "MA", "RI", "CT", "NJ", "DE", "MD", "DC"].indexOf(d.id);
+	        if ( smallStateIndex > -1) {
+	          var yStart = labelStartCoodinates[1];
+	          x = labelStartCoodinates[0];
+	          y = yStart + (smallStateIndex * (2+ (options.fontSize || 12)));
+	          layer.append("line")
+	            .attr("x1", x - 3)
+	            .attr("y1", y - 5)
+	            .attr("x2", center[0])
+	            .attr("y2", center[1])
+	            .style("stroke", options.labelColor || "#000")
+	            .style("stroke-width", options.lineWidth || 1)
+	        }
+	
+	          layer.append("text")
+	              .attr("x", x)
+	              .attr("y", y)
+	              .style("font-size", (options.fontSize || 10) + 'px')
+	              .style("font-family", options.fontFamily || "Verdana")
+	              .style("fill", options.labelColor || "#000")
+	              .text(function() {
+	                  if (options.customLabelText && options.customLabelText[d.id]) {
+	                      return options.customLabelText[d.id]
+	                  } else {
+	                      return d.id
+	                  }
+	              });
+	
+	        return "bar";
+	      });
+	  }
+	
+	
+	  function handleBubbles (layer, data, options ) {
+	    var self = this,
+	        fillData = this.options.fills,
+	        filterData = this.options.filters,
+	        svg = this.svg;
+	
+	    if ( !data || (data && !data.slice) ) {
+	      throw "Datamaps Error - bubbles must be an array";
+	    }
+	
+	    var bubbles = layer.selectAll('circle.datamaps-bubble').data( data, options.key );
+	
+	    bubbles
+	      .enter()
+	        .append('svg:circle')
+	        .attr('class', 'datamaps-bubble')
+	        .attr('cx', function ( datum ) {
+	          var latLng;
+	          if ( datumHasCoords(datum) ) {
+	            latLng = self.latLngToXY(datum.latitude, datum.longitude);
+	          }
+	          else if ( datum.centered ) {
+	            if ( datum.centered === 'USA' ) {
+	              latLng = self.projection([-98.58333, 39.83333])
+	            } else {
+	              latLng = self.path.centroid(svg.select('path.' + datum.centered).data()[0]);
+	            }
+	          }
+	          if ( latLng ) return latLng[0];
+	        })
+	        .attr('cy', function ( datum ) {
+	          var latLng;
+	          if ( datumHasCoords(datum) ) {
+	            latLng = self.latLngToXY(datum.latitude, datum.longitude);
+	          }
+	          else if ( datum.centered ) {
+	            if ( datum.centered === 'USA' ) {
+	              latLng = self.projection([-98.58333, 39.83333])
+	            } else {
+	              latLng = self.path.centroid(svg.select('path.' + datum.centered).data()[0]);
+	            }
+	          }
+	          if ( latLng ) return latLng[1];
+	        })
+	        .attr('r', function(datum) {
+	          // If animation enabled start with radius 0, otherwise use full size.
+	          return options.animate ? 0 : val(datum.radius, options.radius, datum);
+	        })
+	        .attr('data-info', function(datum) {
+	          return JSON.stringify(datum);
+	        })
+	        .attr('filter', function (datum) {
+	          var filterKey = filterData[ val(datum.filterKey, options.filterKey, datum) ];
+	
+	          if (filterKey) {
+	            return filterKey;
+	          }
+	        })
+	        .style('stroke', function ( datum ) {
+	          return val(datum.borderColor, options.borderColor, datum);
+	        })
+	        .style('stroke-width', function ( datum ) {
+	          return val(datum.borderWidth, options.borderWidth, datum);
+	        })
+	        .style('stroke-opacity', function ( datum ) {
+	          return val(datum.borderOpacity, options.borderOpacity, datum);
+	        })
+	        .style('fill-opacity', function ( datum ) {
+	          return val(datum.fillOpacity, options.fillOpacity, datum);
+	        })
+	        .style('fill', function ( datum ) {
+	          var fillColor = fillData[ val(datum.fillKey, options.fillKey, datum) ];
+	          return fillColor || fillData.defaultFill;
+	        })
+	        .on('mouseover', function ( datum ) {
+	          var $this = d3.select(this);
+	
+	          if (options.highlightOnHover) {
+	            // Save all previous attributes for mouseout
+	            var previousAttributes = {
+	              'fill':  $this.style('fill'),
+	              'stroke': $this.style('stroke'),
+	              'stroke-width': $this.style('stroke-width'),
+	              'fill-opacity': $this.style('fill-opacity')
+	            };
+	
+	            $this
+	              .style('fill', val(datum.highlightFillColor, options.highlightFillColor, datum))
+	              .style('stroke', val(datum.highlightBorderColor, options.highlightBorderColor, datum))
+	              .style('stroke-width', val(datum.highlightBorderWidth, options.highlightBorderWidth, datum))
+	              .style('stroke-opacity', val(datum.highlightBorderOpacity, options.highlightBorderOpacity, datum))
+	              .style('fill-opacity', val(datum.highlightFillOpacity, options.highlightFillOpacity, datum))
+	              .attr('data-previousAttributes', JSON.stringify(previousAttributes));
+	          }
+	
+	          if (options.popupOnHover) {
+	            self.updatePopup($this, datum, options, svg);
+	          }
+	        })
+	        .on('mouseout', function ( datum ) {
+	          var $this = d3.select(this);
+	
+	          if (options.highlightOnHover) {
+	            // Reapply previous attributes
+	            var previousAttributes = JSON.parse( $this.attr('data-previousAttributes') );
+	            for ( var attr in previousAttributes ) {
+	              $this.style(attr, previousAttributes[attr]);
+	            }
+	          }
+	
+	          d3.selectAll('.datamaps-hoverover').style('display', 'none');
+	        })
+	
+	    bubbles.transition()
+	      .duration(400)
+	      .attr('r', function ( datum ) {
+	        return val(datum.radius, options.radius, datum);
+	      })
+	    .transition()
+	      .duration(0)
+	      .attr('data-info', function(d) {
+	        return JSON.stringify(d);
+	      });
+	
+	    bubbles.exit()
+	      .transition()
+	        .delay(options.exitDelay)
+	        .attr("r", 0)
+	        .remove();
+	
+	    function datumHasCoords (datum) {
+	      return typeof datum !== 'undefined' && typeof datum.latitude !== 'undefined' && typeof datum.longitude !== 'undefined';
+	    }
+	  }
+	
+	  function defaults(obj) {
+	    Array.prototype.slice.call(arguments, 1).forEach(function(source) {
+	      if (source) {
+	        for (var prop in source) {
+	          // Deep copy if property not set
+	          if (obj[prop] == null) {
+	            if (typeof source[prop] == 'function') {
+	              obj[prop] = source[prop];
+	            }
+	            else {
+	              obj[prop] = JSON.parse(JSON.stringify(source[prop]));
+	            }
+	          }
+	        }
+	      }
+	    });
+	    return obj;
+	  }
+	  /**************************************
+	             Public Functions
+	  ***************************************/
+	
+	  function Datamap( options ) {
+	
+	    if ( typeof d3 === 'undefined' || typeof topojson === 'undefined' ) {
+	      throw new Error('Include d3.js (v3.0.3 or greater) and topojson on this page before creating a new map');
+	   }
+	    // Set options for global use
+	    this.options = defaults(options, defaultOptions);
+	    this.options.geographyConfig = defaults(options.geographyConfig, defaultOptions.geographyConfig);
+	    this.options.projectionConfig = defaults(options.projectionConfig, defaultOptions.projectionConfig);
+	    this.options.bubblesConfig = defaults(options.bubblesConfig, defaultOptions.bubblesConfig);
+	    this.options.arcConfig = defaults(options.arcConfig, defaultOptions.arcConfig);
+	
+	    // Add the SVG container
+	    if ( d3.select( this.options.element ).select('svg').length > 0 ) {
+	      addContainer.call(this, this.options.element, this.options.height, this.options.width );
+	    }
+	
+	    // Add core plugins to this instance
+	    this.addPlugin('bubbles', handleBubbles);
+	    this.addPlugin('legend', addLegend);
+	    this.addPlugin('arc', handleArcs);
+	    this.addPlugin('labels', handleLabels);
+	    this.addPlugin('graticule', addGraticule);
+	
+	    // Append style block with basic hoverover styles
+	    if ( ! this.options.disableDefaultStyles ) {
+	      addStyleBlock();
+	    }
+	
+	    return this.draw();
+	  }
+	
+	  // Resize map
+	  Datamap.prototype.resize = function () {
+	
+	    var self = this;
+	    var options = self.options;
+	
+	    if (options.responsive) {
+	      var newsize = options.element.clientWidth,
+	          oldsize = d3.select( options.element).select('svg').attr('data-width');
+	
+	      d3.select(options.element).select('svg').selectAll('g').attr('transform', 'scale(' + (newsize / oldsize) + ')');
+	    }
+	  }
+	
+	  // Actually draw the features(states & countries)
+	  Datamap.prototype.draw = function() {
+	    // Save off in a closure
+	    var self = this;
+	    var options = self.options;
+	
+	    // Set projections and paths based on scope
+	    var pathAndProjection = options.setProjection.apply(this, [options.element, options] );
+	
+	    this.path = pathAndProjection.path;
+	    this.projection = pathAndProjection.projection;
+	
+	    // If custom URL for topojson data, retrieve it and render
+	    if ( options.geographyConfig.dataUrl ) {
+	      d3.json( options.geographyConfig.dataUrl, function(error, results) {
+	        if ( error ) throw new Error(error);
+	        self.customTopo = results;
+	        draw( results );
+	      });
+	    }
+	    else {
+	      draw( this[options.scope + 'Topo'] || options.geographyConfig.dataJson);
+	    }
+	
+	    return this;
+	
+	      function draw (data) {
+	        // If fetching remote data, draw the map first then call `updateChoropleth`
+	        if ( self.options.dataUrl ) {
+	          // Allow for csv or json data types
+	          d3[self.options.dataType](self.options.dataUrl, function(data) {
+	            // In the case of csv, transform data to object
+	            if ( self.options.dataType === 'csv' && (data && data.slice) ) {
+	              var tmpData = {};
+	              for(var i = 0; i < data.length; i++) {
+	                tmpData[data[i].id] = data[i];
+	              }
+	              data = tmpData;
+	            }
+	            Datamaps.prototype.updateChoropleth.call(self, data);
+	          });
+	        }
+	        drawSubunits.call(self, data);
+	        handleGeographyConfig.call(self);
+	
+	        if ( self.options.geographyConfig.popupOnHover || self.options.bubblesConfig.popupOnHover) {
+	          hoverover = d3.select( self.options.element ).append('div')
+	            .attr('class', 'datamaps-hoverover')
+	            .style('z-index', 10001)
+	            .style('position', 'absolute');
+	        }
+	
+	        // Fire off finished callback
+	        self.options.done(self);
+	      }
+	  };
+	  /**************************************
+	                TopoJSON
+	  ***************************************/
+	  Datamap.prototype.worldTopo = {
+	    "type": "Topology",
+	    "objects": {
+	        "world": {
+	            "type": "GeometryCollection",
+	            "geometries": [{
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Afghanistan"
+	                },
+	                "id": "AFG",
+	                "arcs": [
+	                    [0, 1, 2, 3, 4, 5]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Angola"
+	                },
+	                "id": "AGO",
+	                "arcs": [
+	                    [
+	                        [6, 7, 8, 9]
+	                    ],
+	                    [
+	                        [10, 11, 12]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Albania"
+	                },
+	                "id": "ALB",
+	                "arcs": [
+	                    [13, 14, 15, 16, 17]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "United Arab Emirates"
+	                },
+	                "id": "ARE",
+	                "arcs": [
+	                    [18, 19, 20, 21, 22]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Argentina"
+	                },
+	                "id": "ARG",
+	                "arcs": [
+	                    [
+	                        [23, 24]
+	                    ],
+	                    [
+	                        [25, 26, 27, 28, 29, 30]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Armenia"
+	                },
+	                "id": "ARM",
+	                "arcs": [
+	                    [31, 32, 33, 34, 35]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Antarctica"
+	                },
+	                "id": "ATA",
+	                "arcs": [
+	                    [
+	                        [36]
+	                    ],
+	                    [
+	                        [37]
+	                    ],
+	                    [
+	                        [38]
+	                    ],
+	                    [
+	                        [39]
+	                    ],
+	                    [
+	                        [40]
+	                    ],
+	                    [
+	                        [41]
+	                    ],
+	                    [
+	                        [42]
+	                    ],
+	                    [
+	                        [43]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "French Southern and Antarctic Lands"
+	                },
+	                "id": "ATF",
+	                "arcs": [
+	                    [44]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Australia"
+	                },
+	                "id": "AUS",
+	                "arcs": [
+	                    [
+	                        [45]
+	                    ],
+	                    [
+	                        [46]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Austria"
+	                },
+	                "id": "AUT",
+	                "arcs": [
+	                    [47, 48, 49, 50, 51, 52, 53]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Azerbaijan"
+	                },
+	                "id": "AZE",
+	                "arcs": [
+	                    [
+	                        [54, -35]
+	                    ],
+	                    [
+	                        [55, 56, -33, 57, 58]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Burundi"
+	                },
+	                "id": "BDI",
+	                "arcs": [
+	                    [59, 60, 61]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Belgium"
+	                },
+	                "id": "BEL",
+	                "arcs": [
+	                    [62, 63, 64, 65, 66]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Benin"
+	                },
+	                "id": "BEN",
+	                "arcs": [
+	                    [67, 68, 69, 70, 71]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Burkina Faso"
+	                },
+	                "id": "BFA",
+	                "arcs": [
+	                    [72, 73, 74, -70, 75, 76]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Bangladesh"
+	                },
+	                "id": "BGD",
+	                "arcs": [
+	                    [77, 78, 79]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Bulgaria"
+	                },
+	                "id": "BGR",
+	                "arcs": [
+	                    [80, 81, 82, 83, 84, 85]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "The Bahamas"
+	                },
+	                "id": "BHS",
+	                "arcs": [
+	                    [
+	                        [86]
+	                    ],
+	                    [
+	                        [87]
+	                    ],
+	                    [
+	                        [88]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Bosnia and Herzegovina"
+	                },
+	                "id": "BIH",
+	                "arcs": [
+	                    [89, 90, 91]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Belarus"
+	                },
+	                "id": "BLR",
+	                "arcs": [
+	                    [92, 93, 94, 95, 96]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Belize"
+	                },
+	                "id": "BLZ",
+	                "arcs": [
+	                    [97, 98, 99]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Bolivia"
+	                },
+	                "id": "BOL",
+	                "arcs": [
+	                    [100, 101, 102, 103, -31]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Brazil"
+	                },
+	                "id": "BRA",
+	                "arcs": [
+	                    [-27, 104, -103, 105, 106, 107, 108, 109, 110, 111, 112]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Brunei"
+	                },
+	                "id": "BRN",
+	                "arcs": [
+	                    [113, 114]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Bhutan"
+	                },
+	                "id": "BTN",
+	                "arcs": [
+	                    [115, 116]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Botswana"
+	                },
+	                "id": "BWA",
+	                "arcs": [
+	                    [117, 118, 119, 120]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Central African Republic"
+	                },
+	                "id": "CAF",
+	                "arcs": [
+	                    [121, 122, 123, 124, 125, 126, 127]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Canada"
+	                },
+	                "id": "CAN",
+	                "arcs": [
+	                    [
+	                        [128]
+	                    ],
+	                    [
+	                        [129]
+	                    ],
+	                    [
+	                        [130]
+	                    ],
+	                    [
+	                        [131]
+	                    ],
+	                    [
+	                        [132]
+	                    ],
+	                    [
+	                        [133]
+	                    ],
+	                    [
+	                        [134]
+	                    ],
+	                    [
+	                        [135]
+	                    ],
+	                    [
+	                        [136]
+	                    ],
+	                    [
+	                        [137]
+	                    ],
+	                    [
+	                        [138, 139, 140, 141]
+	                    ],
+	                    [
+	                        [142]
+	                    ],
+	                    [
+	                        [143]
+	                    ],
+	                    [
+	                        [144]
+	                    ],
+	                    [
+	                        [145]
+	                    ],
+	                    [
+	                        [146]
+	                    ],
+	                    [
+	                        [147]
+	                    ],
+	                    [
+	                        [148]
+	                    ],
+	                    [
+	                        [149]
+	                    ],
+	                    [
+	                        [150]
+	                    ],
+	                    [
+	                        [151]
+	                    ],
+	                    [
+	                        [152]
+	                    ],
+	                    [
+	                        [153]
+	                    ],
+	                    [
+	                        [154]
+	                    ],
+	                    [
+	                        [155]
+	                    ],
+	                    [
+	                        [156]
+	                    ],
+	                    [
+	                        [157]
+	                    ],
+	                    [
+	                        [158]
+	                    ],
+	                    [
+	                        [159]
+	                    ],
+	                    [
+	                        [160]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Switzerland"
+	                },
+	                "id": "CHE",
+	                "arcs": [
+	                    [-51, 161, 162, 163]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Chile"
+	                },
+	                "id": "CHL",
+	                "arcs": [
+	                    [
+	                        [-24, 164]
+	                    ],
+	                    [
+	                        [-30, 165, 166, -101]
+	                    ]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "China"
+	                },
+	                "id": "CHN",
+	                "arcs": [
+	                    [
+	                        [167]
+	                    ],
+	                    [
+	                        [168, 169, 170, 171, 172, 173, -117, 174, 175, 176, 177, -4, 178, 179, 180, 181, 182, 183]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ivory Coast"
+	                },
+	                "id": "CIV",
+	                "arcs": [
+	                    [184, 185, 186, 187, -73, 188]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Cameroon"
+	                },
+	                "id": "CMR",
+	                "arcs": [
+	                    [189, 190, 191, 192, 193, 194, -128, 195]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Democratic Republic of the Congo"
+	                },
+	                "id": "COD",
+	                "arcs": [
+	                    [196, 197, -60, 198, 199, -10, 200, -13, 201, -126, 202]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Republic of the Congo"
+	                },
+	                "id": "COG",
+	                "arcs": [
+	                    [-12, 203, 204, -196, -127, -202]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Colombia"
+	                },
+	                "id": "COL",
+	                "arcs": [
+	                    [205, 206, 207, 208, 209, -107, 210]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Costa Rica"
+	                },
+	                "id": "CRI",
+	                "arcs": [
+	                    [211, 212, 213, 214]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Cuba"
+	                },
+	                "id": "CUB",
+	                "arcs": [
+	                    [215]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Northern Cyprus"
+	                },
+	                "id": "-99",
+	                "arcs": [
+	                    [216, 217]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Cyprus"
+	                },
+	                "id": "CYP",
+	                "arcs": [
+	                    [218, -218]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Czech Republic"
+	                },
+	                "id": "CZE",
+	                "arcs": [
+	                    [-53, 219, 220, 221]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Germany"
+	                },
+	                "id": "DEU",
+	                "arcs": [
+	                    [222, 223, -220, -52, -164, 224, 225, -64, 226, 227, 228]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Djibouti"
+	                },
+	                "id": "DJI",
+	                "arcs": [
+	                    [229, 230, 231, 232]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Denmark"
+	                },
+	                "id": "DNK",
+	                "arcs": [
+	                    [
+	                        [233]
+	                    ],
+	                    [
+	                        [-229, 234]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Dominican Republic"
+	                },
+	                "id": "DOM",
+	                "arcs": [
+	                    [235, 236]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Algeria"
+	                },
+	                "id": "DZA",
+	                "arcs": [
+	                    [237, 238, 239, 240, 241, 242, 243, 244]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ecuador"
+	                },
+	                "id": "ECU",
+	                "arcs": [
+	                    [245, -206, 246]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Egypt"
+	                },
+	                "id": "EGY",
+	                "arcs": [
+	                    [247, 248, 249, 250, 251]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Eritrea"
+	                },
+	                "id": "ERI",
+	                "arcs": [
+	                    [252, 253, 254, -233]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Spain"
+	                },
+	                "id": "ESP",
+	                "arcs": [
+	                    [255, 256, 257, 258]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Estonia"
+	                },
+	                "id": "EST",
+	                "arcs": [
+	                    [259, 260, 261]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ethiopia"
+	                },
+	                "id": "ETH",
+	                "arcs": [
+	                    [-232, 262, 263, 264, 265, 266, 267, -253]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Finland"
+	                },
+	                "id": "FIN",
+	                "arcs": [
+	                    [268, 269, 270, 271]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Fiji"
+	                },
+	                "id": "FJI",
+	                "arcs": [
+	                    [
+	                        [272]
+	                    ],
+	                    [
+	                        [273, 274]
+	                    ],
+	                    [
+	                        [275, -275]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Falkland Islands"
+	                },
+	                "id": "FLK",
+	                "arcs": [
+	                    [276]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "France"
+	                },
+	                "id": "FRA",
+	                "arcs": [
+	                    [
+	                        [277]
+	                    ],
+	                    [
+	                        [278, -225, -163, 279, 280, -257, 281, -66]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "French Guiana"
+	                },
+	                "id": "GUF",
+	                "arcs": [
+	                    [282, 283, 284, 285, -111]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Gabon"
+	                },
+	                "id": "GAB",
+	                "arcs": [
+	                    [286, 287, -190, -205]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "United Kingdom"
+	                },
+	                "id": "GBR",
+	                "arcs": [
+	                    [
+	                        [288, 289]
+	                    ],
+	                    [
+	                        [290]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Georgia"
+	                },
+	                "id": "GEO",
+	                "arcs": [
+	                    [291, 292, -58, -32, 293]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ghana"
+	                },
+	                "id": "GHA",
+	                "arcs": [
+	                    [294, -189, -77, 295]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Guinea"
+	                },
+	                "id": "GIN",
+	                "arcs": [
+	                    [296, 297, 298, 299, 300, 301, -187]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Gambia"
+	                },
+	                "id": "GMB",
+	                "arcs": [
+	                    [302, 303]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Guinea Bissau"
+	                },
+	                "id": "GNB",
+	                "arcs": [
+	                    [304, 305, -300]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Equatorial Guinea"
+	                },
+	                "id": "GNQ",
+	                "arcs": [
+	                    [306, -191, -288]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Greece"
+	                },
+	                "id": "GRC",
+	                "arcs": [
+	                    [
+	                        [307]
+	                    ],
+	                    [
+	                        [308, -15, 309, -84, 310]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Greenland"
+	                },
+	                "id": "GRL",
+	                "arcs": [
+	                    [311]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Guatemala"
+	                },
+	                "id": "GTM",
+	                "arcs": [
+	                    [312, 313, -100, 314, 315, 316]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Guyana"
+	                },
+	                "id": "GUY",
+	                "arcs": [
+	                    [317, 318, -109, 319]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Honduras"
+	                },
+	                "id": "HND",
+	                "arcs": [
+	                    [320, 321, -316, 322, 323]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Croatia"
+	                },
+	                "id": "HRV",
+	                "arcs": [
+	                    [324, -92, 325, 326, 327, 328]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Haiti"
+	                },
+	                "id": "HTI",
+	                "arcs": [
+	                    [-237, 329]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Hungary"
+	                },
+	                "id": "HUN",
+	                "arcs": [
+	                    [-48, 330, 331, 332, 333, -329, 334]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Indonesia"
+	                },
+	                "id": "IDN",
+	                "arcs": [
+	                    [
+	                        [335]
+	                    ],
+	                    [
+	                        [336, 337]
+	                    ],
+	                    [
+	                        [338]
+	                    ],
+	                    [
+	                        [339]
+	                    ],
+	                    [
+	                        [340]
+	                    ],
+	                    [
+	                        [341]
+	                    ],
+	                    [
+	                        [342]
+	                    ],
+	                    [
+	                        [343]
+	                    ],
+	                    [
+	                        [344, 345]
+	                    ],
+	                    [
+	                        [346]
+	                    ],
+	                    [
+	                        [347]
+	                    ],
+	                    [
+	                        [348, 349]
+	                    ],
+	                    [
+	                        [350]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "India"
+	                },
+	                "id": "IND",
+	                "arcs": [
+	                    [-177, 351, -175, -116, -174, 352, -80, 353, 354]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ireland"
+	                },
+	                "id": "IRL",
+	                "arcs": [
+	                    [355, -289]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Iran"
+	                },
+	                "id": "IRN",
+	                "arcs": [
+	                    [356, -6, 357, 358, 359, 360, -55, -34, -57, 361]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Iraq"
+	                },
+	                "id": "IRQ",
+	                "arcs": [
+	                    [362, 363, 364, 365, 366, 367, -360]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Iceland"
+	                },
+	                "id": "ISL",
+	                "arcs": [
+	                    [368]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Israel"
+	                },
+	                "id": "ISR",
+	                "arcs": [
+	                    [369, 370, 371, -252, 372, 373, 374]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Italy"
+	                },
+	                "id": "ITA",
+	                "arcs": [
+	                    [
+	                        [375]
+	                    ],
+	                    [
+	                        [376]
+	                    ],
+	                    [
+	                        [377, 378, -280, -162, -50]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Jamaica"
+	                },
+	                "id": "JAM",
+	                "arcs": [
+	                    [379]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Jordan"
+	                },
+	                "id": "JOR",
+	                "arcs": [
+	                    [-370, 380, -366, 381, 382, -372, 383]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Japan"
+	                },
+	                "id": "JPN",
+	                "arcs": [
+	                    [
+	                        [384]
+	                    ],
+	                    [
+	                        [385]
+	                    ],
+	                    [
+	                        [386]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Kazakhstan"
+	                },
+	                "id": "KAZ",
+	                "arcs": [
+	                    [387, 388, 389, 390, -181, 391]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Kenya"
+	                },
+	                "id": "KEN",
+	                "arcs": [
+	                    [392, 393, 394, 395, -265, 396]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Kyrgyzstan"
+	                },
+	                "id": "KGZ",
+	                "arcs": [
+	                    [-392, -180, 397, 398]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Cambodia"
+	                },
+	                "id": "KHM",
+	                "arcs": [
+	                    [399, 400, 401, 402]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "South Korea"
+	                },
+	                "id": "KOR",
+	                "arcs": [
+	                    [403, 404]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Kosovo"
+	                },
+	                "id": "-99",
+	                "arcs": [
+	                    [-18, 405, 406, 407]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Kuwait"
+	                },
+	                "id": "KWT",
+	                "arcs": [
+	                    [408, 409, -364]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Laos"
+	                },
+	                "id": "LAO",
+	                "arcs": [
+	                    [410, 411, -172, 412, -401]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Lebanon"
+	                },
+	                "id": "LBN",
+	                "arcs": [
+	                    [-374, 413, 414]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Liberia"
+	                },
+	                "id": "LBR",
+	                "arcs": [
+	                    [415, 416, -297, -186]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Libya"
+	                },
+	                "id": "LBY",
+	                "arcs": [
+	                    [417, -245, 418, 419, -250, 420, 421]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Sri Lanka"
+	                },
+	                "id": "LKA",
+	                "arcs": [
+	                    [422]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Lesotho"
+	                },
+	                "id": "LSO",
+	                "arcs": [
+	                    [423]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Lithuania"
+	                },
+	                "id": "LTU",
+	                "arcs": [
+	                    [424, 425, 426, -93, 427]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Luxembourg"
+	                },
+	                "id": "LUX",
+	                "arcs": [
+	                    [-226, -279, -65]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Latvia"
+	                },
+	                "id": "LVA",
+	                "arcs": [
+	                    [428, -262, 429, -94, -427]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Morocco"
+	                },
+	                "id": "MAR",
+	                "arcs": [
+	                    [-242, 430, 431]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Moldova"
+	                },
+	                "id": "MDA",
+	                "arcs": [
+	                    [432, 433]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Madagascar"
+	                },
+	                "id": "MDG",
+	                "arcs": [
+	                    [434]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Mexico"
+	                },
+	                "id": "MEX",
+	                "arcs": [
+	                    [435, -98, -314, 436, 437]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Macedonia"
+	                },
+	                "id": "MKD",
+	                "arcs": [
+	                    [-408, 438, -85, -310, -14]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Mali"
+	                },
+	                "id": "MLI",
+	                "arcs": [
+	                    [439, -239, 440, -74, -188, -302, 441]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Myanmar"
+	                },
+	                "id": "MMR",
+	                "arcs": [
+	                    [442, -78, -353, -173, -412, 443]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Montenegro"
+	                },
+	                "id": "MNE",
+	                "arcs": [
+	                    [444, -326, -91, 445, -406, -17]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Mongolia"
+	                },
+	                "id": "MNG",
+	                "arcs": [
+	                    [446, -183]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Mozambique"
+	                },
+	                "id": "MOZ",
+	                "arcs": [
+	                    [447, 448, 449, 450, 451, 452, 453, 454]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Mauritania"
+	                },
+	                "id": "MRT",
+	                "arcs": [
+	                    [455, 456, 457, -240, -440]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Malawi"
+	                },
+	                "id": "MWI",
+	                "arcs": [
+	                    [-455, 458, 459]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Malaysia"
+	                },
+	                "id": "MYS",
+	                "arcs": [
+	                    [
+	                        [460, 461]
+	                    ],
+	                    [
+	                        [-349, 462, -115, 463]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Namibia"
+	                },
+	                "id": "NAM",
+	                "arcs": [
+	                    [464, -8, 465, -119, 466]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "New Caledonia"
+	                },
+	                "id": "NCL",
+	                "arcs": [
+	                    [467]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Niger"
+	                },
+	                "id": "NER",
+	                "arcs": [
+	                    [-75, -441, -238, -418, 468, -194, 469, -71]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Nigeria"
+	                },
+	                "id": "NGA",
+	                "arcs": [
+	                    [470, -72, -470, -193]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Nicaragua"
+	                },
+	                "id": "NIC",
+	                "arcs": [
+	                    [471, -324, 472, -213]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Netherlands"
+	                },
+	                "id": "NLD",
+	                "arcs": [
+	                    [-227, -63, 473]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Norway"
+	                },
+	                "id": "NOR",
+	                "arcs": [
+	                    [
+	                        [474, -272, 475, 476]
+	                    ],
+	                    [
+	                        [477]
+	                    ],
+	                    [
+	                        [478]
+	                    ],
+	                    [
+	                        [479]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Nepal"
+	                },
+	                "id": "NPL",
+	                "arcs": [
+	                    [-352, -176]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "New Zealand"
+	                },
+	                "id": "NZL",
+	                "arcs": [
+	                    [
+	                        [480]
+	                    ],
+	                    [
+	                        [481]
+	                    ]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Oman"
+	                },
+	                "id": "OMN",
+	                "arcs": [
+	                    [
+	                        [482, 483, -22, 484]
+	                    ],
+	                    [
+	                        [-20, 485]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Pakistan"
+	                },
+	                "id": "PAK",
+	                "arcs": [
+	                    [-178, -355, 486, -358, -5]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Panama"
+	                },
+	                "id": "PAN",
+	                "arcs": [
+	                    [487, -215, 488, -208]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Peru"
+	                },
+	                "id": "PER",
+	                "arcs": [
+	                    [-167, 489, -247, -211, -106, -102]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Philippines"
+	                },
+	                "id": "PHL",
+	                "arcs": [
+	                    [
+	                        [490]
+	                    ],
+	                    [
+	                        [491]
+	                    ],
+	                    [
+	                        [492]
+	                    ],
+	                    [
+	                        [493]
+	                    ],
+	                    [
+	                        [494]
+	                    ],
+	                    [
+	                        [495]
+	                    ],
+	                    [
+	                        [496]
+	                    ]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Papua New Guinea"
+	                },
+	                "id": "PNG",
+	                "arcs": [
+	                    [
+	                        [497]
+	                    ],
+	                    [
+	                        [498]
+	                    ],
+	                    [
+	                        [-345, 499]
+	                    ],
+	                    [
+	                        [500]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Poland"
+	                },
+	                "id": "POL",
+	                "arcs": [
+	                    [-224, 501, 502, -428, -97, 503, 504, -221]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Puerto Rico"
+	                },
+	                "id": "PRI",
+	                "arcs": [
+	                    [505]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "North Korea"
+	                },
+	                "id": "PRK",
+	                "arcs": [
+	                    [506, 507, -405, 508, -169]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Portugal"
+	                },
+	                "id": "PRT",
+	                "arcs": [
+	                    [-259, 509]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Paraguay"
+	                },
+	                "id": "PRY",
+	                "arcs": [
+	                    [-104, -105, -26]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Qatar"
+	                },
+	                "id": "QAT",
+	                "arcs": [
+	                    [510, 511]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Romania"
+	                },
+	                "id": "ROU",
+	                "arcs": [
+	                    [512, -434, 513, 514, -81, 515, -333]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Russia"
+	                },
+	                "id": "RUS",
+	                "arcs": [
+	                    [
+	                        [516]
+	                    ],
+	                    [
+	                        [-503, 517, -425]
+	                    ],
+	                    [
+	                        [518, 519]
+	                    ],
+	                    [
+	                        [520]
+	                    ],
+	                    [
+	                        [521]
+	                    ],
+	                    [
+	                        [522]
+	                    ],
+	                    [
+	                        [523]
+	                    ],
+	                    [
+	                        [524]
+	                    ],
+	                    [
+	                        [525]
+	                    ],
+	                    [
+	                        [526, -507, -184, -447, -182, -391, 527, -59, -293, 528, 529, -95, -430, -261, 530, -269, -475, 531, -520]
+	                    ],
+	                    [
+	                        [532]
+	                    ],
+	                    [
+	                        [533]
+	                    ],
+	                    [
+	                        [534]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Rwanda"
+	                },
+	                "id": "RWA",
+	                "arcs": [
+	                    [535, -61, -198, 536]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Western Sahara"
+	                },
+	                "id": "ESH",
+	                "arcs": [
+	                    [-241, -458, 537, -431]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Saudi Arabia"
+	                },
+	                "id": "SAU",
+	                "arcs": [
+	                    [538, -382, -365, -410, 539, -512, 540, -23, -484, 541]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Sudan"
+	                },
+	                "id": "SDN",
+	                "arcs": [
+	                    [542, 543, -123, 544, -421, -249, 545, -254, -268, 546]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "South Sudan"
+	                },
+	                "id": "SSD",
+	                "arcs": [
+	                    [547, -266, -396, 548, -203, -125, 549, -543]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Senegal"
+	                },
+	                "id": "SEN",
+	                "arcs": [
+	                    [550, -456, -442, -301, -306, 551, -304]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Solomon Islands"
+	                },
+	                "id": "SLB",
+	                "arcs": [
+	                    [
+	                        [552]
+	                    ],
+	                    [
+	                        [553]
+	                    ],
+	                    [
+	                        [554]
+	                    ],
+	                    [
+	                        [555]
+	                    ],
+	                    [
+	                        [556]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Sierra Leone"
+	                },
+	                "id": "SLE",
+	                "arcs": [
+	                    [557, -298, -417]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "El Salvador"
+	                },
+	                "id": "SLV",
+	                "arcs": [
+	                    [558, -317, -322]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Somaliland"
+	                },
+	                "id": "-99",
+	                "arcs": [
+	                    [-263, -231, 559, 560]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Somalia"
+	                },
+	                "id": "SOM",
+	                "arcs": [
+	                    [-397, -264, -561, 561]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Republic of Serbia"
+	                },
+	                "id": "SRB",
+	                "arcs": [
+	                    [-86, -439, -407, -446, -90, -325, -334, -516]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Suriname"
+	                },
+	                "id": "SUR",
+	                "arcs": [
+	                    [562, -285, 563, -283, -110, -319]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Slovakia"
+	                },
+	                "id": "SVK",
+	                "arcs": [
+	                    [-505, 564, -331, -54, -222]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Slovenia"
+	                },
+	                "id": "SVN",
+	                "arcs": [
+	                    [-49, -335, -328, 565, -378]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Sweden"
+	                },
+	                "id": "SWE",
+	                "arcs": [
+	                    [-476, -271, 566]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Swaziland"
+	                },
+	                "id": "SWZ",
+	                "arcs": [
+	                    [567, -451]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Syria"
+	                },
+	                "id": "SYR",
+	                "arcs": [
+	                    [-381, -375, -415, 568, 569, -367]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Chad"
+	                },
+	                "id": "TCD",
+	                "arcs": [
+	                    [-469, -422, -545, -122, -195]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Togo"
+	                },
+	                "id": "TGO",
+	                "arcs": [
+	                    [570, -296, -76, -69]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Thailand"
+	                },
+	                "id": "THA",
+	                "arcs": [
+	                    [571, -462, 572, -444, -411, -400]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Tajikistan"
+	                },
+	                "id": "TJK",
+	                "arcs": [
+	                    [-398, -179, -3, 573]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Turkmenistan"
+	                },
+	                "id": "TKM",
+	                "arcs": [
+	                    [-357, 574, -389, 575, -1]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "East Timor"
+	                },
+	                "id": "TLS",
+	                "arcs": [
+	                    [576, -337]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Trinidad and Tobago"
+	                },
+	                "id": "TTO",
+	                "arcs": [
+	                    [577]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Tunisia"
+	                },
+	                "id": "TUN",
+	                "arcs": [
+	                    [-244, 578, -419]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Turkey"
+	                },
+	                "id": "TUR",
+	                "arcs": [
+	                    [
+	                        [-294, -36, -361, -368, -570, 579]
+	                    ],
+	                    [
+	                        [-311, -83, 580]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Taiwan"
+	                },
+	                "id": "TWN",
+	                "arcs": [
+	                    [581]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "United Republic of Tanzania"
+	                },
+	                "id": "TZA",
+	                "arcs": [
+	                    [-394, 582, -448, -460, 583, -199, -62, -536, 584]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Uganda"
+	                },
+	                "id": "UGA",
+	                "arcs": [
+	                    [-537, -197, -549, -395, -585]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Ukraine"
+	                },
+	                "id": "UKR",
+	                "arcs": [
+	                    [-530, 585, -514, -433, -513, -332, -565, -504, -96]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Uruguay"
+	                },
+	                "id": "URY",
+	                "arcs": [
+	                    [-113, 586, -28]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "United States of America"
+	                },
+	                "id": "USA",
+	                "arcs": [
+	                    [
+	                        [587]
+	                    ],
+	                    [
+	                        [588]
+	                    ],
+	                    [
+	                        [589]
+	                    ],
+	                    [
+	                        [590]
+	                    ],
+	                    [
+	                        [591]
+	                    ],
+	                    [
+	                        [592, -438, 593, -139]
+	                    ],
+	                    [
+	                        [594]
+	                    ],
+	                    [
+	                        [595]
+	                    ],
+	                    [
+	                        [596]
+	                    ],
+	                    [
+	                        [-141, 597]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Uzbekistan"
+	                },
+	                "id": "UZB",
+	                "arcs": [
+	                    [-576, -388, -399, -574, -2]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Venezuela"
+	                },
+	                "id": "VEN",
+	                "arcs": [
+	                    [598, -320, -108, -210]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Vietnam"
+	                },
+	                "id": "VNM",
+	                "arcs": [
+	                    [599, -402, -413, -171]
+	                ]
+	            }, {
+	                "type": "MultiPolygon",
+	                "properties": {
+	                    "name": "Vanuatu"
+	                },
+	                "id": "VUT",
+	                "arcs": [
+	                    [
+	                        [600]
+	                    ],
+	                    [
+	                        [601]
+	                    ]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "West Bank"
+	                },
+	                "id": "PSE",
+	                "arcs": [
+	                    [-384, -371]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Yemen"
+	                },
+	                "id": "YEM",
+	                "arcs": [
+	                    [602, -542, -483]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "South Africa"
+	                },
+	                "id": "ZAF",
+	                "arcs": [
+	                    [-467, -118, 603, -452, -568, -450, 604],
+	                    [-424]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Zambia"
+	                },
+	                "id": "ZMB",
+	                "arcs": [
+	                    [-459, -454, 605, -120, -466, -7, -200, -584]
+	                ]
+	            }, {
+	                "type": "Polygon",
+	                "properties": {
+	                    "name": "Zimbabwe"
+	                },
+	                "id": "ZWE",
+	                "arcs": [
+	                    [-604, -121, -606, -453]
+	                ]
+	            }]
+	        }
+	    },
+	    "arcs": [
+	        [
+	            [6700, 7164],
+	            [28, -23],
+	            [21, 8],
+	            [6, 27],
+	            [22, 9],
+	            [15, 18],
+	            [6, 47],
+	            [23, 11],
+	            [5, 21],
+	            [13, -15],
+	            [8, -2]
+	        ],
+	        [
+	            [6847, 7265],
+	            [16, -1],
+	            [20, -12]
+	        ],
+	        [
+	            [6883, 7252],
+	            [9, -7],
+	            [20, 19],
+	            [9, -12],
+	            [9, 27],
+	            [17, -1],
+	            [4, 9],
+	            [3, 24],
+	            [12, 20],
+	            [15, -13],
+	            [-3, -18],
+	            [9, -3],
+	            [-3, -50],
+	            [11, -19],
+	            [10, 12],
+	            [12, 6],
+	            [17, 27],
+	            [19, -5],
+	            [29, 0]
+	        ],
+	        [
+	            [7082, 7268],
+	            [5, -17]
+	        ],
+	        [
+	            [7087, 7251],
+	            [-16, -6],
+	            [-14, -11],
+	            [-32, -7],
+	            [-30, -13],
+	            [-16, -25],
+	            [6, -25],
+	            [4, -30],
+	            [-14, -25],
+	            [1, -22],
+	            [-8, -22],
+	            [-26, 2],
+	            [11, -39],
+	            [-18, -15],
+	            [-12, -35],
+	            [2, -36],
+	            [-11, -16],
+	            [-10, 5],
+	            [-22, -8],
+	            [-3, -16],
+	            [-20, 0],
+	            [-16, -34],
+	            [-1, -50],
+	            [-36, -24],
+	            [-19, 5],
+	            [-6, -13],
+	            [-16, 7],
+	            [-28, -8],
+	            [-47, 30]
+	        ],
+	        [
+	            [6690, 6820],
+	            [25, 53],
+	            [-2, 38],
+	            [-21, 10],
+	            [-2, 38],
+	            [-9, 47],
+	            [12, 32],
+	            [-12, 9],
+	            [7, 43],
+	            [12, 74]
+	        ],
+	        [
+	            [5664, 4412],
+	            [3, -18],
+	            [-4, -29],
+	            [5, -28],
+	            [-4, -22],
+	            [3, -20],
+	            [-58, 1],
+	            [-2, -188],
+	            [19, -49],
+	            [18, -37]
+	        ],
+	        [
+	            [5644, 4022],
+	            [-51, -24],
+	            [-67, 9],
+	            [-19, 28],
+	            [-113, -3],
+	            [-4, -4],
+	            [-17, 27],
+	            [-18, 2],
+	            [-16, -10],
+	            [-14, -12]
+	        ],
+	        [
+	            [5325, 4035],
+	            [-2, 38],
+	            [4, 51],
+	            [9, 55],
+	            [2, 25],
+	            [9, 53],
+	            [6, 24],
+	            [16, 39],
+	            [9, 26],
+	            [3, 44],
+	            [-1, 34],
+	            [-9, 21],
+	            [-7, 36],
+	            [-7, 35],
+	            [2, 12],
+	            [8, 24],
+	            [-8, 57],
+	            [-6, 39],
+	            [-14, 38],
+	            [3, 11]
+	        ],
+	        [
+	            [5342, 4697],
+	            [11, 8],
+	            [8, -1],
+	            [10, 7],
+	            [82, -1],
+	            [7, -44],
+	            [8, -35],
+	            [6, -19],
+	            [11, -31],
+	            [18, 5],
+	            [9, 8],
+	            [16, -8],
+	            [4, 14],
+	            [7, 35],
+	            [17, 2],
+	            [2, 10],
+	            [14, 1],
+	            [-3, -22],
+	            [34, 1],
+	            [1, -37],
+	            [5, -23],
+	            [-4, -36],
+	            [2, -36],
+	            [9, -22],
+	            [-1, -70],
+	            [7, 5],
+	            [12, -1],
+	            [17, 8],
+	            [13, -3]
+	        ],
+	        [
+	            [5338, 4715],
+	            [-8, 45]
+	        ],
+	        [
+	            [5330, 4760],
+	            [12, 25],
+	            [8, 10],
+	            [10, -20]
+	        ],
+	        [
+	            [5360, 4775],
+	            [-10, -12],
+	            [-4, -16],
+	            [-1, -25],
+	            [-7, -7]
+	        ],
+	        [
+	            [5571, 7530],
+	            [-3, -20],
+	            [4, -25],
+	            [11, -15]
+	        ],
+	        [
+	            [5583, 7470],
+	            [0, -15],
+	            [-9, -9],
+	            [-2, -19],
+	            [-13, -29]
+	        ],
+	        [
+	            [5559, 7398],
+	            [-5, 5],
+	            [0, 13],
+	            [-15, 19],
+	            [-3, 29],
+	            [2, 40],
+	            [4, 18],
+	            [-4, 10]
+	        ],
+	        [
+	            [5538, 7532],
+	            [-2, 18],
+	            [12, 29],
+	            [1, -11],
+	            [8, 6]
+	        ],
+	        [
+	            [5557, 7574],
+	            [6, -16],
+	            [7, -6],
+	            [1, -22]
+	        ],
+	        [
+	            [6432, 6490],
+	            [5, 3],
+	            [1, -16],
+	            [22, 9],
+	            [23, -2],
+	            [17, -1],
+	            [19, 39],
+	            [20, 38],
+	            [18, 37]
+	        ],
+	        [
+	            [6557, 6597],
+	            [5, -20]
+	        ],
+	        [
+	            [6562, 6577],
+	            [4, -47]
+	        ],
+	        [
+	            [6566, 6530],
+	            [-14, 0],
+	            [-3, -39],
+	            [5, -8],
+	            [-12, -12],
+	            [0, -24],
+	            [-8, -24],
+	            [-1, -24]
+	        ],
+	        [
+	            [6533, 6399],
+	            [-6, -12],
+	            [-83, 29],
+	            [-11, 60],
+	            [-1, 14]
+	        ],
+	        [
+	            [3140, 1814],
+	            [-17, 2],
+	            [-30, 0],
+	            [0, 132]
+	        ],
+	        [
+	            [3093, 1948],
+	            [11, -27],
+	            [14, -45],
+	            [36, -35],
+	            [39, -15],
+	            [-13, -30],
+	            [-26, -2],
+	            [-14, 20]
+	        ],
+	        [
+	            [3258, 3743],
+	            [51, -96],
+	            [23, -9],
+	            [34, -44],
+	            [29, -23],
+	            [4, -26],
+	            [-28, -90],
+	            [28, -16],
+	            [32, -9],
+	            [22, 10],
+	            [25, 45],
+	            [4, 52]
+	        ],
+	        [
+	            [3482, 3537],
+	            [14, 11],
+	            [14, -34],
+	            [-1, -47],
+	            [-23, -33],
+	            [-19, -24],
+	            [-31, -57],
+	            [-37, -81]
+	        ],
+	        [
+	            [3399, 3272],
+	            [-7, -47],
+	            [-7, -61],
+	            [0, -58],
+	            [-6, -14],
+	            [-2, -38]
+	        ],
+	        [
+	            [3377, 3054],
+	            [-2, -31],
+	            [35, -50],
+	            [-4, -41],
+	            [18, -26],
+	            [-2, -29],
+	            [-26, -75],
+	            [-42, -32],
+	            [-55, -12],
+	            [-31, 6],
+	            [6, -36],
+	            [-6, -44],
+	            [5, -30],
+	            [-16, -20],
+	            [-29, -8],
+	            [-26, 21],
+	            [-11, -15],
+	            [4, -59],
+	            [18, -18],
+	            [16, 19],
+	            [8, -31],
+	            [-26, -18],
+	            [-22, -37],
+	            [-4, -59],
+	            [-7, -32],
+	            [-26, 0],
+	            [-22, -31],
+	            [-8, -44],
+	            [28, -43],
+	            [26, -12],
+	            [-9, -53],
+	            [-33, -33],
+	            [-18, -70],
+	            [-25, -23],
+	            [-12, -28],
+	            [9, -61],
+	            [19, -34],
+	            [-12, 3]
+	        ],
+	        [
+	            [3095, 1968],
+	            [-26, 9],
+	            [-67, 8],
+	            [-11, 34],
+	            [0, 45],
+	            [-18, -4],
+	            [-10, 21],
+	            [-3, 63],
+	            [22, 26],
+	            [9, 37],
+	            [-4, 30],
+	            [15, 51],
+	            [10, 78],
+	            [-3, 35],
+	            [12, 11],
+	            [-3, 22],
+	            [-13, 12],
+	            [10, 25],
+	            [-13, 22],
+	            [-6, 68],
+	            [11, 12],
+	            [-5, 72],
+	            [7, 61],
+	            [7, 52],
+	            [17, 22],
+	            [-9, 58],
+	            [0, 54],
+	            [21, 38],
+	            [-1, 50],
+	            [16, 57],
+	            [0, 55],
+	            [-7, 11],
+	            [-13, 102],
+	            [17, 60],
+	            [-2, 58],
+	            [10, 53],
+	            [18, 56],
+	            [20, 36],
+	            [-9, 24],
+	            [6, 19],
+	            [-1, 98],
+	            [30, 29],
+	            [10, 62],
+	            [-3, 14]
+	        ],
+	        [
+	            [3136, 3714],
+	            [23, 54],
+	            [36, -15],
+	            [16, -42],
+	            [11, 47],
+	            [32, -2],
+	            [4, -13]
+	        ],
+	        [
+	            [6210, 7485],
+	            [39, 9]
+	        ],
+	        [
+	            [6249, 7494],
+	            [5, -15],
+	            [11, -10],
+	            [-6, -15],
+	            [15, -21],
+	            [-8, -18],
+	            [12, -16],
+	            [13, -10],
+	            [0, -41]
+	        ],
+	        [
+	            [6291, 7348],
+	            [-10, -2]
+	        ],
+	        [
+	            [6281, 7346],
+	            [-11, 34],
+	            [0, 10],
+	            [-12, -1],
+	            [-9, 16],
+	            [-5, -1]
+	        ],
+	        [
+	            [6244, 7404],
+	            [-11, 17],
+	            [-21, 15],
+	            [3, 28],
+	            [-5, 21]
+	        ],
+	        [
+	            [3345, 329],
+	            [-8, -30],
+	            [-8, -27],
+	            [-59, 8],
+	            [-62, -3],
+	            [-34, 20],
+	            [0, 2],
+	            [-16, 17],
+	            [63, -2],
+	            [60, -6],
+	            [20, 24],
+	            [15, 21],
+	            [29, -24]
+	        ],
+	        [
+	            [577, 361],
+	            [-53, -8],
+	            [-36, 21],
+	            [-17, 21],
+	            [-1, 3],
+	            [-18, 16],
+	            [17, 22],
+	            [52, -9],
+	            [28, -18],
+	            [21, -21],
+	            [7, -27]
+	        ],
+	        [
+	            [3745, 447],
+	            [35, -26],
+	            [12, -36],
+	            [3, -25],
+	            [1, -30],
+	            [-43, -19],
+	            [-45, -15],
+	            [-52, -14],
+	            [-59, -11],
+	            [-65, 3],
+	            [-37, 20],
+	            [5, 24],
+	            [59, 16],
+	            [24, 20],
+	            [18, 26],
+	            [12, 22],
+	            [17, 20],
+	            [18, 25],
+	            [14, 0],
+	            [41, 12],
+	            [42, -12]
+	        ],
+	        [
+	            [1633, 715],
+	            [36, -9],
+	            [33, 10],
+	            [-16, -20],
+	            [-26, -15],
+	            [-39, 4],
+	            [-27, 21],
+	            [6, 20],
+	            [33, -11]
+	        ],
+	        [
+	            [1512, 716],
+	            [43, -23],
+	            [-17, 3],
+	            [-36, 5],
+	            [-38, 17],
+	            [20, 12],
+	            [28, -14]
+	        ],
+	        [
+	            [2250, 808],
+	            [31, -8],
+	            [30, 7],
+	            [17, -34],
+	            [-22, 5],
+	            [-34, -2],
+	            [-34, 2],
+	            [-38, -4],
+	            [-28, 12],
+	            [-15, 24],
+	            [18, 11],
+	            [35, -8],
+	            [40, -5]
+	        ],
+	        [
+	            [3098, 866],
+	            [4, -27],
+	            [-5, -23],
+	            [-8, -22],
+	            [-33, -8],
+	            [-31, -12],
+	            [-36, 1],
+	            [14, 24],
+	            [-33, -9],
+	            [-31, -8],
+	            [-21, 18],
+	            [-2, 24],
+	            [30, 23],
+	            [20, 7],
+	            [32, -2],
+	            [8, 30],
+	            [1, 22],
+	            [0, 47],
+	            [16, 28],
+	            [25, 9],
+	            [15, -22],
+	            [6, -22],
+	            [12, -26],
+	            [10, -26],
+	            [7, -26]
+	        ],
+	        [
+	            [3371, 1268],
+	            [-11, -13],
+	            [-21, 9],
+	            [-23, -6],
+	            [-19, -14],
+	            [-20, -15],
+	            [-14, -17],
+	            [-4, -23],
+	            [2, -22],
+	            [13, -20],
+	            [-19, -14],
+	            [-26, -4],
+	            [-15, -20],
+	            [-17, -19],
+	            [-17, -25],
+	            [-4, -22],
+	            [9, -24],
+	            [15, -19],
+	            [23, -14],
+	            [21, -18],
+	            [12, -23],
+	            [6, -22],
+	            [8, -24],
+	            [13, -19],
+	            [8, -22],
+	            [4, -55],
+	            [8, -22],
+	            [2, -23],
+	            [9, -23],
+	            [-4, -31],
+	            [-15, -24],
+	            [-17, -20],
+	            [-37, -8],
+	            [-12, -21],
+	            [-17, -20],
+	            [-42, -22],
+	            [-37, -9],
+	            [-35, -13],
+	            [-37, -13],
+	            [-22, -24],
+	            [-45, -2],
+	            [-49, 2],
+	            [-44, -4],
+	            [-47, 0],
+	            [9, -24],
+	            [42, -10],
+	            [31, -16],
+	            [18, -21],
+	            [-31, -19],
+	            [-48, 6],
+	            [-40, -15],
+	            [-2, -24],
+	            [-1, -23],
+	            [33, -20],
+	            [6, -22],
+	            [35, -22],
+	            [59, -9],
+	            [50, -16],
+	            [40, -19],
+	            [50, -18],
+	            [70, -10],
+	            [68, -16],
+	            [47, -17],
+	            [52, -20],
+	            [27, -28],
+	            [13, -22],
+	            [34, 21],
+	            [46, 17],
+	            [48, 19],
+	            [58, 15],
+	            [49, 16],
+	            [69, 1],
+	            [68, -8],
+	            [56, -14],
+	            [18, 26],
+	            [39, 17],
+	            [70, 1],
+	            [55, 13],
+	            [52, 13],
+	            [58, 8],
+	            [62, 10],
+	            [43, 15],
+	            [-20, 21],
+	            [-12, 21],
+	            [0, 22],
+	            [-54, -2],
+	            [-57, -10],
+	            [-54, 0],
+	            [-8, 22],
+	            [4, 44],
+	            [12, 13],
+	            [40, 14],
+	            [47, 14],
+	            [34, 17],
+	            [33, 18],
+	            [25, 23],
+	            [38, 10],
+	            [38, 8],
+	            [19, 5],
+	            [43, 2],
+	            [41, 8],
+	            [34, 12],
+	            [34, 14],
+	            [30, 14],
+	            [39, 18],
+	            [24, 20],
+	            [26, 17],
+	            [9, 24],
+	            [-30, 13],
+	            [10, 25],
+	            [18, 18],
+	            [29, 12],
+	            [31, 14],
+	            [28, 18],
+	            [22, 23],
+	            [13, 28],
+	            [21, 16],
+	            [33, -3],
+	            [13, -20],
+	            [34, -2],
+	            [1, 22],
+	            [14, 23],
+	            [30, -6],
+	            [7, -22],
+	            [33, -3],
+	            [36, 10],
+	            [35, 7],
+	            [31, -3],
+	            [12, -25],
+	            [31, 20],
+	            [28, 10],
+	            [31, 9],
+	            [31, 8],
+	            [29, 14],
+	            [31, 9],
+	            [24, 13],
+	            [17, 20],
+	            [20, -15],
+	            [29, 8],
+	            [20, -27],
+	            [16, -21],
+	            [32, 11],
+	            [12, 24],
+	            [28, 16],
+	            [37, -4],
+	            [11, -22],
+	            [22, 22],
+	            [30, 7],
+	            [33, 3],
+	            [29, -2],
+	            [31, -7],
+	            [30, -3],
+	            [13, -20],
+	            [18, -17],
+	            [31, 10],
+	            [32, 3],
+	            [32, 0],
+	            [31, 1],
+	            [28, 8],
+	            [29, 7],
+	            [25, 16],
+	            [26, 11],
+	            [28, 5],
+	            [21, 17],
+	            [15, 32],
+	            [16, 20],
+	            [29, -10],
+	            [11, -21],
+	            [24, -13],
+	            [29, 4],
+	            [19, -21],
+	            [21, -15],
+	            [28, 14],
+	            [10, 26],
+	            [25, 10],
+	            [29, 20],
+	            [27, 8],
+	            [33, 11],
+	            [22, 13],
+	            [22, 14],
+	            [22, 13],
+	            [26, -7],
+	            [25, 21],
+	            [18, 16],
+	            [26, -1],
+	            [23, 14],
+	            [6, 21],
+	            [23, 16],
+	            [23, 11],
+	            [28, 10],
+	            [25, 4],
+	            [25, -3],
+	            [26, -6],
+	            [22, -16],
+	            [3, -26],
+	            [24, -19],
+	            [17, -17],
+	            [33, -7],
+	            [19, -16],
+	            [23, -16],
+	            [26, -3],
+	            [23, 11],
+	            [24, 24],
+	            [26, -12],
+	            [27, -7],
+	            [26, -7],
+	            [27, -5],
+	            [28, 0],
+	            [23, -61],
+	            [-1, -15],
+	            [-4, -27],
+	            [-26, -15],
+	            [-22, -22],
+	            [4, -23],
+	            [31, 1],
+	            [-4, -23],
+	            [-14, -22],
+	            [-13, -24],
+	            [21, -19],
+	            [32, -6],
+	            [32, 11],
+	            [15, 23],
+	            [10, 22],
+	            [15, 18],
+	            [17, 18],
+	            [7, 21],
+	            [15, 29],
+	            [18, 5],
+	            [31, 3],
+	            [28, 7],
+	            [28, 9],
+	            [14, 23],
+	            [8, 22],
+	            [19, 22],
+	            [27, 15],
+	            [23, 12],
+	            [16, 19],
+	            [15, 11],
+	            [21, 9],
+	            [27, -6],
+	            [25, 6],
+	            [28, 7],
+	            [30, -4],
+	            [20, 17],
+	            [14, 39],
+	            [11, -16],
+	            [13, -28],
+	            [23, -12],
+	            [27, -4],
+	            [26, 7],
+	            [29, -5],
+	            [26, -1],
+	            [17, 6],
+	            [24, -4],
+	            [21, -12],
+	            [25, 8],
+	            [30, 0],
+	            [25, 8],
+	            [29, -8],
+	            [19, 19],
+	            [14, 20],
+	            [19, 16],
+	            [35, 44],
+	            [18, -8],
+	            [21, -16],
+	            [18, -21],
+	            [36, -36],
+	            [27, -1],
+	            [25, 0],
+	            [30, 7],
+	            [30, 8],
+	            [23, 16],
+	            [19, 18],
+	            [31, 2],
+	            [21, 13],
+	            [22, -12],
+	            [14, -18],
+	            [19, -19],
+	            [31, 2],
+	            [19, -15],
+	            [33, -15],
+	            [35, -5],
+	            [29, 4],
+	            [21, 19],
+	            [19, 18],
+	            [25, 5],
+	            [25, -8],
+	            [29, -6],
+	            [26, 9],
+	            [25, 0],
+	            [24, -6],
+	            [26, -5],
+	            [25, 10],
+	            [30, 9],
+	            [28, 3],
+	            [32, 0],
+	            [25, 5],
+	            [25, 5],
+	            [8, 29],
+	            [1, 24],
+	            [17, -16],
+	            [5, -27],
+	            [10, -24],
+	            [11, -20],
+	            [23, -10],
+	            [32, 4],
+	            [36, 1],
+	            [25, 3],
+	            [37, 0],
+	            [26, 1],
+	            [36, -2],
+	            [31, -5],
+	            [20, -18],
+	            [-5, -22],
+	            [18, -18],
+	            [30, -13],
+	            [31, -15],
+	            [35, -11],
+	            [38, -9],
+	            [28, -9],
+	            [32, -2],
+	            [18, 20],
+	            [24, -16],
+	            [21, -19],
+	            [25, -13],
+	            [34, -6],
+	            [32, -7],
+	            [13, -23],
+	            [32, -14],
+	            [21, -21],
+	            [31, -9],
+	            [32, 1],
+	            [30, -4],
+	            [33, 1],
+	            [34, -4],
+	            [31, -8],
+	            [28, -14],
+	            [29, -12],
+	            [20, -17],
+	            [-3, -23],
+	            [-15, -21],
+	            [-13, -27],
+	            [-9, -21],
+	            [-14, -24],
+	            [-36, -9],
+	            [-16, -21],
+	            [-36, -13],
+	            [-13, -23],
+	            [-19, -22],
+	            [-20, -18],
+	            [-11, -25],
+	            [-7, -22],
+	            [-3, -26],
+	            [0, -22],
+	            [16, -23],
+	            [6, -22],
+	            [13, -21],
+	            [52, -8],
+	            [11, -26],
+	            [-50, -9],
+	            [-43, -13],
+	            [-52, -2],
+	            [-24, -34],
+	            [-5, -27],
+	            [-12, -22],
+	            [-14, -22],
+	            [37, -20],
+	            [14, -24],
+	            [24, -22],
+	            [33, -20],
+	            [39, -19],
+	            [42, -18],
+	            [64, -19],
+	            [14, -29],
+	            [80, -12],
+	            [5, -5],
+	            [21, -17],
+	            [77, 15],
+	            [63, -19],
+	            [48, -14],
+	            [-9997, -1],
+	            [24, 35],
+	            [50, -19],
+	            [3, 2],
+	            [30, 19],
+	            [4, 0],
+	            [3, -1],
+	            [40, -25],
+	            [35, 25],
+	            [7, 3],
+	            [81, 11],
+	            [27, -14],
+	            [13, -7],
+	            [41, -20],
+	            [79, -15],
+	            [63, -18],
+	            [107, -14],
+	            [80, 16],
+	            [118, -11],
+	            [67, -19],
+	            [73, 17],
+	            [78, 17],
+	            [6, 27],
+	            [-110, 3],
+	            [-89, 14],
+	            [-24, 23],
+	            [-74, 12],
+	            [5, 27],
+	            [10, 24],
+	            [10, 22],
+	            [-5, 25],
+	            [-46, 16],
+	            [-22, 21],
+	            [-43, 18],
+	            [68, -3],
+	            [64, 9],
+	            [40, -20],
+	            [50, 18],
+	            [45, 22],
+	            [23, 19],
+	            [-10, 25],
+	            [-36, 16],
+	            [-41, 17],
+	            [-57, 4],
+	            [-50, 8],
+	            [-54, 6],
+	            [-18, 22],
+	            [-36, 18],
+	            [-21, 21],
+	            [-9, 67],
+	            [14, -6],
+	            [25, -18],
+	            [45, 6],
+	            [44, 8],
+	            [23, -26],
+	            [44, 6],
+	            [37, 13],
+	            [35, 16],
+	            [32, 20],
+	            [41, 5],
+	            [-1, 22],
+	            [-9, 22],
+	            [8, 21],
+	            [36, 11],
+	            [16, -20],
+	            [42, 12],
+	            [32, 15],
+	            [40, 1],
+	            [38, 6],
+	            [37, 13],
+	            [30, 13],
+	            [34, 13],
+	            [22, -4],
+	            [19, -4],
+	            [41, 8],
+	            [37, -10],
+	            [38, 1],
+	            [37, 8],
+	            [37, -6],
+	            [41, -6],
+	            [39, 3],
+	            [40, -2],
+	            [42, -1],
+	            [38, 3],
+	            [28, 17],
+	            [34, 9],
+	            [35, -13],
+	            [33, 11],
+	            [30, 21],
+	            [18, -19],
+	            [9, -21],
+	            [18, -19],
+	            [29, 17],
+	            [33, -22],
+	            [38, -7],
+	            [32, -16],
+	            [39, 3],
+	            [36, 11],
+	            [41, -3],
+	            [38, -8],
+	            [38, -10],
+	            [15, 25],
+	            [-18, 20],
+	            [-14, 21],
+	            [-36, 5],
+	            [-15, 22],
+	            [-6, 22],
+	            [-10, 43],
+	            [21, -8],
+	            [36, -3],
+	            [36, 3],
+	            [33, -9],
+	            [28, -17],
+	            [12, -21],
+	            [38, -4],
+	            [36, 9],
+	            [38, 11],
+	            [34, 7],
+	            [28, -14],
+	            [37, 5],
+	            [24, 45],
+	            [23, -27],
+	            [32, -10],
+	            [34, 6],
+	            [23, -23],
+	            [37, -3],
+	            [33, -7],
+	            [34, -12],
+	            [21, 22],
+	            [11, 20],
+	            [28, -23],
+	            [38, 6],
+	            [28, -13],
+	            [19, -19],
+	            [37, 5],
+	            [29, 13],
+	            [29, 15],
+	            [33, 8],
+	            [39, 7],
+	            [36, 8],
+	            [27, 13],
+	            [16, 19],
+	            [7, 25],
+	            [-3, 24],
+	            [-9, 24],
+	            [-10, 23],
+	            [-9, 23],
+	            [-7, 21],
+	            [-1, 23],
+	            [2, 23],
+	            [13, 22],
+	            [11, 24],
+	            [5, 23],
+	            [-6, 26],
+	            [-3, 23],
+	            [14, 27],
+	            [15, 17],
+	            [18, 22],
+	            [19, 19],
+	            [22, 17],
+	            [11, 25],
+	            [15, 17],
+	            [18, 15],
+	            [26, 3],
+	            [18, 19],
+	            [19, 11],
+	            [23, 7],
+	            [20, 15],
+	            [16, 19],
+	            [22, 7],
+	            [16, -15],
+	            [-10, -20],
+	            [-29, -17]
+	        ],
+	        [
+	            [6914, 2185],
+	            [18, -19],
+	            [26, -7],
+	            [1, -11],
+	            [-7, -27],
+	            [-43, -4],
+	            [-1, 31],
+	            [4, 25],
+	            [2, 12]
+	        ],
+	        [
+	            [9038, 2648],
+	            [27, -21],
+	            [15, 8],
+	            [22, 12],
+	            [16, -4],
+	            [2, -70],
+	            [-9, -21],
+	            [-3, -47],
+	            [-10, 16],
+	            [-19, -41],
+	            [-6, 3],
+	            [-17, 2],
+	            [-17, 50],
+	            [-4, 39],
+	            [-16, 52],
+	            [1, 27],
+	            [18, -5]
+	        ],
+	        [
+	            [8987, 4244],
+	            [10, -46],
+	            [18, 22],
+	            [9, -25],
+	            [13, -23],
+	            [-3, -26],
+	            [6, -51],
+	            [5, -29],
+	            [7, -7],
+	            [7, -51],
+	            [-3, -30],
+	            [9, -40],
+	            [31, -31],
+	            [19, -28],
+	            [19, -26],
+	            [-4, -14],
+	            [16, -37],
+	            [11, -64],
+	            [11, 13],
+	            [11, -26],
+	            [7, 9],
+	            [5, -63],
+	            [19, -36],
+	            [13, -22],
+	            [22, -48],
+	            [8, -48],
+	            [1, -33],
+	            [-2, -37],
+	            [13, -50],
+	            [-2, -52],
+	            [-5, -28],
+	            [-7, -52],
+	            [1, -34],
+	            [-6, -43],
+	            [-12, -53],
+	            [-21, -29],
+	            [-10, -46],
+	            [-9, -29],
+	            [-8, -51],
+	            [-11, -30],
+	            [-7, -44],
+	            [-4, -41],
+	            [2, -18],
+	            [-16, -21],
+	            [-31, -2],
+	            [-26, -24],
+	            [-13, -23],
+	            [-17, -26],
+	            [-23, 27],
+	            [-17, 10],
+	            [5, 31],
+	            [-15, -11],
+	            [-25, -43],
+	            [-24, 16],
+	            [-15, 9],
+	            [-16, 4],
+	            [-27, 17],
+	            [-18, 37],
+	            [-5, 45],
+	            [-7, 30],
+	            [-13, 24],
+	            [-27, 7],
+	            [9, 28],
+	            [-7, 44],
+	            [-13, -41],
+	            [-25, -11],
+	            [14, 33],
+	            [5, 34],
+	            [10, 29],
+	            [-2, 44],
+	            [-22, -50],
+	            [-18, -21],
+	            [-10, -47],
+	            [-22, 25],
+	            [1, 31],
+	            [-18, 43],
+	            [-14, 22],
+	            [5, 14],
+	            [-36, 35],
+	            [-19, 2],
+	            [-27, 29],
+	            [-50, -6],
+	            [-36, -21],
+	            [-31, -20],
+	            [-27, 4],
+	            [-29, -30],
+	            [-24, -14],
+	            [-6, -31],
+	            [-10, -24],
+	            [-23, -1],
+	            [-18, -5],
+	            [-24, 10],
+	            [-20, -6],
+	            [-19, -3],
+	            [-17, -31],
+	            [-8, 2],
+	            [-14, -16],
+	            [-13, -19],
+	            [-21, 2],
+	            [-18, 0],
+	            [-30, 38],
+	            [-15, 11],
+	            [1, 34],
+	            [14, 8],
+	            [4, 14],
+	            [-1, 21],
+	            [4, 41],
+	            [-3, 35],
+	            [-15, 60],
+	            [-4, 33],
+	            [1, 34],
+	            [-11, 38],
+	            [-1, 18],
+	            [-12, 23],
+	            [-4, 47],
+	            [-16, 46],
+	            [-4, 26],
+	            [13, -26],
+	            [-10, 55],
+	            [14, -17],
+	            [8, -23],
+	            [0, 30],
+	            [-14, 47],
+	            [-3, 18],
+	            [-6, 18],
+	            [3, 34],
+	            [6, 15],
+	            [4, 29],
+	            [-3, 35],
+	            [11, 42],
+	            [2, -45],
+	            [12, 41],
+	            [22, 20],
+	            [14, 25],
+	            [21, 22],
+	            [13, 4],
+	            [7, -7],
+	            [22, 22],
+	            [17, 6],
+	            [4, 13],
+	            [8, 6],
+	            [15, -2],
+	            [29, 18],
+	            [15, 26],
+	            [7, 31],
+	            [17, 30],
+	            [1, 24],
+	            [1, 32],
+	            [19, 50],
+	            [12, -51],
+	            [12, 12],
+	            [-10, 28],
+	            [9, 29],
+	            [12, -13],
+	            [3, 45],
+	            [15, 29],
+	            [7, 23],
+	            [14, 10],
+	            [0, 17],
+	            [13, -7],
+	            [0, 15],
+	            [12, 8],
+	            [14, 8],
+	            [20, -27],
+	            [16, -35],
+	            [17, 0],
+	            [18, -6],
+	            [-6, 33],
+	            [13, 47],
+	            [13, 15],
+	            [-5, 15],
+	            [12, 34],
+	            [17, 21],
+	            [14, -7],
+	            [24, 11],
+	            [-1, 30],
+	            [-20, 19],
+	            [15, 9],
+	            [18, -15],
+	            [15, -24],
+	            [23, -15],
+	            [8, 6],
+	            [17, -18],
+	            [17, 17],
+	            [10, -5],
+	            [7, 11],
+	            [12, -29],
+	            [-7, -32],
+	            [-11, -24],
+	            [-9, -2],
+	            [3, -23],
+	            [-8, -30],
+	            [-10, -29],
+	            [2, -17],
+	            [22, -32],
+	            [21, -19],
+	            [15, -20],
+	            [20, -35],
+	            [8, 0],
+	            [14, -15],
+	            [4, -19],
+	            [27, -20],
+	            [18, 20],
+	            [6, 32],
+	            [5, 26],
+	            [4, 33],
+	            [8, 47],
+	            [-4, 28],
+	            [2, 17],
+	            [-3, 34],
+	            [4, 45],
+	            [5, 12],
+	            [-4, 20],
+	            [7, 31],
+	            [5, 32],
+	            [1, 17],
+	            [10, 22],
+	            [8, -29],
+	            [2, -37],
+	            [7, -7],
+	            [1, -25],
+	            [10, -30],
+	            [2, -33],
+	            [-1, -22]
+	        ],
+	        [
+	            [5471, 7900],
+	            [-2, -24],
+	            [-16, 0],
+	            [6, -13],
+	            [-9, -38]
+	        ],
+	        [
+	            [5450, 7825],
+	            [-6, -10],
+	            [-24, -1],
+	            [-14, -13],
+	            [-23, 4]
+	        ],
+	        [
+	            [5383, 7805],
+	            [-40, 15],
+	            [-6, 21],
+	            [-27, -10],
+	            [-4, -12],
+	            [-16, 9]
+	        ],
+	        [
+	            [5290, 7828],
+	            [-15, 1],
+	            [-12, 11],
+	            [4, 15],
+	            [-1, 10]
+	        ],
+	        [
+	            [5266, 7865],
+	            [8, 3],
+	            [14, -16],
+	            [4, 16],
+	            [25, -3],
+	            [20, 11],
+	            [13, -2],
+	            [9, -12],
+	            [2, 10],
+	            [-4, 38],
+	            [10, 8],
+	            [10, 27]
+	        ],
+	        [
+	            [5377, 7945],
+	            [21, -19],
+	            [15, 24],
+	            [10, 5],
+	            [22, -18],
+	            [13, 3],
+	            [13, -12]
+	        ],
+	        [
+	            [5471, 7928],
+	            [-3, -7],
+	            [3, -21]
+	        ],
+	        [
+	            [6281, 7346],
+	            [-19, 8],
+	            [-14, 27],
+	            [-4, 23]
+	        ],
+	        [
+	            [6349, 7527],
+	            [15, -31],
+	            [14, -42],
+	            [13, -2],
+	            [8, -16],
+	            [-23, -5],
+	            [-5, -46],
+	            [-4, -21],
+	            [-11, -13],
+	            [1, -30]
+	        ],
+	        [
+	            [6357, 7321],
+	            [-7, -3],
+	            [-17, 31],
+	            [10, 30],
+	            [-9, 17],
+	            [-10, -4],
+	            [-33, -44]
+	        ],
+	        [
+	            [6249, 7494],
+	            [6, 10],
+	            [21, -17],
+	            [15, -4],
+	            [4, 7],
+	            [-14, 32],
+	            [7, 9]
+	        ],
+	        [
+	            [6288, 7531],
+	            [8, -2],
+	            [19, -36],
+	            [13, -4],
+	            [4, 15],
+	            [17, 23]
+	        ],
+	        [
+	            [5814, 4792],
+	            [-1, 71],
+	            [-7, 27]
+	        ],
+	        [
+	            [5806, 4890],
+	            [17, -5],
+	            [8, 34],
+	            [15, -4]
+	        ],
+	        [
+	            [5846, 4915],
+	            [1, -23],
+	            [6, -14],
+	            [1, -19],
+	            [-7, -12],
+	            [-11, -31],
+	            [-10, -22],
+	            [-12, -2]
+	        ],
+	        [
+	            [5092, 8091],
+	            [20, -5],
+	            [26, 12],
+	            [17, -25],
+	            [16, -14]
+	        ],
+	        [
+	            [5171, 8059],
+	            [-4, -40]
+	        ],
+	        [
+	            [5167, 8019],
+	            [-7, -2],
+	            [-3, -33]
+	        ],
+	        [
+	            [5157, 7984],
+	            [-24, 26],
+	            [-14, -4],
+	            [-20, 28],
+	            [-13, 23],
+	            [-13, 1],
+	            [-4, 21]
+	        ],
+	        [
+	            [5069, 8079],
+	            [23, 12]
+	        ],
+	        [
+	            [5074, 5427],
+	            [-23, -7]
+	        ],
+	        [
+	            [5051, 5420],
+	            [-7, 41],
+	            [2, 136],
+	            [-6, 12],
+	            [-1, 29],
+	            [-10, 21],
+	            [-8, 17],
+	            [3, 31]
+	        ],
+	        [
+	            [5024, 5707],
+	            [10, 7],
+	            [6, 26],
+	            [13, 5],
+	            [6, 18]
+	        ],
+	        [
+	            [5059, 5763],
+	            [10, 17],
+	            [10, 0],
+	            [21, -34]
+	        ],
+	        [
+	            [5100, 5746],
+	            [-1, -19],
+	            [6, -35],
+	            [-6, -24],
+	            [3, -16],
+	            [-13, -37],
+	            [-9, -18],
+	            [-5, -37],
+	            [1, -38],
+	            [-2, -95]
+	        ],
+	        [
+	            [4921, 5627],
+	            [-19, 15],
+	            [-13, -2],
+	            [-10, -15],
+	            [-12, 13],
+	            [-5, 19],
+	            [-13, 13]
+	        ],
+	        [
+	            [4849, 5670],
+	            [-1, 34],
+	            [7, 26],
+	            [-1, 20],
+	            [23, 48],
+	            [4, 41],
+	            [7, 14],
+	            [14, -8],
+	            [11, 12],
+	            [4, 16],
+	            [22, 26],
+	            [5, 19],
+	            [26, 24],
+	            [15, 9],
+	            [7, -12],
+	            [18, 0]
+	        ],
+	        [
+	            [5010, 5939],
+	            [-2, -28],
+	            [3, -27],
+	            [16, -39],
+	            [1, -28],
+	            [32, -14],
+	            [-1, -40]
+	        ],
+	        [
+	            [5024, 5707],
+	            [-24, 1]
+	        ],
+	        [
+	            [5000, 5708],
+	            [-13, 5],
+	            [-9, -9],
+	            [-12, 4],
+	            [-48, -3],
+	            [-1, -33],
+	            [4, -45]
+	        ],
+	        [
+	            [7573, 6360],
+	            [0, -43],
+	            [-10, 9],
+	            [2, -47]
+	        ],
+	        [
+	            [7565, 6279],
+	            [-8, 30],
+	            [-1, 31],
+	            [-6, 28],
+	            [-11, 34],
+	            [-26, 3],
+	            [3, -25],
+	            [-9, -32],
+	            [-12, 12],
+	            [-4, -11],
+	            [-8, 6],
+	            [-11, 5]
+	        ],
+	        [
+	            [7472, 6360],
+	            [-4, 49],
+	            [-10, 45],
+	            [5, 35],
+	            [-17, 16],
+	            [6, 22],
+	            [18, 22],
+	            [-20, 31],
+	            [9, 40],
+	            [22, -26],
+	            [14, -3],
+	            [2, -41],
+	            [26, -8],
+	            [26, 1],
+	            [16, -10],
+	            [-13, -50],
+	            [-12, -3],
+	            [-9, -34],
+	            [16, -31],
+	            [4, 38],
+	            [8, 0],
+	            [14, -93]
+	        ],
+	        [
+	            [5629, 7671],
+	            [8, -25],
+	            [11, 5],
+	            [21, -9],
+	            [41, -4],
+	            [13, 16],
+	            [33, 13],
+	            [20, -21],
+	            [17, -6]
+	        ],
+	        [
+	            [5793, 7640],
+	            [-15, -25],
+	            [-10, -42],
+	            [9, -34]
+	        ],
+	        [
+	            [5777, 7539],
+	            [-24, 8],
+	            [-28, -18]
+	        ],
+	        [
+	            [5725, 7529],
+	            [0, -30],
+	            [-26, -5],
+	            [-19, 20],
+	            [-22, -16],
+	            [-21, 2]
+	        ],
+	        [
+	            [5637, 7500],
+	            [-2, 39],
+	            [-14, 19]
+	        ],
+	        [
+	            [5621, 7558],
+	            [5, 8],
+	            [-3, 7],
+	            [4, 19],
+	            [11, 18],
+	            [-14, 26],
+	            [-2, 21],
+	            [7, 14]
+	        ],
+	        [
+	            [2846, 6461],
+	            [-7, -3],
+	            [-7, 34],
+	            [-10, 17],
+	            [6, 38],
+	            [8, -3],
+	            [10, -49],
+	            [0, -34]
+	        ],
+	        [
+	            [2838, 6628],
+	            [-30, -10],
+	            [-2, 22],
+	            [13, 5],
+	            [18, -2],
+	            [1, -15]
+	        ],
+	        [
+	            [2861, 6628],
+	            [-5, -42],
+	            [-5, 8],
+	            [0, 31],
+	            [-12, 23],
+	            [0, 7],
+	            [22, -27]
+	        ],
+	        [
+	            [5527, 7708],
+	            [10, 0],
+	            [-7, -26],
+	            [14, -23],
+	            [-4, -28],
+	            [-7, -2]
+	        ],
+	        [
+	            [5533, 7629],
+	            [-5, -6],
+	            [-9, -13],
+	            [-4, -33]
+	        ],
+	        [
+	            [5515, 7577],
+	            [-25, 23],
+	            [-10, 24],
+	            [-11, 13],
+	            [-12, 22],
+	            [-6, 19],
+	            [-14, 27],
+	            [6, 25],
+	            [10, -14],
+	            [6, 12],
+	            [13, 2],
+	            [24, -10],
+	            [19, 1],
+	            [12, -13]
+	        ],
+	        [
+	            [5652, 8242],
+	            [27, 0],
+	            [30, 22],
+	            [6, 34],
+	            [23, 19],
+	            [-3, 26]
+	        ],
+	        [
+	            [5735, 8343],
+	            [17, 10],
+	            [30, 23]
+	        ],
+	        [
+	            [5782, 8376],
+	            [29, -15],
+	            [4, -15],
+	            [15, 7],
+	            [27, -14],
+	            [3, -27],
+	            [-6, -16],
+	            [17, -39],
+	            [12, -11],
+	            [-2, -11],
+	            [19, -10],
+	            [8, -16],
+	            [-11, -13],
+	            [-23, 2],
+	            [-5, -5],
+	            [7, -20],
+	            [6, -37]
+	        ],
+	        [
+	            [5882, 8136],
+	            [-23, -4],
+	            [-9, -13],
+	            [-2, -30],
+	            [-11, 6],
+	            [-25, -3],
+	            [-7, 14],
+	            [-11, -10],
+	            [-10, 8],
+	            [-22, 1],
+	            [-31, 15],
+	            [-28, 4],
+	            [-22, -1],
+	            [-15, -16],
+	            [-13, -2]
+	        ],
+	        [
+	            [5653, 8105],
+	            [-1, 26],
+	            [-8, 27],
+	            [17, 12],
+	            [0, 24],
+	            [-8, 22],
+	            [-1, 26]
+	        ],
+	        [
+	            [2524, 6110],
+	            [-1, 8],
+	            [4, 3],
+	            [5, -7],
+	            [10, 36],
+	            [5, 0]
+	        ],
+	        [
+	            [2547, 6150],
+	            [0, -8],
+	            [5, -1],
+	            [0, -16],
+	            [-5, -25],
+	            [3, -9],
+	            [-3, -21],
+	            [2, -6],
+	            [-4, -30],
+	            [-5, -16],
+	            [-5, -1],
+	            [-6, -21]
+	        ],
+	        [
+	            [2529, 5996],
+	            [-8, 0],
+	            [2, 67],
+	            [1, 47]
+	        ],
+	        [
+	            [3136, 3714],
+	            [-20, -8],
+	            [-11, 82],
+	            [-15, 66],
+	            [9, 57],
+	            [-15, 25],
+	            [-4, 43],
+	            [-13, 40]
+	        ],
+	        [
+	            [3067, 4019],
+	            [17, 64],
+	            [-12, 49],
+	            [7, 20],
+	            [-5, 22],
+	            [10, 30],
+	            [1, 50],
+	            [1, 41],
+	            [6, 20],
+	            [-24, 96]
+	        ],
+	        [
+	            [3068, 4411],
+	            [21, -5],
+	            [14, 1],
+	            [6, 18],
+	            [25, 24],
+	            [14, 22],
+	            [37, 10],
+	            [-3, -44],
+	            [3, -23],
+	            [-2, -40],
+	            [30, -53],
+	            [31, -9],
+	            [11, -23],
+	            [19, -11],
+	            [11, -17],
+	            [18, 0],
+	            [16, -17],
+	            [1, -34],
+	            [6, -18],
+	            [0, -25],
+	            [-8, -1],
+	            [11, -69],
+	            [53, -2],
+	            [-4, -35],
+	            [3, -23],
+	            [15, -16],
+	            [6, -37],
+	            [-4, -47],
+	            [-8, -26],
+	            [3, -33],
+	            [-9, -12]
+	        ],
+	        [
+	            [3384, 3866],
+	            [-1, 18],
+	            [-25, 30],
+	            [-26, 1],
+	            [-49, -17],
+	            [-13, -52],
+	            [-1, -32],
+	            [-11, -71]
+	        ],
+	        [
+	            [3482, 3537],
+	            [6, 34],
+	            [3, 35],
+	            [1, 32],
+	            [-10, 11],
+	            [-11, -9],
+	            [-10, 2],
+	            [-4, 23],
+	            [-2, 54],
+	            [-5, 18],
+	            [-19, 16],
+	            [-11, -12],
+	            [-30, 11],
+	            [2, 81],
+	            [-8, 33]
+	        ],
+	        [
+	            [3068, 4411],
+	            [-15, -11],
+	            [-13, 7],
+	            [2, 90],
+	            [-23, -35],
+	            [-24, 2],
+	            [-11, 31],
+	            [-18, 4],
+	            [5, 25],
+	            [-15, 36],
+	            [-11, 53],
+	            [7, 11],
+	            [0, 25],
+	            [17, 17],
+	            [-3, 32],
+	            [7, 20],
+	            [2, 28],
+	            [32, 40],
+	            [22, 11],
+	            [4, 9],
+	            [25, -2]
+	        ],
+	        [
+	            [3058, 4804],
+	            [13, 162],
+	            [0, 25],
+	            [-4, 34],
+	            [-12, 22],
+	            [0, 42],
+	            [15, 10],
+	            [6, -6],
+	            [1, 23],
+	            [-16, 6],
+	            [-1, 37],
+	            [54, -2],
+	            [10, 21],
+	            [7, -19],
+	            [6, -35],
+	            [5, 8]
+	        ],
+	        [
+	            [3142, 5132],
+	            [15, -32],
+	            [22, 4],
+	            [5, 18],
+	            [21, 14],
+	            [11, 10],
+	            [4, 25],
+	            [19, 17],
+	            [-1, 12],
+	            [-24, 5],
+	            [-3, 37],
+	            [1, 40],
+	            [-13, 15],
+	            [5, 6],
+	            [21, -8],
+	            [22, -15],
+	            [8, 14],
+	            [20, 9],
+	            [31, 23],
+	            [10, 22],
+	            [-3, 17]
+	        ],
+	        [
+	            [3313, 5365],
+	            [14, 2],
+	            [7, -13],
+	            [-4, -26],
+	            [9, -9],
+	            [7, -28],
+	            [-8, -20],
+	            [-4, -51],
+	            [7, -30],
+	            [2, -27],
+	            [17, -28],
+	            [14, -3],
+	            [3, 12],
+	            [8, 3],
+	            [13, 10],
+	            [9, 16],
+	            [15, -5],
+	            [7, 2]
+	        ],
+	        [
+	            [3429, 5170],
+	            [15, -5],
+	            [3, 12],
+	            [-5, 12],
+	            [3, 17],
+	            [11, -5],
+	            [13, 6],
+	            [16, -13]
+	        ],
+	        [
+	            [3485, 5194],
+	            [12, -12],
+	            [9, 16],
+	            [6, -3],
+	            [4, -16],
+	            [13, 4],
+	            [11, 22],
+	            [8, 44],
+	            [17, 54]
+	        ],
+	        [
+	            [3565, 5303],
+	            [9, 3],
+	            [7, -33],
+	            [16, -103],
+	            [14, -10],
+	            [1, -41],
+	            [-21, -48],
+	            [9, -18],
+	            [49, -9],
+	            [1, -60],
+	            [21, 39],
+	            [35, -21],
+	            [46, -36],
+	            [14, -35],
+	            [-5, -32],
+	            [33, 18],
+	            [54, -32],
+	            [41, 3],
+	            [41, -49],
+	            [36, -66],
+	            [21, -17],
+	            [24, -3],
+	            [10, -18],
+	            [9, -76],
+	            [5, -35],
+	            [-11, -98],
+	            [-14, -39],
+	            [-39, -82],
+	            [-18, -67],
+	            [-21, -51],
+	            [-7, -1],
+	            [-7, -43],
+	            [2, -111],
+	            [-8, -91],
+	            [-3, -39],
+	            [-9, -23],
+	            [-5, -79],
+	            [-28, -77],
+	            [-5, -61],
+	            [-22, -26],
+	            [-7, -35],
+	            [-30, 0],
+	            [-44, -23],
+	            [-19, -26],
+	            [-31, -18],
+	            [-33, -47],
+	            [-23, -58],
+	            [-5, -44],
+	            [5, -33],
+	            [-5, -60],
+	            [-6, -28],
+	            [-20, -33],
+	            [-31, -104],
+	            [-24, -47],
+	            [-19, -27],
+	            [-13, -57],
+	            [-18, -33]
+	        ],
+	        [
+	            [3517, 3063],
+	            [-8, 33],
+	            [13, 28],
+	            [-16, 40],
+	            [-22, 33],
+	            [-29, 38],
+	            [-10, -2],
+	            [-28, 46],
+	            [-18, -7]
+	        ],
+	        [
+	            [8172, 5325],
+	            [11, 22],
+	            [23, 32]
+	        ],
+	        [
+	            [8206, 5379],
+	            [-1, -29],
+	            [-2, -37],
+	            [-13, 1],
+	            [-6, -20],
+	            [-12, 31]
+	        ],
+	        [
+	            [7546, 6698],
+	            [12, -19],
+	            [-2, -36],
+	            [-23, -2],
+	            [-23, 4],
+	            [-18, -9],
+	            [-25, 22],
+	            [-1, 12]
+	        ],
+	        [
+	            [7466, 6670],
+	            [19, 44],
+	            [15, 15],
+	            [20, -14],
+	            [14, -1],
+	            [12, -16]
+	        ],
+	        [
+	            [5817, 3752],
+	            [-39, -43],
+	            [-25, -44],
+	            [-10, -40],
+	            [-8, -22],
+	            [-15, -4],
+	            [-5, -29],
+	            [-3, -18],
+	            [-17, -14],
+	            [-23, 3],
+	            [-13, 17],
+	            [-12, 7],
+	            [-14, -14],
+	            [-6, -28],
+	            [-14, -18],
+	            [-13, -26],
+	            [-20, -6],
+	            [-6, 20],
+	            [2, 36],
+	            [-16, 56],
+	            [-8, 9]
+	        ],
+	        [
+	            [5552, 3594],
+	            [0, 173],
+	            [27, 2],
+	            [1, 210],
+	            [21, 2],
+	            [43, 21],
+	            [10, -24],
+	            [18, 23],
+	            [9, 0],
+	            [15, 13]
+	        ],
+	        [
+	            [5696, 4014],
+	            [5, -4]
+	        ],
+	        [
+	            [5701, 4010],
+	            [11, -48],
+	            [5, -10],
+	            [9, -34],
+	            [32, -65],
+	            [12, -7],
+	            [0, -20],
+	            [8, -38],
+	            [21, -9],
+	            [18, -27]
+	        ],
+	        [
+	            [5424, 5496],
+	            [23, 4],
+	            [5, 16],
+	            [5, -2],
+	            [7, -13],
+	            [34, 23],
+	            [12, 23],
+	            [15, 20],
+	            [-3, 21],
+	            [8, 6],
+	            [27, -4],
+	            [26, 27],
+	            [20, 65],
+	            [14, 24],
+	            [18, 10]
+	        ],
+	        [
+	            [5635, 5716],
+	            [3, -26],
+	            [16, -36],
+	            [0, -25],
+	            [-5, -24],
+	            [2, -18],
+	            [10, -18]
+	        ],
+	        [
+	            [5661, 5569],
+	            [21, -25]
+	        ],
+	        [
+	            [5682, 5544],
+	            [15, -24],
+	            [0, -19],
+	            [19, -31],
+	            [12, -26],
+	            [7, -35],
+	            [20, -24],
+	            [5, -18]
+	        ],
+	        [
+	            [5760, 5367],
+	            [-9, -7],
+	            [-18, 2],
+	            [-21, 6],
+	            [-10, -5],
+	            [-5, -14],
+	            [-9, -2],
+	            [-10, 12],
+	            [-31, -29],
+	            [-13, 6],
+	            [-4, -5],
+	            [-8, -35],
+	            [-21, 11],
+	            [-20, 6],
+	            [-18, 22],
+	            [-23, 20],
+	            [-15, -19],
+	            [-10, -30],
+	            [-3, -41]
+	        ],
+	        [
+	            [5512, 5265],
+	            [-18, 3],
+	            [-19, 10],
+	            [-16, -32],
+	            [-15, -55]
+	        ],
+	        [
+	            [5444, 5191],
+	            [-3, 18],
+	            [-1, 27],
+	            [-13, 19],
+	            [-10, 30],
+	            [-2, 21],
+	            [-13, 31],
+	            [2, 18],
+	            [-3, 25],
+	            [2, 45],
+	            [7, 11],
+	            [14, 60]
+	        ],
+	        [
+	            [3231, 7808],
+	            [20, -8],
+	            [26, 1],
+	            [-14, -24],
+	            [-10, -4],
+	            [-35, 25],
+	            [-7, 20],
+	            [10, 18],
+	            [10, -28]
+	        ],
+	        [
+	            [3283, 7958],
+	            [-14, -1],
+	            [-36, 19],
+	            [-26, 28],
+	            [10, 5],
+	            [37, -15],
+	            [28, -25],
+	            [1, -11]
+	        ],
+	        [
+	            [1569, 7923],
+	            [-14, -8],
+	            [-46, 27],
+	            [-8, 21],
+	            [-25, 21],
+	            [-5, 16],
+	            [-28, 11],
+	            [-11, 32],
+	            [2, 14],
+	            [30, -13],
+	            [17, -9],
+	            [26, -6],
+	            [9, -21],
+	            [14, -28],
+	            [28, -24],
+	            [11, -33]
+	        ],
+	        [
+	            [3440, 8052],
+	            [-18, -52],
+	            [18, 20],
+	            [19, -12],
+	            [-10, -21],
+	            [25, -16],
+	            [12, 14],
+	            [28, -18],
+	            [-8, -43],
+	            [19, 10],
+	            [4, -32],
+	            [8, -36],
+	            [-11, -52],
+	            [-13, -2],
+	            [-18, 11],
+	            [6, 48],
+	            [-8, 8],
+	            [-32, -52],
+	            [-17, 2],
+	            [20, 28],
+	            [-27, 14],
+	            [-30, -3],
+	            [-54, 2],
+	            [-4, 17],
+	            [17, 21],
+	            [-12, 16],
+	            [24, 36],
+	            [28, 94],
+	            [18, 33],
+	            [24, 21],
+	            [13, -3],
+	            [-6, -16],
+	            [-15, -37]
+	        ],
+	        [
+	            [1313, 8250],
+	            [27, 5],
+	            [-8, -67],
+	            [24, -48],
+	            [-11, 0],
+	            [-17, 27],
+	            [-10, 27],
+	            [-14, 19],
+	            [-5, 26],
+	            [1, 19],
+	            [13, -8]
+	        ],
+	        [
+	            [2798, 8730],
+	            [-11, -31],
+	            [-12, 5],
+	            [-8, 17],
+	            [2, 4],
+	            [10, 18],
+	            [12, -1],
+	            [7, -12]
+	        ],
+	        [
+	            [2725, 8762],
+	            [-33, -32],
+	            [-19, 1],
+	            [-6, 16],
+	            [20, 27],
+	            [38, 0],
+	            [0, -12]
+	        ],
+	        [
+	            [2634, 8936],
+	            [5, -26],
+	            [15, 9],
+	            [16, -15],
+	            [30, -20],
+	            [32, -19],
+	            [2, -28],
+	            [21, 5],
+	            [20, -20],
+	            [-25, -18],
+	            [-43, 14],
+	            [-16, 26],
+	            [-27, -31],
+	            [-40, -31],
+	            [-9, 35],
+	            [-38, -6],
+	            [24, 30],
+	            [4, 46],
+	            [9, 54],
+	            [20, -5]
+	        ],
+	        [
+	            [2892, 9024],
+	            [-31, -3],
+	            [-7, 29],
+	            [12, 34],
+	            [26, 8],
+	            [21, -17],
+	            [1, -25],
+	            [-4, -8],
+	            [-18, -18]
+	        ],
+	        [
+	            [2343, 9140],
+	            [-17, -21],
+	            [-38, 18],
+	            [-22, -6],
+	            [-38, 26],
+	            [24, 19],
+	            [19, 25],
+	            [30, -16],
+	            [17, -11],
+	            [8, -11],
+	            [17, -23]
+	        ],
+	        [
+	            [3135, 7724],
+	            [-18, 33],
+	            [0, 81],
+	            [-13, 17],
+	            [-18, -10],
+	            [-10, 16],
+	            [-21, -45],
+	            [-8, -46],
+	            [-10, -27],
+	            [-12, -9],
+	            [-9, -3],
+	            [-3, -15],
+	            [-51, 0],
+	            [-42, 0],
+	            [-12, -11],
+	            [-30, -42],
+	            [-3, -5],
+	            [-9, -23],
+	            [-26, 0],
+	            [-27, 0],
+	            [-12, -10],
+	            [4, -11],
+	            [2, -18],
+	            [0, -6],
+	            [-36, -30],
+	            [-29, -9],
+	            [-32, -31],
+	            [-7, 0],
+	            [-10, 9],
+	            [-3, 8],
+	            [1, 6],
+	            [6, 21],
+	            [13, 33],
+	            [8, 35],
+	            [-5, 51],
+	            [-6, 53],
+	            [-29, 28],
+	            [3, 11],
+	            [-4, 7],
+	            [-8, 0],
+	            [-5, 9],
+	            [-2, 14],
+	            [-5, -6],
+	            [-7, 2],
+	            [1, 6],
+	            [-6, 6],
+	            [-3, 15],
+	            [-21, 19],
+	            [-23, 20],
+	            [-27, 23],
+	            [-26, 21],
+	            [-25, -17],
+	            [-9, 0],
+	            [-34, 15],
+	            [-23, -8],
+	            [-27, 19],
+	            [-28, 9],
+	            [-19, 4],
+	            [-9, 10],
+	            [-5, 32],
+	            [-9, 0],
+	            [-1, -23],
+	            [-57, 0],
+	            [-95, 0],
+	            [-94, 0],
+	            [-84, 0],
+	            [-83, 0],
+	            [-82, 0],
+	            [-85, 0],
+	            [-27, 0],
+	            [-82, 0],
+	            [-79, 0]
+	        ],
+	        [
+	            [1588, 7952],
+	            [-4, 0],
+	            [-54, 58],
+	            [-20, 26],
+	            [-50, 24],
+	            [-15, 53],
+	            [3, 36],
+	            [-35, 25],
+	            [-5, 48],
+	            [-34, 43],
+	            [0, 30]
+	        ],
+	        [
+	            [1374, 8295],
+	            [15, 29],
+	            [0, 37],
+	            [-48, 37],
+	            [-28, 68],
+	            [-17, 42],
+	            [-26, 27],
+	            [-19, 24],
+	            [-14, 31],
+	            [-28, -20],
+	            [-27, -33],
+	            [-25, 39],
+	            [-19, 26],
+	            [-27, 16],
+	            [-28, 2],
+	            [0, 337],
+	            [1, 219]
+	        ],
+	        [
+	            [1084, 9176],
+	            [51, -14],
+	            [44, -29],
+	            [29, -5],
+	            [24, 24],
+	            [34, 19],
+	            [41, -7],
+	            [42, 26],
+	            [45, 14],
+	            [20, -24],
+	            [20, 14],
+	            [6, 27],
+	            [20, -6],
+	            [47, -53],
+	            [37, 40],
+	            [3, -45],
+	            [34, 10],
+	            [11, 17],
+	            [34, -3],
+	            [42, -25],
+	            [65, -22],
+	            [38, -10],
+	            [28, 4],
+	            [37, -30],
+	            [-39, -29],
+	            [50, -13],
+	            [75, 7],
+	            [24, 11],
+	            [29, -36],
+	            [31, 30],
+	            [-29, 25],
+	            [18, 20],
+	            [34, 3],
+	            [22, 6],
+	            [23, -14],
+	            [28, -32],
+	            [31, 5],
+	            [49, -27],
+	            [43, 9],
+	            [40, -1],
+	            [-3, 37],
+	            [25, 10],
+	            [43, -20],
+	            [0, -56],
+	            [17, 47],
+	            [23, -1],
+	            [12, 59],
+	            [-30, 36],
+	            [-32, 24],
+	            [2, 65],
+	            [33, 43],
+	            [37, -9],
+	            [28, -26],
+	            [38, -67],
+	            [-25, -29],
+	            [52, -12],
+	            [-1, -60],
+	            [38, 46],
+	            [33, -38],
+	            [-9, -44],
+	            [27, -40],
+	            [29, 43],
+	            [21, 51],
+	            [1, 65],
+	            [40, -5],
+	            [41, -8],
+	            [37, -30],
+	            [2, -29],
+	            [-21, -31],
+	            [20, -32],
+	            [-4, -29],
+	            [-54, -41],
+	            [-39, -9],
+	            [-29, 18],
+	            [-8, -30],
+	            [-27, -50],
+	            [-8, -26],
+	            [-32, -40],
+	            [-40, -4],
+	            [-22, -25],
+	            [-2, -38],
+	            [-32, -7],
+	            [-34, -48],
+	            [-30, -67],
+	            [-11, -46],
+	            [-1, -69],
+	            [40, -10],
+	            [13, -55],
+	            [13, -45],
+	            [39, 12],
+	            [51, -26],
+	            [28, -22],
+	            [20, -28],
+	            [35, -17],
+	            [29, -24],
+	            [46, -4],
+	            [30, -6],
+	            [-4, -51],
+	            [8, -59],
+	            [21, -66],
+	            [41, -56],
+	            [21, 19],
+	            [15, 61],
+	            [-14, 93],
+	            [-20, 31],
+	            [45, 28],
+	            [31, 41],
+	            [16, 41],
+	            [-3, 40],
+	            [-19, 50],
+	            [-33, 44],
+	            [32, 62],
+	            [-12, 54],
+	            [-9, 92],
+	            [19, 14],
+	            [48, -16],
+	            [29, -6],
+	            [23, 15],
+	            [25, -20],
+	            [35, -34],
+	            [8, -23],
+	            [50, -4],
+	            [-1, -50],
+	            [9, -74],
+	            [25, -10],
+	            [21, -35],
+	            [40, 33],
+	            [26, 65],
+	            [19, 28],
+	            [21, -53],
+	            [36, -75],
+	            [31, -71],
+	            [-11, -37],
+	            [37, -33],
+	            [25, -34],
+	            [44, -15],
+	            [18, -19],
+	            [11, -50],
+	            [22, -8],
+	            [11, -22],
+	            [2, -67],
+	            [-20, -22],
+	            [-20, -21],
+	            [-46, -21],
+	            [-35, -48],
+	            [-47, -10],
+	            [-59, 13],
+	            [-42, 0],
+	            [-29, -4],
+	            [-23, -43],
+	            [-35, -26],
+	            [-40, -78],
+	            [-32, -54],
+	            [23, 9],
+	            [45, 78],
+	            [58, 49],
+	            [42, 6],
+	            [24, -29],
+	            [-26, -40],
+	            [9, -63],
+	            [9, -45],
+	            [36, -29],
+	            [46, 8],
+	            [28, 67],
+	            [2, -43],
+	            [17, -22],
+	            [-34, -38],
+	            [-61, -36],
+	            [-28, -23],
+	            [-31, -43],
+	            [-21, 4],
+	            [-1, 50],
+	            [48, 49],
+	            [-44, -2],
+	            [-31, -7]
+	        ],
+	        [
+	            [1829, 9377],
+	            [-14, -27],
+	            [61, 17],
+	            [39, -29],
+	            [31, 30],
+	            [26, -20],
+	            [23, -58],
+	            [14, 25],
+	            [-20, 60],
+	            [24, 9],
+	            [28, -9],
+	            [31, -24],
+	            [17, -58],
+	            [9, -41],
+	            [47, -30],
+	            [50, -28],
+	            [-3, -26],
+	            [-46, -4],
+	            [18, -23],
+	            [-9, -22],
+	            [-51, 9],
+	            [-48, 16],
+	            [-32, -3],
+	            [-52, -20],
+	            [-70, -9],
+	            [-50, -6],
+	            [-15, 28],
+	            [-38, 16],
+	            [-24, -6],
+	            [-35, 47],
+	            [19, 6],
+	            [43, 10],
+	            [39, -3],
+	            [36, 11],
+	            [-54, 13],
+	            [-59, -4],
+	            [-39, 1],
+	            [-15, 22],
+	            [64, 23],
+	            [-42, -1],
+	            [-49, 16],
+	            [23, 44],
+	            [20, 24],
+	            [74, 36],
+	            [29, -12]
+	        ],
+	        [
+	            [2097, 9395],
+	            [-24, -39],
+	            [-44, 41],
+	            [10, 9],
+	            [37, 2],
+	            [21, -13]
+	        ],
+	        [
+	            [2879, 9376],
+	            [3, -16],
+	            [-30, 2],
+	            [-30, 1],
+	            [-30, -8],
+	            [-8, 3],
+	            [-31, 32],
+	            [1, 21],
+	            [14, 4],
+	            [63, -6],
+	            [48, -33]
+	        ],
+	        [
+	            [2595, 9379],
+	            [22, -36],
+	            [26, 47],
+	            [70, 24],
+	            [48, -61],
+	            [-4, -38],
+	            [55, 17],
+	            [26, 23],
+	            [62, -30],
+	            [38, -28],
+	            [3, -25],
+	            [52, 13],
+	            [29, -38],
+	            [67, -23],
+	            [24, -24],
+	            [26, -55],
+	            [-51, -28],
+	            [66, -38],
+	            [44, -13],
+	            [40, -55],
+	            [44, -3],
+	            [-9, -42],
+	            [-49, -69],
+	            [-34, 26],
+	            [-44, 57],
+	            [-36, -8],
+	            [-3, -34],
+	            [29, -34],
+	            [38, -27],
+	            [11, -16],
+	            [18, -58],
+	            [-9, -43],
+	            [-35, 16],
+	            [-70, 47],
+	            [39, -51],
+	            [29, -35],
+	            [5, -21],
+	            [-76, 24],
+	            [-59, 34],
+	            [-34, 29],
+	            [10, 17],
+	            [-42, 30],
+	            [-40, 29],
+	            [0, -18],
+	            [-80, -9],
+	            [-23, 20],
+	            [18, 44],
+	            [52, 1],
+	            [57, 7],
+	            [-9, 21],
+	            [10, 30],
+	            [36, 57],
+	            [-8, 27],
+	            [-11, 20],
+	            [-42, 29],
+	            [-57, 20],
+	            [18, 15],
+	            [-29, 36],
+	            [-25, 4],
+	            [-22, 20],
+	            [-14, -18],
+	            [-51, -7],
+	            [-101, 13],
+	            [-59, 17],
+	            [-45, 9],
+	            [-23, 21],
+	            [29, 27],
+	            [-39, 0],
+	            [-9, 60],
+	            [21, 53],
+	            [29, 24],
+	            [72, 16],
+	            [-21, -39]
+	        ],
+	        [
+	            [2212, 9420],
+	            [33, -12],
+	            [50, 7],
+	            [7, -17],
+	            [-26, -28],
+	            [42, -26],
+	            [-5, -53],
+	            [-45, -23],
+	            [-27, 5],
+	            [-19, 23],
+	            [-69, 45],
+	            [0, 19],
+	            [57, -7],
+	            [-31, 38],
+	            [33, 29]
+	        ],
+	        [
+	            [2411, 9357],
+	            [-30, -45],
+	            [-32, 3],
+	            [-17, 52],
+	            [1, 29],
+	            [14, 25],
+	            [28, 16],
+	            [58, -2],
+	            [53, -14],
+	            [-42, -53],
+	            [-33, -11]
+	        ],
+	        [
+	            [1654, 9275],
+	            [-73, -29],
+	            [-15, 26],
+	            [-64, 31],
+	            [12, 25],
+	            [19, 43],
+	            [24, 39],
+	            [-27, 36],
+	            [94, 10],
+	            [39, -13],
+	            [71, -3],
+	            [27, -17],
+	            [30, -25],
+	            [-35, -15],
+	            [-68, -41],
+	            [-34, -42],
+	            [0, -25]
+	        ],
+	        [
+	            [2399, 9487],
+	            [-15, -23],
+	            [-40, 5],
+	            [-34, 15],
+	            [15, 27],
+	            [40, 16],
+	            [24, -21],
+	            [10, -19]
+	        ],
+	        [
+	            [2264, 9590],
+	            [21, -27],
+	            [1, -31],
+	            [-13, -44],
+	            [-46, -6],
+	            [-30, 10],
+	            [1, 34],
+	            [-45, -4],
+	            [-2, 45],
+	            [30, -2],
+	            [41, 21],
+	            [40, -4],
+	            [2, 8]
+	        ],
+	        [
+	            [1994, 9559],
+	            [11, -21],
+	            [25, 10],
+	            [29, -2],
+	            [5, -29],
+	            [-17, -28],
+	            [-94, -10],
+	            [-70, -25],
+	            [-43, -2],
+	            [-3, 20],
+	            [57, 26],
+	            [-125, -7],
+	            [-39, 10],
+	            [38, 58],
+	            [26, 17],
+	            [78, -20],
+	            [50, -35],
+	            [48, -5],
+	            [-40, 57],
+	            [26, 21],
+	            [29, -7],
+	            [9, -28]
+	        ],
+	        [
+	            [2370, 9612],
+	            [30, -19],
+	            [55, 0],
+	            [24, -19],
+	            [-6, -22],
+	            [32, -14],
+	            [17, -14],
+	            [38, -2],
+	            [40, -5],
+	            [44, 13],
+	            [57, 5],
+	            [45, -5],
+	            [30, -22],
+	            [6, -24],
+	            [-17, -16],
+	            [-42, -13],
+	            [-35, 8],
+	            [-80, -10],
+	            [-57, -1],
+	            [-45, 8],
+	            [-74, 19],
+	            [-9, 32],
+	            [-4, 29],
+	            [-27, 26],
+	            [-58, 7],
+	            [-32, 19],
+	            [10, 24],
+	            [58, -4]
+	        ],
+	        [
+	            [1772, 9645],
+	            [-4, -46],
+	            [-21, -20],
+	            [-26, -3],
+	            [-52, -26],
+	            [-44, -9],
+	            [-38, 13],
+	            [47, 44],
+	            [57, 39],
+	            [43, -1],
+	            [38, 9]
+	        ],
+	        [
+	            [2393, 9637],
+	            [-13, -2],
+	            [-52, 4],
+	            [-7, 17],
+	            [56, -1],
+	            [19, -11],
+	            [-3, -7]
+	        ],
+	        [
+	            [1939, 9648],
+	            [-52, -17],
+	            [-41, 19],
+	            [23, 19],
+	            [40, 6],
+	            [39, -10],
+	            [-9, -17]
+	        ],
+	        [
+	            [1954, 9701],
+	            [-34, -11],
+	            [-46, 0],
+	            [0, 8],
+	            [29, 18],
+	            [14, -3],
+	            [37, -12]
+	        ],
+	        [
+	            [2338, 9669],
+	            [-41, -12],
+	            [-23, 13],
+	            [-12, 23],
+	            [-2, 24],
+	            [36, -2],
+	            [16, -4],
+	            [33, -21],
+	            [-7, -21]
+	        ],
+	        [
+	            [2220, 9685],
+	            [11, -25],
+	            [-45, 7],
+	            [-46, 19],
+	            [-62, 2],
+	            [27, 18],
+	            [-34, 14],
+	            [-2, 22],
+	            [55, -8],
+	            [75, -21],
+	            [21, -28]
+	        ],
+	        [
+	            [2583, 9764],
+	            [33, -20],
+	            [-38, -17],
+	            [-51, -45],
+	            [-50, -4],
+	            [-57, 8],
+	            [-30, 24],
+	            [0, 21],
+	            [22, 16],
+	            [-50, 0],
+	            [-31, 19],
+	            [-18, 27],
+	            [20, 26],
+	            [19, 18],
+	            [28, 4],
+	            [-12, 14],
+	            [65, 3],
+	            [35, -32],
+	            [47, -12],
+	            [46, -11],
+	            [22, -39]
+	        ],
+	        [
+	            [3097, 9967],
+	            [74, -4],
+	            [60, -8],
+	            [51, -16],
+	            [-2, -16],
+	            [-67, -25],
+	            [-68, -12],
+	            [-25, -14],
+	            [61, 1],
+	            [-66, -36],
+	            [-45, -17],
+	            [-48, -48],
+	            [-57, -10],
+	            [-18, -12],
+	            [-84, -6],
+	            [39, -8],
+	            [-20, -10],
+	            [23, -29],
+	            [-26, -21],
+	            [-43, -16],
+	            [-13, -24],
+	            [-39, -17],
+	            [4, -14],
+	            [48, 3],
+	            [0, -15],
+	            [-74, -35],
+	            [-73, 16],
+	            [-81, -9],
+	            [-42, 7],
+	            [-52, 3],
+	            [-4, 29],
+	            [52, 13],
+	            [-14, 43],
+	            [17, 4],
+	            [74, -26],
+	            [-38, 38],
+	            [-45, 11],
+	            [23, 23],
+	            [49, 14],
+	            [8, 21],
+	            [-39, 23],
+	            [-12, 31],
+	            [76, -3],
+	            [22, -6],
+	            [43, 21],
+	            [-62, 7],
+	            [-98, -4],
+	            [-49, 20],
+	            [-23, 24],
+	            [-32, 17],
+	            [-6, 21],
+	            [41, 11],
+	            [32, 2],
+	            [55, 9],
+	            [41, 22],
+	            [34, -3],
+	            [30, -16],
+	            [21, 32],
+	            [37, 9],
+	            [50, 7],
+	            [85, 2],
+	            [14, -6],
+	            [81, 10],
+	            [60, -4],
+	            [60, -4]
+	        ],
+	        [
+	            [5290, 7828],
+	            [-3, -24],
+	            [-12, -10],
+	            [-20, 7],
+	            [-6, -24],
+	            [-14, -2],
+	            [-5, 10],
+	            [-15, -20],
+	            [-13, -3],
+	            [-12, 13]
+	        ],
+	        [
+	            [5190, 7775],
+	            [-10, 25],
+	            [-13, -9],
+	            [0, 27],
+	            [21, 33],
+	            [-1, 15],
+	            [12, -5],
+	            [8, 10]
+	        ],
+	        [
+	            [5207, 7871],
+	            [24, -1],
+	            [5, 13],
+	            [30, -18]
+	        ],
+	        [
+	            [3140, 1814],
+	            [-10, -24],
+	            [-23, -18],
+	            [-14, 2],
+	            [-16, 5],
+	            [-21, 18],
+	            [-29, 8],
+	            [-35, 33],
+	            [-28, 32],
+	            [-38, 66],
+	            [23, -12],
+	            [39, -40],
+	            [36, -21],
+	            [15, 27],
+	            [9, 41],
+	            [25, 24],
+	            [20, -7]
+	        ],
+	        [
+	            [3095, 1968],
+	            [-25, 0],
+	            [-13, -14],
+	            [-25, -22],
+	            [-5, -55],
+	            [-11, -1],
+	            [-32, 19],
+	            [-32, 41],
+	            [-34, 34],
+	            [-9, 37],
+	            [8, 35],
+	            [-14, 39],
+	            [-4, 101],
+	            [12, 57],
+	            [30, 45],
+	            [-43, 18],
+	            [27, 52],
+	            [9, 98],
+	            [31, -21],
+	            [15, 123],
+	            [-19, 15],
+	            [-9, -73],
+	            [-17, 8],
+	            [9, 84],
+	            [9, 110],
+	            [13, 40],
+	            [-8, 58],
+	            [-2, 66],
+	            [11, 2],
+	            [17, 96],
+	            [20, 94],
+	            [11, 88],
+	            [-6, 89],
+	            [8, 49],
+	            [-3, 72],
+	            [16, 73],
+	            [5, 114],
+	            [9, 123],
+	            [9, 132],
+	            [-2, 96],
+	            [-6, 84]
+	        ],
+	        [
+	            [3045, 3974],
+	            [14, 15],
+	            [8, 30]
+	        ],
+	        [
+	            [8064, 6161],
+	            [-24, -28],
+	            [-23, 18],
+	            [0, 51],
+	            [13, 26],
+	            [31, 17],
+	            [16, -1],
+	            [6, -23],
+	            [-12, -26],
+	            [-7, -34]
+	        ],
+	        [
+	            [8628, 7562],
+	            [-18, 35],
+	            [-11, -33],
+	            [-43, -26],
+	            [4, -31],
+	            [-24, 2],
+	            [-13, 19],
+	            [-19, -42],
+	            [-30, -32],
+	            [-23, -38]
+	        ],
+	        [
+	            [8451, 7416],
+	            [-39, -17],
+	            [-20, -27],
+	            [-30, -17],
+	            [15, 28],
+	            [-6, 23],
+	            [22, 40],
+	            [-15, 30],
+	            [-24, -20],
+	            [-32, -41],
+	            [-17, -39],
+	            [-27, -2],
+	            [-14, -28],
+	            [15, -40],
+	            [22, -10],
+	            [1, -26],
+	            [22, -17],
+	            [31, 42],
+	            [25, -23],
+	            [18, -2],
+	            [4, -31],
+	            [-39, -16],
+	            [-13, -32],
+	            [-27, -30],
+	            [-14, -41],
+	            [30, -33],
+	            [11, -58],
+	            [17, -54],
+	            [18, -45],
+	            [0, -44],
+	            [-17, -16],
+	            [6, -32],
+	            [17, -18],
+	            [-5, -48],
+	            [-7, -47],
+	            [-15, -5],
+	            [-21, -64],
+	            [-22, -78],
+	            [-26, -70],
+	            [-38, -55],
+	            [-39, -50],
+	            [-31, -6],
+	            [-17, -27],
+	            [-10, 20],
+	            [-15, -30],
+	            [-39, -29],
+	            [-29, -9],
+	            [-10, -63],
+	            [-15, -3],
+	            [-8, 43],
+	            [7, 22],
+	            [-37, 19],
+	            [-13, -9]
+	        ],
+	        [
+	            [8001, 6331],
+	            [-28, 15],
+	            [-14, 24],
+	            [5, 34],
+	            [-26, 11],
+	            [-13, 22],
+	            [-24, -31],
+	            [-27, -7],
+	            [-22, 0],
+	            [-15, -14]
+	        ],
+	        [
+	            [7837, 6385],
+	            [-14, -9],
+	            [4, -68],
+	            [-15, 2],
+	            [-2, 14]
+	        ],
+	        [
+	            [7810, 6324],
+	            [-1, 24],
+	            [-20, -17],
+	            [-12, 11],
+	            [-21, 22],
+	            [8, 49],
+	            [-18, 12],
+	            [-6, 54],
+	            [-30, -10],
+	            [4, 70],
+	            [26, 50],
+	            [1, 48],
+	            [-1, 46],
+	            [-12, 14],
+	            [-9, 35],
+	            [-16, -5]
+	        ],
+	        [
+	            [7703, 6727],
+	            [-30, 9],
+	            [9, 25],
+	            [-13, 36],
+	            [-20, -24],
+	            [-23, 14],
+	            [-32, -37],
+	            [-25, -44],
+	            [-23, -8]
+	        ],
+	        [
+	            [7466, 6670],
+	            [-2, 47],
+	            [-17, -13]
+	        ],
+	        [
+	            [7447, 6704],
+	            [-32, 6],
+	            [-32, 14],
+	            [-22, 26],
+	            [-22, 11],
+	            [-9, 29],
+	            [-16, 8],
+	            [-28, 39],
+	            [-22, 18],
+	            [-12, -14]
+	        ],
+	        [
+	            [7252, 6841],
+	            [-38, 41],
+	            [-28, 37],
+	            [-7, 65],
+	            [20, -7],
+	            [1, 30],
+	            [-12, 30],
+	            [3, 48],
+	            [-30, 69]
+	        ],
+	        [
+	            [7161, 7154],
+	            [-45, 24],
+	            [-8, 46],
+	            [-21, 27]
+	        ],
+	        [
+	            [7082, 7268],
+	            [-4, 34],
+	            [1, 23],
+	            [-17, 13],
+	            [-9, -6],
+	            [-7, 55]
+	        ],
+	        [
+	            [7046, 7387],
+	            [8, 13],
+	            [-4, 14],
+	            [26, 28],
+	            [20, 12],
+	            [29, -8],
+	            [11, 38],
+	            [35, 7],
+	            [10, 23],
+	            [44, 32],
+	            [4, 13]
+	        ],
+	        [
+	            [7229, 7559],
+	            [-2, 34],
+	            [19, 15],
+	            [-25, 103],
+	            [55, 24],
+	            [14, 13],
+	            [20, 106],
+	            [55, -20],
+	            [15, 27],
+	            [2, 59],
+	            [23, 6],
+	            [21, 39]
+	        ],
+	        [
+	            [7426, 7965],
+	            [11, 5]
+	        ],
+	        [
+	            [7437, 7970],
+	            [7, -41],
+	            [23, -32],
+	            [40, -22],
+	            [19, -47],
+	            [-10, -70],
+	            [10, -25],
+	            [33, -10],
+	            [37, -8],
+	            [33, -37],
+	            [18, -7],
+	            [12, -54],
+	            [17, -35],
+	            [30, 1],
+	            [58, -13],
+	            [36, 8],
+	            [28, -9],
+	            [41, -36],
+	            [34, 0],
+	            [12, -18],
+	            [32, 32],
+	            [45, 20],
+	            [42, 2],
+	            [32, 21],
+	            [20, 32],
+	            [20, 20],
+	            [-5, 19],
+	            [-9, 23],
+	            [15, 38],
+	            [15, -5],
+	            [29, -12],
+	            [28, 31],
+	            [42, 23],
+	            [20, 39],
+	            [20, 17],
+	            [40, 8],
+	            [22, -7],
+	            [3, 21],
+	            [-25, 41],
+	            [-22, 19],
+	            [-22, -22],
+	            [-27, 10],
+	            [-16, -8],
+	            [-7, 24],
+	            [20, 59],
+	            [13, 45]
+	        ],
+	        [
+	            [8240, 8005],
+	            [34, -23],
+	            [39, 38],
+	            [-1, 26],
+	            [26, 62],
+	            [15, 19],
+	            [0, 33],
+	            [-16, 14],
+	            [23, 29],
+	            [35, 11],
+	            [37, 2],
+	            [41, -18],
+	            [25, -22],
+	            [17, -59],
+	            [10, -26],
+	            [10, -36],
+	            [10, -58],
+	            [49, -19],
+	            [32, -42],
+	            [12, -55],
+	            [42, 0],
+	            [24, 23],
+	            [46, 17],
+	            [-15, -53],
+	            [-11, -21],
+	            [-9, -65],
+	            [-19, -58],
+	            [-33, 11],
+	            [-24, -21],
+	            [7, -51],
+	            [-4, -69],
+	            [-14, -2],
+	            [0, -30]
+	        ],
+	        [
+	            [4920, 5353],
+	            [-12, -1],
+	            [-20, 12],
+	            [-18, -1],
+	            [-33, -10],
+	            [-19, -18],
+	            [-27, -21],
+	            [-6, 1]
+	        ],
+	        [
+	            [4785, 5315],
+	            [2, 49],
+	            [3, 7],
+	            [-1, 24],
+	            [-12, 24],
+	            [-8, 4],
+	            [-8, 17],
+	            [6, 26],
+	            [-3, 28],
+	            [1, 18]
+	        ],
+	        [
+	            [4765, 5512],
+	            [5, 0],
+	            [1, 25],
+	            [-2, 12],
+	            [3, 8],
+	            [10, 7],
+	            [-7, 47],
+	            [-6, 25],
+	            [2, 20],
+	            [5, 4]
+	        ],
+	        [
+	            [4776, 5660],
+	            [4, 6],
+	            [8, -9],
+	            [21, -1],
+	            [5, 18],
+	            [5, -1],
+	            [8, 6],
+	            [4, -25],
+	            [7, 7],
+	            [11, 9]
+	        ],
+	        [
+	            [4921, 5627],
+	            [7, -84],
+	            [-11, -50],
+	            [-8, -66],
+	            [12, -51],
+	            [-1, -23]
+	        ],
+	        [
+	            [5363, 5191],
+	            [-4, 4],
+	            [-16, -8],
+	            [-17, 8],
+	            [-13, -4]
+	        ],
+	        [
+	            [5313, 5191],
+	            [-45, 1]
+	        ],
+	        [
+	            [5268, 5192],
+	            [4, 47],
+	            [-11, 39],
+	            [-13, 10],
+	            [-6, 27],
+	            [-7, 8],
+	            [1, 16]
+	        ],
+	        [
+	            [5236, 5339],
+	            [7, 42],
+	            [13, 57],
+	            [8, 1],
+	            [17, 34],
+	            [10, 1],
+	            [16, -24],
+	            [19, 20],
+	            [2, 25],
+	            [7, 23],
+	            [4, 30],
+	            [15, 25],
+	            [5, 41],
+	            [6, 13],
+	            [4, 31],
+	            [7, 37],
+	            [24, 46],
+	            [1, 20],
+	            [3, 10],
+	            [-11, 24]
+	        ],
+	        [
+	            [5393, 5795],
+	            [1, 19],
+	            [8, 3]
+	        ],
+	        [
+	            [5402, 5817],
+	            [11, -38],
+	            [2, -39],
+	            [-1, -39],
+	            [15, -54],
+	            [-15, 1],
+	            [-8, -4],
+	            [-13, 6],
+	            [-6, -28],
+	            [16, -35],
+	            [13, -10],
+	            [3, -24],
+	            [9, -41],
+	            [-4, -16]
+	        ],
+	        [
+	            [5444, 5191],
+	            [-2, -31],
+	            [-22, 14],
+	            [-22, 15],
+	            [-35, 2]
+	        ],
+	        [
+	            [5856, 5265],
+	            [-2, -69],
+	            [11, -8],
+	            [-9, -21],
+	            [-10, -16],
+	            [-11, -31],
+	            [-6, -27],
+	            [-1, -48],
+	            [-7, -22],
+	            [0, -45]
+	        ],
+	        [
+	            [5821, 4978],
+	            [-8, -16],
+	            [-1, -35],
+	            [-4, -5],
+	            [-2, -32]
+	        ],
+	        [
+	            [5814, 4792],
+	            [5, -55],
+	            [-2, -30],
+	            [5, -35],
+	            [16, -33],
+	            [15, -74]
+	        ],
+	        [
+	            [5853, 4565],
+	            [-11, 6],
+	            [-37, -10],
+	            [-7, -7],
+	            [-8, -38],
+	            [6, -26],
+	            [-5, -70],
+	            [-3, -59],
+	            [7, -11],
+	            [19, -23],
+	            [8, 11],
+	            [2, -64],
+	            [-21, 1],
+	            [-11, 32],
+	            [-10, 25],
+	            [-22, 9],
+	            [-6, 31],
+	            [-17, -19],
+	            [-22, 8],
+	            [-10, 27],
+	            [-17, 6],
+	            [-13, -2],
+	            [-2, 19],
+	            [-9, 1]
+	        ],
+	        [
+	            [5342, 4697],
+	            [-4, 18]
+	        ],
+	        [
+	            [5360, 4775],
+	            [8, -6],
+	            [9, 23],
+	            [15, -1],
+	            [2, -17],
+	            [11, -10],
+	            [16, 37],
+	            [16, 29],
+	            [7, 19],
+	            [-1, 48],
+	            [12, 58],
+	            [13, 30],
+	            [18, 29],
+	            [3, 18],
+	            [1, 22],
+	            [5, 21],
+	            [-2, 33],
+	            [4, 52],
+	            [5, 37],
+	            [8, 32],
+	            [2, 36]
+	        ],
+	        [
+	            [5760, 5367],
+	            [17, -49],
+	            [12, -7],
+	            [8, 10],
+	            [12, -4],
+	            [16, 12],
+	            [6, -25],
+	            [25, -39]
+	        ],
+	        [
+	            [5330, 4760],
+	            [-22, 62]
+	        ],
+	        [
+	            [5308, 4822],
+	            [21, 33],
+	            [-11, 39],
+	            [10, 15],
+	            [19, 7],
+	            [2, 26],
+	            [15, -28],
+	            [24, -2],
+	            [9, 27],
+	            [3, 40],
+	            [-3, 46],
+	            [-13, 35],
+	            [12, 68],
+	            [-7, 12],
+	            [-21, -5],
+	            [-7, 31],
+	            [2, 25]
+	        ],
+	        [
+	            [2906, 5049],
+	            [-12, 14],
+	            [-14, 19],
+	            [-7, -9],
+	            [-24, 8],
+	            [-7, 25],
+	            [-5, -1],
+	            [-28, 34]
+	        ],
+	        [
+	            [2809, 5139],
+	            [-3, 18],
+	            [10, 5],
+	            [-1, 29],
+	            [6, 22],
+	            [14, 4],
+	            [12, 37],
+	            [10, 31],
+	            [-10, 14],
+	            [5, 34],
+	            [-6, 54],
+	            [6, 16],
+	            [-4, 50],
+	            [-12, 31]
+	        ],
+	        [
+	            [2836, 5484],
+	            [4, 29],
+	            [9, -4],
+	            [5, 17],
+	            [-6, 35],
+	            [3, 9]
+	        ],
+	        [
+	            [2851, 5570],
+	            [14, -2],
+	            [21, 41],
+	            [12, 6],
+	            [0, 20],
+	            [5, 50],
+	            [16, 27],
+	            [17, 1],
+	            [3, 13],
+	            [21, -5],
+	            [22, 30],
+	            [11, 13],
+	            [14, 28],
+	            [9, -3],
+	            [8, -16],
+	            [-6, -20]
+	        ],
+	        [
+	            [3018, 5753],
+	            [-18, -10],
+	            [-7, -29],
+	            [-10, -17],
+	            [-8, -22],
+	            [-4, -42],
+	            [-8, -35],
+	            [15, -4],
+	            [3, -27],
+	            [6, -13],
+	            [3, -24],
+	            [-4, -22],
+	            [1, -12],
+	            [7, -5],
+	            [7, -20],
+	            [36, 5],
+	            [16, -7],
+	            [19, -51],
+	            [11, 6],
+	            [20, -3],
+	            [16, 7],
+	            [10, -10],
+	            [-5, -32],
+	            [-6, -20],
+	            [-2, -42],
+	            [5, -40],
+	            [8, -17],
+	            [1, -13],
+	            [-14, -30],
+	            [10, -13],
+	            [8, -21],
+	            [8, -58]
+	        ],
+	        [
+	            [3058, 4804],
+	            [-14, 31],
+	            [-8, 1],
+	            [18, 61],
+	            [-21, 27],
+	            [-17, -5],
+	            [-10, 10],
+	            [-15, -15],
+	            [-21, 7],
+	            [-16, 62],
+	            [-13, 15],
+	            [-9, 28],
+	            [-19, 28],
+	            [-7, -5]
+	        ],
+	        [
+	            [2695, 5543],
+	            [-15, 14],
+	            [-6, 12],
+	            [4, 10],
+	            [-1, 13],
+	            [-8, 14],
+	            [-11, 12],
+	            [-10, 8],
+	            [-1, 17],
+	            [-8, 10],
+	            [2, -17],
+	            [-5, -14],
+	            [-7, 17],
+	            [-9, 5],
+	            [-4, 12],
+	            [1, 18],
+	            [3, 19],
+	            [-8, 8],
+	            [7, 12]
+	        ],
+	        [
+	            [2619, 5713],
+	            [4, 7],
+	            [18, -15],
+	            [7, 7],
+	            [9, -5],
+	            [4, -12],
+	            [8, -4],
+	            [7, 13]
+	        ],
+	        [
+	            [2676, 5704],
+	            [7, -32],
+	            [11, -24],
+	            [13, -25]
+	        ],
+	        [
+	            [2707, 5623],
+	            [-11, -6],
+	            [0, -23],
+	            [6, -9],
+	            [-4, -7],
+	            [1, -11],
+	            [-2, -12],
+	            [-2, -12]
+	        ],
+	        [
+	            [2715, 6427],
+	            [23, -4],
+	            [22, 0],
+	            [26, -21],
+	            [11, -21],
+	            [26, 6],
+	            [10, -13],
+	            [24, -37],
+	            [17, -27],
+	            [9, 1],
+	            [17, -12],
+	            [-2, -17],
+	            [20, -2],
+	            [21, -24],
+	            [-3, -14],
+	            [-19, -7],
+	            [-18, -3],
+	            [-19, 4],
+	            [-40, -5],
+	            [18, 32],
+	            [-11, 16],
+	            [-18, 4],
+	            [-9, 17],
+	            [-7, 33],
+	            [-16, -2],
+	            [-26, 16],
+	            [-8, 12],
+	            [-36, 10],
+	            [-10, 11],
+	            [11, 15],
+	            [-28, 3],
+	            [-20, -31],
+	            [-11, -1],
+	            [-4, -14],
+	            [-14, -7],
+	            [-12, 6],
+	            [15, 18],
+	            [6, 22],
+	            [13, 13],
+	            [14, 11],
+	            [21, 6],
+	            [7, 6]
+	        ],
+	        [
+	            [5909, 7133],
+	            [2, 1],
+	            [4, 14],
+	            [20, -1],
+	            [25, 18],
+	            [-19, -25],
+	            [2, -11]
+	        ],
+	        [
+	            [5943, 7129],
+	            [-3, 2],
+	            [-5, -5],
+	            [-4, 1],
+	            [-2, -2],
+	            [0, 6],
+	            [-2, 4],
+	            [-6, 0],
+	            [-7, -5],
+	            [-5, 3]
+	        ],
+	        [
+	            [5943, 7129],
+	            [1, -5],
+	            [-28, -24],
+	            [-14, 8],
+	            [-7, 23],
+	            [14, 2]
+	        ],
+	        [
+	            [5377, 7945],
+	            [-16, 25],
+	            [-14, 15],
+	            [-3, 25],
+	            [-5, 17],
+	            [21, 13],
+	            [10, 15],
+	            [20, 11],
+	            [7, 11],
+	            [7, -6],
+	            [13, 6]
+	        ],
+	        [
+	            [5417, 8077],
+	            [13, -19],
+	            [21, -5],
+	            [-2, -17],
+	            [15, -12],
+	            [4, 15],
+	            [19, -6],
+	            [3, -19],
+	            [20, -3],
+	            [13, -29]
+	        ],
+	        [
+	            [5523, 7982],
+	            [-8, 0],
+	            [-4, -11],
+	            [-7, -3],
+	            [-2, -13],
+	            [-5, -3],
+	            [-1, -5],
+	            [-9, -7],
+	            [-12, 1],
+	            [-4, -13]
+	        ],
+	        [
+	            [5275, 8306],
+	            [1, -23],
+	            [28, -14],
+	            [-1, -21],
+	            [29, 11],
+	            [15, 16],
+	            [32, -23],
+	            [13, -19]
+	        ],
+	        [
+	            [5392, 8233],
+	            [6, -30],
+	            [-8, -16],
+	            [11, -21],
+	            [6, -31],
+	            [-2, -21],
+	            [12, -37]
+	        ],
+	        [
+	            [5207, 7871],
+	            [3, 42],
+	            [14, 40],
+	            [-40, 11],
+	            [-13, 16]
+	        ],
+	        [
+	            [5171, 7980],
+	            [2, 26],
+	            [-6, 13]
+	        ],
+	        [
+	            [5171, 8059],
+	            [-5, 62],
+	            [17, 0],
+	            [7, 22],
+	            [6, 54],
+	            [-5, 20]
+	        ],
+	        [
+	            [5191, 8217],
+	            [6, 13],
+	            [23, 3],
+	            [5, -13],
+	            [19, 29],
+	            [-6, 22],
+	            [-2, 34]
+	        ],
+	        [
+	            [5236, 8305],
+	            [21, -8],
+	            [18, 9]
+	        ],
+	        [
+	            [6196, 5808],
+	            [7, -19],
+	            [-1, -24],
+	            [-16, -14],
+	            [12, -16]
+	        ],
+	        [
+	            [6198, 5735],
+	            [-10, -32]
+	        ],
+	        [
+	            [6188, 5703],
+	            [-7, 11],
+	            [-6, -5],
+	            [-16, 1],
+	            [0, 18],
+	            [-2, 17],
+	            [9, 27],
+	            [10, 26]
+	        ],
+	        [
+	            [6176, 5798],
+	            [12, -5],
+	            [8, 15]
+	        ],
+	        [
+	            [5352, 8343],
+	            [-17, -48],
+	            [-29, 33],
+	            [-4, 25],
+	            [41, 19],
+	            [9, -29]
+	        ],
+	        [
+	            [5236, 8305],
+	            [-11, 32],
+	            [-1, 61],
+	            [5, 16],
+	            [8, 17],
+	            [24, 4],
+	            [10, 16],
+	            [22, 17],
+	            [-1, -30],
+	            [-8, -20],
+	            [4, -16],
+	            [15, -9],
+	            [-7, -22],
+	            [-8, 6],
+	            [-20, -42],
+	            [7, -29]
+	        ],
+	        [
+	            [3008, 6222],
+	            [3, 10],
+	            [22, 0],
+	            [16, -15],
+	            [8, 1],
+	            [5, -21],
+	            [15, 1],
+	            [-1, -17],
+	            [12, -2],
+	            [14, -22],
+	            [-10, -24],
+	            [-14, 13],
+	            [-12, -3],
+	            [-9, 3],
+	            [-5, -11],
+	            [-11, -3],
+	            [-4, 14],
+	            [-10, -8],
+	            [-11, -41],
+	            [-7, 10],
+	            [-1, 17]
+	        ],
+	        [
+	            [3008, 6124],
+	            [0, 16],
+	            [-7, 17],
+	            [7, 10],
+	            [2, 23],
+	            [-2, 32]
+	        ],
+	        [
+	            [5333, 6444],
+	            [-95, -112],
+	            [-81, -117],
+	            [-39, -26]
+	        ],
+	        [
+	            [5118, 6189],
+	            [-31, -6],
+	            [0, 38],
+	            [-13, 10],
+	            [-17, 16],
+	            [-7, 28],
+	            [-94, 129],
+	            [-93, 129]
+	        ],
+	        [
+	            [4863, 6533],
+	            [-105, 143]
+	        ],
+	        [
+	            [4758, 6676],
+	            [1, 11],
+	            [0, 4]
+	        ],
+	        [
+	            [4759, 6691],
+	            [0, 70],
+	            [44, 44],
+	            [28, 9],
+	            [23, 16],
+	            [11, 29],
+	            [32, 24],
+	            [1, 44],
+	            [16, 5],
+	            [13, 22],
+	            [36, 9],
+	            [5, 23],
+	            [-7, 13],
+	            [-10, 62],
+	            [-1, 36],
+	            [-11, 38]
+	        ],
+	        [
+	            [4939, 7135],
+	            [27, 32],
+	            [30, 11],
+	            [17, 24],
+	            [27, 18],
+	            [47, 11],
+	            [46, 4],
+	            [14, -8],
+	            [26, 23],
+	            [30, 0],
+	            [11, -13],
+	            [19, 3]
+	        ],
+	        [
+	            [5233, 7240],
+	            [-5, -30],
+	            [4, -56],
+	            [-6, -49],
+	            [-18, -33],
+	            [3, -45],
+	            [23, -35],
+	            [0, -14],
+	            [17, -24],
+	            [12, -106]
+	        ],
+	        [
+	            [5263, 6848],
+	            [9, -52],
+	            [1, -28],
+	            [-5, -48],
+	            [2, -27],
+	            [-3, -32],
+	            [2, -37],
+	            [-11, -25],
+	            [17, -43],
+	            [1, -25],
+	            [10, -33],
+	            [13, 11],
+	            [22, -28],
+	            [12, -37]
+	        ],
+	        [
+	            [2769, 4856],
+	            [15, 45],
+	            [-6, 25],
+	            [-11, -27],
+	            [-16, 26],
+	            [5, 16],
+	            [-4, 54],
+	            [9, 9],
+	            [5, 37],
+	            [11, 38],
+	            [-2, 24],
+	            [15, 13],
+	            [19, 23]
+	        ],
+	        [
+	            [2906, 5049],
+	            [4, -45],
+	            [-9, -39],
+	            [-30, -62],
+	            [-33, -23],
+	            [-17, -51],
+	            [-6, -40],
+	            [-15, -24],
+	            [-12, 29],
+	            [-11, 7],
+	            [-12, -5],
+	            [-1, 22],
+	            [8, 14],
+	            [-3, 24]
+	        ],
+	        [
+	            [5969, 6800],
+	            [-7, -23],
+	            [-6, -45],
+	            [-8, -31],
+	            [-6, -10],
+	            [-10, 19],
+	            [-12, 26],
+	            [-20, 85],
+	            [-3, -5],
+	            [12, -63],
+	            [17, -59],
+	            [21, -92],
+	            [10, -32],
+	            [9, -34],
+	            [25, -65],
+	            [-6, -10],
+	            [1, -39],
+	            [33, -53],
+	            [4, -12]
+	        ],
+	        [
+	            [6023, 6357],
+	            [-110, 0],
+	            [-107, 0],
+	            [-112, 0]
+	        ],
+	        [
+	            [5694, 6357],
+	            [0, 218],
+	            [0, 210],
+	            [-8, 47],
+	            [7, 37],
+	            [-5, 25],
+	            [10, 29]
+	        ],
+	        [
+	            [5698, 6923],
+	            [37, 0],
+	            [27, -15],
+	            [28, -18],
+	            [13, -9],
+	            [21, 19],
+	            [11, 17],
+	            [25, 5],
+	            [20, -8],
+	            [7, -29],
+	            [7, 19],
+	            [22, -14],
+	            [22, -3],
+	            [13, 15]
+	        ],
+	        [
+	            [5951, 6902],
+	            [18, -102]
+	        ],
+	        [
+	            [6176, 5798],
+	            [-10, 20],
+	            [-11, 34],
+	            [-12, 19],
+	            [-8, 21],
+	            [-24, 23],
+	            [-19, 1],
+	            [-7, 12],
+	            [-16, -14],
+	            [-17, 27],
+	            [-8, -44],
+	            [-33, 13]
+	        ],
+	        [
+	            [6011, 5910],
+	            [-3, 23],
+	            [12, 87],
+	            [3, 39],
+	            [9, 18],
+	            [20, 10],
+	            [14, 34]
+	        ],
+	        [
+	            [6066, 6121],
+	            [16, -69],
+	            [8, -54],
+	            [15, -29],
+	            [38, -55],
+	            [16, -34],
+	            [15, -34],
+	            [8, -20],
+	            [14, -18]
+	        ],
+	        [
+	            [4749, 7532],
+	            [1, 42],
+	            [-11, 25],
+	            [39, 43],
+	            [34, -11],
+	            [37, 1],
+	            [30, -10],
+	            [23, 3],
+	            [45, -2]
+	        ],
+	        [
+	            [4947, 7623],
+	            [11, -23],
+	            [51, -27],
+	            [10, 13],
+	            [31, -27],
+	            [32, 8]
+	        ],
+	        [
+	            [5082, 7567],
+	            [2, -35],
+	            [-26, -39],
+	            [-36, -12],
+	            [-2, -20],
+	            [-18, -33],
+	            [-10, -48],
+	            [11, -34],
+	            [-16, -26],
+	            [-6, -39],
+	            [-21, -11],
+	            [-20, -46],
+	            [-35, -1],
+	            [-27, 1],
+	            [-17, -21],
+	            [-11, -22],
+	            [-13, 5],
+	            [-11, 20],
+	            [-8, 34],
+	            [-26, 9]
+	        ],
+	        [
+	            [4792, 7249],
+	            [-2, 20],
+	            [10, 22],
+	            [4, 16],
+	            [-9, 17],
+	            [7, 39],
+	            [-11, 36],
+	            [12, 5],
+	            [1, 27],
+	            [5, 9],
+	            [0, 46],
+	            [13, 16],
+	            [-8, 30],
+	            [-16, 2],
+	            [-5, -8],
+	            [-16, 0],
+	            [-7, 29],
+	            [-11, -8],
+	            [-10, -15]
+	        ],
+	        [
+	            [5675, 8472],
+	            [3, 35],
+	            [-10, -8],
+	            [-18, 21],
+	            [-2, 34],
+	            [35, 17],
+	            [35, 8],
+	            [30, -10],
+	            [29, 2]
+	        ],
+	        [
+	            [5777, 8571],
+	            [4, -10],
+	            [-20, -34],
+	            [8, -55],
+	            [-12, -19]
+	        ],
+	        [
+	            [5757, 8453],
+	            [-22, 0],
+	            [-24, 22],
+	            [-13, 7],
+	            [-23, -10]
+	        ],
+	        [
+	            [6188, 5703],
+	            [-6, -21],
+	            [10, -32],
+	            [10, -29],
+	            [11, -21],
+	            [90, -70],
+	            [24, 0]
+	        ],
+	        [
+	            [6327, 5530],
+	            [-79, -177],
+	            [-36, -3],
+	            [-25, -41],
+	            [-17, -1],
+	            [-8, -19]
+	        ],
+	        [
+	            [6162, 5289],
+	            [-19, 0],
+	            [-11, 20],
+	            [-26, -25],
+	            [-8, -24],
+	            [-18, 4],
+	            [-6, 7],
+	            [-7, -1],
+	            [-9, 0],
+	            [-35, 50],
+	            [-19, 0],
+	            [-10, 20],
+	            [0, 33],
+	            [-14, 10]
+	        ],
+	        [
+	            [5980, 5383],
+	            [-17, 64],
+	            [-12, 14],
+	            [-5, 23],
+	            [-14, 29],
+	            [-17, 4],
+	            [9, 34],
+	            [15, 2],
+	            [4, 18]
+	        ],
+	        [
+	            [5943, 5571],
+	            [0, 53]
+	        ],
+	        [
+	            [5943, 5624],
+	            [8, 62],
+	            [13, 16],
+	            [3, 24],
+	            [12, 45],
+	            [17, 30],
+	            [11, 58],
+	            [4, 51]
+	        ],
+	        [
+	            [5794, 9138],
+	            [-4, -42],
+	            [42, -39],
+	            [-26, -45],
+	            [33, -67],
+	            [-19, -51],
+	            [25, -43],
+	            [-11, -39],
+	            [41, -40],
+	            [-11, -31],
+	            [-25, -34],
+	            [-60, -75]
+	        ],
+	        [
+	            [5779, 8632],
+	            [-50, -5],
+	            [-49, -21],
+	            [-45, -13],
+	            [-16, 32],
+	            [-27, 20],
+	            [6, 58],
+	            [-14, 53],
+	            [14, 35],
+	            [25, 37],
+	            [63, 64],
+	            [19, 12],
+	            [-3, 25],
+	            [-39, 28]
+	        ],
+	        [
+	            [5663, 8957],
+	            [-9, 23],
+	            [-1, 91],
+	            [-43, 40],
+	            [-37, 29]
+	        ],
+	        [
+	            [5573, 9140],
+	            [17, 16],
+	            [30, -32],
+	            [37, 3],
+	            [30, -14],
+	            [26, 26],
+	            [14, 44],
+	            [43, 20],
+	            [35, -24],
+	            [-11, -41]
+	        ],
+	        [
+	            [9954, 4033],
+	            [9, -17],
+	            [-4, -31],
+	            [-17, -8],
+	            [-16, 7],
+	            [-2, 26],
+	            [10, 21],
+	            [13, -8],
+	            [7, 10]
+	        ],
+	        [
+	            [0, 4079],
+	            [9981, -14],
+	            [-17, -13],
+	            [-4, 23],
+	            [14, 12],
+	            [9, 3],
+	            [-9983, 18]
+	        ],
+	        [
+	            [0, 4108],
+	            [0, -29]
+	        ],
+	        [
+	            [0, 4108],
+	            [6, 3],
+	            [-4, -28],
+	            [-2, -4]
+	        ],
+	        [
+	            [3300, 1994],
+	            [33, 36],
+	            [24, -15],
+	            [16, 24],
+	            [22, -27],
+	            [-8, -21],
+	            [-37, -17],
+	            [-13, 20],
+	            [-23, -26],
+	            [-14, 26]
+	        ],
+	        [
+	            [5265, 7548],
+	            [-9, -46],
+	            [-13, 12],
+	            [-6, 40],
+	            [5, 22],
+	            [18, 22],
+	            [5, -50]
+	        ],
+	        [
+	            [5157, 7984],
+	            [6, -6],
+	            [8, 2]
+	        ],
+	        [
+	            [5190, 7775],
+	            [-2, -17],
+	            [9, -22],
+	            [-10, -18],
+	            [7, -46],
+	            [15, -8],
+	            [-3, -25]
+	        ],
+	        [
+	            [5206, 7639],
+	            [-25, -34],
+	            [-55, 16],
+	            [-40, -19],
+	            [-4, -35]
+	        ],
+	        [
+	            [4947, 7623],
+	            [14, 35],
+	            [5, 118],
+	            [-28, 62],
+	            [-21, 30],
+	            [-42, 23],
+	            [-3, 43],
+	            [36, 12],
+	            [47, -15],
+	            [-9, 67],
+	            [26, -25],
+	            [65, 46],
+	            [8, 48],
+	            [24, 12]
+	        ],
+	        [
+	            [3485, 5194],
+	            [7, 25],
+	            [3, 27]
+	        ],
+	        [
+	            [3495, 5246],
+	            [4, 26],
+	            [-10, 34]
+	        ],
+	        [
+	            [3489, 5306],
+	            [-3, 41],
+	            [15, 51]
+	        ],
+	        [
+	            [3501, 5398],
+	            [9, -7],
+	            [21, -14],
+	            [29, -50],
+	            [5, -24]
+	        ],
+	        [
+	            [5308, 4822],
+	            [-29, 60],
+	            [-18, 49],
+	            [-17, 61],
+	            [1, 19],
+	            [6, 19],
+	            [7, 43],
+	            [5, 44]
+	        ],
+	        [
+	            [5263, 5117],
+	            [10, 4],
+	            [40, -1],
+	            [0, 71]
+	        ],
+	        [
+	            [4827, 8240],
+	            [-21, 12],
+	            [-17, -1],
+	            [6, 32],
+	            [-6, 32]
+	        ],
+	        [
+	            [4789, 8315],
+	            [23, 2],
+	            [30, -37],
+	            [-15, -40]
+	        ],
+	        [
+	            [4916, 8521],
+	            [-30, -63],
+	            [29, 8],
+	            [30, -1],
+	            [-7, -48],
+	            [-25, -53],
+	            [29, -4],
+	            [2, -6],
+	            [25, -69],
+	            [19, -10],
+	            [17, -67],
+	            [8, -24],
+	            [33, -11],
+	            [-3, -38],
+	            [-14, -17],
+	            [11, -30],
+	            [-25, -31],
+	            [-37, 0],
+	            [-48, -16],
+	            [-13, 12],
+	            [-18, -28],
+	            [-26, 7],
+	            [-19, -23],
+	            [-15, 12],
+	            [41, 62],
+	            [25, 13],
+	            [-1, 0],
+	            [-43, 9],
+	            [-8, 24],
+	            [29, 18],
+	            [-15, 32],
+	            [5, 39],
+	            [42, -6],
+	            [4, 35],
+	            [-19, 36],
+	            [0, 1],
+	            [-34, 10],
+	            [-7, 16],
+	            [10, 27],
+	            [-9, 16],
+	            [-15, -28],
+	            [-1, 57],
+	            [-14, 30],
+	            [10, 61],
+	            [21, 48],
+	            [23, -4],
+	            [33, 4]
+	        ],
+	        [
+	            [6154, 7511],
+	            [4, 26],
+	            [-7, 40],
+	            [-16, 22],
+	            [-16, 6],
+	            [-10, 19]
+	        ],
+	        [
+	            [6109, 7624],
+	            [4, 6],
+	            [23, -10],
+	            [41, -9],
+	            [38, -28],
+	            [5, -11],
+	            [17, 9],
+	            [25, -13],
+	            [9, -24],
+	            [17, -13]
+	        ],
+	        [
+	            [6210, 7485],
+	            [-27, 29],
+	            [-29, -3]
+	        ],
+	        [
+	            [5029, 5408],
+	            [-44, -35],
+	            [-15, -20],
+	            [-25, -17],
+	            [-25, 17]
+	        ],
+	        [
+	            [5000, 5708],
+	            [-2, -18],
+	            [12, -30],
+	            [0, -43],
+	            [2, -47],
+	            [7, -21],
+	            [-6, -54],
+	            [2, -29],
+	            [8, -37],
+	            [6, -21]
+	        ],
+	        [
+	            [4765, 5512],
+	            [-8, 1],
+	            [-5, -24],
+	            [-8, 1],
+	            [-6, 12],
+	            [2, 24],
+	            [-11, 36],
+	            [-8, -7],
+	            [-6, -1]
+	        ],
+	        [
+	            [4715, 5554],
+	            [-7, -3],
+	            [0, 21],
+	            [-4, 16],
+	            [0, 17],
+	            [-6, 25],
+	            [-7, 21],
+	            [-23, 0],
+	            [-6, -11],
+	            [-8, -1],
+	            [-4, -13],
+	            [-4, -17],
+	            [-14, -26]
+	        ],
+	        [
+	            [4632, 5583],
+	            [-13, 35],
+	            [-10, 24],
+	            [-8, 7],
+	            [-6, 12],
+	            [-4, 26],
+	            [-4, 13],
+	            [-8, 10]
+	        ],
+	        [
+	            [4579, 5710],
+	            [13, 29],
+	            [8, -2],
+	            [7, 10],
+	            [6, 0],
+	            [5, 8],
+	            [-3, 20],
+	            [3, 6],
+	            [1, 20]
+	        ],
+	        [
+	            [4619, 5801],
+	            [13, -1],
+	            [20, -14],
+	            [6, 1],
+	            [3, 7],
+	            [15, -5],
+	            [4, 4]
+	        ],
+	        [
+	            [4680, 5793],
+	            [1, -22],
+	            [5, 0],
+	            [7, 8],
+	            [5, -2],
+	            [7, -15],
+	            [12, -5],
+	            [8, 13],
+	            [9, 8],
+	            [6, 8],
+	            [6, -1],
+	            [6, -13],
+	            [3, -17],
+	            [12, -24],
+	            [-6, -16],
+	            [-1, -19],
+	            [6, 6],
+	            [3, -7],
+	            [-1, -17],
+	            [8, -18]
+	        ],
+	        [
+	            [4532, 5834],
+	            [3, 27]
+	        ],
+	        [
+	            [4535, 5861],
+	            [31, 1],
+	            [6, 14],
+	            [9, 1],
+	            [11, -14],
+	            [8, -1],
+	            [9, 10],
+	            [6, -17],
+	            [-12, -13],
+	            [-12, 1],
+	            [-12, 13],
+	            [-10, -14],
+	            [-5, -1],
+	            [-7, -8],
+	            [-25, 1]
+	        ],
+	        [
+	            [4579, 5710],
+	            [-15, 24],
+	            [-11, 4],
+	            [-7, 17],
+	            [1, 9],
+	            [-9, 13],
+	            [-2, 12]
+	        ],
+	        [
+	            [4536, 5789],
+	            [15, 10],
+	            [9, -2],
+	            [8, 7],
+	            [51, -3]
+	        ],
+	        [
+	            [5263, 5117],
+	            [-5, 9],
+	            [10, 66]
+	        ],
+	        [
+	            [5658, 7167],
+	            [15, -20],
+	            [22, 3],
+	            [20, -4],
+	            [0, -10],
+	            [15, 7],
+	            [-4, -18],
+	            [-40, -5],
+	            [1, 10],
+	            [-34, 12],
+	            [5, 25]
+	        ],
+	        [
+	            [5723, 7469],
+	            [-17, 2],
+	            [-14, 6],
+	            [-34, -16],
+	            [19, -33],
+	            [-14, -10],
+	            [-15, 0],
+	            [-15, 31],
+	            [-5, -13],
+	            [6, -36],
+	            [14, -27],
+	            [-10, -13],
+	            [15, -27],
+	            [14, -18],
+	            [0, -33],
+	            [-25, 16],
+	            [8, -30],
+	            [-18, -7],
+	            [11, -52],
+	            [-19, -1],
+	            [-23, 26],
+	            [-10, 47],
+	            [-5, 40],
+	            [-11, 27],
+	            [-14, 34],
+	            [-2, 16]
+	        ],
+	        [
+	            [5583, 7470],
+	            [18, 6],
+	            [11, 13],
+	            [15, -2],
+	            [5, 11],
+	            [5, 2]
+	        ],
+	        [
+	            [5725, 7529],
+	            [13, -16],
+	            [-8, -37],
+	            [-7, -7]
+	        ],
+	        [
+	            [3701, 9939],
+	            [93, 35],
+	            [97, -2],
+	            [36, 21],
+	            [98, 6],
+	            [222, -7],
+	            [174, -47],
+	            [-52, -23],
+	            [-106, -3],
+	            [-150, -5],
+	            [14, -11],
+	            [99, 7],
+	            [83, -21],
+	            [54, 18],
+	            [23, -21],
+	            [-30, -34],
+	            [71, 22],
+	            [135, 23],
+	            [83, -12],
+	            [15, -25],
+	            [-113, -42],
+	            [-16, -14],
+	            [-88, -10],
+	            [64, -3],
+	            [-32, -43],
+	            [-23, -38],
+	            [1, -66],
+	            [33, -38],
+	            [-43, -3],
+	            [-46, -19],
+	            [52, -31],
+	            [6, -50],
+	            [-30, -6],
+	            [36, -50],
+	            [-61, -5],
+	            [32, -24],
+	            [-9, -20],
+	            [-39, -10],
+	            [-39, 0],
+	            [35, -40],
+	            [0, -26],
+	            [-55, 24],
+	            [-14, -15],
+	            [37, -15],
+	            [37, -36],
+	            [10, -48],
+	            [-49, -11],
+	            [-22, 22],
+	            [-34, 34],
+	            [10, -40],
+	            [-33, -31],
+	            [73, -2],
+	            [39, -3],
+	            [-75, -52],
+	            [-75, -46],
+	            [-81, -21],
+	            [-31, 0],
+	            [-29, -23],
+	            [-38, -62],
+	            [-60, -42],
+	            [-19, -2],
+	            [-37, -15],
+	            [-40, -13],
+	            [-24, -37],
+	            [0, -41],
+	            [-15, -39],
+	            [-45, -47],
+	            [11, -47],
+	            [-12, -48],
+	            [-14, -58],
+	            [-39, -4],
+	            [-41, 49],
+	            [-56, 0],
+	            [-27, 32],
+	            [-18, 58],
+	            [-49, 73],
+	            [-14, 39],
+	            [-3, 53],
+	            [-39, 54],
+	            [10, 44],
+	            [-18, 21],
+	            [27, 69],
+	            [42, 22],
+	            [11, 25],
+	            [6, 46],
+	            [-32, -21],
+	            [-15, -9],
+	            [-25, -8],
+	            [-34, 19],
+	            [-2, 40],
+	            [11, 31],
+	            [25, 1],
+	            [57, -15],
+	            [-48, 37],
+	            [-24, 20],
+	            [-28, -8],
+	            [-23, 15],
+	            [31, 55],
+	            [-17, 22],
+	            [-22, 41],
+	            [-34, 62],
+	            [-35, 23],
+	            [0, 25],
+	            [-74, 34],
+	            [-59, 5],
+	            [-74, -3],
+	            [-68, -4],
+	            [-32, 19],
+	            [-49, 37],
+	            [73, 19],
+	            [56, 3],
+	            [-119, 15],
+	            [-62, 24],
+	            [3, 23],
+	            [106, 28],
+	            [101, 29],
+	            [11, 21],
+	            [-75, 22],
+	            [24, 23],
+	            [97, 41],
+	            [40, 7],
+	            [-12, 26],
+	            [66, 16],
+	            [86, 9],
+	            [85, 1],
+	            [30, -19],
+	            [74, 33],
+	            [66, -22],
+	            [39, -5],
+	            [58, -19],
+	            [-66, 32],
+	            [4, 25]
+	        ],
+	        [
+	            [2497, 5869],
+	            [-14, 10],
+	            [-17, 1],
+	            [-13, 12],
+	            [-15, 24]
+	        ],
+	        [
+	            [2438, 5916],
+	            [1, 18],
+	            [3, 13],
+	            [-4, 12],
+	            [13, 48],
+	            [36, 0],
+	            [1, 20],
+	            [-5, 4],
+	            [-3, 12],
+	            [-10, 14],
+	            [-11, 20],
+	            [13, 0],
+	            [0, 33],
+	            [26, 0],
+	            [26, 0]
+	        ],
+	        [
+	            [2529, 5996],
+	            [10, -11],
+	            [2, 9],
+	            [8, -7]
+	        ],
+	        [
+	            [2549, 5987],
+	            [-13, -23],
+	            [-13, -16],
+	            [-2, -12],
+	            [2, -11],
+	            [-5, -15]
+	        ],
+	        [
+	            [2518, 5910],
+	            [-7, -4],
+	            [2, -7],
+	            [-6, -6],
+	            [-9, -15],
+	            [-1, -9]
+	        ],
+	        [
+	            [3340, 5552],
+	            [18, -22],
+	            [17, -38],
+	            [1, -31],
+	            [10, -1],
+	            [15, -29],
+	            [11, -21]
+	        ],
+	        [
+	            [3412, 5410],
+	            [-4, -53],
+	            [-17, -15],
+	            [1, -14],
+	            [-5, -31],
+	            [13, -42],
+	            [9, -1],
+	            [3, -33],
+	            [17, -51]
+	        ],
+	        [
+	            [3313, 5365],
+	            [-19, 45],
+	            [7, 16],
+	            [0, 27],
+	            [17, 10],
+	            [7, 11],
+	            [-10, 22],
+	            [3, 21],
+	            [22, 35]
+	        ],
+	        [
+	            [2574, 5825],
+	            [-5, 18],
+	            [-8, 5]
+	        ],
+	        [
+	            [2561, 5848],
+	            [2, 24],
+	            [-4, 6],
+	            [-6, 4],
+	            [-12, -7],
+	            [-1, 8],
+	            [-8, 10],
+	            [-6, 12],
+	            [-8, 5]
+	        ],
+	        [
+	            [2549, 5987],
+	            [3, -3],
+	            [6, 11],
+	            [8, 1],
+	            [3, -5],
+	            [4, 3],
+	            [13, -6],
+	            [13, 2],
+	            [9, 6],
+	            [3, 7],
+	            [9, -3],
+	            [6, -4],
+	            [8, 1],
+	            [5, 5],
+	            [13, -8],
+	            [4, -1],
+	            [9, -11],
+	            [8, -13],
+	            [10, -9],
+	            [7, -17]
+	        ],
+	        [
+	            [2690, 5943],
+	            [-9, 2],
+	            [-4, -8],
+	            [-10, -8],
+	            [-7, 0],
+	            [-6, -8],
+	            [-6, 3],
+	            [-4, 9],
+	            [-3, -2],
+	            [-4, -14],
+	            [-3, 1],
+	            [0, -12],
+	            [-10, -17],
+	            [-5, -7],
+	            [-3, -7],
+	            [-8, 12],
+	            [-6, -16],
+	            [-6, 1],
+	            [-6, -2],
+	            [0, -29],
+	            [-4, 0],
+	            [-3, -14],
+	            [-9, -2]
+	        ],
+	        [
+	            [5522, 7770],
+	            [7, -23],
+	            [9, -17],
+	            [-11, -22]
+	        ],
+	        [
+	            [5515, 7577],
+	            [-3, -10]
+	        ],
+	        [
+	            [5512, 7567],
+	            [-26, 22],
+	            [-16, 21],
+	            [-26, 18],
+	            [-23, 43],
+	            [6, 5],
+	            [-13, 25],
+	            [-1, 19],
+	            [-17, 10],
+	            [-9, -26],
+	            [-8, 20],
+	            [0, 21],
+	            [1, 1]
+	        ],
+	        [
+	            [5380, 7746],
+	            [20, -2],
+	            [5, 9],
+	            [9, -9],
+	            [11, -1],
+	            [0, 16],
+	            [10, 6],
+	            [2, 24],
+	            [23, 16]
+	        ],
+	        [
+	            [5460, 7805],
+	            [8, -7],
+	            [21, -26],
+	            [23, -11],
+	            [10, 9]
+	        ],
+	        [
+	            [3008, 6124],
+	            [-19, 10],
+	            [-13, -5],
+	            [-17, 5],
+	            [-13, -11],
+	            [-15, 18],
+	            [3, 19],
+	            [25, -8],
+	            [21, -5],
+	            [10, 13],
+	            [-12, 26],
+	            [0, 23],
+	            [-18, 9],
+	            [7, 16],
+	            [17, -3],
+	            [24, -9]
+	        ],
+	        [
+	            [5471, 7900],
+	            [14, -15],
+	            [10, -6],
+	            [24, 7],
+	            [2, 12],
+	            [11, 2],
+	            [14, 9],
+	            [3, -4],
+	            [13, 8],
+	            [6, 13],
+	            [9, 4],
+	            [30, -18],
+	            [6, 6]
+	        ],
+	        [
+	            [5613, 7918],
+	            [15, -16],
+	            [2, -16]
+	        ],
+	        [
+	            [5630, 7886],
+	            [-17, -12],
+	            [-13, -40],
+	            [-17, -40],
+	            [-22, -11]
+	        ],
+	        [
+	            [5561, 7783],
+	            [-17, 2],
+	            [-22, -15]
+	        ],
+	        [
+	            [5460, 7805],
+	            [-6, 20],
+	            [-4, 0]
+	        ],
+	        [
+	            [8352, 4453],
+	            [-11, -2],
+	            [-37, 42],
+	            [26, 11],
+	            [14, -18],
+	            [10, -17],
+	            [-2, -16]
+	        ],
+	        [
+	            [8471, 4532],
+	            [2, -11],
+	            [1, -18]
+	        ],
+	        [
+	            [8474, 4503],
+	            [-18, -45],
+	            [-24, -13],
+	            [-3, 8],
+	            [2, 20],
+	            [12, 36],
+	            [28, 23]
+	        ],
+	        [
+	            [8274, 4579],
+	            [10, -16],
+	            [17, 5],
+	            [7, -25],
+	            [-32, -12],
+	            [-19, -8],
+	            [-15, 1],
+	            [10, 34],
+	            [15, 0],
+	            [7, 21]
+	        ],
+	        [
+	            [8413, 4579],
+	            [-4, -32],
+	            [-42, -17],
+	            [-37, 7],
+	            [0, 22],
+	            [22, 12],
+	            [18, -18],
+	            [18, 5],
+	            [25, 21]
+	        ],
+	        [
+	            [8017, 4657],
+	            [53, -6],
+	            [6, 25],
+	            [51, -29],
+	            [10, -38],
+	            [42, -11],
+	            [34, -35],
+	            [-31, -23],
+	            [-31, 24],
+	            [-25, -1],
+	            [-29, 4],
+	            [-26, 11],
+	            [-32, 22],
+	            [-21, 6],
+	            [-11, -7],
+	            [-51, 24],
+	            [-5, 25],
+	            [-25, 5],
+	            [19, 56],
+	            [34, -3],
+	            [22, -23],
+	            [12, -5],
+	            [4, -21]
+	        ],
+	        [
+	            [8741, 4690],
+	            [-14, -40],
+	            [-3, 45],
+	            [5, 21],
+	            [6, 20],
+	            [7, -17],
+	            [-1, -29]
+	        ],
+	        [
+	            [8534, 4853],
+	            [-11, -19],
+	            [-19, 10],
+	            [-5, 26],
+	            [28, 3],
+	            [7, -20]
+	        ],
+	        [
+	            [8623, 4875],
+	            [10, -45],
+	            [-23, 24],
+	            [-23, 5],
+	            [-16, -4],
+	            [-19, 2],
+	            [6, 33],
+	            [35, 2],
+	            [30, -17]
+	        ],
+	        [
+	            [8916, 4904],
+	            [0, -193],
+	            [1, -192]
+	        ],
+	        [
+	            [8917, 4519],
+	            [-25, 48],
+	            [-28, 12],
+	            [-7, -17],
+	            [-35, -1],
+	            [12, 48],
+	            [17, 16],
+	            [-7, 64],
+	            [-14, 50],
+	            [-53, 50],
+	            [-23, 5],
+	            [-42, 54],
+	            [-8, -28],
+	            [-11, -5],
+	            [-6, 21],
+	            [0, 26],
+	            [-21, 29],
+	            [29, 21],
+	            [20, -1],
+	            [-2, 16],
+	            [-41, 0],
+	            [-11, 35],
+	            [-25, 11],
+	            [-11, 29],
+	            [37, 14],
+	            [14, 20],
+	            [45, -25],
+	            [4, -22],
+	            [8, -95],
+	            [29, -35],
+	            [23, 62],
+	            [32, 36],
+	            [25, 0],
+	            [23, -21],
+	            [21, -21],
+	            [30, -11]
+	        ],
+	        [
+	            [8478, 5141],
+	            [-22, -58],
+	            [-21, -12],
+	            [-27, 12],
+	            [-46, -3],
+	            [-24, -8],
+	            [-4, -45],
+	            [24, -53],
+	            [15, 27],
+	            [52, 20],
+	            [-2, -27],
+	            [-12, 9],
+	            [-12, -35],
+	            [-25, -23],
+	            [27, -76],
+	            [-5, -20],
+	            [25, -68],
+	            [-1, -39],
+	            [-14, -17],
+	            [-11, 20],
+	            [13, 49],
+	            [-27, -23],
+	            [-7, 16],
+	            [3, 23],
+	            [-20, 35],
+	            [3, 57],
+	            [-19, -18],
+	            [2, -69],
+	            [1, -84],
+	            [-17, -9],
+	            [-12, 18],
+	            [8, 54],
+	            [-4, 57],
+	            [-12, 1],
+	            [-9, 40],
+	            [12, 39],
+	            [4, 47],
+	            [14, 89],
+	            [5, 24],
+	            [24, 44],
+	            [22, -18],
+	            [35, -8],
+	            [32, 3],
+	            [27, 43],
+	            [5, -14]
+	        ],
+	        [
+	            [8574, 5124],
+	            [-2, -51],
+	            [-14, 6],
+	            [-4, -36],
+	            [11, -32],
+	            [-8, -7],
+	            [-11, 38],
+	            [-8, 75],
+	            [6, 47],
+	            [9, 22],
+	            [2, -32],
+	            [16, -5],
+	            [3, -25]
+	        ],
+	        [
+	            [8045, 5176],
+	            [5, -39],
+	            [19, -34],
+	            [18, 12],
+	            [18, -4],
+	            [16, 30],
+	            [13, 5],
+	            [26, -17],
+	            [23, 13],
+	            [14, 82],
+	            [11, 21],
+	            [10, 67],
+	            [32, 0],
+	            [24, -10]
+	        ],
+	        [
+	            [8274, 5302],
+	            [-16, -53],
+	            [20, -56],
+	            [-5, -28],
+	            [32, -54],
+	            [-33, -7],
+	            [-10, -40],
+	            [2, -54],
+	            [-27, -40],
+	            [-1, -59],
+	            [-10, -91],
+	            [-5, 21],
+	            [-31, -26],
+	            [-11, 36],
+	            [-20, 3],
+	            [-14, 19],
+	            [-33, -21],
+	            [-10, 29],
+	            [-18, -4],
+	            [-23, 7],
+	            [-4, 79],
+	            [-14, 17],
+	            [-13, 50],
+	            [-4, 52],
+	            [3, 55],
+	            [16, 39]
+	        ],
+	        [
+	            [7939, 4712],
+	            [-31, -1],
+	            [-24, 49],
+	            [-35, 48],
+	            [-12, 36],
+	            [-21, 48],
+	            [-14, 44],
+	            [-21, 83],
+	            [-24, 49],
+	            [-9, 51],
+	            [-10, 46],
+	            [-25, 37],
+	            [-14, 51],
+	            [-21, 33],
+	            [-29, 65],
+	            [-3, 30],
+	            [18, -2],
+	            [43, -12],
+	            [25, -57],
+	            [21, -40],
+	            [16, -25],
+	            [26, -63],
+	            [28, -1],
+	            [23, -41],
+	            [16, -49],
+	            [22, -27],
+	            [-12, -49],
+	            [16, -20],
+	            [10, -2],
+	            [5, -41],
+	            [10, -33],
+	            [20, -5],
+	            [14, -37],
+	            [-7, -74],
+	            [-1, -91]
+	        ],
+	        [
+	            [7252, 6841],
+	            [-17, -27],
+	            [-11, -55],
+	            [27, -23],
+	            [26, -29],
+	            [36, -33],
+	            [38, -8],
+	            [16, -30],
+	            [22, -5],
+	            [33, -14],
+	            [23, 1],
+	            [4, 23],
+	            [-4, 38],
+	            [2, 25]
+	        ],
+	        [
+	            [7703, 6727],
+	            [2, -22],
+	            [-10, -11],
+	            [2, -36],
+	            [-19, 10],
+	            [-36, -41],
+	            [0, -33],
+	            [-15, -50],
+	            [-1, -29],
+	            [-13, -48],
+	            [-21, 13],
+	            [-1, -61],
+	            [-7, -20],
+	            [3, -25],
+	            [-14, -14]
+	        ],
+	        [
+	            [7472, 6360],
+	            [-4, -21],
+	            [-19, 1],
+	            [-34, -13],
+	            [2, -44],
+	            [-15, -35],
+	            [-40, -40],
+	            [-31, -69],
+	            [-21, -38],
+	            [-28, -38],
+	            [0, -27],
+	            [-13, -15],
+	            [-26, -21],
+	            [-12, -3],
+	            [-9, -45],
+	            [6, -77],
+	            [1, -49],
+	            [-11, -56],
+	            [0, -101],
+	            [-15, -2],
+	            [-12, -46],
+	            [8, -19],
+	            [-25, -17],
+	            [-10, -40],
+	            [-11, -17],
+	            [-26, 55],
+	            [-13, 83],
+	            [-11, 60],
+	            [-9, 28],
+	            [-15, 56],
+	            [-7, 74],
+	            [-5, 37],
+	            [-25, 81],
+	            [-12, 115],
+	            [-8, 75],
+	            [0, 72],
+	            [-5, 55],
+	            [-41, -35],
+	            [-19, 7],
+	            [-36, 71],
+	            [13, 22],
+	            [-8, 23],
+	            [-33, 50]
+	        ],
+	        [
+	            [6893, 6457],
+	            [19, 40],
+	            [61, -1],
+	            [-6, 51],
+	            [-15, 30],
+	            [-4, 46],
+	            [-18, 26],
+	            [31, 62],
+	            [32, -4],
+	            [29, 61],
+	            [18, 60],
+	            [27, 60],
+	            [-1, 42],
+	            [24, 34],
+	            [-23, 29],
+	            [-9, 40],
+	            [-10, 52],
+	            [14, 25],
+	            [42, -14],
+	            [31, 9],
+	            [26, 49]
+	        ],
+	        [
+	            [4827, 8240],
+	            [5, -42],
+	            [-21, -53],
+	            [-49, -35],
+	            [-40, 9],
+	            [23, 62],
+	            [-15, 60],
+	            [38, 46],
+	            [21, 28]
+	        ],
+	        [
+	            [6497, 7255],
+	            [25, 12],
+	            [19, 33],
+	            [19, -1],
+	            [12, 11],
+	            [20, -6],
+	            [31, -30],
+	            [22, -6],
+	            [31, -53],
+	            [21, -2],
+	            [3, -49]
+	        ],
+	        [
+	            [6690, 6820],
+	            [14, -31],
+	            [11, -36],
+	            [27, -26],
+	            [1, -52],
+	            [13, -10],
+	            [2, -27],
+	            [-40, -30],
+	            [-10, -69]
+	        ],
+	        [
+	            [6708, 6539],
+	            [-53, 18],
+	            [-30, 13],
+	            [-31, 8],
+	            [-12, 73],
+	            [-13, 10],
+	            [-22, -11],
+	            [-28, -28],
+	            [-34, 20],
+	            [-28, 45],
+	            [-27, 17],
+	            [-18, 56],
+	            [-21, 79],
+	            [-15, -10],
+	            [-17, 20],
+	            [-11, -24]
+	        ],
+	        [
+	            [6348, 6825],
+	            [-15, 32],
+	            [0, 31],
+	            [-9, 0],
+	            [5, 43],
+	            [-15, 45],
+	            [-34, 32],
+	            [-19, 56],
+	            [6, 46],
+	            [14, 21],
+	            [-2, 34],
+	            [-18, 18],
+	            [-18, 70]
+	        ],
+	        [
+	            [6243, 7253],
+	            [-15, 48],
+	            [5, 18],
+	            [-8, 68],
+	            [19, 17]
+	        ],
+	        [
+	            [6357, 7321],
+	            [9, -43],
+	            [26, -13],
+	            [20, -29],
+	            [39, -10],
+	            [44, 15],
+	            [2, 14]
+	        ],
+	        [
+	            [6348, 6825],
+	            [-16, 3]
+	        ],
+	        [
+	            [6332, 6828],
+	            [-19, 5],
+	            [-20, -56]
+	        ],
+	        [
+	            [6293, 6777],
+	            [-52, 4],
+	            [-78, 119],
+	            [-41, 41],
+	            [-34, 16]
+	        ],
+	        [
+	            [6088, 6957],
+	            [-11, 72]
+	        ],
+	        [
+	            [6077, 7029],
+	            [61, 62],
+	            [11, 71],
+	            [-3, 43],
+	            [16, 15],
+	            [14, 37]
+	        ],
+	        [
+	            [6176, 7257],
+	            [12, 9],
+	            [32, -8],
+	            [10, -15],
+	            [13, 10]
+	        ],
+	        [
+	            [4597, 8984],
+	            [-7, -39],
+	            [31, -40],
+	            [-36, -45],
+	            [-80, -41],
+	            [-24, -10],
+	            [-36, 8],
+	            [-78, 19],
+	            [28, 26],
+	            [-61, 29],
+	            [49, 12],
+	            [-1, 17],
+	            [-58, 14],
+	            [19, 38],
+	            [42, 9],
+	            [43, -40],
+	            [42, 32],
+	            [35, -17],
+	            [45, 32],
+	            [47, -4]
+	        ],
+	        [
+	            [5992, 6990],
+	            [-5, -19]
+	        ],
+	        [
+	            [5987, 6971],
+	            [-10, 8],
+	            [-6, -39],
+	            [7, -7],
+	            [-7, -8],
+	            [-1, -15],
+	            [13, 8]
+	        ],
+	        [
+	            [5983, 6918],
+	            [0, -23],
+	            [-14, -95]
+	        ],
+	        [
+	            [5951, 6902],
+	            [8, 19],
+	            [-2, 4],
+	            [8, 27],
+	            [5, 45],
+	            [4, 15],
+	            [1, 0]
+	        ],
+	        [
+	            [5975, 7012],
+	            [9, 0],
+	            [3, 11],
+	            [7, 0]
+	        ],
+	        [
+	            [5994, 7023],
+	            [1, -24],
+	            [-4, -9],
+	            [1, 0]
+	        ],
+	        [
+	            [5431, 7316],
+	            [-10, -46],
+	            [4, -19],
+	            [-6, -30],
+	            [-21, 22],
+	            [-14, 7],
+	            [-39, 30],
+	            [4, 30],
+	            [32, -6],
+	            [28, 7],
+	            [22, 5]
+	        ],
+	        [
+	            [5255, 7492],
+	            [17, -42],
+	            [-4, -78],
+	            [-13, 4],
+	            [-11, -20],
+	            [-10, 16],
+	            [-2, 71],
+	            [-6, 34],
+	            [15, -3],
+	            [14, 18]
+	        ],
+	        [
+	            [5383, 7805],
+	            [-3, -29],
+	            [7, -25]
+	        ],
+	        [
+	            [5387, 7751],
+	            [-22, 8],
+	            [-23, -20],
+	            [1, -30],
+	            [-3, -17],
+	            [9, -30],
+	            [26, -29],
+	            [14, -49],
+	            [31, -48],
+	            [22, 0],
+	            [7, -13],
+	            [-8, -11],
+	            [25, -22],
+	            [20, -18],
+	            [24, -30],
+	            [3, -11],
+	            [-5, -22],
+	            [-16, 28],
+	            [-24, 10],
+	            [-12, -39],
+	            [20, -21],
+	            [-3, -31],
+	            [-11, -4],
+	            [-15, -50],
+	            [-12, -5],
+	            [0, 18],
+	            [6, 32],
+	            [6, 12],
+	            [-11, 35],
+	            [-8, 29],
+	            [-12, 8],
+	            [-8, 25],
+	            [-18, 11],
+	            [-12, 24],
+	            [-21, 4],
+	            [-21, 26],
+	            [-26, 39],
+	            [-19, 34],
+	            [-8, 58],
+	            [-14, 7],
+	            [-23, 20],
+	            [-12, -8],
+	            [-16, -28],
+	            [-12, -4]
+	        ],
+	        [
+	            [2845, 6150],
+	            [19, -5],
+	            [14, -15],
+	            [5, -16],
+	            [-19, -1],
+	            [-9, -10],
+	            [-15, 10],
+	            [-16, 21],
+	            [3, 14],
+	            [12, 4],
+	            [6, -2]
+	        ],
+	        [
+	            [5992, 6990],
+	            [31, -24],
+	            [54, 63]
+	        ],
+	        [
+	            [6088, 6957],
+	            [-5, -8],
+	            [-56, -30],
+	            [28, -59],
+	            [-9, -10],
+	            [-5, -20],
+	            [-21, -8],
+	            [-7, -21],
+	            [-12, -19],
+	            [-31, 10]
+	        ],
+	        [
+	            [5970, 6792],
+	            [-1, 8]
+	        ],
+	        [
+	            [5983, 6918],
+	            [4, 17],
+	            [0, 36]
+	        ],
+	        [
+	            [8739, 7075],
+	            [4, -20],
+	            [-16, -36],
+	            [-11, 19],
+	            [-15, -14],
+	            [-7, -34],
+	            [-18, 16],
+	            [0, 28],
+	            [15, 36],
+	            [16, -7],
+	            [12, 25],
+	            [20, -13]
+	        ],
+	        [
+	            [8915, 7252],
+	            [-10, -47],
+	            [4, -30],
+	            [-14, -42],
+	            [-35, -27],
+	            [-49, -4],
+	            [-40, -67],
+	            [-19, 22],
+	            [-1, 44],
+	            [-48, -13],
+	            [-33, -27],
+	            [-32, -2],
+	            [28, -43],
+	            [-19, -101],
+	            [-18, -24],
+	            [-13, 23],
+	            [7, 53],
+	            [-18, 17],
+	            [-11, 41],
+	            [26, 18],
+	            [15, 37],
+	            [28, 30],
+	            [20, 41],
+	            [55, 17],
+	            [30, -12],
+	            [29, 105],
+	            [19, -28],
+	            [40, 59],
+	            [16, 23],
+	            [18, 72],
+	            [-5, 67],
+	            [11, 37],
+	            [30, 11],
+	            [15, -82],
+	            [-1, -48],
+	            [-25, -59],
+	            [0, -61]
+	        ],
+	        [
+	            [8997, 7667],
+	            [19, -12],
+	            [20, 25],
+	            [6, -67],
+	            [-41, -16],
+	            [-25, -59],
+	            [-43, 41],
+	            [-15, -65],
+	            [-31, -1],
+	            [-4, 59],
+	            [14, 46],
+	            [29, 3],
+	            [8, 82],
+	            [9, 46],
+	            [32, -62],
+	            [22, -20]
+	        ],
+	        [
+	            [6970, 7554],
+	            [-15, -10],
+	            [-37, -42],
+	            [-12, -42],
+	            [-11, 0],
+	            [-7, 28],
+	            [-36, 2],
+	            [-5, 48],
+	            [-14, 0],
+	            [2, 60],
+	            [-33, 43],
+	            [-48, -5],
+	            [-32, -8],
+	            [-27, 53],
+	            [-22, 22],
+	            [-43, 43],
+	            [-6, 5],
+	            [-71, -35],
+	            [1, -218]
+	        ],
+	        [
+	            [6554, 7498],
+	            [-14, -3],
+	            [-20, 46],
+	            [-18, 17],
+	            [-32, -12],
+	            [-12, -20]
+	        ],
+	        [
+	            [6458, 7526],
+	            [-2, 14],
+	            [7, 25],
+	            [-5, 21],
+	            [-32, 20],
+	            [-13, 53],
+	            [-15, 15],
+	            [-1, 19],
+	            [27, -6],
+	            [1, 44],
+	            [23, 9],
+	            [25, -9],
+	            [5, 58],
+	            [-5, 36],
+	            [-28, -2],
+	            [-24, 14],
+	            [-32, -26],
+	            [-26, -12]
+	        ],
+	        [
+	            [6363, 7799],
+	            [-14, 9],
+	            [3, 31],
+	            [-18, 39],
+	            [-20, -2],
+	            [-24, 40],
+	            [16, 45],
+	            [-8, 12],
+	            [22, 65],
+	            [29, -34],
+	            [3, 43],
+	            [58, 64],
+	            [43, 2],
+	            [61, -41],
+	            [33, -24],
+	            [30, 25],
+	            [44, 1],
+	            [35, -30],
+	            [8, 17],
+	            [39, -2],
+	            [7, 28],
+	            [-45, 40],
+	            [27, 29],
+	            [-5, 16],
+	            [26, 15],
+	            [-20, 41],
+	            [13, 20],
+	            [104, 21],
+	            [13, 14],
+	            [70, 22],
+	            [25, 24],
+	            [50, -12],
+	            [9, -61],
+	            [29, 14],
+	            [35, -20],
+	            [-2, -32],
+	            [27, 3],
+	            [69, 56],
+	            [-10, -19],
+	            [35, -46],
+	            [62, -150],
+	            [15, 31],
+	            [39, -34],
+	            [39, 16],
+	            [16, -11],
+	            [13, -34],
+	            [20, -12],
+	            [11, -25],
+	            [36, 8],
+	            [15, -36]
+	        ],
+	        [
+	            [7229, 7559],
+	            [-17, 9],
+	            [-14, 21],
+	            [-42, 6],
+	            [-46, 2],
+	            [-10, -6],
+	            [-39, 24],
+	            [-16, -12],
+	            [-4, -35],
+	            [-46, 21],
+	            [-18, -9],
+	            [-7, -26]
+	        ],
+	        [
+	            [6155, 4958],
+	            [-20, -24],
+	            [-7, -24],
+	            [-10, -4],
+	            [-4, -42],
+	            [-9, -24],
+	            [-5, -39],
+	            [-12, -20]
+	        ],
+	        [
+	            [6088, 4781],
+	            [-40, 59],
+	            [-1, 35],
+	            [-101, 120],
+	            [-5, 6]
+	        ],
+	        [
+	            [5941, 5001],
+	            [0, 63],
+	            [8, 24],
+	            [14, 39],
+	            [10, 43],
+	            [-13, 68],
+	            [-3, 30],
+	            [-13, 41]
+	        ],
+	        [
+	            [5944, 5309],
+	            [17, 35],
+	            [19, 39]
+	        ],
+	        [
+	            [6162, 5289],
+	            [-24, -67],
+	            [0, -215],
+	            [17, -49]
+	        ],
+	        [
+	            [7046, 7387],
+	            [-53, -9],
+	            [-34, 19],
+	            [-30, -4],
+	            [3, 34],
+	            [30, -10],
+	            [10, 18]
+	        ],
+	        [
+	            [6972, 7435],
+	            [21, -6],
+	            [36, 43],
+	            [-33, 31],
+	            [-20, -15],
+	            [-21, 22],
+	            [24, 39],
+	            [-9, 5]
+	        ],
+	        [
+	            [7849, 5777],
+	            [-7, 72],
+	            [18, 49],
+	            [36, 11],
+	            [26, -8]
+	        ],
+	        [
+	            [7922, 5901],
+	            [23, -23],
+	            [12, 40],
+	            [25, -21]
+	        ],
+	        [
+	            [7982, 5897],
+	            [6, -40],
+	            [-3, -71],
+	            [-47, -45],
+	            [13, -36],
+	            [-30, -4],
+	            [-24, -24]
+	        ],
+	        [
+	            [7897, 5677],
+	            [-23, 9],
+	            [-11, 30],
+	            [-14, 61]
+	        ],
+	        [
+	            [8564, 7339],
+	            [24, -70],
+	            [7, -38],
+	            [0, -68],
+	            [-10, -33],
+	            [-25, -11],
+	            [-22, -25],
+	            [-25, -5],
+	            [-3, 32],
+	            [5, 45],
+	            [-13, 61],
+	            [21, 10],
+	            [-19, 51]
+	        ],
+	        [
+	            [8504, 7288],
+	            [2, 5],
+	            [12, -2],
+	            [11, 27],
+	            [20, 2],
+	            [11, 4],
+	            [4, 15]
+	        ],
+	        [
+	            [5557, 7574],
+	            [5, 13]
+	        ],
+	        [
+	            [5562, 7587],
+	            [7, 4],
+	            [4, 20],
+	            [5, 3],
+	            [4, -8],
+	            [5, -4],
+	            [3, -10],
+	            [5, -2],
+	            [5, -11],
+	            [4, 0],
+	            [-3, -14],
+	            [-3, -7],
+	            [1, -5]
+	        ],
+	        [
+	            [5599, 7553],
+	            [-6, -2],
+	            [-17, -9],
+	            [-1, -12],
+	            [-4, 0]
+	        ],
+	        [
+	            [6332, 6828],
+	            [6, -26],
+	            [-3, -13],
+	            [9, -45]
+	        ],
+	        [
+	            [6344, 6744],
+	            [-19, -1],
+	            [-7, 28],
+	            [-25, 6]
+	        ],
+	        [
+	            [7922, 5901],
+	            [9, 26],
+	            [1, 50],
+	            [-22, 52],
+	            [-2, 58],
+	            [-21, 48],
+	            [-21, 4],
+	            [-6, -20],
+	            [-16, -2],
+	            [-8, 10],
+	            [-30, -35],
+	            [0, 53],
+	            [7, 62],
+	            [-19, 3],
+	            [-2, 36],
+	            [-12, 18]
+	        ],
+	        [
+	            [7780, 6264],
+	            [6, 21],
+	            [24, 39]
+	        ],
+	        [
+	            [7837, 6385],
+	            [17, -47],
+	            [12, -54],
+	            [34, 0],
+	            [11, -52],
+	            [-18, -15],
+	            [-8, -21],
+	            [34, -36],
+	            [23, -70],
+	            [17, -52],
+	            [21, -41],
+	            [7, -41],
+	            [-5, -59]
+	        ],
+	        [
+	            [5975, 7012],
+	            [10, 49],
+	            [14, 41],
+	            [0, 2]
+	        ],
+	        [
+	            [5999, 7104],
+	            [13, -3],
+	            [4, -23],
+	            [-15, -22],
+	            [-7, -33]
+	        ],
+	        [
+	            [4785, 5315],
+	            [-7, 0],
+	            [-29, 28],
+	            [-25, 45],
+	            [-24, 32],
+	            [-18, 38]
+	        ],
+	        [
+	            [4682, 5458],
+	            [6, 19],
+	            [2, 17],
+	            [12, 33],
+	            [13, 27]
+	        ],
+	        [
+	            [5412, 6408],
+	            [-20, -22],
+	            [-15, 33],
+	            [-44, 25]
+	        ],
+	        [
+	            [5263, 6848],
+	            [13, 14],
+	            [3, 25],
+	            [-3, 24],
+	            [19, 23],
+	            [8, 19],
+	            [14, 17],
+	            [2, 45]
+	        ],
+	        [
+	            [5319, 7015],
+	            [32, -20],
+	            [12, 5],
+	            [23, -10],
+	            [37, -26],
+	            [13, -53],
+	            [25, -11],
+	            [39, -25],
+	            [30, -29],
+	            [13, 15],
+	            [13, 27],
+	            [-6, 45],
+	            [9, 29],
+	            [20, 28],
+	            [19, 8],
+	            [37, -12],
+	            [10, -27],
+	            [10, 0],
+	            [9, -10],
+	            [28, -7],
+	            [6, -19]
+	        ],
+	        [
+	            [5694, 6357],
+	            [0, -118],
+	            [-32, 0],
+	            [0, -25]
+	        ],
+	        [
+	            [5662, 6214],
+	            [-111, 113],
+	            [-111, 113],
+	            [-28, -32]
+	        ],
+	        [
+	            [7271, 5502],
+	            [-4, -62],
+	            [-12, -16],
+	            [-24, -14],
+	            [-13, 47],
+	            [-5, 85],
+	            [13, 96],
+	            [19, -33],
+	            [13, -42],
+	            [13, -61]
+	        ],
+	        [
+	            [5804, 3347],
+	            [10, -18],
+	            [-9, -29],
+	            [-4, -19],
+	            [-16, -9],
+	            [-5, -19],
+	            [-10, -6],
+	            [-21, 46],
+	            [15, 37],
+	            [15, 23],
+	            [13, 12],
+	            [12, -18]
+	        ],
+	        [
+	            [5631, 8267],
+	            [-2, 15],
+	            [3, 16],
+	            [-13, 10],
+	            [-29, 10]
+	        ],
+	        [
+	            [5590, 8318],
+	            [-6, 50]
+	        ],
+	        [
+	            [5584, 8368],
+	            [32, 18],
+	            [47, -4],
+	            [27, 6],
+	            [4, -12],
+	            [15, -4],
+	            [26, -29]
+	        ],
+	        [
+	            [5652, 8242],
+	            [-7, 19],
+	            [-14, 6]
+	        ],
+	        [
+	            [5584, 8368],
+	            [1, 44],
+	            [14, 37],
+	            [26, 20],
+	            [22, -44],
+	            [22, 1],
+	            [6, 46]
+	        ],
+	        [
+	            [5757, 8453],
+	            [14, -14],
+	            [2, -28],
+	            [9, -35]
+	        ],
+	        [
+	            [4759, 6691],
+	            [-4, 0],
+	            [0, -31],
+	            [-17, -2],
+	            [-9, -14],
+	            [-13, 0],
+	            [-10, 8],
+	            [-23, -6],
+	            [-9, -46],
+	            [-9, -5],
+	            [-13, -74],
+	            [-38, -64],
+	            [-9, -81],
+	            [-12, -27],
+	            [-3, -21],
+	            [-63, -5]
+	        ],
+	        [
+	            [4527, 6323],
+	            [1, 27],
+	            [11, 17],
+	            [9, 30],
+	            [-2, 20],
+	            [10, 42],
+	            [15, 38],
+	            [9, 9],
+	            [8, 35],
+	            [0, 31],
+	            [10, 37],
+	            [19, 21],
+	            [18, 60],
+	            [0, 1],
+	            [14, 23],
+	            [26, 6],
+	            [22, 41],
+	            [14, 16],
+	            [23, 49],
+	            [-7, 73],
+	            [10, 51],
+	            [4, 31],
+	            [18, 40],
+	            [28, 27],
+	            [21, 25],
+	            [18, 61],
+	            [9, 36],
+	            [20, 0],
+	            [17, -25],
+	            [26, 4],
+	            [29, -13],
+	            [12, -1]
+	        ],
+	        [
+	            [5739, 7906],
+	            [6, 9],
+	            [19, 6],
+	            [20, -19],
+	            [12, -2],
+	            [12, -16],
+	            [-2, -20],
+	            [11, -9],
+	            [4, -25],
+	            [9, -15],
+	            [-2, -9],
+	            [5, -6],
+	            [-7, -4],
+	            [-16, 1],
+	            [-3, 9],
+	            [-6, -5],
+	            [2, -11],
+	            [-7, -19],
+	            [-5, -20],
+	            [-7, -6]
+	        ],
+	        [
+	            [5784, 7745],
+	            [-5, 27],
+	            [3, 25],
+	            [-1, 26],
+	            [-16, 35],
+	            [-9, 25],
+	            [-9, 17],
+	            [-8, 6]
+	        ],
+	        [
+	            [6376, 4321],
+	            [7, -25],
+	            [7, -39],
+	            [4, -71],
+	            [7, -28],
+	            [-2, -28],
+	            [-5, -18],
+	            [-10, 35],
+	            [-5, -18],
+	            [5, -43],
+	            [-2, -25],
+	            [-8, -14],
+	            [-1, -50],
+	            [-11, -69],
+	            [-14, -81],
+	            [-17, -112],
+	            [-11, -82],
+	            [-12, -69],
+	            [-23, -14],
+	            [-24, -25],
+	            [-16, 15],
+	            [-22, 21],
+	            [-8, 31],
+	            [-2, 53],
+	            [-10, 47],
+	            [-2, 42],
+	            [5, 43],
+	            [13, 10],
+	            [0, 20],
+	            [13, 45],
+	            [2, 37],
+	            [-6, 28],
+	            [-5, 38],
+	            [-2, 54],
+	            [9, 33],
+	            [4, 38],
+	            [14, 2],
+	            [15, 12],
+	            [11, 10],
+	            [12, 1],
+	            [16, 34],
+	            [23, 36],
+	            [8, 30],
+	            [-4, 25],
+	            [12, -7],
+	            [15, 41],
+	            [1, 36],
+	            [9, 26],
+	            [10, -25]
+	        ],
+	        [
+	            [2301, 6586],
+	            [-10, -52],
+	            [-5, -43],
+	            [-2, -79],
+	            [-3, -29],
+	            [5, -32],
+	            [9, -29],
+	            [5, -45],
+	            [19, -44],
+	            [6, -34],
+	            [11, -29],
+	            [29, -16],
+	            [12, -25],
+	            [24, 17],
+	            [21, 6],
+	            [21, 11],
+	            [18, 10],
+	            [17, 24],
+	            [7, 34],
+	            [2, 50],
+	            [5, 17],
+	            [19, 16],
+	            [29, 13],
+	            [25, -2],
+	            [17, 5],
+	            [6, -12],
+	            [-1, -29],
+	            [-15, -35],
+	            [-6, -36],
+	            [5, -10],
+	            [-4, -26],
+	            [-7, -46],
+	            [-7, 15],
+	            [-6, -1]
+	        ],
+	        [
+	            [2438, 5916],
+	            [-32, 64],
+	            [-14, 19],
+	            [-23, 16],
+	            [-15, -5],
+	            [-22, -22],
+	            [-14, -6],
+	            [-20, 16],
+	            [-21, 11],
+	            [-26, 27],
+	            [-21, 8],
+	            [-31, 28],
+	            [-23, 28],
+	            [-7, 16],
+	            [-16, 3],
+	            [-28, 19],
+	            [-12, 27],
+	            [-30, 34],
+	            [-14, 37],
+	            [-6, 29],
+	            [9, 5],
+	            [-3, 17],
+	            [7, 16],
+	            [0, 20],
+	            [-10, 27],
+	            [-2, 23],
+	            [-9, 30],
+	            [-25, 59],
+	            [-28, 46],
+	            [-13, 37],
+	            [-24, 24],
+	            [-5, 14],
+	            [4, 37],
+	            [-14, 13],
+	            [-17, 29],
+	            [-7, 41],
+	            [-14, 5],
+	            [-17, 31],
+	            [-13, 29],
+	            [-1, 19],
+	            [-15, 44],
+	            [-10, 45],
+	            [1, 23],
+	            [-20, 23],
+	            [-10, -2],
+	            [-15, 16],
+	            [-5, -24],
+	            [5, -28],
+	            [2, -45],
+	            [10, -24],
+	            [21, -41],
+	            [4, -14],
+	            [4, -4],
+	            [4, -20],
+	            [5, 1],
+	            [6, -38],
+	            [8, -15],
+	            [6, -21],
+	            [17, -30],
+	            [10, -55],
+	            [8, -26],
+	            [8, -28],
+	            [1, -31],
+	            [13, -2],
+	            [12, -27],
+	            [10, -26],
+	            [-1, -11],
+	            [-12, -21],
+	            [-5, 0],
+	            [-7, 36],
+	            [-18, 33],
+	            [-20, 29],
+	            [-14, 15],
+	            [1, 43],
+	            [-5, 32],
+	            [-13, 19],
+	            [-19, 26],
+	            [-4, -8],
+	            [-7, 16],
+	            [-17, 14],
+	            [-16, 34],
+	            [2, 5],
+	            [11, -4],
+	            [11, 22],
+	            [1, 27],
+	            [-22, 42],
+	            [-16, 17],
+	            [-10, 36],
+	            [-11, 39],
+	            [-12, 47],
+	            [-12, 54]
+	        ],
+	        [
+	            [1746, 6980],
+	            [32, 4],
+	            [35, 7],
+	            [-2, -12],
+	            [41, -29],
+	            [64, -41],
+	            [55, 0],
+	            [22, 0],
+	            [0, 24],
+	            [48, 0],
+	            [10, -20],
+	            [15, -19],
+	            [16, -26],
+	            [9, -31],
+	            [7, -32],
+	            [15, -18],
+	            [23, -18],
+	            [17, 47],
+	            [23, 1],
+	            [19, -24],
+	            [14, -40],
+	            [10, -35],
+	            [16, -34],
+	            [6, -41],
+	            [8, -28],
+	            [22, -18],
+	            [20, -13],
+	            [10, 2]
+	        ],
+	        [
+	            [5599, 7553],
+	            [9, 4],
+	            [13, 1]
+	        ],
+	        [
+	            [4661, 5921],
+	            [10, 11],
+	            [4, 35],
+	            [9, 1],
+	            [20, -16],
+	            [15, 11],
+	            [11, -4],
+	            [4, 13],
+	            [112, 1],
+	            [6, 42],
+	            [-5, 7],
+	            [-13, 255],
+	            [-14, 255],
+	            [43, 1]
+	        ],
+	        [
+	            [5118, 6189],
+	            [0, -136],
+	            [-15, -39],
+	            [-2, -37],
+	            [-25, -9],
+	            [-38, -5],
+	            [-10, -21],
+	            [-18, -3]
+	        ],
+	        [
+	            [4680, 5793],
+	            [1, 18],
+	            [-2, 23],
+	            [-11, 16],
+	            [-5, 34],
+	            [-2, 37]
+	        ],
+	        [
+	            [7737, 5644],
+	            [-3, 44],
+	            [9, 45],
+	            [-10, 35],
+	            [3, 65],
+	            [-12, 30],
+	            [-9, 71],
+	            [-5, 75],
+	            [-12, 49],
+	            [-18, -30],
+	            [-32, -42],
+	            [-15, 5],
+	            [-17, 14],
+	            [9, 73],
+	            [-6, 56],
+	            [-21, 68],
+	            [3, 21],
+	            [-16, 7],
+	            [-20, 49]
+	        ],
+	        [
+	            [7780, 6264],
+	            [-16, -14],
+	            [-16, -26],
+	            [-20, -2],
+	            [-12, -64],
+	            [-12, -11],
+	            [14, -52],
+	            [17, -43],
+	            [12, -39],
+	            [-11, -51],
+	            [-9, -11],
+	            [6, -30],
+	            [19, -47],
+	            [3, -33],
+	            [0, -27],
+	            [11, -54],
+	            [-16, -55],
+	            [-13, -61]
+	        ],
+	        [
+	            [5538, 7532],
+	            [-6, 4],
+	            [-8, 19],
+	            [-12, 12]
+	        ],
+	        [
+	            [5533, 7629],
+	            [8, -10],
+	            [4, -9],
+	            [9, -6],
+	            [10, -12],
+	            [-2, -5]
+	        ],
+	        [
+	            [7437, 7970],
+	            [29, 10],
+	            [53, 51],
+	            [42, 28],
+	            [24, -18],
+	            [29, -1],
+	            [19, -28],
+	            [28, -2],
+	            [40, -15],
+	            [27, 41],
+	            [-11, 35],
+	            [28, 61],
+	            [31, -24],
+	            [26, -7],
+	            [32, -15],
+	            [6, -44],
+	            [39, -25],
+	            [26, 11],
+	            [36, 7],
+	            [27, -7],
+	            [28, -29],
+	            [16, -30],
+	            [26, 1],
+	            [35, -10],
+	            [26, 15],
+	            [36, 9],
+	            [41, 42],
+	            [17, -6],
+	            [14, -20],
+	            [33, 5]
+	        ],
+	        [
+	            [5959, 4377],
+	            [21, 5],
+	            [34, -17],
+	            [7, 8],
+	            [19, 1],
+	            [10, 18],
+	            [17, -1],
+	            [30, 23],
+	            [22, 34]
+	        ],
+	        [
+	            [6119, 4448],
+	            [5, -26],
+	            [-1, -59],
+	            [3, -52],
+	            [1, -92],
+	            [5, -29],
+	            [-8, -43],
+	            [-11, -41],
+	            [-18, -36],
+	            [-25, -23],
+	            [-31, -28],
+	            [-32, -64],
+	            [-10, -11],
+	            [-20, -42],
+	            [-11, -13],
+	            [-3, -42],
+	            [14, -45],
+	            [5, -35],
+	            [0, -17],
+	            [5, 3],
+	            [-1, -58],
+	            [-4, -28],
+	            [6, -10],
+	            [-4, -25],
+	            [-11, -21],
+	            [-23, -20],
+	            [-34, -32],
+	            [-12, -21],
+	            [3, -25],
+	            [7, -4],
+	            [-3, -31]
+	        ],
+	        [
+	            [5911, 3478],
+	            [-21, 0]
+	        ],
+	        [
+	            [5890, 3478],
+	            [-2, 26],
+	            [-4, 27]
+	        ],
+	        [
+	            [5884, 3531],
+	            [-3, 21],
+	            [5, 66],
+	            [-7, 42],
+	            [-13, 83]
+	        ],
+	        [
+	            [5866, 3743],
+	            [29, 67],
+	            [7, 43],
+	            [5, 5],
+	            [3, 35],
+	            [-5, 17],
+	            [1, 44],
+	            [6, 41],
+	            [0, 75],
+	            [-15, 19],
+	            [-13, 4],
+	            [-6, 15],
+	            [-13, 12],
+	            [-23, -1],
+	            [-2, 22]
+	        ],
+	        [
+	            [5840, 4141],
+	            [-2, 42],
+	            [84, 49]
+	        ],
+	        [
+	            [5922, 4232],
+	            [16, -28],
+	            [8, 5],
+	            [11, -15],
+	            [1, -23],
+	            [-6, -28],
+	            [2, -42],
+	            [19, -36],
+	            [8, 41],
+	            [12, 12],
+	            [-2, 76],
+	            [-12, 43],
+	            [-10, 19],
+	            [-10, -1],
+	            [-7, 77],
+	            [7, 45]
+	        ],
+	        [
+	            [4661, 5921],
+	            [-18, 41],
+	            [-17, 43],
+	            [-18, 16],
+	            [-13, 17],
+	            [-16, -1],
+	            [-13, -12],
+	            [-14, 5],
+	            [-10, -19]
+	        ],
+	        [
+	            [4542, 6011],
+	            [-2, 32],
+	            [8, 29],
+	            [3, 55],
+	            [-3, 59],
+	            [-3, 29],
+	            [2, 30],
+	            [-7, 28],
+	            [-14, 25]
+	        ],
+	        [
+	            [4526, 6298],
+	            [6, 20],
+	            [108, -1],
+	            [-5, 86],
+	            [7, 30],
+	            [26, 5],
+	            [-1, 152],
+	            [91, -4],
+	            [0, 90]
+	        ],
+	        [
+	            [5922, 4232],
+	            [-15, 15],
+	            [9, 55],
+	            [9, 21],
+	            [-6, 49],
+	            [6, 48],
+	            [5, 16],
+	            [-7, 50],
+	            [-14, 26]
+	        ],
+	        [
+	            [5909, 4512],
+	            [28, -11],
+	            [5, -16],
+	            [10, -28],
+	            [7, -80]
+	        ],
+	        [
+	            [7836, 5425],
+	            [7, -5],
+	            [16, -36],
+	            [12, -40],
+	            [2, -39],
+	            [-3, -27],
+	            [2, -21],
+	            [2, -35],
+	            [10, -16],
+	            [11, -52],
+	            [-1, -20],
+	            [-19, -4],
+	            [-27, 44],
+	            [-32, 47],
+	            [-4, 30],
+	            [-16, 39],
+	            [-4, 49],
+	            [-10, 32],
+	            [4, 43],
+	            [-7, 25]
+	        ],
+	        [
+	            [7779, 5439],
+	            [5, 11],
+	            [23, -26],
+	            [2, -30],
+	            [18, 7],
+	            [9, 24]
+	        ],
+	        [
+	            [8045, 5176],
+	            [21, -20],
+	            [21, 11],
+	            [6, 50],
+	            [12, 11],
+	            [33, 13],
+	            [20, 47],
+	            [14, 37]
+	        ],
+	        [
+	            [8206, 5379],
+	            [22, 41],
+	            [14, 47],
+	            [11, 0],
+	            [14, -30],
+	            [1, -26],
+	            [19, -16],
+	            [23, -18],
+	            [-2, -23],
+	            [-19, -3],
+	            [5, -29],
+	            [-20, -20]
+	        ],
+	        [
+	            [5453, 3369],
+	            [-20, 45],
+	            [-11, 43],
+	            [-6, 58],
+	            [-7, 42],
+	            [-9, 91],
+	            [-1, 71],
+	            [-3, 32],
+	            [-11, 25],
+	            [-15, 48],
+	            [-14, 71],
+	            [-6, 37],
+	            [-23, 58],
+	            [-2, 45]
+	        ],
+	        [
+	            [5644, 4022],
+	            [23, 14],
+	            [18, -4],
+	            [11, -13],
+	            [0, -5]
+	        ],
+	        [
+	            [5552, 3594],
+	            [0, -218],
+	            [-25, -30],
+	            [-15, -4],
+	            [-17, 11],
+	            [-13, 4],
+	            [-4, 25],
+	            [-11, 17],
+	            [-14, -30]
+	        ],
+	        [
+	            [9604, 3812],
+	            [23, -36],
+	            [14, -28],
+	            [-10, -14],
+	            [-16, 16],
+	            [-19, 27],
+	            [-18, 31],
+	            [-19, 42],
+	            [-4, 20],
+	            [12, -1],
+	            [16, -20],
+	            [12, -20],
+	            [9, -17]
+	        ],
+	        [
+	            [5412, 6408],
+	            [7, -92],
+	            [10, -15],
+	            [1, -19],
+	            [11, -20],
+	            [-6, -25],
+	            [-11, -120],
+	            [-1, -77],
+	            [-35, -56],
+	            [-12, -78],
+	            [11, -22],
+	            [0, -38],
+	            [18, -1],
+	            [-3, -28]
+	        ],
+	        [
+	            [5393, 5795],
+	            [-5, -1],
+	            [-19, 64],
+	            [-6, 3],
+	            [-22, -33],
+	            [-21, 17],
+	            [-15, 3],
+	            [-8, -8],
+	            [-17, 2],
+	            [-16, -25],
+	            [-14, -2],
+	            [-34, 31],
+	            [-13, -15],
+	            [-14, 1],
+	            [-10, 23],
+	            [-28, 22],
+	            [-30, -7],
+	            [-7, -13],
+	            [-4, -34],
+	            [-8, -24],
+	            [-2, -53]
+	        ],
+	        [
+	            [5236, 5339],
+	            [-29, -21],
+	            [-11, 3],
+	            [-10, -13],
+	            [-23, 1],
+	            [-15, 37],
+	            [-9, 43],
+	            [-19, 39],
+	            [-21, -1],
+	            [-25, 0]
+	        ],
+	        [
+	            [2619, 5713],
+	            [-10, 18],
+	            [-13, 24],
+	            [-6, 20],
+	            [-12, 19],
+	            [-13, 26],
+	            [3, 9],
+	            [4, -9],
+	            [2, 5]
+	        ],
+	        [
+	            [2690, 5943],
+	            [-2, -5],
+	            [-2, -13],
+	            [3, -22],
+	            [-6, -20],
+	            [-3, -24],
+	            [-1, -26],
+	            [1, -15],
+	            [1, -27],
+	            [-4, -6],
+	            [-3, -25],
+	            [2, -15],
+	            [-6, -16],
+	            [2, -16],
+	            [4, -9]
+	        ],
+	        [
+	            [5092, 8091],
+	            [14, 16],
+	            [24, 87],
+	            [38, 25],
+	            [23, -2]
+	        ],
+	        [
+	            [5863, 9167],
+	            [-47, -24],
+	            [-22, -5]
+	        ],
+	        [
+	            [5573, 9140],
+	            [-17, -2],
+	            [-4, -39],
+	            [-53, 9],
+	            [-7, -33],
+	            [-27, 1],
+	            [-18, -42],
+	            [-28, -66],
+	            [-43, -83],
+	            [10, -20],
+	            [-10, -24],
+	            [-27, 1],
+	            [-18, -55],
+	            [2, -79],
+	            [17, -29],
+	            [-9, -70],
+	            [-23, -40],
+	            [-12, -34]
+	        ],
+	        [
+	            [5306, 8535],
+	            [-19, 36],
+	            [-55, -69],
+	            [-37, -13],
+	            [-38, 30],
+	            [-10, 63],
+	            [-9, 137],
+	            [26, 38],
+	            [73, 49],
+	            [55, 61],
+	            [51, 82],
+	            [66, 115],
+	            [47, 44],
+	            [76, 74],
+	            [61, 26],
+	            [46, -3],
+	            [42, 49],
+	            [51, -3],
+	            [50, 12],
+	            [87, -43],
+	            [-36, -16],
+	            [30, -37]
+	        ],
+	        [
+	            [5686, 9657],
+	            [-62, -24],
+	            [-49, 13],
+	            [19, 16],
+	            [-16, 19],
+	            [57, 11],
+	            [11, -22],
+	            [40, -13]
+	        ],
+	        [
+	            [5506, 9766],
+	            [92, -44],
+	            [-70, -23],
+	            [-15, -44],
+	            [-25, -11],
+	            [-13, -49],
+	            [-34, -2],
+	            [-59, 36],
+	            [25, 21],
+	            [-42, 17],
+	            [-54, 50],
+	            [-21, 46],
+	            [75, 21],
+	            [16, -20],
+	            [39, 0],
+	            [11, 21],
+	            [40, 2],
+	            [35, -21]
+	        ],
+	        [
+	            [5706, 9808],
+	            [55, -21],
+	            [-41, -32],
+	            [-81, -7],
+	            [-82, 10],
+	            [-5, 16],
+	            [-40, 1],
+	            [-30, 27],
+	            [86, 17],
+	            [40, -14],
+	            [28, 17],
+	            [70, -14]
+	        ],
+	        [
+	            [9805, 2640],
+	            [6, -24],
+	            [20, 24],
+	            [8, -25],
+	            [0, -25],
+	            [-10, -27],
+	            [-18, -44],
+	            [-14, -24],
+	            [10, -28],
+	            [-22, -1],
+	            [-23, -22],
+	            [-8, -39],
+	            [-16, -60],
+	            [-21, -26],
+	            [-14, -17],
+	            [-26, 1],
+	            [-18, 20],
+	            [-30, 4],
+	            [-5, 22],
+	            [15, 43],
+	            [35, 59],
+	            [18, 11],
+	            [20, 22],
+	            [24, 31],
+	            [16, 31],
+	            [13, 44],
+	            [10, 15],
+	            [5, 33],
+	            [19, 27],
+	            [6, -25]
+	        ],
+	        [
+	            [9849, 2922],
+	            [20, -63],
+	            [1, 41],
+	            [13, -16],
+	            [4, -45],
+	            [22, -19],
+	            [19, -5],
+	            [16, 22],
+	            [14, -6],
+	            [-7, -53],
+	            [-8, -34],
+	            [-22, 1],
+	            [-7, -18],
+	            [3, -25],
+	            [-4, -11],
+	            [-11, -32],
+	            [-14, -41],
+	            [-21, -23],
+	            [-5, 15],
+	            [-12, 9],
+	            [16, 48],
+	            [-9, 33],
+	            [-30, 23],
+	            [1, 22],
+	            [20, 20],
+	            [5, 46],
+	            [-1, 38],
+	            [-12, 40],
+	            [1, 10],
+	            [-13, 25],
+	            [-22, 52],
+	            [-12, 42],
+	            [11, 4],
+	            [15, -33],
+	            [21, -15],
+	            [8, -52]
+	        ],
+	        [
+	            [6475, 6041],
+	            [-9, 41],
+	            [-22, 98]
+	        ],
+	        [
+	            [6444, 6180],
+	            [83, 59],
+	            [19, 118],
+	            [-13, 42]
+	        ],
+	        [
+	            [6566, 6530],
+	            [12, -40],
+	            [16, -22],
+	            [20, -8],
+	            [17, -10],
+	            [12, -34],
+	            [8, -20],
+	            [10, -7],
+	            [0, -13],
+	            [-10, -36],
+	            [-5, -16],
+	            [-12, -19],
+	            [-10, -41],
+	            [-13, 3],
+	            [-5, -14],
+	            [-5, -30],
+	            [4, -39],
+	            [-3, -7],
+	            [-13, 0],
+	            [-17, -22],
+	            [-3, -29],
+	            [-6, -12],
+	            [-18, 0],
+	            [-10, -15],
+	            [0, -24],
+	            [-14, -16],
+	            [-15, 5],
+	            [-19, -19],
+	            [-12, -4]
+	        ],
+	        [
+	            [6557, 6597],
+	            [8, 20],
+	            [3, -5],
+	            [-2, -25],
+	            [-4, -10]
+	        ],
+	        [
+	            [6893, 6457],
+	            [-20, 15],
+	            [-9, 43],
+	            [-21, 45],
+	            [-51, -12],
+	            [-45, -1],
+	            [-39, -8]
+	        ],
+	        [
+	            [2836, 5484],
+	            [-9, 17],
+	            [-6, 32],
+	            [7, 16],
+	            [-7, 4],
+	            [-5, 20],
+	            [-14, 16],
+	            [-12, -4],
+	            [-6, -20],
+	            [-11, -15],
+	            [-6, -2],
+	            [-3, -13],
+	            [13, -32],
+	            [-7, -7],
+	            [-4, -9],
+	            [-13, -3],
+	            [-5, 35],
+	            [-4, -10],
+	            [-9, 4],
+	            [-5, 24],
+	            [-12, 3],
+	            [-7, 7],
+	            [-12, 0],
+	            [-1, -13],
+	            [-3, 9]
+	        ],
+	        [
+	            [2707, 5623],
+	            [10, -22],
+	            [-1, -12],
+	            [11, -3],
+	            [3, 5],
+	            [8, -14],
+	            [13, 4],
+	            [12, 15],
+	            [17, 12],
+	            [9, 17],
+	            [16, -3],
+	            [-1, -6],
+	            [15, -2],
+	            [12, -10],
+	            [10, -18],
+	            [10, -16]
+	        ],
+	        [
+	            [3045, 3974],
+	            [-28, 33],
+	            [-2, 25],
+	            [-55, 59],
+	            [-50, 65],
+	            [-22, 36],
+	            [-11, 49],
+	            [4, 17],
+	            [-23, 77],
+	            [-28, 109],
+	            [-26, 118],
+	            [-11, 27],
+	            [-9, 43],
+	            [-21, 39],
+	            [-20, 24],
+	            [9, 26],
+	            [-14, 57],
+	            [9, 41],
+	            [22, 37]
+	        ],
+	        [
+	            [8510, 5555],
+	            [2, -40],
+	            [2, -33],
+	            [-9, -54],
+	            [-11, 60],
+	            [-13, -30],
+	            [9, -43],
+	            [-8, -28],
+	            [-32, 35],
+	            [-8, 42],
+	            [8, 28],
+	            [-17, 28],
+	            [-9, -24],
+	            [-13, 2],
+	            [-21, -33],
+	            [-4, 17],
+	            [11, 50],
+	            [17, 17],
+	            [15, 22],
+	            [10, -27],
+	            [21, 17],
+	            [5, 26],
+	            [19, 1],
+	            [-1, 46],
+	            [22, -28],
+	            [3, -30],
+	            [2, -21]
+	        ],
+	        [
+	            [8443, 5665],
+	            [-10, -20],
+	            [-9, -37],
+	            [-8, -17],
+	            [-17, 40],
+	            [5, 16],
+	            [7, 17],
+	            [3, 36],
+	            [16, 4],
+	            [-5, -40],
+	            [21, 57],
+	            [-3, -56]
+	        ],
+	        [
+	            [8291, 5608],
+	            [-37, -56],
+	            [14, 41],
+	            [20, 37],
+	            [16, 41],
+	            [15, 58],
+	            [5, -48],
+	            [-18, -33],
+	            [-15, -40]
+	        ],
+	        [
+	            [8385, 5760],
+	            [16, -18],
+	            [18, 0],
+	            [0, -25],
+	            [-13, -25],
+	            [-18, -18],
+	            [-1, 28],
+	            [2, 30],
+	            [-4, 28]
+	        ],
+	        [
+	            [8485, 5776],
+	            [8, -66],
+	            [-21, 16],
+	            [0, -20],
+	            [7, -37],
+	            [-13, -13],
+	            [-1, 42],
+	            [-9, 3],
+	            [-4, 36],
+	            [16, -5],
+	            [0, 22],
+	            [-17, 45],
+	            [27, -1],
+	            [7, -22]
+	        ],
+	        [
+	            [8375, 5830],
+	            [-7, -51],
+	            [-12, 29],
+	            [-15, 45],
+	            [24, -2],
+	            [10, -21]
+	        ],
+	        [
+	            [8369, 6151],
+	            [17, -17],
+	            [9, 15],
+	            [2, -15],
+	            [-4, -24],
+	            [9, -43],
+	            [-7, -49],
+	            [-16, -19],
+	            [-5, -48],
+	            [7, -47],
+	            [14, -7],
+	            [13, 7],
+	            [34, -32],
+	            [-2, -32],
+	            [9, -15],
+	            [-3, -27],
+	            [-22, 29],
+	            [-10, 31],
+	            [-7, -22],
+	            [-18, 36],
+	            [-25, -9],
+	            [-14, 13],
+	            [1, 25],
+	            [9, 15],
+	            [-8, 13],
+	            [-4, -21],
+	            [-14, 34],
+	            [-4, 26],
+	            [-1, 56],
+	            [11, -19],
+	            [3, 92],
+	            [9, 54],
+	            [17, 0]
+	        ],
+	        [
+	            [9329, 4655],
+	            [-8, -6],
+	            [-12, 22],
+	            [-12, 38],
+	            [-6, 45],
+	            [4, 6],
+	            [3, -18],
+	            [8, -13],
+	            [14, -38],
+	            [13, -20],
+	            [-4, -16]
+	        ],
+	        [
+	            [9221, 4734],
+	            [-15, -5],
+	            [-4, -17],
+	            [-15, -14],
+	            [-15, -14],
+	            [-14, 0],
+	            [-23, 18],
+	            [-16, 16],
+	            [2, 18],
+	            [25, -8],
+	            [15, 4],
+	            [5, 29],
+	            [4, 1],
+	            [2, -31],
+	            [16, 4],
+	            [8, 20],
+	            [16, 21],
+	            [-4, 35],
+	            [17, 1],
+	            [6, -9],
+	            [-1, -33],
+	            [-9, -36]
+	        ],
+	        [
+	            [8916, 4904],
+	            [48, -41],
+	            [51, -34],
+	            [19, -30],
+	            [16, -30],
+	            [4, -34],
+	            [46, -37],
+	            [7, -31],
+	            [-25, -7],
+	            [6, -39],
+	            [25, -39],
+	            [18, -62],
+	            [15, 2],
+	            [-1, -27],
+	            [22, -10],
+	            [-9, -11],
+	            [30, -25],
+	            [-3, -17],
+	            [-18, -4],
+	            [-7, 16],
+	            [-24, 6],
+	            [-28, 9],
+	            [-22, 38],
+	            [-16, 32],
+	            [-14, 52],
+	            [-36, 26],
+	            [-24, -17],
+	            [-17, -20],
+	            [4, -43],
+	            [-22, -20],
+	            [-16, 9],
+	            [-28, 3]
+	        ],
+	        [
+	            [9253, 4792],
+	            [-9, -16],
+	            [-5, 35],
+	            [-6, 23],
+	            [-13, 19],
+	            [-16, 25],
+	            [-20, 18],
+	            [8, 14],
+	            [15, -17],
+	            [9, -13],
+	            [12, -14],
+	            [11, -25],
+	            [11, -19],
+	            [3, -30]
+	        ],
+	        [
+	            [5392, 8233],
+	            [19, 18],
+	            [43, 27],
+	            [35, 20],
+	            [28, -10],
+	            [2, -14],
+	            [27, -1]
+	        ],
+	        [
+	            [5546, 8273],
+	            [34, -7],
+	            [51, 1]
+	        ],
+	        [
+	            [5653, 8105],
+	            [14, -52],
+	            [-3, -17],
+	            [-14, -6],
+	            [-25, -50],
+	            [7, -26],
+	            [-6, 3]
+	        ],
+	        [
+	            [5626, 7957],
+	            [-26, 23],
+	            [-20, -8],
+	            [-13, 6],
+	            [-17, -13],
+	            [-14, 21],
+	            [-11, -8],
+	            [-2, 4]
+	        ],
+	        [
+	            [3159, 6151],
+	            [14, -5],
+	            [5, -12],
+	            [-7, -15],
+	            [-21, 1],
+	            [-17, -2],
+	            [-1, 25],
+	            [4, 9],
+	            [23, -1]
+	        ],
+	        [
+	            [8628, 7562],
+	            [4, -10]
+	        ],
+	        [
+	            [8632, 7552],
+	            [-11, 3],
+	            [-12, -20],
+	            [-8, -20],
+	            [1, -42],
+	            [-14, -13],
+	            [-5, -11],
+	            [-11, -17],
+	            [-18, -10],
+	            [-12, -16],
+	            [-1, -25],
+	            [-3, -7],
+	            [11, -9],
+	            [15, -26]
+	        ],
+	        [
+	            [8504, 7288],
+	            [-13, 11],
+	            [-4, -11],
+	            [-8, -5],
+	            [-1, 11],
+	            [-7, 5],
+	            [-8, 10],
+	            [8, 26],
+	            [7, 7],
+	            [-3, 11],
+	            [7, 31],
+	            [-2, 10],
+	            [-16, 7],
+	            [-13, 15]
+	        ],
+	        [
+	            [4792, 7249],
+	            [-11, -15],
+	            [-14, 8],
+	            [-15, -6],
+	            [5, 46],
+	            [-3, 36],
+	            [-12, 6],
+	            [-7, 22],
+	            [2, 39],
+	            [11, 21],
+	            [2, 24],
+	            [6, 36],
+	            [-1, 25],
+	            [-5, 21],
+	            [-1, 20]
+	        ],
+	        [
+	            [6411, 6520],
+	            [-2, 43],
+	            [7, 31],
+	            [8, 6],
+	            [8, -18],
+	            [1, -35],
+	            [-6, -35]
+	        ],
+	        [
+	            [6427, 6512],
+	            [-8, -4],
+	            [-8, 12]
+	        ],
+	        [
+	            [5630, 7886],
+	            [12, 13],
+	            [17, -7],
+	            [18, 0],
+	            [13, -14],
+	            [10, 9],
+	            [20, 5],
+	            [7, 14],
+	            [12, 0]
+	        ],
+	        [
+	            [5784, 7745],
+	            [12, -11],
+	            [13, 9],
+	            [13, -10]
+	        ],
+	        [
+	            [5822, 7733],
+	            [0, -15],
+	            [-13, -13],
+	            [-9, 6],
+	            [-7, -71]
+	        ],
+	        [
+	            [5629, 7671],
+	            [-5, 10],
+	            [6, 10],
+	            [-7, 7],
+	            [-8, -13],
+	            [-17, 17],
+	            [-2, 25],
+	            [-17, 14],
+	            [-3, 18],
+	            [-15, 24]
+	        ],
+	        [
+	            [8989, 8056],
+	            [28, -105],
+	            [-41, 19],
+	            [-17, -85],
+	            [27, -61],
+	            [-1, -41],
+	            [-21, 36],
+	            [-18, -46],
+	            [-5, 50],
+	            [3, 57],
+	            [-3, 64],
+	            [6, 45],
+	            [2, 79],
+	            [-17, 58],
+	            [3, 80],
+	            [25, 28],
+	            [-11, 27],
+	            [13, 8],
+	            [7, -39],
+	            [10, -57],
+	            [-1, -58],
+	            [11, -59]
+	        ],
+	        [
+	            [5546, 8273],
+	            [6, 26],
+	            [38, 19]
+	        ],
+	        [
+	            [0, 9132],
+	            [68, -45],
+	            [73, -59],
+	            [-3, -37],
+	            [19, -15],
+	            [-6, 43],
+	            [75, -8],
+	            [55, -56],
+	            [-28, -26],
+	            [-46, -6],
+	            [0, -57],
+	            [-11, -13],
+	            [-26, 2],
+	            [-22, 21],
+	            [-36, 17],
+	            [-7, 26],
+	            [-28, 9],
+	            [-31, -7],
+	            [-16, 20],
+	            [6, 22],
+	            [-33, -14],
+	            [13, -28],
+	            [-16, -25]
+	        ],
+	        [
+	            [0, 8896],
+	            [0, 236]
+	        ],
+	        [
+	            [0, 9282],
+	            [9999, -40],
+	            [-30, -3],
+	            [-5, 19],
+	            [-9964, 24]
+	        ],
+	        [
+	            [0, 9282],
+	            [4, 3],
+	            [23, 0],
+	            [40, -17],
+	            [-2, -8],
+	            [-29, -14],
+	            [-36, -4],
+	            [0, 40]
+	        ],
+	        [
+	            [8988, 9383],
+	            [-42, -1],
+	            [-57, 7],
+	            [-5, 3],
+	            [27, 23],
+	            [34, 6],
+	            [40, -23],
+	            [3, -15]
+	        ],
+	        [
+	            [9186, 9493],
+	            [-32, -23],
+	            [-44, 5],
+	            [-52, 23],
+	            [7, 20],
+	            [51, -9],
+	            [70, -16]
+	        ],
+	        [
+	            [9029, 9522],
+	            [-22, -44],
+	            [-102, 1],
+	            [-46, -14],
+	            [-55, 39],
+	            [15, 40],
+	            [37, 11],
+	            [73, -2],
+	            [100, -31]
+	        ],
+	        [
+	            [6598, 9235],
+	            [-17, -5],
+	            [-91, 8],
+	            [-7, 26],
+	            [-50, 16],
+	            [-4, 32],
+	            [28, 13],
+	            [-1, 32],
+	            [55, 50],
+	            [-25, 7],
+	            [66, 52],
+	            [-7, 27],
+	            [62, 31],
+	            [91, 38],
+	            [93, 11],
+	            [48, 22],
+	            [54, 8],
+	            [19, -23],
+	            [-19, -19],
+	            [-98, -29],
+	            [-85, -28],
+	            [-86, -57],
+	            [-42, -57],
+	            [-43, -57],
+	            [5, -49],
+	            [54, -49]
+	        ],
+	        [
+	            [0, 8896],
+	            [9963, -26],
+	            [-36, 4],
+	            [25, -31],
+	            [17, -49],
+	            [13, -16],
+	            [3, -24],
+	            [-7, -16],
+	            [-52, 13],
+	            [-78, -44],
+	            [-25, -7],
+	            [-42, -42],
+	            [-40, -36],
+	            [-11, -27],
+	            [-39, 41],
+	            [-73, -46],
+	            [-12, 22],
+	            [-27, -26],
+	            [-37, 8],
+	            [-9, -38],
+	            [-33, -58],
+	            [1, -24],
+	            [31, -13],
+	            [-4, -86],
+	            [-25, -2],
+	            [-12, -49],
+	            [11, -26],
+	            [-48, -30],
+	            [-10, -67],
+	            [-41, -15],
+	            [-9, -60],
+	            [-40, -55],
+	            [-10, 41],
+	            [-12, 86],
+	            [-15, 131],
+	            [13, 82],
+	            [23, 35],
+	            [2, 28],
+	            [43, 13],
+	            [50, 75],
+	            [47, 60],
+	            [50, 48],
+	            [23, 83],
+	            [-34, -5],
+	            [-17, -49],
+	            [-70, -65],
+	            [-23, 73],
+	            [-72, -20],
+	            [-69, -99],
+	            [23, -36],
+	            [-62, -16],
+	            [-43, -6],
+	            [2, 43],
+	            [-43, 9],
+	            [-35, -29],
+	            [-85, 10],
+	            [-91, -18],
+	            [-90, -115],
+	            [-106, -139],
+	            [43, -8],
+	            [14, -37],
+	            [27, -13],
+	            [18, 30],
+	            [30, -4],
+	            [40, -65],
+	            [1, -50],
+	            [-21, -59],
+	            [-3, -71],
+	            [-12, -94],
+	            [-42, -86],
+	            [-9, -41],
+	            [-38, -69],
+	            [-38, -68],
+	            [-18, -35],
+	            [-37, -34],
+	            [-17, -1],
+	            [-17, 29],
+	            [-38, -44],
+	            [-4, -19]
+	        ],
+	        [
+	            [6363, 7799],
+	            [-12, -35],
+	            [-27, -10],
+	            [-28, -61],
+	            [25, -56],
+	            [-2, -40],
+	            [30, -70]
+	        ],
+	        [
+	            [6109, 7624],
+	            [-35, 49],
+	            [-32, 23],
+	            [-24, 34],
+	            [20, 10],
+	            [23, 49],
+	            [-15, 24],
+	            [41, 24],
+	            [-1, 13],
+	            [-25, -10]
+	        ],
+	        [
+	            [6061, 7840],
+	            [1, 26],
+	            [14, 17],
+	            [27, 4],
+	            [5, 20],
+	            [-7, 33],
+	            [12, 30],
+	            [-1, 18],
+	            [-41, 19],
+	            [-16, -1],
+	            [-17, 28],
+	            [-21, -9],
+	            [-35, 20],
+	            [0, 12],
+	            [-10, 26],
+	            [-22, 3],
+	            [-2, 18],
+	            [7, 12],
+	            [-18, 33],
+	            [-29, -5],
+	            [-8, 3],
+	            [-7, -14],
+	            [-11, 3]
+	        ],
+	        [
+	            [5777, 8571],
+	            [31, 33],
+	            [-29, 28]
+	        ],
+	        [
+	            [5863, 9167],
+	            [29, 20],
+	            [46, -35],
+	            [76, -14],
+	            [105, -67],
+	            [21, -28],
+	            [2, -40],
+	            [-31, -31],
+	            [-45, -15],
+	            [-124, 44],
+	            [-21, -7],
+	            [45, -43],
+	            [2, -28],
+	            [2, -60],
+	            [36, -18],
+	            [22, -15],
+	            [3, 28],
+	            [-17, 26],
+	            [18, 22],
+	            [67, -37],
+	            [24, 15],
+	            [-19, 43],
+	            [65, 58],
+	            [25, -4],
+	            [26, -20],
+	            [16, 40],
+	            [-23, 35],
+	            [14, 36],
+	            [-21, 36],
+	            [78, -18],
+	            [16, -34],
+	            [-35, -7],
+	            [0, -33],
+	            [22, -20],
+	            [43, 13],
+	            [7, 38],
+	            [58, 28],
+	            [97, 50],
+	            [20, -3],
+	            [-27, -35],
+	            [35, -7],
+	            [19, 21],
+	            [52, 1],
+	            [42, 25],
+	            [31, -36],
+	            [32, 39],
+	            [-29, 35],
+	            [14, 19],
+	            [82, -18],
+	            [39, -18],
+	            [100, -68],
+	            [19, 31],
+	            [-28, 31],
+	            [-1, 13],
+	            [-34, 6],
+	            [10, 28],
+	            [-15, 46],
+	            [-1, 19],
+	            [51, 53],
+	            [18, 54],
+	            [21, 11],
+	            [74, -15],
+	            [5, -33],
+	            [-26, -48],
+	            [17, -19],
+	            [9, -41],
+	            [-6, -81],
+	            [31, -36],
+	            [-12, -40],
+	            [-55, -84],
+	            [32, -8],
+	            [11, 21],
+	            [31, 15],
+	            [7, 29],
+	            [24, 29],
+	            [-16, 33],
+	            [13, 39],
+	            [-31, 5],
+	            [-6, 33],
+	            [22, 59],
+	            [-36, 48],
+	            [50, 40],
+	            [-7, 42],
+	            [14, 2],
+	            [15, -33],
+	            [-11, -57],
+	            [29, -11],
+	            [-12, 43],
+	            [46, 23],
+	            [58, 3],
+	            [51, -34],
+	            [-25, 49],
+	            [-2, 63],
+	            [48, 12],
+	            [67, -2],
+	            [60, 7],
+	            [-23, 31],
+	            [33, 39],
+	            [31, 2],
+	            [54, 29],
+	            [74, 8],
+	            [9, 16],
+	            [73, 6],
+	            [23, -14],
+	            [62, 32],
+	            [51, -1],
+	            [8, 25],
+	            [26, 25],
+	            [66, 25],
+	            [48, -19],
+	            [-38, -15],
+	            [63, -9],
+	            [7, -29],
+	            [25, 14],
+	            [82, -1],
+	            [62, -29],
+	            [23, -22],
+	            [-7, -30],
+	            [-31, -18],
+	            [-73, -33],
+	            [-21, -17],
+	            [35, -8],
+	            [41, -15],
+	            [25, 11],
+	            [14, -38],
+	            [12, 15],
+	            [44, 10],
+	            [90, -10],
+	            [6, -28],
+	            [116, -9],
+	            [2, 46],
+	            [59, -11],
+	            [44, 1],
+	            [45, -32],
+	            [13, -37],
+	            [-17, -25],
+	            [35, -47],
+	            [44, -24],
+	            [27, 62],
+	            [44, -26],
+	            [48, 16],
+	            [53, -18],
+	            [21, 16],
+	            [45, -8],
+	            [-20, 55],
+	            [37, 25],
+	            [251, -38],
+	            [24, -35],
+	            [72, -45],
+	            [112, 11],
+	            [56, -10],
+	            [23, -24],
+	            [-4, -44],
+	            [35, -16],
+	            [37, 12],
+	            [49, 1],
+	            [52, -11],
+	            [53, 6],
+	            [49, -52],
+	            [34, 19],
+	            [-23, 37],
+	            [13, 27],
+	            [88, -17],
+	            [58, 4],
+	            [80, -29],
+	            [-9960, -25]
+	        ],
+	        [
+	            [7918, 9684],
+	            [-157, -23],
+	            [51, 77],
+	            [23, 7],
+	            [21, -4],
+	            [70, -33],
+	            [-8, -24]
+	        ],
+	        [
+	            [6420, 9816],
+	            [-37, -8],
+	            [-25, -4],
+	            [-4, -10],
+	            [-33, -10],
+	            [-30, 14],
+	            [16, 19],
+	            [-62, 2],
+	            [54, 10],
+	            [43, 1],
+	            [5, -16],
+	            [16, 14],
+	            [26, 10],
+	            [42, -13],
+	            [-11, -9]
+	        ],
+	        [
+	            [7775, 9718],
+	            [-60, -8],
+	            [-78, 17],
+	            [-46, 23],
+	            [-21, 42],
+	            [-38, 12],
+	            [72, 40],
+	            [60, 14],
+	            [54, -30],
+	            [64, -57],
+	            [-7, -53]
+	        ],
+	        [
+	            [5844, 4990],
+	            [11, -33],
+	            [-1, -35],
+	            [-8, -7]
+	        ],
+	        [
+	            [5821, 4978],
+	            [7, -6],
+	            [16, 18]
+	        ],
+	        [
+	            [4526, 6298],
+	            [1, 25]
+	        ],
+	        [
+	            [6188, 6023],
+	            [-4, 26],
+	            [-8, 17],
+	            [-2, 24],
+	            [-15, 21],
+	            [-15, 50],
+	            [-7, 48],
+	            [-20, 40],
+	            [-12, 10],
+	            [-18, 56],
+	            [-4, 41],
+	            [2, 35],
+	            [-16, 66],
+	            [-13, 23],
+	            [-15, 12],
+	            [-10, 34],
+	            [2, 13],
+	            [-8, 31],
+	            [-8, 13],
+	            [-11, 44],
+	            [-17, 48],
+	            [-14, 40],
+	            [-14, 0],
+	            [5, 33],
+	            [1, 20],
+	            [3, 24]
+	        ],
+	        [
+	            [6344, 6744],
+	            [11, -51],
+	            [14, -13],
+	            [5, -21],
+	            [18, -25],
+	            [2, -24],
+	            [-3, -20],
+	            [4, -20],
+	            [8, -16],
+	            [4, -20],
+	            [4, -14]
+	        ],
+	        [
+	            [6427, 6512],
+	            [5, -22]
+	        ],
+	        [
+	            [6444, 6180],
+	            [-80, -23],
+	            [-26, -26],
+	            [-20, -62],
+	            [-13, -10],
+	            [-7, 20],
+	            [-11, -3],
+	            [-27, 6],
+	            [-5, 5],
+	            [-32, -1],
+	            [-7, -5],
+	            [-12, 15],
+	            [-7, -29],
+	            [3, -25],
+	            [-12, -19]
+	        ],
+	        [
+	            [5943, 5617],
+	            [-4, 1],
+	            [0, 29],
+	            [-3, 20],
+	            [-14, 24],
+	            [-4, 42],
+	            [4, 44],
+	            [-13, 4],
+	            [-2, -13],
+	            [-17, -3],
+	            [7, -17],
+	            [2, -36],
+	            [-15, -32],
+	            [-14, -43],
+	            [-14, -6],
+	            [-23, 34],
+	            [-11, -12],
+	            [-3, -17],
+	            [-14, -11],
+	            [-1, -12],
+	            [-28, 0],
+	            [-3, 12],
+	            [-20, 2],
+	            [-10, -10],
+	            [-8, 5],
+	            [-14, 34],
+	            [-5, 17],
+	            [-20, -9],
+	            [-8, -27],
+	            [-7, -53],
+	            [-10, -11],
+	            [-8, -6]
+	        ],
+	        [
+	            [5663, 5567],
+	            [-2, 2]
+	        ],
+	        [
+	            [5635, 5716],
+	            [0, 14],
+	            [-10, 17],
+	            [-1, 35],
+	            [-5, 23],
+	            [-10, -4],
+	            [3, 22],
+	            [7, 25],
+	            [-3, 24],
+	            [9, 18],
+	            [-6, 14],
+	            [7, 36],
+	            [13, 44],
+	            [24, -4],
+	            [-1, 234]
+	        ],
+	        [
+	            [6023, 6357],
+	            [9, -58],
+	            [-6, -10],
+	            [4, -61],
+	            [11, -71],
+	            [10, -14],
+	            [15, -22]
+	        ],
+	        [
+	            [5943, 5624],
+	            [0, -7]
+	        ],
+	        [
+	            [5943, 5617],
+	            [0, -46]
+	        ],
+	        [
+	            [5944, 5309],
+	            [-17, -28],
+	            [-20, 1],
+	            [-22, -14],
+	            [-18, 13],
+	            [-11, -16]
+	        ],
+	        [
+	            [5682, 5544],
+	            [-19, 23]
+	        ],
+	        [
+	            [4535, 5861],
+	            [-11, 46],
+	            [-14, 21],
+	            [12, 11],
+	            [14, 41],
+	            [6, 31]
+	        ],
+	        [
+	            [4536, 5789],
+	            [-4, 45]
+	        ],
+	        [
+	            [9502, 4438],
+	            [8, -20],
+	            [-19, 0],
+	            [-11, 37],
+	            [17, -15],
+	            [5, -2]
+	        ],
+	        [
+	            [9467, 4474],
+	            [-11, -1],
+	            [-17, 6],
+	            [-5, 9],
+	            [1, 23],
+	            [19, -9],
+	            [9, -12],
+	            [4, -16]
+	        ],
+	        [
+	            [9490, 4490],
+	            [-4, -11],
+	            [-21, 52],
+	            [-5, 35],
+	            [9, 0],
+	            [10, -47],
+	            [11, -29]
+	        ],
+	        [
+	            [9440, 4565],
+	            [1, -12],
+	            [-22, 25],
+	            [-15, 21],
+	            [-10, 20],
+	            [4, 6],
+	            [13, -14],
+	            [23, -27],
+	            [6, -19]
+	        ],
+	        [
+	            [9375, 4623],
+	            [-5, -3],
+	            [-13, 14],
+	            [-11, 24],
+	            [1, 10],
+	            [17, -25],
+	            [11, -20]
+	        ],
+	        [
+	            [4682, 5458],
+	            [-8, 5],
+	            [-20, 24],
+	            [-14, 31],
+	            [-5, 22],
+	            [-3, 43]
+	        ],
+	        [
+	            [2561, 5848],
+	            [-3, -14],
+	            [-16, 1],
+	            [-10, 6],
+	            [-12, 12],
+	            [-15, 3],
+	            [-8, 13]
+	        ],
+	        [
+	            [6198, 5735],
+	            [9, -11],
+	            [5, -25],
+	            [13, -24],
+	            [14, -1],
+	            [26, 16],
+	            [30, 7],
+	            [25, 18],
+	            [13, 4],
+	            [10, 11],
+	            [16, 2]
+	        ],
+	        [
+	            [6359, 5732],
+	            [0, -1],
+	            [0, -25],
+	            [0, -59],
+	            [0, -31],
+	            [-13, -36],
+	            [-19, -50]
+	        ],
+	        [
+	            [6359, 5732],
+	            [9, 1],
+	            [13, 9],
+	            [14, 6],
+	            [14, 20],
+	            [10, 0],
+	            [1, -16],
+	            [-3, -35],
+	            [0, -31],
+	            [-6, -21],
+	            [-7, -64],
+	            [-14, -66],
+	            [-17, -75],
+	            [-24, -87],
+	            [-23, -66],
+	            [-33, -81],
+	            [-28, -48],
+	            [-42, -58],
+	            [-25, -45],
+	            [-31, -72],
+	            [-6, -31],
+	            [-6, -14]
+	        ],
+	        [
+	            [3412, 5410],
+	            [34, -11],
+	            [2, 10],
+	            [23, 4],
+	            [30, -15]
+	        ],
+	        [
+	            [3489, 5306],
+	            [10, -35],
+	            [-4, -25]
+	        ],
+	        [
+	            [5626, 7957],
+	            [-8, -15],
+	            [-5, -24]
+	        ],
+	        [
+	            [5380, 7746],
+	            [7, 5]
+	        ],
+	        [
+	            [5663, 8957],
+	            [-47, -17],
+	            [-27, -41],
+	            [4, -36],
+	            [-44, -48],
+	            [-54, -50],
+	            [-20, -84],
+	            [20, -41],
+	            [26, -33],
+	            [-25, -67],
+	            [-29, -14],
+	            [-11, -99],
+	            [-15, -55],
+	            [-34, 6],
+	            [-16, -47],
+	            [-32, -3],
+	            [-9, 56],
+	            [-23, 67],
+	            [-21, 84]
+	        ],
+	        [
+	            [5890, 3478],
+	            [-5, -26],
+	            [-17, -6],
+	            [-16, 32],
+	            [0, 20],
+	            [7, 22],
+	            [3, 17],
+	            [8, 5],
+	            [14, -11]
+	        ],
+	        [
+	            [5999, 7104],
+	            [-2, 45],
+	            [7, 25]
+	        ],
+	        [
+	            [6004, 7174],
+	            [7, 13],
+	            [7, 13],
+	            [2, 33],
+	            [9, -12],
+	            [31, 17],
+	            [14, -12],
+	            [23, 1],
+	            [32, 22],
+	            [15, -1],
+	            [32, 9]
+	        ],
+	        [
+	            [5051, 5420],
+	            [-22, -12]
+	        ],
+	        [
+	            [7849, 5777],
+	            [-25, 28],
+	            [-24, -2],
+	            [4, 47],
+	            [-24, 0],
+	            [-2, -65],
+	            [-15, -87],
+	            [-10, -52],
+	            [2, -43],
+	            [18, -2],
+	            [12, -53],
+	            [5, -52],
+	            [15, -33],
+	            [17, -7],
+	            [14, -31]
+	        ],
+	        [
+	            [7779, 5439],
+	            [-11, 23],
+	            [-4, 29],
+	            [-15, 34],
+	            [-14, 28],
+	            [-4, -35],
+	            [-5, 33],
+	            [3, 37],
+	            [8, 56]
+	        ],
+	        [
+	            [6883, 7252],
+	            [16, 60],
+	            [-6, 44],
+	            [-20, 14],
+	            [7, 26],
+	            [23, -3],
+	            [13, 33],
+	            [9, 38],
+	            [37, 13],
+	            [-6, -27],
+	            [4, -17],
+	            [12, 2]
+	        ],
+	        [
+	            [6497, 7255],
+	            [-5, 42],
+	            [4, 62],
+	            [-22, 20],
+	            [8, 40],
+	            [-19, 4],
+	            [6, 49],
+	            [26, -14],
+	            [25, 19],
+	            [-20, 35],
+	            [-8, 34],
+	            [-23, -15],
+	            [-3, -43],
+	            [-8, 38]
+	        ],
+	        [
+	            [6554, 7498],
+	            [31, 1],
+	            [-4, 29],
+	            [24, 21],
+	            [23, 34],
+	            [37, -31],
+	            [3, -47],
+	            [11, -12],
+	            [30, 2],
+	            [9, -10],
+	            [14, -61],
+	            [32, -41],
+	            [18, -28],
+	            [29, -29],
+	            [37, -25],
+	            [-1, -36]
+	        ],
+	        [
+	            [8471, 4532],
+	            [3, 14],
+	            [24, 13],
+	            [19, 2],
+	            [9, 8],
+	            [10, -8],
+	            [-10, -16],
+	            [-29, -25],
+	            [-23, -17]
+	        ],
+	        [
+	            [3286, 5693],
+	            [16, 8],
+	            [6, -2],
+	            [-1, -44],
+	            [-23, -7],
+	            [-5, 6],
+	            [8, 16],
+	            [-1, 23]
+	        ],
+	        [
+	            [5233, 7240],
+	            [31, 24],
+	            [19, -7],
+	            [-1, -30],
+	            [24, 22],
+	            [2, -12],
+	            [-14, -29],
+	            [0, -27],
+	            [9, -15],
+	            [-3, -51],
+	            [-19, -29],
+	            [6, -33],
+	            [14, -1],
+	            [7, -28],
+	            [11, -9]
+	        ],
+	        [
+	            [6004, 7174],
+	            [-11, 27],
+	            [11, 22],
+	            [-17, -5],
+	            [-23, 13],
+	            [-19, -34],
+	            [-43, -6],
+	            [-22, 31],
+	            [-30, 2],
+	            [-6, -24],
+	            [-20, -7],
+	            [-26, 31],
+	            [-31, -1],
+	            [-16, 59],
+	            [-21, 33],
+	            [14, 46],
+	            [-18, 28],
+	            [31, 56],
+	            [43, 3],
+	            [12, 45],
+	            [53, -8],
+	            [33, 38],
+	            [32, 17],
+	            [46, 1],
+	            [49, -42],
+	            [40, -22],
+	            [32, 9],
+	            [24, -6],
+	            [33, 31]
+	        ],
+	        [
+	            [5777, 7539],
+	            [3, -23],
+	            [25, -19],
+	            [-5, -14],
+	            [-33, -3],
+	            [-12, -19],
+	            [-23, -31],
+	            [-9, 27],
+	            [0, 12]
+	        ],
+	        [
+	            [8382, 6499],
+	            [-17, -95],
+	            [-12, -49],
+	            [-14, 50],
+	            [-4, 44],
+	            [17, 58],
+	            [22, 45],
+	            [13, -18],
+	            [-5, -35]
+	        ],
+	        [
+	            [6088, 4781],
+	            [-12, -73],
+	            [1, -33],
+	            [18, -22],
+	            [1, -15],
+	            [-8, -36],
+	            [2, -18],
+	            [-2, -28],
+	            [10, -37],
+	            [11, -58],
+	            [10, -13]
+	        ],
+	        [
+	            [5909, 4512],
+	            [-15, 18],
+	            [-18, 10],
+	            [-11, 10],
+	            [-12, 15]
+	        ],
+	        [
+	            [5844, 4990],
+	            [10, 8],
+	            [31, -1],
+	            [56, 4]
+	        ],
+	        [
+	            [6061, 7840],
+	            [-22, -5],
+	            [-18, -19],
+	            [-26, -3],
+	            [-24, -22],
+	            [1, -37],
+	            [14, -14],
+	            [28, 4],
+	            [-5, -21],
+	            [-31, -11],
+	            [-37, -34],
+	            [-16, 12],
+	            [6, 28],
+	            [-30, 17],
+	            [5, 12],
+	            [26, 19],
+	            [-8, 14],
+	            [-43, 15],
+	            [-2, 22],
+	            [-25, -8],
+	            [-11, -32],
+	            [-21, -44]
+	        ],
+	        [
+	            [3517, 3063],
+	            [-12, -38],
+	            [-31, -32],
+	            [-21, 11],
+	            [-15, -6],
+	            [-26, 25],
+	            [-18, -1],
+	            [-17, 32]
+	        ],
+	        [
+	            [679, 6185],
+	            [-4, -10],
+	            [-7, 8],
+	            [1, 17],
+	            [-4, 21],
+	            [1, 7],
+	            [5, 10],
+	            [-2, 11],
+	            [1, 6],
+	            [3, -1],
+	            [10, -10],
+	            [5, -5],
+	            [5, -8],
+	            [7, -21],
+	            [-1, -3],
+	            [-11, -13],
+	            [-9, -9]
+	        ],
+	        [
+	            [664, 6277],
+	            [-9, -4],
+	            [-5, 12],
+	            [-3, 5],
+	            [0, 4],
+	            [3, 5],
+	            [9, -6],
+	            [8, -9],
+	            [-3, -7]
+	        ],
+	        [
+	            [646, 6309],
+	            [-1, -7],
+	            [-15, 2],
+	            [2, 7],
+	            [14, -2]
+	        ],
+	        [
+	            [621, 6317],
+	            [-2, -3],
+	            [-2, 1],
+	            [-9, 2],
+	            [-4, 13],
+	            [-1, 2],
+	            [7, 8],
+	            [3, -3],
+	            [8, -20]
+	        ],
+	        [
+	            [574, 6356],
+	            [-4, -6],
+	            [-9, 11],
+	            [1, 4],
+	            [5, 6],
+	            [6, -1],
+	            [1, -14]
+	        ],
+	        [
+	            [3135, 7724],
+	            [5, -19],
+	            [-30, -29],
+	            [-29, -20],
+	            [-29, -18],
+	            [-15, -35],
+	            [-4, -13],
+	            [-1, -31],
+	            [10, -32],
+	            [11, -1],
+	            [-3, 21],
+	            [8, -13],
+	            [-2, -17],
+	            [-19, -9],
+	            [-13, 1],
+	            [-20, -10],
+	            [-12, -3],
+	            [-17, -3],
+	            [-23, -17],
+	            [41, 11],
+	            [8, -11],
+	            [-39, -18],
+	            [-17, 0],
+	            [0, 7],
+	            [-8, -16],
+	            [8, -3],
+	            [-6, -43],
+	            [-20, -45],
+	            [-2, 15],
+	            [-6, 3],
+	            [-9, 15],
+	            [5, -32],
+	            [7, -10],
+	            [1, -23],
+	            [-9, -23],
+	            [-16, -47],
+	            [-2, 3],
+	            [8, 40],
+	            [-14, 22],
+	            [-3, 49],
+	            [-5, -25],
+	            [5, -38],
+	            [-18, 10],
+	            [19, -19],
+	            [1, -57],
+	            [8, -4],
+	            [3, -20],
+	            [4, -59],
+	            [-17, -44],
+	            [-29, -18],
+	            [-18, -34],
+	            [-14, -4],
+	            [-14, -22],
+	            [-4, -20],
+	            [-31, -38],
+	            [-16, -28],
+	            [-13, -35],
+	            [-4, -42],
+	            [5, -41],
+	            [9, -51],
+	            [13, -41],
+	            [0, -26],
+	            [13, -69],
+	            [-1, -39],
+	            [-1, -23],
+	            [-7, -36],
+	            [-8, -8],
+	            [-14, 7],
+	            [-4, 26],
+	            [-11, 14],
+	            [-15, 51],
+	            [-13, 45],
+	            [-4, 23],
+	            [6, 39],
+	            [-8, 33],
+	            [-22, 49],
+	            [-10, 9],
+	            [-28, -27],
+	            [-5, 3],
+	            [-14, 28],
+	            [-17, 14],
+	            [-32, -7],
+	            [-24, 7],
+	            [-21, -5],
+	            [-12, -9],
+	            [5, -15],
+	            [0, -24],
+	            [5, -12],
+	            [-5, -8],
+	            [-10, 9],
+	            [-11, -11],
+	            [-20, 2],
+	            [-20, 31],
+	            [-25, -8],
+	            [-20, 14],
+	            [-17, -4],
+	            [-24, -14],
+	            [-25, -44],
+	            [-27, -25],
+	            [-16, -28],
+	            [-6, -27],
+	            [0, -41],
+	            [1, -28],
+	            [5, -20]
+	        ],
+	        [
+	            [1746, 6980],
+	            [-4, 30],
+	            [-18, 34],
+	            [-13, 7],
+	            [-3, 17],
+	            [-16, 3],
+	            [-10, 16],
+	            [-26, 6],
+	            [-7, 9],
+	            [-3, 32],
+	            [-27, 60],
+	            [-23, 82],
+	            [1, 14],
+	            [-13, 19],
+	            [-21, 50],
+	            [-4, 48],
+	            [-15, 32],
+	            [6, 49],
+	            [-1, 51],
+	            [-8, 45],
+	            [10, 56],
+	            [4, 53],
+	            [3, 54],
+	            [-5, 79],
+	            [-9, 51],
+	            [-8, 27],
+	            [4, 12],
+	            [40, -20],
+	            [15, -56],
+	            [7, 15],
+	            [-5, 49],
+	            [-9, 48]
+	        ],
+	        [
+	            [750, 8432],
+	            [-28, -23],
+	            [-14, 15],
+	            [-4, 28],
+	            [25, 21],
+	            [15, 9],
+	            [18, -4],
+	            [12, -18],
+	            [-24, -28]
+	        ],
+	        [
+	            [401, 8597],
+	            [-18, -9],
+	            [-18, 11],
+	            [-17, 16],
+	            [28, 10],
+	            [22, -6],
+	            [3, -22]
+	        ],
+	        [
+	            [230, 8826],
+	            [17, -12],
+	            [17, 6],
+	            [23, -15],
+	            [27, -8],
+	            [-2, -7],
+	            [-21, -12],
+	            [-21, 13],
+	            [-11, 11],
+	            [-24, -4],
+	            [-7, 5],
+	            [2, 23]
+	        ],
+	        [
+	            [1374, 8295],
+	            [-15, 22],
+	            [-25, 19],
+	            [-8, 52],
+	            [-36, 47],
+	            [-15, 56],
+	            [-26, 4],
+	            [-44, 2],
+	            [-33, 17],
+	            [-57, 61],
+	            [-27, 11],
+	            [-49, 21],
+	            [-38, -5],
+	            [-55, 27],
+	            [-33, 25],
+	            [-30, -12],
+	            [5, -41],
+	            [-15, -4],
+	            [-32, -12],
+	            [-25, -20],
+	            [-30, -13],
+	            [-4, 35],
+	            [12, 58],
+	            [30, 18],
+	            [-8, 15],
+	            [-35, -33],
+	            [-19, -39],
+	            [-40, -42],
+	            [20, -29],
+	            [-26, -42],
+	            [-30, -25],
+	            [-28, -18],
+	            [-7, -26],
+	            [-43, -31],
+	            [-9, -28],
+	            [-32, -25],
+	            [-20, 5],
+	            [-25, -17],
+	            [-29, -20],
+	            [-23, -20],
+	            [-47, -16],
+	            [-5, 9],
+	            [31, 28],
+	            [27, 18],
+	            [29, 33],
+	            [35, 6],
+	            [14, 25],
+	            [38, 35],
+	            [6, 12],
+	            [21, 21],
+	            [5, 44],
+	            [14, 35],
+	            [-32, -18],
+	            [-9, 11],
+	            [-15, -22],
+	            [-18, 30],
+	            [-8, -21],
+	            [-10, 29],
+	            [-28, -23],
+	            [-17, 0],
+	            [-3, 35],
+	            [5, 21],
+	            [-17, 22],
+	            [-37, -12],
+	            [-23, 28],
+	            [-19, 14],
+	            [0, 34],
+	            [-22, 25],
+	            [11, 34],
+	            [23, 33],
+	            [10, 30],
+	            [22, 4],
+	            [19, -9],
+	            [23, 28],
+	            [20, -5],
+	            [21, 19],
+	            [-5, 27],
+	            [-16, 10],
+	            [21, 23],
+	            [-17, -1],
+	            [-30, -13],
+	            [-8, -13],
+	            [-22, 13],
+	            [-39, -6],
+	            [-41, 14],
+	            [-12, 24],
+	            [-35, 34],
+	            [39, 25],
+	            [62, 29],
+	            [23, 0],
+	            [-4, -30],
+	            [59, 2],
+	            [-23, 37],
+	            [-34, 23],
+	            [-20, 29],
+	            [-26, 25],
+	            [-38, 19],
+	            [15, 31],
+	            [49, 2],
+	            [35, 27],
+	            [7, 29],
+	            [28, 28],
+	            [28, 6],
+	            [52, 27],
+	            [26, -4],
+	            [42, 31],
+	            [42, -12],
+	            [21, -27],
+	            [12, 11],
+	            [47, -3],
+	            [-2, -14],
+	            [43, -10],
+	            [28, 6],
+	            [59, -18],
+	            [53, -6],
+	            [21, -8],
+	            [37, 10],
+	            [42, -18],
+	            [31, -8]
+	        ],
+	        [
+	            [3018, 5753],
+	            [-1, -14],
+	            [-16, -7],
+	            [9, -26],
+	            [0, -31],
+	            [-12, -35],
+	            [10, -47],
+	            [12, 4],
+	            [6, 43],
+	            [-8, 21],
+	            [-2, 45],
+	            [35, 24],
+	            [-4, 27],
+	            [10, 19],
+	            [10, -41],
+	            [19, -1],
+	            [18, -33],
+	            [1, -20],
+	            [25, 0],
+	            [30, 6],
+	            [16, -27],
+	            [21, -7],
+	            [16, 18],
+	            [0, 15],
+	            [34, 4],
+	            [34, 1],
+	            [-24, -18],
+	            [10, -28],
+	            [22, -4],
+	            [21, -29],
+	            [4, -48],
+	            [15, 2],
+	            [11, -14]
+	        ],
+	        [
+	            [8001, 6331],
+	            [-37, -51],
+	            [-24, -56],
+	            [-6, -41],
+	            [22, -62],
+	            [25, -77],
+	            [26, -37],
+	            [17, -47],
+	            [12, -109],
+	            [-3, -104],
+	            [-24, -39],
+	            [-31, -38],
+	            [-23, -49],
+	            [-35, -55],
+	            [-10, 37],
+	            [8, 40],
+	            [-21, 34]
+	        ],
+	        [
+	            [9661, 4085],
+	            [-9, -8],
+	            [-9, 26],
+	            [1, 16],
+	            [17, -34]
+	        ],
+	        [
+	            [9641, 4175],
+	            [4, -47],
+	            [-7, 7],
+	            [-6, -3],
+	            [-4, 16],
+	            [0, 45],
+	            [13, -18]
+	        ],
+	        [
+	            [6475, 6041],
+	            [-21, -16],
+	            [-5, -26],
+	            [-1, -20],
+	            [-27, -25],
+	            [-45, -28],
+	            [-24, -41],
+	            [-13, -3],
+	            [-8, 3],
+	            [-16, -25],
+	            [-18, -11],
+	            [-23, -3],
+	            [-7, -3],
+	            [-6, -16],
+	            [-8, -4],
+	            [-4, -15],
+	            [-14, 1],
+	            [-9, -8],
+	            [-19, 3],
+	            [-7, 35],
+	            [1, 32],
+	            [-5, 17],
+	            [-5, 44],
+	            [-8, 24],
+	            [5, 3],
+	            [-2, 27],
+	            [3, 12],
+	            [-1, 25]
+	        ],
+	        [
+	            [5817, 3752],
+	            [11, 0],
+	            [14, -10],
+	            [9, 7],
+	            [15, -6]
+	        ],
+	        [
+	            [5911, 3478],
+	            [-7, -43],
+	            [-3, -49],
+	            [-7, -27],
+	            [-19, -30],
+	            [-5, -8],
+	            [-12, -30],
+	            [-8, -31],
+	            [-16, -42],
+	            [-31, -61],
+	            [-20, -36],
+	            [-21, -26],
+	            [-29, -23],
+	            [-14, -3],
+	            [-3, -17],
+	            [-17, 9],
+	            [-14, -11],
+	            [-30, 11],
+	            [-17, -7],
+	            [-12, 3],
+	            [-28, -23],
+	            [-24, -10],
+	            [-17, -22],
+	            [-13, -1],
+	            [-11, 21],
+	            [-10, 1],
+	            [-12, 26],
+	            [-1, -8],
+	            [-4, 16],
+	            [0, 34],
+	            [-9, 40],
+	            [9, 11],
+	            [0, 45],
+	            [-19, 55],
+	            [-14, 50],
+	            [0, 1],
+	            [-20, 76]
+	        ],
+	        [
+	            [5840, 4141],
+	            [-21, -8],
+	            [-15, -23],
+	            [-4, -21],
+	            [-10, -4],
+	            [-24, -49],
+	            [-15, -38],
+	            [-10, -2],
+	            [-9, 7],
+	            [-31, 7]
+	        ]
+	    ],
+	    "transform": {
+	        "scale": [0.036003600360036005, 0.016927109510951093],
+	        "translate": [-180, -85.609038]
+	    }
+	}
+	;
+	  Datamap.prototype.abwTopo = '__ABW__';
+	  Datamap.prototype.afgTopo = '__AFG__';
+	  Datamap.prototype.agoTopo = '__AGO__';
+	  Datamap.prototype.aiaTopo = '__AIA__';
+	  Datamap.prototype.albTopo = '__ALB__';
+	  Datamap.prototype.aldTopo = '__ALD__';
+	  Datamap.prototype.andTopo = '__AND__';
+	  Datamap.prototype.areTopo = '__ARE__';
+	  Datamap.prototype.argTopo = '__ARG__';
+	  Datamap.prototype.armTopo = '__ARM__';
+	  Datamap.prototype.asmTopo = '__ASM__';
+	  Datamap.prototype.ataTopo = '__ATA__';
+	  Datamap.prototype.atcTopo = '__ATC__';
+	  Datamap.prototype.atfTopo = '__ATF__';
+	  Datamap.prototype.atgTopo = '__ATG__';
+	  Datamap.prototype.ausTopo = '__AUS__';
+	  Datamap.prototype.autTopo = '__AUT__';
+	  Datamap.prototype.azeTopo = '__AZE__';
+	  Datamap.prototype.bdiTopo = '__BDI__';
+	  Datamap.prototype.belTopo = '__BEL__';
+	  Datamap.prototype.benTopo = '__BEN__';
+	  Datamap.prototype.bfaTopo = '__BFA__';
+	  Datamap.prototype.bgdTopo = '__BGD__';
+	  Datamap.prototype.bgrTopo = '__BGR__';
+	  Datamap.prototype.bhrTopo = '__BHR__';
+	  Datamap.prototype.bhsTopo = '__BHS__';
+	  Datamap.prototype.bihTopo = '__BIH__';
+	  Datamap.prototype.bjnTopo = '__BJN__';
+	  Datamap.prototype.blmTopo = '__BLM__';
+	  Datamap.prototype.blrTopo = '__BLR__';
+	  Datamap.prototype.blzTopo = '__BLZ__';
+	  Datamap.prototype.bmuTopo = '__BMU__';
+	  Datamap.prototype.bolTopo = '__BOL__';
+	  Datamap.prototype.braTopo = '__BRA__';
+	  Datamap.prototype.brbTopo = '__BRB__';
+	  Datamap.prototype.brnTopo = '__BRN__';
+	  Datamap.prototype.btnTopo = '__BTN__';
+	  Datamap.prototype.norTopo = '__NOR__';
+	  Datamap.prototype.bwaTopo = '__BWA__';
+	  Datamap.prototype.cafTopo = '__CAF__';
+	  Datamap.prototype.canTopo = '__CAN__';
+	  Datamap.prototype.cheTopo = '__CHE__';
+	  Datamap.prototype.chlTopo = '__CHL__';
+	  Datamap.prototype.chnTopo = '__CHN__';
+	  Datamap.prototype.civTopo = '__CIV__';
+	  Datamap.prototype.clpTopo = '__CLP__';
+	  Datamap.prototype.cmrTopo = '__CMR__';
+	  Datamap.prototype.codTopo = '__COD__';
+	  Datamap.prototype.cogTopo = '__COG__';
+	  Datamap.prototype.cokTopo = '__COK__';
+	  Datamap.prototype.colTopo = '__COL__';
+	  Datamap.prototype.comTopo = '__COM__';
+	  Datamap.prototype.cpvTopo = '__CPV__';
+	  Datamap.prototype.criTopo = '__CRI__';
+	  Datamap.prototype.csiTopo = '__CSI__';
+	  Datamap.prototype.cubTopo = '__CUB__';
+	  Datamap.prototype.cuwTopo = '__CUW__';
+	  Datamap.prototype.cymTopo = '__CYM__';
+	  Datamap.prototype.cynTopo = '__CYN__';
+	  Datamap.prototype.cypTopo = '__CYP__';
+	  Datamap.prototype.czeTopo = '__CZE__';
+	  Datamap.prototype.deuTopo = '__DEU__';
+	  Datamap.prototype.djiTopo = '__DJI__';
+	  Datamap.prototype.dmaTopo = '__DMA__';
+	  Datamap.prototype.dnkTopo = '__DNK__';
+	  Datamap.prototype.domTopo = '__DOM__';
+	  Datamap.prototype.dzaTopo = '__DZA__';
+	  Datamap.prototype.ecuTopo = '__ECU__';
+	  Datamap.prototype.egyTopo = '__EGY__';
+	  Datamap.prototype.eriTopo = '__ERI__';
+	  Datamap.prototype.esbTopo = '__ESB__';
+	  Datamap.prototype.espTopo = '__ESP__';
+	  Datamap.prototype.estTopo = '__EST__';
+	  Datamap.prototype.ethTopo = '__ETH__';
+	  Datamap.prototype.finTopo = '__FIN__';
+	  Datamap.prototype.fjiTopo = '__FJI__';
+	  Datamap.prototype.flkTopo = '__FLK__';
+	  Datamap.prototype.fraTopo = '__FRA__';
+	  Datamap.prototype.froTopo = '__FRO__';
+	  Datamap.prototype.fsmTopo = '__FSM__';
+	  Datamap.prototype.gabTopo = '__GAB__';
+	  Datamap.prototype.psxTopo = '__PSX__';
+	  Datamap.prototype.gbrTopo = '__GBR__';
+	  Datamap.prototype.geoTopo = '__GEO__';
+	  Datamap.prototype.ggyTopo = '__GGY__';
+	  Datamap.prototype.ghaTopo = '__GHA__';
+	  Datamap.prototype.gibTopo = '__GIB__';
+	  Datamap.prototype.ginTopo = '__GIN__';
+	  Datamap.prototype.gmbTopo = '__GMB__';
+	  Datamap.prototype.gnbTopo = '__GNB__';
+	  Datamap.prototype.gnqTopo = '__GNQ__';
+	  Datamap.prototype.grcTopo = '__GRC__';
+	  Datamap.prototype.grdTopo = '__GRD__';
+	  Datamap.prototype.grlTopo = '__GRL__';
+	  Datamap.prototype.gtmTopo = '__GTM__';
+	  Datamap.prototype.gumTopo = '__GUM__';
+	  Datamap.prototype.guyTopo = '__GUY__';
+	  Datamap.prototype.hkgTopo = '__HKG__';
+	  Datamap.prototype.hmdTopo = '__HMD__';
+	  Datamap.prototype.hndTopo = '__HND__';
+	  Datamap.prototype.hrvTopo = '__HRV__';
+	  Datamap.prototype.htiTopo = '__HTI__';
+	  Datamap.prototype.hunTopo = '__HUN__';
+	  Datamap.prototype.idnTopo = '__IDN__';
+	  Datamap.prototype.imnTopo = '__IMN__';
+	  Datamap.prototype.indTopo = '__IND__';
+	  Datamap.prototype.ioaTopo = '__IOA__';
+	  Datamap.prototype.iotTopo = '__IOT__';
+	  Datamap.prototype.irlTopo = '__IRL__';
+	  Datamap.prototype.irnTopo = '__IRN__';
+	  Datamap.prototype.irqTopo = '__IRQ__';
+	  Datamap.prototype.islTopo = '__ISL__';
+	  Datamap.prototype.isrTopo = '__ISR__';
+	  Datamap.prototype.itaTopo = '__ITA__';
+	  Datamap.prototype.jamTopo = '__JAM__';
+	  Datamap.prototype.jeyTopo = '__JEY__';
+	  Datamap.prototype.jorTopo = '__JOR__';
+	  Datamap.prototype.jpnTopo = '__JPN__';
+	  Datamap.prototype.kabTopo = '__KAB__';
+	  Datamap.prototype.kasTopo = '__KAS__';
+	  Datamap.prototype.kazTopo = '__KAZ__';
+	  Datamap.prototype.kenTopo = '__KEN__';
+	  Datamap.prototype.kgzTopo = '__KGZ__';
+	  Datamap.prototype.khmTopo = '__KHM__';
+	  Datamap.prototype.kirTopo = '__KIR__';
+	  Datamap.prototype.knaTopo = '__KNA__';
+	  Datamap.prototype.korTopo = '__KOR__';
+	  Datamap.prototype.kosTopo = '__KOS__';
+	  Datamap.prototype.kwtTopo = '__KWT__';
+	  Datamap.prototype.laoTopo = '__LAO__';
+	  Datamap.prototype.lbnTopo = '__LBN__';
+	  Datamap.prototype.lbrTopo = '__LBR__';
+	  Datamap.prototype.lbyTopo = '__LBY__';
+	  Datamap.prototype.lcaTopo = '__LCA__';
+	  Datamap.prototype.lieTopo = '__LIE__';
+	  Datamap.prototype.lkaTopo = '__LKA__';
+	  Datamap.prototype.lsoTopo = '__LSO__';
+	  Datamap.prototype.ltuTopo = '__LTU__';
+	  Datamap.prototype.luxTopo = '__LUX__';
+	  Datamap.prototype.lvaTopo = '__LVA__';
+	  Datamap.prototype.macTopo = '__MAC__';
+	  Datamap.prototype.mafTopo = '__MAF__';
+	  Datamap.prototype.marTopo = '__MAR__';
+	  Datamap.prototype.mcoTopo = '__MCO__';
+	  Datamap.prototype.mdaTopo = '__MDA__';
+	  Datamap.prototype.mdgTopo = '__MDG__';
+	  Datamap.prototype.mdvTopo = '__MDV__';
+	  Datamap.prototype.mexTopo = '__MEX__';
+	  Datamap.prototype.mhlTopo = '__MHL__';
+	  Datamap.prototype.mkdTopo = '__MKD__';
+	  Datamap.prototype.mliTopo = '__MLI__';
+	  Datamap.prototype.mltTopo = '__MLT__';
+	  Datamap.prototype.mmrTopo = '__MMR__';
+	  Datamap.prototype.mneTopo = '__MNE__';
+	  Datamap.prototype.mngTopo = '__MNG__';
+	  Datamap.prototype.mnpTopo = '__MNP__';
+	  Datamap.prototype.mozTopo = '__MOZ__';
+	  Datamap.prototype.mrtTopo = '__MRT__';
+	  Datamap.prototype.msrTopo = '__MSR__';
+	  Datamap.prototype.musTopo = '__MUS__';
+	  Datamap.prototype.mwiTopo = '__MWI__';
+	  Datamap.prototype.mysTopo = '__MYS__';
+	  Datamap.prototype.namTopo = '__NAM__';
+	  Datamap.prototype.nclTopo = '__NCL__';
+	  Datamap.prototype.nerTopo = '__NER__';
+	  Datamap.prototype.nfkTopo = '__NFK__';
+	  Datamap.prototype.ngaTopo = '__NGA__';
+	  Datamap.prototype.nicTopo = '__NIC__';
+	  Datamap.prototype.niuTopo = '__NIU__';
+	  Datamap.prototype.nldTopo = '__NLD__';
+	  Datamap.prototype.nplTopo = '__NPL__';
+	  Datamap.prototype.nruTopo = '__NRU__';
+	  Datamap.prototype.nulTopo = '__NUL__';
+	  Datamap.prototype.nzlTopo = '__NZL__';
+	  Datamap.prototype.omnTopo = '__OMN__';
+	  Datamap.prototype.pakTopo = '__PAK__';
+	  Datamap.prototype.panTopo = '__PAN__';
+	  Datamap.prototype.pcnTopo = '__PCN__';
+	  Datamap.prototype.perTopo = '__PER__';
+	  Datamap.prototype.pgaTopo = '__PGA__';
+	  Datamap.prototype.phlTopo = '__PHL__';
+	  Datamap.prototype.plwTopo = '__PLW__';
+	  Datamap.prototype.pngTopo = '__PNG__';
+	  Datamap.prototype.polTopo = '__POL__';
+	  Datamap.prototype.priTopo = '__PRI__';
+	  Datamap.prototype.prkTopo = '__PRK__';
+	  Datamap.prototype.prtTopo = '__PRT__';
+	  Datamap.prototype.pryTopo = '__PRY__';
+	  Datamap.prototype.pyfTopo = '__PYF__';
+	  Datamap.prototype.qatTopo = '__QAT__';
+	  Datamap.prototype.rouTopo = '__ROU__';
+	  Datamap.prototype.rusTopo = '__RUS__';
+	  Datamap.prototype.rwaTopo = '__RWA__';
+	  Datamap.prototype.sahTopo = '__SAH__';
+	  Datamap.prototype.sauTopo = '__SAU__';
+	  Datamap.prototype.scrTopo = '__SCR__';
+	  Datamap.prototype.sdnTopo = '__SDN__';
+	  Datamap.prototype.sdsTopo = '__SDS__';
+	  Datamap.prototype.senTopo = '__SEN__';
+	  Datamap.prototype.serTopo = '__SER__';
+	  Datamap.prototype.sgpTopo = '__SGP__';
+	  Datamap.prototype.sgsTopo = '__SGS__';
+	  Datamap.prototype.shnTopo = '__SHN__';
+	  Datamap.prototype.slbTopo = '__SLB__';
+	  Datamap.prototype.sleTopo = '__SLE__';
+	  Datamap.prototype.slvTopo = '__SLV__';
+	  Datamap.prototype.smrTopo = '__SMR__';
+	  Datamap.prototype.solTopo = '__SOL__';
+	  Datamap.prototype.somTopo = '__SOM__';
+	  Datamap.prototype.spmTopo = '__SPM__';
+	  Datamap.prototype.srbTopo = '__SRB__';
+	  Datamap.prototype.stpTopo = '__STP__';
+	  Datamap.prototype.surTopo = '__SUR__';
+	  Datamap.prototype.svkTopo = '__SVK__';
+	  Datamap.prototype.svnTopo = '__SVN__';
+	  Datamap.prototype.sweTopo = '__SWE__';
+	  Datamap.prototype.swzTopo = '__SWZ__';
+	  Datamap.prototype.sxmTopo = '__SXM__';
+	  Datamap.prototype.sycTopo = '__SYC__';
+	  Datamap.prototype.syrTopo = '__SYR__';
+	  Datamap.prototype.tcaTopo = '__TCA__';
+	  Datamap.prototype.tcdTopo = '__TCD__';
+	  Datamap.prototype.tgoTopo = '__TGO__';
+	  Datamap.prototype.thaTopo = '__THA__';
+	  Datamap.prototype.tjkTopo = '__TJK__';
+	  Datamap.prototype.tkmTopo = '__TKM__';
+	  Datamap.prototype.tlsTopo = '__TLS__';
+	  Datamap.prototype.tonTopo = '__TON__';
+	  Datamap.prototype.ttoTopo = '__TTO__';
+	  Datamap.prototype.tunTopo = '__TUN__';
+	  Datamap.prototype.turTopo = '__TUR__';
+	  Datamap.prototype.tuvTopo = '__TUV__';
+	  Datamap.prototype.twnTopo = '__TWN__';
+	  Datamap.prototype.tzaTopo = '__TZA__';
+	  Datamap.prototype.ugaTopo = '__UGA__';
+	  Datamap.prototype.ukrTopo = '__UKR__';
+	  Datamap.prototype.umiTopo = '__UMI__';
+	  Datamap.prototype.uryTopo = '__URY__';
+	  Datamap.prototype.usaTopo = {"type":"Topology","transform":{"scale":[0.03514630243024302,0.005240860686068607],"translate":[-178.123152,18.948267]},"objects":{"usa":{"type":"GeometryCollection","geometries":[{"type":"Polygon","id":"AL","arcs":[[0,1,2,3,4]],"properties":{"name":"Alabama"}},{"type":"MultiPolygon","id":"AK","arcs":[[[5]],[[6]],[[7]],[[8]],[[9]],[[10]],[[11]],[[12]],[[13]],[[14]],[[15]],[[16]],[[17]],[[18]],[[19]],[[20]],[[21]],[[22]],[[23]],[[24]],[[25]],[[26]],[[27]],[[28]],[[29]],[[30]],[[31]],[[32]],[[33]],[[34]],[[35]],[[36]],[[37]],[[38]],[[39]],[[40]],[[41]],[[42]],[[43]]],"properties":{"name":"Alaska"}},{"type":"Polygon","id":"AZ","arcs":[[44,45,46,47,48]],"properties":{"name":"Arizona"}},{"type":"Polygon","id":"AR","arcs":[[49,50,51,52,53,54]],"properties":{"name":"Arkansas"}},{"type":"Polygon","id":"CA","arcs":[[55,-47,56,57]],"properties":{"name":"California"}},{"type":"Polygon","id":"CO","arcs":[[58,59,60,61,62,63]],"properties":{"name":"Colorado"}},{"type":"Polygon","id":"CT","arcs":[[64,65,66,67]],"properties":{"name":"Connecticut"}},{"type":"Polygon","id":"DE","arcs":[[68,69,70,71]],"properties":{"name":"Delaware"}},{"type":"Polygon","id":"DC","arcs":[[72,73]],"properties":{"name":"District of Columbia"}},{"type":"Polygon","id":"FL","arcs":[[74,75,-2]],"properties":{"name":"Florida"}},{"type":"Polygon","id":"GA","arcs":[[76,77,-75,-1,78,79]],"properties":{"name":"Georgia"}},{"type":"MultiPolygon","id":"HI","arcs":[[[80]],[[81]],[[82]],[[83]],[[84]]],"properties":{"name":"Hawaii"}},{"type":"Polygon","id":"ID","arcs":[[85,86,87,88,89,90,91]],"properties":{"name":"Idaho"}},{"type":"Polygon","id":"IL","arcs":[[92,93,94,95,96,97]],"properties":{"name":"Illinois"}},{"type":"Polygon","id":"IN","arcs":[[98,99,-95,100,101]],"properties":{"name":"Indiana"}},{"type":"Polygon","id":"IA","arcs":[[102,-98,103,104,105,106]],"properties":{"name":"Iowa"}},{"type":"Polygon","id":"KS","arcs":[[107,108,-60,109]],"properties":{"name":"Kansas"}},{"type":"Polygon","id":"KY","arcs":[[110,111,112,113,-96,-100,114]],"properties":{"name":"Kentucky"}},{"type":"Polygon","id":"LA","arcs":[[115,116,117,-52]],"properties":{"name":"Louisiana"}},{"type":"Polygon","id":"ME","arcs":[[118,119]],"properties":{"name":"Maine"}},{"type":"MultiPolygon","id":"MD","arcs":[[[120]],[[-71,121,122,123,124,-74,125,126,127]]],"properties":{"name":"Maryland"}},{"type":"Polygon","id":"MA","arcs":[[128,129,130,131,-68,132,133,134]],"properties":{"name":"Massachusetts"}},{"type":"MultiPolygon","id":"MI","arcs":[[[-102,135,136]],[[137]],[[138,139]],[[140]]],"properties":{"name":"Michigan"}},{"type":"Polygon","id":"MN","arcs":[[-107,141,142,143,144]],"properties":{"name":"Minnesota"}},{"type":"Polygon","id":"MS","arcs":[[-4,145,-116,-51,146]],"properties":{"name":"Mississippi"}},{"type":"Polygon","id":"MO","arcs":[[-97,-114,147,-55,148,-108,149,-104]],"properties":{"name":"Missouri"}},{"type":"Polygon","id":"MT","arcs":[[150,151,-92,152,153]],"properties":{"name":"Montana"}},{"type":"Polygon","id":"NE","arcs":[[-105,-150,-110,-59,154,155]],"properties":{"name":"Nebraska"}},{"type":"Polygon","id":"NV","arcs":[[156,-48,-56,157,-88]],"properties":{"name":"Nevada"}},{"type":"Polygon","id":"NH","arcs":[[-135,158,159,-120,160]],"properties":{"name":"New Hampshire"}},{"type":"Polygon","id":"NJ","arcs":[[161,-69,162,163]],"properties":{"name":"New Jersey"}},{"type":"Polygon","id":"NM","arcs":[[164,165,166,-45,-62]],"properties":{"name":"New Mexico"}},{"type":"Polygon","id":"NY","arcs":[[-133,-67,167,-164,168,169,170]],"properties":{"name":"New York"}},{"type":"Polygon","id":"NC","arcs":[[171,172,-80,173,174]],"properties":{"name":"North Carolina"}},{"type":"Polygon","id":"ND","arcs":[[175,-154,176,-143]],"properties":{"name":"North Dakota"}},{"type":"Polygon","id":"OH","arcs":[[177,-115,-99,-137,178,179]],"properties":{"name":"Ohio"}},{"type":"Polygon","id":"OK","arcs":[[-149,-54,180,-165,-61,-109]],"properties":{"name":"Oklahoma"}},{"type":"Polygon","id":"OR","arcs":[[-89,-158,-58,181,182]],"properties":{"name":"Oregon"}},{"type":"Polygon","id":"PA","arcs":[[-163,-72,-128,183,-180,184,-169]],"properties":{"name":"Pennsylvania"}},{"type":"MultiPolygon","id":"RI","arcs":[[[185,-130]],[[186,-65,-132]]],"properties":{"name":"Rhode Island"}},{"type":"Polygon","id":"SC","arcs":[[187,-77,-173]],"properties":{"name":"South Carolina"}},{"type":"Polygon","id":"SD","arcs":[[-142,-106,-156,188,-151,-176]],"properties":{"name":"South Dakota"}},{"type":"Polygon","id":"TN","arcs":[[189,-174,-79,-5,-147,-50,-148,-113]],"properties":{"name":"Tennessee"}},{"type":"Polygon","id":"TX","arcs":[[-53,-118,190,-166,-181]],"properties":{"name":"Texas"}},{"type":"Polygon","id":"UT","arcs":[[191,-63,-49,-157,-87]],"properties":{"name":"Utah"}},{"type":"Polygon","id":"VT","arcs":[[-134,-171,192,-159]],"properties":{"name":"Vermont"}},{"type":"MultiPolygon","id":"VA","arcs":[[[193,-123]],[[120]],[[-126,-73,-125,194,-175,-190,-112,195]]],"properties":{"name":"Virginia"}},{"type":"MultiPolygon","id":"WA","arcs":[[[-183,196,-90]],[[197]],[[198]]],"properties":{"name":"Washington"}},{"type":"Polygon","id":"WV","arcs":[[-184,-127,-196,-111,-178]],"properties":{"name":"West Virginia"}},{"type":"Polygon","id":"WI","arcs":[[199,-93,-103,-145,200,-140]],"properties":{"name":"Wisconsin"}},{"type":"Polygon","id":"WY","arcs":[[-189,-155,-64,-192,-86,-152]],"properties":{"name":"Wyoming"}}]}},"arcs":[[[2632,3060],[5,-164],[7,-242],[4,-53],[3,-30],[-2,-19],[4,-11],[-5,-25],[0,-24],[-2,-32],[2,-57],[-2,-51],[3,-52]],[[2649,2300],[-14,-1],[-59,0],[-1,-25],[6,-37],[-1,-31],[2,-16],[-4,-28]],[[2578,2162],[-4,-6],[-7,31],[-1,47],[-2,6],[-3,-36],[-1,-34],[-7,9]],[[2553,2179],[-2,291],[6,363],[4,209],[-3,20]],[[2558,3062],[24,1],[50,-3]],[[1324,6901],[1,32],[6,-19],[-1,-32],[-8,4],[2,15]],[[1317,6960],[5,-23],[-3,-33],[-2,11],[0,45]],[[1285,7153],[6,5],[3,-8],[-1,-28],[-6,-6],[-5,17],[3,20]],[[1267,7137],[12,-7],[3,-36],[13,-41],[4,-25],[0,-21],[3,-4],[1,-27],[5,-27],[0,-25],[3,8],[2,-19],[1,-74],[-3,-17],[-7,3],[-3,38],[-2,-3],[-6,28],[-2,-10],[-5,10],[1,-28],[5,7],[3,-10],[-2,-39],[-5,4],[-9,49],[-2,25],[1,26],[-7,-2],[0,20],[5,2],[5,18],[-2,31],[-6,7],[-1,50],[-2,25],[-4,-18],[-2,28],[4,14],[-3,32],[2,8]],[[1263,6985],[5,-12],[4,15],[4,-7],[-4,-28],[-6,8],[-3,24]],[[1258,7247],[-4,19],[5,13],[15,-18],[7,1],[5,-36],[9,-29],[-1,-22],[-5,-11],[-6,5],[-5,-14],[-6,9],[-7,-9],[-1,45],[0,30],[-5,1],[-1,16]],[[1252,7162],[-4,14],[-4,32],[0,24],[3,11],[4,-11],[0,20],[12,-35],[1,-33],[-4,-5],[-3,-37],[3,-11],[-3,-43],[-5,9],[0,-27],[-3,13],[-2,54],[5,25]],[[1207,7331],[8,38],[3,-16],[7,-13],[6,-2],[0,-30],[6,-99],[0,-85],[-1,-22],[-4,13],[-10,84],[-7,25],[3,20],[-3,48],[-8,39]],[[1235,7494],[10,-15],[5,2],[0,-14],[8,-52],[-5,8],[-2,-18],[6,-27],[2,-48],[-6,-13],[-2,-16],[-10,-35],[-3,1],[-1,37],[2,22],[-1,32],[-3,40],[0,21],[-2,51],[-4,22],[-1,38],[7,-36]],[[1203,7324],[4,0],[4,-35],[-2,-24],[-6,-5],[0,38],[0,26]],[[1207,7331],[-5,7],[-3,26],[-6,18],[-5,37],[-6,17],[1,30],[4,10],[1,26],[3,-11],[8,-1],[6,17],[8,-23],[-5,-26],[2,-9],[4,28],[10,-9],[5,-21],[-3,-38],[3,-3],[3,-50],[-7,-7],[-14,41],[0,-42],[-4,-17]],[[883,7871],[-12,-48],[-1,-19],[-9,-12],[2,29],[10,30],[7,34],[3,-14]],[[870,7943],[-2,-39],[-4,-41],[-6,14],[5,47],[7,19]],[[863,9788],[3,-8],[15,-9],[8,5],[10,0],[12,-7],[7,4],[7,-15],[12,-18],[16,-4],[5,10],[11,6],[4,14],[12,2],[0,-9],[7,5],[15,-15],[9,-24],[10,-11],[2,-11],[8,-2],[8,-18],[1,-11],[5,9],[6,-7],[0,-1783],[13,-16],[2,17],[14,-24],[8,30],[18,4],[-3,-52],[4,-17],[10,-17],[2,-27],[29,-101],[4,-63],[6,17],[12,31],[7,1],[3,23],[0,34],[5,0],[1,31],[9,7],[13,26],[13,-45],[-1,-27],[3,-27],[7,-7],[10,-40],[-1,-12],[4,-22],[12,-25],[19,-110],[3,-29],[6,-29],[8,-65],[9,-55],[-3,-23],[9,-9],[-2,-33],[7,-14],[1,-38],[7,2],[14,-40],[9,-7],[5,-19],[4,-5],[1,-19],[9,-5],[3,-23],[-4,-43],[1,-36],[4,-58],[-4,-15],[-6,-53],[-10,-39],[-3,20],[-4,-6],[-3,39],[1,17],[-3,20],[7,21],[-2,7],[-7,-26],[-3,17],[-4,-10],[-12,42],[4,46],[-8,-15],[0,-23],[-6,17],[-1,22],[4,24],[-1,24],[-6,-19],[-6,42],[-3,-8],[-2,36],[5,23],[6,0],[-2,28],[3,36],[-5,-1],[-9,32],[-6,37],[-15,27],[0,77],[-4,9],[1,31],[-5,9],[-8,42],[-2,22],[-12,7],[-14,56],[-6,132],[-3,-30],[1,-27],[6,-53],[-1,-8],[3,-43],[0,-28],[-6,6],[-4,31],[-6,6],[-8,-9],[0,45],[-5,38],[-5,-12],[-17,40],[-2,-11],[10,-13],[7,-31],[3,-1],[1,-25],[4,-30],[-10,-16],[-5,10],[0,-26],[-8,20],[-2,14],[-5,0],[-13,38],[-10,33],[-1,20],[-5,30],[-14,21],[-9,21],[-14,26],[-9,24],[1,26],[2,-9],[3,17],[-3,38],[4,21],[-2,9],[-7,-40],[-14,-26],[-18,10],[-14,24],[-1,18],[-7,-4],[-7,14],[-17,12],[-9,1],[-21,-10],[-8,-7],[-10,27],[-12,12],[-3,17],[-2,28],[-8,-2],[-3,-25],[-15,34],[-2,14],[-15,-27],[-7,-32],[-3,30],[3,17],[4,-5],[14,22],[-2,17],[-6,-8],[-3,22],[-6,3],[-6,55],[-3,-13],[-8,-8],[-3,8],[-3,-18],[-11,6],[-1,-20],[-7,-5],[-3,7],[2,36],[-3,-1],[-5,-38],[7,-12],[1,-27],[4,-30],[-3,-31],[-5,10],[-2,-15],[6,-7],[3,-41],[-8,-9],[-4,9],[-7,-12],[-3,10],[-9,-2],[0,16],[-4,-10],[-3,-20],[-3,18],[-5,-25],[2,-12],[-6,-15],[-6,-2],[-3,-20],[-6,-17],[-4,6],[-5,-21],[-4,1],[-8,-43],[-9,-3],[-3,14],[-5,-23],[-11,17],[2,33],[8,11],[4,-2],[2,13],[8,25],[0,21],[-11,-28],[-9,16],[-1,12],[5,48],[8,34],[1,29],[2,5],[1,30],[-4,34],[10,12],[19,48],[4,-19],[6,-5],[9,20],[-10,26],[-4,20],[-7,-2],[-5,9],[-2,-8],[-9,-14],[-4,-26],[-9,-6],[-9,-30],[-1,-20],[-7,-11],[-2,-22],[-5,-13],[-2,-39],[-10,-25],[5,-20],[-4,-29],[-9,-5],[-1,-38],[-8,-13],[-3,15],[-4,-29],[-5,-1],[1,-21],[-11,-13],[-2,-57],[12,-3],[10,-16],[3,-19],[-4,-30],[-7,-19],[-6,-1],[0,-17],[-4,-6],[1,-21],[-4,-31],[-9,-29],[-5,0],[-5,-11],[-5,2],[-4,-11],[2,-16],[-7,-8],[-2,-23],[-5,14],[-5,-45],[-9,4],[1,-24],[-6,6],[-3,-11],[0,-32],[-6,-50],[-10,-6],[-7,-23],[-2,-13],[-5,18],[-8,-48],[-2,13],[-5,-4],[-1,-27],[-5,-10],[-6,4],[-4,-27],[8,-9],[-9,-60],[-25,-20],[-6,-54],[-2,12],[1,33],[-5,6],[-6,-13],[-1,-14],[-10,-22],[-4,-25],[-1,18],[-2,-21],[-6,14],[-10,-33],[-8,2],[1,25],[-4,24],[-3,-20],[1,-21],[-11,-64],[-3,16],[-1,-24],[-8,4],[-1,38],[-4,8],[-2,-14],[4,-16],[-2,-27],[-5,-13],[-5,29],[-5,2],[-1,-11],[5,-17],[-9,-27],[6,-7],[0,-13],[-5,9],[-7,-25],[-15,1],[-7,-16],[0,-13],[-8,-15],[-6,6],[-2,35],[6,12],[4,43],[6,1],[13,28],[10,1],[4,-27],[3,20],[-1,23],[6,10],[7,0],[8,50],[10,45],[12,40],[15,18],[6,-9],[6,12],[1,-17],[-3,-19],[4,-14],[1,23],[7,2],[2,-15],[5,-5],[0,18],[-8,15],[0,11],[5,49],[6,28],[9,27],[15,24],[10,35],[5,-13],[4,5],[-1,22],[1,21],[8,44],[11,28],[8,38],[0,21],[7,148],[11,40],[-1,31],[-27,-45],[-8,6],[-2,18],[-5,9],[-1,21],[-4,-10],[-3,-32],[5,-41],[-6,-18],[-5,7],[-9,64],[-6,33],[-4,0],[-2,-24],[-3,-4],[-4,19],[-5,4],[-2,32],[-16,-37],[-13,-26],[-1,-14],[-11,-22],[-6,20],[5,23],[-1,54],[-4,57],[7,24],[-6,49],[-5,27],[-4,39],[-6,17],[-2,-34],[-7,-8],[-12,-22],[-14,-9],[-7,2],[-7,12],[-1,30],[-5,9],[-9,42],[-8,8],[-8,46],[6,21],[1,39],[-5,-8],[0,24],[2,19],[-6,18],[0,-19],[-7,8],[-1,32],[-6,4],[-3,22],[0,27],[-5,-12],[-1,26],[7,6],[-6,30],[10,2],[0,35],[2,24],[18,77],[4,23],[3,-5],[-2,33],[7,55],[6,22],[11,9],[8,-9],[12,-33],[8,4],[11,32],[11,49],[6,6],[1,-13],[13,0],[12,10],[11,52],[0,12],[-5,48],[-1,28],[-8,31],[-3,26],[8,-7],[8,22],[0,20],[-10,39],[-8,-30],[-7,5],[-6,-17],[-8,-4],[-2,-11],[-9,-17],[-2,-28],[-5,-12],[-2,34],[-5,7],[-4,-26],[-2,12],[-10,19],[-20,-1],[-14,-21],[-6,-3],[-11,13],[-22,14],[-6,12],[-3,19],[2,26],[-8,22],[2,24],[5,12],[-2,31],[-8,0],[-6,8],[-13,6],[-7,16],[-10,16],[-1,19],[16,27],[20,43],[15,27],[8,-15],[8,-3],[2,21],[-5,3],[-1,18],[20,29],[22,22],[12,2],[7,-7],[-4,-32],[2,-22],[-3,-15],[4,-26],[8,5],[10,-5],[11,6],[4,-10],[7,-2],[7,10],[8,-11],[9,42],[5,2],[5,-8],[2,24],[-12,11],[-11,-9],[1,31],[-8,34],[-10,10],[-2,30],[7,8],[9,-31],[-1,-24],[4,-18],[10,-22],[2,23],[-11,30],[5,54],[-4,10],[-11,-12],[-11,3],[-2,10],[-6,-10],[-24,23],[0,24],[-7,54],[-6,19],[-9,17],[-19,46],[-9,18],[-8,4],[-13,31],[-12,18],[-1,6],[9,10],[4,29],[1,59],[25,-4],[31,13],[8,11],[12,29],[12,45],[3,45],[5,38],[10,33],[5,24],[13,38],[2,-10],[11,-3],[16,20],[10,21],[24,64],[9,4],[1,-10],[9,7],[9,-2],[18,9],[17,28],[17,58],[7,13],[2,-10],[26,-24],[2,-17],[-9,-22],[-4,-1],[0,-29],[14,9],[0,16],[6,14],[2,-8],[5,33],[13,-30],[-2,-23],[8,-6],[5,-14],[7,22],[13,1],[7,7],[18,-7],[10,-8],[-5,-45],[17,-12],[2,-11],[16,-20],[1,9],[12,13],[11,-1],[0,-11],[7,-1],[7,15],[11,2],[9,-6],[11,-16],[5,3],[7,-22],[4,9],[7,-7],[5,-13]],[[717,7456],[-1,-8],[-9,13],[7,49],[6,4],[4,45],[5,-40],[4,14],[8,-22],[0,-31],[-11,-4],[-5,-13],[-8,-7]],[[688,7363],[8,25],[-8,6],[0,22],[6,14],[5,-10],[0,-22],[3,15],[0,32],[5,-15],[1,21],[5,-12],[5,0],[5,11],[7,-20],[0,-55],[9,4],[-6,-37],[-11,15],[4,-24],[-3,-20],[-6,10],[0,-38],[-8,-10],[-3,-16],[-5,15],[-6,-40],[-4,-4],[-5,-18],[-2,43],[-6,-23],[-1,13],[-6,14],[0,39],[-6,15],[4,45],[11,28],[7,-2],[1,-21]],[[671,7185],[-6,-39],[-2,6],[8,33]],[[640,7055],[4,-2],[-1,-40],[-8,6],[-1,13],[6,23]],[[519,6933],[-2,-41],[-9,-33],[5,51],[2,-5],[4,28]],[[501,6947],[5,0],[0,-20],[-5,-23],[-5,15],[-3,-14],[-2,35],[2,12],[8,-5]],[[451,6875],[1,-16],[-3,-11],[-3,18],[5,9]],[[447,8527],[-4,-19],[-2,16],[6,3]],[[436,6781],[6,-7],[-1,-16],[-5,1],[0,22]],[[358,6745],[2,-22],[-5,-10],[-1,23],[4,9]],[[352,6718],[-8,-21],[-2,14],[3,19],[7,-12]],[[335,7902],[6,7],[2,-14],[5,3],[6,-12],[1,-54],[-3,-18],[-7,-11],[-2,-18],[-11,20],[-5,-1],[-10,28],[-4,0],[-6,15],[-3,25],[4,7],[10,-7],[5,20],[5,2],[3,14],[4,-6]],[[334,6690],[5,-14],[-10,-36],[1,-6],[12,26],[0,-15],[-5,-17],[-8,-12],[-1,-18],[-8,-18],[-7,-1],[-5,-18],[-9,-16],[-5,17],[9,20],[3,-3],[8,16],[-2,19],[4,20],[6,-9],[1,12],[-7,4],[-4,14],[4,23],[11,13],[2,-26],[5,25]],[[266,6527],[10,37],[1,16],[4,17],[7,9],[3,-10],[1,-25],[-12,-27],[-6,-40],[-6,-13],[-2,36]],[[238,6477],[2,-19],[-8,-1],[-1,13],[7,7]],[[227,7303],[-4,-18],[-1,18],[5,0]],[[212,6440],[2,-18],[-5,-13],[-1,19],[4,12]],[[182,8542],[22,-28],[13,24],[6,-2],[5,-14],[2,-23],[11,-12],[4,-12],[15,-5],[8,-8],[-4,-28],[-7,6],[-8,-5],[-4,-13],[-4,-28],[-5,26],[-6,18],[-6,2],[-3,20],[-15,25],[-6,1],[-11,-22],[-7,11],[-4,23],[4,44]],[[162,6381],[0,-22],[-5,-4],[1,19],[4,7]],[[128,6335],[4,-8],[10,1],[1,-7],[-13,-9],[-2,23]],[[108,6360],[0,19],[4,7],[6,-19],[-2,-17],[-4,1],[1,-20],[-5,-2],[-12,-21],[-6,6],[2,15],[7,-2],[9,33]],[[47,6279],[5,3],[0,-24],[-6,3],[-8,-28],[-4,37],[4,1],[0,29],[5,1],[0,-21],[4,-1]],[[28,6296],[3,-9],[-2,-32],[-5,-10],[0,20],[4,31]],[[0,6291],[5,-1],[4,-23],[-4,-27],[-5,51]],[[9993,6496],[6,-13],[0,-19],[-11,-12],[-8,31],[0,15],[13,-2]],[[1966,3444],[-1,-1081]],[[1965,2363],[-57,0],[-34,71],[-73,150],[3,43]],[[1804,2627],[6,8],[1,16],[-1,36],[-4,1],[-2,71],[6,27],[0,28],[-1,45],[4,34],[4,12],[4,25],[-6,27],[-4,51],[-5,31],[0,24]],[[1806,3063],[2,26],[0,36],[-3,36],[-2,112],[11,7],[3,-23],[3,1],[3,33],[0,153]],[[1823,3444],[101,2],[42,-2]],[[2515,3253],[-1,-35],[-4,-11],[-1,-29],[-5,-31],[0,-46],[-3,-34],[-3,-5]],[[2498,3062],[2,-17],[-4,-14],[-2,-33],[-3,-8],[0,-38],[-5,-10],[0,-13],[-6,-31],[2,-21],[-5,-30],[-5,-59],[5,-25],[-2,-16],[1,-39],[-2,-26]],[[2474,2682],[-69,3],[-13,0]],[[2392,2685],[0,101],[-4,8],[-5,-9],[-3,18]],[[2380,2803],[1,335],[-5,211]],[[2376,3349],[4,0],[123,-1],[2,-36],[-4,-23],[-4,-36],[18,0]],[[1654,4398],[0,-331],[0,-241],[36,-171],[35,-169],[27,-137],[20,-101],[34,-185]],[[1804,2627],[-38,-18],[-30,-16],[-4,25],[0,40],[-2,47],[-4,33],[-9,46],[-12,43],[-2,-12],[-4,8],[1,18],[-5,39],[-7,-8],[-12,28],[-2,23],[-8,28],[-9,-1],[-7,13],[-10,-6],[-5,26],[1,53],[-1,8],[1,38],[-8,28],[0,39],[-3,2],[-4,33],[-4,8],[-1,20],[-11,79],[-5,23],[-1,61],[2,-5],[2,37],[-4,33],[-5,-4],[-7,30],[-2,24],[0,23],[-3,31],[0,50],[5,0],[-2,70],[-2,-7],[-1,-35],[-5,-7],[-7,26],[-1,45],[-4,35],[-6,22],[-3,25],[-9,50],[2,14],[-4,64],[2,35],[-3,54],[-7,52],[-7,29],[-2,35],[7,83],[2,29],[-2,22],[3,57],[-2,52],[-3,13],[1,42]],[[1534,4399],[28,1],[24,1],[38,-3],[30,0]],[[2107,4208],[57,0],[0,-191]],[[2164,4017],[1,-574]],[[2165,3443],[-28,1]],[[2137,3444],[-38,-1],[-72,0],[-15,1],[-46,0]],[[1966,3444],[0,223],[-1,21],[0,162],[0,357]],[[1965,4207],[32,1],[63,-1],[47,1]],[[3025,4400],[0,-113],[-2,-18]],[[3023,4269],[-2,3],[-12,-14],[-15,4],[-7,-26],[-7,-9],[-8,-22]],[[2972,4205],[-2,22],[7,21],[-2,16],[2,144]],[[2977,4408],[12,-2],[36,-3],[0,-3]],[[2922,3980],[-2,-23]],[[2920,3957],[-3,-13],[0,-30],[5,-29],[1,-47],[6,-49],[3,-2],[1,-66]],[[2933,3721],[-19,2],[-2,241]],[[2912,3964],[5,21],[5,-5]],[[2876,3786],[-2,27]],[[2874,3813],[2,12],[4,-19],[-4,-20]],[[2649,2300],[4,-55],[39,-13],[37,-14],[1,-41],[4,1],[1,39],[-1,35],[2,15],[7,-16],[8,-7]],[[2751,2244],[1,-83],[4,-93],[8,-122],[13,-131],[-2,-9],[1,-61],[5,-68],[8,-137],[2,-42],[0,-44],[-3,-158],[-3,-3],[-3,-49],[1,-16],[-5,-36],[-2,9],[-6,-15],[-9,-8],[-2,20],[1,29],[-7,85],[-5,15],[-4,-11],[-3,47],[-1,38],[-6,43],[-2,28],[1,41],[-3,8],[1,-24],[-3,-7],[-9,104],[-4,26],[9,76],[-6,-4],[-4,-24],[-3,38],[5,104],[1,87],[-4,21],[-1,28],[-5,6],[-7,46],[-5,19],[0,28],[-4,11],[-3,31],[-11,42],[-9,-10],[0,-29],[-3,5],[-12,-35],[-12,-9],[0,21],[-3,25],[-15,57],[-10,24],[-10,6],[-8,-4],[-17,-18]],[[2703,3063],[-6,-41],[0,-20],[9,-40],[3,3],[5,-42],[1,-22],[4,-40],[7,-24],[3,-35],[8,-33],[0,-22],[5,-35],[7,-29],[2,-32],[1,-40],[3,-14],[5,-51],[0,-33],[7,-16]],[[2767,2497],[-7,-65],[-2,-34],[-3,-29],[0,-30],[-3,-14],[-1,-81]],[[2632,3060],[37,1]],[[2669,3061],[20,-1],[14,3]],[[640,0],[-7,17],[-1,16],[1,43],[-5,73],[4,24],[2,34],[-2,22],[1,23],[8,-27],[9,-20],[5,-29],[0,-26],[8,-40],[-5,-34],[-8,-15],[-7,-25],[-3,-36]],[[613,397],[3,-26],[4,11],[9,-30],[-1,-27],[-9,-14],[-2,6],[-1,33],[-5,7],[-1,19],[3,21]],[[602,432],[-3,-20],[-7,0],[2,22],[8,-2]],[[574,525],[3,-45],[-2,-26],[-6,-5],[-4,54],[4,1],[5,21]],[[531,626],[3,-2],[2,-20],[-1,-28],[-4,-18],[-9,22],[1,31],[8,15]],[[1908,4871],[0,-472]],[[1908,4399],[-31,-1],[-54,0]],[[1823,4398],[-85,1]],[[1738,4399],[0,349],[4,62],[-2,16],[-6,3],[-2,26],[6,68],[3,6],[3,29],[-1,17],[4,23],[1,34],[6,56],[-2,26],[-7,14],[-4,32]],[[1741,5160],[0,34],[-3,33],[0,16],[0,255],[0,236]],[[1738,5734],[28,0]],[[1766,5734],[0,-195],[9,-54],[1,-52],[5,-23],[6,-8],[0,-14],[11,-51],[1,-21],[8,-20],[0,-12],[8,1],[-4,-71],[-1,-45],[3,-29],[-5,-21],[2,-20],[-1,-21],[6,-20],[7,26],[3,21],[5,-19],[-1,-15],[3,-37],[5,-39],[3,-13],[0,-37],[3,-16],[6,-2],[4,-61],[3,-11],[3,18],[9,-1],[7,17],[3,-10],[7,9],[2,-11],[5,8],[7,39],[4,-33],[5,-20]],[[2489,4496],[53,-3],[28,0]],[[2570,4493],[-1,-37],[4,-43],[5,-70]],[[2578,4343],[0,-450],[-3,-35],[3,-40],[1,-34],[-4,-27],[-1,-25],[-5,-41],[-3,-3],[0,-24],[-2,-9],[-1,-45],[0,-13]],[[2563,3597],[-3,-27],[2,-34],[-11,-17],[-1,-20],[2,-25],[-3,-16],[-11,29],[-3,-2],[-4,-33],[1,-11]],[[2532,3441],[-5,2],[-6,55],[2,12],[-2,37],[0,29],[-9,41],[-3,-4],[-3,25],[-9,38],[0,31],[5,49],[-1,18],[3,23],[-4,13],[-6,9],[-3,-18],[-3,11],[-1,63],[-10,41],[-9,49],[-3,58],[-1,39],[3,27]],[[2467,4089],[0,35],[8,21],[1,29],[4,19],[0,33],[-4,27],[2,34],[11,9],[9,24],[0,29],[4,13],[1,37],[0,24],[-7,18],[-1,20],[-6,35]],[[2655,4340],[0,-228],[0,-266]],[[2655,3846],[-2,-9],[2,-52],[-5,-1],[-5,-18],[-8,9],[1,-38],[-5,-16],[-2,-24],[-5,-9],[-3,-48],[-3,-13],[-6,18],[-1,22],[-7,-24],[1,-21],[-7,-7],[-1,19],[-8,-19],[-2,-20],[-7,28],[-4,-6],[-2,13],[-3,-13],[-7,-2],[-3,-18]],[[2578,4343],[3,-12],[8,0],[9,22]],[[2598,4353],[23,0],[34,0],[0,-13]],[[2473,4685],[0,-28],[4,-19],[-3,-23],[1,-43],[2,-30],[10,-22],[2,-24]],[[2467,4089],[-3,7],[-6,38],[-3,-1],[-40,-5],[-39,-2],[-33,3]],[[2343,4129],[-3,25],[2,49],[-3,43],[0,48],[-5,17],[-1,26],[2,23],[-2,33],[-4,13],[-5,86]],[[2324,4492],[-5,41],[2,29],[1,37],[2,14],[-3,19],[1,33],[-2,16],[4,4]],[[2324,4685],[144,0],[5,0]],[[2356,4017],[3,-18],[9,-14],[-6,-56],[4,-18],[4,-45],[6,-10],[0,-412]],[[2376,3444],[-156,0],[-55,-1]],[[2164,4017],[5,0],[187,0]],[[2718,3716],[-1,-57],[4,-37],[4,-28],[2,-22],[5,-22],[4,-3]],[[2736,3547],[-11,-51],[-11,-29],[0,-14],[-4,-13],[0,-16],[-6,-8],[-1,-21],[-16,-27]],[[2687,3368],[0,-3],[-24,2],[-22,6],[-5,-2],[-32,8],[-36,-5],[-6,9],[1,-35],[-36,2],[-3,-2]],[[2524,3348],[1,24],[5,-8],[2,77]],[[2655,3846],[11,0],[5,-40],[1,-17],[9,-7],[6,-26],[5,13],[10,-14],[4,19],[4,6],[1,-32],[3,-6],[4,-26]],[[2474,2682],[3,-22],[-2,-9],[-1,-38],[5,-24],[0,-57],[-3,-44],[-7,-27],[-2,-43],[-2,4],[-1,-70],[-3,-2],[2,-37],[-2,-14],[54,0],[-3,-63],[4,-41],[1,-32],[4,-20]],[[2521,2143],[-9,-26],[0,-19],[7,-12],[3,30],[6,-30],[-1,-24],[-3,-11],[-7,10],[1,-18],[-2,-27],[5,-24],[9,-7],[3,-29],[3,-4],[-5,-32],[-5,6],[-4,33],[-10,18],[0,33],[-6,-11],[1,-27],[-3,-25],[-3,-4],[-3,28],[-7,1],[-2,-29],[-4,-9],[-5,18],[-4,2],[-3,47],[-7,21],[-2,-3],[-3,40],[-7,-5],[0,24],[-8,-23],[1,-18],[-5,-17],[-9,8],[-10,27],[-7,11],[-16,-9],[-2,-8]],[[2398,2049],[-2,19],[6,68],[-2,37],[2,20],[-1,26],[3,19],[3,50],[0,40],[-8,78],[0,41],[-7,42],[0,196]],[[3046,5029],[12,26],[-2,13],[5,30],[4,13],[-1,12],[5,18],[-1,33],[2,50],[5,17],[1,53],[22,147],[6,-7],[0,-35],[4,-13],[9,21],[6,0],[4,14],[8,-31],[4,-25],[1,-214],[-1,-51],[10,-14],[-2,-22],[3,-21],[-2,-18],[4,-30],[5,7],[5,-68],[-6,-31],[-3,12],[-3,-21],[-4,5],[0,-18],[-6,2],[-8,-40],[-2,28],[-3,2],[1,-30],[-6,-15],[-2,24],[-3,-12],[-7,0],[0,28],[-5,-6],[1,-20],[-4,-42],[1,-12],[-6,-23],[-5,9],[-3,-24],[-4,-3],[-4,-20],[-4,4],[-1,21],[-7,-34],[2,-21],[-5,-7],[0,-18],[-5,-22],[-5,-50]],[[3056,4600],[-3,14],[0,19],[-4,22],[-2,250],[-1,124]],[[2904,3626],[2,0],[-1,0],[-1,0]],[[2933,3721],[-6,-80]],[[2927,3641],[-4,-3],[-8,-12]],[[2915,3626],[-6,-8],[0,31],[-2,13],[3,13],[-4,32],[-2,-14],[-6,3],[-2,35],[2,0],[0,45],[2,18],[-2,60],[3,36],[5,6],[0,37],[-3,-5],[0,-18],[-8,-25],[-2,-21],[0,-56],[-3,-26],[1,-44],[4,-30],[-1,-23],[3,-23],[-2,-16],[-6,30],[-10,15],[-2,29],[-6,-16],[-2,23],[5,29]],[[2874,3756],[2,30]],[[2874,3813],[-4,18],[-6,10],[0,28],[-3,15],[-4,4]],[[2857,3888],[-4,53],[-4,0],[-5,18],[-3,-15],[-5,1],[-1,-21],[-8,14],[-6,-28],[-3,6],[-6,-33],[-6,-17],[1,98]],[[2807,3964],[105,0]],[[3053,4565],[1,-34],[-1,-27],[-5,-25],[0,-29],[6,-4],[4,-31],[0,-24],[3,-6],[0,-22],[8,-19],[9,18],[-2,-26],[-13,-23],[-5,-1],[-3,18],[-5,-6],[0,-13],[-5,-9]],[[3045,4302],[-3,35]],[[3042,4337],[0,6]],[[3042,4343],[-3,14],[-2,45],[-4,0],[-8,-2]],[[2977,4408],[0,7],[6,126]],[[2983,4541],[23,-3]],[[3006,4538],[34,-7],[3,18],[7,19],[3,-3]],[[2598,4353],[5,25],[4,43],[4,26],[3,36],[1,52],[0,57],[-9,111],[3,42],[-2,50],[6,51],[2,43],[-1,23],[5,9],[0,31],[8,9],[5,34],[0,-69],[3,-3],[3,35],[1,58],[2,15],[8,9],[-3,41],[5,35],[7,2],[7,-22],[7,-3],[3,-28],[6,-2],[9,-25],[3,1],[4,-41],[-3,-21],[3,-29],[2,-32],[-2,-71],[-6,-18],[-1,-37],[-7,-12],[-4,-44],[2,-17],[6,-15],[6,24],[6,49],[10,19],[5,-15],[3,-27],[3,-80],[0,-39],[3,-48],[-3,-69],[-4,-11],[-1,25],[-3,-7],[-3,-58],[-6,-21],[-2,-44],[-7,-37],[0,-16]],[[2694,4347],[-39,-7]],[[2635,5110],[1,-23],[-4,-4],[1,33],[2,-6]],[[2496,5270],[11,20],[5,23],[12,9],[8,29],[4,1],[3,20],[9,28],[4,24],[7,15],[6,-13],[-11,-59],[-2,-19],[0,-36],[5,27],[10,-4],[8,-19],[7,-52],[3,-10],[7,9],[2,-12],[7,-6],[16,44],[8,4],[10,-2],[7,15],[6,1],[1,-54],[5,-7],[6,8],[2,-12],[4,16],[8,5],[1,-67],[3,-28],[6,-8],[1,19],[5,0],[3,-20],[-3,-14],[-15,12],[-8,-8],[-8,23],[-2,-21],[1,-18],[-4,4],[-5,27],[-9,15],[-5,1],[-4,-25],[-8,-6],[-8,5],[-3,-10],[-1,-21],[-9,-18],[1,25],[-4,5],[-2,-26],[-6,-1],[-3,-11],[-5,-45],[-8,-58],[1,-5]],[[2576,4989],[-4,20],[2,27],[-7,4],[3,26],[0,34],[-5,23],[-4,24],[-12,19],[-4,-7],[-12,29],[-29,38],[-3,33],[-5,11]],[[2541,5539],[-7,-24],[-4,-3],[1,19],[18,45],[-4,-31],[-4,-6]],[[2324,4685],[0,343],[-7,22],[-5,36],[8,41],[1,22]],[[2321,5149],[-1,76],[-4,20],[-2,42],[0,51],[-1,8],[-1,123],[-5,65],[-3,36],[0,77],[1,27],[-3,60]],[[2302,5734],[59,0],[0,73],[5,-2],[4,-14],[4,-100],[3,-11],[9,-3],[1,-10],[11,-4],[1,-21],[10,5],[0,9],[7,10],[6,-4],[8,-16],[2,-19],[4,2],[4,-43],[2,18],[7,8],[1,-18],[9,-12],[0,-17],[4,-14],[8,8],[5,18],[8,12],[2,-28],[5,6],[6,-6],[6,4],[8,-24],[7,4],[0,-10],[-10,-24],[-13,-19],[-9,-20],[-12,-49],[-5,-31],[-8,-34],[-13,-46],[2,-16]],[[2450,5296],[-2,9],[-6,-16],[0,-113],[-2,-11],[-8,-16],[-6,-41],[-1,-27],[3,-2],[4,-24],[-3,-29],[0,-33],[-2,-70],[8,-34],[6,-3],[3,-21],[8,-21],[2,-25],[8,-33],[5,-7],[5,-42],[-1,-30],[2,-22]],[[2553,2179],[-3,-8],[-7,4],[-3,12],[-7,-8],[-9,-22],[-3,-14]],[[2498,3062],[53,0],[7,0]],[[2524,3348],[-2,0],[-2,0],[1,-47],[-6,-48]],[[2376,3349],[0,95]],[[2356,4017],[-7,50],[-6,62]],[[2108,5151],[0,-181],[-1,0]],[[2107,4970],[-53,1],[-90,0],[-56,0],[0,-100]],[[1766,5734],[130,-1],[58,1],[154,0]],[[2108,5734],[0,-217],[0,-366]],[[2107,4208],[0,382]],[[2107,4590],[21,0],[49,-1],[88,0],[1,-10],[15,-34],[4,19],[4,-4],[13,0],[15,-36],[2,-27],[5,-5]],[[1823,4398],[0,-954]],[[1654,4398],[37,-1],[47,2]],[[3006,4538],[-2,14],[0,28],[3,11],[-1,27],[3,81],[5,37],[2,43],[3,16],[-1,47],[10,17],[5,33],[-3,31],[4,32],[0,18]],[[3034,4973],[4,49],[6,-5],[2,12]],[[3056,4600],[-3,-35]],[[2962,4152],[-5,-13],[-2,-29],[8,-14],[0,-22],[-3,-103],[-9,-76],[-6,-22],[-5,-48],[-3,31],[-8,16],[-10,42],[-1,28],[0,4],[2,11]],[[2922,3980],[8,15],[0,15],[9,31],[2,17],[-9,39],[0,24],[-3,6],[-1,22],[5,33],[-3,20],[7,40],[2,21],[4,13]],[[2943,4276],[13,-41],[9,-28],[-3,-55]],[[2137,3444],[0,-95]],[[2137,3349],[-1,0],[0,-474],[0,-193],[0,-192],[-101,0],[-1,-18],[3,-22]],[[2037,2450],[-48,0],[0,-87],[-24,0]],[[2972,4205],[13,-15],[2,11],[10,0],[6,6],[8,31],[1,-22],[5,-10],[-11,-28],[-22,-42],[-9,-8],[-6,2],[-5,-9],[-2,31]],[[2943,4276],[-2,14],[-4,1],[-5,32],[1,29],[-4,22],[-2,-2],[-3,27],[-125,0],[0,48],[0,3]],[[2799,4450],[17,54],[3,26],[5,18],[-2,32],[-2,7],[-2,52],[17,22],[15,-1],[6,-5],[6,-21],[4,8],[12,-1],[8,14],[8,34],[5,1],[0,52],[3,31],[-7,21],[2,24],[11,32],[4,28],[14,64],[13,32],[19,-5],[23,4]],[[2981,4973],[1,-39],[-2,-36],[3,-34],[-1,-37],[-3,-39],[2,-52],[-1,-16],[4,-31],[-1,-132],[0,-16]],[[2909,3359],[4,-77],[-8,8],[-1,-10],[-10,-11],[-1,-11],[-7,-3],[0,-13],[8,9],[1,-8],[9,9],[3,-18],[5,8],[2,-46],[-2,-22],[-3,-2],[-8,-47],[-9,-2],[-2,-33],[4,-32],[4,-6],[-6,-54],[-6,7],[-9,-6],[-6,-11],[-10,-37],[-7,-48],[-4,-60],[-6,13],[-11,-12]],[[2833,2844],[-32,181],[-32,4],[1,21],[-5,33],[-3,-12],[0,20],[-35,10],[-8,-8],[-6,-17],[-10,-13]],[[2669,3061],[1,45],[5,4],[3,31],[7,29],[7,1],[7,29],[8,10],[6,43],[4,13],[1,-19],[11,37],[5,-8],[4,36],[5,9],[1,45]],[[2744,3366],[20,-5],[19,-3],[23,-1],[103,2]],[[2321,5149],[-213,2]],[[2108,5734],[194,0]],[[2777,4138],[-4,-10],[2,-21],[0,-29],[-4,-46],[-3,-70],[-11,-62],[-3,-8],[-4,12],[-3,-27],[-3,1],[-4,-36],[1,-22],[-3,-18],[-4,29],[-5,-46],[1,-29],[-3,-11],[-1,-25],[-8,-4]],[[2694,4347],[11,-26],[3,-15],[3,14],[6,-30],[4,-9],[14,25],[7,-6],[9,36],[12,34],[14,24]],[[2777,4394],[0,-256]],[[2380,2803],[-11,21],[-3,22],[-7,18],[-2,-16],[-8,1],[-1,10],[-7,-19],[-3,11],[-6,-10],[-5,-29],[-2,17],[-6,14],[-7,0],[-2,21],[-7,-42],[-2,24],[-3,-8],[-3,16],[-7,15],[-5,-25],[-2,26],[-4,3],[-2,21],[-6,8],[-3,-18],[-3,16],[-5,-2],[-6,17],[-6,-2],[-2,36],[-9,2],[-4,-6],[-6,37],[-2,-3],[0,370],[-52,0],[-34,0]],[[1534,4399],[-4,22],[-2,61],[0,43],[-4,33],[3,32],[2,51],[4,54],[2,48],[3,162],[0,22],[3,71],[1,99],[-2,54],[1,32],[12,29]],[[1553,5212],[5,-22],[4,5],[3,2],[6,-20],[3,-23],[1,-57],[15,-21],[12,30],[8,3],[9,-10],[1,-13],[16,27],[3,-9],[9,5],[7,19],[12,17],[12,4],[4,12],[58,-1]],[[2807,3964],[-30,0],[0,174]],[[2777,4394],[5,11],[17,45]],[[3045,4302],[-6,-4],[3,39]],[[3042,4343],[-4,3],[-3,-28],[-1,-40],[-11,-9]],[[2833,2844],[-5,-10],[-6,-31],[-6,-49],[-1,-40],[-5,-31],[-6,0],[-2,-23],[-6,-25],[-4,-28],[-6,-11],[-6,-29],[-1,-14],[-6,-16],[-6,-40]],[[2107,4590],[0,380]],[[2687,3368],[57,-2]],[[2398,2049],[-5,-1],[-14,-26],[-6,15],[-1,31],[-3,-22],[-3,5],[-1,-27],[3,-11],[0,-36],[-5,-37],[-9,-47],[-17,-51],[-2,9],[-5,-13],[0,12],[-7,-9],[-3,24],[-2,-5],[7,-49],[-5,-16],[-5,10],[-1,-35],[-7,-35],[-6,-66],[-4,-69],[-3,5],[-1,-25],[3,6],[-2,-50],[-2,-2],[0,-28],[3,-16],[1,-57],[3,-20],[0,-37],[3,-32],[-9,-20],[-3,25],[-7,10],[-9,-3],[-8,32],[-5,3],[-5,25],[-6,8],[-4,24],[-2,58],[-5,34],[0,30],[-2,31],[1,27],[-4,30],[-3,4],[-5,27],[-1,34],[-5,32],[-6,26],[-3,57],[-2,16],[-4,46],[-1,38],[-4,27],[-6,24],[-1,16],[-6,15],[-4,42],[-13,9],[-7,-2],[-7,15],[-1,-20],[-7,-6],[-5,-40],[-3,-64],[-2,-1],[-4,-37],[-5,-1],[-7,29],[-17,47],[-4,25],[-6,24],[-5,54],[-1,49],[-4,40],[-2,35],[-3,22],[-11,32],[-6,44],[-4,15],[-6,38],[-7,20],[-5,50],[-4,11]],[[1908,4399],[0,-192],[57,0]],[[2981,4973],[30,-2],[23,2]],[[2927,3641],[-4,-32],[-3,-12],[-3,-44],[-6,-71],[-5,-15],[-1,27],[2,58],[8,74]],[[2874,3756],[-4,-8],[-2,-28],[1,-19],[8,6],[1,-31],[10,-12],[3,-24],[8,-26],[-4,-54],[4,-41],[-4,-20],[-1,-24],[4,-15],[-4,-23],[-6,30],[-1,-10],[5,-22],[14,-5],[3,-71]],[[2736,3547],[-1,-16],[4,-32],[5,-16],[4,1],[5,25],[4,-20],[7,11],[13,36],[1,-11],[5,17],[0,34],[4,30],[5,29],[2,34],[6,36],[2,44],[5,-27],[4,-8],[3,16],[6,68],[4,-17],[13,77],[2,57],[15,-64],[3,37]],[[1553,5212],[-5,7],[-4,-12],[-6,17],[1,26],[4,14],[-6,40],[-4,103],[-2,14],[-3,73],[-6,28],[-2,56],[3,38],[6,-18],[11,-24],[8,1],[8,-9],[8,9],[3,-16],[7,1],[5,-42],[3,3],[1,-56],[2,-52],[3,6],[-3,43],[1,43],[4,44],[-3,18],[-1,31],[-3,35],[2,25],[-2,29],[-5,4],[-4,22],[1,21],[163,0]],[[1576,5602],[4,9],[0,-39],[-5,15],[1,15]],[[1568,5655],[3,25],[4,-30],[-1,-27],[-7,8],[1,24]],[[2576,4989],[-1,-23],[-6,-4],[-4,-44],[-2,-30],[3,-6],[5,20],[4,38],[6,15],[5,48],[6,10],[-1,-25],[-4,-23],[-8,-79],[-2,-44],[0,-32],[-3,-10],[-2,-43],[1,-37],[-3,-24],[-3,-59],[0,-47],[4,-42],[-1,-55]],[[2450,5296],[6,-2],[20,33],[8,17],[2,-13],[-4,-25],[9,-33],[5,-3]]]};
+	  Datamap.prototype.usgTopo = '__USG__';
+	  Datamap.prototype.uzbTopo = '__UZB__';
+	  Datamap.prototype.vatTopo = '__VAT__';
+	  Datamap.prototype.vctTopo = '__VCT__';
+	  Datamap.prototype.venTopo = '__VEN__';
+	  Datamap.prototype.vgbTopo = '__VGB__';
+	  Datamap.prototype.virTopo = '__VIR__';
+	  Datamap.prototype.vnmTopo = '__VNM__';
+	  Datamap.prototype.vutTopo = '__VUT__';
+	  Datamap.prototype.wlfTopo = '__WLF__';
+	  Datamap.prototype.wsbTopo = '__WSB__';
+	  Datamap.prototype.wsmTopo = '__WSM__';
+	  Datamap.prototype.yemTopo = '__YEM__';
+	  Datamap.prototype.zafTopo = '__ZAF__';
+	  Datamap.prototype.zmbTopo = '__ZMB__';
+	  Datamap.prototype.zweTopo = '__ZWE__';
+	
+	  /**************************************
+	                Utilities
+	  ***************************************/
+	
+	  // Convert lat/lng coords to X / Y coords
+	  Datamap.prototype.latLngToXY = function(lat, lng) {
+	     return this.projection([lng, lat]);
+	  };
+	
+	  // Add <g> layer to root SVG
+	  Datamap.prototype.addLayer = function( className, id, first ) {
+	    var layer;
+	    if ( first ) {
+	      layer = this.svg.insert('g', ':first-child')
+	    }
+	    else {
+	      layer = this.svg.append('g')
+	    }
+	    return layer.attr('id', id || '')
+	      .attr('class', className || '');
+	  };
+	
+	  Datamap.prototype.updateChoropleth = function(data, options) {
+	    var svg = this.svg;
+	    var that = this;
+	
+	    // When options.reset = true, reset all the fill colors to the defaultFill and kill all data-info
+	    if ( options && options.reset === true ) {
+	      svg.selectAll('.datamaps-subunit')
+	        .attr('data-info', function() {
+	           return "{}"
+	        })
+	        .transition().style('fill', this.options.fills.defaultFill)
+	    }
+	
+	    for ( var subunit in data ) {
+	      if ( data.hasOwnProperty(subunit) ) {
+	        var color;
+	        var subunitData = data[subunit]
+	        if ( ! subunit ) {
+	          continue;
+	        }
+	        else if ( typeof subunitData === "string" ) {
+	          color = subunitData;
+	        }
+	        else if ( typeof subunitData.color === "string" ) {
+	          color = subunitData.color;
+	        }
+	        else if ( typeof subunitData.fillColor === "string" ) {
+	          color = subunitData.fillColor;
+	        }
+	        else {
+	          color = this.options.fills[ subunitData.fillKey ];
+	        }
+	        // If it's an object, overriding the previous data
+	        if ( subunitData === Object(subunitData) ) {
+	          this.options.data[subunit] = defaults(subunitData, this.options.data[subunit] || {});
+	          var geo = this.svg.select('.' + subunit).attr('data-info', JSON.stringify(this.options.data[subunit]));
+	        }
+	        svg
+	          .selectAll('.' + subunit)
+	          .transition()
+	            .style('fill', color);
+	      }
+	    }
+	  };
+	
+	  Datamap.prototype.updatePopup = function (element, d, options) {
+	    var self = this;
+	    element.on('mousemove', null);
+	    element.on('mousemove', function() {
+	      var position = d3.mouse(self.options.element);
+	      d3.select(self.svg[0][0].parentNode).select('.datamaps-hoverover')
+	        .style('top', ( (position[1] + 30)) + "px")
+	        .html(function() {
+	          var data = JSON.parse(element.attr('data-info'));
+	          try {
+	            return options.popupTemplate(d, data);
+	          } catch (e) {
+	            return "";
+	          }
+	        })
+	        .style('left', ( position[0]) + "px");
+	    });
+	
+	    d3.select(self.svg[0][0].parentNode).select('.datamaps-hoverover').style('display', 'block');
+	  };
+	
+	  Datamap.prototype.addPlugin = function( name, pluginFn ) {
+	    var self = this;
+	    if ( typeof Datamap.prototype[name] === "undefined" ) {
+	      Datamap.prototype[name] = function(data, options, callback, createNewLayer) {
+	        var layer;
+	        if ( typeof createNewLayer === "undefined" ) {
+	          createNewLayer = false;
+	        }
+	
+	        if ( typeof options === 'function' ) {
+	          callback = options;
+	          options = undefined;
+	        }
+	
+	        options = defaults(options || {}, self.options[name + 'Config']);
+	
+	        // Add a single layer, reuse the old layer
+	        if ( !createNewLayer && this.options[name + 'Layer'] ) {
+	          layer = this.options[name + 'Layer'];
+	          options = options || this.options[name + 'Options'];
+	        }
+	        else {
+	          layer = this.addLayer(name);
+	          this.options[name + 'Layer'] = layer;
+	          this.options[name + 'Options'] = options;
+	        }
+	        pluginFn.apply(this, [layer, data, options]);
+	        if ( callback ) {
+	          callback(layer);
+	        }
+	      };
+	    }
+	  };
+	
+	  // Expose library
+	  if (true) {
+	    d3 = __webpack_require__(194);
+	    topojson = __webpack_require__(195);
+	    module.exports = Datamap;
+	  }
+	  else if ( typeof define === "function" && define.amd ) {
+	    define( "datamaps", ["require", "d3", "topojson"], function(require) {
+	      d3 = require('d3');
+	      topojson = require('topojson');
+	
+	      return Datamap;
+	    });
+	  }
+	  else {
+	    window.Datamap = window.Datamaps = Datamap;
+	  }
+	
+	  if ( __webpack_provided_window_dot_jQuery ) {
+	    __webpack_provided_window_dot_jQuery.fn.datamaps = function(options, callback) {
+	      options = options || {};
+	      options.element = this[0];
+	      var datamap = new Datamap(options);
+	      if ( typeof callback === "function" ) {
+	        callback(datamap, options);
+	      }
+	      return this;
+	    };
+	  }
+	})();
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 
 /***/ 194:
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(195), __esModule: true };
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
+	  var d3 = {
+	    version: "3.5.17"
+	  };
+	  var d3_arraySlice = [].slice, d3_array = function(list) {
+	    return d3_arraySlice.call(list);
+	  };
+	  var d3_document = this.document;
+	  function d3_documentElement(node) {
+	    return node && (node.ownerDocument || node.document || node).documentElement;
+	  }
+	  function d3_window(node) {
+	    return node && (node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView);
+	  }
+	  if (d3_document) {
+	    try {
+	      d3_array(d3_document.documentElement.childNodes)[0].nodeType;
+	    } catch (e) {
+	      d3_array = function(list) {
+	        var i = list.length, array = new Array(i);
+	        while (i--) array[i] = list[i];
+	        return array;
+	      };
+	    }
+	  }
+	  if (!Date.now) Date.now = function() {
+	    return +new Date();
+	  };
+	  if (d3_document) {
+	    try {
+	      d3_document.createElement("DIV").style.setProperty("opacity", 0, "");
+	    } catch (error) {
+	      var d3_element_prototype = this.Element.prototype, d3_element_setAttribute = d3_element_prototype.setAttribute, d3_element_setAttributeNS = d3_element_prototype.setAttributeNS, d3_style_prototype = this.CSSStyleDeclaration.prototype, d3_style_setProperty = d3_style_prototype.setProperty;
+	      d3_element_prototype.setAttribute = function(name, value) {
+	        d3_element_setAttribute.call(this, name, value + "");
+	      };
+	      d3_element_prototype.setAttributeNS = function(space, local, value) {
+	        d3_element_setAttributeNS.call(this, space, local, value + "");
+	      };
+	      d3_style_prototype.setProperty = function(name, value, priority) {
+	        d3_style_setProperty.call(this, name, value + "", priority);
+	      };
+	    }
+	  }
+	  d3.ascending = d3_ascending;
+	  function d3_ascending(a, b) {
+	    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+	  }
+	  d3.descending = function(a, b) {
+	    return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+	  };
+	  d3.min = function(array, f) {
+	    var i = -1, n = array.length, a, b;
+	    if (arguments.length === 1) {
+	      while (++i < n) if ((b = array[i]) != null && b >= b) {
+	        a = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = array[i]) != null && a > b) a = b;
+	    } else {
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null && b >= b) {
+	        a = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null && a > b) a = b;
+	    }
+	    return a;
+	  };
+	  d3.max = function(array, f) {
+	    var i = -1, n = array.length, a, b;
+	    if (arguments.length === 1) {
+	      while (++i < n) if ((b = array[i]) != null && b >= b) {
+	        a = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = array[i]) != null && b > a) a = b;
+	    } else {
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null && b >= b) {
+	        a = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null && b > a) a = b;
+	    }
+	    return a;
+	  };
+	  d3.extent = function(array, f) {
+	    var i = -1, n = array.length, a, b, c;
+	    if (arguments.length === 1) {
+	      while (++i < n) if ((b = array[i]) != null && b >= b) {
+	        a = c = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = array[i]) != null) {
+	        if (a > b) a = b;
+	        if (c < b) c = b;
+	      }
+	    } else {
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null && b >= b) {
+	        a = c = b;
+	        break;
+	      }
+	      while (++i < n) if ((b = f.call(array, array[i], i)) != null) {
+	        if (a > b) a = b;
+	        if (c < b) c = b;
+	      }
+	    }
+	    return [ a, c ];
+	  };
+	  function d3_number(x) {
+	    return x === null ? NaN : +x;
+	  }
+	  function d3_numeric(x) {
+	    return !isNaN(x);
+	  }
+	  d3.sum = function(array, f) {
+	    var s = 0, n = array.length, a, i = -1;
+	    if (arguments.length === 1) {
+	      while (++i < n) if (d3_numeric(a = +array[i])) s += a;
+	    } else {
+	      while (++i < n) if (d3_numeric(a = +f.call(array, array[i], i))) s += a;
+	    }
+	    return s;
+	  };
+	  d3.mean = function(array, f) {
+	    var s = 0, n = array.length, a, i = -1, j = n;
+	    if (arguments.length === 1) {
+	      while (++i < n) if (d3_numeric(a = d3_number(array[i]))) s += a; else --j;
+	    } else {
+	      while (++i < n) if (d3_numeric(a = d3_number(f.call(array, array[i], i)))) s += a; else --j;
+	    }
+	    if (j) return s / j;
+	  };
+	  d3.quantile = function(values, p) {
+	    var H = (values.length - 1) * p + 1, h = Math.floor(H), v = +values[h - 1], e = H - h;
+	    return e ? v + e * (values[h] - v) : v;
+	  };
+	  d3.median = function(array, f) {
+	    var numbers = [], n = array.length, a, i = -1;
+	    if (arguments.length === 1) {
+	      while (++i < n) if (d3_numeric(a = d3_number(array[i]))) numbers.push(a);
+	    } else {
+	      while (++i < n) if (d3_numeric(a = d3_number(f.call(array, array[i], i)))) numbers.push(a);
+	    }
+	    if (numbers.length) return d3.quantile(numbers.sort(d3_ascending), .5);
+	  };
+	  d3.variance = function(array, f) {
+	    var n = array.length, m = 0, a, d, s = 0, i = -1, j = 0;
+	    if (arguments.length === 1) {
+	      while (++i < n) {
+	        if (d3_numeric(a = d3_number(array[i]))) {
+	          d = a - m;
+	          m += d / ++j;
+	          s += d * (a - m);
+	        }
+	      }
+	    } else {
+	      while (++i < n) {
+	        if (d3_numeric(a = d3_number(f.call(array, array[i], i)))) {
+	          d = a - m;
+	          m += d / ++j;
+	          s += d * (a - m);
+	        }
+	      }
+	    }
+	    if (j > 1) return s / (j - 1);
+	  };
+	  d3.deviation = function() {
+	    var v = d3.variance.apply(this, arguments);
+	    return v ? Math.sqrt(v) : v;
+	  };
+	  function d3_bisector(compare) {
+	    return {
+	      left: function(a, x, lo, hi) {
+	        if (arguments.length < 3) lo = 0;
+	        if (arguments.length < 4) hi = a.length;
+	        while (lo < hi) {
+	          var mid = lo + hi >>> 1;
+	          if (compare(a[mid], x) < 0) lo = mid + 1; else hi = mid;
+	        }
+	        return lo;
+	      },
+	      right: function(a, x, lo, hi) {
+	        if (arguments.length < 3) lo = 0;
+	        if (arguments.length < 4) hi = a.length;
+	        while (lo < hi) {
+	          var mid = lo + hi >>> 1;
+	          if (compare(a[mid], x) > 0) hi = mid; else lo = mid + 1;
+	        }
+	        return lo;
+	      }
+	    };
+	  }
+	  var d3_bisect = d3_bisector(d3_ascending);
+	  d3.bisectLeft = d3_bisect.left;
+	  d3.bisect = d3.bisectRight = d3_bisect.right;
+	  d3.bisector = function(f) {
+	    return d3_bisector(f.length === 1 ? function(d, x) {
+	      return d3_ascending(f(d), x);
+	    } : f);
+	  };
+	  d3.shuffle = function(array, i0, i1) {
+	    if ((m = arguments.length) < 3) {
+	      i1 = array.length;
+	      if (m < 2) i0 = 0;
+	    }
+	    var m = i1 - i0, t, i;
+	    while (m) {
+	      i = Math.random() * m-- | 0;
+	      t = array[m + i0], array[m + i0] = array[i + i0], array[i + i0] = t;
+	    }
+	    return array;
+	  };
+	  d3.permute = function(array, indexes) {
+	    var i = indexes.length, permutes = new Array(i);
+	    while (i--) permutes[i] = array[indexes[i]];
+	    return permutes;
+	  };
+	  d3.pairs = function(array) {
+	    var i = 0, n = array.length - 1, p0, p1 = array[0], pairs = new Array(n < 0 ? 0 : n);
+	    while (i < n) pairs[i] = [ p0 = p1, p1 = array[++i] ];
+	    return pairs;
+	  };
+	  d3.transpose = function(matrix) {
+	    if (!(n = matrix.length)) return [];
+	    for (var i = -1, m = d3.min(matrix, d3_transposeLength), transpose = new Array(m); ++i < m; ) {
+	      for (var j = -1, n, row = transpose[i] = new Array(n); ++j < n; ) {
+	        row[j] = matrix[j][i];
+	      }
+	    }
+	    return transpose;
+	  };
+	  function d3_transposeLength(d) {
+	    return d.length;
+	  }
+	  d3.zip = function() {
+	    return d3.transpose(arguments);
+	  };
+	  d3.keys = function(map) {
+	    var keys = [];
+	    for (var key in map) keys.push(key);
+	    return keys;
+	  };
+	  d3.values = function(map) {
+	    var values = [];
+	    for (var key in map) values.push(map[key]);
+	    return values;
+	  };
+	  d3.entries = function(map) {
+	    var entries = [];
+	    for (var key in map) entries.push({
+	      key: key,
+	      value: map[key]
+	    });
+	    return entries;
+	  };
+	  d3.merge = function(arrays) {
+	    var n = arrays.length, m, i = -1, j = 0, merged, array;
+	    while (++i < n) j += arrays[i].length;
+	    merged = new Array(j);
+	    while (--n >= 0) {
+	      array = arrays[n];
+	      m = array.length;
+	      while (--m >= 0) {
+	        merged[--j] = array[m];
+	      }
+	    }
+	    return merged;
+	  };
+	  var abs = Math.abs;
+	  d3.range = function(start, stop, step) {
+	    if (arguments.length < 3) {
+	      step = 1;
+	      if (arguments.length < 2) {
+	        stop = start;
+	        start = 0;
+	      }
+	    }
+	    if ((stop - start) / step === Infinity) throw new Error("infinite range");
+	    var range = [], k = d3_range_integerScale(abs(step)), i = -1, j;
+	    start *= k, stop *= k, step *= k;
+	    if (step < 0) while ((j = start + step * ++i) > stop) range.push(j / k); else while ((j = start + step * ++i) < stop) range.push(j / k);
+	    return range;
+	  };
+	  function d3_range_integerScale(x) {
+	    var k = 1;
+	    while (x * k % 1) k *= 10;
+	    return k;
+	  }
+	  function d3_class(ctor, properties) {
+	    for (var key in properties) {
+	      Object.defineProperty(ctor.prototype, key, {
+	        value: properties[key],
+	        enumerable: false
+	      });
+	    }
+	  }
+	  d3.map = function(object, f) {
+	    var map = new d3_Map();
+	    if (object instanceof d3_Map) {
+	      object.forEach(function(key, value) {
+	        map.set(key, value);
+	      });
+	    } else if (Array.isArray(object)) {
+	      var i = -1, n = object.length, o;
+	      if (arguments.length === 1) while (++i < n) map.set(i, object[i]); else while (++i < n) map.set(f.call(object, o = object[i], i), o);
+	    } else {
+	      for (var key in object) map.set(key, object[key]);
+	    }
+	    return map;
+	  };
+	  function d3_Map() {
+	    this._ = Object.create(null);
+	  }
+	  var d3_map_proto = "__proto__", d3_map_zero = "\x00";
+	  d3_class(d3_Map, {
+	    has: d3_map_has,
+	    get: function(key) {
+	      return this._[d3_map_escape(key)];
+	    },
+	    set: function(key, value) {
+	      return this._[d3_map_escape(key)] = value;
+	    },
+	    remove: d3_map_remove,
+	    keys: d3_map_keys,
+	    values: function() {
+	      var values = [];
+	      for (var key in this._) values.push(this._[key]);
+	      return values;
+	    },
+	    entries: function() {
+	      var entries = [];
+	      for (var key in this._) entries.push({
+	        key: d3_map_unescape(key),
+	        value: this._[key]
+	      });
+	      return entries;
+	    },
+	    size: d3_map_size,
+	    empty: d3_map_empty,
+	    forEach: function(f) {
+	      for (var key in this._) f.call(this, d3_map_unescape(key), this._[key]);
+	    }
+	  });
+	  function d3_map_escape(key) {
+	    return (key += "") === d3_map_proto || key[0] === d3_map_zero ? d3_map_zero + key : key;
+	  }
+	  function d3_map_unescape(key) {
+	    return (key += "")[0] === d3_map_zero ? key.slice(1) : key;
+	  }
+	  function d3_map_has(key) {
+	    return d3_map_escape(key) in this._;
+	  }
+	  function d3_map_remove(key) {
+	    return (key = d3_map_escape(key)) in this._ && delete this._[key];
+	  }
+	  function d3_map_keys() {
+	    var keys = [];
+	    for (var key in this._) keys.push(d3_map_unescape(key));
+	    return keys;
+	  }
+	  function d3_map_size() {
+	    var size = 0;
+	    for (var key in this._) ++size;
+	    return size;
+	  }
+	  function d3_map_empty() {
+	    for (var key in this._) return false;
+	    return true;
+	  }
+	  d3.nest = function() {
+	    var nest = {}, keys = [], sortKeys = [], sortValues, rollup;
+	    function map(mapType, array, depth) {
+	      if (depth >= keys.length) return rollup ? rollup.call(nest, array) : sortValues ? array.sort(sortValues) : array;
+	      var i = -1, n = array.length, key = keys[depth++], keyValue, object, setter, valuesByKey = new d3_Map(), values;
+	      while (++i < n) {
+	        if (values = valuesByKey.get(keyValue = key(object = array[i]))) {
+	          values.push(object);
+	        } else {
+	          valuesByKey.set(keyValue, [ object ]);
+	        }
+	      }
+	      if (mapType) {
+	        object = mapType();
+	        setter = function(keyValue, values) {
+	          object.set(keyValue, map(mapType, values, depth));
+	        };
+	      } else {
+	        object = {};
+	        setter = function(keyValue, values) {
+	          object[keyValue] = map(mapType, values, depth);
+	        };
+	      }
+	      valuesByKey.forEach(setter);
+	      return object;
+	    }
+	    function entries(map, depth) {
+	      if (depth >= keys.length) return map;
+	      var array = [], sortKey = sortKeys[depth++];
+	      map.forEach(function(key, keyMap) {
+	        array.push({
+	          key: key,
+	          values: entries(keyMap, depth)
+	        });
+	      });
+	      return sortKey ? array.sort(function(a, b) {
+	        return sortKey(a.key, b.key);
+	      }) : array;
+	    }
+	    nest.map = function(array, mapType) {
+	      return map(mapType, array, 0);
+	    };
+	    nest.entries = function(array) {
+	      return entries(map(d3.map, array, 0), 0);
+	    };
+	    nest.key = function(d) {
+	      keys.push(d);
+	      return nest;
+	    };
+	    nest.sortKeys = function(order) {
+	      sortKeys[keys.length - 1] = order;
+	      return nest;
+	    };
+	    nest.sortValues = function(order) {
+	      sortValues = order;
+	      return nest;
+	    };
+	    nest.rollup = function(f) {
+	      rollup = f;
+	      return nest;
+	    };
+	    return nest;
+	  };
+	  d3.set = function(array) {
+	    var set = new d3_Set();
+	    if (array) for (var i = 0, n = array.length; i < n; ++i) set.add(array[i]);
+	    return set;
+	  };
+	  function d3_Set() {
+	    this._ = Object.create(null);
+	  }
+	  d3_class(d3_Set, {
+	    has: d3_map_has,
+	    add: function(key) {
+	      this._[d3_map_escape(key += "")] = true;
+	      return key;
+	    },
+	    remove: d3_map_remove,
+	    values: d3_map_keys,
+	    size: d3_map_size,
+	    empty: d3_map_empty,
+	    forEach: function(f) {
+	      for (var key in this._) f.call(this, d3_map_unescape(key));
+	    }
+	  });
+	  d3.behavior = {};
+	  function d3_identity(d) {
+	    return d;
+	  }
+	  d3.rebind = function(target, source) {
+	    var i = 1, n = arguments.length, method;
+	    while (++i < n) target[method = arguments[i]] = d3_rebind(target, source, source[method]);
+	    return target;
+	  };
+	  function d3_rebind(target, source, method) {
+	    return function() {
+	      var value = method.apply(source, arguments);
+	      return value === source ? target : value;
+	    };
+	  }
+	  function d3_vendorSymbol(object, name) {
+	    if (name in object) return name;
+	    name = name.charAt(0).toUpperCase() + name.slice(1);
+	    for (var i = 0, n = d3_vendorPrefixes.length; i < n; ++i) {
+	      var prefixName = d3_vendorPrefixes[i] + name;
+	      if (prefixName in object) return prefixName;
+	    }
+	  }
+	  var d3_vendorPrefixes = [ "webkit", "ms", "moz", "Moz", "o", "O" ];
+	  function d3_noop() {}
+	  d3.dispatch = function() {
+	    var dispatch = new d3_dispatch(), i = -1, n = arguments.length;
+	    while (++i < n) dispatch[arguments[i]] = d3_dispatch_event(dispatch);
+	    return dispatch;
+	  };
+	  function d3_dispatch() {}
+	  d3_dispatch.prototype.on = function(type, listener) {
+	    var i = type.indexOf("."), name = "";
+	    if (i >= 0) {
+	      name = type.slice(i + 1);
+	      type = type.slice(0, i);
+	    }
+	    if (type) return arguments.length < 2 ? this[type].on(name) : this[type].on(name, listener);
+	    if (arguments.length === 2) {
+	      if (listener == null) for (type in this) {
+	        if (this.hasOwnProperty(type)) this[type].on(name, null);
+	      }
+	      return this;
+	    }
+	  };
+	  function d3_dispatch_event(dispatch) {
+	    var listeners = [], listenerByName = new d3_Map();
+	    function event() {
+	      var z = listeners, i = -1, n = z.length, l;
+	      while (++i < n) if (l = z[i].on) l.apply(this, arguments);
+	      return dispatch;
+	    }
+	    event.on = function(name, listener) {
+	      var l = listenerByName.get(name), i;
+	      if (arguments.length < 2) return l && l.on;
+	      if (l) {
+	        l.on = null;
+	        listeners = listeners.slice(0, i = listeners.indexOf(l)).concat(listeners.slice(i + 1));
+	        listenerByName.remove(name);
+	      }
+	      if (listener) listeners.push(listenerByName.set(name, {
+	        on: listener
+	      }));
+	      return dispatch;
+	    };
+	    return event;
+	  }
+	  d3.event = null;
+	  function d3_eventPreventDefault() {
+	    d3.event.preventDefault();
+	  }
+	  function d3_eventSource() {
+	    var e = d3.event, s;
+	    while (s = e.sourceEvent) e = s;
+	    return e;
+	  }
+	  function d3_eventDispatch(target) {
+	    var dispatch = new d3_dispatch(), i = 0, n = arguments.length;
+	    while (++i < n) dispatch[arguments[i]] = d3_dispatch_event(dispatch);
+	    dispatch.of = function(thiz, argumentz) {
+	      return function(e1) {
+	        try {
+	          var e0 = e1.sourceEvent = d3.event;
+	          e1.target = target;
+	          d3.event = e1;
+	          dispatch[e1.type].apply(thiz, argumentz);
+	        } finally {
+	          d3.event = e0;
+	        }
+	      };
+	    };
+	    return dispatch;
+	  }
+	  d3.requote = function(s) {
+	    return s.replace(d3_requote_re, "\\$&");
+	  };
+	  var d3_requote_re = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+	  var d3_subclass = {}.__proto__ ? function(object, prototype) {
+	    object.__proto__ = prototype;
+	  } : function(object, prototype) {
+	    for (var property in prototype) object[property] = prototype[property];
+	  };
+	  function d3_selection(groups) {
+	    d3_subclass(groups, d3_selectionPrototype);
+	    return groups;
+	  }
+	  var d3_select = function(s, n) {
+	    return n.querySelector(s);
+	  }, d3_selectAll = function(s, n) {
+	    return n.querySelectorAll(s);
+	  }, d3_selectMatches = function(n, s) {
+	    var d3_selectMatcher = n.matches || n[d3_vendorSymbol(n, "matchesSelector")];
+	    d3_selectMatches = function(n, s) {
+	      return d3_selectMatcher.call(n, s);
+	    };
+	    return d3_selectMatches(n, s);
+	  };
+	  if (typeof Sizzle === "function") {
+	    d3_select = function(s, n) {
+	      return Sizzle(s, n)[0] || null;
+	    };
+	    d3_selectAll = Sizzle;
+	    d3_selectMatches = Sizzle.matchesSelector;
+	  }
+	  d3.selection = function() {
+	    return d3.select(d3_document.documentElement);
+	  };
+	  var d3_selectionPrototype = d3.selection.prototype = [];
+	  d3_selectionPrototype.select = function(selector) {
+	    var subgroups = [], subgroup, subnode, group, node;
+	    selector = d3_selection_selector(selector);
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      subgroups.push(subgroup = []);
+	      subgroup.parentNode = (group = this[j]).parentNode;
+	      for (var i = -1, n = group.length; ++i < n; ) {
+	        if (node = group[i]) {
+	          subgroup.push(subnode = selector.call(node, node.__data__, i, j));
+	          if (subnode && "__data__" in node) subnode.__data__ = node.__data__;
+	        } else {
+	          subgroup.push(null);
+	        }
+	      }
+	    }
+	    return d3_selection(subgroups);
+	  };
+	  function d3_selection_selector(selector) {
+	    return typeof selector === "function" ? selector : function() {
+	      return d3_select(selector, this);
+	    };
+	  }
+	  d3_selectionPrototype.selectAll = function(selector) {
+	    var subgroups = [], subgroup, node;
+	    selector = d3_selection_selectorAll(selector);
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+	        if (node = group[i]) {
+	          subgroups.push(subgroup = d3_array(selector.call(node, node.__data__, i, j)));
+	          subgroup.parentNode = node;
+	        }
+	      }
+	    }
+	    return d3_selection(subgroups);
+	  };
+	  function d3_selection_selectorAll(selector) {
+	    return typeof selector === "function" ? selector : function() {
+	      return d3_selectAll(selector, this);
+	    };
+	  }
+	  var d3_nsXhtml = "http://www.w3.org/1999/xhtml";
+	  var d3_nsPrefix = {
+	    svg: "http://www.w3.org/2000/svg",
+	    xhtml: d3_nsXhtml,
+	    xlink: "http://www.w3.org/1999/xlink",
+	    xml: "http://www.w3.org/XML/1998/namespace",
+	    xmlns: "http://www.w3.org/2000/xmlns/"
+	  };
+	  d3.ns = {
+	    prefix: d3_nsPrefix,
+	    qualify: function(name) {
+	      var i = name.indexOf(":"), prefix = name;
+	      if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+	      return d3_nsPrefix.hasOwnProperty(prefix) ? {
+	        space: d3_nsPrefix[prefix],
+	        local: name
+	      } : name;
+	    }
+	  };
+	  d3_selectionPrototype.attr = function(name, value) {
+	    if (arguments.length < 2) {
+	      if (typeof name === "string") {
+	        var node = this.node();
+	        name = d3.ns.qualify(name);
+	        return name.local ? node.getAttributeNS(name.space, name.local) : node.getAttribute(name);
+	      }
+	      for (value in name) this.each(d3_selection_attr(value, name[value]));
+	      return this;
+	    }
+	    return this.each(d3_selection_attr(name, value));
+	  };
+	  function d3_selection_attr(name, value) {
+	    name = d3.ns.qualify(name);
+	    function attrNull() {
+	      this.removeAttribute(name);
+	    }
+	    function attrNullNS() {
+	      this.removeAttributeNS(name.space, name.local);
+	    }
+	    function attrConstant() {
+	      this.setAttribute(name, value);
+	    }
+	    function attrConstantNS() {
+	      this.setAttributeNS(name.space, name.local, value);
+	    }
+	    function attrFunction() {
+	      var x = value.apply(this, arguments);
+	      if (x == null) this.removeAttribute(name); else this.setAttribute(name, x);
+	    }
+	    function attrFunctionNS() {
+	      var x = value.apply(this, arguments);
+	      if (x == null) this.removeAttributeNS(name.space, name.local); else this.setAttributeNS(name.space, name.local, x);
+	    }
+	    return value == null ? name.local ? attrNullNS : attrNull : typeof value === "function" ? name.local ? attrFunctionNS : attrFunction : name.local ? attrConstantNS : attrConstant;
+	  }
+	  function d3_collapse(s) {
+	    return s.trim().replace(/\s+/g, " ");
+	  }
+	  d3_selectionPrototype.classed = function(name, value) {
+	    if (arguments.length < 2) {
+	      if (typeof name === "string") {
+	        var node = this.node(), n = (name = d3_selection_classes(name)).length, i = -1;
+	        if (value = node.classList) {
+	          while (++i < n) if (!value.contains(name[i])) return false;
+	        } else {
+	          value = node.getAttribute("class");
+	          while (++i < n) if (!d3_selection_classedRe(name[i]).test(value)) return false;
+	        }
+	        return true;
+	      }
+	      for (value in name) this.each(d3_selection_classed(value, name[value]));
+	      return this;
+	    }
+	    return this.each(d3_selection_classed(name, value));
+	  };
+	  function d3_selection_classedRe(name) {
+	    return new RegExp("(?:^|\\s+)" + d3.requote(name) + "(?:\\s+|$)", "g");
+	  }
+	  function d3_selection_classes(name) {
+	    return (name + "").trim().split(/^|\s+/);
+	  }
+	  function d3_selection_classed(name, value) {
+	    name = d3_selection_classes(name).map(d3_selection_classedName);
+	    var n = name.length;
+	    function classedConstant() {
+	      var i = -1;
+	      while (++i < n) name[i](this, value);
+	    }
+	    function classedFunction() {
+	      var i = -1, x = value.apply(this, arguments);
+	      while (++i < n) name[i](this, x);
+	    }
+	    return typeof value === "function" ? classedFunction : classedConstant;
+	  }
+	  function d3_selection_classedName(name) {
+	    var re = d3_selection_classedRe(name);
+	    return function(node, value) {
+	      if (c = node.classList) return value ? c.add(name) : c.remove(name);
+	      var c = node.getAttribute("class") || "";
+	      if (value) {
+	        re.lastIndex = 0;
+	        if (!re.test(c)) node.setAttribute("class", d3_collapse(c + " " + name));
+	      } else {
+	        node.setAttribute("class", d3_collapse(c.replace(re, " ")));
+	      }
+	    };
+	  }
+	  d3_selectionPrototype.style = function(name, value, priority) {
+	    var n = arguments.length;
+	    if (n < 3) {
+	      if (typeof name !== "string") {
+	        if (n < 2) value = "";
+	        for (priority in name) this.each(d3_selection_style(priority, name[priority], value));
+	        return this;
+	      }
+	      if (n < 2) {
+	        var node = this.node();
+	        return d3_window(node).getComputedStyle(node, null).getPropertyValue(name);
+	      }
+	      priority = "";
+	    }
+	    return this.each(d3_selection_style(name, value, priority));
+	  };
+	  function d3_selection_style(name, value, priority) {
+	    function styleNull() {
+	      this.style.removeProperty(name);
+	    }
+	    function styleConstant() {
+	      this.style.setProperty(name, value, priority);
+	    }
+	    function styleFunction() {
+	      var x = value.apply(this, arguments);
+	      if (x == null) this.style.removeProperty(name); else this.style.setProperty(name, x, priority);
+	    }
+	    return value == null ? styleNull : typeof value === "function" ? styleFunction : styleConstant;
+	  }
+	  d3_selectionPrototype.property = function(name, value) {
+	    if (arguments.length < 2) {
+	      if (typeof name === "string") return this.node()[name];
+	      for (value in name) this.each(d3_selection_property(value, name[value]));
+	      return this;
+	    }
+	    return this.each(d3_selection_property(name, value));
+	  };
+	  function d3_selection_property(name, value) {
+	    function propertyNull() {
+	      delete this[name];
+	    }
+	    function propertyConstant() {
+	      this[name] = value;
+	    }
+	    function propertyFunction() {
+	      var x = value.apply(this, arguments);
+	      if (x == null) delete this[name]; else this[name] = x;
+	    }
+	    return value == null ? propertyNull : typeof value === "function" ? propertyFunction : propertyConstant;
+	  }
+	  d3_selectionPrototype.text = function(value) {
+	    return arguments.length ? this.each(typeof value === "function" ? function() {
+	      var v = value.apply(this, arguments);
+	      this.textContent = v == null ? "" : v;
+	    } : value == null ? function() {
+	      this.textContent = "";
+	    } : function() {
+	      this.textContent = value;
+	    }) : this.node().textContent;
+	  };
+	  d3_selectionPrototype.html = function(value) {
+	    return arguments.length ? this.each(typeof value === "function" ? function() {
+	      var v = value.apply(this, arguments);
+	      this.innerHTML = v == null ? "" : v;
+	    } : value == null ? function() {
+	      this.innerHTML = "";
+	    } : function() {
+	      this.innerHTML = value;
+	    }) : this.node().innerHTML;
+	  };
+	  d3_selectionPrototype.append = function(name) {
+	    name = d3_selection_creator(name);
+	    return this.select(function() {
+	      return this.appendChild(name.apply(this, arguments));
+	    });
+	  };
+	  function d3_selection_creator(name) {
+	    function create() {
+	      var document = this.ownerDocument, namespace = this.namespaceURI;
+	      return namespace === d3_nsXhtml && document.documentElement.namespaceURI === d3_nsXhtml ? document.createElement(name) : document.createElementNS(namespace, name);
+	    }
+	    function createNS() {
+	      return this.ownerDocument.createElementNS(name.space, name.local);
+	    }
+	    return typeof name === "function" ? name : (name = d3.ns.qualify(name)).local ? createNS : create;
+	  }
+	  d3_selectionPrototype.insert = function(name, before) {
+	    name = d3_selection_creator(name);
+	    before = d3_selection_selector(before);
+	    return this.select(function() {
+	      return this.insertBefore(name.apply(this, arguments), before.apply(this, arguments) || null);
+	    });
+	  };
+	  d3_selectionPrototype.remove = function() {
+	    return this.each(d3_selectionRemove);
+	  };
+	  function d3_selectionRemove() {
+	    var parent = this.parentNode;
+	    if (parent) parent.removeChild(this);
+	  }
+	  d3_selectionPrototype.data = function(value, key) {
+	    var i = -1, n = this.length, group, node;
+	    if (!arguments.length) {
+	      value = new Array(n = (group = this[0]).length);
+	      while (++i < n) {
+	        if (node = group[i]) {
+	          value[i] = node.__data__;
+	        }
+	      }
+	      return value;
+	    }
+	    function bind(group, groupData) {
+	      var i, n = group.length, m = groupData.length, n0 = Math.min(n, m), updateNodes = new Array(m), enterNodes = new Array(m), exitNodes = new Array(n), node, nodeData;
+	      if (key) {
+	        var nodeByKeyValue = new d3_Map(), keyValues = new Array(n), keyValue;
+	        for (i = -1; ++i < n; ) {
+	          if (node = group[i]) {
+	            if (nodeByKeyValue.has(keyValue = key.call(node, node.__data__, i))) {
+	              exitNodes[i] = node;
+	            } else {
+	              nodeByKeyValue.set(keyValue, node);
+	            }
+	            keyValues[i] = keyValue;
+	          }
+	        }
+	        for (i = -1; ++i < m; ) {
+	          if (!(node = nodeByKeyValue.get(keyValue = key.call(groupData, nodeData = groupData[i], i)))) {
+	            enterNodes[i] = d3_selection_dataNode(nodeData);
+	          } else if (node !== true) {
+	            updateNodes[i] = node;
+	            node.__data__ = nodeData;
+	          }
+	          nodeByKeyValue.set(keyValue, true);
+	        }
+	        for (i = -1; ++i < n; ) {
+	          if (i in keyValues && nodeByKeyValue.get(keyValues[i]) !== true) {
+	            exitNodes[i] = group[i];
+	          }
+	        }
+	      } else {
+	        for (i = -1; ++i < n0; ) {
+	          node = group[i];
+	          nodeData = groupData[i];
+	          if (node) {
+	            node.__data__ = nodeData;
+	            updateNodes[i] = node;
+	          } else {
+	            enterNodes[i] = d3_selection_dataNode(nodeData);
+	          }
+	        }
+	        for (;i < m; ++i) {
+	          enterNodes[i] = d3_selection_dataNode(groupData[i]);
+	        }
+	        for (;i < n; ++i) {
+	          exitNodes[i] = group[i];
+	        }
+	      }
+	      enterNodes.update = updateNodes;
+	      enterNodes.parentNode = updateNodes.parentNode = exitNodes.parentNode = group.parentNode;
+	      enter.push(enterNodes);
+	      update.push(updateNodes);
+	      exit.push(exitNodes);
+	    }
+	    var enter = d3_selection_enter([]), update = d3_selection([]), exit = d3_selection([]);
+	    if (typeof value === "function") {
+	      while (++i < n) {
+	        bind(group = this[i], value.call(group, group.parentNode.__data__, i));
+	      }
+	    } else {
+	      while (++i < n) {
+	        bind(group = this[i], value);
+	      }
+	    }
+	    update.enter = function() {
+	      return enter;
+	    };
+	    update.exit = function() {
+	      return exit;
+	    };
+	    return update;
+	  };
+	  function d3_selection_dataNode(data) {
+	    return {
+	      __data__: data
+	    };
+	  }
+	  d3_selectionPrototype.datum = function(value) {
+	    return arguments.length ? this.property("__data__", value) : this.property("__data__");
+	  };
+	  d3_selectionPrototype.filter = function(filter) {
+	    var subgroups = [], subgroup, group, node;
+	    if (typeof filter !== "function") filter = d3_selection_filter(filter);
+	    for (var j = 0, m = this.length; j < m; j++) {
+	      subgroups.push(subgroup = []);
+	      subgroup.parentNode = (group = this[j]).parentNode;
+	      for (var i = 0, n = group.length; i < n; i++) {
+	        if ((node = group[i]) && filter.call(node, node.__data__, i, j)) {
+	          subgroup.push(node);
+	        }
+	      }
+	    }
+	    return d3_selection(subgroups);
+	  };
+	  function d3_selection_filter(selector) {
+	    return function() {
+	      return d3_selectMatches(this, selector);
+	    };
+	  }
+	  d3_selectionPrototype.order = function() {
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      for (var group = this[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
+	        if (node = group[i]) {
+	          if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
+	          next = node;
+	        }
+	      }
+	    }
+	    return this;
+	  };
+	  d3_selectionPrototype.sort = function(comparator) {
+	    comparator = d3_selection_sortComparator.apply(this, arguments);
+	    for (var j = -1, m = this.length; ++j < m; ) this[j].sort(comparator);
+	    return this.order();
+	  };
+	  function d3_selection_sortComparator(comparator) {
+	    if (!arguments.length) comparator = d3_ascending;
+	    return function(a, b) {
+	      return a && b ? comparator(a.__data__, b.__data__) : !a - !b;
+	    };
+	  }
+	  d3_selectionPrototype.each = function(callback) {
+	    return d3_selection_each(this, function(node, i, j) {
+	      callback.call(node, node.__data__, i, j);
+	    });
+	  };
+	  function d3_selection_each(groups, callback) {
+	    for (var j = 0, m = groups.length; j < m; j++) {
+	      for (var group = groups[j], i = 0, n = group.length, node; i < n; i++) {
+	        if (node = group[i]) callback(node, i, j);
+	      }
+	    }
+	    return groups;
+	  }
+	  d3_selectionPrototype.call = function(callback) {
+	    var args = d3_array(arguments);
+	    callback.apply(args[0] = this, args);
+	    return this;
+	  };
+	  d3_selectionPrototype.empty = function() {
+	    return !this.node();
+	  };
+	  d3_selectionPrototype.node = function() {
+	    for (var j = 0, m = this.length; j < m; j++) {
+	      for (var group = this[j], i = 0, n = group.length; i < n; i++) {
+	        var node = group[i];
+	        if (node) return node;
+	      }
+	    }
+	    return null;
+	  };
+	  d3_selectionPrototype.size = function() {
+	    var n = 0;
+	    d3_selection_each(this, function() {
+	      ++n;
+	    });
+	    return n;
+	  };
+	  function d3_selection_enter(selection) {
+	    d3_subclass(selection, d3_selection_enterPrototype);
+	    return selection;
+	  }
+	  var d3_selection_enterPrototype = [];
+	  d3.selection.enter = d3_selection_enter;
+	  d3.selection.enter.prototype = d3_selection_enterPrototype;
+	  d3_selection_enterPrototype.append = d3_selectionPrototype.append;
+	  d3_selection_enterPrototype.empty = d3_selectionPrototype.empty;
+	  d3_selection_enterPrototype.node = d3_selectionPrototype.node;
+	  d3_selection_enterPrototype.call = d3_selectionPrototype.call;
+	  d3_selection_enterPrototype.size = d3_selectionPrototype.size;
+	  d3_selection_enterPrototype.select = function(selector) {
+	    var subgroups = [], subgroup, subnode, upgroup, group, node;
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      upgroup = (group = this[j]).update;
+	      subgroups.push(subgroup = []);
+	      subgroup.parentNode = group.parentNode;
+	      for (var i = -1, n = group.length; ++i < n; ) {
+	        if (node = group[i]) {
+	          subgroup.push(upgroup[i] = subnode = selector.call(group.parentNode, node.__data__, i, j));
+	          subnode.__data__ = node.__data__;
+	        } else {
+	          subgroup.push(null);
+	        }
+	      }
+	    }
+	    return d3_selection(subgroups);
+	  };
+	  d3_selection_enterPrototype.insert = function(name, before) {
+	    if (arguments.length < 2) before = d3_selection_enterInsertBefore(this);
+	    return d3_selectionPrototype.insert.call(this, name, before);
+	  };
+	  function d3_selection_enterInsertBefore(enter) {
+	    var i0, j0;
+	    return function(d, i, j) {
+	      var group = enter[j].update, n = group.length, node;
+	      if (j != j0) j0 = j, i0 = 0;
+	      if (i >= i0) i0 = i + 1;
+	      while (!(node = group[i0]) && ++i0 < n) ;
+	      return node;
+	    };
+	  }
+	  d3.select = function(node) {
+	    var group;
+	    if (typeof node === "string") {
+	      group = [ d3_select(node, d3_document) ];
+	      group.parentNode = d3_document.documentElement;
+	    } else {
+	      group = [ node ];
+	      group.parentNode = d3_documentElement(node);
+	    }
+	    return d3_selection([ group ]);
+	  };
+	  d3.selectAll = function(nodes) {
+	    var group;
+	    if (typeof nodes === "string") {
+	      group = d3_array(d3_selectAll(nodes, d3_document));
+	      group.parentNode = d3_document.documentElement;
+	    } else {
+	      group = d3_array(nodes);
+	      group.parentNode = null;
+	    }
+	    return d3_selection([ group ]);
+	  };
+	  d3_selectionPrototype.on = function(type, listener, capture) {
+	    var n = arguments.length;
+	    if (n < 3) {
+	      if (typeof type !== "string") {
+	        if (n < 2) listener = false;
+	        for (capture in type) this.each(d3_selection_on(capture, type[capture], listener));
+	        return this;
+	      }
+	      if (n < 2) return (n = this.node()["__on" + type]) && n._;
+	      capture = false;
+	    }
+	    return this.each(d3_selection_on(type, listener, capture));
+	  };
+	  function d3_selection_on(type, listener, capture) {
+	    var name = "__on" + type, i = type.indexOf("."), wrap = d3_selection_onListener;
+	    if (i > 0) type = type.slice(0, i);
+	    var filter = d3_selection_onFilters.get(type);
+	    if (filter) type = filter, wrap = d3_selection_onFilter;
+	    function onRemove() {
+	      var l = this[name];
+	      if (l) {
+	        this.removeEventListener(type, l, l.$);
+	        delete this[name];
+	      }
+	    }
+	    function onAdd() {
+	      var l = wrap(listener, d3_array(arguments));
+	      onRemove.call(this);
+	      this.addEventListener(type, this[name] = l, l.$ = capture);
+	      l._ = listener;
+	    }
+	    function removeAll() {
+	      var re = new RegExp("^__on([^.]+)" + d3.requote(type) + "$"), match;
+	      for (var name in this) {
+	        if (match = name.match(re)) {
+	          var l = this[name];
+	          this.removeEventListener(match[1], l, l.$);
+	          delete this[name];
+	        }
+	      }
+	    }
+	    return i ? listener ? onAdd : onRemove : listener ? d3_noop : removeAll;
+	  }
+	  var d3_selection_onFilters = d3.map({
+	    mouseenter: "mouseover",
+	    mouseleave: "mouseout"
+	  });
+	  if (d3_document) {
+	    d3_selection_onFilters.forEach(function(k) {
+	      if ("on" + k in d3_document) d3_selection_onFilters.remove(k);
+	    });
+	  }
+	  function d3_selection_onListener(listener, argumentz) {
+	    return function(e) {
+	      var o = d3.event;
+	      d3.event = e;
+	      argumentz[0] = this.__data__;
+	      try {
+	        listener.apply(this, argumentz);
+	      } finally {
+	        d3.event = o;
+	      }
+	    };
+	  }
+	  function d3_selection_onFilter(listener, argumentz) {
+	    var l = d3_selection_onListener(listener, argumentz);
+	    return function(e) {
+	      var target = this, related = e.relatedTarget;
+	      if (!related || related !== target && !(related.compareDocumentPosition(target) & 8)) {
+	        l.call(target, e);
+	      }
+	    };
+	  }
+	  var d3_event_dragSelect, d3_event_dragId = 0;
+	  function d3_event_dragSuppress(node) {
+	    var name = ".dragsuppress-" + ++d3_event_dragId, click = "click" + name, w = d3.select(d3_window(node)).on("touchmove" + name, d3_eventPreventDefault).on("dragstart" + name, d3_eventPreventDefault).on("selectstart" + name, d3_eventPreventDefault);
+	    if (d3_event_dragSelect == null) {
+	      d3_event_dragSelect = "onselectstart" in node ? false : d3_vendorSymbol(node.style, "userSelect");
+	    }
+	    if (d3_event_dragSelect) {
+	      var style = d3_documentElement(node).style, select = style[d3_event_dragSelect];
+	      style[d3_event_dragSelect] = "none";
+	    }
+	    return function(suppressClick) {
+	      w.on(name, null);
+	      if (d3_event_dragSelect) style[d3_event_dragSelect] = select;
+	      if (suppressClick) {
+	        var off = function() {
+	          w.on(click, null);
+	        };
+	        w.on(click, function() {
+	          d3_eventPreventDefault();
+	          off();
+	        }, true);
+	        setTimeout(off, 0);
+	      }
+	    };
+	  }
+	  d3.mouse = function(container) {
+	    return d3_mousePoint(container, d3_eventSource());
+	  };
+	  var d3_mouse_bug44083 = this.navigator && /WebKit/.test(this.navigator.userAgent) ? -1 : 0;
+	  function d3_mousePoint(container, e) {
+	    if (e.changedTouches) e = e.changedTouches[0];
+	    var svg = container.ownerSVGElement || container;
+	    if (svg.createSVGPoint) {
+	      var point = svg.createSVGPoint();
+	      if (d3_mouse_bug44083 < 0) {
+	        var window = d3_window(container);
+	        if (window.scrollX || window.scrollY) {
+	          svg = d3.select("body").append("svg").style({
+	            position: "absolute",
+	            top: 0,
+	            left: 0,
+	            margin: 0,
+	            padding: 0,
+	            border: "none"
+	          }, "important");
+	          var ctm = svg[0][0].getScreenCTM();
+	          d3_mouse_bug44083 = !(ctm.f || ctm.e);
+	          svg.remove();
+	        }
+	      }
+	      if (d3_mouse_bug44083) point.x = e.pageX, point.y = e.pageY; else point.x = e.clientX, 
+	      point.y = e.clientY;
+	      point = point.matrixTransform(container.getScreenCTM().inverse());
+	      return [ point.x, point.y ];
+	    }
+	    var rect = container.getBoundingClientRect();
+	    return [ e.clientX - rect.left - container.clientLeft, e.clientY - rect.top - container.clientTop ];
+	  }
+	  d3.touch = function(container, touches, identifier) {
+	    if (arguments.length < 3) identifier = touches, touches = d3_eventSource().changedTouches;
+	    if (touches) for (var i = 0, n = touches.length, touch; i < n; ++i) {
+	      if ((touch = touches[i]).identifier === identifier) {
+	        return d3_mousePoint(container, touch);
+	      }
+	    }
+	  };
+	  d3.behavior.drag = function() {
+	    var event = d3_eventDispatch(drag, "drag", "dragstart", "dragend"), origin = null, mousedown = dragstart(d3_noop, d3.mouse, d3_window, "mousemove", "mouseup"), touchstart = dragstart(d3_behavior_dragTouchId, d3.touch, d3_identity, "touchmove", "touchend");
+	    function drag() {
+	      this.on("mousedown.drag", mousedown).on("touchstart.drag", touchstart);
+	    }
+	    function dragstart(id, position, subject, move, end) {
+	      return function() {
+	        var that = this, target = d3.event.target.correspondingElement || d3.event.target, parent = that.parentNode, dispatch = event.of(that, arguments), dragged = 0, dragId = id(), dragName = ".drag" + (dragId == null ? "" : "-" + dragId), dragOffset, dragSubject = d3.select(subject(target)).on(move + dragName, moved).on(end + dragName, ended), dragRestore = d3_event_dragSuppress(target), position0 = position(parent, dragId);
+	        if (origin) {
+	          dragOffset = origin.apply(that, arguments);
+	          dragOffset = [ dragOffset.x - position0[0], dragOffset.y - position0[1] ];
+	        } else {
+	          dragOffset = [ 0, 0 ];
+	        }
+	        dispatch({
+	          type: "dragstart"
+	        });
+	        function moved() {
+	          var position1 = position(parent, dragId), dx, dy;
+	          if (!position1) return;
+	          dx = position1[0] - position0[0];
+	          dy = position1[1] - position0[1];
+	          dragged |= dx | dy;
+	          position0 = position1;
+	          dispatch({
+	            type: "drag",
+	            x: position1[0] + dragOffset[0],
+	            y: position1[1] + dragOffset[1],
+	            dx: dx,
+	            dy: dy
+	          });
+	        }
+	        function ended() {
+	          if (!position(parent, dragId)) return;
+	          dragSubject.on(move + dragName, null).on(end + dragName, null);
+	          dragRestore(dragged);
+	          dispatch({
+	            type: "dragend"
+	          });
+	        }
+	      };
+	    }
+	    drag.origin = function(x) {
+	      if (!arguments.length) return origin;
+	      origin = x;
+	      return drag;
+	    };
+	    return d3.rebind(drag, event, "on");
+	  };
+	  function d3_behavior_dragTouchId() {
+	    return d3.event.changedTouches[0].identifier;
+	  }
+	  d3.touches = function(container, touches) {
+	    if (arguments.length < 2) touches = d3_eventSource().touches;
+	    return touches ? d3_array(touches).map(function(touch) {
+	      var point = d3_mousePoint(container, touch);
+	      point.identifier = touch.identifier;
+	      return point;
+	    }) : [];
+	  };
+	  var ε = 1e-6, ε2 = ε * ε, π = Math.PI, τ = 2 * π, τε = τ - ε, halfπ = π / 2, d3_radians = π / 180, d3_degrees = 180 / π;
+	  function d3_sgn(x) {
+	    return x > 0 ? 1 : x < 0 ? -1 : 0;
+	  }
+	  function d3_cross2d(a, b, c) {
+	    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+	  }
+	  function d3_acos(x) {
+	    return x > 1 ? 0 : x < -1 ? π : Math.acos(x);
+	  }
+	  function d3_asin(x) {
+	    return x > 1 ? halfπ : x < -1 ? -halfπ : Math.asin(x);
+	  }
+	  function d3_sinh(x) {
+	    return ((x = Math.exp(x)) - 1 / x) / 2;
+	  }
+	  function d3_cosh(x) {
+	    return ((x = Math.exp(x)) + 1 / x) / 2;
+	  }
+	  function d3_tanh(x) {
+	    return ((x = Math.exp(2 * x)) - 1) / (x + 1);
+	  }
+	  function d3_haversin(x) {
+	    return (x = Math.sin(x / 2)) * x;
+	  }
+	  var ρ = Math.SQRT2, ρ2 = 2, ρ4 = 4;
+	  d3.interpolateZoom = function(p0, p1) {
+	    var ux0 = p0[0], uy0 = p0[1], w0 = p0[2], ux1 = p1[0], uy1 = p1[1], w1 = p1[2], dx = ux1 - ux0, dy = uy1 - uy0, d2 = dx * dx + dy * dy, i, S;
+	    if (d2 < ε2) {
+	      S = Math.log(w1 / w0) / ρ;
+	      i = function(t) {
+	        return [ ux0 + t * dx, uy0 + t * dy, w0 * Math.exp(ρ * t * S) ];
+	      };
+	    } else {
+	      var d1 = Math.sqrt(d2), b0 = (w1 * w1 - w0 * w0 + ρ4 * d2) / (2 * w0 * ρ2 * d1), b1 = (w1 * w1 - w0 * w0 - ρ4 * d2) / (2 * w1 * ρ2 * d1), r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0), r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1);
+	      S = (r1 - r0) / ρ;
+	      i = function(t) {
+	        var s = t * S, coshr0 = d3_cosh(r0), u = w0 / (ρ2 * d1) * (coshr0 * d3_tanh(ρ * s + r0) - d3_sinh(r0));
+	        return [ ux0 + u * dx, uy0 + u * dy, w0 * coshr0 / d3_cosh(ρ * s + r0) ];
+	      };
+	    }
+	    i.duration = S * 1e3;
+	    return i;
+	  };
+	  d3.behavior.zoom = function() {
+	    var view = {
+	      x: 0,
+	      y: 0,
+	      k: 1
+	    }, translate0, center0, center, size = [ 960, 500 ], scaleExtent = d3_behavior_zoomInfinity, duration = 250, zooming = 0, mousedown = "mousedown.zoom", mousemove = "mousemove.zoom", mouseup = "mouseup.zoom", mousewheelTimer, touchstart = "touchstart.zoom", touchtime, event = d3_eventDispatch(zoom, "zoomstart", "zoom", "zoomend"), x0, x1, y0, y1;
+	    if (!d3_behavior_zoomWheel) {
+	      d3_behavior_zoomWheel = "onwheel" in d3_document ? (d3_behavior_zoomDelta = function() {
+	        return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1);
+	      }, "wheel") : "onmousewheel" in d3_document ? (d3_behavior_zoomDelta = function() {
+	        return d3.event.wheelDelta;
+	      }, "mousewheel") : (d3_behavior_zoomDelta = function() {
+	        return -d3.event.detail;
+	      }, "MozMousePixelScroll");
+	    }
+	    function zoom(g) {
+	      g.on(mousedown, mousedowned).on(d3_behavior_zoomWheel + ".zoom", mousewheeled).on("dblclick.zoom", dblclicked).on(touchstart, touchstarted);
+	    }
+	    zoom.event = function(g) {
+	      g.each(function() {
+	        var dispatch = event.of(this, arguments), view1 = view;
+	        if (d3_transitionInheritId) {
+	          d3.select(this).transition().each("start.zoom", function() {
+	            view = this.__chart__ || {
+	              x: 0,
+	              y: 0,
+	              k: 1
+	            };
+	            zoomstarted(dispatch);
+	          }).tween("zoom:zoom", function() {
+	            var dx = size[0], dy = size[1], cx = center0 ? center0[0] : dx / 2, cy = center0 ? center0[1] : dy / 2, i = d3.interpolateZoom([ (cx - view.x) / view.k, (cy - view.y) / view.k, dx / view.k ], [ (cx - view1.x) / view1.k, (cy - view1.y) / view1.k, dx / view1.k ]);
+	            return function(t) {
+	              var l = i(t), k = dx / l[2];
+	              this.__chart__ = view = {
+	                x: cx - l[0] * k,
+	                y: cy - l[1] * k,
+	                k: k
+	              };
+	              zoomed(dispatch);
+	            };
+	          }).each("interrupt.zoom", function() {
+	            zoomended(dispatch);
+	          }).each("end.zoom", function() {
+	            zoomended(dispatch);
+	          });
+	        } else {
+	          this.__chart__ = view;
+	          zoomstarted(dispatch);
+	          zoomed(dispatch);
+	          zoomended(dispatch);
+	        }
+	      });
+	    };
+	    zoom.translate = function(_) {
+	      if (!arguments.length) return [ view.x, view.y ];
+	      view = {
+	        x: +_[0],
+	        y: +_[1],
+	        k: view.k
+	      };
+	      rescale();
+	      return zoom;
+	    };
+	    zoom.scale = function(_) {
+	      if (!arguments.length) return view.k;
+	      view = {
+	        x: view.x,
+	        y: view.y,
+	        k: null
+	      };
+	      scaleTo(+_);
+	      rescale();
+	      return zoom;
+	    };
+	    zoom.scaleExtent = function(_) {
+	      if (!arguments.length) return scaleExtent;
+	      scaleExtent = _ == null ? d3_behavior_zoomInfinity : [ +_[0], +_[1] ];
+	      return zoom;
+	    };
+	    zoom.center = function(_) {
+	      if (!arguments.length) return center;
+	      center = _ && [ +_[0], +_[1] ];
+	      return zoom;
+	    };
+	    zoom.size = function(_) {
+	      if (!arguments.length) return size;
+	      size = _ && [ +_[0], +_[1] ];
+	      return zoom;
+	    };
+	    zoom.duration = function(_) {
+	      if (!arguments.length) return duration;
+	      duration = +_;
+	      return zoom;
+	    };
+	    zoom.x = function(z) {
+	      if (!arguments.length) return x1;
+	      x1 = z;
+	      x0 = z.copy();
+	      view = {
+	        x: 0,
+	        y: 0,
+	        k: 1
+	      };
+	      return zoom;
+	    };
+	    zoom.y = function(z) {
+	      if (!arguments.length) return y1;
+	      y1 = z;
+	      y0 = z.copy();
+	      view = {
+	        x: 0,
+	        y: 0,
+	        k: 1
+	      };
+	      return zoom;
+	    };
+	    function location(p) {
+	      return [ (p[0] - view.x) / view.k, (p[1] - view.y) / view.k ];
+	    }
+	    function point(l) {
+	      return [ l[0] * view.k + view.x, l[1] * view.k + view.y ];
+	    }
+	    function scaleTo(s) {
+	      view.k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], s));
+	    }
+	    function translateTo(p, l) {
+	      l = point(l);
+	      view.x += p[0] - l[0];
+	      view.y += p[1] - l[1];
+	    }
+	    function zoomTo(that, p, l, k) {
+	      that.__chart__ = {
+	        x: view.x,
+	        y: view.y,
+	        k: view.k
+	      };
+	      scaleTo(Math.pow(2, k));
+	      translateTo(center0 = p, l);
+	      that = d3.select(that);
+	      if (duration > 0) that = that.transition().duration(duration);
+	      that.call(zoom.event);
+	    }
+	    function rescale() {
+	      if (x1) x1.domain(x0.range().map(function(x) {
+	        return (x - view.x) / view.k;
+	      }).map(x0.invert));
+	      if (y1) y1.domain(y0.range().map(function(y) {
+	        return (y - view.y) / view.k;
+	      }).map(y0.invert));
+	    }
+	    function zoomstarted(dispatch) {
+	      if (!zooming++) dispatch({
+	        type: "zoomstart"
+	      });
+	    }
+	    function zoomed(dispatch) {
+	      rescale();
+	      dispatch({
+	        type: "zoom",
+	        scale: view.k,
+	        translate: [ view.x, view.y ]
+	      });
+	    }
+	    function zoomended(dispatch) {
+	      if (!--zooming) dispatch({
+	        type: "zoomend"
+	      }), center0 = null;
+	    }
+	    function mousedowned() {
+	      var that = this, dispatch = event.of(that, arguments), dragged = 0, subject = d3.select(d3_window(that)).on(mousemove, moved).on(mouseup, ended), location0 = location(d3.mouse(that)), dragRestore = d3_event_dragSuppress(that);
+	      d3_selection_interrupt.call(that);
+	      zoomstarted(dispatch);
+	      function moved() {
+	        dragged = 1;
+	        translateTo(d3.mouse(that), location0);
+	        zoomed(dispatch);
+	      }
+	      function ended() {
+	        subject.on(mousemove, null).on(mouseup, null);
+	        dragRestore(dragged);
+	        zoomended(dispatch);
+	      }
+	    }
+	    function touchstarted() {
+	      var that = this, dispatch = event.of(that, arguments), locations0 = {}, distance0 = 0, scale0, zoomName = ".zoom-" + d3.event.changedTouches[0].identifier, touchmove = "touchmove" + zoomName, touchend = "touchend" + zoomName, targets = [], subject = d3.select(that), dragRestore = d3_event_dragSuppress(that);
+	      started();
+	      zoomstarted(dispatch);
+	      subject.on(mousedown, null).on(touchstart, started);
+	      function relocate() {
+	        var touches = d3.touches(that);
+	        scale0 = view.k;
+	        touches.forEach(function(t) {
+	          if (t.identifier in locations0) locations0[t.identifier] = location(t);
+	        });
+	        return touches;
+	      }
+	      function started() {
+	        var target = d3.event.target;
+	        d3.select(target).on(touchmove, moved).on(touchend, ended);
+	        targets.push(target);
+	        var changed = d3.event.changedTouches;
+	        for (var i = 0, n = changed.length; i < n; ++i) {
+	          locations0[changed[i].identifier] = null;
+	        }
+	        var touches = relocate(), now = Date.now();
+	        if (touches.length === 1) {
+	          if (now - touchtime < 500) {
+	            var p = touches[0];
+	            zoomTo(that, p, locations0[p.identifier], Math.floor(Math.log(view.k) / Math.LN2) + 1);
+	            d3_eventPreventDefault();
+	          }
+	          touchtime = now;
+	        } else if (touches.length > 1) {
+	          var p = touches[0], q = touches[1], dx = p[0] - q[0], dy = p[1] - q[1];
+	          distance0 = dx * dx + dy * dy;
+	        }
+	      }
+	      function moved() {
+	        var touches = d3.touches(that), p0, l0, p1, l1;
+	        d3_selection_interrupt.call(that);
+	        for (var i = 0, n = touches.length; i < n; ++i, l1 = null) {
+	          p1 = touches[i];
+	          if (l1 = locations0[p1.identifier]) {
+	            if (l0) break;
+	            p0 = p1, l0 = l1;
+	          }
+	        }
+	        if (l1) {
+	          var distance1 = (distance1 = p1[0] - p0[0]) * distance1 + (distance1 = p1[1] - p0[1]) * distance1, scale1 = distance0 && Math.sqrt(distance1 / distance0);
+	          p0 = [ (p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2 ];
+	          l0 = [ (l0[0] + l1[0]) / 2, (l0[1] + l1[1]) / 2 ];
+	          scaleTo(scale1 * scale0);
+	        }
+	        touchtime = null;
+	        translateTo(p0, l0);
+	        zoomed(dispatch);
+	      }
+	      function ended() {
+	        if (d3.event.touches.length) {
+	          var changed = d3.event.changedTouches;
+	          for (var i = 0, n = changed.length; i < n; ++i) {
+	            delete locations0[changed[i].identifier];
+	          }
+	          for (var identifier in locations0) {
+	            return void relocate();
+	          }
+	        }
+	        d3.selectAll(targets).on(zoomName, null);
+	        subject.on(mousedown, mousedowned).on(touchstart, touchstarted);
+	        dragRestore();
+	        zoomended(dispatch);
+	      }
+	    }
+	    function mousewheeled() {
+	      var dispatch = event.of(this, arguments);
+	      if (mousewheelTimer) clearTimeout(mousewheelTimer); else d3_selection_interrupt.call(this), 
+	      translate0 = location(center0 = center || d3.mouse(this)), zoomstarted(dispatch);
+	      mousewheelTimer = setTimeout(function() {
+	        mousewheelTimer = null;
+	        zoomended(dispatch);
+	      }, 50);
+	      d3_eventPreventDefault();
+	      scaleTo(Math.pow(2, d3_behavior_zoomDelta() * .002) * view.k);
+	      translateTo(center0, translate0);
+	      zoomed(dispatch);
+	    }
+	    function dblclicked() {
+	      var p = d3.mouse(this), k = Math.log(view.k) / Math.LN2;
+	      zoomTo(this, p, location(p), d3.event.shiftKey ? Math.ceil(k) - 1 : Math.floor(k) + 1);
+	    }
+	    return d3.rebind(zoom, event, "on");
+	  };
+	  var d3_behavior_zoomInfinity = [ 0, Infinity ], d3_behavior_zoomDelta, d3_behavior_zoomWheel;
+	  d3.color = d3_color;
+	  function d3_color() {}
+	  d3_color.prototype.toString = function() {
+	    return this.rgb() + "";
+	  };
+	  d3.hsl = d3_hsl;
+	  function d3_hsl(h, s, l) {
+	    return this instanceof d3_hsl ? void (this.h = +h, this.s = +s, this.l = +l) : arguments.length < 2 ? h instanceof d3_hsl ? new d3_hsl(h.h, h.s, h.l) : d3_rgb_parse("" + h, d3_rgb_hsl, d3_hsl) : new d3_hsl(h, s, l);
+	  }
+	  var d3_hslPrototype = d3_hsl.prototype = new d3_color();
+	  d3_hslPrototype.brighter = function(k) {
+	    k = Math.pow(.7, arguments.length ? k : 1);
+	    return new d3_hsl(this.h, this.s, this.l / k);
+	  };
+	  d3_hslPrototype.darker = function(k) {
+	    k = Math.pow(.7, arguments.length ? k : 1);
+	    return new d3_hsl(this.h, this.s, k * this.l);
+	  };
+	  d3_hslPrototype.rgb = function() {
+	    return d3_hsl_rgb(this.h, this.s, this.l);
+	  };
+	  function d3_hsl_rgb(h, s, l) {
+	    var m1, m2;
+	    h = isNaN(h) ? 0 : (h %= 360) < 0 ? h + 360 : h;
+	    s = isNaN(s) ? 0 : s < 0 ? 0 : s > 1 ? 1 : s;
+	    l = l < 0 ? 0 : l > 1 ? 1 : l;
+	    m2 = l <= .5 ? l * (1 + s) : l + s - l * s;
+	    m1 = 2 * l - m2;
+	    function v(h) {
+	      if (h > 360) h -= 360; else if (h < 0) h += 360;
+	      if (h < 60) return m1 + (m2 - m1) * h / 60;
+	      if (h < 180) return m2;
+	      if (h < 240) return m1 + (m2 - m1) * (240 - h) / 60;
+	      return m1;
+	    }
+	    function vv(h) {
+	      return Math.round(v(h) * 255);
+	    }
+	    return new d3_rgb(vv(h + 120), vv(h), vv(h - 120));
+	  }
+	  d3.hcl = d3_hcl;
+	  function d3_hcl(h, c, l) {
+	    return this instanceof d3_hcl ? void (this.h = +h, this.c = +c, this.l = +l) : arguments.length < 2 ? h instanceof d3_hcl ? new d3_hcl(h.h, h.c, h.l) : h instanceof d3_lab ? d3_lab_hcl(h.l, h.a, h.b) : d3_lab_hcl((h = d3_rgb_lab((h = d3.rgb(h)).r, h.g, h.b)).l, h.a, h.b) : new d3_hcl(h, c, l);
+	  }
+	  var d3_hclPrototype = d3_hcl.prototype = new d3_color();
+	  d3_hclPrototype.brighter = function(k) {
+	    return new d3_hcl(this.h, this.c, Math.min(100, this.l + d3_lab_K * (arguments.length ? k : 1)));
+	  };
+	  d3_hclPrototype.darker = function(k) {
+	    return new d3_hcl(this.h, this.c, Math.max(0, this.l - d3_lab_K * (arguments.length ? k : 1)));
+	  };
+	  d3_hclPrototype.rgb = function() {
+	    return d3_hcl_lab(this.h, this.c, this.l).rgb();
+	  };
+	  function d3_hcl_lab(h, c, l) {
+	    if (isNaN(h)) h = 0;
+	    if (isNaN(c)) c = 0;
+	    return new d3_lab(l, Math.cos(h *= d3_radians) * c, Math.sin(h) * c);
+	  }
+	  d3.lab = d3_lab;
+	  function d3_lab(l, a, b) {
+	    return this instanceof d3_lab ? void (this.l = +l, this.a = +a, this.b = +b) : arguments.length < 2 ? l instanceof d3_lab ? new d3_lab(l.l, l.a, l.b) : l instanceof d3_hcl ? d3_hcl_lab(l.h, l.c, l.l) : d3_rgb_lab((l = d3_rgb(l)).r, l.g, l.b) : new d3_lab(l, a, b);
+	  }
+	  var d3_lab_K = 18;
+	  var d3_lab_X = .95047, d3_lab_Y = 1, d3_lab_Z = 1.08883;
+	  var d3_labPrototype = d3_lab.prototype = new d3_color();
+	  d3_labPrototype.brighter = function(k) {
+	    return new d3_lab(Math.min(100, this.l + d3_lab_K * (arguments.length ? k : 1)), this.a, this.b);
+	  };
+	  d3_labPrototype.darker = function(k) {
+	    return new d3_lab(Math.max(0, this.l - d3_lab_K * (arguments.length ? k : 1)), this.a, this.b);
+	  };
+	  d3_labPrototype.rgb = function() {
+	    return d3_lab_rgb(this.l, this.a, this.b);
+	  };
+	  function d3_lab_rgb(l, a, b) {
+	    var y = (l + 16) / 116, x = y + a / 500, z = y - b / 200;
+	    x = d3_lab_xyz(x) * d3_lab_X;
+	    y = d3_lab_xyz(y) * d3_lab_Y;
+	    z = d3_lab_xyz(z) * d3_lab_Z;
+	    return new d3_rgb(d3_xyz_rgb(3.2404542 * x - 1.5371385 * y - .4985314 * z), d3_xyz_rgb(-.969266 * x + 1.8760108 * y + .041556 * z), d3_xyz_rgb(.0556434 * x - .2040259 * y + 1.0572252 * z));
+	  }
+	  function d3_lab_hcl(l, a, b) {
+	    return l > 0 ? new d3_hcl(Math.atan2(b, a) * d3_degrees, Math.sqrt(a * a + b * b), l) : new d3_hcl(NaN, NaN, l);
+	  }
+	  function d3_lab_xyz(x) {
+	    return x > .206893034 ? x * x * x : (x - 4 / 29) / 7.787037;
+	  }
+	  function d3_xyz_lab(x) {
+	    return x > .008856 ? Math.pow(x, 1 / 3) : 7.787037 * x + 4 / 29;
+	  }
+	  function d3_xyz_rgb(r) {
+	    return Math.round(255 * (r <= .00304 ? 12.92 * r : 1.055 * Math.pow(r, 1 / 2.4) - .055));
+	  }
+	  d3.rgb = d3_rgb;
+	  function d3_rgb(r, g, b) {
+	    return this instanceof d3_rgb ? void (this.r = ~~r, this.g = ~~g, this.b = ~~b) : arguments.length < 2 ? r instanceof d3_rgb ? new d3_rgb(r.r, r.g, r.b) : d3_rgb_parse("" + r, d3_rgb, d3_hsl_rgb) : new d3_rgb(r, g, b);
+	  }
+	  function d3_rgbNumber(value) {
+	    return new d3_rgb(value >> 16, value >> 8 & 255, value & 255);
+	  }
+	  function d3_rgbString(value) {
+	    return d3_rgbNumber(value) + "";
+	  }
+	  var d3_rgbPrototype = d3_rgb.prototype = new d3_color();
+	  d3_rgbPrototype.brighter = function(k) {
+	    k = Math.pow(.7, arguments.length ? k : 1);
+	    var r = this.r, g = this.g, b = this.b, i = 30;
+	    if (!r && !g && !b) return new d3_rgb(i, i, i);
+	    if (r && r < i) r = i;
+	    if (g && g < i) g = i;
+	    if (b && b < i) b = i;
+	    return new d3_rgb(Math.min(255, r / k), Math.min(255, g / k), Math.min(255, b / k));
+	  };
+	  d3_rgbPrototype.darker = function(k) {
+	    k = Math.pow(.7, arguments.length ? k : 1);
+	    return new d3_rgb(k * this.r, k * this.g, k * this.b);
+	  };
+	  d3_rgbPrototype.hsl = function() {
+	    return d3_rgb_hsl(this.r, this.g, this.b);
+	  };
+	  d3_rgbPrototype.toString = function() {
+	    return "#" + d3_rgb_hex(this.r) + d3_rgb_hex(this.g) + d3_rgb_hex(this.b);
+	  };
+	  function d3_rgb_hex(v) {
+	    return v < 16 ? "0" + Math.max(0, v).toString(16) : Math.min(255, v).toString(16);
+	  }
+	  function d3_rgb_parse(format, rgb, hsl) {
+	    var r = 0, g = 0, b = 0, m1, m2, color;
+	    m1 = /([a-z]+)\((.*)\)/.exec(format = format.toLowerCase());
+	    if (m1) {
+	      m2 = m1[2].split(",");
+	      switch (m1[1]) {
+	       case "hsl":
+	        {
+	          return hsl(parseFloat(m2[0]), parseFloat(m2[1]) / 100, parseFloat(m2[2]) / 100);
+	        }
+	
+	       case "rgb":
+	        {
+	          return rgb(d3_rgb_parseNumber(m2[0]), d3_rgb_parseNumber(m2[1]), d3_rgb_parseNumber(m2[2]));
+	        }
+	      }
+	    }
+	    if (color = d3_rgb_names.get(format)) {
+	      return rgb(color.r, color.g, color.b);
+	    }
+	    if (format != null && format.charAt(0) === "#" && !isNaN(color = parseInt(format.slice(1), 16))) {
+	      if (format.length === 4) {
+	        r = (color & 3840) >> 4;
+	        r = r >> 4 | r;
+	        g = color & 240;
+	        g = g >> 4 | g;
+	        b = color & 15;
+	        b = b << 4 | b;
+	      } else if (format.length === 7) {
+	        r = (color & 16711680) >> 16;
+	        g = (color & 65280) >> 8;
+	        b = color & 255;
+	      }
+	    }
+	    return rgb(r, g, b);
+	  }
+	  function d3_rgb_hsl(r, g, b) {
+	    var min = Math.min(r /= 255, g /= 255, b /= 255), max = Math.max(r, g, b), d = max - min, h, s, l = (max + min) / 2;
+	    if (d) {
+	      s = l < .5 ? d / (max + min) : d / (2 - max - min);
+	      if (r == max) h = (g - b) / d + (g < b ? 6 : 0); else if (g == max) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+	      h *= 60;
+	    } else {
+	      h = NaN;
+	      s = l > 0 && l < 1 ? 0 : h;
+	    }
+	    return new d3_hsl(h, s, l);
+	  }
+	  function d3_rgb_lab(r, g, b) {
+	    r = d3_rgb_xyz(r);
+	    g = d3_rgb_xyz(g);
+	    b = d3_rgb_xyz(b);
+	    var x = d3_xyz_lab((.4124564 * r + .3575761 * g + .1804375 * b) / d3_lab_X), y = d3_xyz_lab((.2126729 * r + .7151522 * g + .072175 * b) / d3_lab_Y), z = d3_xyz_lab((.0193339 * r + .119192 * g + .9503041 * b) / d3_lab_Z);
+	    return d3_lab(116 * y - 16, 500 * (x - y), 200 * (y - z));
+	  }
+	  function d3_rgb_xyz(r) {
+	    return (r /= 255) <= .04045 ? r / 12.92 : Math.pow((r + .055) / 1.055, 2.4);
+	  }
+	  function d3_rgb_parseNumber(c) {
+	    var f = parseFloat(c);
+	    return c.charAt(c.length - 1) === "%" ? Math.round(f * 2.55) : f;
+	  }
+	  var d3_rgb_names = d3.map({
+	    aliceblue: 15792383,
+	    antiquewhite: 16444375,
+	    aqua: 65535,
+	    aquamarine: 8388564,
+	    azure: 15794175,
+	    beige: 16119260,
+	    bisque: 16770244,
+	    black: 0,
+	    blanchedalmond: 16772045,
+	    blue: 255,
+	    blueviolet: 9055202,
+	    brown: 10824234,
+	    burlywood: 14596231,
+	    cadetblue: 6266528,
+	    chartreuse: 8388352,
+	    chocolate: 13789470,
+	    coral: 16744272,
+	    cornflowerblue: 6591981,
+	    cornsilk: 16775388,
+	    crimson: 14423100,
+	    cyan: 65535,
+	    darkblue: 139,
+	    darkcyan: 35723,
+	    darkgoldenrod: 12092939,
+	    darkgray: 11119017,
+	    darkgreen: 25600,
+	    darkgrey: 11119017,
+	    darkkhaki: 12433259,
+	    darkmagenta: 9109643,
+	    darkolivegreen: 5597999,
+	    darkorange: 16747520,
+	    darkorchid: 10040012,
+	    darkred: 9109504,
+	    darksalmon: 15308410,
+	    darkseagreen: 9419919,
+	    darkslateblue: 4734347,
+	    darkslategray: 3100495,
+	    darkslategrey: 3100495,
+	    darkturquoise: 52945,
+	    darkviolet: 9699539,
+	    deeppink: 16716947,
+	    deepskyblue: 49151,
+	    dimgray: 6908265,
+	    dimgrey: 6908265,
+	    dodgerblue: 2003199,
+	    firebrick: 11674146,
+	    floralwhite: 16775920,
+	    forestgreen: 2263842,
+	    fuchsia: 16711935,
+	    gainsboro: 14474460,
+	    ghostwhite: 16316671,
+	    gold: 16766720,
+	    goldenrod: 14329120,
+	    gray: 8421504,
+	    green: 32768,
+	    greenyellow: 11403055,
+	    grey: 8421504,
+	    honeydew: 15794160,
+	    hotpink: 16738740,
+	    indianred: 13458524,
+	    indigo: 4915330,
+	    ivory: 16777200,
+	    khaki: 15787660,
+	    lavender: 15132410,
+	    lavenderblush: 16773365,
+	    lawngreen: 8190976,
+	    lemonchiffon: 16775885,
+	    lightblue: 11393254,
+	    lightcoral: 15761536,
+	    lightcyan: 14745599,
+	    lightgoldenrodyellow: 16448210,
+	    lightgray: 13882323,
+	    lightgreen: 9498256,
+	    lightgrey: 13882323,
+	    lightpink: 16758465,
+	    lightsalmon: 16752762,
+	    lightseagreen: 2142890,
+	    lightskyblue: 8900346,
+	    lightslategray: 7833753,
+	    lightslategrey: 7833753,
+	    lightsteelblue: 11584734,
+	    lightyellow: 16777184,
+	    lime: 65280,
+	    limegreen: 3329330,
+	    linen: 16445670,
+	    magenta: 16711935,
+	    maroon: 8388608,
+	    mediumaquamarine: 6737322,
+	    mediumblue: 205,
+	    mediumorchid: 12211667,
+	    mediumpurple: 9662683,
+	    mediumseagreen: 3978097,
+	    mediumslateblue: 8087790,
+	    mediumspringgreen: 64154,
+	    mediumturquoise: 4772300,
+	    mediumvioletred: 13047173,
+	    midnightblue: 1644912,
+	    mintcream: 16121850,
+	    mistyrose: 16770273,
+	    moccasin: 16770229,
+	    navajowhite: 16768685,
+	    navy: 128,
+	    oldlace: 16643558,
+	    olive: 8421376,
+	    olivedrab: 7048739,
+	    orange: 16753920,
+	    orangered: 16729344,
+	    orchid: 14315734,
+	    palegoldenrod: 15657130,
+	    palegreen: 10025880,
+	    paleturquoise: 11529966,
+	    palevioletred: 14381203,
+	    papayawhip: 16773077,
+	    peachpuff: 16767673,
+	    peru: 13468991,
+	    pink: 16761035,
+	    plum: 14524637,
+	    powderblue: 11591910,
+	    purple: 8388736,
+	    rebeccapurple: 6697881,
+	    red: 16711680,
+	    rosybrown: 12357519,
+	    royalblue: 4286945,
+	    saddlebrown: 9127187,
+	    salmon: 16416882,
+	    sandybrown: 16032864,
+	    seagreen: 3050327,
+	    seashell: 16774638,
+	    sienna: 10506797,
+	    silver: 12632256,
+	    skyblue: 8900331,
+	    slateblue: 6970061,
+	    slategray: 7372944,
+	    slategrey: 7372944,
+	    snow: 16775930,
+	    springgreen: 65407,
+	    steelblue: 4620980,
+	    tan: 13808780,
+	    teal: 32896,
+	    thistle: 14204888,
+	    tomato: 16737095,
+	    turquoise: 4251856,
+	    violet: 15631086,
+	    wheat: 16113331,
+	    white: 16777215,
+	    whitesmoke: 16119285,
+	    yellow: 16776960,
+	    yellowgreen: 10145074
+	  });
+	  d3_rgb_names.forEach(function(key, value) {
+	    d3_rgb_names.set(key, d3_rgbNumber(value));
+	  });
+	  function d3_functor(v) {
+	    return typeof v === "function" ? v : function() {
+	      return v;
+	    };
+	  }
+	  d3.functor = d3_functor;
+	  d3.xhr = d3_xhrType(d3_identity);
+	  function d3_xhrType(response) {
+	    return function(url, mimeType, callback) {
+	      if (arguments.length === 2 && typeof mimeType === "function") callback = mimeType, 
+	      mimeType = null;
+	      return d3_xhr(url, mimeType, response, callback);
+	    };
+	  }
+	  function d3_xhr(url, mimeType, response, callback) {
+	    var xhr = {}, dispatch = d3.dispatch("beforesend", "progress", "load", "error"), headers = {}, request = new XMLHttpRequest(), responseType = null;
+	    if (this.XDomainRequest && !("withCredentials" in request) && /^(http(s)?:)?\/\//.test(url)) request = new XDomainRequest();
+	    "onload" in request ? request.onload = request.onerror = respond : request.onreadystatechange = function() {
+	      request.readyState > 3 && respond();
+	    };
+	    function respond() {
+	      var status = request.status, result;
+	      if (!status && d3_xhrHasResponse(request) || status >= 200 && status < 300 || status === 304) {
+	        try {
+	          result = response.call(xhr, request);
+	        } catch (e) {
+	          dispatch.error.call(xhr, e);
+	          return;
+	        }
+	        dispatch.load.call(xhr, result);
+	      } else {
+	        dispatch.error.call(xhr, request);
+	      }
+	    }
+	    request.onprogress = function(event) {
+	      var o = d3.event;
+	      d3.event = event;
+	      try {
+	        dispatch.progress.call(xhr, request);
+	      } finally {
+	        d3.event = o;
+	      }
+	    };
+	    xhr.header = function(name, value) {
+	      name = (name + "").toLowerCase();
+	      if (arguments.length < 2) return headers[name];
+	      if (value == null) delete headers[name]; else headers[name] = value + "";
+	      return xhr;
+	    };
+	    xhr.mimeType = function(value) {
+	      if (!arguments.length) return mimeType;
+	      mimeType = value == null ? null : value + "";
+	      return xhr;
+	    };
+	    xhr.responseType = function(value) {
+	      if (!arguments.length) return responseType;
+	      responseType = value;
+	      return xhr;
+	    };
+	    xhr.response = function(value) {
+	      response = value;
+	      return xhr;
+	    };
+	    [ "get", "post" ].forEach(function(method) {
+	      xhr[method] = function() {
+	        return xhr.send.apply(xhr, [ method ].concat(d3_array(arguments)));
+	      };
+	    });
+	    xhr.send = function(method, data, callback) {
+	      if (arguments.length === 2 && typeof data === "function") callback = data, data = null;
+	      request.open(method, url, true);
+	      if (mimeType != null && !("accept" in headers)) headers["accept"] = mimeType + ",*/*";
+	      if (request.setRequestHeader) for (var name in headers) request.setRequestHeader(name, headers[name]);
+	      if (mimeType != null && request.overrideMimeType) request.overrideMimeType(mimeType);
+	      if (responseType != null) request.responseType = responseType;
+	      if (callback != null) xhr.on("error", callback).on("load", function(request) {
+	        callback(null, request);
+	      });
+	      dispatch.beforesend.call(xhr, request);
+	      request.send(data == null ? null : data);
+	      return xhr;
+	    };
+	    xhr.abort = function() {
+	      request.abort();
+	      return xhr;
+	    };
+	    d3.rebind(xhr, dispatch, "on");
+	    return callback == null ? xhr : xhr.get(d3_xhr_fixCallback(callback));
+	  }
+	  function d3_xhr_fixCallback(callback) {
+	    return callback.length === 1 ? function(error, request) {
+	      callback(error == null ? request : null);
+	    } : callback;
+	  }
+	  function d3_xhrHasResponse(request) {
+	    var type = request.responseType;
+	    return type && type !== "text" ? request.response : request.responseText;
+	  }
+	  d3.dsv = function(delimiter, mimeType) {
+	    var reFormat = new RegExp('["' + delimiter + "\n]"), delimiterCode = delimiter.charCodeAt(0);
+	    function dsv(url, row, callback) {
+	      if (arguments.length < 3) callback = row, row = null;
+	      var xhr = d3_xhr(url, mimeType, row == null ? response : typedResponse(row), callback);
+	      xhr.row = function(_) {
+	        return arguments.length ? xhr.response((row = _) == null ? response : typedResponse(_)) : row;
+	      };
+	      return xhr;
+	    }
+	    function response(request) {
+	      return dsv.parse(request.responseText);
+	    }
+	    function typedResponse(f) {
+	      return function(request) {
+	        return dsv.parse(request.responseText, f);
+	      };
+	    }
+	    dsv.parse = function(text, f) {
+	      var o;
+	      return dsv.parseRows(text, function(row, i) {
+	        if (o) return o(row, i - 1);
+	        var a = new Function("d", "return {" + row.map(function(name, i) {
+	          return JSON.stringify(name) + ": d[" + i + "]";
+	        }).join(",") + "}");
+	        o = f ? function(row, i) {
+	          return f(a(row), i);
+	        } : a;
+	      });
+	    };
+	    dsv.parseRows = function(text, f) {
+	      var EOL = {}, EOF = {}, rows = [], N = text.length, I = 0, n = 0, t, eol;
+	      function token() {
+	        if (I >= N) return EOF;
+	        if (eol) return eol = false, EOL;
+	        var j = I;
+	        if (text.charCodeAt(j) === 34) {
+	          var i = j;
+	          while (i++ < N) {
+	            if (text.charCodeAt(i) === 34) {
+	              if (text.charCodeAt(i + 1) !== 34) break;
+	              ++i;
+	            }
+	          }
+	          I = i + 2;
+	          var c = text.charCodeAt(i + 1);
+	          if (c === 13) {
+	            eol = true;
+	            if (text.charCodeAt(i + 2) === 10) ++I;
+	          } else if (c === 10) {
+	            eol = true;
+	          }
+	          return text.slice(j + 1, i).replace(/""/g, '"');
+	        }
+	        while (I < N) {
+	          var c = text.charCodeAt(I++), k = 1;
+	          if (c === 10) eol = true; else if (c === 13) {
+	            eol = true;
+	            if (text.charCodeAt(I) === 10) ++I, ++k;
+	          } else if (c !== delimiterCode) continue;
+	          return text.slice(j, I - k);
+	        }
+	        return text.slice(j);
+	      }
+	      while ((t = token()) !== EOF) {
+	        var a = [];
+	        while (t !== EOL && t !== EOF) {
+	          a.push(t);
+	          t = token();
+	        }
+	        if (f && (a = f(a, n++)) == null) continue;
+	        rows.push(a);
+	      }
+	      return rows;
+	    };
+	    dsv.format = function(rows) {
+	      if (Array.isArray(rows[0])) return dsv.formatRows(rows);
+	      var fieldSet = new d3_Set(), fields = [];
+	      rows.forEach(function(row) {
+	        for (var field in row) {
+	          if (!fieldSet.has(field)) {
+	            fields.push(fieldSet.add(field));
+	          }
+	        }
+	      });
+	      return [ fields.map(formatValue).join(delimiter) ].concat(rows.map(function(row) {
+	        return fields.map(function(field) {
+	          return formatValue(row[field]);
+	        }).join(delimiter);
+	      })).join("\n");
+	    };
+	    dsv.formatRows = function(rows) {
+	      return rows.map(formatRow).join("\n");
+	    };
+	    function formatRow(row) {
+	      return row.map(formatValue).join(delimiter);
+	    }
+	    function formatValue(text) {
+	      return reFormat.test(text) ? '"' + text.replace(/\"/g, '""') + '"' : text;
+	    }
+	    return dsv;
+	  };
+	  d3.csv = d3.dsv(",", "text/csv");
+	  d3.tsv = d3.dsv("	", "text/tab-separated-values");
+	  var d3_timer_queueHead, d3_timer_queueTail, d3_timer_interval, d3_timer_timeout, d3_timer_frame = this[d3_vendorSymbol(this, "requestAnimationFrame")] || function(callback) {
+	    setTimeout(callback, 17);
+	  };
+	  d3.timer = function() {
+	    d3_timer.apply(this, arguments);
+	  };
+	  function d3_timer(callback, delay, then) {
+	    var n = arguments.length;
+	    if (n < 2) delay = 0;
+	    if (n < 3) then = Date.now();
+	    var time = then + delay, timer = {
+	      c: callback,
+	      t: time,
+	      n: null
+	    };
+	    if (d3_timer_queueTail) d3_timer_queueTail.n = timer; else d3_timer_queueHead = timer;
+	    d3_timer_queueTail = timer;
+	    if (!d3_timer_interval) {
+	      d3_timer_timeout = clearTimeout(d3_timer_timeout);
+	      d3_timer_interval = 1;
+	      d3_timer_frame(d3_timer_step);
+	    }
+	    return timer;
+	  }
+	  function d3_timer_step() {
+	    var now = d3_timer_mark(), delay = d3_timer_sweep() - now;
+	    if (delay > 24) {
+	      if (isFinite(delay)) {
+	        clearTimeout(d3_timer_timeout);
+	        d3_timer_timeout = setTimeout(d3_timer_step, delay);
+	      }
+	      d3_timer_interval = 0;
+	    } else {
+	      d3_timer_interval = 1;
+	      d3_timer_frame(d3_timer_step);
+	    }
+	  }
+	  d3.timer.flush = function() {
+	    d3_timer_mark();
+	    d3_timer_sweep();
+	  };
+	  function d3_timer_mark() {
+	    var now = Date.now(), timer = d3_timer_queueHead;
+	    while (timer) {
+	      if (now >= timer.t && timer.c(now - timer.t)) timer.c = null;
+	      timer = timer.n;
+	    }
+	    return now;
+	  }
+	  function d3_timer_sweep() {
+	    var t0, t1 = d3_timer_queueHead, time = Infinity;
+	    while (t1) {
+	      if (t1.c) {
+	        if (t1.t < time) time = t1.t;
+	        t1 = (t0 = t1).n;
+	      } else {
+	        t1 = t0 ? t0.n = t1.n : d3_timer_queueHead = t1.n;
+	      }
+	    }
+	    d3_timer_queueTail = t0;
+	    return time;
+	  }
+	  function d3_format_precision(x, p) {
+	    return p - (x ? Math.ceil(Math.log(x) / Math.LN10) : 1);
+	  }
+	  d3.round = function(x, n) {
+	    return n ? Math.round(x * (n = Math.pow(10, n))) / n : Math.round(x);
+	  };
+	  var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
+	  d3.formatPrefix = function(value, precision) {
+	    var i = 0;
+	    if (value = +value) {
+	      if (value < 0) value *= -1;
+	      if (precision) value = d3.round(value, d3_format_precision(value, precision));
+	      i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
+	      i = Math.max(-24, Math.min(24, Math.floor((i - 1) / 3) * 3));
+	    }
+	    return d3_formatPrefixes[8 + i / 3];
+	  };
+	  function d3_formatPrefix(d, i) {
+	    var k = Math.pow(10, abs(8 - i) * 3);
+	    return {
+	      scale: i > 8 ? function(d) {
+	        return d / k;
+	      } : function(d) {
+	        return d * k;
+	      },
+	      symbol: d
+	    };
+	  }
+	  function d3_locale_numberFormat(locale) {
+	    var locale_decimal = locale.decimal, locale_thousands = locale.thousands, locale_grouping = locale.grouping, locale_currency = locale.currency, formatGroup = locale_grouping && locale_thousands ? function(value, width) {
+	      var i = value.length, t = [], j = 0, g = locale_grouping[0], length = 0;
+	      while (i > 0 && g > 0) {
+	        if (length + g + 1 > width) g = Math.max(1, width - length);
+	        t.push(value.substring(i -= g, i + g));
+	        if ((length += g + 1) > width) break;
+	        g = locale_grouping[j = (j + 1) % locale_grouping.length];
+	      }
+	      return t.reverse().join(locale_thousands);
+	    } : d3_identity;
+	    return function(specifier) {
+	      var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "-", symbol = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, prefix = "", suffix = "", integer = false, exponent = true;
+	      if (precision) precision = +precision.substring(1);
+	      if (zfill || fill === "0" && align === "=") {
+	        zfill = fill = "0";
+	        align = "=";
+	      }
+	      switch (type) {
+	       case "n":
+	        comma = true;
+	        type = "g";
+	        break;
+	
+	       case "%":
+	        scale = 100;
+	        suffix = "%";
+	        type = "f";
+	        break;
+	
+	       case "p":
+	        scale = 100;
+	        suffix = "%";
+	        type = "r";
+	        break;
+	
+	       case "b":
+	       case "o":
+	       case "x":
+	       case "X":
+	        if (symbol === "#") prefix = "0" + type.toLowerCase();
+	
+	       case "c":
+	        exponent = false;
+	
+	       case "d":
+	        integer = true;
+	        precision = 0;
+	        break;
+	
+	       case "s":
+	        scale = -1;
+	        type = "r";
+	        break;
+	      }
+	      if (symbol === "$") prefix = locale_currency[0], suffix = locale_currency[1];
+	      if (type == "r" && !precision) type = "g";
+	      if (precision != null) {
+	        if (type == "g") precision = Math.max(1, Math.min(21, precision)); else if (type == "e" || type == "f") precision = Math.max(0, Math.min(20, precision));
+	      }
+	      type = d3_format_types.get(type) || d3_format_typeDefault;
+	      var zcomma = zfill && comma;
+	      return function(value) {
+	        var fullSuffix = suffix;
+	        if (integer && value % 1) return "";
+	        var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, "-") : sign === "-" ? "" : sign;
+	        if (scale < 0) {
+	          var unit = d3.formatPrefix(value, precision);
+	          value = unit.scale(value);
+	          fullSuffix = unit.symbol + suffix;
+	        } else {
+	          value *= scale;
+	        }
+	        value = type(value, precision);
+	        var i = value.lastIndexOf("."), before, after;
+	        if (i < 0) {
+	          var j = exponent ? value.lastIndexOf("e") : -1;
+	          if (j < 0) before = value, after = ""; else before = value.substring(0, j), after = value.substring(j);
+	        } else {
+	          before = value.substring(0, i);
+	          after = locale_decimal + value.substring(i + 1);
+	        }
+	        if (!zfill && comma) before = formatGroup(before, Infinity);
+	        var length = prefix.length + before.length + after.length + (zcomma ? 0 : negative.length), padding = length < width ? new Array(length = width - length + 1).join(fill) : "";
+	        if (zcomma) before = formatGroup(padding + before, padding.length ? width - after.length : Infinity);
+	        negative += prefix;
+	        value = before + after;
+	        return (align === "<" ? negative + value + padding : align === ">" ? padding + negative + value : align === "^" ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length) : negative + (zcomma ? value : padding + value)) + fullSuffix;
+	      };
+	    };
+	  }
+	  var d3_format_re = /(?:([^{])?([<>=^]))?([+\- ])?([$#])?(0)?(\d+)?(,)?(\.-?\d+)?([a-z%])?/i;
+	  var d3_format_types = d3.map({
+	    b: function(x) {
+	      return x.toString(2);
+	    },
+	    c: function(x) {
+	      return String.fromCharCode(x);
+	    },
+	    o: function(x) {
+	      return x.toString(8);
+	    },
+	    x: function(x) {
+	      return x.toString(16);
+	    },
+	    X: function(x) {
+	      return x.toString(16).toUpperCase();
+	    },
+	    g: function(x, p) {
+	      return x.toPrecision(p);
+	    },
+	    e: function(x, p) {
+	      return x.toExponential(p);
+	    },
+	    f: function(x, p) {
+	      return x.toFixed(p);
+	    },
+	    r: function(x, p) {
+	      return (x = d3.round(x, d3_format_precision(x, p))).toFixed(Math.max(0, Math.min(20, d3_format_precision(x * (1 + 1e-15), p))));
+	    }
+	  });
+	  function d3_format_typeDefault(x) {
+	    return x + "";
+	  }
+	  var d3_time = d3.time = {}, d3_date = Date;
+	  function d3_date_utc() {
+	    this._ = new Date(arguments.length > 1 ? Date.UTC.apply(this, arguments) : arguments[0]);
+	  }
+	  d3_date_utc.prototype = {
+	    getDate: function() {
+	      return this._.getUTCDate();
+	    },
+	    getDay: function() {
+	      return this._.getUTCDay();
+	    },
+	    getFullYear: function() {
+	      return this._.getUTCFullYear();
+	    },
+	    getHours: function() {
+	      return this._.getUTCHours();
+	    },
+	    getMilliseconds: function() {
+	      return this._.getUTCMilliseconds();
+	    },
+	    getMinutes: function() {
+	      return this._.getUTCMinutes();
+	    },
+	    getMonth: function() {
+	      return this._.getUTCMonth();
+	    },
+	    getSeconds: function() {
+	      return this._.getUTCSeconds();
+	    },
+	    getTime: function() {
+	      return this._.getTime();
+	    },
+	    getTimezoneOffset: function() {
+	      return 0;
+	    },
+	    valueOf: function() {
+	      return this._.valueOf();
+	    },
+	    setDate: function() {
+	      d3_time_prototype.setUTCDate.apply(this._, arguments);
+	    },
+	    setDay: function() {
+	      d3_time_prototype.setUTCDay.apply(this._, arguments);
+	    },
+	    setFullYear: function() {
+	      d3_time_prototype.setUTCFullYear.apply(this._, arguments);
+	    },
+	    setHours: function() {
+	      d3_time_prototype.setUTCHours.apply(this._, arguments);
+	    },
+	    setMilliseconds: function() {
+	      d3_time_prototype.setUTCMilliseconds.apply(this._, arguments);
+	    },
+	    setMinutes: function() {
+	      d3_time_prototype.setUTCMinutes.apply(this._, arguments);
+	    },
+	    setMonth: function() {
+	      d3_time_prototype.setUTCMonth.apply(this._, arguments);
+	    },
+	    setSeconds: function() {
+	      d3_time_prototype.setUTCSeconds.apply(this._, arguments);
+	    },
+	    setTime: function() {
+	      d3_time_prototype.setTime.apply(this._, arguments);
+	    }
+	  };
+	  var d3_time_prototype = Date.prototype;
+	  function d3_time_interval(local, step, number) {
+	    function round(date) {
+	      var d0 = local(date), d1 = offset(d0, 1);
+	      return date - d0 < d1 - date ? d0 : d1;
+	    }
+	    function ceil(date) {
+	      step(date = local(new d3_date(date - 1)), 1);
+	      return date;
+	    }
+	    function offset(date, k) {
+	      step(date = new d3_date(+date), k);
+	      return date;
+	    }
+	    function range(t0, t1, dt) {
+	      var time = ceil(t0), times = [];
+	      if (dt > 1) {
+	        while (time < t1) {
+	          if (!(number(time) % dt)) times.push(new Date(+time));
+	          step(time, 1);
+	        }
+	      } else {
+	        while (time < t1) times.push(new Date(+time)), step(time, 1);
+	      }
+	      return times;
+	    }
+	    function range_utc(t0, t1, dt) {
+	      try {
+	        d3_date = d3_date_utc;
+	        var utc = new d3_date_utc();
+	        utc._ = t0;
+	        return range(utc, t1, dt);
+	      } finally {
+	        d3_date = Date;
+	      }
+	    }
+	    local.floor = local;
+	    local.round = round;
+	    local.ceil = ceil;
+	    local.offset = offset;
+	    local.range = range;
+	    var utc = local.utc = d3_time_interval_utc(local);
+	    utc.floor = utc;
+	    utc.round = d3_time_interval_utc(round);
+	    utc.ceil = d3_time_interval_utc(ceil);
+	    utc.offset = d3_time_interval_utc(offset);
+	    utc.range = range_utc;
+	    return local;
+	  }
+	  function d3_time_interval_utc(method) {
+	    return function(date, k) {
+	      try {
+	        d3_date = d3_date_utc;
+	        var utc = new d3_date_utc();
+	        utc._ = date;
+	        return method(utc, k)._;
+	      } finally {
+	        d3_date = Date;
+	      }
+	    };
+	  }
+	  d3_time.year = d3_time_interval(function(date) {
+	    date = d3_time.day(date);
+	    date.setMonth(0, 1);
+	    return date;
+	  }, function(date, offset) {
+	    date.setFullYear(date.getFullYear() + offset);
+	  }, function(date) {
+	    return date.getFullYear();
+	  });
+	  d3_time.years = d3_time.year.range;
+	  d3_time.years.utc = d3_time.year.utc.range;
+	  d3_time.day = d3_time_interval(function(date) {
+	    var day = new d3_date(2e3, 0);
+	    day.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+	    return day;
+	  }, function(date, offset) {
+	    date.setDate(date.getDate() + offset);
+	  }, function(date) {
+	    return date.getDate() - 1;
+	  });
+	  d3_time.days = d3_time.day.range;
+	  d3_time.days.utc = d3_time.day.utc.range;
+	  d3_time.dayOfYear = function(date) {
+	    var year = d3_time.year(date);
+	    return Math.floor((date - year - (date.getTimezoneOffset() - year.getTimezoneOffset()) * 6e4) / 864e5);
+	  };
+	  [ "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" ].forEach(function(day, i) {
+	    i = 7 - i;
+	    var interval = d3_time[day] = d3_time_interval(function(date) {
+	      (date = d3_time.day(date)).setDate(date.getDate() - (date.getDay() + i) % 7);
+	      return date;
+	    }, function(date, offset) {
+	      date.setDate(date.getDate() + Math.floor(offset) * 7);
+	    }, function(date) {
+	      var day = d3_time.year(date).getDay();
+	      return Math.floor((d3_time.dayOfYear(date) + (day + i) % 7) / 7) - (day !== i);
+	    });
+	    d3_time[day + "s"] = interval.range;
+	    d3_time[day + "s"].utc = interval.utc.range;
+	    d3_time[day + "OfYear"] = function(date) {
+	      var day = d3_time.year(date).getDay();
+	      return Math.floor((d3_time.dayOfYear(date) + (day + i) % 7) / 7);
+	    };
+	  });
+	  d3_time.week = d3_time.sunday;
+	  d3_time.weeks = d3_time.sunday.range;
+	  d3_time.weeks.utc = d3_time.sunday.utc.range;
+	  d3_time.weekOfYear = d3_time.sundayOfYear;
+	  function d3_locale_timeFormat(locale) {
+	    var locale_dateTime = locale.dateTime, locale_date = locale.date, locale_time = locale.time, locale_periods = locale.periods, locale_days = locale.days, locale_shortDays = locale.shortDays, locale_months = locale.months, locale_shortMonths = locale.shortMonths;
+	    function d3_time_format(template) {
+	      var n = template.length;
+	      function format(date) {
+	        var string = [], i = -1, j = 0, c, p, f;
+	        while (++i < n) {
+	          if (template.charCodeAt(i) === 37) {
+	            string.push(template.slice(j, i));
+	            if ((p = d3_time_formatPads[c = template.charAt(++i)]) != null) c = template.charAt(++i);
+	            if (f = d3_time_formats[c]) c = f(date, p == null ? c === "e" ? " " : "0" : p);
+	            string.push(c);
+	            j = i + 1;
+	          }
+	        }
+	        string.push(template.slice(j, i));
+	        return string.join("");
+	      }
+	      format.parse = function(string) {
+	        var d = {
+	          y: 1900,
+	          m: 0,
+	          d: 1,
+	          H: 0,
+	          M: 0,
+	          S: 0,
+	          L: 0,
+	          Z: null
+	        }, i = d3_time_parse(d, template, string, 0);
+	        if (i != string.length) return null;
+	        if ("p" in d) d.H = d.H % 12 + d.p * 12;
+	        var localZ = d.Z != null && d3_date !== d3_date_utc, date = new (localZ ? d3_date_utc : d3_date)();
+	        if ("j" in d) date.setFullYear(d.y, 0, d.j); else if ("W" in d || "U" in d) {
+	          if (!("w" in d)) d.w = "W" in d ? 1 : 0;
+	          date.setFullYear(d.y, 0, 1);
+	          date.setFullYear(d.y, 0, "W" in d ? (d.w + 6) % 7 + d.W * 7 - (date.getDay() + 5) % 7 : d.w + d.U * 7 - (date.getDay() + 6) % 7);
+	        } else date.setFullYear(d.y, d.m, d.d);
+	        date.setHours(d.H + (d.Z / 100 | 0), d.M + d.Z % 100, d.S, d.L);
+	        return localZ ? date._ : date;
+	      };
+	      format.toString = function() {
+	        return template;
+	      };
+	      return format;
+	    }
+	    function d3_time_parse(date, template, string, j) {
+	      var c, p, t, i = 0, n = template.length, m = string.length;
+	      while (i < n) {
+	        if (j >= m) return -1;
+	        c = template.charCodeAt(i++);
+	        if (c === 37) {
+	          t = template.charAt(i++);
+	          p = d3_time_parsers[t in d3_time_formatPads ? template.charAt(i++) : t];
+	          if (!p || (j = p(date, string, j)) < 0) return -1;
+	        } else if (c != string.charCodeAt(j++)) {
+	          return -1;
+	        }
+	      }
+	      return j;
+	    }
+	    d3_time_format.utc = function(template) {
+	      var local = d3_time_format(template);
+	      function format(date) {
+	        try {
+	          d3_date = d3_date_utc;
+	          var utc = new d3_date();
+	          utc._ = date;
+	          return local(utc);
+	        } finally {
+	          d3_date = Date;
+	        }
+	      }
+	      format.parse = function(string) {
+	        try {
+	          d3_date = d3_date_utc;
+	          var date = local.parse(string);
+	          return date && date._;
+	        } finally {
+	          d3_date = Date;
+	        }
+	      };
+	      format.toString = local.toString;
+	      return format;
+	    };
+	    d3_time_format.multi = d3_time_format.utc.multi = d3_time_formatMulti;
+	    var d3_time_periodLookup = d3.map(), d3_time_dayRe = d3_time_formatRe(locale_days), d3_time_dayLookup = d3_time_formatLookup(locale_days), d3_time_dayAbbrevRe = d3_time_formatRe(locale_shortDays), d3_time_dayAbbrevLookup = d3_time_formatLookup(locale_shortDays), d3_time_monthRe = d3_time_formatRe(locale_months), d3_time_monthLookup = d3_time_formatLookup(locale_months), d3_time_monthAbbrevRe = d3_time_formatRe(locale_shortMonths), d3_time_monthAbbrevLookup = d3_time_formatLookup(locale_shortMonths);
+	    locale_periods.forEach(function(p, i) {
+	      d3_time_periodLookup.set(p.toLowerCase(), i);
+	    });
+	    var d3_time_formats = {
+	      a: function(d) {
+	        return locale_shortDays[d.getDay()];
+	      },
+	      A: function(d) {
+	        return locale_days[d.getDay()];
+	      },
+	      b: function(d) {
+	        return locale_shortMonths[d.getMonth()];
+	      },
+	      B: function(d) {
+	        return locale_months[d.getMonth()];
+	      },
+	      c: d3_time_format(locale_dateTime),
+	      d: function(d, p) {
+	        return d3_time_formatPad(d.getDate(), p, 2);
+	      },
+	      e: function(d, p) {
+	        return d3_time_formatPad(d.getDate(), p, 2);
+	      },
+	      H: function(d, p) {
+	        return d3_time_formatPad(d.getHours(), p, 2);
+	      },
+	      I: function(d, p) {
+	        return d3_time_formatPad(d.getHours() % 12 || 12, p, 2);
+	      },
+	      j: function(d, p) {
+	        return d3_time_formatPad(1 + d3_time.dayOfYear(d), p, 3);
+	      },
+	      L: function(d, p) {
+	        return d3_time_formatPad(d.getMilliseconds(), p, 3);
+	      },
+	      m: function(d, p) {
+	        return d3_time_formatPad(d.getMonth() + 1, p, 2);
+	      },
+	      M: function(d, p) {
+	        return d3_time_formatPad(d.getMinutes(), p, 2);
+	      },
+	      p: function(d) {
+	        return locale_periods[+(d.getHours() >= 12)];
+	      },
+	      S: function(d, p) {
+	        return d3_time_formatPad(d.getSeconds(), p, 2);
+	      },
+	      U: function(d, p) {
+	        return d3_time_formatPad(d3_time.sundayOfYear(d), p, 2);
+	      },
+	      w: function(d) {
+	        return d.getDay();
+	      },
+	      W: function(d, p) {
+	        return d3_time_formatPad(d3_time.mondayOfYear(d), p, 2);
+	      },
+	      x: d3_time_format(locale_date),
+	      X: d3_time_format(locale_time),
+	      y: function(d, p) {
+	        return d3_time_formatPad(d.getFullYear() % 100, p, 2);
+	      },
+	      Y: function(d, p) {
+	        return d3_time_formatPad(d.getFullYear() % 1e4, p, 4);
+	      },
+	      Z: d3_time_zone,
+	      "%": function() {
+	        return "%";
+	      }
+	    };
+	    var d3_time_parsers = {
+	      a: d3_time_parseWeekdayAbbrev,
+	      A: d3_time_parseWeekday,
+	      b: d3_time_parseMonthAbbrev,
+	      B: d3_time_parseMonth,
+	      c: d3_time_parseLocaleFull,
+	      d: d3_time_parseDay,
+	      e: d3_time_parseDay,
+	      H: d3_time_parseHour24,
+	      I: d3_time_parseHour24,
+	      j: d3_time_parseDayOfYear,
+	      L: d3_time_parseMilliseconds,
+	      m: d3_time_parseMonthNumber,
+	      M: d3_time_parseMinutes,
+	      p: d3_time_parseAmPm,
+	      S: d3_time_parseSeconds,
+	      U: d3_time_parseWeekNumberSunday,
+	      w: d3_time_parseWeekdayNumber,
+	      W: d3_time_parseWeekNumberMonday,
+	      x: d3_time_parseLocaleDate,
+	      X: d3_time_parseLocaleTime,
+	      y: d3_time_parseYear,
+	      Y: d3_time_parseFullYear,
+	      Z: d3_time_parseZone,
+	      "%": d3_time_parseLiteralPercent
+	    };
+	    function d3_time_parseWeekdayAbbrev(date, string, i) {
+	      d3_time_dayAbbrevRe.lastIndex = 0;
+	      var n = d3_time_dayAbbrevRe.exec(string.slice(i));
+	      return n ? (date.w = d3_time_dayAbbrevLookup.get(n[0].toLowerCase()), i + n[0].length) : -1;
+	    }
+	    function d3_time_parseWeekday(date, string, i) {
+	      d3_time_dayRe.lastIndex = 0;
+	      var n = d3_time_dayRe.exec(string.slice(i));
+	      return n ? (date.w = d3_time_dayLookup.get(n[0].toLowerCase()), i + n[0].length) : -1;
+	    }
+	    function d3_time_parseMonthAbbrev(date, string, i) {
+	      d3_time_monthAbbrevRe.lastIndex = 0;
+	      var n = d3_time_monthAbbrevRe.exec(string.slice(i));
+	      return n ? (date.m = d3_time_monthAbbrevLookup.get(n[0].toLowerCase()), i + n[0].length) : -1;
+	    }
+	    function d3_time_parseMonth(date, string, i) {
+	      d3_time_monthRe.lastIndex = 0;
+	      var n = d3_time_monthRe.exec(string.slice(i));
+	      return n ? (date.m = d3_time_monthLookup.get(n[0].toLowerCase()), i + n[0].length) : -1;
+	    }
+	    function d3_time_parseLocaleFull(date, string, i) {
+	      return d3_time_parse(date, d3_time_formats.c.toString(), string, i);
+	    }
+	    function d3_time_parseLocaleDate(date, string, i) {
+	      return d3_time_parse(date, d3_time_formats.x.toString(), string, i);
+	    }
+	    function d3_time_parseLocaleTime(date, string, i) {
+	      return d3_time_parse(date, d3_time_formats.X.toString(), string, i);
+	    }
+	    function d3_time_parseAmPm(date, string, i) {
+	      var n = d3_time_periodLookup.get(string.slice(i, i += 2).toLowerCase());
+	      return n == null ? -1 : (date.p = n, i);
+	    }
+	    return d3_time_format;
+	  }
+	  var d3_time_formatPads = {
+	    "-": "",
+	    _: " ",
+	    "0": "0"
+	  }, d3_time_numberRe = /^\s*\d+/, d3_time_percentRe = /^%/;
+	  function d3_time_formatPad(value, fill, width) {
+	    var sign = value < 0 ? "-" : "", string = (sign ? -value : value) + "", length = string.length;
+	    return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string);
+	  }
+	  function d3_time_formatRe(names) {
+	    return new RegExp("^(?:" + names.map(d3.requote).join("|") + ")", "i");
+	  }
+	  function d3_time_formatLookup(names) {
+	    var map = new d3_Map(), i = -1, n = names.length;
+	    while (++i < n) map.set(names[i].toLowerCase(), i);
+	    return map;
+	  }
+	  function d3_time_parseWeekdayNumber(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 1));
+	    return n ? (date.w = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseWeekNumberSunday(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i));
+	    return n ? (date.U = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseWeekNumberMonday(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i));
+	    return n ? (date.W = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseFullYear(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 4));
+	    return n ? (date.y = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseYear(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.y = d3_time_expandYear(+n[0]), i + n[0].length) : -1;
+	  }
+	  function d3_time_parseZone(date, string, i) {
+	    return /^[+-]\d{4}$/.test(string = string.slice(i, i + 5)) ? (date.Z = -string, 
+	    i + 5) : -1;
+	  }
+	  function d3_time_expandYear(d) {
+	    return d + (d > 68 ? 1900 : 2e3);
+	  }
+	  function d3_time_parseMonthNumber(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.m = n[0] - 1, i + n[0].length) : -1;
+	  }
+	  function d3_time_parseDay(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.d = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseDayOfYear(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 3));
+	    return n ? (date.j = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseHour24(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.H = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseMinutes(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.M = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseSeconds(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 2));
+	    return n ? (date.S = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_parseMilliseconds(date, string, i) {
+	    d3_time_numberRe.lastIndex = 0;
+	    var n = d3_time_numberRe.exec(string.slice(i, i + 3));
+	    return n ? (date.L = +n[0], i + n[0].length) : -1;
+	  }
+	  function d3_time_zone(d) {
+	    var z = d.getTimezoneOffset(), zs = z > 0 ? "-" : "+", zh = abs(z) / 60 | 0, zm = abs(z) % 60;
+	    return zs + d3_time_formatPad(zh, "0", 2) + d3_time_formatPad(zm, "0", 2);
+	  }
+	  function d3_time_parseLiteralPercent(date, string, i) {
+	    d3_time_percentRe.lastIndex = 0;
+	    var n = d3_time_percentRe.exec(string.slice(i, i + 1));
+	    return n ? i + n[0].length : -1;
+	  }
+	  function d3_time_formatMulti(formats) {
+	    var n = formats.length, i = -1;
+	    while (++i < n) formats[i][0] = this(formats[i][0]);
+	    return function(date) {
+	      var i = 0, f = formats[i];
+	      while (!f[1](date)) f = formats[++i];
+	      return f[0](date);
+	    };
+	  }
+	  d3.locale = function(locale) {
+	    return {
+	      numberFormat: d3_locale_numberFormat(locale),
+	      timeFormat: d3_locale_timeFormat(locale)
+	    };
+	  };
+	  var d3_locale_enUS = d3.locale({
+	    decimal: ".",
+	    thousands: ",",
+	    grouping: [ 3 ],
+	    currency: [ "$", "" ],
+	    dateTime: "%a %b %e %X %Y",
+	    date: "%m/%d/%Y",
+	    time: "%H:%M:%S",
+	    periods: [ "AM", "PM" ],
+	    days: [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ],
+	    shortDays: [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ],
+	    months: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ],
+	    shortMonths: [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ]
+	  });
+	  d3.format = d3_locale_enUS.numberFormat;
+	  d3.geo = {};
+	  function d3_adder() {}
+	  d3_adder.prototype = {
+	    s: 0,
+	    t: 0,
+	    add: function(y) {
+	      d3_adderSum(y, this.t, d3_adderTemp);
+	      d3_adderSum(d3_adderTemp.s, this.s, this);
+	      if (this.s) this.t += d3_adderTemp.t; else this.s = d3_adderTemp.t;
+	    },
+	    reset: function() {
+	      this.s = this.t = 0;
+	    },
+	    valueOf: function() {
+	      return this.s;
+	    }
+	  };
+	  var d3_adderTemp = new d3_adder();
+	  function d3_adderSum(a, b, o) {
+	    var x = o.s = a + b, bv = x - a, av = x - bv;
+	    o.t = a - av + (b - bv);
+	  }
+	  d3.geo.stream = function(object, listener) {
+	    if (object && d3_geo_streamObjectType.hasOwnProperty(object.type)) {
+	      d3_geo_streamObjectType[object.type](object, listener);
+	    } else {
+	      d3_geo_streamGeometry(object, listener);
+	    }
+	  };
+	  function d3_geo_streamGeometry(geometry, listener) {
+	    if (geometry && d3_geo_streamGeometryType.hasOwnProperty(geometry.type)) {
+	      d3_geo_streamGeometryType[geometry.type](geometry, listener);
+	    }
+	  }
+	  var d3_geo_streamObjectType = {
+	    Feature: function(feature, listener) {
+	      d3_geo_streamGeometry(feature.geometry, listener);
+	    },
+	    FeatureCollection: function(object, listener) {
+	      var features = object.features, i = -1, n = features.length;
+	      while (++i < n) d3_geo_streamGeometry(features[i].geometry, listener);
+	    }
+	  };
+	  var d3_geo_streamGeometryType = {
+	    Sphere: function(object, listener) {
+	      listener.sphere();
+	    },
+	    Point: function(object, listener) {
+	      object = object.coordinates;
+	      listener.point(object[0], object[1], object[2]);
+	    },
+	    MultiPoint: function(object, listener) {
+	      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+	      while (++i < n) object = coordinates[i], listener.point(object[0], object[1], object[2]);
+	    },
+	    LineString: function(object, listener) {
+	      d3_geo_streamLine(object.coordinates, listener, 0);
+	    },
+	    MultiLineString: function(object, listener) {
+	      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+	      while (++i < n) d3_geo_streamLine(coordinates[i], listener, 0);
+	    },
+	    Polygon: function(object, listener) {
+	      d3_geo_streamPolygon(object.coordinates, listener);
+	    },
+	    MultiPolygon: function(object, listener) {
+	      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+	      while (++i < n) d3_geo_streamPolygon(coordinates[i], listener);
+	    },
+	    GeometryCollection: function(object, listener) {
+	      var geometries = object.geometries, i = -1, n = geometries.length;
+	      while (++i < n) d3_geo_streamGeometry(geometries[i], listener);
+	    }
+	  };
+	  function d3_geo_streamLine(coordinates, listener, closed) {
+	    var i = -1, n = coordinates.length - closed, coordinate;
+	    listener.lineStart();
+	    while (++i < n) coordinate = coordinates[i], listener.point(coordinate[0], coordinate[1], coordinate[2]);
+	    listener.lineEnd();
+	  }
+	  function d3_geo_streamPolygon(coordinates, listener) {
+	    var i = -1, n = coordinates.length;
+	    listener.polygonStart();
+	    while (++i < n) d3_geo_streamLine(coordinates[i], listener, 1);
+	    listener.polygonEnd();
+	  }
+	  d3.geo.area = function(object) {
+	    d3_geo_areaSum = 0;
+	    d3.geo.stream(object, d3_geo_area);
+	    return d3_geo_areaSum;
+	  };
+	  var d3_geo_areaSum, d3_geo_areaRingSum = new d3_adder();
+	  var d3_geo_area = {
+	    sphere: function() {
+	      d3_geo_areaSum += 4 * π;
+	    },
+	    point: d3_noop,
+	    lineStart: d3_noop,
+	    lineEnd: d3_noop,
+	    polygonStart: function() {
+	      d3_geo_areaRingSum.reset();
+	      d3_geo_area.lineStart = d3_geo_areaRingStart;
+	    },
+	    polygonEnd: function() {
+	      var area = 2 * d3_geo_areaRingSum;
+	      d3_geo_areaSum += area < 0 ? 4 * π + area : area;
+	      d3_geo_area.lineStart = d3_geo_area.lineEnd = d3_geo_area.point = d3_noop;
+	    }
+	  };
+	  function d3_geo_areaRingStart() {
+	    var λ00, φ00, λ0, cosφ0, sinφ0;
+	    d3_geo_area.point = function(λ, φ) {
+	      d3_geo_area.point = nextPoint;
+	      λ0 = (λ00 = λ) * d3_radians, cosφ0 = Math.cos(φ = (φ00 = φ) * d3_radians / 2 + π / 4), 
+	      sinφ0 = Math.sin(φ);
+	    };
+	    function nextPoint(λ, φ) {
+	      λ *= d3_radians;
+	      φ = φ * d3_radians / 2 + π / 4;
+	      var dλ = λ - λ0, sdλ = dλ >= 0 ? 1 : -1, adλ = sdλ * dλ, cosφ = Math.cos(φ), sinφ = Math.sin(φ), k = sinφ0 * sinφ, u = cosφ0 * cosφ + k * Math.cos(adλ), v = k * sdλ * Math.sin(adλ);
+	      d3_geo_areaRingSum.add(Math.atan2(v, u));
+	      λ0 = λ, cosφ0 = cosφ, sinφ0 = sinφ;
+	    }
+	    d3_geo_area.lineEnd = function() {
+	      nextPoint(λ00, φ00);
+	    };
+	  }
+	  function d3_geo_cartesian(spherical) {
+	    var λ = spherical[0], φ = spherical[1], cosφ = Math.cos(φ);
+	    return [ cosφ * Math.cos(λ), cosφ * Math.sin(λ), Math.sin(φ) ];
+	  }
+	  function d3_geo_cartesianDot(a, b) {
+	    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+	  }
+	  function d3_geo_cartesianCross(a, b) {
+	    return [ a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0] ];
+	  }
+	  function d3_geo_cartesianAdd(a, b) {
+	    a[0] += b[0];
+	    a[1] += b[1];
+	    a[2] += b[2];
+	  }
+	  function d3_geo_cartesianScale(vector, k) {
+	    return [ vector[0] * k, vector[1] * k, vector[2] * k ];
+	  }
+	  function d3_geo_cartesianNormalize(d) {
+	    var l = Math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+	    d[0] /= l;
+	    d[1] /= l;
+	    d[2] /= l;
+	  }
+	  function d3_geo_spherical(cartesian) {
+	    return [ Math.atan2(cartesian[1], cartesian[0]), d3_asin(cartesian[2]) ];
+	  }
+	  function d3_geo_sphericalEqual(a, b) {
+	    return abs(a[0] - b[0]) < ε && abs(a[1] - b[1]) < ε;
+	  }
+	  d3.geo.bounds = function() {
+	    var λ0, φ0, λ1, φ1, λ_, λ__, φ__, p0, dλSum, ranges, range;
+	    var bound = {
+	      point: point,
+	      lineStart: lineStart,
+	      lineEnd: lineEnd,
+	      polygonStart: function() {
+	        bound.point = ringPoint;
+	        bound.lineStart = ringStart;
+	        bound.lineEnd = ringEnd;
+	        dλSum = 0;
+	        d3_geo_area.polygonStart();
+	      },
+	      polygonEnd: function() {
+	        d3_geo_area.polygonEnd();
+	        bound.point = point;
+	        bound.lineStart = lineStart;
+	        bound.lineEnd = lineEnd;
+	        if (d3_geo_areaRingSum < 0) λ0 = -(λ1 = 180), φ0 = -(φ1 = 90); else if (dλSum > ε) φ1 = 90; else if (dλSum < -ε) φ0 = -90;
+	        range[0] = λ0, range[1] = λ1;
+	      }
+	    };
+	    function point(λ, φ) {
+	      ranges.push(range = [ λ0 = λ, λ1 = λ ]);
+	      if (φ < φ0) φ0 = φ;
+	      if (φ > φ1) φ1 = φ;
+	    }
+	    function linePoint(λ, φ) {
+	      var p = d3_geo_cartesian([ λ * d3_radians, φ * d3_radians ]);
+	      if (p0) {
+	        var normal = d3_geo_cartesianCross(p0, p), equatorial = [ normal[1], -normal[0], 0 ], inflection = d3_geo_cartesianCross(equatorial, normal);
+	        d3_geo_cartesianNormalize(inflection);
+	        inflection = d3_geo_spherical(inflection);
+	        var dλ = λ - λ_, s = dλ > 0 ? 1 : -1, λi = inflection[0] * d3_degrees * s, antimeridian = abs(dλ) > 180;
+	        if (antimeridian ^ (s * λ_ < λi && λi < s * λ)) {
+	          var φi = inflection[1] * d3_degrees;
+	          if (φi > φ1) φ1 = φi;
+	        } else if (λi = (λi + 360) % 360 - 180, antimeridian ^ (s * λ_ < λi && λi < s * λ)) {
+	          var φi = -inflection[1] * d3_degrees;
+	          if (φi < φ0) φ0 = φi;
+	        } else {
+	          if (φ < φ0) φ0 = φ;
+	          if (φ > φ1) φ1 = φ;
+	        }
+	        if (antimeridian) {
+	          if (λ < λ_) {
+	            if (angle(λ0, λ) > angle(λ0, λ1)) λ1 = λ;
+	          } else {
+	            if (angle(λ, λ1) > angle(λ0, λ1)) λ0 = λ;
+	          }
+	        } else {
+	          if (λ1 >= λ0) {
+	            if (λ < λ0) λ0 = λ;
+	            if (λ > λ1) λ1 = λ;
+	          } else {
+	            if (λ > λ_) {
+	              if (angle(λ0, λ) > angle(λ0, λ1)) λ1 = λ;
+	            } else {
+	              if (angle(λ, λ1) > angle(λ0, λ1)) λ0 = λ;
+	            }
+	          }
+	        }
+	      } else {
+	        point(λ, φ);
+	      }
+	      p0 = p, λ_ = λ;
+	    }
+	    function lineStart() {
+	      bound.point = linePoint;
+	    }
+	    function lineEnd() {
+	      range[0] = λ0, range[1] = λ1;
+	      bound.point = point;
+	      p0 = null;
+	    }
+	    function ringPoint(λ, φ) {
+	      if (p0) {
+	        var dλ = λ - λ_;
+	        dλSum += abs(dλ) > 180 ? dλ + (dλ > 0 ? 360 : -360) : dλ;
+	      } else λ__ = λ, φ__ = φ;
+	      d3_geo_area.point(λ, φ);
+	      linePoint(λ, φ);
+	    }
+	    function ringStart() {
+	      d3_geo_area.lineStart();
+	    }
+	    function ringEnd() {
+	      ringPoint(λ__, φ__);
+	      d3_geo_area.lineEnd();
+	      if (abs(dλSum) > ε) λ0 = -(λ1 = 180);
+	      range[0] = λ0, range[1] = λ1;
+	      p0 = null;
+	    }
+	    function angle(λ0, λ1) {
+	      return (λ1 -= λ0) < 0 ? λ1 + 360 : λ1;
+	    }
+	    function compareRanges(a, b) {
+	      return a[0] - b[0];
+	    }
+	    function withinRange(x, range) {
+	      return range[0] <= range[1] ? range[0] <= x && x <= range[1] : x < range[0] || range[1] < x;
+	    }
+	    return function(feature) {
+	      φ1 = λ1 = -(λ0 = φ0 = Infinity);
+	      ranges = [];
+	      d3.geo.stream(feature, bound);
+	      var n = ranges.length;
+	      if (n) {
+	        ranges.sort(compareRanges);
+	        for (var i = 1, a = ranges[0], b, merged = [ a ]; i < n; ++i) {
+	          b = ranges[i];
+	          if (withinRange(b[0], a) || withinRange(b[1], a)) {
+	            if (angle(a[0], b[1]) > angle(a[0], a[1])) a[1] = b[1];
+	            if (angle(b[0], a[1]) > angle(a[0], a[1])) a[0] = b[0];
+	          } else {
+	            merged.push(a = b);
+	          }
+	        }
+	        var best = -Infinity, dλ;
+	        for (var n = merged.length - 1, i = 0, a = merged[n], b; i <= n; a = b, ++i) {
+	          b = merged[i];
+	          if ((dλ = angle(a[1], b[0])) > best) best = dλ, λ0 = b[0], λ1 = a[1];
+	        }
+	      }
+	      ranges = range = null;
+	      return λ0 === Infinity || φ0 === Infinity ? [ [ NaN, NaN ], [ NaN, NaN ] ] : [ [ λ0, φ0 ], [ λ1, φ1 ] ];
+	    };
+	  }();
+	  d3.geo.centroid = function(object) {
+	    d3_geo_centroidW0 = d3_geo_centroidW1 = d3_geo_centroidX0 = d3_geo_centroidY0 = d3_geo_centroidZ0 = d3_geo_centroidX1 = d3_geo_centroidY1 = d3_geo_centroidZ1 = d3_geo_centroidX2 = d3_geo_centroidY2 = d3_geo_centroidZ2 = 0;
+	    d3.geo.stream(object, d3_geo_centroid);
+	    var x = d3_geo_centroidX2, y = d3_geo_centroidY2, z = d3_geo_centroidZ2, m = x * x + y * y + z * z;
+	    if (m < ε2) {
+	      x = d3_geo_centroidX1, y = d3_geo_centroidY1, z = d3_geo_centroidZ1;
+	      if (d3_geo_centroidW1 < ε) x = d3_geo_centroidX0, y = d3_geo_centroidY0, z = d3_geo_centroidZ0;
+	      m = x * x + y * y + z * z;
+	      if (m < ε2) return [ NaN, NaN ];
+	    }
+	    return [ Math.atan2(y, x) * d3_degrees, d3_asin(z / Math.sqrt(m)) * d3_degrees ];
+	  };
+	  var d3_geo_centroidW0, d3_geo_centroidW1, d3_geo_centroidX0, d3_geo_centroidY0, d3_geo_centroidZ0, d3_geo_centroidX1, d3_geo_centroidY1, d3_geo_centroidZ1, d3_geo_centroidX2, d3_geo_centroidY2, d3_geo_centroidZ2;
+	  var d3_geo_centroid = {
+	    sphere: d3_noop,
+	    point: d3_geo_centroidPoint,
+	    lineStart: d3_geo_centroidLineStart,
+	    lineEnd: d3_geo_centroidLineEnd,
+	    polygonStart: function() {
+	      d3_geo_centroid.lineStart = d3_geo_centroidRingStart;
+	    },
+	    polygonEnd: function() {
+	      d3_geo_centroid.lineStart = d3_geo_centroidLineStart;
+	    }
+	  };
+	  function d3_geo_centroidPoint(λ, φ) {
+	    λ *= d3_radians;
+	    var cosφ = Math.cos(φ *= d3_radians);
+	    d3_geo_centroidPointXYZ(cosφ * Math.cos(λ), cosφ * Math.sin(λ), Math.sin(φ));
+	  }
+	  function d3_geo_centroidPointXYZ(x, y, z) {
+	    ++d3_geo_centroidW0;
+	    d3_geo_centroidX0 += (x - d3_geo_centroidX0) / d3_geo_centroidW0;
+	    d3_geo_centroidY0 += (y - d3_geo_centroidY0) / d3_geo_centroidW0;
+	    d3_geo_centroidZ0 += (z - d3_geo_centroidZ0) / d3_geo_centroidW0;
+	  }
+	  function d3_geo_centroidLineStart() {
+	    var x0, y0, z0;
+	    d3_geo_centroid.point = function(λ, φ) {
+	      λ *= d3_radians;
+	      var cosφ = Math.cos(φ *= d3_radians);
+	      x0 = cosφ * Math.cos(λ);
+	      y0 = cosφ * Math.sin(λ);
+	      z0 = Math.sin(φ);
+	      d3_geo_centroid.point = nextPoint;
+	      d3_geo_centroidPointXYZ(x0, y0, z0);
+	    };
+	    function nextPoint(λ, φ) {
+	      λ *= d3_radians;
+	      var cosφ = Math.cos(φ *= d3_radians), x = cosφ * Math.cos(λ), y = cosφ * Math.sin(λ), z = Math.sin(φ), w = Math.atan2(Math.sqrt((w = y0 * z - z0 * y) * w + (w = z0 * x - x0 * z) * w + (w = x0 * y - y0 * x) * w), x0 * x + y0 * y + z0 * z);
+	      d3_geo_centroidW1 += w;
+	      d3_geo_centroidX1 += w * (x0 + (x0 = x));
+	      d3_geo_centroidY1 += w * (y0 + (y0 = y));
+	      d3_geo_centroidZ1 += w * (z0 + (z0 = z));
+	      d3_geo_centroidPointXYZ(x0, y0, z0);
+	    }
+	  }
+	  function d3_geo_centroidLineEnd() {
+	    d3_geo_centroid.point = d3_geo_centroidPoint;
+	  }
+	  function d3_geo_centroidRingStart() {
+	    var λ00, φ00, x0, y0, z0;
+	    d3_geo_centroid.point = function(λ, φ) {
+	      λ00 = λ, φ00 = φ;
+	      d3_geo_centroid.point = nextPoint;
+	      λ *= d3_radians;
+	      var cosφ = Math.cos(φ *= d3_radians);
+	      x0 = cosφ * Math.cos(λ);
+	      y0 = cosφ * Math.sin(λ);
+	      z0 = Math.sin(φ);
+	      d3_geo_centroidPointXYZ(x0, y0, z0);
+	    };
+	    d3_geo_centroid.lineEnd = function() {
+	      nextPoint(λ00, φ00);
+	      d3_geo_centroid.lineEnd = d3_geo_centroidLineEnd;
+	      d3_geo_centroid.point = d3_geo_centroidPoint;
+	    };
+	    function nextPoint(λ, φ) {
+	      λ *= d3_radians;
+	      var cosφ = Math.cos(φ *= d3_radians), x = cosφ * Math.cos(λ), y = cosφ * Math.sin(λ), z = Math.sin(φ), cx = y0 * z - z0 * y, cy = z0 * x - x0 * z, cz = x0 * y - y0 * x, m = Math.sqrt(cx * cx + cy * cy + cz * cz), u = x0 * x + y0 * y + z0 * z, v = m && -d3_acos(u) / m, w = Math.atan2(m, u);
+	      d3_geo_centroidX2 += v * cx;
+	      d3_geo_centroidY2 += v * cy;
+	      d3_geo_centroidZ2 += v * cz;
+	      d3_geo_centroidW1 += w;
+	      d3_geo_centroidX1 += w * (x0 + (x0 = x));
+	      d3_geo_centroidY1 += w * (y0 + (y0 = y));
+	      d3_geo_centroidZ1 += w * (z0 + (z0 = z));
+	      d3_geo_centroidPointXYZ(x0, y0, z0);
+	    }
+	  }
+	  function d3_geo_compose(a, b) {
+	    function compose(x, y) {
+	      return x = a(x, y), b(x[0], x[1]);
+	    }
+	    if (a.invert && b.invert) compose.invert = function(x, y) {
+	      return x = b.invert(x, y), x && a.invert(x[0], x[1]);
+	    };
+	    return compose;
+	  }
+	  function d3_true() {
+	    return true;
+	  }
+	  function d3_geo_clipPolygon(segments, compare, clipStartInside, interpolate, listener) {
+	    var subject = [], clip = [];
+	    segments.forEach(function(segment) {
+	      if ((n = segment.length - 1) <= 0) return;
+	      var n, p0 = segment[0], p1 = segment[n];
+	      if (d3_geo_sphericalEqual(p0, p1)) {
+	        listener.lineStart();
+	        for (var i = 0; i < n; ++i) listener.point((p0 = segment[i])[0], p0[1]);
+	        listener.lineEnd();
+	        return;
+	      }
+	      var a = new d3_geo_clipPolygonIntersection(p0, segment, null, true), b = new d3_geo_clipPolygonIntersection(p0, null, a, false);
+	      a.o = b;
+	      subject.push(a);
+	      clip.push(b);
+	      a = new d3_geo_clipPolygonIntersection(p1, segment, null, false);
+	      b = new d3_geo_clipPolygonIntersection(p1, null, a, true);
+	      a.o = b;
+	      subject.push(a);
+	      clip.push(b);
+	    });
+	    clip.sort(compare);
+	    d3_geo_clipPolygonLinkCircular(subject);
+	    d3_geo_clipPolygonLinkCircular(clip);
+	    if (!subject.length) return;
+	    for (var i = 0, entry = clipStartInside, n = clip.length; i < n; ++i) {
+	      clip[i].e = entry = !entry;
+	    }
+	    var start = subject[0], points, point;
+	    while (1) {
+	      var current = start, isSubject = true;
+	      while (current.v) if ((current = current.n) === start) return;
+	      points = current.z;
+	      listener.lineStart();
+	      do {
+	        current.v = current.o.v = true;
+	        if (current.e) {
+	          if (isSubject) {
+	            for (var i = 0, n = points.length; i < n; ++i) listener.point((point = points[i])[0], point[1]);
+	          } else {
+	            interpolate(current.x, current.n.x, 1, listener);
+	          }
+	          current = current.n;
+	        } else {
+	          if (isSubject) {
+	            points = current.p.z;
+	            for (var i = points.length - 1; i >= 0; --i) listener.point((point = points[i])[0], point[1]);
+	          } else {
+	            interpolate(current.x, current.p.x, -1, listener);
+	          }
+	          current = current.p;
+	        }
+	        current = current.o;
+	        points = current.z;
+	        isSubject = !isSubject;
+	      } while (!current.v);
+	      listener.lineEnd();
+	    }
+	  }
+	  function d3_geo_clipPolygonLinkCircular(array) {
+	    if (!(n = array.length)) return;
+	    var n, i = 0, a = array[0], b;
+	    while (++i < n) {
+	      a.n = b = array[i];
+	      b.p = a;
+	      a = b;
+	    }
+	    a.n = b = array[0];
+	    b.p = a;
+	  }
+	  function d3_geo_clipPolygonIntersection(point, points, other, entry) {
+	    this.x = point;
+	    this.z = points;
+	    this.o = other;
+	    this.e = entry;
+	    this.v = false;
+	    this.n = this.p = null;
+	  }
+	  function d3_geo_clip(pointVisible, clipLine, interpolate, clipStart) {
+	    return function(rotate, listener) {
+	      var line = clipLine(listener), rotatedClipStart = rotate.invert(clipStart[0], clipStart[1]);
+	      var clip = {
+	        point: point,
+	        lineStart: lineStart,
+	        lineEnd: lineEnd,
+	        polygonStart: function() {
+	          clip.point = pointRing;
+	          clip.lineStart = ringStart;
+	          clip.lineEnd = ringEnd;
+	          segments = [];
+	          polygon = [];
+	        },
+	        polygonEnd: function() {
+	          clip.point = point;
+	          clip.lineStart = lineStart;
+	          clip.lineEnd = lineEnd;
+	          segments = d3.merge(segments);
+	          var clipStartInside = d3_geo_pointInPolygon(rotatedClipStart, polygon);
+	          if (segments.length) {
+	            if (!polygonStarted) listener.polygonStart(), polygonStarted = true;
+	            d3_geo_clipPolygon(segments, d3_geo_clipSort, clipStartInside, interpolate, listener);
+	          } else if (clipStartInside) {
+	            if (!polygonStarted) listener.polygonStart(), polygonStarted = true;
+	            listener.lineStart();
+	            interpolate(null, null, 1, listener);
+	            listener.lineEnd();
+	          }
+	          if (polygonStarted) listener.polygonEnd(), polygonStarted = false;
+	          segments = polygon = null;
+	        },
+	        sphere: function() {
+	          listener.polygonStart();
+	          listener.lineStart();
+	          interpolate(null, null, 1, listener);
+	          listener.lineEnd();
+	          listener.polygonEnd();
+	        }
+	      };
+	      function point(λ, φ) {
+	        var point = rotate(λ, φ);
+	        if (pointVisible(λ = point[0], φ = point[1])) listener.point(λ, φ);
+	      }
+	      function pointLine(λ, φ) {
+	        var point = rotate(λ, φ);
+	        line.point(point[0], point[1]);
+	      }
+	      function lineStart() {
+	        clip.point = pointLine;
+	        line.lineStart();
+	      }
+	      function lineEnd() {
+	        clip.point = point;
+	        line.lineEnd();
+	      }
+	      var segments;
+	      var buffer = d3_geo_clipBufferListener(), ringListener = clipLine(buffer), polygonStarted = false, polygon, ring;
+	      function pointRing(λ, φ) {
+	        ring.push([ λ, φ ]);
+	        var point = rotate(λ, φ);
+	        ringListener.point(point[0], point[1]);
+	      }
+	      function ringStart() {
+	        ringListener.lineStart();
+	        ring = [];
+	      }
+	      function ringEnd() {
+	        pointRing(ring[0][0], ring[0][1]);
+	        ringListener.lineEnd();
+	        var clean = ringListener.clean(), ringSegments = buffer.buffer(), segment, n = ringSegments.length;
+	        ring.pop();
+	        polygon.push(ring);
+	        ring = null;
+	        if (!n) return;
+	        if (clean & 1) {
+	          segment = ringSegments[0];
+	          var n = segment.length - 1, i = -1, point;
+	          if (n > 0) {
+	            if (!polygonStarted) listener.polygonStart(), polygonStarted = true;
+	            listener.lineStart();
+	            while (++i < n) listener.point((point = segment[i])[0], point[1]);
+	            listener.lineEnd();
+	          }
+	          return;
+	        }
+	        if (n > 1 && clean & 2) ringSegments.push(ringSegments.pop().concat(ringSegments.shift()));
+	        segments.push(ringSegments.filter(d3_geo_clipSegmentLength1));
+	      }
+	      return clip;
+	    };
+	  }
+	  function d3_geo_clipSegmentLength1(segment) {
+	    return segment.length > 1;
+	  }
+	  function d3_geo_clipBufferListener() {
+	    var lines = [], line;
+	    return {
+	      lineStart: function() {
+	        lines.push(line = []);
+	      },
+	      point: function(λ, φ) {
+	        line.push([ λ, φ ]);
+	      },
+	      lineEnd: d3_noop,
+	      buffer: function() {
+	        var buffer = lines;
+	        lines = [];
+	        line = null;
+	        return buffer;
+	      },
+	      rejoin: function() {
+	        if (lines.length > 1) lines.push(lines.pop().concat(lines.shift()));
+	      }
+	    };
+	  }
+	  function d3_geo_clipSort(a, b) {
+	    return ((a = a.x)[0] < 0 ? a[1] - halfπ - ε : halfπ - a[1]) - ((b = b.x)[0] < 0 ? b[1] - halfπ - ε : halfπ - b[1]);
+	  }
+	  var d3_geo_clipAntimeridian = d3_geo_clip(d3_true, d3_geo_clipAntimeridianLine, d3_geo_clipAntimeridianInterpolate, [ -π, -π / 2 ]);
+	  function d3_geo_clipAntimeridianLine(listener) {
+	    var λ0 = NaN, φ0 = NaN, sλ0 = NaN, clean;
+	    return {
+	      lineStart: function() {
+	        listener.lineStart();
+	        clean = 1;
+	      },
+	      point: function(λ1, φ1) {
+	        var sλ1 = λ1 > 0 ? π : -π, dλ = abs(λ1 - λ0);
+	        if (abs(dλ - π) < ε) {
+	          listener.point(λ0, φ0 = (φ0 + φ1) / 2 > 0 ? halfπ : -halfπ);
+	          listener.point(sλ0, φ0);
+	          listener.lineEnd();
+	          listener.lineStart();
+	          listener.point(sλ1, φ0);
+	          listener.point(λ1, φ0);
+	          clean = 0;
+	        } else if (sλ0 !== sλ1 && dλ >= π) {
+	          if (abs(λ0 - sλ0) < ε) λ0 -= sλ0 * ε;
+	          if (abs(λ1 - sλ1) < ε) λ1 -= sλ1 * ε;
+	          φ0 = d3_geo_clipAntimeridianIntersect(λ0, φ0, λ1, φ1);
+	          listener.point(sλ0, φ0);
+	          listener.lineEnd();
+	          listener.lineStart();
+	          listener.point(sλ1, φ0);
+	          clean = 0;
+	        }
+	        listener.point(λ0 = λ1, φ0 = φ1);
+	        sλ0 = sλ1;
+	      },
+	      lineEnd: function() {
+	        listener.lineEnd();
+	        λ0 = φ0 = NaN;
+	      },
+	      clean: function() {
+	        return 2 - clean;
+	      }
+	    };
+	  }
+	  function d3_geo_clipAntimeridianIntersect(λ0, φ0, λ1, φ1) {
+	    var cosφ0, cosφ1, sinλ0_λ1 = Math.sin(λ0 - λ1);
+	    return abs(sinλ0_λ1) > ε ? Math.atan((Math.sin(φ0) * (cosφ1 = Math.cos(φ1)) * Math.sin(λ1) - Math.sin(φ1) * (cosφ0 = Math.cos(φ0)) * Math.sin(λ0)) / (cosφ0 * cosφ1 * sinλ0_λ1)) : (φ0 + φ1) / 2;
+	  }
+	  function d3_geo_clipAntimeridianInterpolate(from, to, direction, listener) {
+	    var φ;
+	    if (from == null) {
+	      φ = direction * halfπ;
+	      listener.point(-π, φ);
+	      listener.point(0, φ);
+	      listener.point(π, φ);
+	      listener.point(π, 0);
+	      listener.point(π, -φ);
+	      listener.point(0, -φ);
+	      listener.point(-π, -φ);
+	      listener.point(-π, 0);
+	      listener.point(-π, φ);
+	    } else if (abs(from[0] - to[0]) > ε) {
+	      var s = from[0] < to[0] ? π : -π;
+	      φ = direction * s / 2;
+	      listener.point(-s, φ);
+	      listener.point(0, φ);
+	      listener.point(s, φ);
+	    } else {
+	      listener.point(to[0], to[1]);
+	    }
+	  }
+	  function d3_geo_pointInPolygon(point, polygon) {
+	    var meridian = point[0], parallel = point[1], meridianNormal = [ Math.sin(meridian), -Math.cos(meridian), 0 ], polarAngle = 0, winding = 0;
+	    d3_geo_areaRingSum.reset();
+	    for (var i = 0, n = polygon.length; i < n; ++i) {
+	      var ring = polygon[i], m = ring.length;
+	      if (!m) continue;
+	      var point0 = ring[0], λ0 = point0[0], φ0 = point0[1] / 2 + π / 4, sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), j = 1;
+	      while (true) {
+	        if (j === m) j = 0;
+	        point = ring[j];
+	        var λ = point[0], φ = point[1] / 2 + π / 4, sinφ = Math.sin(φ), cosφ = Math.cos(φ), dλ = λ - λ0, sdλ = dλ >= 0 ? 1 : -1, adλ = sdλ * dλ, antimeridian = adλ > π, k = sinφ0 * sinφ;
+	        d3_geo_areaRingSum.add(Math.atan2(k * sdλ * Math.sin(adλ), cosφ0 * cosφ + k * Math.cos(adλ)));
+	        polarAngle += antimeridian ? dλ + sdλ * τ : dλ;
+	        if (antimeridian ^ λ0 >= meridian ^ λ >= meridian) {
+	          var arc = d3_geo_cartesianCross(d3_geo_cartesian(point0), d3_geo_cartesian(point));
+	          d3_geo_cartesianNormalize(arc);
+	          var intersection = d3_geo_cartesianCross(meridianNormal, arc);
+	          d3_geo_cartesianNormalize(intersection);
+	          var φarc = (antimeridian ^ dλ >= 0 ? -1 : 1) * d3_asin(intersection[2]);
+	          if (parallel > φarc || parallel === φarc && (arc[0] || arc[1])) {
+	            winding += antimeridian ^ dλ >= 0 ? 1 : -1;
+	          }
+	        }
+	        if (!j++) break;
+	        λ0 = λ, sinφ0 = sinφ, cosφ0 = cosφ, point0 = point;
+	      }
+	    }
+	    return (polarAngle < -ε || polarAngle < ε && d3_geo_areaRingSum < -ε) ^ winding & 1;
+	  }
+	  function d3_geo_clipCircle(radius) {
+	    var cr = Math.cos(radius), smallRadius = cr > 0, notHemisphere = abs(cr) > ε, interpolate = d3_geo_circleInterpolate(radius, 6 * d3_radians);
+	    return d3_geo_clip(visible, clipLine, interpolate, smallRadius ? [ 0, -radius ] : [ -π, radius - π ]);
+	    function visible(λ, φ) {
+	      return Math.cos(λ) * Math.cos(φ) > cr;
+	    }
+	    function clipLine(listener) {
+	      var point0, c0, v0, v00, clean;
+	      return {
+	        lineStart: function() {
+	          v00 = v0 = false;
+	          clean = 1;
+	        },
+	        point: function(λ, φ) {
+	          var point1 = [ λ, φ ], point2, v = visible(λ, φ), c = smallRadius ? v ? 0 : code(λ, φ) : v ? code(λ + (λ < 0 ? π : -π), φ) : 0;
+	          if (!point0 && (v00 = v0 = v)) listener.lineStart();
+	          if (v !== v0) {
+	            point2 = intersect(point0, point1);
+	            if (d3_geo_sphericalEqual(point0, point2) || d3_geo_sphericalEqual(point1, point2)) {
+	              point1[0] += ε;
+	              point1[1] += ε;
+	              v = visible(point1[0], point1[1]);
+	            }
+	          }
+	          if (v !== v0) {
+	            clean = 0;
+	            if (v) {
+	              listener.lineStart();
+	              point2 = intersect(point1, point0);
+	              listener.point(point2[0], point2[1]);
+	            } else {
+	              point2 = intersect(point0, point1);
+	              listener.point(point2[0], point2[1]);
+	              listener.lineEnd();
+	            }
+	            point0 = point2;
+	          } else if (notHemisphere && point0 && smallRadius ^ v) {
+	            var t;
+	            if (!(c & c0) && (t = intersect(point1, point0, true))) {
+	              clean = 0;
+	              if (smallRadius) {
+	                listener.lineStart();
+	                listener.point(t[0][0], t[0][1]);
+	                listener.point(t[1][0], t[1][1]);
+	                listener.lineEnd();
+	              } else {
+	                listener.point(t[1][0], t[1][1]);
+	                listener.lineEnd();
+	                listener.lineStart();
+	                listener.point(t[0][0], t[0][1]);
+	              }
+	            }
+	          }
+	          if (v && (!point0 || !d3_geo_sphericalEqual(point0, point1))) {
+	            listener.point(point1[0], point1[1]);
+	          }
+	          point0 = point1, v0 = v, c0 = c;
+	        },
+	        lineEnd: function() {
+	          if (v0) listener.lineEnd();
+	          point0 = null;
+	        },
+	        clean: function() {
+	          return clean | (v00 && v0) << 1;
+	        }
+	      };
+	    }
+	    function intersect(a, b, two) {
+	      var pa = d3_geo_cartesian(a), pb = d3_geo_cartesian(b);
+	      var n1 = [ 1, 0, 0 ], n2 = d3_geo_cartesianCross(pa, pb), n2n2 = d3_geo_cartesianDot(n2, n2), n1n2 = n2[0], determinant = n2n2 - n1n2 * n1n2;
+	      if (!determinant) return !two && a;
+	      var c1 = cr * n2n2 / determinant, c2 = -cr * n1n2 / determinant, n1xn2 = d3_geo_cartesianCross(n1, n2), A = d3_geo_cartesianScale(n1, c1), B = d3_geo_cartesianScale(n2, c2);
+	      d3_geo_cartesianAdd(A, B);
+	      var u = n1xn2, w = d3_geo_cartesianDot(A, u), uu = d3_geo_cartesianDot(u, u), t2 = w * w - uu * (d3_geo_cartesianDot(A, A) - 1);
+	      if (t2 < 0) return;
+	      var t = Math.sqrt(t2), q = d3_geo_cartesianScale(u, (-w - t) / uu);
+	      d3_geo_cartesianAdd(q, A);
+	      q = d3_geo_spherical(q);
+	      if (!two) return q;
+	      var λ0 = a[0], λ1 = b[0], φ0 = a[1], φ1 = b[1], z;
+	      if (λ1 < λ0) z = λ0, λ0 = λ1, λ1 = z;
+	      var δλ = λ1 - λ0, polar = abs(δλ - π) < ε, meridian = polar || δλ < ε;
+	      if (!polar && φ1 < φ0) z = φ0, φ0 = φ1, φ1 = z;
+	      if (meridian ? polar ? φ0 + φ1 > 0 ^ q[1] < (abs(q[0] - λ0) < ε ? φ0 : φ1) : φ0 <= q[1] && q[1] <= φ1 : δλ > π ^ (λ0 <= q[0] && q[0] <= λ1)) {
+	        var q1 = d3_geo_cartesianScale(u, (-w + t) / uu);
+	        d3_geo_cartesianAdd(q1, A);
+	        return [ q, d3_geo_spherical(q1) ];
+	      }
+	    }
+	    function code(λ, φ) {
+	      var r = smallRadius ? radius : π - radius, code = 0;
+	      if (λ < -r) code |= 1; else if (λ > r) code |= 2;
+	      if (φ < -r) code |= 4; else if (φ > r) code |= 8;
+	      return code;
+	    }
+	  }
+	  function d3_geom_clipLine(x0, y0, x1, y1) {
+	    return function(line) {
+	      var a = line.a, b = line.b, ax = a.x, ay = a.y, bx = b.x, by = b.y, t0 = 0, t1 = 1, dx = bx - ax, dy = by - ay, r;
+	      r = x0 - ax;
+	      if (!dx && r > 0) return;
+	      r /= dx;
+	      if (dx < 0) {
+	        if (r < t0) return;
+	        if (r < t1) t1 = r;
+	      } else if (dx > 0) {
+	        if (r > t1) return;
+	        if (r > t0) t0 = r;
+	      }
+	      r = x1 - ax;
+	      if (!dx && r < 0) return;
+	      r /= dx;
+	      if (dx < 0) {
+	        if (r > t1) return;
+	        if (r > t0) t0 = r;
+	      } else if (dx > 0) {
+	        if (r < t0) return;
+	        if (r < t1) t1 = r;
+	      }
+	      r = y0 - ay;
+	      if (!dy && r > 0) return;
+	      r /= dy;
+	      if (dy < 0) {
+	        if (r < t0) return;
+	        if (r < t1) t1 = r;
+	      } else if (dy > 0) {
+	        if (r > t1) return;
+	        if (r > t0) t0 = r;
+	      }
+	      r = y1 - ay;
+	      if (!dy && r < 0) return;
+	      r /= dy;
+	      if (dy < 0) {
+	        if (r > t1) return;
+	        if (r > t0) t0 = r;
+	      } else if (dy > 0) {
+	        if (r < t0) return;
+	        if (r < t1) t1 = r;
+	      }
+	      if (t0 > 0) line.a = {
+	        x: ax + t0 * dx,
+	        y: ay + t0 * dy
+	      };
+	      if (t1 < 1) line.b = {
+	        x: ax + t1 * dx,
+	        y: ay + t1 * dy
+	      };
+	      return line;
+	    };
+	  }
+	  var d3_geo_clipExtentMAX = 1e9;
+	  d3.geo.clipExtent = function() {
+	    var x0, y0, x1, y1, stream, clip, clipExtent = {
+	      stream: function(output) {
+	        if (stream) stream.valid = false;
+	        stream = clip(output);
+	        stream.valid = true;
+	        return stream;
+	      },
+	      extent: function(_) {
+	        if (!arguments.length) return [ [ x0, y0 ], [ x1, y1 ] ];
+	        clip = d3_geo_clipExtent(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]);
+	        if (stream) stream.valid = false, stream = null;
+	        return clipExtent;
+	      }
+	    };
+	    return clipExtent.extent([ [ 0, 0 ], [ 960, 500 ] ]);
+	  };
+	  function d3_geo_clipExtent(x0, y0, x1, y1) {
+	    return function(listener) {
+	      var listener_ = listener, bufferListener = d3_geo_clipBufferListener(), clipLine = d3_geom_clipLine(x0, y0, x1, y1), segments, polygon, ring;
+	      var clip = {
+	        point: point,
+	        lineStart: lineStart,
+	        lineEnd: lineEnd,
+	        polygonStart: function() {
+	          listener = bufferListener;
+	          segments = [];
+	          polygon = [];
+	          clean = true;
+	        },
+	        polygonEnd: function() {
+	          listener = listener_;
+	          segments = d3.merge(segments);
+	          var clipStartInside = insidePolygon([ x0, y1 ]), inside = clean && clipStartInside, visible = segments.length;
+	          if (inside || visible) {
+	            listener.polygonStart();
+	            if (inside) {
+	              listener.lineStart();
+	              interpolate(null, null, 1, listener);
+	              listener.lineEnd();
+	            }
+	            if (visible) {
+	              d3_geo_clipPolygon(segments, compare, clipStartInside, interpolate, listener);
+	            }
+	            listener.polygonEnd();
+	          }
+	          segments = polygon = ring = null;
+	        }
+	      };
+	      function insidePolygon(p) {
+	        var wn = 0, n = polygon.length, y = p[1];
+	        for (var i = 0; i < n; ++i) {
+	          for (var j = 1, v = polygon[i], m = v.length, a = v[0], b; j < m; ++j) {
+	            b = v[j];
+	            if (a[1] <= y) {
+	              if (b[1] > y && d3_cross2d(a, b, p) > 0) ++wn;
+	            } else {
+	              if (b[1] <= y && d3_cross2d(a, b, p) < 0) --wn;
+	            }
+	            a = b;
+	          }
+	        }
+	        return wn !== 0;
+	      }
+	      function interpolate(from, to, direction, listener) {
+	        var a = 0, a1 = 0;
+	        if (from == null || (a = corner(from, direction)) !== (a1 = corner(to, direction)) || comparePoints(from, to) < 0 ^ direction > 0) {
+	          do {
+	            listener.point(a === 0 || a === 3 ? x0 : x1, a > 1 ? y1 : y0);
+	          } while ((a = (a + direction + 4) % 4) !== a1);
+	        } else {
+	          listener.point(to[0], to[1]);
+	        }
+	      }
+	      function pointVisible(x, y) {
+	        return x0 <= x && x <= x1 && y0 <= y && y <= y1;
+	      }
+	      function point(x, y) {
+	        if (pointVisible(x, y)) listener.point(x, y);
+	      }
+	      var x__, y__, v__, x_, y_, v_, first, clean;
+	      function lineStart() {
+	        clip.point = linePoint;
+	        if (polygon) polygon.push(ring = []);
+	        first = true;
+	        v_ = false;
+	        x_ = y_ = NaN;
+	      }
+	      function lineEnd() {
+	        if (segments) {
+	          linePoint(x__, y__);
+	          if (v__ && v_) bufferListener.rejoin();
+	          segments.push(bufferListener.buffer());
+	        }
+	        clip.point = point;
+	        if (v_) listener.lineEnd();
+	      }
+	      function linePoint(x, y) {
+	        x = Math.max(-d3_geo_clipExtentMAX, Math.min(d3_geo_clipExtentMAX, x));
+	        y = Math.max(-d3_geo_clipExtentMAX, Math.min(d3_geo_clipExtentMAX, y));
+	        var v = pointVisible(x, y);
+	        if (polygon) ring.push([ x, y ]);
+	        if (first) {
+	          x__ = x, y__ = y, v__ = v;
+	          first = false;
+	          if (v) {
+	            listener.lineStart();
+	            listener.point(x, y);
+	          }
+	        } else {
+	          if (v && v_) listener.point(x, y); else {
+	            var l = {
+	              a: {
+	                x: x_,
+	                y: y_
+	              },
+	              b: {
+	                x: x,
+	                y: y
+	              }
+	            };
+	            if (clipLine(l)) {
+	              if (!v_) {
+	                listener.lineStart();
+	                listener.point(l.a.x, l.a.y);
+	              }
+	              listener.point(l.b.x, l.b.y);
+	              if (!v) listener.lineEnd();
+	              clean = false;
+	            } else if (v) {
+	              listener.lineStart();
+	              listener.point(x, y);
+	              clean = false;
+	            }
+	          }
+	        }
+	        x_ = x, y_ = y, v_ = v;
+	      }
+	      return clip;
+	    };
+	    function corner(p, direction) {
+	      return abs(p[0] - x0) < ε ? direction > 0 ? 0 : 3 : abs(p[0] - x1) < ε ? direction > 0 ? 2 : 1 : abs(p[1] - y0) < ε ? direction > 0 ? 1 : 0 : direction > 0 ? 3 : 2;
+	    }
+	    function compare(a, b) {
+	      return comparePoints(a.x, b.x);
+	    }
+	    function comparePoints(a, b) {
+	      var ca = corner(a, 1), cb = corner(b, 1);
+	      return ca !== cb ? ca - cb : ca === 0 ? b[1] - a[1] : ca === 1 ? a[0] - b[0] : ca === 2 ? a[1] - b[1] : b[0] - a[0];
+	    }
+	  }
+	  function d3_geo_conic(projectAt) {
+	    var φ0 = 0, φ1 = π / 3, m = d3_geo_projectionMutator(projectAt), p = m(φ0, φ1);
+	    p.parallels = function(_) {
+	      if (!arguments.length) return [ φ0 / π * 180, φ1 / π * 180 ];
+	      return m(φ0 = _[0] * π / 180, φ1 = _[1] * π / 180);
+	    };
+	    return p;
+	  }
+	  function d3_geo_conicEqualArea(φ0, φ1) {
+	    var sinφ0 = Math.sin(φ0), n = (sinφ0 + Math.sin(φ1)) / 2, C = 1 + sinφ0 * (2 * n - sinφ0), ρ0 = Math.sqrt(C) / n;
+	    function forward(λ, φ) {
+	      var ρ = Math.sqrt(C - 2 * n * Math.sin(φ)) / n;
+	      return [ ρ * Math.sin(λ *= n), ρ0 - ρ * Math.cos(λ) ];
+	    }
+	    forward.invert = function(x, y) {
+	      var ρ0_y = ρ0 - y;
+	      return [ Math.atan2(x, ρ0_y) / n, d3_asin((C - (x * x + ρ0_y * ρ0_y) * n * n) / (2 * n)) ];
+	    };
+	    return forward;
+	  }
+	  (d3.geo.conicEqualArea = function() {
+	    return d3_geo_conic(d3_geo_conicEqualArea);
+	  }).raw = d3_geo_conicEqualArea;
+	  d3.geo.albers = function() {
+	    return d3.geo.conicEqualArea().rotate([ 96, 0 ]).center([ -.6, 38.7 ]).parallels([ 29.5, 45.5 ]).scale(1070);
+	  };
+	  d3.geo.albersUsa = function() {
+	    var lower48 = d3.geo.albers();
+	    var alaska = d3.geo.conicEqualArea().rotate([ 154, 0 ]).center([ -2, 58.5 ]).parallels([ 55, 65 ]);
+	    var hawaii = d3.geo.conicEqualArea().rotate([ 157, 0 ]).center([ -3, 19.9 ]).parallels([ 8, 18 ]);
+	    var point, pointStream = {
+	      point: function(x, y) {
+	        point = [ x, y ];
+	      }
+	    }, lower48Point, alaskaPoint, hawaiiPoint;
+	    function albersUsa(coordinates) {
+	      var x = coordinates[0], y = coordinates[1];
+	      point = null;
+	      (lower48Point(x, y), point) || (alaskaPoint(x, y), point) || hawaiiPoint(x, y);
+	      return point;
+	    }
+	    albersUsa.invert = function(coordinates) {
+	      var k = lower48.scale(), t = lower48.translate(), x = (coordinates[0] - t[0]) / k, y = (coordinates[1] - t[1]) / k;
+	      return (y >= .12 && y < .234 && x >= -.425 && x < -.214 ? alaska : y >= .166 && y < .234 && x >= -.214 && x < -.115 ? hawaii : lower48).invert(coordinates);
+	    };
+	    albersUsa.stream = function(stream) {
+	      var lower48Stream = lower48.stream(stream), alaskaStream = alaska.stream(stream), hawaiiStream = hawaii.stream(stream);
+	      return {
+	        point: function(x, y) {
+	          lower48Stream.point(x, y);
+	          alaskaStream.point(x, y);
+	          hawaiiStream.point(x, y);
+	        },
+	        sphere: function() {
+	          lower48Stream.sphere();
+	          alaskaStream.sphere();
+	          hawaiiStream.sphere();
+	        },
+	        lineStart: function() {
+	          lower48Stream.lineStart();
+	          alaskaStream.lineStart();
+	          hawaiiStream.lineStart();
+	        },
+	        lineEnd: function() {
+	          lower48Stream.lineEnd();
+	          alaskaStream.lineEnd();
+	          hawaiiStream.lineEnd();
+	        },
+	        polygonStart: function() {
+	          lower48Stream.polygonStart();
+	          alaskaStream.polygonStart();
+	          hawaiiStream.polygonStart();
+	        },
+	        polygonEnd: function() {
+	          lower48Stream.polygonEnd();
+	          alaskaStream.polygonEnd();
+	          hawaiiStream.polygonEnd();
+	        }
+	      };
+	    };
+	    albersUsa.precision = function(_) {
+	      if (!arguments.length) return lower48.precision();
+	      lower48.precision(_);
+	      alaska.precision(_);
+	      hawaii.precision(_);
+	      return albersUsa;
+	    };
+	    albersUsa.scale = function(_) {
+	      if (!arguments.length) return lower48.scale();
+	      lower48.scale(_);
+	      alaska.scale(_ * .35);
+	      hawaii.scale(_);
+	      return albersUsa.translate(lower48.translate());
+	    };
+	    albersUsa.translate = function(_) {
+	      if (!arguments.length) return lower48.translate();
+	      var k = lower48.scale(), x = +_[0], y = +_[1];
+	      lower48Point = lower48.translate(_).clipExtent([ [ x - .455 * k, y - .238 * k ], [ x + .455 * k, y + .238 * k ] ]).stream(pointStream).point;
+	      alaskaPoint = alaska.translate([ x - .307 * k, y + .201 * k ]).clipExtent([ [ x - .425 * k + ε, y + .12 * k + ε ], [ x - .214 * k - ε, y + .234 * k - ε ] ]).stream(pointStream).point;
+	      hawaiiPoint = hawaii.translate([ x - .205 * k, y + .212 * k ]).clipExtent([ [ x - .214 * k + ε, y + .166 * k + ε ], [ x - .115 * k - ε, y + .234 * k - ε ] ]).stream(pointStream).point;
+	      return albersUsa;
+	    };
+	    return albersUsa.scale(1070);
+	  };
+	  var d3_geo_pathAreaSum, d3_geo_pathAreaPolygon, d3_geo_pathArea = {
+	    point: d3_noop,
+	    lineStart: d3_noop,
+	    lineEnd: d3_noop,
+	    polygonStart: function() {
+	      d3_geo_pathAreaPolygon = 0;
+	      d3_geo_pathArea.lineStart = d3_geo_pathAreaRingStart;
+	    },
+	    polygonEnd: function() {
+	      d3_geo_pathArea.lineStart = d3_geo_pathArea.lineEnd = d3_geo_pathArea.point = d3_noop;
+	      d3_geo_pathAreaSum += abs(d3_geo_pathAreaPolygon / 2);
+	    }
+	  };
+	  function d3_geo_pathAreaRingStart() {
+	    var x00, y00, x0, y0;
+	    d3_geo_pathArea.point = function(x, y) {
+	      d3_geo_pathArea.point = nextPoint;
+	      x00 = x0 = x, y00 = y0 = y;
+	    };
+	    function nextPoint(x, y) {
+	      d3_geo_pathAreaPolygon += y0 * x - x0 * y;
+	      x0 = x, y0 = y;
+	    }
+	    d3_geo_pathArea.lineEnd = function() {
+	      nextPoint(x00, y00);
+	    };
+	  }
+	  var d3_geo_pathBoundsX0, d3_geo_pathBoundsY0, d3_geo_pathBoundsX1, d3_geo_pathBoundsY1;
+	  var d3_geo_pathBounds = {
+	    point: d3_geo_pathBoundsPoint,
+	    lineStart: d3_noop,
+	    lineEnd: d3_noop,
+	    polygonStart: d3_noop,
+	    polygonEnd: d3_noop
+	  };
+	  function d3_geo_pathBoundsPoint(x, y) {
+	    if (x < d3_geo_pathBoundsX0) d3_geo_pathBoundsX0 = x;
+	    if (x > d3_geo_pathBoundsX1) d3_geo_pathBoundsX1 = x;
+	    if (y < d3_geo_pathBoundsY0) d3_geo_pathBoundsY0 = y;
+	    if (y > d3_geo_pathBoundsY1) d3_geo_pathBoundsY1 = y;
+	  }
+	  function d3_geo_pathBuffer() {
+	    var pointCircle = d3_geo_pathBufferCircle(4.5), buffer = [];
+	    var stream = {
+	      point: point,
+	      lineStart: function() {
+	        stream.point = pointLineStart;
+	      },
+	      lineEnd: lineEnd,
+	      polygonStart: function() {
+	        stream.lineEnd = lineEndPolygon;
+	      },
+	      polygonEnd: function() {
+	        stream.lineEnd = lineEnd;
+	        stream.point = point;
+	      },
+	      pointRadius: function(_) {
+	        pointCircle = d3_geo_pathBufferCircle(_);
+	        return stream;
+	      },
+	      result: function() {
+	        if (buffer.length) {
+	          var result = buffer.join("");
+	          buffer = [];
+	          return result;
+	        }
+	      }
+	    };
+	    function point(x, y) {
+	      buffer.push("M", x, ",", y, pointCircle);
+	    }
+	    function pointLineStart(x, y) {
+	      buffer.push("M", x, ",", y);
+	      stream.point = pointLine;
+	    }
+	    function pointLine(x, y) {
+	      buffer.push("L", x, ",", y);
+	    }
+	    function lineEnd() {
+	      stream.point = point;
+	    }
+	    function lineEndPolygon() {
+	      buffer.push("Z");
+	    }
+	    return stream;
+	  }
+	  function d3_geo_pathBufferCircle(radius) {
+	    return "m0," + radius + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius + "z";
+	  }
+	  var d3_geo_pathCentroid = {
+	    point: d3_geo_pathCentroidPoint,
+	    lineStart: d3_geo_pathCentroidLineStart,
+	    lineEnd: d3_geo_pathCentroidLineEnd,
+	    polygonStart: function() {
+	      d3_geo_pathCentroid.lineStart = d3_geo_pathCentroidRingStart;
+	    },
+	    polygonEnd: function() {
+	      d3_geo_pathCentroid.point = d3_geo_pathCentroidPoint;
+	      d3_geo_pathCentroid.lineStart = d3_geo_pathCentroidLineStart;
+	      d3_geo_pathCentroid.lineEnd = d3_geo_pathCentroidLineEnd;
+	    }
+	  };
+	  function d3_geo_pathCentroidPoint(x, y) {
+	    d3_geo_centroidX0 += x;
+	    d3_geo_centroidY0 += y;
+	    ++d3_geo_centroidZ0;
+	  }
+	  function d3_geo_pathCentroidLineStart() {
+	    var x0, y0;
+	    d3_geo_pathCentroid.point = function(x, y) {
+	      d3_geo_pathCentroid.point = nextPoint;
+	      d3_geo_pathCentroidPoint(x0 = x, y0 = y);
+	    };
+	    function nextPoint(x, y) {
+	      var dx = x - x0, dy = y - y0, z = Math.sqrt(dx * dx + dy * dy);
+	      d3_geo_centroidX1 += z * (x0 + x) / 2;
+	      d3_geo_centroidY1 += z * (y0 + y) / 2;
+	      d3_geo_centroidZ1 += z;
+	      d3_geo_pathCentroidPoint(x0 = x, y0 = y);
+	    }
+	  }
+	  function d3_geo_pathCentroidLineEnd() {
+	    d3_geo_pathCentroid.point = d3_geo_pathCentroidPoint;
+	  }
+	  function d3_geo_pathCentroidRingStart() {
+	    var x00, y00, x0, y0;
+	    d3_geo_pathCentroid.point = function(x, y) {
+	      d3_geo_pathCentroid.point = nextPoint;
+	      d3_geo_pathCentroidPoint(x00 = x0 = x, y00 = y0 = y);
+	    };
+	    function nextPoint(x, y) {
+	      var dx = x - x0, dy = y - y0, z = Math.sqrt(dx * dx + dy * dy);
+	      d3_geo_centroidX1 += z * (x0 + x) / 2;
+	      d3_geo_centroidY1 += z * (y0 + y) / 2;
+	      d3_geo_centroidZ1 += z;
+	      z = y0 * x - x0 * y;
+	      d3_geo_centroidX2 += z * (x0 + x);
+	      d3_geo_centroidY2 += z * (y0 + y);
+	      d3_geo_centroidZ2 += z * 3;
+	      d3_geo_pathCentroidPoint(x0 = x, y0 = y);
+	    }
+	    d3_geo_pathCentroid.lineEnd = function() {
+	      nextPoint(x00, y00);
+	    };
+	  }
+	  function d3_geo_pathContext(context) {
+	    var pointRadius = 4.5;
+	    var stream = {
+	      point: point,
+	      lineStart: function() {
+	        stream.point = pointLineStart;
+	      },
+	      lineEnd: lineEnd,
+	      polygonStart: function() {
+	        stream.lineEnd = lineEndPolygon;
+	      },
+	      polygonEnd: function() {
+	        stream.lineEnd = lineEnd;
+	        stream.point = point;
+	      },
+	      pointRadius: function(_) {
+	        pointRadius = _;
+	        return stream;
+	      },
+	      result: d3_noop
+	    };
+	    function point(x, y) {
+	      context.moveTo(x + pointRadius, y);
+	      context.arc(x, y, pointRadius, 0, τ);
+	    }
+	    function pointLineStart(x, y) {
+	      context.moveTo(x, y);
+	      stream.point = pointLine;
+	    }
+	    function pointLine(x, y) {
+	      context.lineTo(x, y);
+	    }
+	    function lineEnd() {
+	      stream.point = point;
+	    }
+	    function lineEndPolygon() {
+	      context.closePath();
+	    }
+	    return stream;
+	  }
+	  function d3_geo_resample(project) {
+	    var δ2 = .5, cosMinDistance = Math.cos(30 * d3_radians), maxDepth = 16;
+	    function resample(stream) {
+	      return (maxDepth ? resampleRecursive : resampleNone)(stream);
+	    }
+	    function resampleNone(stream) {
+	      return d3_geo_transformPoint(stream, function(x, y) {
+	        x = project(x, y);
+	        stream.point(x[0], x[1]);
+	      });
+	    }
+	    function resampleRecursive(stream) {
+	      var λ00, φ00, x00, y00, a00, b00, c00, λ0, x0, y0, a0, b0, c0;
+	      var resample = {
+	        point: point,
+	        lineStart: lineStart,
+	        lineEnd: lineEnd,
+	        polygonStart: function() {
+	          stream.polygonStart();
+	          resample.lineStart = ringStart;
+	        },
+	        polygonEnd: function() {
+	          stream.polygonEnd();
+	          resample.lineStart = lineStart;
+	        }
+	      };
+	      function point(x, y) {
+	        x = project(x, y);
+	        stream.point(x[0], x[1]);
+	      }
+	      function lineStart() {
+	        x0 = NaN;
+	        resample.point = linePoint;
+	        stream.lineStart();
+	      }
+	      function linePoint(λ, φ) {
+	        var c = d3_geo_cartesian([ λ, φ ]), p = project(λ, φ);
+	        resampleLineTo(x0, y0, λ0, a0, b0, c0, x0 = p[0], y0 = p[1], λ0 = λ, a0 = c[0], b0 = c[1], c0 = c[2], maxDepth, stream);
+	        stream.point(x0, y0);
+	      }
+	      function lineEnd() {
+	        resample.point = point;
+	        stream.lineEnd();
+	      }
+	      function ringStart() {
+	        lineStart();
+	        resample.point = ringPoint;
+	        resample.lineEnd = ringEnd;
+	      }
+	      function ringPoint(λ, φ) {
+	        linePoint(λ00 = λ, φ00 = φ), x00 = x0, y00 = y0, a00 = a0, b00 = b0, c00 = c0;
+	        resample.point = linePoint;
+	      }
+	      function ringEnd() {
+	        resampleLineTo(x0, y0, λ0, a0, b0, c0, x00, y00, λ00, a00, b00, c00, maxDepth, stream);
+	        resample.lineEnd = lineEnd;
+	        lineEnd();
+	      }
+	      return resample;
+	    }
+	    function resampleLineTo(x0, y0, λ0, a0, b0, c0, x1, y1, λ1, a1, b1, c1, depth, stream) {
+	      var dx = x1 - x0, dy = y1 - y0, d2 = dx * dx + dy * dy;
+	      if (d2 > 4 * δ2 && depth--) {
+	        var a = a0 + a1, b = b0 + b1, c = c0 + c1, m = Math.sqrt(a * a + b * b + c * c), φ2 = Math.asin(c /= m), λ2 = abs(abs(c) - 1) < ε || abs(λ0 - λ1) < ε ? (λ0 + λ1) / 2 : Math.atan2(b, a), p = project(λ2, φ2), x2 = p[0], y2 = p[1], dx2 = x2 - x0, dy2 = y2 - y0, dz = dy * dx2 - dx * dy2;
+	        if (dz * dz / d2 > δ2 || abs((dx * dx2 + dy * dy2) / d2 - .5) > .3 || a0 * a1 + b0 * b1 + c0 * c1 < cosMinDistance) {
+	          resampleLineTo(x0, y0, λ0, a0, b0, c0, x2, y2, λ2, a /= m, b /= m, c, depth, stream);
+	          stream.point(x2, y2);
+	          resampleLineTo(x2, y2, λ2, a, b, c, x1, y1, λ1, a1, b1, c1, depth, stream);
+	        }
+	      }
+	    }
+	    resample.precision = function(_) {
+	      if (!arguments.length) return Math.sqrt(δ2);
+	      maxDepth = (δ2 = _ * _) > 0 && 16;
+	      return resample;
+	    };
+	    return resample;
+	  }
+	  d3.geo.path = function() {
+	    var pointRadius = 4.5, projection, context, projectStream, contextStream, cacheStream;
+	    function path(object) {
+	      if (object) {
+	        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
+	        if (!cacheStream || !cacheStream.valid) cacheStream = projectStream(contextStream);
+	        d3.geo.stream(object, cacheStream);
+	      }
+	      return contextStream.result();
+	    }
+	    path.area = function(object) {
+	      d3_geo_pathAreaSum = 0;
+	      d3.geo.stream(object, projectStream(d3_geo_pathArea));
+	      return d3_geo_pathAreaSum;
+	    };
+	    path.centroid = function(object) {
+	      d3_geo_centroidX0 = d3_geo_centroidY0 = d3_geo_centroidZ0 = d3_geo_centroidX1 = d3_geo_centroidY1 = d3_geo_centroidZ1 = d3_geo_centroidX2 = d3_geo_centroidY2 = d3_geo_centroidZ2 = 0;
+	      d3.geo.stream(object, projectStream(d3_geo_pathCentroid));
+	      return d3_geo_centroidZ2 ? [ d3_geo_centroidX2 / d3_geo_centroidZ2, d3_geo_centroidY2 / d3_geo_centroidZ2 ] : d3_geo_centroidZ1 ? [ d3_geo_centroidX1 / d3_geo_centroidZ1, d3_geo_centroidY1 / d3_geo_centroidZ1 ] : d3_geo_centroidZ0 ? [ d3_geo_centroidX0 / d3_geo_centroidZ0, d3_geo_centroidY0 / d3_geo_centroidZ0 ] : [ NaN, NaN ];
+	    };
+	    path.bounds = function(object) {
+	      d3_geo_pathBoundsX1 = d3_geo_pathBoundsY1 = -(d3_geo_pathBoundsX0 = d3_geo_pathBoundsY0 = Infinity);
+	      d3.geo.stream(object, projectStream(d3_geo_pathBounds));
+	      return [ [ d3_geo_pathBoundsX0, d3_geo_pathBoundsY0 ], [ d3_geo_pathBoundsX1, d3_geo_pathBoundsY1 ] ];
+	    };
+	    path.projection = function(_) {
+	      if (!arguments.length) return projection;
+	      projectStream = (projection = _) ? _.stream || d3_geo_pathProjectStream(_) : d3_identity;
+	      return reset();
+	    };
+	    path.context = function(_) {
+	      if (!arguments.length) return context;
+	      contextStream = (context = _) == null ? new d3_geo_pathBuffer() : new d3_geo_pathContext(_);
+	      if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
+	      return reset();
+	    };
+	    path.pointRadius = function(_) {
+	      if (!arguments.length) return pointRadius;
+	      pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_);
+	      return path;
+	    };
+	    function reset() {
+	      cacheStream = null;
+	      return path;
+	    }
+	    return path.projection(d3.geo.albersUsa()).context(null);
+	  };
+	  function d3_geo_pathProjectStream(project) {
+	    var resample = d3_geo_resample(function(x, y) {
+	      return project([ x * d3_degrees, y * d3_degrees ]);
+	    });
+	    return function(stream) {
+	      return d3_geo_projectionRadians(resample(stream));
+	    };
+	  }
+	  d3.geo.transform = function(methods) {
+	    return {
+	      stream: function(stream) {
+	        var transform = new d3_geo_transform(stream);
+	        for (var k in methods) transform[k] = methods[k];
+	        return transform;
+	      }
+	    };
+	  };
+	  function d3_geo_transform(stream) {
+	    this.stream = stream;
+	  }
+	  d3_geo_transform.prototype = {
+	    point: function(x, y) {
+	      this.stream.point(x, y);
+	    },
+	    sphere: function() {
+	      this.stream.sphere();
+	    },
+	    lineStart: function() {
+	      this.stream.lineStart();
+	    },
+	    lineEnd: function() {
+	      this.stream.lineEnd();
+	    },
+	    polygonStart: function() {
+	      this.stream.polygonStart();
+	    },
+	    polygonEnd: function() {
+	      this.stream.polygonEnd();
+	    }
+	  };
+	  function d3_geo_transformPoint(stream, point) {
+	    return {
+	      point: point,
+	      sphere: function() {
+	        stream.sphere();
+	      },
+	      lineStart: function() {
+	        stream.lineStart();
+	      },
+	      lineEnd: function() {
+	        stream.lineEnd();
+	      },
+	      polygonStart: function() {
+	        stream.polygonStart();
+	      },
+	      polygonEnd: function() {
+	        stream.polygonEnd();
+	      }
+	    };
+	  }
+	  d3.geo.projection = d3_geo_projection;
+	  d3.geo.projectionMutator = d3_geo_projectionMutator;
+	  function d3_geo_projection(project) {
+	    return d3_geo_projectionMutator(function() {
+	      return project;
+	    })();
+	  }
+	  function d3_geo_projectionMutator(projectAt) {
+	    var project, rotate, projectRotate, projectResample = d3_geo_resample(function(x, y) {
+	      x = project(x, y);
+	      return [ x[0] * k + δx, δy - x[1] * k ];
+	    }), k = 150, x = 480, y = 250, λ = 0, φ = 0, δλ = 0, δφ = 0, δγ = 0, δx, δy, preclip = d3_geo_clipAntimeridian, postclip = d3_identity, clipAngle = null, clipExtent = null, stream;
+	    function projection(point) {
+	      point = projectRotate(point[0] * d3_radians, point[1] * d3_radians);
+	      return [ point[0] * k + δx, δy - point[1] * k ];
+	    }
+	    function invert(point) {
+	      point = projectRotate.invert((point[0] - δx) / k, (δy - point[1]) / k);
+	      return point && [ point[0] * d3_degrees, point[1] * d3_degrees ];
+	    }
+	    projection.stream = function(output) {
+	      if (stream) stream.valid = false;
+	      stream = d3_geo_projectionRadians(preclip(rotate, projectResample(postclip(output))));
+	      stream.valid = true;
+	      return stream;
+	    };
+	    projection.clipAngle = function(_) {
+	      if (!arguments.length) return clipAngle;
+	      preclip = _ == null ? (clipAngle = _, d3_geo_clipAntimeridian) : d3_geo_clipCircle((clipAngle = +_) * d3_radians);
+	      return invalidate();
+	    };
+	    projection.clipExtent = function(_) {
+	      if (!arguments.length) return clipExtent;
+	      clipExtent = _;
+	      postclip = _ ? d3_geo_clipExtent(_[0][0], _[0][1], _[1][0], _[1][1]) : d3_identity;
+	      return invalidate();
+	    };
+	    projection.scale = function(_) {
+	      if (!arguments.length) return k;
+	      k = +_;
+	      return reset();
+	    };
+	    projection.translate = function(_) {
+	      if (!arguments.length) return [ x, y ];
+	      x = +_[0];
+	      y = +_[1];
+	      return reset();
+	    };
+	    projection.center = function(_) {
+	      if (!arguments.length) return [ λ * d3_degrees, φ * d3_degrees ];
+	      λ = _[0] % 360 * d3_radians;
+	      φ = _[1] % 360 * d3_radians;
+	      return reset();
+	    };
+	    projection.rotate = function(_) {
+	      if (!arguments.length) return [ δλ * d3_degrees, δφ * d3_degrees, δγ * d3_degrees ];
+	      δλ = _[0] % 360 * d3_radians;
+	      δφ = _[1] % 360 * d3_radians;
+	      δγ = _.length > 2 ? _[2] % 360 * d3_radians : 0;
+	      return reset();
+	    };
+	    d3.rebind(projection, projectResample, "precision");
+	    function reset() {
+	      projectRotate = d3_geo_compose(rotate = d3_geo_rotation(δλ, δφ, δγ), project);
+	      var center = project(λ, φ);
+	      δx = x - center[0] * k;
+	      δy = y + center[1] * k;
+	      return invalidate();
+	    }
+	    function invalidate() {
+	      if (stream) stream.valid = false, stream = null;
+	      return projection;
+	    }
+	    return function() {
+	      project = projectAt.apply(this, arguments);
+	      projection.invert = project.invert && invert;
+	      return reset();
+	    };
+	  }
+	  function d3_geo_projectionRadians(stream) {
+	    return d3_geo_transformPoint(stream, function(x, y) {
+	      stream.point(x * d3_radians, y * d3_radians);
+	    });
+	  }
+	  function d3_geo_equirectangular(λ, φ) {
+	    return [ λ, φ ];
+	  }
+	  (d3.geo.equirectangular = function() {
+	    return d3_geo_projection(d3_geo_equirectangular);
+	  }).raw = d3_geo_equirectangular.invert = d3_geo_equirectangular;
+	  d3.geo.rotation = function(rotate) {
+	    rotate = d3_geo_rotation(rotate[0] % 360 * d3_radians, rotate[1] * d3_radians, rotate.length > 2 ? rotate[2] * d3_radians : 0);
+	    function forward(coordinates) {
+	      coordinates = rotate(coordinates[0] * d3_radians, coordinates[1] * d3_radians);
+	      return coordinates[0] *= d3_degrees, coordinates[1] *= d3_degrees, coordinates;
+	    }
+	    forward.invert = function(coordinates) {
+	      coordinates = rotate.invert(coordinates[0] * d3_radians, coordinates[1] * d3_radians);
+	      return coordinates[0] *= d3_degrees, coordinates[1] *= d3_degrees, coordinates;
+	    };
+	    return forward;
+	  };
+	  function d3_geo_identityRotation(λ, φ) {
+	    return [ λ > π ? λ - τ : λ < -π ? λ + τ : λ, φ ];
+	  }
+	  d3_geo_identityRotation.invert = d3_geo_equirectangular;
+	  function d3_geo_rotation(δλ, δφ, δγ) {
+	    return δλ ? δφ || δγ ? d3_geo_compose(d3_geo_rotationλ(δλ), d3_geo_rotationφγ(δφ, δγ)) : d3_geo_rotationλ(δλ) : δφ || δγ ? d3_geo_rotationφγ(δφ, δγ) : d3_geo_identityRotation;
+	  }
+	  function d3_geo_forwardRotationλ(δλ) {
+	    return function(λ, φ) {
+	      return λ += δλ, [ λ > π ? λ - τ : λ < -π ? λ + τ : λ, φ ];
+	    };
+	  }
+	  function d3_geo_rotationλ(δλ) {
+	    var rotation = d3_geo_forwardRotationλ(δλ);
+	    rotation.invert = d3_geo_forwardRotationλ(-δλ);
+	    return rotation;
+	  }
+	  function d3_geo_rotationφγ(δφ, δγ) {
+	    var cosδφ = Math.cos(δφ), sinδφ = Math.sin(δφ), cosδγ = Math.cos(δγ), sinδγ = Math.sin(δγ);
+	    function rotation(λ, φ) {
+	      var cosφ = Math.cos(φ), x = Math.cos(λ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(φ), k = z * cosδφ + x * sinδφ;
+	      return [ Math.atan2(y * cosδγ - k * sinδγ, x * cosδφ - z * sinδφ), d3_asin(k * cosδγ + y * sinδγ) ];
+	    }
+	    rotation.invert = function(λ, φ) {
+	      var cosφ = Math.cos(φ), x = Math.cos(λ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(φ), k = z * cosδγ - y * sinδγ;
+	      return [ Math.atan2(y * cosδγ + z * sinδγ, x * cosδφ + k * sinδφ), d3_asin(k * cosδφ - x * sinδφ) ];
+	    };
+	    return rotation;
+	  }
+	  d3.geo.circle = function() {
+	    var origin = [ 0, 0 ], angle, precision = 6, interpolate;
+	    function circle() {
+	      var center = typeof origin === "function" ? origin.apply(this, arguments) : origin, rotate = d3_geo_rotation(-center[0] * d3_radians, -center[1] * d3_radians, 0).invert, ring = [];
+	      interpolate(null, null, 1, {
+	        point: function(x, y) {
+	          ring.push(x = rotate(x, y));
+	          x[0] *= d3_degrees, x[1] *= d3_degrees;
+	        }
+	      });
+	      return {
+	        type: "Polygon",
+	        coordinates: [ ring ]
+	      };
+	    }
+	    circle.origin = function(x) {
+	      if (!arguments.length) return origin;
+	      origin = x;
+	      return circle;
+	    };
+	    circle.angle = function(x) {
+	      if (!arguments.length) return angle;
+	      interpolate = d3_geo_circleInterpolate((angle = +x) * d3_radians, precision * d3_radians);
+	      return circle;
+	    };
+	    circle.precision = function(_) {
+	      if (!arguments.length) return precision;
+	      interpolate = d3_geo_circleInterpolate(angle * d3_radians, (precision = +_) * d3_radians);
+	      return circle;
+	    };
+	    return circle.angle(90);
+	  };
+	  function d3_geo_circleInterpolate(radius, precision) {
+	    var cr = Math.cos(radius), sr = Math.sin(radius);
+	    return function(from, to, direction, listener) {
+	      var step = direction * precision;
+	      if (from != null) {
+	        from = d3_geo_circleAngle(cr, from);
+	        to = d3_geo_circleAngle(cr, to);
+	        if (direction > 0 ? from < to : from > to) from += direction * τ;
+	      } else {
+	        from = radius + direction * τ;
+	        to = radius - .5 * step;
+	      }
+	      for (var point, t = from; direction > 0 ? t > to : t < to; t -= step) {
+	        listener.point((point = d3_geo_spherical([ cr, -sr * Math.cos(t), -sr * Math.sin(t) ]))[0], point[1]);
+	      }
+	    };
+	  }
+	  function d3_geo_circleAngle(cr, point) {
+	    var a = d3_geo_cartesian(point);
+	    a[0] -= cr;
+	    d3_geo_cartesianNormalize(a);
+	    var angle = d3_acos(-a[1]);
+	    return ((-a[2] < 0 ? -angle : angle) + 2 * Math.PI - ε) % (2 * Math.PI);
+	  }
+	  d3.geo.distance = function(a, b) {
+	    var Δλ = (b[0] - a[0]) * d3_radians, φ0 = a[1] * d3_radians, φ1 = b[1] * d3_radians, sinΔλ = Math.sin(Δλ), cosΔλ = Math.cos(Δλ), sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1), t;
+	    return Math.atan2(Math.sqrt((t = cosφ1 * sinΔλ) * t + (t = cosφ0 * sinφ1 - sinφ0 * cosφ1 * cosΔλ) * t), sinφ0 * sinφ1 + cosφ0 * cosφ1 * cosΔλ);
+	  };
+	  d3.geo.graticule = function() {
+	    var x1, x0, X1, X0, y1, y0, Y1, Y0, dx = 10, dy = dx, DX = 90, DY = 360, x, y, X, Y, precision = 2.5;
+	    function graticule() {
+	      return {
+	        type: "MultiLineString",
+	        coordinates: lines()
+	      };
+	    }
+	    function lines() {
+	      return d3.range(Math.ceil(X0 / DX) * DX, X1, DX).map(X).concat(d3.range(Math.ceil(Y0 / DY) * DY, Y1, DY).map(Y)).concat(d3.range(Math.ceil(x0 / dx) * dx, x1, dx).filter(function(x) {
+	        return abs(x % DX) > ε;
+	      }).map(x)).concat(d3.range(Math.ceil(y0 / dy) * dy, y1, dy).filter(function(y) {
+	        return abs(y % DY) > ε;
+	      }).map(y));
+	    }
+	    graticule.lines = function() {
+	      return lines().map(function(coordinates) {
+	        return {
+	          type: "LineString",
+	          coordinates: coordinates
+	        };
+	      });
+	    };
+	    graticule.outline = function() {
+	      return {
+	        type: "Polygon",
+	        coordinates: [ X(X0).concat(Y(Y1).slice(1), X(X1).reverse().slice(1), Y(Y0).reverse().slice(1)) ]
+	      };
+	    };
+	    graticule.extent = function(_) {
+	      if (!arguments.length) return graticule.minorExtent();
+	      return graticule.majorExtent(_).minorExtent(_);
+	    };
+	    graticule.majorExtent = function(_) {
+	      if (!arguments.length) return [ [ X0, Y0 ], [ X1, Y1 ] ];
+	      X0 = +_[0][0], X1 = +_[1][0];
+	      Y0 = +_[0][1], Y1 = +_[1][1];
+	      if (X0 > X1) _ = X0, X0 = X1, X1 = _;
+	      if (Y0 > Y1) _ = Y0, Y0 = Y1, Y1 = _;
+	      return graticule.precision(precision);
+	    };
+	    graticule.minorExtent = function(_) {
+	      if (!arguments.length) return [ [ x0, y0 ], [ x1, y1 ] ];
+	      x0 = +_[0][0], x1 = +_[1][0];
+	      y0 = +_[0][1], y1 = +_[1][1];
+	      if (x0 > x1) _ = x0, x0 = x1, x1 = _;
+	      if (y0 > y1) _ = y0, y0 = y1, y1 = _;
+	      return graticule.precision(precision);
+	    };
+	    graticule.step = function(_) {
+	      if (!arguments.length) return graticule.minorStep();
+	      return graticule.majorStep(_).minorStep(_);
+	    };
+	    graticule.majorStep = function(_) {
+	      if (!arguments.length) return [ DX, DY ];
+	      DX = +_[0], DY = +_[1];
+	      return graticule;
+	    };
+	    graticule.minorStep = function(_) {
+	      if (!arguments.length) return [ dx, dy ];
+	      dx = +_[0], dy = +_[1];
+	      return graticule;
+	    };
+	    graticule.precision = function(_) {
+	      if (!arguments.length) return precision;
+	      precision = +_;
+	      x = d3_geo_graticuleX(y0, y1, 90);
+	      y = d3_geo_graticuleY(x0, x1, precision);
+	      X = d3_geo_graticuleX(Y0, Y1, 90);
+	      Y = d3_geo_graticuleY(X0, X1, precision);
+	      return graticule;
+	    };
+	    return graticule.majorExtent([ [ -180, -90 + ε ], [ 180, 90 - ε ] ]).minorExtent([ [ -180, -80 - ε ], [ 180, 80 + ε ] ]);
+	  };
+	  function d3_geo_graticuleX(y0, y1, dy) {
+	    var y = d3.range(y0, y1 - ε, dy).concat(y1);
+	    return function(x) {
+	      return y.map(function(y) {
+	        return [ x, y ];
+	      });
+	    };
+	  }
+	  function d3_geo_graticuleY(x0, x1, dx) {
+	    var x = d3.range(x0, x1 - ε, dx).concat(x1);
+	    return function(y) {
+	      return x.map(function(x) {
+	        return [ x, y ];
+	      });
+	    };
+	  }
+	  function d3_source(d) {
+	    return d.source;
+	  }
+	  function d3_target(d) {
+	    return d.target;
+	  }
+	  d3.geo.greatArc = function() {
+	    var source = d3_source, source_, target = d3_target, target_;
+	    function greatArc() {
+	      return {
+	        type: "LineString",
+	        coordinates: [ source_ || source.apply(this, arguments), target_ || target.apply(this, arguments) ]
+	      };
+	    }
+	    greatArc.distance = function() {
+	      return d3.geo.distance(source_ || source.apply(this, arguments), target_ || target.apply(this, arguments));
+	    };
+	    greatArc.source = function(_) {
+	      if (!arguments.length) return source;
+	      source = _, source_ = typeof _ === "function" ? null : _;
+	      return greatArc;
+	    };
+	    greatArc.target = function(_) {
+	      if (!arguments.length) return target;
+	      target = _, target_ = typeof _ === "function" ? null : _;
+	      return greatArc;
+	    };
+	    greatArc.precision = function() {
+	      return arguments.length ? greatArc : 0;
+	    };
+	    return greatArc;
+	  };
+	  d3.geo.interpolate = function(source, target) {
+	    return d3_geo_interpolate(source[0] * d3_radians, source[1] * d3_radians, target[0] * d3_radians, target[1] * d3_radians);
+	  };
+	  function d3_geo_interpolate(x0, y0, x1, y1) {
+	    var cy0 = Math.cos(y0), sy0 = Math.sin(y0), cy1 = Math.cos(y1), sy1 = Math.sin(y1), kx0 = cy0 * Math.cos(x0), ky0 = cy0 * Math.sin(x0), kx1 = cy1 * Math.cos(x1), ky1 = cy1 * Math.sin(x1), d = 2 * Math.asin(Math.sqrt(d3_haversin(y1 - y0) + cy0 * cy1 * d3_haversin(x1 - x0))), k = 1 / Math.sin(d);
+	    var interpolate = d ? function(t) {
+	      var B = Math.sin(t *= d) * k, A = Math.sin(d - t) * k, x = A * kx0 + B * kx1, y = A * ky0 + B * ky1, z = A * sy0 + B * sy1;
+	      return [ Math.atan2(y, x) * d3_degrees, Math.atan2(z, Math.sqrt(x * x + y * y)) * d3_degrees ];
+	    } : function() {
+	      return [ x0 * d3_degrees, y0 * d3_degrees ];
+	    };
+	    interpolate.distance = d;
+	    return interpolate;
+	  }
+	  d3.geo.length = function(object) {
+	    d3_geo_lengthSum = 0;
+	    d3.geo.stream(object, d3_geo_length);
+	    return d3_geo_lengthSum;
+	  };
+	  var d3_geo_lengthSum;
+	  var d3_geo_length = {
+	    sphere: d3_noop,
+	    point: d3_noop,
+	    lineStart: d3_geo_lengthLineStart,
+	    lineEnd: d3_noop,
+	    polygonStart: d3_noop,
+	    polygonEnd: d3_noop
+	  };
+	  function d3_geo_lengthLineStart() {
+	    var λ0, sinφ0, cosφ0;
+	    d3_geo_length.point = function(λ, φ) {
+	      λ0 = λ * d3_radians, sinφ0 = Math.sin(φ *= d3_radians), cosφ0 = Math.cos(φ);
+	      d3_geo_length.point = nextPoint;
+	    };
+	    d3_geo_length.lineEnd = function() {
+	      d3_geo_length.point = d3_geo_length.lineEnd = d3_noop;
+	    };
+	    function nextPoint(λ, φ) {
+	      var sinφ = Math.sin(φ *= d3_radians), cosφ = Math.cos(φ), t = abs((λ *= d3_radians) - λ0), cosΔλ = Math.cos(t);
+	      d3_geo_lengthSum += Math.atan2(Math.sqrt((t = cosφ * Math.sin(t)) * t + (t = cosφ0 * sinφ - sinφ0 * cosφ * cosΔλ) * t), sinφ0 * sinφ + cosφ0 * cosφ * cosΔλ);
+	      λ0 = λ, sinφ0 = sinφ, cosφ0 = cosφ;
+	    }
+	  }
+	  function d3_geo_azimuthal(scale, angle) {
+	    function azimuthal(λ, φ) {
+	      var cosλ = Math.cos(λ), cosφ = Math.cos(φ), k = scale(cosλ * cosφ);
+	      return [ k * cosφ * Math.sin(λ), k * Math.sin(φ) ];
+	    }
+	    azimuthal.invert = function(x, y) {
+	      var ρ = Math.sqrt(x * x + y * y), c = angle(ρ), sinc = Math.sin(c), cosc = Math.cos(c);
+	      return [ Math.atan2(x * sinc, ρ * cosc), Math.asin(ρ && y * sinc / ρ) ];
+	    };
+	    return azimuthal;
+	  }
+	  var d3_geo_azimuthalEqualArea = d3_geo_azimuthal(function(cosλcosφ) {
+	    return Math.sqrt(2 / (1 + cosλcosφ));
+	  }, function(ρ) {
+	    return 2 * Math.asin(ρ / 2);
+	  });
+	  (d3.geo.azimuthalEqualArea = function() {
+	    return d3_geo_projection(d3_geo_azimuthalEqualArea);
+	  }).raw = d3_geo_azimuthalEqualArea;
+	  var d3_geo_azimuthalEquidistant = d3_geo_azimuthal(function(cosλcosφ) {
+	    var c = Math.acos(cosλcosφ);
+	    return c && c / Math.sin(c);
+	  }, d3_identity);
+	  (d3.geo.azimuthalEquidistant = function() {
+	    return d3_geo_projection(d3_geo_azimuthalEquidistant);
+	  }).raw = d3_geo_azimuthalEquidistant;
+	  function d3_geo_conicConformal(φ0, φ1) {
+	    var cosφ0 = Math.cos(φ0), t = function(φ) {
+	      return Math.tan(π / 4 + φ / 2);
+	    }, n = φ0 === φ1 ? Math.sin(φ0) : Math.log(cosφ0 / Math.cos(φ1)) / Math.log(t(φ1) / t(φ0)), F = cosφ0 * Math.pow(t(φ0), n) / n;
+	    if (!n) return d3_geo_mercator;
+	    function forward(λ, φ) {
+	      if (F > 0) {
+	        if (φ < -halfπ + ε) φ = -halfπ + ε;
+	      } else {
+	        if (φ > halfπ - ε) φ = halfπ - ε;
+	      }
+	      var ρ = F / Math.pow(t(φ), n);
+	      return [ ρ * Math.sin(n * λ), F - ρ * Math.cos(n * λ) ];
+	    }
+	    forward.invert = function(x, y) {
+	      var ρ0_y = F - y, ρ = d3_sgn(n) * Math.sqrt(x * x + ρ0_y * ρ0_y);
+	      return [ Math.atan2(x, ρ0_y) / n, 2 * Math.atan(Math.pow(F / ρ, 1 / n)) - halfπ ];
+	    };
+	    return forward;
+	  }
+	  (d3.geo.conicConformal = function() {
+	    return d3_geo_conic(d3_geo_conicConformal);
+	  }).raw = d3_geo_conicConformal;
+	  function d3_geo_conicEquidistant(φ0, φ1) {
+	    var cosφ0 = Math.cos(φ0), n = φ0 === φ1 ? Math.sin(φ0) : (cosφ0 - Math.cos(φ1)) / (φ1 - φ0), G = cosφ0 / n + φ0;
+	    if (abs(n) < ε) return d3_geo_equirectangular;
+	    function forward(λ, φ) {
+	      var ρ = G - φ;
+	      return [ ρ * Math.sin(n * λ), G - ρ * Math.cos(n * λ) ];
+	    }
+	    forward.invert = function(x, y) {
+	      var ρ0_y = G - y;
+	      return [ Math.atan2(x, ρ0_y) / n, G - d3_sgn(n) * Math.sqrt(x * x + ρ0_y * ρ0_y) ];
+	    };
+	    return forward;
+	  }
+	  (d3.geo.conicEquidistant = function() {
+	    return d3_geo_conic(d3_geo_conicEquidistant);
+	  }).raw = d3_geo_conicEquidistant;
+	  var d3_geo_gnomonic = d3_geo_azimuthal(function(cosλcosφ) {
+	    return 1 / cosλcosφ;
+	  }, Math.atan);
+	  (d3.geo.gnomonic = function() {
+	    return d3_geo_projection(d3_geo_gnomonic);
+	  }).raw = d3_geo_gnomonic;
+	  function d3_geo_mercator(λ, φ) {
+	    return [ λ, Math.log(Math.tan(π / 4 + φ / 2)) ];
+	  }
+	  d3_geo_mercator.invert = function(x, y) {
+	    return [ x, 2 * Math.atan(Math.exp(y)) - halfπ ];
+	  };
+	  function d3_geo_mercatorProjection(project) {
+	    var m = d3_geo_projection(project), scale = m.scale, translate = m.translate, clipExtent = m.clipExtent, clipAuto;
+	    m.scale = function() {
+	      var v = scale.apply(m, arguments);
+	      return v === m ? clipAuto ? m.clipExtent(null) : m : v;
+	    };
+	    m.translate = function() {
+	      var v = translate.apply(m, arguments);
+	      return v === m ? clipAuto ? m.clipExtent(null) : m : v;
+	    };
+	    m.clipExtent = function(_) {
+	      var v = clipExtent.apply(m, arguments);
+	      if (v === m) {
+	        if (clipAuto = _ == null) {
+	          var k = π * scale(), t = translate();
+	          clipExtent([ [ t[0] - k, t[1] - k ], [ t[0] + k, t[1] + k ] ]);
+	        }
+	      } else if (clipAuto) {
+	        v = null;
+	      }
+	      return v;
+	    };
+	    return m.clipExtent(null);
+	  }
+	  (d3.geo.mercator = function() {
+	    return d3_geo_mercatorProjection(d3_geo_mercator);
+	  }).raw = d3_geo_mercator;
+	  var d3_geo_orthographic = d3_geo_azimuthal(function() {
+	    return 1;
+	  }, Math.asin);
+	  (d3.geo.orthographic = function() {
+	    return d3_geo_projection(d3_geo_orthographic);
+	  }).raw = d3_geo_orthographic;
+	  var d3_geo_stereographic = d3_geo_azimuthal(function(cosλcosφ) {
+	    return 1 / (1 + cosλcosφ);
+	  }, function(ρ) {
+	    return 2 * Math.atan(ρ);
+	  });
+	  (d3.geo.stereographic = function() {
+	    return d3_geo_projection(d3_geo_stereographic);
+	  }).raw = d3_geo_stereographic;
+	  function d3_geo_transverseMercator(λ, φ) {
+	    return [ Math.log(Math.tan(π / 4 + φ / 2)), -λ ];
+	  }
+	  d3_geo_transverseMercator.invert = function(x, y) {
+	    return [ -y, 2 * Math.atan(Math.exp(x)) - halfπ ];
+	  };
+	  (d3.geo.transverseMercator = function() {
+	    var projection = d3_geo_mercatorProjection(d3_geo_transverseMercator), center = projection.center, rotate = projection.rotate;
+	    projection.center = function(_) {
+	      return _ ? center([ -_[1], _[0] ]) : (_ = center(), [ _[1], -_[0] ]);
+	    };
+	    projection.rotate = function(_) {
+	      return _ ? rotate([ _[0], _[1], _.length > 2 ? _[2] + 90 : 90 ]) : (_ = rotate(), 
+	      [ _[0], _[1], _[2] - 90 ]);
+	    };
+	    return rotate([ 0, 0, 90 ]);
+	  }).raw = d3_geo_transverseMercator;
+	  d3.geom = {};
+	  function d3_geom_pointX(d) {
+	    return d[0];
+	  }
+	  function d3_geom_pointY(d) {
+	    return d[1];
+	  }
+	  d3.geom.hull = function(vertices) {
+	    var x = d3_geom_pointX, y = d3_geom_pointY;
+	    if (arguments.length) return hull(vertices);
+	    function hull(data) {
+	      if (data.length < 3) return [];
+	      var fx = d3_functor(x), fy = d3_functor(y), i, n = data.length, points = [], flippedPoints = [];
+	      for (i = 0; i < n; i++) {
+	        points.push([ +fx.call(this, data[i], i), +fy.call(this, data[i], i), i ]);
+	      }
+	      points.sort(d3_geom_hullOrder);
+	      for (i = 0; i < n; i++) flippedPoints.push([ points[i][0], -points[i][1] ]);
+	      var upper = d3_geom_hullUpper(points), lower = d3_geom_hullUpper(flippedPoints);
+	      var skipLeft = lower[0] === upper[0], skipRight = lower[lower.length - 1] === upper[upper.length - 1], polygon = [];
+	      for (i = upper.length - 1; i >= 0; --i) polygon.push(data[points[upper[i]][2]]);
+	      for (i = +skipLeft; i < lower.length - skipRight; ++i) polygon.push(data[points[lower[i]][2]]);
+	      return polygon;
+	    }
+	    hull.x = function(_) {
+	      return arguments.length ? (x = _, hull) : x;
+	    };
+	    hull.y = function(_) {
+	      return arguments.length ? (y = _, hull) : y;
+	    };
+	    return hull;
+	  };
+	  function d3_geom_hullUpper(points) {
+	    var n = points.length, hull = [ 0, 1 ], hs = 2;
+	    for (var i = 2; i < n; i++) {
+	      while (hs > 1 && d3_cross2d(points[hull[hs - 2]], points[hull[hs - 1]], points[i]) <= 0) --hs;
+	      hull[hs++] = i;
+	    }
+	    return hull.slice(0, hs);
+	  }
+	  function d3_geom_hullOrder(a, b) {
+	    return a[0] - b[0] || a[1] - b[1];
+	  }
+	  d3.geom.polygon = function(coordinates) {
+	    d3_subclass(coordinates, d3_geom_polygonPrototype);
+	    return coordinates;
+	  };
+	  var d3_geom_polygonPrototype = d3.geom.polygon.prototype = [];
+	  d3_geom_polygonPrototype.area = function() {
+	    var i = -1, n = this.length, a, b = this[n - 1], area = 0;
+	    while (++i < n) {
+	      a = b;
+	      b = this[i];
+	      area += a[1] * b[0] - a[0] * b[1];
+	    }
+	    return area * .5;
+	  };
+	  d3_geom_polygonPrototype.centroid = function(k) {
+	    var i = -1, n = this.length, x = 0, y = 0, a, b = this[n - 1], c;
+	    if (!arguments.length) k = -1 / (6 * this.area());
+	    while (++i < n) {
+	      a = b;
+	      b = this[i];
+	      c = a[0] * b[1] - b[0] * a[1];
+	      x += (a[0] + b[0]) * c;
+	      y += (a[1] + b[1]) * c;
+	    }
+	    return [ x * k, y * k ];
+	  };
+	  d3_geom_polygonPrototype.clip = function(subject) {
+	    var input, closed = d3_geom_polygonClosed(subject), i = -1, n = this.length - d3_geom_polygonClosed(this), j, m, a = this[n - 1], b, c, d;
+	    while (++i < n) {
+	      input = subject.slice();
+	      subject.length = 0;
+	      b = this[i];
+	      c = input[(m = input.length - closed) - 1];
+	      j = -1;
+	      while (++j < m) {
+	        d = input[j];
+	        if (d3_geom_polygonInside(d, a, b)) {
+	          if (!d3_geom_polygonInside(c, a, b)) {
+	            subject.push(d3_geom_polygonIntersect(c, d, a, b));
+	          }
+	          subject.push(d);
+	        } else if (d3_geom_polygonInside(c, a, b)) {
+	          subject.push(d3_geom_polygonIntersect(c, d, a, b));
+	        }
+	        c = d;
+	      }
+	      if (closed) subject.push(subject[0]);
+	      a = b;
+	    }
+	    return subject;
+	  };
+	  function d3_geom_polygonInside(p, a, b) {
+	    return (b[0] - a[0]) * (p[1] - a[1]) < (b[1] - a[1]) * (p[0] - a[0]);
+	  }
+	  function d3_geom_polygonIntersect(c, d, a, b) {
+	    var x1 = c[0], x3 = a[0], x21 = d[0] - x1, x43 = b[0] - x3, y1 = c[1], y3 = a[1], y21 = d[1] - y1, y43 = b[1] - y3, ua = (x43 * (y1 - y3) - y43 * (x1 - x3)) / (y43 * x21 - x43 * y21);
+	    return [ x1 + ua * x21, y1 + ua * y21 ];
+	  }
+	  function d3_geom_polygonClosed(coordinates) {
+	    var a = coordinates[0], b = coordinates[coordinates.length - 1];
+	    return !(a[0] - b[0] || a[1] - b[1]);
+	  }
+	  var d3_geom_voronoiEdges, d3_geom_voronoiCells, d3_geom_voronoiBeaches, d3_geom_voronoiBeachPool = [], d3_geom_voronoiFirstCircle, d3_geom_voronoiCircles, d3_geom_voronoiCirclePool = [];
+	  function d3_geom_voronoiBeach() {
+	    d3_geom_voronoiRedBlackNode(this);
+	    this.edge = this.site = this.circle = null;
+	  }
+	  function d3_geom_voronoiCreateBeach(site) {
+	    var beach = d3_geom_voronoiBeachPool.pop() || new d3_geom_voronoiBeach();
+	    beach.site = site;
+	    return beach;
+	  }
+	  function d3_geom_voronoiDetachBeach(beach) {
+	    d3_geom_voronoiDetachCircle(beach);
+	    d3_geom_voronoiBeaches.remove(beach);
+	    d3_geom_voronoiBeachPool.push(beach);
+	    d3_geom_voronoiRedBlackNode(beach);
+	  }
+	  function d3_geom_voronoiRemoveBeach(beach) {
+	    var circle = beach.circle, x = circle.x, y = circle.cy, vertex = {
+	      x: x,
+	      y: y
+	    }, previous = beach.P, next = beach.N, disappearing = [ beach ];
+	    d3_geom_voronoiDetachBeach(beach);
+	    var lArc = previous;
+	    while (lArc.circle && abs(x - lArc.circle.x) < ε && abs(y - lArc.circle.cy) < ε) {
+	      previous = lArc.P;
+	      disappearing.unshift(lArc);
+	      d3_geom_voronoiDetachBeach(lArc);
+	      lArc = previous;
+	    }
+	    disappearing.unshift(lArc);
+	    d3_geom_voronoiDetachCircle(lArc);
+	    var rArc = next;
+	    while (rArc.circle && abs(x - rArc.circle.x) < ε && abs(y - rArc.circle.cy) < ε) {
+	      next = rArc.N;
+	      disappearing.push(rArc);
+	      d3_geom_voronoiDetachBeach(rArc);
+	      rArc = next;
+	    }
+	    disappearing.push(rArc);
+	    d3_geom_voronoiDetachCircle(rArc);
+	    var nArcs = disappearing.length, iArc;
+	    for (iArc = 1; iArc < nArcs; ++iArc) {
+	      rArc = disappearing[iArc];
+	      lArc = disappearing[iArc - 1];
+	      d3_geom_voronoiSetEdgeEnd(rArc.edge, lArc.site, rArc.site, vertex);
+	    }
+	    lArc = disappearing[0];
+	    rArc = disappearing[nArcs - 1];
+	    rArc.edge = d3_geom_voronoiCreateEdge(lArc.site, rArc.site, null, vertex);
+	    d3_geom_voronoiAttachCircle(lArc);
+	    d3_geom_voronoiAttachCircle(rArc);
+	  }
+	  function d3_geom_voronoiAddBeach(site) {
+	    var x = site.x, directrix = site.y, lArc, rArc, dxl, dxr, node = d3_geom_voronoiBeaches._;
+	    while (node) {
+	      dxl = d3_geom_voronoiLeftBreakPoint(node, directrix) - x;
+	      if (dxl > ε) node = node.L; else {
+	        dxr = x - d3_geom_voronoiRightBreakPoint(node, directrix);
+	        if (dxr > ε) {
+	          if (!node.R) {
+	            lArc = node;
+	            break;
+	          }
+	          node = node.R;
+	        } else {
+	          if (dxl > -ε) {
+	            lArc = node.P;
+	            rArc = node;
+	          } else if (dxr > -ε) {
+	            lArc = node;
+	            rArc = node.N;
+	          } else {
+	            lArc = rArc = node;
+	          }
+	          break;
+	        }
+	      }
+	    }
+	    var newArc = d3_geom_voronoiCreateBeach(site);
+	    d3_geom_voronoiBeaches.insert(lArc, newArc);
+	    if (!lArc && !rArc) return;
+	    if (lArc === rArc) {
+	      d3_geom_voronoiDetachCircle(lArc);
+	      rArc = d3_geom_voronoiCreateBeach(lArc.site);
+	      d3_geom_voronoiBeaches.insert(newArc, rArc);
+	      newArc.edge = rArc.edge = d3_geom_voronoiCreateEdge(lArc.site, newArc.site);
+	      d3_geom_voronoiAttachCircle(lArc);
+	      d3_geom_voronoiAttachCircle(rArc);
+	      return;
+	    }
+	    if (!rArc) {
+	      newArc.edge = d3_geom_voronoiCreateEdge(lArc.site, newArc.site);
+	      return;
+	    }
+	    d3_geom_voronoiDetachCircle(lArc);
+	    d3_geom_voronoiDetachCircle(rArc);
+	    var lSite = lArc.site, ax = lSite.x, ay = lSite.y, bx = site.x - ax, by = site.y - ay, rSite = rArc.site, cx = rSite.x - ax, cy = rSite.y - ay, d = 2 * (bx * cy - by * cx), hb = bx * bx + by * by, hc = cx * cx + cy * cy, vertex = {
+	      x: (cy * hb - by * hc) / d + ax,
+	      y: (bx * hc - cx * hb) / d + ay
+	    };
+	    d3_geom_voronoiSetEdgeEnd(rArc.edge, lSite, rSite, vertex);
+	    newArc.edge = d3_geom_voronoiCreateEdge(lSite, site, null, vertex);
+	    rArc.edge = d3_geom_voronoiCreateEdge(site, rSite, null, vertex);
+	    d3_geom_voronoiAttachCircle(lArc);
+	    d3_geom_voronoiAttachCircle(rArc);
+	  }
+	  function d3_geom_voronoiLeftBreakPoint(arc, directrix) {
+	    var site = arc.site, rfocx = site.x, rfocy = site.y, pby2 = rfocy - directrix;
+	    if (!pby2) return rfocx;
+	    var lArc = arc.P;
+	    if (!lArc) return -Infinity;
+	    site = lArc.site;
+	    var lfocx = site.x, lfocy = site.y, plby2 = lfocy - directrix;
+	    if (!plby2) return lfocx;
+	    var hl = lfocx - rfocx, aby2 = 1 / pby2 - 1 / plby2, b = hl / plby2;
+	    if (aby2) return (-b + Math.sqrt(b * b - 2 * aby2 * (hl * hl / (-2 * plby2) - lfocy + plby2 / 2 + rfocy - pby2 / 2))) / aby2 + rfocx;
+	    return (rfocx + lfocx) / 2;
+	  }
+	  function d3_geom_voronoiRightBreakPoint(arc, directrix) {
+	    var rArc = arc.N;
+	    if (rArc) return d3_geom_voronoiLeftBreakPoint(rArc, directrix);
+	    var site = arc.site;
+	    return site.y === directrix ? site.x : Infinity;
+	  }
+	  function d3_geom_voronoiCell(site) {
+	    this.site = site;
+	    this.edges = [];
+	  }
+	  d3_geom_voronoiCell.prototype.prepare = function() {
+	    var halfEdges = this.edges, iHalfEdge = halfEdges.length, edge;
+	    while (iHalfEdge--) {
+	      edge = halfEdges[iHalfEdge].edge;
+	      if (!edge.b || !edge.a) halfEdges.splice(iHalfEdge, 1);
+	    }
+	    halfEdges.sort(d3_geom_voronoiHalfEdgeOrder);
+	    return halfEdges.length;
+	  };
+	  function d3_geom_voronoiCloseCells(extent) {
+	    var x0 = extent[0][0], x1 = extent[1][0], y0 = extent[0][1], y1 = extent[1][1], x2, y2, x3, y3, cells = d3_geom_voronoiCells, iCell = cells.length, cell, iHalfEdge, halfEdges, nHalfEdges, start, end;
+	    while (iCell--) {
+	      cell = cells[iCell];
+	      if (!cell || !cell.prepare()) continue;
+	      halfEdges = cell.edges;
+	      nHalfEdges = halfEdges.length;
+	      iHalfEdge = 0;
+	      while (iHalfEdge < nHalfEdges) {
+	        end = halfEdges[iHalfEdge].end(), x3 = end.x, y3 = end.y;
+	        start = halfEdges[++iHalfEdge % nHalfEdges].start(), x2 = start.x, y2 = start.y;
+	        if (abs(x3 - x2) > ε || abs(y3 - y2) > ε) {
+	          halfEdges.splice(iHalfEdge, 0, new d3_geom_voronoiHalfEdge(d3_geom_voronoiCreateBorderEdge(cell.site, end, abs(x3 - x0) < ε && y1 - y3 > ε ? {
+	            x: x0,
+	            y: abs(x2 - x0) < ε ? y2 : y1
+	          } : abs(y3 - y1) < ε && x1 - x3 > ε ? {
+	            x: abs(y2 - y1) < ε ? x2 : x1,
+	            y: y1
+	          } : abs(x3 - x1) < ε && y3 - y0 > ε ? {
+	            x: x1,
+	            y: abs(x2 - x1) < ε ? y2 : y0
+	          } : abs(y3 - y0) < ε && x3 - x0 > ε ? {
+	            x: abs(y2 - y0) < ε ? x2 : x0,
+	            y: y0
+	          } : null), cell.site, null));
+	          ++nHalfEdges;
+	        }
+	      }
+	    }
+	  }
+	  function d3_geom_voronoiHalfEdgeOrder(a, b) {
+	    return b.angle - a.angle;
+	  }
+	  function d3_geom_voronoiCircle() {
+	    d3_geom_voronoiRedBlackNode(this);
+	    this.x = this.y = this.arc = this.site = this.cy = null;
+	  }
+	  function d3_geom_voronoiAttachCircle(arc) {
+	    var lArc = arc.P, rArc = arc.N;
+	    if (!lArc || !rArc) return;
+	    var lSite = lArc.site, cSite = arc.site, rSite = rArc.site;
+	    if (lSite === rSite) return;
+	    var bx = cSite.x, by = cSite.y, ax = lSite.x - bx, ay = lSite.y - by, cx = rSite.x - bx, cy = rSite.y - by;
+	    var d = 2 * (ax * cy - ay * cx);
+	    if (d >= -ε2) return;
+	    var ha = ax * ax + ay * ay, hc = cx * cx + cy * cy, x = (cy * ha - ay * hc) / d, y = (ax * hc - cx * ha) / d, cy = y + by;
+	    var circle = d3_geom_voronoiCirclePool.pop() || new d3_geom_voronoiCircle();
+	    circle.arc = arc;
+	    circle.site = cSite;
+	    circle.x = x + bx;
+	    circle.y = cy + Math.sqrt(x * x + y * y);
+	    circle.cy = cy;
+	    arc.circle = circle;
+	    var before = null, node = d3_geom_voronoiCircles._;
+	    while (node) {
+	      if (circle.y < node.y || circle.y === node.y && circle.x <= node.x) {
+	        if (node.L) node = node.L; else {
+	          before = node.P;
+	          break;
+	        }
+	      } else {
+	        if (node.R) node = node.R; else {
+	          before = node;
+	          break;
+	        }
+	      }
+	    }
+	    d3_geom_voronoiCircles.insert(before, circle);
+	    if (!before) d3_geom_voronoiFirstCircle = circle;
+	  }
+	  function d3_geom_voronoiDetachCircle(arc) {
+	    var circle = arc.circle;
+	    if (circle) {
+	      if (!circle.P) d3_geom_voronoiFirstCircle = circle.N;
+	      d3_geom_voronoiCircles.remove(circle);
+	      d3_geom_voronoiCirclePool.push(circle);
+	      d3_geom_voronoiRedBlackNode(circle);
+	      arc.circle = null;
+	    }
+	  }
+	  function d3_geom_voronoiClipEdges(extent) {
+	    var edges = d3_geom_voronoiEdges, clip = d3_geom_clipLine(extent[0][0], extent[0][1], extent[1][0], extent[1][1]), i = edges.length, e;
+	    while (i--) {
+	      e = edges[i];
+	      if (!d3_geom_voronoiConnectEdge(e, extent) || !clip(e) || abs(e.a.x - e.b.x) < ε && abs(e.a.y - e.b.y) < ε) {
+	        e.a = e.b = null;
+	        edges.splice(i, 1);
+	      }
+	    }
+	  }
+	  function d3_geom_voronoiConnectEdge(edge, extent) {
+	    var vb = edge.b;
+	    if (vb) return true;
+	    var va = edge.a, x0 = extent[0][0], x1 = extent[1][0], y0 = extent[0][1], y1 = extent[1][1], lSite = edge.l, rSite = edge.r, lx = lSite.x, ly = lSite.y, rx = rSite.x, ry = rSite.y, fx = (lx + rx) / 2, fy = (ly + ry) / 2, fm, fb;
+	    if (ry === ly) {
+	      if (fx < x0 || fx >= x1) return;
+	      if (lx > rx) {
+	        if (!va) va = {
+	          x: fx,
+	          y: y0
+	        }; else if (va.y >= y1) return;
+	        vb = {
+	          x: fx,
+	          y: y1
+	        };
+	      } else {
+	        if (!va) va = {
+	          x: fx,
+	          y: y1
+	        }; else if (va.y < y0) return;
+	        vb = {
+	          x: fx,
+	          y: y0
+	        };
+	      }
+	    } else {
+	      fm = (lx - rx) / (ry - ly);
+	      fb = fy - fm * fx;
+	      if (fm < -1 || fm > 1) {
+	        if (lx > rx) {
+	          if (!va) va = {
+	            x: (y0 - fb) / fm,
+	            y: y0
+	          }; else if (va.y >= y1) return;
+	          vb = {
+	            x: (y1 - fb) / fm,
+	            y: y1
+	          };
+	        } else {
+	          if (!va) va = {
+	            x: (y1 - fb) / fm,
+	            y: y1
+	          }; else if (va.y < y0) return;
+	          vb = {
+	            x: (y0 - fb) / fm,
+	            y: y0
+	          };
+	        }
+	      } else {
+	        if (ly < ry) {
+	          if (!va) va = {
+	            x: x0,
+	            y: fm * x0 + fb
+	          }; else if (va.x >= x1) return;
+	          vb = {
+	            x: x1,
+	            y: fm * x1 + fb
+	          };
+	        } else {
+	          if (!va) va = {
+	            x: x1,
+	            y: fm * x1 + fb
+	          }; else if (va.x < x0) return;
+	          vb = {
+	            x: x0,
+	            y: fm * x0 + fb
+	          };
+	        }
+	      }
+	    }
+	    edge.a = va;
+	    edge.b = vb;
+	    return true;
+	  }
+	  function d3_geom_voronoiEdge(lSite, rSite) {
+	    this.l = lSite;
+	    this.r = rSite;
+	    this.a = this.b = null;
+	  }
+	  function d3_geom_voronoiCreateEdge(lSite, rSite, va, vb) {
+	    var edge = new d3_geom_voronoiEdge(lSite, rSite);
+	    d3_geom_voronoiEdges.push(edge);
+	    if (va) d3_geom_voronoiSetEdgeEnd(edge, lSite, rSite, va);
+	    if (vb) d3_geom_voronoiSetEdgeEnd(edge, rSite, lSite, vb);
+	    d3_geom_voronoiCells[lSite.i].edges.push(new d3_geom_voronoiHalfEdge(edge, lSite, rSite));
+	    d3_geom_voronoiCells[rSite.i].edges.push(new d3_geom_voronoiHalfEdge(edge, rSite, lSite));
+	    return edge;
+	  }
+	  function d3_geom_voronoiCreateBorderEdge(lSite, va, vb) {
+	    var edge = new d3_geom_voronoiEdge(lSite, null);
+	    edge.a = va;
+	    edge.b = vb;
+	    d3_geom_voronoiEdges.push(edge);
+	    return edge;
+	  }
+	  function d3_geom_voronoiSetEdgeEnd(edge, lSite, rSite, vertex) {
+	    if (!edge.a && !edge.b) {
+	      edge.a = vertex;
+	      edge.l = lSite;
+	      edge.r = rSite;
+	    } else if (edge.l === rSite) {
+	      edge.b = vertex;
+	    } else {
+	      edge.a = vertex;
+	    }
+	  }
+	  function d3_geom_voronoiHalfEdge(edge, lSite, rSite) {
+	    var va = edge.a, vb = edge.b;
+	    this.edge = edge;
+	    this.site = lSite;
+	    this.angle = rSite ? Math.atan2(rSite.y - lSite.y, rSite.x - lSite.x) : edge.l === lSite ? Math.atan2(vb.x - va.x, va.y - vb.y) : Math.atan2(va.x - vb.x, vb.y - va.y);
+	  }
+	  d3_geom_voronoiHalfEdge.prototype = {
+	    start: function() {
+	      return this.edge.l === this.site ? this.edge.a : this.edge.b;
+	    },
+	    end: function() {
+	      return this.edge.l === this.site ? this.edge.b : this.edge.a;
+	    }
+	  };
+	  function d3_geom_voronoiRedBlackTree() {
+	    this._ = null;
+	  }
+	  function d3_geom_voronoiRedBlackNode(node) {
+	    node.U = node.C = node.L = node.R = node.P = node.N = null;
+	  }
+	  d3_geom_voronoiRedBlackTree.prototype = {
+	    insert: function(after, node) {
+	      var parent, grandpa, uncle;
+	      if (after) {
+	        node.P = after;
+	        node.N = after.N;
+	        if (after.N) after.N.P = node;
+	        after.N = node;
+	        if (after.R) {
+	          after = after.R;
+	          while (after.L) after = after.L;
+	          after.L = node;
+	        } else {
+	          after.R = node;
+	        }
+	        parent = after;
+	      } else if (this._) {
+	        after = d3_geom_voronoiRedBlackFirst(this._);
+	        node.P = null;
+	        node.N = after;
+	        after.P = after.L = node;
+	        parent = after;
+	      } else {
+	        node.P = node.N = null;
+	        this._ = node;
+	        parent = null;
+	      }
+	      node.L = node.R = null;
+	      node.U = parent;
+	      node.C = true;
+	      after = node;
+	      while (parent && parent.C) {
+	        grandpa = parent.U;
+	        if (parent === grandpa.L) {
+	          uncle = grandpa.R;
+	          if (uncle && uncle.C) {
+	            parent.C = uncle.C = false;
+	            grandpa.C = true;
+	            after = grandpa;
+	          } else {
+	            if (after === parent.R) {
+	              d3_geom_voronoiRedBlackRotateLeft(this, parent);
+	              after = parent;
+	              parent = after.U;
+	            }
+	            parent.C = false;
+	            grandpa.C = true;
+	            d3_geom_voronoiRedBlackRotateRight(this, grandpa);
+	          }
+	        } else {
+	          uncle = grandpa.L;
+	          if (uncle && uncle.C) {
+	            parent.C = uncle.C = false;
+	            grandpa.C = true;
+	            after = grandpa;
+	          } else {
+	            if (after === parent.L) {
+	              d3_geom_voronoiRedBlackRotateRight(this, parent);
+	              after = parent;
+	              parent = after.U;
+	            }
+	            parent.C = false;
+	            grandpa.C = true;
+	            d3_geom_voronoiRedBlackRotateLeft(this, grandpa);
+	          }
+	        }
+	        parent = after.U;
+	      }
+	      this._.C = false;
+	    },
+	    remove: function(node) {
+	      if (node.N) node.N.P = node.P;
+	      if (node.P) node.P.N = node.N;
+	      node.N = node.P = null;
+	      var parent = node.U, sibling, left = node.L, right = node.R, next, red;
+	      if (!left) next = right; else if (!right) next = left; else next = d3_geom_voronoiRedBlackFirst(right);
+	      if (parent) {
+	        if (parent.L === node) parent.L = next; else parent.R = next;
+	      } else {
+	        this._ = next;
+	      }
+	      if (left && right) {
+	        red = next.C;
+	        next.C = node.C;
+	        next.L = left;
+	        left.U = next;
+	        if (next !== right) {
+	          parent = next.U;
+	          next.U = node.U;
+	          node = next.R;
+	          parent.L = node;
+	          next.R = right;
+	          right.U = next;
+	        } else {
+	          next.U = parent;
+	          parent = next;
+	          node = next.R;
+	        }
+	      } else {
+	        red = node.C;
+	        node = next;
+	      }
+	      if (node) node.U = parent;
+	      if (red) return;
+	      if (node && node.C) {
+	        node.C = false;
+	        return;
+	      }
+	      do {
+	        if (node === this._) break;
+	        if (node === parent.L) {
+	          sibling = parent.R;
+	          if (sibling.C) {
+	            sibling.C = false;
+	            parent.C = true;
+	            d3_geom_voronoiRedBlackRotateLeft(this, parent);
+	            sibling = parent.R;
+	          }
+	          if (sibling.L && sibling.L.C || sibling.R && sibling.R.C) {
+	            if (!sibling.R || !sibling.R.C) {
+	              sibling.L.C = false;
+	              sibling.C = true;
+	              d3_geom_voronoiRedBlackRotateRight(this, sibling);
+	              sibling = parent.R;
+	            }
+	            sibling.C = parent.C;
+	            parent.C = sibling.R.C = false;
+	            d3_geom_voronoiRedBlackRotateLeft(this, parent);
+	            node = this._;
+	            break;
+	          }
+	        } else {
+	          sibling = parent.L;
+	          if (sibling.C) {
+	            sibling.C = false;
+	            parent.C = true;
+	            d3_geom_voronoiRedBlackRotateRight(this, parent);
+	            sibling = parent.L;
+	          }
+	          if (sibling.L && sibling.L.C || sibling.R && sibling.R.C) {
+	            if (!sibling.L || !sibling.L.C) {
+	              sibling.R.C = false;
+	              sibling.C = true;
+	              d3_geom_voronoiRedBlackRotateLeft(this, sibling);
+	              sibling = parent.L;
+	            }
+	            sibling.C = parent.C;
+	            parent.C = sibling.L.C = false;
+	            d3_geom_voronoiRedBlackRotateRight(this, parent);
+	            node = this._;
+	            break;
+	          }
+	        }
+	        sibling.C = true;
+	        node = parent;
+	        parent = parent.U;
+	      } while (!node.C);
+	      if (node) node.C = false;
+	    }
+	  };
+	  function d3_geom_voronoiRedBlackRotateLeft(tree, node) {
+	    var p = node, q = node.R, parent = p.U;
+	    if (parent) {
+	      if (parent.L === p) parent.L = q; else parent.R = q;
+	    } else {
+	      tree._ = q;
+	    }
+	    q.U = parent;
+	    p.U = q;
+	    p.R = q.L;
+	    if (p.R) p.R.U = p;
+	    q.L = p;
+	  }
+	  function d3_geom_voronoiRedBlackRotateRight(tree, node) {
+	    var p = node, q = node.L, parent = p.U;
+	    if (parent) {
+	      if (parent.L === p) parent.L = q; else parent.R = q;
+	    } else {
+	      tree._ = q;
+	    }
+	    q.U = parent;
+	    p.U = q;
+	    p.L = q.R;
+	    if (p.L) p.L.U = p;
+	    q.R = p;
+	  }
+	  function d3_geom_voronoiRedBlackFirst(node) {
+	    while (node.L) node = node.L;
+	    return node;
+	  }
+	  function d3_geom_voronoi(sites, bbox) {
+	    var site = sites.sort(d3_geom_voronoiVertexOrder).pop(), x0, y0, circle;
+	    d3_geom_voronoiEdges = [];
+	    d3_geom_voronoiCells = new Array(sites.length);
+	    d3_geom_voronoiBeaches = new d3_geom_voronoiRedBlackTree();
+	    d3_geom_voronoiCircles = new d3_geom_voronoiRedBlackTree();
+	    while (true) {
+	      circle = d3_geom_voronoiFirstCircle;
+	      if (site && (!circle || site.y < circle.y || site.y === circle.y && site.x < circle.x)) {
+	        if (site.x !== x0 || site.y !== y0) {
+	          d3_geom_voronoiCells[site.i] = new d3_geom_voronoiCell(site);
+	          d3_geom_voronoiAddBeach(site);
+	          x0 = site.x, y0 = site.y;
+	        }
+	        site = sites.pop();
+	      } else if (circle) {
+	        d3_geom_voronoiRemoveBeach(circle.arc);
+	      } else {
+	        break;
+	      }
+	    }
+	    if (bbox) d3_geom_voronoiClipEdges(bbox), d3_geom_voronoiCloseCells(bbox);
+	    var diagram = {
+	      cells: d3_geom_voronoiCells,
+	      edges: d3_geom_voronoiEdges
+	    };
+	    d3_geom_voronoiBeaches = d3_geom_voronoiCircles = d3_geom_voronoiEdges = d3_geom_voronoiCells = null;
+	    return diagram;
+	  }
+	  function d3_geom_voronoiVertexOrder(a, b) {
+	    return b.y - a.y || b.x - a.x;
+	  }
+	  d3.geom.voronoi = function(points) {
+	    var x = d3_geom_pointX, y = d3_geom_pointY, fx = x, fy = y, clipExtent = d3_geom_voronoiClipExtent;
+	    if (points) return voronoi(points);
+	    function voronoi(data) {
+	      var polygons = new Array(data.length), x0 = clipExtent[0][0], y0 = clipExtent[0][1], x1 = clipExtent[1][0], y1 = clipExtent[1][1];
+	      d3_geom_voronoi(sites(data), clipExtent).cells.forEach(function(cell, i) {
+	        var edges = cell.edges, site = cell.site, polygon = polygons[i] = edges.length ? edges.map(function(e) {
+	          var s = e.start();
+	          return [ s.x, s.y ];
+	        }) : site.x >= x0 && site.x <= x1 && site.y >= y0 && site.y <= y1 ? [ [ x0, y1 ], [ x1, y1 ], [ x1, y0 ], [ x0, y0 ] ] : [];
+	        polygon.point = data[i];
+	      });
+	      return polygons;
+	    }
+	    function sites(data) {
+	      return data.map(function(d, i) {
+	        return {
+	          x: Math.round(fx(d, i) / ε) * ε,
+	          y: Math.round(fy(d, i) / ε) * ε,
+	          i: i
+	        };
+	      });
+	    }
+	    voronoi.links = function(data) {
+	      return d3_geom_voronoi(sites(data)).edges.filter(function(edge) {
+	        return edge.l && edge.r;
+	      }).map(function(edge) {
+	        return {
+	          source: data[edge.l.i],
+	          target: data[edge.r.i]
+	        };
+	      });
+	    };
+	    voronoi.triangles = function(data) {
+	      var triangles = [];
+	      d3_geom_voronoi(sites(data)).cells.forEach(function(cell, i) {
+	        var site = cell.site, edges = cell.edges.sort(d3_geom_voronoiHalfEdgeOrder), j = -1, m = edges.length, e0, s0, e1 = edges[m - 1].edge, s1 = e1.l === site ? e1.r : e1.l;
+	        while (++j < m) {
+	          e0 = e1;
+	          s0 = s1;
+	          e1 = edges[j].edge;
+	          s1 = e1.l === site ? e1.r : e1.l;
+	          if (i < s0.i && i < s1.i && d3_geom_voronoiTriangleArea(site, s0, s1) < 0) {
+	            triangles.push([ data[i], data[s0.i], data[s1.i] ]);
+	          }
+	        }
+	      });
+	      return triangles;
+	    };
+	    voronoi.x = function(_) {
+	      return arguments.length ? (fx = d3_functor(x = _), voronoi) : x;
+	    };
+	    voronoi.y = function(_) {
+	      return arguments.length ? (fy = d3_functor(y = _), voronoi) : y;
+	    };
+	    voronoi.clipExtent = function(_) {
+	      if (!arguments.length) return clipExtent === d3_geom_voronoiClipExtent ? null : clipExtent;
+	      clipExtent = _ == null ? d3_geom_voronoiClipExtent : _;
+	      return voronoi;
+	    };
+	    voronoi.size = function(_) {
+	      if (!arguments.length) return clipExtent === d3_geom_voronoiClipExtent ? null : clipExtent && clipExtent[1];
+	      return voronoi.clipExtent(_ && [ [ 0, 0 ], _ ]);
+	    };
+	    return voronoi;
+	  };
+	  var d3_geom_voronoiClipExtent = [ [ -1e6, -1e6 ], [ 1e6, 1e6 ] ];
+	  function d3_geom_voronoiTriangleArea(a, b, c) {
+	    return (a.x - c.x) * (b.y - a.y) - (a.x - b.x) * (c.y - a.y);
+	  }
+	  d3.geom.delaunay = function(vertices) {
+	    return d3.geom.voronoi().triangles(vertices);
+	  };
+	  d3.geom.quadtree = function(points, x1, y1, x2, y2) {
+	    var x = d3_geom_pointX, y = d3_geom_pointY, compat;
+	    if (compat = arguments.length) {
+	      x = d3_geom_quadtreeCompatX;
+	      y = d3_geom_quadtreeCompatY;
+	      if (compat === 3) {
+	        y2 = y1;
+	        x2 = x1;
+	        y1 = x1 = 0;
+	      }
+	      return quadtree(points);
+	    }
+	    function quadtree(data) {
+	      var d, fx = d3_functor(x), fy = d3_functor(y), xs, ys, i, n, x1_, y1_, x2_, y2_;
+	      if (x1 != null) {
+	        x1_ = x1, y1_ = y1, x2_ = x2, y2_ = y2;
+	      } else {
+	        x2_ = y2_ = -(x1_ = y1_ = Infinity);
+	        xs = [], ys = [];
+	        n = data.length;
+	        if (compat) for (i = 0; i < n; ++i) {
+	          d = data[i];
+	          if (d.x < x1_) x1_ = d.x;
+	          if (d.y < y1_) y1_ = d.y;
+	          if (d.x > x2_) x2_ = d.x;
+	          if (d.y > y2_) y2_ = d.y;
+	          xs.push(d.x);
+	          ys.push(d.y);
+	        } else for (i = 0; i < n; ++i) {
+	          var x_ = +fx(d = data[i], i), y_ = +fy(d, i);
+	          if (x_ < x1_) x1_ = x_;
+	          if (y_ < y1_) y1_ = y_;
+	          if (x_ > x2_) x2_ = x_;
+	          if (y_ > y2_) y2_ = y_;
+	          xs.push(x_);
+	          ys.push(y_);
+	        }
+	      }
+	      var dx = x2_ - x1_, dy = y2_ - y1_;
+	      if (dx > dy) y2_ = y1_ + dx; else x2_ = x1_ + dy;
+	      function insert(n, d, x, y, x1, y1, x2, y2) {
+	        if (isNaN(x) || isNaN(y)) return;
+	        if (n.leaf) {
+	          var nx = n.x, ny = n.y;
+	          if (nx != null) {
+	            if (abs(nx - x) + abs(ny - y) < .01) {
+	              insertChild(n, d, x, y, x1, y1, x2, y2);
+	            } else {
+	              var nPoint = n.point;
+	              n.x = n.y = n.point = null;
+	              insertChild(n, nPoint, nx, ny, x1, y1, x2, y2);
+	              insertChild(n, d, x, y, x1, y1, x2, y2);
+	            }
+	          } else {
+	            n.x = x, n.y = y, n.point = d;
+	          }
+	        } else {
+	          insertChild(n, d, x, y, x1, y1, x2, y2);
+	        }
+	      }
+	      function insertChild(n, d, x, y, x1, y1, x2, y2) {
+	        var xm = (x1 + x2) * .5, ym = (y1 + y2) * .5, right = x >= xm, below = y >= ym, i = below << 1 | right;
+	        n.leaf = false;
+	        n = n.nodes[i] || (n.nodes[i] = d3_geom_quadtreeNode());
+	        if (right) x1 = xm; else x2 = xm;
+	        if (below) y1 = ym; else y2 = ym;
+	        insert(n, d, x, y, x1, y1, x2, y2);
+	      }
+	      var root = d3_geom_quadtreeNode();
+	      root.add = function(d) {
+	        insert(root, d, +fx(d, ++i), +fy(d, i), x1_, y1_, x2_, y2_);
+	      };
+	      root.visit = function(f) {
+	        d3_geom_quadtreeVisit(f, root, x1_, y1_, x2_, y2_);
+	      };
+	      root.find = function(point) {
+	        return d3_geom_quadtreeFind(root, point[0], point[1], x1_, y1_, x2_, y2_);
+	      };
+	      i = -1;
+	      if (x1 == null) {
+	        while (++i < n) {
+	          insert(root, data[i], xs[i], ys[i], x1_, y1_, x2_, y2_);
+	        }
+	        --i;
+	      } else data.forEach(root.add);
+	      xs = ys = data = d = null;
+	      return root;
+	    }
+	    quadtree.x = function(_) {
+	      return arguments.length ? (x = _, quadtree) : x;
+	    };
+	    quadtree.y = function(_) {
+	      return arguments.length ? (y = _, quadtree) : y;
+	    };
+	    quadtree.extent = function(_) {
+	      if (!arguments.length) return x1 == null ? null : [ [ x1, y1 ], [ x2, y2 ] ];
+	      if (_ == null) x1 = y1 = x2 = y2 = null; else x1 = +_[0][0], y1 = +_[0][1], x2 = +_[1][0], 
+	      y2 = +_[1][1];
+	      return quadtree;
+	    };
+	    quadtree.size = function(_) {
+	      if (!arguments.length) return x1 == null ? null : [ x2 - x1, y2 - y1 ];
+	      if (_ == null) x1 = y1 = x2 = y2 = null; else x1 = y1 = 0, x2 = +_[0], y2 = +_[1];
+	      return quadtree;
+	    };
+	    return quadtree;
+	  };
+	  function d3_geom_quadtreeCompatX(d) {
+	    return d.x;
+	  }
+	  function d3_geom_quadtreeCompatY(d) {
+	    return d.y;
+	  }
+	  function d3_geom_quadtreeNode() {
+	    return {
+	      leaf: true,
+	      nodes: [],
+	      point: null,
+	      x: null,
+	      y: null
+	    };
+	  }
+	  function d3_geom_quadtreeVisit(f, node, x1, y1, x2, y2) {
+	    if (!f(node, x1, y1, x2, y2)) {
+	      var sx = (x1 + x2) * .5, sy = (y1 + y2) * .5, children = node.nodes;
+	      if (children[0]) d3_geom_quadtreeVisit(f, children[0], x1, y1, sx, sy);
+	      if (children[1]) d3_geom_quadtreeVisit(f, children[1], sx, y1, x2, sy);
+	      if (children[2]) d3_geom_quadtreeVisit(f, children[2], x1, sy, sx, y2);
+	      if (children[3]) d3_geom_quadtreeVisit(f, children[3], sx, sy, x2, y2);
+	    }
+	  }
+	  function d3_geom_quadtreeFind(root, x, y, x0, y0, x3, y3) {
+	    var minDistance2 = Infinity, closestPoint;
+	    (function find(node, x1, y1, x2, y2) {
+	      if (x1 > x3 || y1 > y3 || x2 < x0 || y2 < y0) return;
+	      if (point = node.point) {
+	        var point, dx = x - node.x, dy = y - node.y, distance2 = dx * dx + dy * dy;
+	        if (distance2 < minDistance2) {
+	          var distance = Math.sqrt(minDistance2 = distance2);
+	          x0 = x - distance, y0 = y - distance;
+	          x3 = x + distance, y3 = y + distance;
+	          closestPoint = point;
+	        }
+	      }
+	      var children = node.nodes, xm = (x1 + x2) * .5, ym = (y1 + y2) * .5, right = x >= xm, below = y >= ym;
+	      for (var i = below << 1 | right, j = i + 4; i < j; ++i) {
+	        if (node = children[i & 3]) switch (i & 3) {
+	         case 0:
+	          find(node, x1, y1, xm, ym);
+	          break;
+	
+	         case 1:
+	          find(node, xm, y1, x2, ym);
+	          break;
+	
+	         case 2:
+	          find(node, x1, ym, xm, y2);
+	          break;
+	
+	         case 3:
+	          find(node, xm, ym, x2, y2);
+	          break;
+	        }
+	      }
+	    })(root, x0, y0, x3, y3);
+	    return closestPoint;
+	  }
+	  d3.interpolateRgb = d3_interpolateRgb;
+	  function d3_interpolateRgb(a, b) {
+	    a = d3.rgb(a);
+	    b = d3.rgb(b);
+	    var ar = a.r, ag = a.g, ab = a.b, br = b.r - ar, bg = b.g - ag, bb = b.b - ab;
+	    return function(t) {
+	      return "#" + d3_rgb_hex(Math.round(ar + br * t)) + d3_rgb_hex(Math.round(ag + bg * t)) + d3_rgb_hex(Math.round(ab + bb * t));
+	    };
+	  }
+	  d3.interpolateObject = d3_interpolateObject;
+	  function d3_interpolateObject(a, b) {
+	    var i = {}, c = {}, k;
+	    for (k in a) {
+	      if (k in b) {
+	        i[k] = d3_interpolate(a[k], b[k]);
+	      } else {
+	        c[k] = a[k];
+	      }
+	    }
+	    for (k in b) {
+	      if (!(k in a)) {
+	        c[k] = b[k];
+	      }
+	    }
+	    return function(t) {
+	      for (k in i) c[k] = i[k](t);
+	      return c;
+	    };
+	  }
+	  d3.interpolateNumber = d3_interpolateNumber;
+	  function d3_interpolateNumber(a, b) {
+	    a = +a, b = +b;
+	    return function(t) {
+	      return a * (1 - t) + b * t;
+	    };
+	  }
+	  d3.interpolateString = d3_interpolateString;
+	  function d3_interpolateString(a, b) {
+	    var bi = d3_interpolate_numberA.lastIndex = d3_interpolate_numberB.lastIndex = 0, am, bm, bs, i = -1, s = [], q = [];
+	    a = a + "", b = b + "";
+	    while ((am = d3_interpolate_numberA.exec(a)) && (bm = d3_interpolate_numberB.exec(b))) {
+	      if ((bs = bm.index) > bi) {
+	        bs = b.slice(bi, bs);
+	        if (s[i]) s[i] += bs; else s[++i] = bs;
+	      }
+	      if ((am = am[0]) === (bm = bm[0])) {
+	        if (s[i]) s[i] += bm; else s[++i] = bm;
+	      } else {
+	        s[++i] = null;
+	        q.push({
+	          i: i,
+	          x: d3_interpolateNumber(am, bm)
+	        });
+	      }
+	      bi = d3_interpolate_numberB.lastIndex;
+	    }
+	    if (bi < b.length) {
+	      bs = b.slice(bi);
+	      if (s[i]) s[i] += bs; else s[++i] = bs;
+	    }
+	    return s.length < 2 ? q[0] ? (b = q[0].x, function(t) {
+	      return b(t) + "";
+	    }) : function() {
+	      return b;
+	    } : (b = q.length, function(t) {
+	      for (var i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t);
+	      return s.join("");
+	    });
+	  }
+	  var d3_interpolate_numberA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g, d3_interpolate_numberB = new RegExp(d3_interpolate_numberA.source, "g");
+	  d3.interpolate = d3_interpolate;
+	  function d3_interpolate(a, b) {
+	    var i = d3.interpolators.length, f;
+	    while (--i >= 0 && !(f = d3.interpolators[i](a, b))) ;
+	    return f;
+	  }
+	  d3.interpolators = [ function(a, b) {
+	    var t = typeof b;
+	    return (t === "string" ? d3_rgb_names.has(b.toLowerCase()) || /^(#|rgb\(|hsl\()/i.test(b) ? d3_interpolateRgb : d3_interpolateString : b instanceof d3_color ? d3_interpolateRgb : Array.isArray(b) ? d3_interpolateArray : t === "object" && isNaN(b) ? d3_interpolateObject : d3_interpolateNumber)(a, b);
+	  } ];
+	  d3.interpolateArray = d3_interpolateArray;
+	  function d3_interpolateArray(a, b) {
+	    var x = [], c = [], na = a.length, nb = b.length, n0 = Math.min(a.length, b.length), i;
+	    for (i = 0; i < n0; ++i) x.push(d3_interpolate(a[i], b[i]));
+	    for (;i < na; ++i) c[i] = a[i];
+	    for (;i < nb; ++i) c[i] = b[i];
+	    return function(t) {
+	      for (i = 0; i < n0; ++i) c[i] = x[i](t);
+	      return c;
+	    };
+	  }
+	  var d3_ease_default = function() {
+	    return d3_identity;
+	  };
+	  var d3_ease = d3.map({
+	    linear: d3_ease_default,
+	    poly: d3_ease_poly,
+	    quad: function() {
+	      return d3_ease_quad;
+	    },
+	    cubic: function() {
+	      return d3_ease_cubic;
+	    },
+	    sin: function() {
+	      return d3_ease_sin;
+	    },
+	    exp: function() {
+	      return d3_ease_exp;
+	    },
+	    circle: function() {
+	      return d3_ease_circle;
+	    },
+	    elastic: d3_ease_elastic,
+	    back: d3_ease_back,
+	    bounce: function() {
+	      return d3_ease_bounce;
+	    }
+	  });
+	  var d3_ease_mode = d3.map({
+	    "in": d3_identity,
+	    out: d3_ease_reverse,
+	    "in-out": d3_ease_reflect,
+	    "out-in": function(f) {
+	      return d3_ease_reflect(d3_ease_reverse(f));
+	    }
+	  });
+	  d3.ease = function(name) {
+	    var i = name.indexOf("-"), t = i >= 0 ? name.slice(0, i) : name, m = i >= 0 ? name.slice(i + 1) : "in";
+	    t = d3_ease.get(t) || d3_ease_default;
+	    m = d3_ease_mode.get(m) || d3_identity;
+	    return d3_ease_clamp(m(t.apply(null, d3_arraySlice.call(arguments, 1))));
+	  };
+	  function d3_ease_clamp(f) {
+	    return function(t) {
+	      return t <= 0 ? 0 : t >= 1 ? 1 : f(t);
+	    };
+	  }
+	  function d3_ease_reverse(f) {
+	    return function(t) {
+	      return 1 - f(1 - t);
+	    };
+	  }
+	  function d3_ease_reflect(f) {
+	    return function(t) {
+	      return .5 * (t < .5 ? f(2 * t) : 2 - f(2 - 2 * t));
+	    };
+	  }
+	  function d3_ease_quad(t) {
+	    return t * t;
+	  }
+	  function d3_ease_cubic(t) {
+	    return t * t * t;
+	  }
+	  function d3_ease_cubicInOut(t) {
+	    if (t <= 0) return 0;
+	    if (t >= 1) return 1;
+	    var t2 = t * t, t3 = t2 * t;
+	    return 4 * (t < .5 ? t3 : 3 * (t - t2) + t3 - .75);
+	  }
+	  function d3_ease_poly(e) {
+	    return function(t) {
+	      return Math.pow(t, e);
+	    };
+	  }
+	  function d3_ease_sin(t) {
+	    return 1 - Math.cos(t * halfπ);
+	  }
+	  function d3_ease_exp(t) {
+	    return Math.pow(2, 10 * (t - 1));
+	  }
+	  function d3_ease_circle(t) {
+	    return 1 - Math.sqrt(1 - t * t);
+	  }
+	  function d3_ease_elastic(a, p) {
+	    var s;
+	    if (arguments.length < 2) p = .45;
+	    if (arguments.length) s = p / τ * Math.asin(1 / a); else a = 1, s = p / 4;
+	    return function(t) {
+	      return 1 + a * Math.pow(2, -10 * t) * Math.sin((t - s) * τ / p);
+	    };
+	  }
+	  function d3_ease_back(s) {
+	    if (!s) s = 1.70158;
+	    return function(t) {
+	      return t * t * ((s + 1) * t - s);
+	    };
+	  }
+	  function d3_ease_bounce(t) {
+	    return t < 1 / 2.75 ? 7.5625 * t * t : t < 2 / 2.75 ? 7.5625 * (t -= 1.5 / 2.75) * t + .75 : t < 2.5 / 2.75 ? 7.5625 * (t -= 2.25 / 2.75) * t + .9375 : 7.5625 * (t -= 2.625 / 2.75) * t + .984375;
+	  }
+	  d3.interpolateHcl = d3_interpolateHcl;
+	  function d3_interpolateHcl(a, b) {
+	    a = d3.hcl(a);
+	    b = d3.hcl(b);
+	    var ah = a.h, ac = a.c, al = a.l, bh = b.h - ah, bc = b.c - ac, bl = b.l - al;
+	    if (isNaN(bc)) bc = 0, ac = isNaN(ac) ? b.c : ac;
+	    if (isNaN(bh)) bh = 0, ah = isNaN(ah) ? b.h : ah; else if (bh > 180) bh -= 360; else if (bh < -180) bh += 360;
+	    return function(t) {
+	      return d3_hcl_lab(ah + bh * t, ac + bc * t, al + bl * t) + "";
+	    };
+	  }
+	  d3.interpolateHsl = d3_interpolateHsl;
+	  function d3_interpolateHsl(a, b) {
+	    a = d3.hsl(a);
+	    b = d3.hsl(b);
+	    var ah = a.h, as = a.s, al = a.l, bh = b.h - ah, bs = b.s - as, bl = b.l - al;
+	    if (isNaN(bs)) bs = 0, as = isNaN(as) ? b.s : as;
+	    if (isNaN(bh)) bh = 0, ah = isNaN(ah) ? b.h : ah; else if (bh > 180) bh -= 360; else if (bh < -180) bh += 360;
+	    return function(t) {
+	      return d3_hsl_rgb(ah + bh * t, as + bs * t, al + bl * t) + "";
+	    };
+	  }
+	  d3.interpolateLab = d3_interpolateLab;
+	  function d3_interpolateLab(a, b) {
+	    a = d3.lab(a);
+	    b = d3.lab(b);
+	    var al = a.l, aa = a.a, ab = a.b, bl = b.l - al, ba = b.a - aa, bb = b.b - ab;
+	    return function(t) {
+	      return d3_lab_rgb(al + bl * t, aa + ba * t, ab + bb * t) + "";
+	    };
+	  }
+	  d3.interpolateRound = d3_interpolateRound;
+	  function d3_interpolateRound(a, b) {
+	    b -= a;
+	    return function(t) {
+	      return Math.round(a + b * t);
+	    };
+	  }
+	  d3.transform = function(string) {
+	    var g = d3_document.createElementNS(d3.ns.prefix.svg, "g");
+	    return (d3.transform = function(string) {
+	      if (string != null) {
+	        g.setAttribute("transform", string);
+	        var t = g.transform.baseVal.consolidate();
+	      }
+	      return new d3_transform(t ? t.matrix : d3_transformIdentity);
+	    })(string);
+	  };
+	  function d3_transform(m) {
+	    var r0 = [ m.a, m.b ], r1 = [ m.c, m.d ], kx = d3_transformNormalize(r0), kz = d3_transformDot(r0, r1), ky = d3_transformNormalize(d3_transformCombine(r1, r0, -kz)) || 0;
+	    if (r0[0] * r1[1] < r1[0] * r0[1]) {
+	      r0[0] *= -1;
+	      r0[1] *= -1;
+	      kx *= -1;
+	      kz *= -1;
+	    }
+	    this.rotate = (kx ? Math.atan2(r0[1], r0[0]) : Math.atan2(-r1[0], r1[1])) * d3_degrees;
+	    this.translate = [ m.e, m.f ];
+	    this.scale = [ kx, ky ];
+	    this.skew = ky ? Math.atan2(kz, ky) * d3_degrees : 0;
+	  }
+	  d3_transform.prototype.toString = function() {
+	    return "translate(" + this.translate + ")rotate(" + this.rotate + ")skewX(" + this.skew + ")scale(" + this.scale + ")";
+	  };
+	  function d3_transformDot(a, b) {
+	    return a[0] * b[0] + a[1] * b[1];
+	  }
+	  function d3_transformNormalize(a) {
+	    var k = Math.sqrt(d3_transformDot(a, a));
+	    if (k) {
+	      a[0] /= k;
+	      a[1] /= k;
+	    }
+	    return k;
+	  }
+	  function d3_transformCombine(a, b, k) {
+	    a[0] += k * b[0];
+	    a[1] += k * b[1];
+	    return a;
+	  }
+	  var d3_transformIdentity = {
+	    a: 1,
+	    b: 0,
+	    c: 0,
+	    d: 1,
+	    e: 0,
+	    f: 0
+	  };
+	  d3.interpolateTransform = d3_interpolateTransform;
+	  function d3_interpolateTransformPop(s) {
+	    return s.length ? s.pop() + "," : "";
+	  }
+	  function d3_interpolateTranslate(ta, tb, s, q) {
+	    if (ta[0] !== tb[0] || ta[1] !== tb[1]) {
+	      var i = s.push("translate(", null, ",", null, ")");
+	      q.push({
+	        i: i - 4,
+	        x: d3_interpolateNumber(ta[0], tb[0])
+	      }, {
+	        i: i - 2,
+	        x: d3_interpolateNumber(ta[1], tb[1])
+	      });
+	    } else if (tb[0] || tb[1]) {
+	      s.push("translate(" + tb + ")");
+	    }
+	  }
+	  function d3_interpolateRotate(ra, rb, s, q) {
+	    if (ra !== rb) {
+	      if (ra - rb > 180) rb += 360; else if (rb - ra > 180) ra += 360;
+	      q.push({
+	        i: s.push(d3_interpolateTransformPop(s) + "rotate(", null, ")") - 2,
+	        x: d3_interpolateNumber(ra, rb)
+	      });
+	    } else if (rb) {
+	      s.push(d3_interpolateTransformPop(s) + "rotate(" + rb + ")");
+	    }
+	  }
+	  function d3_interpolateSkew(wa, wb, s, q) {
+	    if (wa !== wb) {
+	      q.push({
+	        i: s.push(d3_interpolateTransformPop(s) + "skewX(", null, ")") - 2,
+	        x: d3_interpolateNumber(wa, wb)
+	      });
+	    } else if (wb) {
+	      s.push(d3_interpolateTransformPop(s) + "skewX(" + wb + ")");
+	    }
+	  }
+	  function d3_interpolateScale(ka, kb, s, q) {
+	    if (ka[0] !== kb[0] || ka[1] !== kb[1]) {
+	      var i = s.push(d3_interpolateTransformPop(s) + "scale(", null, ",", null, ")");
+	      q.push({
+	        i: i - 4,
+	        x: d3_interpolateNumber(ka[0], kb[0])
+	      }, {
+	        i: i - 2,
+	        x: d3_interpolateNumber(ka[1], kb[1])
+	      });
+	    } else if (kb[0] !== 1 || kb[1] !== 1) {
+	      s.push(d3_interpolateTransformPop(s) + "scale(" + kb + ")");
+	    }
+	  }
+	  function d3_interpolateTransform(a, b) {
+	    var s = [], q = [];
+	    a = d3.transform(a), b = d3.transform(b);
+	    d3_interpolateTranslate(a.translate, b.translate, s, q);
+	    d3_interpolateRotate(a.rotate, b.rotate, s, q);
+	    d3_interpolateSkew(a.skew, b.skew, s, q);
+	    d3_interpolateScale(a.scale, b.scale, s, q);
+	    a = b = null;
+	    return function(t) {
+	      var i = -1, n = q.length, o;
+	      while (++i < n) s[(o = q[i]).i] = o.x(t);
+	      return s.join("");
+	    };
+	  }
+	  function d3_uninterpolateNumber(a, b) {
+	    b = (b -= a = +a) || 1 / b;
+	    return function(x) {
+	      return (x - a) / b;
+	    };
+	  }
+	  function d3_uninterpolateClamp(a, b) {
+	    b = (b -= a = +a) || 1 / b;
+	    return function(x) {
+	      return Math.max(0, Math.min(1, (x - a) / b));
+	    };
+	  }
+	  d3.layout = {};
+	  d3.layout.bundle = function() {
+	    return function(links) {
+	      var paths = [], i = -1, n = links.length;
+	      while (++i < n) paths.push(d3_layout_bundlePath(links[i]));
+	      return paths;
+	    };
+	  };
+	  function d3_layout_bundlePath(link) {
+	    var start = link.source, end = link.target, lca = d3_layout_bundleLeastCommonAncestor(start, end), points = [ start ];
+	    while (start !== lca) {
+	      start = start.parent;
+	      points.push(start);
+	    }
+	    var k = points.length;
+	    while (end !== lca) {
+	      points.splice(k, 0, end);
+	      end = end.parent;
+	    }
+	    return points;
+	  }
+	  function d3_layout_bundleAncestors(node) {
+	    var ancestors = [], parent = node.parent;
+	    while (parent != null) {
+	      ancestors.push(node);
+	      node = parent;
+	      parent = parent.parent;
+	    }
+	    ancestors.push(node);
+	    return ancestors;
+	  }
+	  function d3_layout_bundleLeastCommonAncestor(a, b) {
+	    if (a === b) return a;
+	    var aNodes = d3_layout_bundleAncestors(a), bNodes = d3_layout_bundleAncestors(b), aNode = aNodes.pop(), bNode = bNodes.pop(), sharedNode = null;
+	    while (aNode === bNode) {
+	      sharedNode = aNode;
+	      aNode = aNodes.pop();
+	      bNode = bNodes.pop();
+	    }
+	    return sharedNode;
+	  }
+	  d3.layout.chord = function() {
+	    var chord = {}, chords, groups, matrix, n, padding = 0, sortGroups, sortSubgroups, sortChords;
+	    function relayout() {
+	      var subgroups = {}, groupSums = [], groupIndex = d3.range(n), subgroupIndex = [], k, x, x0, i, j;
+	      chords = [];
+	      groups = [];
+	      k = 0, i = -1;
+	      while (++i < n) {
+	        x = 0, j = -1;
+	        while (++j < n) {
+	          x += matrix[i][j];
+	        }
+	        groupSums.push(x);
+	        subgroupIndex.push(d3.range(n));
+	        k += x;
+	      }
+	      if (sortGroups) {
+	        groupIndex.sort(function(a, b) {
+	          return sortGroups(groupSums[a], groupSums[b]);
+	        });
+	      }
+	      if (sortSubgroups) {
+	        subgroupIndex.forEach(function(d, i) {
+	          d.sort(function(a, b) {
+	            return sortSubgroups(matrix[i][a], matrix[i][b]);
+	          });
+	        });
+	      }
+	      k = (τ - padding * n) / k;
+	      x = 0, i = -1;
+	      while (++i < n) {
+	        x0 = x, j = -1;
+	        while (++j < n) {
+	          var di = groupIndex[i], dj = subgroupIndex[di][j], v = matrix[di][dj], a0 = x, a1 = x += v * k;
+	          subgroups[di + "-" + dj] = {
+	            index: di,
+	            subindex: dj,
+	            startAngle: a0,
+	            endAngle: a1,
+	            value: v
+	          };
+	        }
+	        groups[di] = {
+	          index: di,
+	          startAngle: x0,
+	          endAngle: x,
+	          value: groupSums[di]
+	        };
+	        x += padding;
+	      }
+	      i = -1;
+	      while (++i < n) {
+	        j = i - 1;
+	        while (++j < n) {
+	          var source = subgroups[i + "-" + j], target = subgroups[j + "-" + i];
+	          if (source.value || target.value) {
+	            chords.push(source.value < target.value ? {
+	              source: target,
+	              target: source
+	            } : {
+	              source: source,
+	              target: target
+	            });
+	          }
+	        }
+	      }
+	      if (sortChords) resort();
+	    }
+	    function resort() {
+	      chords.sort(function(a, b) {
+	        return sortChords((a.source.value + a.target.value) / 2, (b.source.value + b.target.value) / 2);
+	      });
+	    }
+	    chord.matrix = function(x) {
+	      if (!arguments.length) return matrix;
+	      n = (matrix = x) && matrix.length;
+	      chords = groups = null;
+	      return chord;
+	    };
+	    chord.padding = function(x) {
+	      if (!arguments.length) return padding;
+	      padding = x;
+	      chords = groups = null;
+	      return chord;
+	    };
+	    chord.sortGroups = function(x) {
+	      if (!arguments.length) return sortGroups;
+	      sortGroups = x;
+	      chords = groups = null;
+	      return chord;
+	    };
+	    chord.sortSubgroups = function(x) {
+	      if (!arguments.length) return sortSubgroups;
+	      sortSubgroups = x;
+	      chords = null;
+	      return chord;
+	    };
+	    chord.sortChords = function(x) {
+	      if (!arguments.length) return sortChords;
+	      sortChords = x;
+	      if (chords) resort();
+	      return chord;
+	    };
+	    chord.chords = function() {
+	      if (!chords) relayout();
+	      return chords;
+	    };
+	    chord.groups = function() {
+	      if (!groups) relayout();
+	      return groups;
+	    };
+	    return chord;
+	  };
+	  d3.layout.force = function() {
+	    var force = {}, event = d3.dispatch("start", "tick", "end"), timer, size = [ 1, 1 ], drag, alpha, friction = .9, linkDistance = d3_layout_forceLinkDistance, linkStrength = d3_layout_forceLinkStrength, charge = -30, chargeDistance2 = d3_layout_forceChargeDistance2, gravity = .1, theta2 = .64, nodes = [], links = [], distances, strengths, charges;
+	    function repulse(node) {
+	      return function(quad, x1, _, x2) {
+	        if (quad.point !== node) {
+	          var dx = quad.cx - node.x, dy = quad.cy - node.y, dw = x2 - x1, dn = dx * dx + dy * dy;
+	          if (dw * dw / theta2 < dn) {
+	            if (dn < chargeDistance2) {
+	              var k = quad.charge / dn;
+	              node.px -= dx * k;
+	              node.py -= dy * k;
+	            }
+	            return true;
+	          }
+	          if (quad.point && dn && dn < chargeDistance2) {
+	            var k = quad.pointCharge / dn;
+	            node.px -= dx * k;
+	            node.py -= dy * k;
+	          }
+	        }
+	        return !quad.charge;
+	      };
+	    }
+	    force.tick = function() {
+	      if ((alpha *= .99) < .005) {
+	        timer = null;
+	        event.end({
+	          type: "end",
+	          alpha: alpha = 0
+	        });
+	        return true;
+	      }
+	      var n = nodes.length, m = links.length, q, i, o, s, t, l, k, x, y;
+	      for (i = 0; i < m; ++i) {
+	        o = links[i];
+	        s = o.source;
+	        t = o.target;
+	        x = t.x - s.x;
+	        y = t.y - s.y;
+	        if (l = x * x + y * y) {
+	          l = alpha * strengths[i] * ((l = Math.sqrt(l)) - distances[i]) / l;
+	          x *= l;
+	          y *= l;
+	          t.x -= x * (k = s.weight + t.weight ? s.weight / (s.weight + t.weight) : .5);
+	          t.y -= y * k;
+	          s.x += x * (k = 1 - k);
+	          s.y += y * k;
+	        }
+	      }
+	      if (k = alpha * gravity) {
+	        x = size[0] / 2;
+	        y = size[1] / 2;
+	        i = -1;
+	        if (k) while (++i < n) {
+	          o = nodes[i];
+	          o.x += (x - o.x) * k;
+	          o.y += (y - o.y) * k;
+	        }
+	      }
+	      if (charge) {
+	        d3_layout_forceAccumulate(q = d3.geom.quadtree(nodes), alpha, charges);
+	        i = -1;
+	        while (++i < n) {
+	          if (!(o = nodes[i]).fixed) {
+	            q.visit(repulse(o));
+	          }
+	        }
+	      }
+	      i = -1;
+	      while (++i < n) {
+	        o = nodes[i];
+	        if (o.fixed) {
+	          o.x = o.px;
+	          o.y = o.py;
+	        } else {
+	          o.x -= (o.px - (o.px = o.x)) * friction;
+	          o.y -= (o.py - (o.py = o.y)) * friction;
+	        }
+	      }
+	      event.tick({
+	        type: "tick",
+	        alpha: alpha
+	      });
+	    };
+	    force.nodes = function(x) {
+	      if (!arguments.length) return nodes;
+	      nodes = x;
+	      return force;
+	    };
+	    force.links = function(x) {
+	      if (!arguments.length) return links;
+	      links = x;
+	      return force;
+	    };
+	    force.size = function(x) {
+	      if (!arguments.length) return size;
+	      size = x;
+	      return force;
+	    };
+	    force.linkDistance = function(x) {
+	      if (!arguments.length) return linkDistance;
+	      linkDistance = typeof x === "function" ? x : +x;
+	      return force;
+	    };
+	    force.distance = force.linkDistance;
+	    force.linkStrength = function(x) {
+	      if (!arguments.length) return linkStrength;
+	      linkStrength = typeof x === "function" ? x : +x;
+	      return force;
+	    };
+	    force.friction = function(x) {
+	      if (!arguments.length) return friction;
+	      friction = +x;
+	      return force;
+	    };
+	    force.charge = function(x) {
+	      if (!arguments.length) return charge;
+	      charge = typeof x === "function" ? x : +x;
+	      return force;
+	    };
+	    force.chargeDistance = function(x) {
+	      if (!arguments.length) return Math.sqrt(chargeDistance2);
+	      chargeDistance2 = x * x;
+	      return force;
+	    };
+	    force.gravity = function(x) {
+	      if (!arguments.length) return gravity;
+	      gravity = +x;
+	      return force;
+	    };
+	    force.theta = function(x) {
+	      if (!arguments.length) return Math.sqrt(theta2);
+	      theta2 = x * x;
+	      return force;
+	    };
+	    force.alpha = function(x) {
+	      if (!arguments.length) return alpha;
+	      x = +x;
+	      if (alpha) {
+	        if (x > 0) {
+	          alpha = x;
+	        } else {
+	          timer.c = null, timer.t = NaN, timer = null;
+	          event.end({
+	            type: "end",
+	            alpha: alpha = 0
+	          });
+	        }
+	      } else if (x > 0) {
+	        event.start({
+	          type: "start",
+	          alpha: alpha = x
+	        });
+	        timer = d3_timer(force.tick);
+	      }
+	      return force;
+	    };
+	    force.start = function() {
+	      var i, n = nodes.length, m = links.length, w = size[0], h = size[1], neighbors, o;
+	      for (i = 0; i < n; ++i) {
+	        (o = nodes[i]).index = i;
+	        o.weight = 0;
+	      }
+	      for (i = 0; i < m; ++i) {
+	        o = links[i];
+	        if (typeof o.source == "number") o.source = nodes[o.source];
+	        if (typeof o.target == "number") o.target = nodes[o.target];
+	        ++o.source.weight;
+	        ++o.target.weight;
+	      }
+	      for (i = 0; i < n; ++i) {
+	        o = nodes[i];
+	        if (isNaN(o.x)) o.x = position("x", w);
+	        if (isNaN(o.y)) o.y = position("y", h);
+	        if (isNaN(o.px)) o.px = o.x;
+	        if (isNaN(o.py)) o.py = o.y;
+	      }
+	      distances = [];
+	      if (typeof linkDistance === "function") for (i = 0; i < m; ++i) distances[i] = +linkDistance.call(this, links[i], i); else for (i = 0; i < m; ++i) distances[i] = linkDistance;
+	      strengths = [];
+	      if (typeof linkStrength === "function") for (i = 0; i < m; ++i) strengths[i] = +linkStrength.call(this, links[i], i); else for (i = 0; i < m; ++i) strengths[i] = linkStrength;
+	      charges = [];
+	      if (typeof charge === "function") for (i = 0; i < n; ++i) charges[i] = +charge.call(this, nodes[i], i); else for (i = 0; i < n; ++i) charges[i] = charge;
+	      function position(dimension, size) {
+	        if (!neighbors) {
+	          neighbors = new Array(n);
+	          for (j = 0; j < n; ++j) {
+	            neighbors[j] = [];
+	          }
+	          for (j = 0; j < m; ++j) {
+	            var o = links[j];
+	            neighbors[o.source.index].push(o.target);
+	            neighbors[o.target.index].push(o.source);
+	          }
+	        }
+	        var candidates = neighbors[i], j = -1, l = candidates.length, x;
+	        while (++j < l) if (!isNaN(x = candidates[j][dimension])) return x;
+	        return Math.random() * size;
+	      }
+	      return force.resume();
+	    };
+	    force.resume = function() {
+	      return force.alpha(.1);
+	    };
+	    force.stop = function() {
+	      return force.alpha(0);
+	    };
+	    force.drag = function() {
+	      if (!drag) drag = d3.behavior.drag().origin(d3_identity).on("dragstart.force", d3_layout_forceDragstart).on("drag.force", dragmove).on("dragend.force", d3_layout_forceDragend);
+	      if (!arguments.length) return drag;
+	      this.on("mouseover.force", d3_layout_forceMouseover).on("mouseout.force", d3_layout_forceMouseout).call(drag);
+	    };
+	    function dragmove(d) {
+	      d.px = d3.event.x, d.py = d3.event.y;
+	      force.resume();
+	    }
+	    return d3.rebind(force, event, "on");
+	  };
+	  function d3_layout_forceDragstart(d) {
+	    d.fixed |= 2;
+	  }
+	  function d3_layout_forceDragend(d) {
+	    d.fixed &= ~6;
+	  }
+	  function d3_layout_forceMouseover(d) {
+	    d.fixed |= 4;
+	    d.px = d.x, d.py = d.y;
+	  }
+	  function d3_layout_forceMouseout(d) {
+	    d.fixed &= ~4;
+	  }
+	  function d3_layout_forceAccumulate(quad, alpha, charges) {
+	    var cx = 0, cy = 0;
+	    quad.charge = 0;
+	    if (!quad.leaf) {
+	      var nodes = quad.nodes, n = nodes.length, i = -1, c;
+	      while (++i < n) {
+	        c = nodes[i];
+	        if (c == null) continue;
+	        d3_layout_forceAccumulate(c, alpha, charges);
+	        quad.charge += c.charge;
+	        cx += c.charge * c.cx;
+	        cy += c.charge * c.cy;
+	      }
+	    }
+	    if (quad.point) {
+	      if (!quad.leaf) {
+	        quad.point.x += Math.random() - .5;
+	        quad.point.y += Math.random() - .5;
+	      }
+	      var k = alpha * charges[quad.point.index];
+	      quad.charge += quad.pointCharge = k;
+	      cx += k * quad.point.x;
+	      cy += k * quad.point.y;
+	    }
+	    quad.cx = cx / quad.charge;
+	    quad.cy = cy / quad.charge;
+	  }
+	  var d3_layout_forceLinkDistance = 20, d3_layout_forceLinkStrength = 1, d3_layout_forceChargeDistance2 = Infinity;
+	  d3.layout.hierarchy = function() {
+	    var sort = d3_layout_hierarchySort, children = d3_layout_hierarchyChildren, value = d3_layout_hierarchyValue;
+	    function hierarchy(root) {
+	      var stack = [ root ], nodes = [], node;
+	      root.depth = 0;
+	      while ((node = stack.pop()) != null) {
+	        nodes.push(node);
+	        if ((childs = children.call(hierarchy, node, node.depth)) && (n = childs.length)) {
+	          var n, childs, child;
+	          while (--n >= 0) {
+	            stack.push(child = childs[n]);
+	            child.parent = node;
+	            child.depth = node.depth + 1;
+	          }
+	          if (value) node.value = 0;
+	          node.children = childs;
+	        } else {
+	          if (value) node.value = +value.call(hierarchy, node, node.depth) || 0;
+	          delete node.children;
+	        }
+	      }
+	      d3_layout_hierarchyVisitAfter(root, function(node) {
+	        var childs, parent;
+	        if (sort && (childs = node.children)) childs.sort(sort);
+	        if (value && (parent = node.parent)) parent.value += node.value;
+	      });
+	      return nodes;
+	    }
+	    hierarchy.sort = function(x) {
+	      if (!arguments.length) return sort;
+	      sort = x;
+	      return hierarchy;
+	    };
+	    hierarchy.children = function(x) {
+	      if (!arguments.length) return children;
+	      children = x;
+	      return hierarchy;
+	    };
+	    hierarchy.value = function(x) {
+	      if (!arguments.length) return value;
+	      value = x;
+	      return hierarchy;
+	    };
+	    hierarchy.revalue = function(root) {
+	      if (value) {
+	        d3_layout_hierarchyVisitBefore(root, function(node) {
+	          if (node.children) node.value = 0;
+	        });
+	        d3_layout_hierarchyVisitAfter(root, function(node) {
+	          var parent;
+	          if (!node.children) node.value = +value.call(hierarchy, node, node.depth) || 0;
+	          if (parent = node.parent) parent.value += node.value;
+	        });
+	      }
+	      return root;
+	    };
+	    return hierarchy;
+	  };
+	  function d3_layout_hierarchyRebind(object, hierarchy) {
+	    d3.rebind(object, hierarchy, "sort", "children", "value");
+	    object.nodes = object;
+	    object.links = d3_layout_hierarchyLinks;
+	    return object;
+	  }
+	  function d3_layout_hierarchyVisitBefore(node, callback) {
+	    var nodes = [ node ];
+	    while ((node = nodes.pop()) != null) {
+	      callback(node);
+	      if ((children = node.children) && (n = children.length)) {
+	        var n, children;
+	        while (--n >= 0) nodes.push(children[n]);
+	      }
+	    }
+	  }
+	  function d3_layout_hierarchyVisitAfter(node, callback) {
+	    var nodes = [ node ], nodes2 = [];
+	    while ((node = nodes.pop()) != null) {
+	      nodes2.push(node);
+	      if ((children = node.children) && (n = children.length)) {
+	        var i = -1, n, children;
+	        while (++i < n) nodes.push(children[i]);
+	      }
+	    }
+	    while ((node = nodes2.pop()) != null) {
+	      callback(node);
+	    }
+	  }
+	  function d3_layout_hierarchyChildren(d) {
+	    return d.children;
+	  }
+	  function d3_layout_hierarchyValue(d) {
+	    return d.value;
+	  }
+	  function d3_layout_hierarchySort(a, b) {
+	    return b.value - a.value;
+	  }
+	  function d3_layout_hierarchyLinks(nodes) {
+	    return d3.merge(nodes.map(function(parent) {
+	      return (parent.children || []).map(function(child) {
+	        return {
+	          source: parent,
+	          target: child
+	        };
+	      });
+	    }));
+	  }
+	  d3.layout.partition = function() {
+	    var hierarchy = d3.layout.hierarchy(), size = [ 1, 1 ];
+	    function position(node, x, dx, dy) {
+	      var children = node.children;
+	      node.x = x;
+	      node.y = node.depth * dy;
+	      node.dx = dx;
+	      node.dy = dy;
+	      if (children && (n = children.length)) {
+	        var i = -1, n, c, d;
+	        dx = node.value ? dx / node.value : 0;
+	        while (++i < n) {
+	          position(c = children[i], x, d = c.value * dx, dy);
+	          x += d;
+	        }
+	      }
+	    }
+	    function depth(node) {
+	      var children = node.children, d = 0;
+	      if (children && (n = children.length)) {
+	        var i = -1, n;
+	        while (++i < n) d = Math.max(d, depth(children[i]));
+	      }
+	      return 1 + d;
+	    }
+	    function partition(d, i) {
+	      var nodes = hierarchy.call(this, d, i);
+	      position(nodes[0], 0, size[0], size[1] / depth(nodes[0]));
+	      return nodes;
+	    }
+	    partition.size = function(x) {
+	      if (!arguments.length) return size;
+	      size = x;
+	      return partition;
+	    };
+	    return d3_layout_hierarchyRebind(partition, hierarchy);
+	  };
+	  d3.layout.pie = function() {
+	    var value = Number, sort = d3_layout_pieSortByValue, startAngle = 0, endAngle = τ, padAngle = 0;
+	    function pie(data) {
+	      var n = data.length, values = data.map(function(d, i) {
+	        return +value.call(pie, d, i);
+	      }), a = +(typeof startAngle === "function" ? startAngle.apply(this, arguments) : startAngle), da = (typeof endAngle === "function" ? endAngle.apply(this, arguments) : endAngle) - a, p = Math.min(Math.abs(da) / n, +(typeof padAngle === "function" ? padAngle.apply(this, arguments) : padAngle)), pa = p * (da < 0 ? -1 : 1), sum = d3.sum(values), k = sum ? (da - n * pa) / sum : 0, index = d3.range(n), arcs = [], v;
+	      if (sort != null) index.sort(sort === d3_layout_pieSortByValue ? function(i, j) {
+	        return values[j] - values[i];
+	      } : function(i, j) {
+	        return sort(data[i], data[j]);
+	      });
+	      index.forEach(function(i) {
+	        arcs[i] = {
+	          data: data[i],
+	          value: v = values[i],
+	          startAngle: a,
+	          endAngle: a += v * k + pa,
+	          padAngle: p
+	        };
+	      });
+	      return arcs;
+	    }
+	    pie.value = function(_) {
+	      if (!arguments.length) return value;
+	      value = _;
+	      return pie;
+	    };
+	    pie.sort = function(_) {
+	      if (!arguments.length) return sort;
+	      sort = _;
+	      return pie;
+	    };
+	    pie.startAngle = function(_) {
+	      if (!arguments.length) return startAngle;
+	      startAngle = _;
+	      return pie;
+	    };
+	    pie.endAngle = function(_) {
+	      if (!arguments.length) return endAngle;
+	      endAngle = _;
+	      return pie;
+	    };
+	    pie.padAngle = function(_) {
+	      if (!arguments.length) return padAngle;
+	      padAngle = _;
+	      return pie;
+	    };
+	    return pie;
+	  };
+	  var d3_layout_pieSortByValue = {};
+	  d3.layout.stack = function() {
+	    var values = d3_identity, order = d3_layout_stackOrderDefault, offset = d3_layout_stackOffsetZero, out = d3_layout_stackOut, x = d3_layout_stackX, y = d3_layout_stackY;
+	    function stack(data, index) {
+	      if (!(n = data.length)) return data;
+	      var series = data.map(function(d, i) {
+	        return values.call(stack, d, i);
+	      });
+	      var points = series.map(function(d) {
+	        return d.map(function(v, i) {
+	          return [ x.call(stack, v, i), y.call(stack, v, i) ];
+	        });
+	      });
+	      var orders = order.call(stack, points, index);
+	      series = d3.permute(series, orders);
+	      points = d3.permute(points, orders);
+	      var offsets = offset.call(stack, points, index);
+	      var m = series[0].length, n, i, j, o;
+	      for (j = 0; j < m; ++j) {
+	        out.call(stack, series[0][j], o = offsets[j], points[0][j][1]);
+	        for (i = 1; i < n; ++i) {
+	          out.call(stack, series[i][j], o += points[i - 1][j][1], points[i][j][1]);
+	        }
+	      }
+	      return data;
+	    }
+	    stack.values = function(x) {
+	      if (!arguments.length) return values;
+	      values = x;
+	      return stack;
+	    };
+	    stack.order = function(x) {
+	      if (!arguments.length) return order;
+	      order = typeof x === "function" ? x : d3_layout_stackOrders.get(x) || d3_layout_stackOrderDefault;
+	      return stack;
+	    };
+	    stack.offset = function(x) {
+	      if (!arguments.length) return offset;
+	      offset = typeof x === "function" ? x : d3_layout_stackOffsets.get(x) || d3_layout_stackOffsetZero;
+	      return stack;
+	    };
+	    stack.x = function(z) {
+	      if (!arguments.length) return x;
+	      x = z;
+	      return stack;
+	    };
+	    stack.y = function(z) {
+	      if (!arguments.length) return y;
+	      y = z;
+	      return stack;
+	    };
+	    stack.out = function(z) {
+	      if (!arguments.length) return out;
+	      out = z;
+	      return stack;
+	    };
+	    return stack;
+	  };
+	  function d3_layout_stackX(d) {
+	    return d.x;
+	  }
+	  function d3_layout_stackY(d) {
+	    return d.y;
+	  }
+	  function d3_layout_stackOut(d, y0, y) {
+	    d.y0 = y0;
+	    d.y = y;
+	  }
+	  var d3_layout_stackOrders = d3.map({
+	    "inside-out": function(data) {
+	      var n = data.length, i, j, max = data.map(d3_layout_stackMaxIndex), sums = data.map(d3_layout_stackReduceSum), index = d3.range(n).sort(function(a, b) {
+	        return max[a] - max[b];
+	      }), top = 0, bottom = 0, tops = [], bottoms = [];
+	      for (i = 0; i < n; ++i) {
+	        j = index[i];
+	        if (top < bottom) {
+	          top += sums[j];
+	          tops.push(j);
+	        } else {
+	          bottom += sums[j];
+	          bottoms.push(j);
+	        }
+	      }
+	      return bottoms.reverse().concat(tops);
+	    },
+	    reverse: function(data) {
+	      return d3.range(data.length).reverse();
+	    },
+	    "default": d3_layout_stackOrderDefault
+	  });
+	  var d3_layout_stackOffsets = d3.map({
+	    silhouette: function(data) {
+	      var n = data.length, m = data[0].length, sums = [], max = 0, i, j, o, y0 = [];
+	      for (j = 0; j < m; ++j) {
+	        for (i = 0, o = 0; i < n; i++) o += data[i][j][1];
+	        if (o > max) max = o;
+	        sums.push(o);
+	      }
+	      for (j = 0; j < m; ++j) {
+	        y0[j] = (max - sums[j]) / 2;
+	      }
+	      return y0;
+	    },
+	    wiggle: function(data) {
+	      var n = data.length, x = data[0], m = x.length, i, j, k, s1, s2, s3, dx, o, o0, y0 = [];
+	      y0[0] = o = o0 = 0;
+	      for (j = 1; j < m; ++j) {
+	        for (i = 0, s1 = 0; i < n; ++i) s1 += data[i][j][1];
+	        for (i = 0, s2 = 0, dx = x[j][0] - x[j - 1][0]; i < n; ++i) {
+	          for (k = 0, s3 = (data[i][j][1] - data[i][j - 1][1]) / (2 * dx); k < i; ++k) {
+	            s3 += (data[k][j][1] - data[k][j - 1][1]) / dx;
+	          }
+	          s2 += s3 * data[i][j][1];
+	        }
+	        y0[j] = o -= s1 ? s2 / s1 * dx : 0;
+	        if (o < o0) o0 = o;
+	      }
+	      for (j = 0; j < m; ++j) y0[j] -= o0;
+	      return y0;
+	    },
+	    expand: function(data) {
+	      var n = data.length, m = data[0].length, k = 1 / n, i, j, o, y0 = [];
+	      for (j = 0; j < m; ++j) {
+	        for (i = 0, o = 0; i < n; i++) o += data[i][j][1];
+	        if (o) for (i = 0; i < n; i++) data[i][j][1] /= o; else for (i = 0; i < n; i++) data[i][j][1] = k;
+	      }
+	      for (j = 0; j < m; ++j) y0[j] = 0;
+	      return y0;
+	    },
+	    zero: d3_layout_stackOffsetZero
+	  });
+	  function d3_layout_stackOrderDefault(data) {
+	    return d3.range(data.length);
+	  }
+	  function d3_layout_stackOffsetZero(data) {
+	    var j = -1, m = data[0].length, y0 = [];
+	    while (++j < m) y0[j] = 0;
+	    return y0;
+	  }
+	  function d3_layout_stackMaxIndex(array) {
+	    var i = 1, j = 0, v = array[0][1], k, n = array.length;
+	    for (;i < n; ++i) {
+	      if ((k = array[i][1]) > v) {
+	        j = i;
+	        v = k;
+	      }
+	    }
+	    return j;
+	  }
+	  function d3_layout_stackReduceSum(d) {
+	    return d.reduce(d3_layout_stackSum, 0);
+	  }
+	  function d3_layout_stackSum(p, d) {
+	    return p + d[1];
+	  }
+	  d3.layout.histogram = function() {
+	    var frequency = true, valuer = Number, ranger = d3_layout_histogramRange, binner = d3_layout_histogramBinSturges;
+	    function histogram(data, i) {
+	      var bins = [], values = data.map(valuer, this), range = ranger.call(this, values, i), thresholds = binner.call(this, range, values, i), bin, i = -1, n = values.length, m = thresholds.length - 1, k = frequency ? 1 : 1 / n, x;
+	      while (++i < m) {
+	        bin = bins[i] = [];
+	        bin.dx = thresholds[i + 1] - (bin.x = thresholds[i]);
+	        bin.y = 0;
+	      }
+	      if (m > 0) {
+	        i = -1;
+	        while (++i < n) {
+	          x = values[i];
+	          if (x >= range[0] && x <= range[1]) {
+	            bin = bins[d3.bisect(thresholds, x, 1, m) - 1];
+	            bin.y += k;
+	            bin.push(data[i]);
+	          }
+	        }
+	      }
+	      return bins;
+	    }
+	    histogram.value = function(x) {
+	      if (!arguments.length) return valuer;
+	      valuer = x;
+	      return histogram;
+	    };
+	    histogram.range = function(x) {
+	      if (!arguments.length) return ranger;
+	      ranger = d3_functor(x);
+	      return histogram;
+	    };
+	    histogram.bins = function(x) {
+	      if (!arguments.length) return binner;
+	      binner = typeof x === "number" ? function(range) {
+	        return d3_layout_histogramBinFixed(range, x);
+	      } : d3_functor(x);
+	      return histogram;
+	    };
+	    histogram.frequency = function(x) {
+	      if (!arguments.length) return frequency;
+	      frequency = !!x;
+	      return histogram;
+	    };
+	    return histogram;
+	  };
+	  function d3_layout_histogramBinSturges(range, values) {
+	    return d3_layout_histogramBinFixed(range, Math.ceil(Math.log(values.length) / Math.LN2 + 1));
+	  }
+	  function d3_layout_histogramBinFixed(range, n) {
+	    var x = -1, b = +range[0], m = (range[1] - b) / n, f = [];
+	    while (++x <= n) f[x] = m * x + b;
+	    return f;
+	  }
+	  function d3_layout_histogramRange(values) {
+	    return [ d3.min(values), d3.max(values) ];
+	  }
+	  d3.layout.pack = function() {
+	    var hierarchy = d3.layout.hierarchy().sort(d3_layout_packSort), padding = 0, size = [ 1, 1 ], radius;
+	    function pack(d, i) {
+	      var nodes = hierarchy.call(this, d, i), root = nodes[0], w = size[0], h = size[1], r = radius == null ? Math.sqrt : typeof radius === "function" ? radius : function() {
+	        return radius;
+	      };
+	      root.x = root.y = 0;
+	      d3_layout_hierarchyVisitAfter(root, function(d) {
+	        d.r = +r(d.value);
+	      });
+	      d3_layout_hierarchyVisitAfter(root, d3_layout_packSiblings);
+	      if (padding) {
+	        var dr = padding * (radius ? 1 : Math.max(2 * root.r / w, 2 * root.r / h)) / 2;
+	        d3_layout_hierarchyVisitAfter(root, function(d) {
+	          d.r += dr;
+	        });
+	        d3_layout_hierarchyVisitAfter(root, d3_layout_packSiblings);
+	        d3_layout_hierarchyVisitAfter(root, function(d) {
+	          d.r -= dr;
+	        });
+	      }
+	      d3_layout_packTransform(root, w / 2, h / 2, radius ? 1 : 1 / Math.max(2 * root.r / w, 2 * root.r / h));
+	      return nodes;
+	    }
+	    pack.size = function(_) {
+	      if (!arguments.length) return size;
+	      size = _;
+	      return pack;
+	    };
+	    pack.radius = function(_) {
+	      if (!arguments.length) return radius;
+	      radius = _ == null || typeof _ === "function" ? _ : +_;
+	      return pack;
+	    };
+	    pack.padding = function(_) {
+	      if (!arguments.length) return padding;
+	      padding = +_;
+	      return pack;
+	    };
+	    return d3_layout_hierarchyRebind(pack, hierarchy);
+	  };
+	  function d3_layout_packSort(a, b) {
+	    return a.value - b.value;
+	  }
+	  function d3_layout_packInsert(a, b) {
+	    var c = a._pack_next;
+	    a._pack_next = b;
+	    b._pack_prev = a;
+	    b._pack_next = c;
+	    c._pack_prev = b;
+	  }
+	  function d3_layout_packSplice(a, b) {
+	    a._pack_next = b;
+	    b._pack_prev = a;
+	  }
+	  function d3_layout_packIntersects(a, b) {
+	    var dx = b.x - a.x, dy = b.y - a.y, dr = a.r + b.r;
+	    return .999 * dr * dr > dx * dx + dy * dy;
+	  }
+	  function d3_layout_packSiblings(node) {
+	    if (!(nodes = node.children) || !(n = nodes.length)) return;
+	    var nodes, xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity, a, b, c, i, j, k, n;
+	    function bound(node) {
+	      xMin = Math.min(node.x - node.r, xMin);
+	      xMax = Math.max(node.x + node.r, xMax);
+	      yMin = Math.min(node.y - node.r, yMin);
+	      yMax = Math.max(node.y + node.r, yMax);
+	    }
+	    nodes.forEach(d3_layout_packLink);
+	    a = nodes[0];
+	    a.x = -a.r;
+	    a.y = 0;
+	    bound(a);
+	    if (n > 1) {
+	      b = nodes[1];
+	      b.x = b.r;
+	      b.y = 0;
+	      bound(b);
+	      if (n > 2) {
+	        c = nodes[2];
+	        d3_layout_packPlace(a, b, c);
+	        bound(c);
+	        d3_layout_packInsert(a, c);
+	        a._pack_prev = c;
+	        d3_layout_packInsert(c, b);
+	        b = a._pack_next;
+	        for (i = 3; i < n; i++) {
+	          d3_layout_packPlace(a, b, c = nodes[i]);
+	          var isect = 0, s1 = 1, s2 = 1;
+	          for (j = b._pack_next; j !== b; j = j._pack_next, s1++) {
+	            if (d3_layout_packIntersects(j, c)) {
+	              isect = 1;
+	              break;
+	            }
+	          }
+	          if (isect == 1) {
+	            for (k = a._pack_prev; k !== j._pack_prev; k = k._pack_prev, s2++) {
+	              if (d3_layout_packIntersects(k, c)) {
+	                break;
+	              }
+	            }
+	          }
+	          if (isect) {
+	            if (s1 < s2 || s1 == s2 && b.r < a.r) d3_layout_packSplice(a, b = j); else d3_layout_packSplice(a = k, b);
+	            i--;
+	          } else {
+	            d3_layout_packInsert(a, c);
+	            b = c;
+	            bound(c);
+	          }
+	        }
+	      }
+	    }
+	    var cx = (xMin + xMax) / 2, cy = (yMin + yMax) / 2, cr = 0;
+	    for (i = 0; i < n; i++) {
+	      c = nodes[i];
+	      c.x -= cx;
+	      c.y -= cy;
+	      cr = Math.max(cr, c.r + Math.sqrt(c.x * c.x + c.y * c.y));
+	    }
+	    node.r = cr;
+	    nodes.forEach(d3_layout_packUnlink);
+	  }
+	  function d3_layout_packLink(node) {
+	    node._pack_next = node._pack_prev = node;
+	  }
+	  function d3_layout_packUnlink(node) {
+	    delete node._pack_next;
+	    delete node._pack_prev;
+	  }
+	  function d3_layout_packTransform(node, x, y, k) {
+	    var children = node.children;
+	    node.x = x += k * node.x;
+	    node.y = y += k * node.y;
+	    node.r *= k;
+	    if (children) {
+	      var i = -1, n = children.length;
+	      while (++i < n) d3_layout_packTransform(children[i], x, y, k);
+	    }
+	  }
+	  function d3_layout_packPlace(a, b, c) {
+	    var db = a.r + c.r, dx = b.x - a.x, dy = b.y - a.y;
+	    if (db && (dx || dy)) {
+	      var da = b.r + c.r, dc = dx * dx + dy * dy;
+	      da *= da;
+	      db *= db;
+	      var x = .5 + (db - da) / (2 * dc), y = Math.sqrt(Math.max(0, 2 * da * (db + dc) - (db -= dc) * db - da * da)) / (2 * dc);
+	      c.x = a.x + x * dx + y * dy;
+	      c.y = a.y + x * dy - y * dx;
+	    } else {
+	      c.x = a.x + db;
+	      c.y = a.y;
+	    }
+	  }
+	  d3.layout.tree = function() {
+	    var hierarchy = d3.layout.hierarchy().sort(null).value(null), separation = d3_layout_treeSeparation, size = [ 1, 1 ], nodeSize = null;
+	    function tree(d, i) {
+	      var nodes = hierarchy.call(this, d, i), root0 = nodes[0], root1 = wrapTree(root0);
+	      d3_layout_hierarchyVisitAfter(root1, firstWalk), root1.parent.m = -root1.z;
+	      d3_layout_hierarchyVisitBefore(root1, secondWalk);
+	      if (nodeSize) d3_layout_hierarchyVisitBefore(root0, sizeNode); else {
+	        var left = root0, right = root0, bottom = root0;
+	        d3_layout_hierarchyVisitBefore(root0, function(node) {
+	          if (node.x < left.x) left = node;
+	          if (node.x > right.x) right = node;
+	          if (node.depth > bottom.depth) bottom = node;
+	        });
+	        var tx = separation(left, right) / 2 - left.x, kx = size[0] / (right.x + separation(right, left) / 2 + tx), ky = size[1] / (bottom.depth || 1);
+	        d3_layout_hierarchyVisitBefore(root0, function(node) {
+	          node.x = (node.x + tx) * kx;
+	          node.y = node.depth * ky;
+	        });
+	      }
+	      return nodes;
+	    }
+	    function wrapTree(root0) {
+	      var root1 = {
+	        A: null,
+	        children: [ root0 ]
+	      }, queue = [ root1 ], node1;
+	      while ((node1 = queue.pop()) != null) {
+	        for (var children = node1.children, child, i = 0, n = children.length; i < n; ++i) {
+	          queue.push((children[i] = child = {
+	            _: children[i],
+	            parent: node1,
+	            children: (child = children[i].children) && child.slice() || [],
+	            A: null,
+	            a: null,
+	            z: 0,
+	            m: 0,
+	            c: 0,
+	            s: 0,
+	            t: null,
+	            i: i
+	          }).a = child);
+	        }
+	      }
+	      return root1.children[0];
+	    }
+	    function firstWalk(v) {
+	      var children = v.children, siblings = v.parent.children, w = v.i ? siblings[v.i - 1] : null;
+	      if (children.length) {
+	        d3_layout_treeShift(v);
+	        var midpoint = (children[0].z + children[children.length - 1].z) / 2;
+	        if (w) {
+	          v.z = w.z + separation(v._, w._);
+	          v.m = v.z - midpoint;
+	        } else {
+	          v.z = midpoint;
+	        }
+	      } else if (w) {
+	        v.z = w.z + separation(v._, w._);
+	      }
+	      v.parent.A = apportion(v, w, v.parent.A || siblings[0]);
+	    }
+	    function secondWalk(v) {
+	      v._.x = v.z + v.parent.m;
+	      v.m += v.parent.m;
+	    }
+	    function apportion(v, w, ancestor) {
+	      if (w) {
+	        var vip = v, vop = v, vim = w, vom = vip.parent.children[0], sip = vip.m, sop = vop.m, sim = vim.m, som = vom.m, shift;
+	        while (vim = d3_layout_treeRight(vim), vip = d3_layout_treeLeft(vip), vim && vip) {
+	          vom = d3_layout_treeLeft(vom);
+	          vop = d3_layout_treeRight(vop);
+	          vop.a = v;
+	          shift = vim.z + sim - vip.z - sip + separation(vim._, vip._);
+	          if (shift > 0) {
+	            d3_layout_treeMove(d3_layout_treeAncestor(vim, v, ancestor), v, shift);
+	            sip += shift;
+	            sop += shift;
+	          }
+	          sim += vim.m;
+	          sip += vip.m;
+	          som += vom.m;
+	          sop += vop.m;
+	        }
+	        if (vim && !d3_layout_treeRight(vop)) {
+	          vop.t = vim;
+	          vop.m += sim - sop;
+	        }
+	        if (vip && !d3_layout_treeLeft(vom)) {
+	          vom.t = vip;
+	          vom.m += sip - som;
+	          ancestor = v;
+	        }
+	      }
+	      return ancestor;
+	    }
+	    function sizeNode(node) {
+	      node.x *= size[0];
+	      node.y = node.depth * size[1];
+	    }
+	    tree.separation = function(x) {
+	      if (!arguments.length) return separation;
+	      separation = x;
+	      return tree;
+	    };
+	    tree.size = function(x) {
+	      if (!arguments.length) return nodeSize ? null : size;
+	      nodeSize = (size = x) == null ? sizeNode : null;
+	      return tree;
+	    };
+	    tree.nodeSize = function(x) {
+	      if (!arguments.length) return nodeSize ? size : null;
+	      nodeSize = (size = x) == null ? null : sizeNode;
+	      return tree;
+	    };
+	    return d3_layout_hierarchyRebind(tree, hierarchy);
+	  };
+	  function d3_layout_treeSeparation(a, b) {
+	    return a.parent == b.parent ? 1 : 2;
+	  }
+	  function d3_layout_treeLeft(v) {
+	    var children = v.children;
+	    return children.length ? children[0] : v.t;
+	  }
+	  function d3_layout_treeRight(v) {
+	    var children = v.children, n;
+	    return (n = children.length) ? children[n - 1] : v.t;
+	  }
+	  function d3_layout_treeMove(wm, wp, shift) {
+	    var change = shift / (wp.i - wm.i);
+	    wp.c -= change;
+	    wp.s += shift;
+	    wm.c += change;
+	    wp.z += shift;
+	    wp.m += shift;
+	  }
+	  function d3_layout_treeShift(v) {
+	    var shift = 0, change = 0, children = v.children, i = children.length, w;
+	    while (--i >= 0) {
+	      w = children[i];
+	      w.z += shift;
+	      w.m += shift;
+	      shift += w.s + (change += w.c);
+	    }
+	  }
+	  function d3_layout_treeAncestor(vim, v, ancestor) {
+	    return vim.a.parent === v.parent ? vim.a : ancestor;
+	  }
+	  d3.layout.cluster = function() {
+	    var hierarchy = d3.layout.hierarchy().sort(null).value(null), separation = d3_layout_treeSeparation, size = [ 1, 1 ], nodeSize = false;
+	    function cluster(d, i) {
+	      var nodes = hierarchy.call(this, d, i), root = nodes[0], previousNode, x = 0;
+	      d3_layout_hierarchyVisitAfter(root, function(node) {
+	        var children = node.children;
+	        if (children && children.length) {
+	          node.x = d3_layout_clusterX(children);
+	          node.y = d3_layout_clusterY(children);
+	        } else {
+	          node.x = previousNode ? x += separation(node, previousNode) : 0;
+	          node.y = 0;
+	          previousNode = node;
+	        }
+	      });
+	      var left = d3_layout_clusterLeft(root), right = d3_layout_clusterRight(root), x0 = left.x - separation(left, right) / 2, x1 = right.x + separation(right, left) / 2;
+	      d3_layout_hierarchyVisitAfter(root, nodeSize ? function(node) {
+	        node.x = (node.x - root.x) * size[0];
+	        node.y = (root.y - node.y) * size[1];
+	      } : function(node) {
+	        node.x = (node.x - x0) / (x1 - x0) * size[0];
+	        node.y = (1 - (root.y ? node.y / root.y : 1)) * size[1];
+	      });
+	      return nodes;
+	    }
+	    cluster.separation = function(x) {
+	      if (!arguments.length) return separation;
+	      separation = x;
+	      return cluster;
+	    };
+	    cluster.size = function(x) {
+	      if (!arguments.length) return nodeSize ? null : size;
+	      nodeSize = (size = x) == null;
+	      return cluster;
+	    };
+	    cluster.nodeSize = function(x) {
+	      if (!arguments.length) return nodeSize ? size : null;
+	      nodeSize = (size = x) != null;
+	      return cluster;
+	    };
+	    return d3_layout_hierarchyRebind(cluster, hierarchy);
+	  };
+	  function d3_layout_clusterY(children) {
+	    return 1 + d3.max(children, function(child) {
+	      return child.y;
+	    });
+	  }
+	  function d3_layout_clusterX(children) {
+	    return children.reduce(function(x, child) {
+	      return x + child.x;
+	    }, 0) / children.length;
+	  }
+	  function d3_layout_clusterLeft(node) {
+	    var children = node.children;
+	    return children && children.length ? d3_layout_clusterLeft(children[0]) : node;
+	  }
+	  function d3_layout_clusterRight(node) {
+	    var children = node.children, n;
+	    return children && (n = children.length) ? d3_layout_clusterRight(children[n - 1]) : node;
+	  }
+	  d3.layout.treemap = function() {
+	    var hierarchy = d3.layout.hierarchy(), round = Math.round, size = [ 1, 1 ], padding = null, pad = d3_layout_treemapPadNull, sticky = false, stickies, mode = "squarify", ratio = .5 * (1 + Math.sqrt(5));
+	    function scale(children, k) {
+	      var i = -1, n = children.length, child, area;
+	      while (++i < n) {
+	        area = (child = children[i]).value * (k < 0 ? 0 : k);
+	        child.area = isNaN(area) || area <= 0 ? 0 : area;
+	      }
+	    }
+	    function squarify(node) {
+	      var children = node.children;
+	      if (children && children.length) {
+	        var rect = pad(node), row = [], remaining = children.slice(), child, best = Infinity, score, u = mode === "slice" ? rect.dx : mode === "dice" ? rect.dy : mode === "slice-dice" ? node.depth & 1 ? rect.dy : rect.dx : Math.min(rect.dx, rect.dy), n;
+	        scale(remaining, rect.dx * rect.dy / node.value);
+	        row.area = 0;
+	        while ((n = remaining.length) > 0) {
+	          row.push(child = remaining[n - 1]);
+	          row.area += child.area;
+	          if (mode !== "squarify" || (score = worst(row, u)) <= best) {
+	            remaining.pop();
+	            best = score;
+	          } else {
+	            row.area -= row.pop().area;
+	            position(row, u, rect, false);
+	            u = Math.min(rect.dx, rect.dy);
+	            row.length = row.area = 0;
+	            best = Infinity;
+	          }
+	        }
+	        if (row.length) {
+	          position(row, u, rect, true);
+	          row.length = row.area = 0;
+	        }
+	        children.forEach(squarify);
+	      }
+	    }
+	    function stickify(node) {
+	      var children = node.children;
+	      if (children && children.length) {
+	        var rect = pad(node), remaining = children.slice(), child, row = [];
+	        scale(remaining, rect.dx * rect.dy / node.value);
+	        row.area = 0;
+	        while (child = remaining.pop()) {
+	          row.push(child);
+	          row.area += child.area;
+	          if (child.z != null) {
+	            position(row, child.z ? rect.dx : rect.dy, rect, !remaining.length);
+	            row.length = row.area = 0;
+	          }
+	        }
+	        children.forEach(stickify);
+	      }
+	    }
+	    function worst(row, u) {
+	      var s = row.area, r, rmax = 0, rmin = Infinity, i = -1, n = row.length;
+	      while (++i < n) {
+	        if (!(r = row[i].area)) continue;
+	        if (r < rmin) rmin = r;
+	        if (r > rmax) rmax = r;
+	      }
+	      s *= s;
+	      u *= u;
+	      return s ? Math.max(u * rmax * ratio / s, s / (u * rmin * ratio)) : Infinity;
+	    }
+	    function position(row, u, rect, flush) {
+	      var i = -1, n = row.length, x = rect.x, y = rect.y, v = u ? round(row.area / u) : 0, o;
+	      if (u == rect.dx) {
+	        if (flush || v > rect.dy) v = rect.dy;
+	        while (++i < n) {
+	          o = row[i];
+	          o.x = x;
+	          o.y = y;
+	          o.dy = v;
+	          x += o.dx = Math.min(rect.x + rect.dx - x, v ? round(o.area / v) : 0);
+	        }
+	        o.z = true;
+	        o.dx += rect.x + rect.dx - x;
+	        rect.y += v;
+	        rect.dy -= v;
+	      } else {
+	        if (flush || v > rect.dx) v = rect.dx;
+	        while (++i < n) {
+	          o = row[i];
+	          o.x = x;
+	          o.y = y;
+	          o.dx = v;
+	          y += o.dy = Math.min(rect.y + rect.dy - y, v ? round(o.area / v) : 0);
+	        }
+	        o.z = false;
+	        o.dy += rect.y + rect.dy - y;
+	        rect.x += v;
+	        rect.dx -= v;
+	      }
+	    }
+	    function treemap(d) {
+	      var nodes = stickies || hierarchy(d), root = nodes[0];
+	      root.x = root.y = 0;
+	      if (root.value) root.dx = size[0], root.dy = size[1]; else root.dx = root.dy = 0;
+	      if (stickies) hierarchy.revalue(root);
+	      scale([ root ], root.dx * root.dy / root.value);
+	      (stickies ? stickify : squarify)(root);
+	      if (sticky) stickies = nodes;
+	      return nodes;
+	    }
+	    treemap.size = function(x) {
+	      if (!arguments.length) return size;
+	      size = x;
+	      return treemap;
+	    };
+	    treemap.padding = function(x) {
+	      if (!arguments.length) return padding;
+	      function padFunction(node) {
+	        var p = x.call(treemap, node, node.depth);
+	        return p == null ? d3_layout_treemapPadNull(node) : d3_layout_treemapPad(node, typeof p === "number" ? [ p, p, p, p ] : p);
+	      }
+	      function padConstant(node) {
+	        return d3_layout_treemapPad(node, x);
+	      }
+	      var type;
+	      pad = (padding = x) == null ? d3_layout_treemapPadNull : (type = typeof x) === "function" ? padFunction : type === "number" ? (x = [ x, x, x, x ], 
+	      padConstant) : padConstant;
+	      return treemap;
+	    };
+	    treemap.round = function(x) {
+	      if (!arguments.length) return round != Number;
+	      round = x ? Math.round : Number;
+	      return treemap;
+	    };
+	    treemap.sticky = function(x) {
+	      if (!arguments.length) return sticky;
+	      sticky = x;
+	      stickies = null;
+	      return treemap;
+	    };
+	    treemap.ratio = function(x) {
+	      if (!arguments.length) return ratio;
+	      ratio = x;
+	      return treemap;
+	    };
+	    treemap.mode = function(x) {
+	      if (!arguments.length) return mode;
+	      mode = x + "";
+	      return treemap;
+	    };
+	    return d3_layout_hierarchyRebind(treemap, hierarchy);
+	  };
+	  function d3_layout_treemapPadNull(node) {
+	    return {
+	      x: node.x,
+	      y: node.y,
+	      dx: node.dx,
+	      dy: node.dy
+	    };
+	  }
+	  function d3_layout_treemapPad(node, padding) {
+	    var x = node.x + padding[3], y = node.y + padding[0], dx = node.dx - padding[1] - padding[3], dy = node.dy - padding[0] - padding[2];
+	    if (dx < 0) {
+	      x += dx / 2;
+	      dx = 0;
+	    }
+	    if (dy < 0) {
+	      y += dy / 2;
+	      dy = 0;
+	    }
+	    return {
+	      x: x,
+	      y: y,
+	      dx: dx,
+	      dy: dy
+	    };
+	  }
+	  d3.random = {
+	    normal: function(µ, σ) {
+	      var n = arguments.length;
+	      if (n < 2) σ = 1;
+	      if (n < 1) µ = 0;
+	      return function() {
+	        var x, y, r;
+	        do {
+	          x = Math.random() * 2 - 1;
+	          y = Math.random() * 2 - 1;
+	          r = x * x + y * y;
+	        } while (!r || r > 1);
+	        return µ + σ * x * Math.sqrt(-2 * Math.log(r) / r);
+	      };
+	    },
+	    logNormal: function() {
+	      var random = d3.random.normal.apply(d3, arguments);
+	      return function() {
+	        return Math.exp(random());
+	      };
+	    },
+	    bates: function(m) {
+	      var random = d3.random.irwinHall(m);
+	      return function() {
+	        return random() / m;
+	      };
+	    },
+	    irwinHall: function(m) {
+	      return function() {
+	        for (var s = 0, j = 0; j < m; j++) s += Math.random();
+	        return s;
+	      };
+	    }
+	  };
+	  d3.scale = {};
+	  function d3_scaleExtent(domain) {
+	    var start = domain[0], stop = domain[domain.length - 1];
+	    return start < stop ? [ start, stop ] : [ stop, start ];
+	  }
+	  function d3_scaleRange(scale) {
+	    return scale.rangeExtent ? scale.rangeExtent() : d3_scaleExtent(scale.range());
+	  }
+	  function d3_scale_bilinear(domain, range, uninterpolate, interpolate) {
+	    var u = uninterpolate(domain[0], domain[1]), i = interpolate(range[0], range[1]);
+	    return function(x) {
+	      return i(u(x));
+	    };
+	  }
+	  function d3_scale_nice(domain, nice) {
+	    var i0 = 0, i1 = domain.length - 1, x0 = domain[i0], x1 = domain[i1], dx;
+	    if (x1 < x0) {
+	      dx = i0, i0 = i1, i1 = dx;
+	      dx = x0, x0 = x1, x1 = dx;
+	    }
+	    domain[i0] = nice.floor(x0);
+	    domain[i1] = nice.ceil(x1);
+	    return domain;
+	  }
+	  function d3_scale_niceStep(step) {
+	    return step ? {
+	      floor: function(x) {
+	        return Math.floor(x / step) * step;
+	      },
+	      ceil: function(x) {
+	        return Math.ceil(x / step) * step;
+	      }
+	    } : d3_scale_niceIdentity;
+	  }
+	  var d3_scale_niceIdentity = {
+	    floor: d3_identity,
+	    ceil: d3_identity
+	  };
+	  function d3_scale_polylinear(domain, range, uninterpolate, interpolate) {
+	    var u = [], i = [], j = 0, k = Math.min(domain.length, range.length) - 1;
+	    if (domain[k] < domain[0]) {
+	      domain = domain.slice().reverse();
+	      range = range.slice().reverse();
+	    }
+	    while (++j <= k) {
+	      u.push(uninterpolate(domain[j - 1], domain[j]));
+	      i.push(interpolate(range[j - 1], range[j]));
+	    }
+	    return function(x) {
+	      var j = d3.bisect(domain, x, 1, k) - 1;
+	      return i[j](u[j](x));
+	    };
+	  }
+	  d3.scale.linear = function() {
+	    return d3_scale_linear([ 0, 1 ], [ 0, 1 ], d3_interpolate, false);
+	  };
+	  function d3_scale_linear(domain, range, interpolate, clamp) {
+	    var output, input;
+	    function rescale() {
+	      var linear = Math.min(domain.length, range.length) > 2 ? d3_scale_polylinear : d3_scale_bilinear, uninterpolate = clamp ? d3_uninterpolateClamp : d3_uninterpolateNumber;
+	      output = linear(domain, range, uninterpolate, interpolate);
+	      input = linear(range, domain, uninterpolate, d3_interpolate);
+	      return scale;
+	    }
+	    function scale(x) {
+	      return output(x);
+	    }
+	    scale.invert = function(y) {
+	      return input(y);
+	    };
+	    scale.domain = function(x) {
+	      if (!arguments.length) return domain;
+	      domain = x.map(Number);
+	      return rescale();
+	    };
+	    scale.range = function(x) {
+	      if (!arguments.length) return range;
+	      range = x;
+	      return rescale();
+	    };
+	    scale.rangeRound = function(x) {
+	      return scale.range(x).interpolate(d3_interpolateRound);
+	    };
+	    scale.clamp = function(x) {
+	      if (!arguments.length) return clamp;
+	      clamp = x;
+	      return rescale();
+	    };
+	    scale.interpolate = function(x) {
+	      if (!arguments.length) return interpolate;
+	      interpolate = x;
+	      return rescale();
+	    };
+	    scale.ticks = function(m) {
+	      return d3_scale_linearTicks(domain, m);
+	    };
+	    scale.tickFormat = function(m, format) {
+	      return d3_scale_linearTickFormat(domain, m, format);
+	    };
+	    scale.nice = function(m) {
+	      d3_scale_linearNice(domain, m);
+	      return rescale();
+	    };
+	    scale.copy = function() {
+	      return d3_scale_linear(domain, range, interpolate, clamp);
+	    };
+	    return rescale();
+	  }
+	  function d3_scale_linearRebind(scale, linear) {
+	    return d3.rebind(scale, linear, "range", "rangeRound", "interpolate", "clamp");
+	  }
+	  function d3_scale_linearNice(domain, m) {
+	    d3_scale_nice(domain, d3_scale_niceStep(d3_scale_linearTickRange(domain, m)[2]));
+	    d3_scale_nice(domain, d3_scale_niceStep(d3_scale_linearTickRange(domain, m)[2]));
+	    return domain;
+	  }
+	  function d3_scale_linearTickRange(domain, m) {
+	    if (m == null) m = 10;
+	    var extent = d3_scaleExtent(domain), span = extent[1] - extent[0], step = Math.pow(10, Math.floor(Math.log(span / m) / Math.LN10)), err = m / span * step;
+	    if (err <= .15) step *= 10; else if (err <= .35) step *= 5; else if (err <= .75) step *= 2;
+	    extent[0] = Math.ceil(extent[0] / step) * step;
+	    extent[1] = Math.floor(extent[1] / step) * step + step * .5;
+	    extent[2] = step;
+	    return extent;
+	  }
+	  function d3_scale_linearTicks(domain, m) {
+	    return d3.range.apply(d3, d3_scale_linearTickRange(domain, m));
+	  }
+	  function d3_scale_linearTickFormat(domain, m, format) {
+	    var range = d3_scale_linearTickRange(domain, m);
+	    if (format) {
+	      var match = d3_format_re.exec(format);
+	      match.shift();
+	      if (match[8] === "s") {
+	        var prefix = d3.formatPrefix(Math.max(abs(range[0]), abs(range[1])));
+	        if (!match[7]) match[7] = "." + d3_scale_linearPrecision(prefix.scale(range[2]));
+	        match[8] = "f";
+	        format = d3.format(match.join(""));
+	        return function(d) {
+	          return format(prefix.scale(d)) + prefix.symbol;
+	        };
+	      }
+	      if (!match[7]) match[7] = "." + d3_scale_linearFormatPrecision(match[8], range);
+	      format = match.join("");
+	    } else {
+	      format = ",." + d3_scale_linearPrecision(range[2]) + "f";
+	    }
+	    return d3.format(format);
+	  }
+	  var d3_scale_linearFormatSignificant = {
+	    s: 1,
+	    g: 1,
+	    p: 1,
+	    r: 1,
+	    e: 1
+	  };
+	  function d3_scale_linearPrecision(value) {
+	    return -Math.floor(Math.log(value) / Math.LN10 + .01);
+	  }
+	  function d3_scale_linearFormatPrecision(type, range) {
+	    var p = d3_scale_linearPrecision(range[2]);
+	    return type in d3_scale_linearFormatSignificant ? Math.abs(p - d3_scale_linearPrecision(Math.max(abs(range[0]), abs(range[1])))) + +(type !== "e") : p - (type === "%") * 2;
+	  }
+	  d3.scale.log = function() {
+	    return d3_scale_log(d3.scale.linear().domain([ 0, 1 ]), 10, true, [ 1, 10 ]);
+	  };
+	  function d3_scale_log(linear, base, positive, domain) {
+	    function log(x) {
+	      return (positive ? Math.log(x < 0 ? 0 : x) : -Math.log(x > 0 ? 0 : -x)) / Math.log(base);
+	    }
+	    function pow(x) {
+	      return positive ? Math.pow(base, x) : -Math.pow(base, -x);
+	    }
+	    function scale(x) {
+	      return linear(log(x));
+	    }
+	    scale.invert = function(x) {
+	      return pow(linear.invert(x));
+	    };
+	    scale.domain = function(x) {
+	      if (!arguments.length) return domain;
+	      positive = x[0] >= 0;
+	      linear.domain((domain = x.map(Number)).map(log));
+	      return scale;
+	    };
+	    scale.base = function(_) {
+	      if (!arguments.length) return base;
+	      base = +_;
+	      linear.domain(domain.map(log));
+	      return scale;
+	    };
+	    scale.nice = function() {
+	      var niced = d3_scale_nice(domain.map(log), positive ? Math : d3_scale_logNiceNegative);
+	      linear.domain(niced);
+	      domain = niced.map(pow);
+	      return scale;
+	    };
+	    scale.ticks = function() {
+	      var extent = d3_scaleExtent(domain), ticks = [], u = extent[0], v = extent[1], i = Math.floor(log(u)), j = Math.ceil(log(v)), n = base % 1 ? 2 : base;
+	      if (isFinite(j - i)) {
+	        if (positive) {
+	          for (;i < j; i++) for (var k = 1; k < n; k++) ticks.push(pow(i) * k);
+	          ticks.push(pow(i));
+	        } else {
+	          ticks.push(pow(i));
+	          for (;i++ < j; ) for (var k = n - 1; k > 0; k--) ticks.push(pow(i) * k);
+	        }
+	        for (i = 0; ticks[i] < u; i++) {}
+	        for (j = ticks.length; ticks[j - 1] > v; j--) {}
+	        ticks = ticks.slice(i, j);
+	      }
+	      return ticks;
+	    };
+	    scale.tickFormat = function(n, format) {
+	      if (!arguments.length) return d3_scale_logFormat;
+	      if (arguments.length < 2) format = d3_scale_logFormat; else if (typeof format !== "function") format = d3.format(format);
+	      var k = Math.max(1, base * n / scale.ticks().length);
+	      return function(d) {
+	        var i = d / pow(Math.round(log(d)));
+	        if (i * base < base - .5) i *= base;
+	        return i <= k ? format(d) : "";
+	      };
+	    };
+	    scale.copy = function() {
+	      return d3_scale_log(linear.copy(), base, positive, domain);
+	    };
+	    return d3_scale_linearRebind(scale, linear);
+	  }
+	  var d3_scale_logFormat = d3.format(".0e"), d3_scale_logNiceNegative = {
+	    floor: function(x) {
+	      return -Math.ceil(-x);
+	    },
+	    ceil: function(x) {
+	      return -Math.floor(-x);
+	    }
+	  };
+	  d3.scale.pow = function() {
+	    return d3_scale_pow(d3.scale.linear(), 1, [ 0, 1 ]);
+	  };
+	  function d3_scale_pow(linear, exponent, domain) {
+	    var powp = d3_scale_powPow(exponent), powb = d3_scale_powPow(1 / exponent);
+	    function scale(x) {
+	      return linear(powp(x));
+	    }
+	    scale.invert = function(x) {
+	      return powb(linear.invert(x));
+	    };
+	    scale.domain = function(x) {
+	      if (!arguments.length) return domain;
+	      linear.domain((domain = x.map(Number)).map(powp));
+	      return scale;
+	    };
+	    scale.ticks = function(m) {
+	      return d3_scale_linearTicks(domain, m);
+	    };
+	    scale.tickFormat = function(m, format) {
+	      return d3_scale_linearTickFormat(domain, m, format);
+	    };
+	    scale.nice = function(m) {
+	      return scale.domain(d3_scale_linearNice(domain, m));
+	    };
+	    scale.exponent = function(x) {
+	      if (!arguments.length) return exponent;
+	      powp = d3_scale_powPow(exponent = x);
+	      powb = d3_scale_powPow(1 / exponent);
+	      linear.domain(domain.map(powp));
+	      return scale;
+	    };
+	    scale.copy = function() {
+	      return d3_scale_pow(linear.copy(), exponent, domain);
+	    };
+	    return d3_scale_linearRebind(scale, linear);
+	  }
+	  function d3_scale_powPow(e) {
+	    return function(x) {
+	      return x < 0 ? -Math.pow(-x, e) : Math.pow(x, e);
+	    };
+	  }
+	  d3.scale.sqrt = function() {
+	    return d3.scale.pow().exponent(.5);
+	  };
+	  d3.scale.ordinal = function() {
+	    return d3_scale_ordinal([], {
+	      t: "range",
+	      a: [ [] ]
+	    });
+	  };
+	  function d3_scale_ordinal(domain, ranger) {
+	    var index, range, rangeBand;
+	    function scale(x) {
+	      return range[((index.get(x) || (ranger.t === "range" ? index.set(x, domain.push(x)) : NaN)) - 1) % range.length];
+	    }
+	    function steps(start, step) {
+	      return d3.range(domain.length).map(function(i) {
+	        return start + step * i;
+	      });
+	    }
+	    scale.domain = function(x) {
+	      if (!arguments.length) return domain;
+	      domain = [];
+	      index = new d3_Map();
+	      var i = -1, n = x.length, xi;
+	      while (++i < n) if (!index.has(xi = x[i])) index.set(xi, domain.push(xi));
+	      return scale[ranger.t].apply(scale, ranger.a);
+	    };
+	    scale.range = function(x) {
+	      if (!arguments.length) return range;
+	      range = x;
+	      rangeBand = 0;
+	      ranger = {
+	        t: "range",
+	        a: arguments
+	      };
+	      return scale;
+	    };
+	    scale.rangePoints = function(x, padding) {
+	      if (arguments.length < 2) padding = 0;
+	      var start = x[0], stop = x[1], step = domain.length < 2 ? (start = (start + stop) / 2, 
+	      0) : (stop - start) / (domain.length - 1 + padding);
+	      range = steps(start + step * padding / 2, step);
+	      rangeBand = 0;
+	      ranger = {
+	        t: "rangePoints",
+	        a: arguments
+	      };
+	      return scale;
+	    };
+	    scale.rangeRoundPoints = function(x, padding) {
+	      if (arguments.length < 2) padding = 0;
+	      var start = x[0], stop = x[1], step = domain.length < 2 ? (start = stop = Math.round((start + stop) / 2), 
+	      0) : (stop - start) / (domain.length - 1 + padding) | 0;
+	      range = steps(start + Math.round(step * padding / 2 + (stop - start - (domain.length - 1 + padding) * step) / 2), step);
+	      rangeBand = 0;
+	      ranger = {
+	        t: "rangeRoundPoints",
+	        a: arguments
+	      };
+	      return scale;
+	    };
+	    scale.rangeBands = function(x, padding, outerPadding) {
+	      if (arguments.length < 2) padding = 0;
+	      if (arguments.length < 3) outerPadding = padding;
+	      var reverse = x[1] < x[0], start = x[reverse - 0], stop = x[1 - reverse], step = (stop - start) / (domain.length - padding + 2 * outerPadding);
+	      range = steps(start + step * outerPadding, step);
+	      if (reverse) range.reverse();
+	      rangeBand = step * (1 - padding);
+	      ranger = {
+	        t: "rangeBands",
+	        a: arguments
+	      };
+	      return scale;
+	    };
+	    scale.rangeRoundBands = function(x, padding, outerPadding) {
+	      if (arguments.length < 2) padding = 0;
+	      if (arguments.length < 3) outerPadding = padding;
+	      var reverse = x[1] < x[0], start = x[reverse - 0], stop = x[1 - reverse], step = Math.floor((stop - start) / (domain.length - padding + 2 * outerPadding));
+	      range = steps(start + Math.round((stop - start - (domain.length - padding) * step) / 2), step);
+	      if (reverse) range.reverse();
+	      rangeBand = Math.round(step * (1 - padding));
+	      ranger = {
+	        t: "rangeRoundBands",
+	        a: arguments
+	      };
+	      return scale;
+	    };
+	    scale.rangeBand = function() {
+	      return rangeBand;
+	    };
+	    scale.rangeExtent = function() {
+	      return d3_scaleExtent(ranger.a[0]);
+	    };
+	    scale.copy = function() {
+	      return d3_scale_ordinal(domain, ranger);
+	    };
+	    return scale.domain(domain);
+	  }
+	  d3.scale.category10 = function() {
+	    return d3.scale.ordinal().range(d3_category10);
+	  };
+	  d3.scale.category20 = function() {
+	    return d3.scale.ordinal().range(d3_category20);
+	  };
+	  d3.scale.category20b = function() {
+	    return d3.scale.ordinal().range(d3_category20b);
+	  };
+	  d3.scale.category20c = function() {
+	    return d3.scale.ordinal().range(d3_category20c);
+	  };
+	  var d3_category10 = [ 2062260, 16744206, 2924588, 14034728, 9725885, 9197131, 14907330, 8355711, 12369186, 1556175 ].map(d3_rgbString);
+	  var d3_category20 = [ 2062260, 11454440, 16744206, 16759672, 2924588, 10018698, 14034728, 16750742, 9725885, 12955861, 9197131, 12885140, 14907330, 16234194, 8355711, 13092807, 12369186, 14408589, 1556175, 10410725 ].map(d3_rgbString);
+	  var d3_category20b = [ 3750777, 5395619, 7040719, 10264286, 6519097, 9216594, 11915115, 13556636, 9202993, 12426809, 15186514, 15190932, 8666169, 11356490, 14049643, 15177372, 8077683, 10834324, 13528509, 14589654 ].map(d3_rgbString);
+	  var d3_category20c = [ 3244733, 7057110, 10406625, 13032431, 15095053, 16616764, 16625259, 16634018, 3253076, 7652470, 10607003, 13101504, 7695281, 10394312, 12369372, 14342891, 6513507, 9868950, 12434877, 14277081 ].map(d3_rgbString);
+	  d3.scale.quantile = function() {
+	    return d3_scale_quantile([], []);
+	  };
+	  function d3_scale_quantile(domain, range) {
+	    var thresholds;
+	    function rescale() {
+	      var k = 0, q = range.length;
+	      thresholds = [];
+	      while (++k < q) thresholds[k - 1] = d3.quantile(domain, k / q);
+	      return scale;
+	    }
+	    function scale(x) {
+	      if (!isNaN(x = +x)) return range[d3.bisect(thresholds, x)];
+	    }
+	    scale.domain = function(x) {
+	      if (!arguments.length) return domain;
+	      domain = x.map(d3_number).filter(d3_numeric).sort(d3_ascending);
+	      return rescale();
+	    };
+	    scale.range = function(x) {
+	      if (!arguments.length) return range;
+	      range = x;
+	      return rescale();
+	    };
+	    scale.quantiles = function() {
+	      return thresholds;
+	    };
+	    scale.invertExtent = function(y) {
+	      y = range.indexOf(y);
+	      return y < 0 ? [ NaN, NaN ] : [ y > 0 ? thresholds[y - 1] : domain[0], y < thresholds.length ? thresholds[y] : domain[domain.length - 1] ];
+	    };
+	    scale.copy = function() {
+	      return d3_scale_quantile(domain, range);
+	    };
+	    return rescale();
+	  }
+	  d3.scale.quantize = function() {
+	    return d3_scale_quantize(0, 1, [ 0, 1 ]);
+	  };
+	  function d3_scale_quantize(x0, x1, range) {
+	    var kx, i;
+	    function scale(x) {
+	      return range[Math.max(0, Math.min(i, Math.floor(kx * (x - x0))))];
+	    }
+	    function rescale() {
+	      kx = range.length / (x1 - x0);
+	      i = range.length - 1;
+	      return scale;
+	    }
+	    scale.domain = function(x) {
+	      if (!arguments.length) return [ x0, x1 ];
+	      x0 = +x[0];
+	      x1 = +x[x.length - 1];
+	      return rescale();
+	    };
+	    scale.range = function(x) {
+	      if (!arguments.length) return range;
+	      range = x;
+	      return rescale();
+	    };
+	    scale.invertExtent = function(y) {
+	      y = range.indexOf(y);
+	      y = y < 0 ? NaN : y / kx + x0;
+	      return [ y, y + 1 / kx ];
+	    };
+	    scale.copy = function() {
+	      return d3_scale_quantize(x0, x1, range);
+	    };
+	    return rescale();
+	  }
+	  d3.scale.threshold = function() {
+	    return d3_scale_threshold([ .5 ], [ 0, 1 ]);
+	  };
+	  function d3_scale_threshold(domain, range) {
+	    function scale(x) {
+	      if (x <= x) return range[d3.bisect(domain, x)];
+	    }
+	    scale.domain = function(_) {
+	      if (!arguments.length) return domain;
+	      domain = _;
+	      return scale;
+	    };
+	    scale.range = function(_) {
+	      if (!arguments.length) return range;
+	      range = _;
+	      return scale;
+	    };
+	    scale.invertExtent = function(y) {
+	      y = range.indexOf(y);
+	      return [ domain[y - 1], domain[y] ];
+	    };
+	    scale.copy = function() {
+	      return d3_scale_threshold(domain, range);
+	    };
+	    return scale;
+	  }
+	  d3.scale.identity = function() {
+	    return d3_scale_identity([ 0, 1 ]);
+	  };
+	  function d3_scale_identity(domain) {
+	    function identity(x) {
+	      return +x;
+	    }
+	    identity.invert = identity;
+	    identity.domain = identity.range = function(x) {
+	      if (!arguments.length) return domain;
+	      domain = x.map(identity);
+	      return identity;
+	    };
+	    identity.ticks = function(m) {
+	      return d3_scale_linearTicks(domain, m);
+	    };
+	    identity.tickFormat = function(m, format) {
+	      return d3_scale_linearTickFormat(domain, m, format);
+	    };
+	    identity.copy = function() {
+	      return d3_scale_identity(domain);
+	    };
+	    return identity;
+	  }
+	  d3.svg = {};
+	  function d3_zero() {
+	    return 0;
+	  }
+	  d3.svg.arc = function() {
+	    var innerRadius = d3_svg_arcInnerRadius, outerRadius = d3_svg_arcOuterRadius, cornerRadius = d3_zero, padRadius = d3_svg_arcAuto, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle, padAngle = d3_svg_arcPadAngle;
+	    function arc() {
+	      var r0 = Math.max(0, +innerRadius.apply(this, arguments)), r1 = Math.max(0, +outerRadius.apply(this, arguments)), a0 = startAngle.apply(this, arguments) - halfπ, a1 = endAngle.apply(this, arguments) - halfπ, da = Math.abs(a1 - a0), cw = a0 > a1 ? 0 : 1;
+	      if (r1 < r0) rc = r1, r1 = r0, r0 = rc;
+	      if (da >= τε) return circleSegment(r1, cw) + (r0 ? circleSegment(r0, 1 - cw) : "") + "Z";
+	      var rc, cr, rp, ap, p0 = 0, p1 = 0, x0, y0, x1, y1, x2, y2, x3, y3, path = [];
+	      if (ap = (+padAngle.apply(this, arguments) || 0) / 2) {
+	        rp = padRadius === d3_svg_arcAuto ? Math.sqrt(r0 * r0 + r1 * r1) : +padRadius.apply(this, arguments);
+	        if (!cw) p1 *= -1;
+	        if (r1) p1 = d3_asin(rp / r1 * Math.sin(ap));
+	        if (r0) p0 = d3_asin(rp / r0 * Math.sin(ap));
+	      }
+	      if (r1) {
+	        x0 = r1 * Math.cos(a0 + p1);
+	        y0 = r1 * Math.sin(a0 + p1);
+	        x1 = r1 * Math.cos(a1 - p1);
+	        y1 = r1 * Math.sin(a1 - p1);
+	        var l1 = Math.abs(a1 - a0 - 2 * p1) <= π ? 0 : 1;
+	        if (p1 && d3_svg_arcSweep(x0, y0, x1, y1) === cw ^ l1) {
+	          var h1 = (a0 + a1) / 2;
+	          x0 = r1 * Math.cos(h1);
+	          y0 = r1 * Math.sin(h1);
+	          x1 = y1 = null;
+	        }
+	      } else {
+	        x0 = y0 = 0;
+	      }
+	      if (r0) {
+	        x2 = r0 * Math.cos(a1 - p0);
+	        y2 = r0 * Math.sin(a1 - p0);
+	        x3 = r0 * Math.cos(a0 + p0);
+	        y3 = r0 * Math.sin(a0 + p0);
+	        var l0 = Math.abs(a0 - a1 + 2 * p0) <= π ? 0 : 1;
+	        if (p0 && d3_svg_arcSweep(x2, y2, x3, y3) === 1 - cw ^ l0) {
+	          var h0 = (a0 + a1) / 2;
+	          x2 = r0 * Math.cos(h0);
+	          y2 = r0 * Math.sin(h0);
+	          x3 = y3 = null;
+	        }
+	      } else {
+	        x2 = y2 = 0;
+	      }
+	      if (da > ε && (rc = Math.min(Math.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments))) > .001) {
+	        cr = r0 < r1 ^ cw ? 0 : 1;
+	        var rc1 = rc, rc0 = rc;
+	        if (da < π) {
+	          var oc = x3 == null ? [ x2, y2 ] : x1 == null ? [ x0, y0 ] : d3_geom_polygonIntersect([ x0, y0 ], [ x3, y3 ], [ x1, y1 ], [ x2, y2 ]), ax = x0 - oc[0], ay = y0 - oc[1], bx = x1 - oc[0], by = y1 - oc[1], kc = 1 / Math.sin(Math.acos((ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))) / 2), lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+	          rc0 = Math.min(rc, (r0 - lc) / (kc - 1));
+	          rc1 = Math.min(rc, (r1 - lc) / (kc + 1));
+	        }
+	        if (x1 != null) {
+	          var t30 = d3_svg_arcCornerTangents(x3 == null ? [ x2, y2 ] : [ x3, y3 ], [ x0, y0 ], r1, rc1, cw), t12 = d3_svg_arcCornerTangents([ x1, y1 ], [ x2, y2 ], r1, rc1, cw);
+	          if (rc === rc1) {
+	            path.push("M", t30[0], "A", rc1, ",", rc1, " 0 0,", cr, " ", t30[1], "A", r1, ",", r1, " 0 ", 1 - cw ^ d3_svg_arcSweep(t30[1][0], t30[1][1], t12[1][0], t12[1][1]), ",", cw, " ", t12[1], "A", rc1, ",", rc1, " 0 0,", cr, " ", t12[0]);
+	          } else {
+	            path.push("M", t30[0], "A", rc1, ",", rc1, " 0 1,", cr, " ", t12[0]);
+	          }
+	        } else {
+	          path.push("M", x0, ",", y0);
+	        }
+	        if (x3 != null) {
+	          var t03 = d3_svg_arcCornerTangents([ x0, y0 ], [ x3, y3 ], r0, -rc0, cw), t21 = d3_svg_arcCornerTangents([ x2, y2 ], x1 == null ? [ x0, y0 ] : [ x1, y1 ], r0, -rc0, cw);
+	          if (rc === rc0) {
+	            path.push("L", t21[0], "A", rc0, ",", rc0, " 0 0,", cr, " ", t21[1], "A", r0, ",", r0, " 0 ", cw ^ d3_svg_arcSweep(t21[1][0], t21[1][1], t03[1][0], t03[1][1]), ",", 1 - cw, " ", t03[1], "A", rc0, ",", rc0, " 0 0,", cr, " ", t03[0]);
+	          } else {
+	            path.push("L", t21[0], "A", rc0, ",", rc0, " 0 0,", cr, " ", t03[0]);
+	          }
+	        } else {
+	          path.push("L", x2, ",", y2);
+	        }
+	      } else {
+	        path.push("M", x0, ",", y0);
+	        if (x1 != null) path.push("A", r1, ",", r1, " 0 ", l1, ",", cw, " ", x1, ",", y1);
+	        path.push("L", x2, ",", y2);
+	        if (x3 != null) path.push("A", r0, ",", r0, " 0 ", l0, ",", 1 - cw, " ", x3, ",", y3);
+	      }
+	      path.push("Z");
+	      return path.join("");
+	    }
+	    function circleSegment(r1, cw) {
+	      return "M0," + r1 + "A" + r1 + "," + r1 + " 0 1," + cw + " 0," + -r1 + "A" + r1 + "," + r1 + " 0 1," + cw + " 0," + r1;
+	    }
+	    arc.innerRadius = function(v) {
+	      if (!arguments.length) return innerRadius;
+	      innerRadius = d3_functor(v);
+	      return arc;
+	    };
+	    arc.outerRadius = function(v) {
+	      if (!arguments.length) return outerRadius;
+	      outerRadius = d3_functor(v);
+	      return arc;
+	    };
+	    arc.cornerRadius = function(v) {
+	      if (!arguments.length) return cornerRadius;
+	      cornerRadius = d3_functor(v);
+	      return arc;
+	    };
+	    arc.padRadius = function(v) {
+	      if (!arguments.length) return padRadius;
+	      padRadius = v == d3_svg_arcAuto ? d3_svg_arcAuto : d3_functor(v);
+	      return arc;
+	    };
+	    arc.startAngle = function(v) {
+	      if (!arguments.length) return startAngle;
+	      startAngle = d3_functor(v);
+	      return arc;
+	    };
+	    arc.endAngle = function(v) {
+	      if (!arguments.length) return endAngle;
+	      endAngle = d3_functor(v);
+	      return arc;
+	    };
+	    arc.padAngle = function(v) {
+	      if (!arguments.length) return padAngle;
+	      padAngle = d3_functor(v);
+	      return arc;
+	    };
+	    arc.centroid = function() {
+	      var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2, a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - halfπ;
+	      return [ Math.cos(a) * r, Math.sin(a) * r ];
+	    };
+	    return arc;
+	  };
+	  var d3_svg_arcAuto = "auto";
+	  function d3_svg_arcInnerRadius(d) {
+	    return d.innerRadius;
+	  }
+	  function d3_svg_arcOuterRadius(d) {
+	    return d.outerRadius;
+	  }
+	  function d3_svg_arcStartAngle(d) {
+	    return d.startAngle;
+	  }
+	  function d3_svg_arcEndAngle(d) {
+	    return d.endAngle;
+	  }
+	  function d3_svg_arcPadAngle(d) {
+	    return d && d.padAngle;
+	  }
+	  function d3_svg_arcSweep(x0, y0, x1, y1) {
+	    return (x0 - x1) * y0 - (y0 - y1) * x0 > 0 ? 0 : 1;
+	  }
+	  function d3_svg_arcCornerTangents(p0, p1, r1, rc, cw) {
+	    var x01 = p0[0] - p1[0], y01 = p0[1] - p1[1], lo = (cw ? rc : -rc) / Math.sqrt(x01 * x01 + y01 * y01), ox = lo * y01, oy = -lo * x01, x1 = p0[0] + ox, y1 = p0[1] + oy, x2 = p1[0] + ox, y2 = p1[1] + oy, x3 = (x1 + x2) / 2, y3 = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1, d2 = dx * dx + dy * dy, r = r1 - rc, D = x1 * y2 - x2 * y1, d = (dy < 0 ? -1 : 1) * Math.sqrt(Math.max(0, r * r * d2 - D * D)), cx0 = (D * dy - dx * d) / d2, cy0 = (-D * dx - dy * d) / d2, cx1 = (D * dy + dx * d) / d2, cy1 = (-D * dx + dy * d) / d2, dx0 = cx0 - x3, dy0 = cy0 - y3, dx1 = cx1 - x3, dy1 = cy1 - y3;
+	    if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) cx0 = cx1, cy0 = cy1;
+	    return [ [ cx0 - ox, cy0 - oy ], [ cx0 * r1 / r, cy0 * r1 / r ] ];
+	  }
+	  function d3_svg_line(projection) {
+	    var x = d3_geom_pointX, y = d3_geom_pointY, defined = d3_true, interpolate = d3_svg_lineLinear, interpolateKey = interpolate.key, tension = .7;
+	    function line(data) {
+	      var segments = [], points = [], i = -1, n = data.length, d, fx = d3_functor(x), fy = d3_functor(y);
+	      function segment() {
+	        segments.push("M", interpolate(projection(points), tension));
+	      }
+	      while (++i < n) {
+	        if (defined.call(this, d = data[i], i)) {
+	          points.push([ +fx.call(this, d, i), +fy.call(this, d, i) ]);
+	        } else if (points.length) {
+	          segment();
+	          points = [];
+	        }
+	      }
+	      if (points.length) segment();
+	      return segments.length ? segments.join("") : null;
+	    }
+	    line.x = function(_) {
+	      if (!arguments.length) return x;
+	      x = _;
+	      return line;
+	    };
+	    line.y = function(_) {
+	      if (!arguments.length) return y;
+	      y = _;
+	      return line;
+	    };
+	    line.defined = function(_) {
+	      if (!arguments.length) return defined;
+	      defined = _;
+	      return line;
+	    };
+	    line.interpolate = function(_) {
+	      if (!arguments.length) return interpolateKey;
+	      if (typeof _ === "function") interpolateKey = interpolate = _; else interpolateKey = (interpolate = d3_svg_lineInterpolators.get(_) || d3_svg_lineLinear).key;
+	      return line;
+	    };
+	    line.tension = function(_) {
+	      if (!arguments.length) return tension;
+	      tension = _;
+	      return line;
+	    };
+	    return line;
+	  }
+	  d3.svg.line = function() {
+	    return d3_svg_line(d3_identity);
+	  };
+	  var d3_svg_lineInterpolators = d3.map({
+	    linear: d3_svg_lineLinear,
+	    "linear-closed": d3_svg_lineLinearClosed,
+	    step: d3_svg_lineStep,
+	    "step-before": d3_svg_lineStepBefore,
+	    "step-after": d3_svg_lineStepAfter,
+	    basis: d3_svg_lineBasis,
+	    "basis-open": d3_svg_lineBasisOpen,
+	    "basis-closed": d3_svg_lineBasisClosed,
+	    bundle: d3_svg_lineBundle,
+	    cardinal: d3_svg_lineCardinal,
+	    "cardinal-open": d3_svg_lineCardinalOpen,
+	    "cardinal-closed": d3_svg_lineCardinalClosed,
+	    monotone: d3_svg_lineMonotone
+	  });
+	  d3_svg_lineInterpolators.forEach(function(key, value) {
+	    value.key = key;
+	    value.closed = /-closed$/.test(key);
+	  });
+	  function d3_svg_lineLinear(points) {
+	    return points.length > 1 ? points.join("L") : points + "Z";
+	  }
+	  function d3_svg_lineLinearClosed(points) {
+	    return points.join("L") + "Z";
+	  }
+	  function d3_svg_lineStep(points) {
+	    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+	    while (++i < n) path.push("H", (p[0] + (p = points[i])[0]) / 2, "V", p[1]);
+	    if (n > 1) path.push("H", p[0]);
+	    return path.join("");
+	  }
+	  function d3_svg_lineStepBefore(points) {
+	    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+	    while (++i < n) path.push("V", (p = points[i])[1], "H", p[0]);
+	    return path.join("");
+	  }
+	  function d3_svg_lineStepAfter(points) {
+	    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+	    while (++i < n) path.push("H", (p = points[i])[0], "V", p[1]);
+	    return path.join("");
+	  }
+	  function d3_svg_lineCardinalOpen(points, tension) {
+	    return points.length < 4 ? d3_svg_lineLinear(points) : points[1] + d3_svg_lineHermite(points.slice(1, -1), d3_svg_lineCardinalTangents(points, tension));
+	  }
+	  function d3_svg_lineCardinalClosed(points, tension) {
+	    return points.length < 3 ? d3_svg_lineLinearClosed(points) : points[0] + d3_svg_lineHermite((points.push(points[0]), 
+	    points), d3_svg_lineCardinalTangents([ points[points.length - 2] ].concat(points, [ points[1] ]), tension));
+	  }
+	  function d3_svg_lineCardinal(points, tension) {
+	    return points.length < 3 ? d3_svg_lineLinear(points) : points[0] + d3_svg_lineHermite(points, d3_svg_lineCardinalTangents(points, tension));
+	  }
+	  function d3_svg_lineHermite(points, tangents) {
+	    if (tangents.length < 1 || points.length != tangents.length && points.length != tangents.length + 2) {
+	      return d3_svg_lineLinear(points);
+	    }
+	    var quad = points.length != tangents.length, path = "", p0 = points[0], p = points[1], t0 = tangents[0], t = t0, pi = 1;
+	    if (quad) {
+	      path += "Q" + (p[0] - t0[0] * 2 / 3) + "," + (p[1] - t0[1] * 2 / 3) + "," + p[0] + "," + p[1];
+	      p0 = points[1];
+	      pi = 2;
+	    }
+	    if (tangents.length > 1) {
+	      t = tangents[1];
+	      p = points[pi];
+	      pi++;
+	      path += "C" + (p0[0] + t0[0]) + "," + (p0[1] + t0[1]) + "," + (p[0] - t[0]) + "," + (p[1] - t[1]) + "," + p[0] + "," + p[1];
+	      for (var i = 2; i < tangents.length; i++, pi++) {
+	        p = points[pi];
+	        t = tangents[i];
+	        path += "S" + (p[0] - t[0]) + "," + (p[1] - t[1]) + "," + p[0] + "," + p[1];
+	      }
+	    }
+	    if (quad) {
+	      var lp = points[pi];
+	      path += "Q" + (p[0] + t[0] * 2 / 3) + "," + (p[1] + t[1] * 2 / 3) + "," + lp[0] + "," + lp[1];
+	    }
+	    return path;
+	  }
+	  function d3_svg_lineCardinalTangents(points, tension) {
+	    var tangents = [], a = (1 - tension) / 2, p0, p1 = points[0], p2 = points[1], i = 1, n = points.length;
+	    while (++i < n) {
+	      p0 = p1;
+	      p1 = p2;
+	      p2 = points[i];
+	      tangents.push([ a * (p2[0] - p0[0]), a * (p2[1] - p0[1]) ]);
+	    }
+	    return tangents;
+	  }
+	  function d3_svg_lineBasis(points) {
+	    if (points.length < 3) return d3_svg_lineLinear(points);
+	    var i = 1, n = points.length, pi = points[0], x0 = pi[0], y0 = pi[1], px = [ x0, x0, x0, (pi = points[1])[0] ], py = [ y0, y0, y0, pi[1] ], path = [ x0, ",", y0, "L", d3_svg_lineDot4(d3_svg_lineBasisBezier3, px), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, py) ];
+	    points.push(points[n - 1]);
+	    while (++i <= n) {
+	      pi = points[i];
+	      px.shift();
+	      px.push(pi[0]);
+	      py.shift();
+	      py.push(pi[1]);
+	      d3_svg_lineBasisBezier(path, px, py);
+	    }
+	    points.pop();
+	    path.push("L", pi);
+	    return path.join("");
+	  }
+	  function d3_svg_lineBasisOpen(points) {
+	    if (points.length < 4) return d3_svg_lineLinear(points);
+	    var path = [], i = -1, n = points.length, pi, px = [ 0 ], py = [ 0 ];
+	    while (++i < 3) {
+	      pi = points[i];
+	      px.push(pi[0]);
+	      py.push(pi[1]);
+	    }
+	    path.push(d3_svg_lineDot4(d3_svg_lineBasisBezier3, px) + "," + d3_svg_lineDot4(d3_svg_lineBasisBezier3, py));
+	    --i;
+	    while (++i < n) {
+	      pi = points[i];
+	      px.shift();
+	      px.push(pi[0]);
+	      py.shift();
+	      py.push(pi[1]);
+	      d3_svg_lineBasisBezier(path, px, py);
+	    }
+	    return path.join("");
+	  }
+	  function d3_svg_lineBasisClosed(points) {
+	    var path, i = -1, n = points.length, m = n + 4, pi, px = [], py = [];
+	    while (++i < 4) {
+	      pi = points[i % n];
+	      px.push(pi[0]);
+	      py.push(pi[1]);
+	    }
+	    path = [ d3_svg_lineDot4(d3_svg_lineBasisBezier3, px), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, py) ];
+	    --i;
+	    while (++i < m) {
+	      pi = points[i % n];
+	      px.shift();
+	      px.push(pi[0]);
+	      py.shift();
+	      py.push(pi[1]);
+	      d3_svg_lineBasisBezier(path, px, py);
+	    }
+	    return path.join("");
+	  }
+	  function d3_svg_lineBundle(points, tension) {
+	    var n = points.length - 1;
+	    if (n) {
+	      var x0 = points[0][0], y0 = points[0][1], dx = points[n][0] - x0, dy = points[n][1] - y0, i = -1, p, t;
+	      while (++i <= n) {
+	        p = points[i];
+	        t = i / n;
+	        p[0] = tension * p[0] + (1 - tension) * (x0 + t * dx);
+	        p[1] = tension * p[1] + (1 - tension) * (y0 + t * dy);
+	      }
+	    }
+	    return d3_svg_lineBasis(points);
+	  }
+	  function d3_svg_lineDot4(a, b) {
+	    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+	  }
+	  var d3_svg_lineBasisBezier1 = [ 0, 2 / 3, 1 / 3, 0 ], d3_svg_lineBasisBezier2 = [ 0, 1 / 3, 2 / 3, 0 ], d3_svg_lineBasisBezier3 = [ 0, 1 / 6, 2 / 3, 1 / 6 ];
+	  function d3_svg_lineBasisBezier(path, x, y) {
+	    path.push("C", d3_svg_lineDot4(d3_svg_lineBasisBezier1, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier1, y), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier2, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier2, y), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, y));
+	  }
+	  function d3_svg_lineSlope(p0, p1) {
+	    return (p1[1] - p0[1]) / (p1[0] - p0[0]);
+	  }
+	  function d3_svg_lineFiniteDifferences(points) {
+	    var i = 0, j = points.length - 1, m = [], p0 = points[0], p1 = points[1], d = m[0] = d3_svg_lineSlope(p0, p1);
+	    while (++i < j) {
+	      m[i] = (d + (d = d3_svg_lineSlope(p0 = p1, p1 = points[i + 1]))) / 2;
+	    }
+	    m[i] = d;
+	    return m;
+	  }
+	  function d3_svg_lineMonotoneTangents(points) {
+	    var tangents = [], d, a, b, s, m = d3_svg_lineFiniteDifferences(points), i = -1, j = points.length - 1;
+	    while (++i < j) {
+	      d = d3_svg_lineSlope(points[i], points[i + 1]);
+	      if (abs(d) < ε) {
+	        m[i] = m[i + 1] = 0;
+	      } else {
+	        a = m[i] / d;
+	        b = m[i + 1] / d;
+	        s = a * a + b * b;
+	        if (s > 9) {
+	          s = d * 3 / Math.sqrt(s);
+	          m[i] = s * a;
+	          m[i + 1] = s * b;
+	        }
+	      }
+	    }
+	    i = -1;
+	    while (++i <= j) {
+	      s = (points[Math.min(j, i + 1)][0] - points[Math.max(0, i - 1)][0]) / (6 * (1 + m[i] * m[i]));
+	      tangents.push([ s || 0, m[i] * s || 0 ]);
+	    }
+	    return tangents;
+	  }
+	  function d3_svg_lineMonotone(points) {
+	    return points.length < 3 ? d3_svg_lineLinear(points) : points[0] + d3_svg_lineHermite(points, d3_svg_lineMonotoneTangents(points));
+	  }
+	  d3.svg.line.radial = function() {
+	    var line = d3_svg_line(d3_svg_lineRadial);
+	    line.radius = line.x, delete line.x;
+	    line.angle = line.y, delete line.y;
+	    return line;
+	  };
+	  function d3_svg_lineRadial(points) {
+	    var point, i = -1, n = points.length, r, a;
+	    while (++i < n) {
+	      point = points[i];
+	      r = point[0];
+	      a = point[1] - halfπ;
+	      point[0] = r * Math.cos(a);
+	      point[1] = r * Math.sin(a);
+	    }
+	    return points;
+	  }
+	  function d3_svg_area(projection) {
+	    var x0 = d3_geom_pointX, x1 = d3_geom_pointX, y0 = 0, y1 = d3_geom_pointY, defined = d3_true, interpolate = d3_svg_lineLinear, interpolateKey = interpolate.key, interpolateReverse = interpolate, L = "L", tension = .7;
+	    function area(data) {
+	      var segments = [], points0 = [], points1 = [], i = -1, n = data.length, d, fx0 = d3_functor(x0), fy0 = d3_functor(y0), fx1 = x0 === x1 ? function() {
+	        return x;
+	      } : d3_functor(x1), fy1 = y0 === y1 ? function() {
+	        return y;
+	      } : d3_functor(y1), x, y;
+	      function segment() {
+	        segments.push("M", interpolate(projection(points1), tension), L, interpolateReverse(projection(points0.reverse()), tension), "Z");
+	      }
+	      while (++i < n) {
+	        if (defined.call(this, d = data[i], i)) {
+	          points0.push([ x = +fx0.call(this, d, i), y = +fy0.call(this, d, i) ]);
+	          points1.push([ +fx1.call(this, d, i), +fy1.call(this, d, i) ]);
+	        } else if (points0.length) {
+	          segment();
+	          points0 = [];
+	          points1 = [];
+	        }
+	      }
+	      if (points0.length) segment();
+	      return segments.length ? segments.join("") : null;
+	    }
+	    area.x = function(_) {
+	      if (!arguments.length) return x1;
+	      x0 = x1 = _;
+	      return area;
+	    };
+	    area.x0 = function(_) {
+	      if (!arguments.length) return x0;
+	      x0 = _;
+	      return area;
+	    };
+	    area.x1 = function(_) {
+	      if (!arguments.length) return x1;
+	      x1 = _;
+	      return area;
+	    };
+	    area.y = function(_) {
+	      if (!arguments.length) return y1;
+	      y0 = y1 = _;
+	      return area;
+	    };
+	    area.y0 = function(_) {
+	      if (!arguments.length) return y0;
+	      y0 = _;
+	      return area;
+	    };
+	    area.y1 = function(_) {
+	      if (!arguments.length) return y1;
+	      y1 = _;
+	      return area;
+	    };
+	    area.defined = function(_) {
+	      if (!arguments.length) return defined;
+	      defined = _;
+	      return area;
+	    };
+	    area.interpolate = function(_) {
+	      if (!arguments.length) return interpolateKey;
+	      if (typeof _ === "function") interpolateKey = interpolate = _; else interpolateKey = (interpolate = d3_svg_lineInterpolators.get(_) || d3_svg_lineLinear).key;
+	      interpolateReverse = interpolate.reverse || interpolate;
+	      L = interpolate.closed ? "M" : "L";
+	      return area;
+	    };
+	    area.tension = function(_) {
+	      if (!arguments.length) return tension;
+	      tension = _;
+	      return area;
+	    };
+	    return area;
+	  }
+	  d3_svg_lineStepBefore.reverse = d3_svg_lineStepAfter;
+	  d3_svg_lineStepAfter.reverse = d3_svg_lineStepBefore;
+	  d3.svg.area = function() {
+	    return d3_svg_area(d3_identity);
+	  };
+	  d3.svg.area.radial = function() {
+	    var area = d3_svg_area(d3_svg_lineRadial);
+	    area.radius = area.x, delete area.x;
+	    area.innerRadius = area.x0, delete area.x0;
+	    area.outerRadius = area.x1, delete area.x1;
+	    area.angle = area.y, delete area.y;
+	    area.startAngle = area.y0, delete area.y0;
+	    area.endAngle = area.y1, delete area.y1;
+	    return area;
+	  };
+	  d3.svg.chord = function() {
+	    var source = d3_source, target = d3_target, radius = d3_svg_chordRadius, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle;
+	    function chord(d, i) {
+	      var s = subgroup(this, source, d, i), t = subgroup(this, target, d, i);
+	      return "M" + s.p0 + arc(s.r, s.p1, s.a1 - s.a0) + (equals(s, t) ? curve(s.r, s.p1, s.r, s.p0) : curve(s.r, s.p1, t.r, t.p0) + arc(t.r, t.p1, t.a1 - t.a0) + curve(t.r, t.p1, s.r, s.p0)) + "Z";
+	    }
+	    function subgroup(self, f, d, i) {
+	      var subgroup = f.call(self, d, i), r = radius.call(self, subgroup, i), a0 = startAngle.call(self, subgroup, i) - halfπ, a1 = endAngle.call(self, subgroup, i) - halfπ;
+	      return {
+	        r: r,
+	        a0: a0,
+	        a1: a1,
+	        p0: [ r * Math.cos(a0), r * Math.sin(a0) ],
+	        p1: [ r * Math.cos(a1), r * Math.sin(a1) ]
+	      };
+	    }
+	    function equals(a, b) {
+	      return a.a0 == b.a0 && a.a1 == b.a1;
+	    }
+	    function arc(r, p, a) {
+	      return "A" + r + "," + r + " 0 " + +(a > π) + ",1 " + p;
+	    }
+	    function curve(r0, p0, r1, p1) {
+	      return "Q 0,0 " + p1;
+	    }
+	    chord.radius = function(v) {
+	      if (!arguments.length) return radius;
+	      radius = d3_functor(v);
+	      return chord;
+	    };
+	    chord.source = function(v) {
+	      if (!arguments.length) return source;
+	      source = d3_functor(v);
+	      return chord;
+	    };
+	    chord.target = function(v) {
+	      if (!arguments.length) return target;
+	      target = d3_functor(v);
+	      return chord;
+	    };
+	    chord.startAngle = function(v) {
+	      if (!arguments.length) return startAngle;
+	      startAngle = d3_functor(v);
+	      return chord;
+	    };
+	    chord.endAngle = function(v) {
+	      if (!arguments.length) return endAngle;
+	      endAngle = d3_functor(v);
+	      return chord;
+	    };
+	    return chord;
+	  };
+	  function d3_svg_chordRadius(d) {
+	    return d.radius;
+	  }
+	  d3.svg.diagonal = function() {
+	    var source = d3_source, target = d3_target, projection = d3_svg_diagonalProjection;
+	    function diagonal(d, i) {
+	      var p0 = source.call(this, d, i), p3 = target.call(this, d, i), m = (p0.y + p3.y) / 2, p = [ p0, {
+	        x: p0.x,
+	        y: m
+	      }, {
+	        x: p3.x,
+	        y: m
+	      }, p3 ];
+	      p = p.map(projection);
+	      return "M" + p[0] + "C" + p[1] + " " + p[2] + " " + p[3];
+	    }
+	    diagonal.source = function(x) {
+	      if (!arguments.length) return source;
+	      source = d3_functor(x);
+	      return diagonal;
+	    };
+	    diagonal.target = function(x) {
+	      if (!arguments.length) return target;
+	      target = d3_functor(x);
+	      return diagonal;
+	    };
+	    diagonal.projection = function(x) {
+	      if (!arguments.length) return projection;
+	      projection = x;
+	      return diagonal;
+	    };
+	    return diagonal;
+	  };
+	  function d3_svg_diagonalProjection(d) {
+	    return [ d.x, d.y ];
+	  }
+	  d3.svg.diagonal.radial = function() {
+	    var diagonal = d3.svg.diagonal(), projection = d3_svg_diagonalProjection, projection_ = diagonal.projection;
+	    diagonal.projection = function(x) {
+	      return arguments.length ? projection_(d3_svg_diagonalRadialProjection(projection = x)) : projection;
+	    };
+	    return diagonal;
+	  };
+	  function d3_svg_diagonalRadialProjection(projection) {
+	    return function() {
+	      var d = projection.apply(this, arguments), r = d[0], a = d[1] - halfπ;
+	      return [ r * Math.cos(a), r * Math.sin(a) ];
+	    };
+	  }
+	  d3.svg.symbol = function() {
+	    var type = d3_svg_symbolType, size = d3_svg_symbolSize;
+	    function symbol(d, i) {
+	      return (d3_svg_symbols.get(type.call(this, d, i)) || d3_svg_symbolCircle)(size.call(this, d, i));
+	    }
+	    symbol.type = function(x) {
+	      if (!arguments.length) return type;
+	      type = d3_functor(x);
+	      return symbol;
+	    };
+	    symbol.size = function(x) {
+	      if (!arguments.length) return size;
+	      size = d3_functor(x);
+	      return symbol;
+	    };
+	    return symbol;
+	  };
+	  function d3_svg_symbolSize() {
+	    return 64;
+	  }
+	  function d3_svg_symbolType() {
+	    return "circle";
+	  }
+	  function d3_svg_symbolCircle(size) {
+	    var r = Math.sqrt(size / π);
+	    return "M0," + r + "A" + r + "," + r + " 0 1,1 0," + -r + "A" + r + "," + r + " 0 1,1 0," + r + "Z";
+	  }
+	  var d3_svg_symbols = d3.map({
+	    circle: d3_svg_symbolCircle,
+	    cross: function(size) {
+	      var r = Math.sqrt(size / 5) / 2;
+	      return "M" + -3 * r + "," + -r + "H" + -r + "V" + -3 * r + "H" + r + "V" + -r + "H" + 3 * r + "V" + r + "H" + r + "V" + 3 * r + "H" + -r + "V" + r + "H" + -3 * r + "Z";
+	    },
+	    diamond: function(size) {
+	      var ry = Math.sqrt(size / (2 * d3_svg_symbolTan30)), rx = ry * d3_svg_symbolTan30;
+	      return "M0," + -ry + "L" + rx + ",0" + " 0," + ry + " " + -rx + ",0" + "Z";
+	    },
+	    square: function(size) {
+	      var r = Math.sqrt(size) / 2;
+	      return "M" + -r + "," + -r + "L" + r + "," + -r + " " + r + "," + r + " " + -r + "," + r + "Z";
+	    },
+	    "triangle-down": function(size) {
+	      var rx = Math.sqrt(size / d3_svg_symbolSqrt3), ry = rx * d3_svg_symbolSqrt3 / 2;
+	      return "M0," + ry + "L" + rx + "," + -ry + " " + -rx + "," + -ry + "Z";
+	    },
+	    "triangle-up": function(size) {
+	      var rx = Math.sqrt(size / d3_svg_symbolSqrt3), ry = rx * d3_svg_symbolSqrt3 / 2;
+	      return "M0," + -ry + "L" + rx + "," + ry + " " + -rx + "," + ry + "Z";
+	    }
+	  });
+	  d3.svg.symbolTypes = d3_svg_symbols.keys();
+	  var d3_svg_symbolSqrt3 = Math.sqrt(3), d3_svg_symbolTan30 = Math.tan(30 * d3_radians);
+	  d3_selectionPrototype.transition = function(name) {
+	    var id = d3_transitionInheritId || ++d3_transitionId, ns = d3_transitionNamespace(name), subgroups = [], subgroup, node, transition = d3_transitionInherit || {
+	      time: Date.now(),
+	      ease: d3_ease_cubicInOut,
+	      delay: 0,
+	      duration: 250
+	    };
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      subgroups.push(subgroup = []);
+	      for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+	        if (node = group[i]) d3_transitionNode(node, i, ns, id, transition);
+	        subgroup.push(node);
+	      }
+	    }
+	    return d3_transition(subgroups, ns, id);
+	  };
+	  d3_selectionPrototype.interrupt = function(name) {
+	    return this.each(name == null ? d3_selection_interrupt : d3_selection_interruptNS(d3_transitionNamespace(name)));
+	  };
+	  var d3_selection_interrupt = d3_selection_interruptNS(d3_transitionNamespace());
+	  function d3_selection_interruptNS(ns) {
+	    return function() {
+	      var lock, activeId, active;
+	      if ((lock = this[ns]) && (active = lock[activeId = lock.active])) {
+	        active.timer.c = null;
+	        active.timer.t = NaN;
+	        if (--lock.count) delete lock[activeId]; else delete this[ns];
+	        lock.active += .5;
+	        active.event && active.event.interrupt.call(this, this.__data__, active.index);
+	      }
+	    };
+	  }
+	  function d3_transition(groups, ns, id) {
+	    d3_subclass(groups, d3_transitionPrototype);
+	    groups.namespace = ns;
+	    groups.id = id;
+	    return groups;
+	  }
+	  var d3_transitionPrototype = [], d3_transitionId = 0, d3_transitionInheritId, d3_transitionInherit;
+	  d3_transitionPrototype.call = d3_selectionPrototype.call;
+	  d3_transitionPrototype.empty = d3_selectionPrototype.empty;
+	  d3_transitionPrototype.node = d3_selectionPrototype.node;
+	  d3_transitionPrototype.size = d3_selectionPrototype.size;
+	  d3.transition = function(selection, name) {
+	    return selection && selection.transition ? d3_transitionInheritId ? selection.transition(name) : selection : d3.selection().transition(selection);
+	  };
+	  d3.transition.prototype = d3_transitionPrototype;
+	  d3_transitionPrototype.select = function(selector) {
+	    var id = this.id, ns = this.namespace, subgroups = [], subgroup, subnode, node;
+	    selector = d3_selection_selector(selector);
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      subgroups.push(subgroup = []);
+	      for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+	        if ((node = group[i]) && (subnode = selector.call(node, node.__data__, i, j))) {
+	          if ("__data__" in node) subnode.__data__ = node.__data__;
+	          d3_transitionNode(subnode, i, ns, id, node[ns][id]);
+	          subgroup.push(subnode);
+	        } else {
+	          subgroup.push(null);
+	        }
+	      }
+	    }
+	    return d3_transition(subgroups, ns, id);
+	  };
+	  d3_transitionPrototype.selectAll = function(selector) {
+	    var id = this.id, ns = this.namespace, subgroups = [], subgroup, subnodes, node, subnode, transition;
+	    selector = d3_selection_selectorAll(selector);
+	    for (var j = -1, m = this.length; ++j < m; ) {
+	      for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+	        if (node = group[i]) {
+	          transition = node[ns][id];
+	          subnodes = selector.call(node, node.__data__, i, j);
+	          subgroups.push(subgroup = []);
+	          for (var k = -1, o = subnodes.length; ++k < o; ) {
+	            if (subnode = subnodes[k]) d3_transitionNode(subnode, k, ns, id, transition);
+	            subgroup.push(subnode);
+	          }
+	        }
+	      }
+	    }
+	    return d3_transition(subgroups, ns, id);
+	  };
+	  d3_transitionPrototype.filter = function(filter) {
+	    var subgroups = [], subgroup, group, node;
+	    if (typeof filter !== "function") filter = d3_selection_filter(filter);
+	    for (var j = 0, m = this.length; j < m; j++) {
+	      subgroups.push(subgroup = []);
+	      for (var group = this[j], i = 0, n = group.length; i < n; i++) {
+	        if ((node = group[i]) && filter.call(node, node.__data__, i, j)) {
+	          subgroup.push(node);
+	        }
+	      }
+	    }
+	    return d3_transition(subgroups, this.namespace, this.id);
+	  };
+	  d3_transitionPrototype.tween = function(name, tween) {
+	    var id = this.id, ns = this.namespace;
+	    if (arguments.length < 2) return this.node()[ns][id].tween.get(name);
+	    return d3_selection_each(this, tween == null ? function(node) {
+	      node[ns][id].tween.remove(name);
+	    } : function(node) {
+	      node[ns][id].tween.set(name, tween);
+	    });
+	  };
+	  function d3_transition_tween(groups, name, value, tween) {
+	    var id = groups.id, ns = groups.namespace;
+	    return d3_selection_each(groups, typeof value === "function" ? function(node, i, j) {
+	      node[ns][id].tween.set(name, tween(value.call(node, node.__data__, i, j)));
+	    } : (value = tween(value), function(node) {
+	      node[ns][id].tween.set(name, value);
+	    }));
+	  }
+	  d3_transitionPrototype.attr = function(nameNS, value) {
+	    if (arguments.length < 2) {
+	      for (value in nameNS) this.attr(value, nameNS[value]);
+	      return this;
+	    }
+	    var interpolate = nameNS == "transform" ? d3_interpolateTransform : d3_interpolate, name = d3.ns.qualify(nameNS);
+	    function attrNull() {
+	      this.removeAttribute(name);
+	    }
+	    function attrNullNS() {
+	      this.removeAttributeNS(name.space, name.local);
+	    }
+	    function attrTween(b) {
+	      return b == null ? attrNull : (b += "", function() {
+	        var a = this.getAttribute(name), i;
+	        return a !== b && (i = interpolate(a, b), function(t) {
+	          this.setAttribute(name, i(t));
+	        });
+	      });
+	    }
+	    function attrTweenNS(b) {
+	      return b == null ? attrNullNS : (b += "", function() {
+	        var a = this.getAttributeNS(name.space, name.local), i;
+	        return a !== b && (i = interpolate(a, b), function(t) {
+	          this.setAttributeNS(name.space, name.local, i(t));
+	        });
+	      });
+	    }
+	    return d3_transition_tween(this, "attr." + nameNS, value, name.local ? attrTweenNS : attrTween);
+	  };
+	  d3_transitionPrototype.attrTween = function(nameNS, tween) {
+	    var name = d3.ns.qualify(nameNS);
+	    function attrTween(d, i) {
+	      var f = tween.call(this, d, i, this.getAttribute(name));
+	      return f && function(t) {
+	        this.setAttribute(name, f(t));
+	      };
+	    }
+	    function attrTweenNS(d, i) {
+	      var f = tween.call(this, d, i, this.getAttributeNS(name.space, name.local));
+	      return f && function(t) {
+	        this.setAttributeNS(name.space, name.local, f(t));
+	      };
+	    }
+	    return this.tween("attr." + nameNS, name.local ? attrTweenNS : attrTween);
+	  };
+	  d3_transitionPrototype.style = function(name, value, priority) {
+	    var n = arguments.length;
+	    if (n < 3) {
+	      if (typeof name !== "string") {
+	        if (n < 2) value = "";
+	        for (priority in name) this.style(priority, name[priority], value);
+	        return this;
+	      }
+	      priority = "";
+	    }
+	    function styleNull() {
+	      this.style.removeProperty(name);
+	    }
+	    function styleString(b) {
+	      return b == null ? styleNull : (b += "", function() {
+	        var a = d3_window(this).getComputedStyle(this, null).getPropertyValue(name), i;
+	        return a !== b && (i = d3_interpolate(a, b), function(t) {
+	          this.style.setProperty(name, i(t), priority);
+	        });
+	      });
+	    }
+	    return d3_transition_tween(this, "style." + name, value, styleString);
+	  };
+	  d3_transitionPrototype.styleTween = function(name, tween, priority) {
+	    if (arguments.length < 3) priority = "";
+	    function styleTween(d, i) {
+	      var f = tween.call(this, d, i, d3_window(this).getComputedStyle(this, null).getPropertyValue(name));
+	      return f && function(t) {
+	        this.style.setProperty(name, f(t), priority);
+	      };
+	    }
+	    return this.tween("style." + name, styleTween);
+	  };
+	  d3_transitionPrototype.text = function(value) {
+	    return d3_transition_tween(this, "text", value, d3_transition_text);
+	  };
+	  function d3_transition_text(b) {
+	    if (b == null) b = "";
+	    return function() {
+	      this.textContent = b;
+	    };
+	  }
+	  d3_transitionPrototype.remove = function() {
+	    var ns = this.namespace;
+	    return this.each("end.transition", function() {
+	      var p;
+	      if (this[ns].count < 2 && (p = this.parentNode)) p.removeChild(this);
+	    });
+	  };
+	  d3_transitionPrototype.ease = function(value) {
+	    var id = this.id, ns = this.namespace;
+	    if (arguments.length < 1) return this.node()[ns][id].ease;
+	    if (typeof value !== "function") value = d3.ease.apply(d3, arguments);
+	    return d3_selection_each(this, function(node) {
+	      node[ns][id].ease = value;
+	    });
+	  };
+	  d3_transitionPrototype.delay = function(value) {
+	    var id = this.id, ns = this.namespace;
+	    if (arguments.length < 1) return this.node()[ns][id].delay;
+	    return d3_selection_each(this, typeof value === "function" ? function(node, i, j) {
+	      node[ns][id].delay = +value.call(node, node.__data__, i, j);
+	    } : (value = +value, function(node) {
+	      node[ns][id].delay = value;
+	    }));
+	  };
+	  d3_transitionPrototype.duration = function(value) {
+	    var id = this.id, ns = this.namespace;
+	    if (arguments.length < 1) return this.node()[ns][id].duration;
+	    return d3_selection_each(this, typeof value === "function" ? function(node, i, j) {
+	      node[ns][id].duration = Math.max(1, value.call(node, node.__data__, i, j));
+	    } : (value = Math.max(1, value), function(node) {
+	      node[ns][id].duration = value;
+	    }));
+	  };
+	  d3_transitionPrototype.each = function(type, listener) {
+	    var id = this.id, ns = this.namespace;
+	    if (arguments.length < 2) {
+	      var inherit = d3_transitionInherit, inheritId = d3_transitionInheritId;
+	      try {
+	        d3_transitionInheritId = id;
+	        d3_selection_each(this, function(node, i, j) {
+	          d3_transitionInherit = node[ns][id];
+	          type.call(node, node.__data__, i, j);
+	        });
+	      } finally {
+	        d3_transitionInherit = inherit;
+	        d3_transitionInheritId = inheritId;
+	      }
+	    } else {
+	      d3_selection_each(this, function(node) {
+	        var transition = node[ns][id];
+	        (transition.event || (transition.event = d3.dispatch("start", "end", "interrupt"))).on(type, listener);
+	      });
+	    }
+	    return this;
+	  };
+	  d3_transitionPrototype.transition = function() {
+	    var id0 = this.id, id1 = ++d3_transitionId, ns = this.namespace, subgroups = [], subgroup, group, node, transition;
+	    for (var j = 0, m = this.length; j < m; j++) {
+	      subgroups.push(subgroup = []);
+	      for (var group = this[j], i = 0, n = group.length; i < n; i++) {
+	        if (node = group[i]) {
+	          transition = node[ns][id0];
+	          d3_transitionNode(node, i, ns, id1, {
+	            time: transition.time,
+	            ease: transition.ease,
+	            delay: transition.delay + transition.duration,
+	            duration: transition.duration
+	          });
+	        }
+	        subgroup.push(node);
+	      }
+	    }
+	    return d3_transition(subgroups, ns, id1);
+	  };
+	  function d3_transitionNamespace(name) {
+	    return name == null ? "__transition__" : "__transition_" + name + "__";
+	  }
+	  function d3_transitionNode(node, i, ns, id, inherit) {
+	    var lock = node[ns] || (node[ns] = {
+	      active: 0,
+	      count: 0
+	    }), transition = lock[id], time, timer, duration, ease, tweens;
+	    function schedule(elapsed) {
+	      var delay = transition.delay;
+	      timer.t = delay + time;
+	      if (delay <= elapsed) return start(elapsed - delay);
+	      timer.c = start;
+	    }
+	    function start(elapsed) {
+	      var activeId = lock.active, active = lock[activeId];
+	      if (active) {
+	        active.timer.c = null;
+	        active.timer.t = NaN;
+	        --lock.count;
+	        delete lock[activeId];
+	        active.event && active.event.interrupt.call(node, node.__data__, active.index);
+	      }
+	      for (var cancelId in lock) {
+	        if (+cancelId < id) {
+	          var cancel = lock[cancelId];
+	          cancel.timer.c = null;
+	          cancel.timer.t = NaN;
+	          --lock.count;
+	          delete lock[cancelId];
+	        }
+	      }
+	      timer.c = tick;
+	      d3_timer(function() {
+	        if (timer.c && tick(elapsed || 1)) {
+	          timer.c = null;
+	          timer.t = NaN;
+	        }
+	        return 1;
+	      }, 0, time);
+	      lock.active = id;
+	      transition.event && transition.event.start.call(node, node.__data__, i);
+	      tweens = [];
+	      transition.tween.forEach(function(key, value) {
+	        if (value = value.call(node, node.__data__, i)) {
+	          tweens.push(value);
+	        }
+	      });
+	      ease = transition.ease;
+	      duration = transition.duration;
+	    }
+	    function tick(elapsed) {
+	      var t = elapsed / duration, e = ease(t), n = tweens.length;
+	      while (n > 0) {
+	        tweens[--n].call(node, e);
+	      }
+	      if (t >= 1) {
+	        transition.event && transition.event.end.call(node, node.__data__, i);
+	        if (--lock.count) delete lock[id]; else delete node[ns];
+	        return 1;
+	      }
+	    }
+	    if (!transition) {
+	      time = inherit.time;
+	      timer = d3_timer(schedule, 0, time);
+	      transition = lock[id] = {
+	        tween: new d3_Map(),
+	        time: time,
+	        timer: timer,
+	        delay: inherit.delay,
+	        duration: inherit.duration,
+	        ease: inherit.ease,
+	        index: i
+	      };
+	      inherit = null;
+	      ++lock.count;
+	    }
+	  }
+	  d3.svg.axis = function() {
+	    var scale = d3.scale.linear(), orient = d3_svg_axisDefaultOrient, innerTickSize = 6, outerTickSize = 6, tickPadding = 3, tickArguments_ = [ 10 ], tickValues = null, tickFormat_;
+	    function axis(g) {
+	      g.each(function() {
+	        var g = d3.select(this);
+	        var scale0 = this.__chart__ || scale, scale1 = this.__chart__ = scale.copy();
+	        var ticks = tickValues == null ? scale1.ticks ? scale1.ticks.apply(scale1, tickArguments_) : scale1.domain() : tickValues, tickFormat = tickFormat_ == null ? scale1.tickFormat ? scale1.tickFormat.apply(scale1, tickArguments_) : d3_identity : tickFormat_, tick = g.selectAll(".tick").data(ticks, scale1), tickEnter = tick.enter().insert("g", ".domain").attr("class", "tick").style("opacity", ε), tickExit = d3.transition(tick.exit()).style("opacity", ε).remove(), tickUpdate = d3.transition(tick.order()).style("opacity", 1), tickSpacing = Math.max(innerTickSize, 0) + tickPadding, tickTransform;
+	        var range = d3_scaleRange(scale1), path = g.selectAll(".domain").data([ 0 ]), pathUpdate = (path.enter().append("path").attr("class", "domain"), 
+	        d3.transition(path));
+	        tickEnter.append("line");
+	        tickEnter.append("text");
+	        var lineEnter = tickEnter.select("line"), lineUpdate = tickUpdate.select("line"), text = tick.select("text").text(tickFormat), textEnter = tickEnter.select("text"), textUpdate = tickUpdate.select("text"), sign = orient === "top" || orient === "left" ? -1 : 1, x1, x2, y1, y2;
+	        if (orient === "bottom" || orient === "top") {
+	          tickTransform = d3_svg_axisX, x1 = "x", y1 = "y", x2 = "x2", y2 = "y2";
+	          text.attr("dy", sign < 0 ? "0em" : ".71em").style("text-anchor", "middle");
+	          pathUpdate.attr("d", "M" + range[0] + "," + sign * outerTickSize + "V0H" + range[1] + "V" + sign * outerTickSize);
+	        } else {
+	          tickTransform = d3_svg_axisY, x1 = "y", y1 = "x", x2 = "y2", y2 = "x2";
+	          text.attr("dy", ".32em").style("text-anchor", sign < 0 ? "end" : "start");
+	          pathUpdate.attr("d", "M" + sign * outerTickSize + "," + range[0] + "H0V" + range[1] + "H" + sign * outerTickSize);
+	        }
+	        lineEnter.attr(y2, sign * innerTickSize);
+	        textEnter.attr(y1, sign * tickSpacing);
+	        lineUpdate.attr(x2, 0).attr(y2, sign * innerTickSize);
+	        textUpdate.attr(x1, 0).attr(y1, sign * tickSpacing);
+	        if (scale1.rangeBand) {
+	          var x = scale1, dx = x.rangeBand() / 2;
+	          scale0 = scale1 = function(d) {
+	            return x(d) + dx;
+	          };
+	        } else if (scale0.rangeBand) {
+	          scale0 = scale1;
+	        } else {
+	          tickExit.call(tickTransform, scale1, scale0);
+	        }
+	        tickEnter.call(tickTransform, scale0, scale1);
+	        tickUpdate.call(tickTransform, scale1, scale1);
+	      });
+	    }
+	    axis.scale = function(x) {
+	      if (!arguments.length) return scale;
+	      scale = x;
+	      return axis;
+	    };
+	    axis.orient = function(x) {
+	      if (!arguments.length) return orient;
+	      orient = x in d3_svg_axisOrients ? x + "" : d3_svg_axisDefaultOrient;
+	      return axis;
+	    };
+	    axis.ticks = function() {
+	      if (!arguments.length) return tickArguments_;
+	      tickArguments_ = d3_array(arguments);
+	      return axis;
+	    };
+	    axis.tickValues = function(x) {
+	      if (!arguments.length) return tickValues;
+	      tickValues = x;
+	      return axis;
+	    };
+	    axis.tickFormat = function(x) {
+	      if (!arguments.length) return tickFormat_;
+	      tickFormat_ = x;
+	      return axis;
+	    };
+	    axis.tickSize = function(x) {
+	      var n = arguments.length;
+	      if (!n) return innerTickSize;
+	      innerTickSize = +x;
+	      outerTickSize = +arguments[n - 1];
+	      return axis;
+	    };
+	    axis.innerTickSize = function(x) {
+	      if (!arguments.length) return innerTickSize;
+	      innerTickSize = +x;
+	      return axis;
+	    };
+	    axis.outerTickSize = function(x) {
+	      if (!arguments.length) return outerTickSize;
+	      outerTickSize = +x;
+	      return axis;
+	    };
+	    axis.tickPadding = function(x) {
+	      if (!arguments.length) return tickPadding;
+	      tickPadding = +x;
+	      return axis;
+	    };
+	    axis.tickSubdivide = function() {
+	      return arguments.length && axis;
+	    };
+	    return axis;
+	  };
+	  var d3_svg_axisDefaultOrient = "bottom", d3_svg_axisOrients = {
+	    top: 1,
+	    right: 1,
+	    bottom: 1,
+	    left: 1
+	  };
+	  function d3_svg_axisX(selection, x0, x1) {
+	    selection.attr("transform", function(d) {
+	      var v0 = x0(d);
+	      return "translate(" + (isFinite(v0) ? v0 : x1(d)) + ",0)";
+	    });
+	  }
+	  function d3_svg_axisY(selection, y0, y1) {
+	    selection.attr("transform", function(d) {
+	      var v0 = y0(d);
+	      return "translate(0," + (isFinite(v0) ? v0 : y1(d)) + ")";
+	    });
+	  }
+	  d3.svg.brush = function() {
+	    var event = d3_eventDispatch(brush, "brushstart", "brush", "brushend"), x = null, y = null, xExtent = [ 0, 0 ], yExtent = [ 0, 0 ], xExtentDomain, yExtentDomain, xClamp = true, yClamp = true, resizes = d3_svg_brushResizes[0];
+	    function brush(g) {
+	      g.each(function() {
+	        var g = d3.select(this).style("pointer-events", "all").style("-webkit-tap-highlight-color", "rgba(0,0,0,0)").on("mousedown.brush", brushstart).on("touchstart.brush", brushstart);
+	        var background = g.selectAll(".background").data([ 0 ]);
+	        background.enter().append("rect").attr("class", "background").style("visibility", "hidden").style("cursor", "crosshair");
+	        g.selectAll(".extent").data([ 0 ]).enter().append("rect").attr("class", "extent").style("cursor", "move");
+	        var resize = g.selectAll(".resize").data(resizes, d3_identity);
+	        resize.exit().remove();
+	        resize.enter().append("g").attr("class", function(d) {
+	          return "resize " + d;
+	        }).style("cursor", function(d) {
+	          return d3_svg_brushCursor[d];
+	        }).append("rect").attr("x", function(d) {
+	          return /[ew]$/.test(d) ? -3 : null;
+	        }).attr("y", function(d) {
+	          return /^[ns]/.test(d) ? -3 : null;
+	        }).attr("width", 6).attr("height", 6).style("visibility", "hidden");
+	        resize.style("display", brush.empty() ? "none" : null);
+	        var gUpdate = d3.transition(g), backgroundUpdate = d3.transition(background), range;
+	        if (x) {
+	          range = d3_scaleRange(x);
+	          backgroundUpdate.attr("x", range[0]).attr("width", range[1] - range[0]);
+	          redrawX(gUpdate);
+	        }
+	        if (y) {
+	          range = d3_scaleRange(y);
+	          backgroundUpdate.attr("y", range[0]).attr("height", range[1] - range[0]);
+	          redrawY(gUpdate);
+	        }
+	        redraw(gUpdate);
+	      });
+	    }
+	    brush.event = function(g) {
+	      g.each(function() {
+	        var event_ = event.of(this, arguments), extent1 = {
+	          x: xExtent,
+	          y: yExtent,
+	          i: xExtentDomain,
+	          j: yExtentDomain
+	        }, extent0 = this.__chart__ || extent1;
+	        this.__chart__ = extent1;
+	        if (d3_transitionInheritId) {
+	          d3.select(this).transition().each("start.brush", function() {
+	            xExtentDomain = extent0.i;
+	            yExtentDomain = extent0.j;
+	            xExtent = extent0.x;
+	            yExtent = extent0.y;
+	            event_({
+	              type: "brushstart"
+	            });
+	          }).tween("brush:brush", function() {
+	            var xi = d3_interpolateArray(xExtent, extent1.x), yi = d3_interpolateArray(yExtent, extent1.y);
+	            xExtentDomain = yExtentDomain = null;
+	            return function(t) {
+	              xExtent = extent1.x = xi(t);
+	              yExtent = extent1.y = yi(t);
+	              event_({
+	                type: "brush",
+	                mode: "resize"
+	              });
+	            };
+	          }).each("end.brush", function() {
+	            xExtentDomain = extent1.i;
+	            yExtentDomain = extent1.j;
+	            event_({
+	              type: "brush",
+	              mode: "resize"
+	            });
+	            event_({
+	              type: "brushend"
+	            });
+	          });
+	        } else {
+	          event_({
+	            type: "brushstart"
+	          });
+	          event_({
+	            type: "brush",
+	            mode: "resize"
+	          });
+	          event_({
+	            type: "brushend"
+	          });
+	        }
+	      });
+	    };
+	    function redraw(g) {
+	      g.selectAll(".resize").attr("transform", function(d) {
+	        return "translate(" + xExtent[+/e$/.test(d)] + "," + yExtent[+/^s/.test(d)] + ")";
+	      });
+	    }
+	    function redrawX(g) {
+	      g.select(".extent").attr("x", xExtent[0]);
+	      g.selectAll(".extent,.n>rect,.s>rect").attr("width", xExtent[1] - xExtent[0]);
+	    }
+	    function redrawY(g) {
+	      g.select(".extent").attr("y", yExtent[0]);
+	      g.selectAll(".extent,.e>rect,.w>rect").attr("height", yExtent[1] - yExtent[0]);
+	    }
+	    function brushstart() {
+	      var target = this, eventTarget = d3.select(d3.event.target), event_ = event.of(target, arguments), g = d3.select(target), resizing = eventTarget.datum(), resizingX = !/^(n|s)$/.test(resizing) && x, resizingY = !/^(e|w)$/.test(resizing) && y, dragging = eventTarget.classed("extent"), dragRestore = d3_event_dragSuppress(target), center, origin = d3.mouse(target), offset;
+	      var w = d3.select(d3_window(target)).on("keydown.brush", keydown).on("keyup.brush", keyup);
+	      if (d3.event.changedTouches) {
+	        w.on("touchmove.brush", brushmove).on("touchend.brush", brushend);
+	      } else {
+	        w.on("mousemove.brush", brushmove).on("mouseup.brush", brushend);
+	      }
+	      g.interrupt().selectAll("*").interrupt();
+	      if (dragging) {
+	        origin[0] = xExtent[0] - origin[0];
+	        origin[1] = yExtent[0] - origin[1];
+	      } else if (resizing) {
+	        var ex = +/w$/.test(resizing), ey = +/^n/.test(resizing);
+	        offset = [ xExtent[1 - ex] - origin[0], yExtent[1 - ey] - origin[1] ];
+	        origin[0] = xExtent[ex];
+	        origin[1] = yExtent[ey];
+	      } else if (d3.event.altKey) center = origin.slice();
+	      g.style("pointer-events", "none").selectAll(".resize").style("display", null);
+	      d3.select("body").style("cursor", eventTarget.style("cursor"));
+	      event_({
+	        type: "brushstart"
+	      });
+	      brushmove();
+	      function keydown() {
+	        if (d3.event.keyCode == 32) {
+	          if (!dragging) {
+	            center = null;
+	            origin[0] -= xExtent[1];
+	            origin[1] -= yExtent[1];
+	            dragging = 2;
+	          }
+	          d3_eventPreventDefault();
+	        }
+	      }
+	      function keyup() {
+	        if (d3.event.keyCode == 32 && dragging == 2) {
+	          origin[0] += xExtent[1];
+	          origin[1] += yExtent[1];
+	          dragging = 0;
+	          d3_eventPreventDefault();
+	        }
+	      }
+	      function brushmove() {
+	        var point = d3.mouse(target), moved = false;
+	        if (offset) {
+	          point[0] += offset[0];
+	          point[1] += offset[1];
+	        }
+	        if (!dragging) {
+	          if (d3.event.altKey) {
+	            if (!center) center = [ (xExtent[0] + xExtent[1]) / 2, (yExtent[0] + yExtent[1]) / 2 ];
+	            origin[0] = xExtent[+(point[0] < center[0])];
+	            origin[1] = yExtent[+(point[1] < center[1])];
+	          } else center = null;
+	        }
+	        if (resizingX && move1(point, x, 0)) {
+	          redrawX(g);
+	          moved = true;
+	        }
+	        if (resizingY && move1(point, y, 1)) {
+	          redrawY(g);
+	          moved = true;
+	        }
+	        if (moved) {
+	          redraw(g);
+	          event_({
+	            type: "brush",
+	            mode: dragging ? "move" : "resize"
+	          });
+	        }
+	      }
+	      function move1(point, scale, i) {
+	        var range = d3_scaleRange(scale), r0 = range[0], r1 = range[1], position = origin[i], extent = i ? yExtent : xExtent, size = extent[1] - extent[0], min, max;
+	        if (dragging) {
+	          r0 -= position;
+	          r1 -= size + position;
+	        }
+	        min = (i ? yClamp : xClamp) ? Math.max(r0, Math.min(r1, point[i])) : point[i];
+	        if (dragging) {
+	          max = (min += position) + size;
+	        } else {
+	          if (center) position = Math.max(r0, Math.min(r1, 2 * center[i] - min));
+	          if (position < min) {
+	            max = min;
+	            min = position;
+	          } else {
+	            max = position;
+	          }
+	        }
+	        if (extent[0] != min || extent[1] != max) {
+	          if (i) yExtentDomain = null; else xExtentDomain = null;
+	          extent[0] = min;
+	          extent[1] = max;
+	          return true;
+	        }
+	      }
+	      function brushend() {
+	        brushmove();
+	        g.style("pointer-events", "all").selectAll(".resize").style("display", brush.empty() ? "none" : null);
+	        d3.select("body").style("cursor", null);
+	        w.on("mousemove.brush", null).on("mouseup.brush", null).on("touchmove.brush", null).on("touchend.brush", null).on("keydown.brush", null).on("keyup.brush", null);
+	        dragRestore();
+	        event_({
+	          type: "brushend"
+	        });
+	      }
+	    }
+	    brush.x = function(z) {
+	      if (!arguments.length) return x;
+	      x = z;
+	      resizes = d3_svg_brushResizes[!x << 1 | !y];
+	      return brush;
+	    };
+	    brush.y = function(z) {
+	      if (!arguments.length) return y;
+	      y = z;
+	      resizes = d3_svg_brushResizes[!x << 1 | !y];
+	      return brush;
+	    };
+	    brush.clamp = function(z) {
+	      if (!arguments.length) return x && y ? [ xClamp, yClamp ] : x ? xClamp : y ? yClamp : null;
+	      if (x && y) xClamp = !!z[0], yClamp = !!z[1]; else if (x) xClamp = !!z; else if (y) yClamp = !!z;
+	      return brush;
+	    };
+	    brush.extent = function(z) {
+	      var x0, x1, y0, y1, t;
+	      if (!arguments.length) {
+	        if (x) {
+	          if (xExtentDomain) {
+	            x0 = xExtentDomain[0], x1 = xExtentDomain[1];
+	          } else {
+	            x0 = xExtent[0], x1 = xExtent[1];
+	            if (x.invert) x0 = x.invert(x0), x1 = x.invert(x1);
+	            if (x1 < x0) t = x0, x0 = x1, x1 = t;
+	          }
+	        }
+	        if (y) {
+	          if (yExtentDomain) {
+	            y0 = yExtentDomain[0], y1 = yExtentDomain[1];
+	          } else {
+	            y0 = yExtent[0], y1 = yExtent[1];
+	            if (y.invert) y0 = y.invert(y0), y1 = y.invert(y1);
+	            if (y1 < y0) t = y0, y0 = y1, y1 = t;
+	          }
+	        }
+	        return x && y ? [ [ x0, y0 ], [ x1, y1 ] ] : x ? [ x0, x1 ] : y && [ y0, y1 ];
+	      }
+	      if (x) {
+	        x0 = z[0], x1 = z[1];
+	        if (y) x0 = x0[0], x1 = x1[0];
+	        xExtentDomain = [ x0, x1 ];
+	        if (x.invert) x0 = x(x0), x1 = x(x1);
+	        if (x1 < x0) t = x0, x0 = x1, x1 = t;
+	        if (x0 != xExtent[0] || x1 != xExtent[1]) xExtent = [ x0, x1 ];
+	      }
+	      if (y) {
+	        y0 = z[0], y1 = z[1];
+	        if (x) y0 = y0[1], y1 = y1[1];
+	        yExtentDomain = [ y0, y1 ];
+	        if (y.invert) y0 = y(y0), y1 = y(y1);
+	        if (y1 < y0) t = y0, y0 = y1, y1 = t;
+	        if (y0 != yExtent[0] || y1 != yExtent[1]) yExtent = [ y0, y1 ];
+	      }
+	      return brush;
+	    };
+	    brush.clear = function() {
+	      if (!brush.empty()) {
+	        xExtent = [ 0, 0 ], yExtent = [ 0, 0 ];
+	        xExtentDomain = yExtentDomain = null;
+	      }
+	      return brush;
+	    };
+	    brush.empty = function() {
+	      return !!x && xExtent[0] == xExtent[1] || !!y && yExtent[0] == yExtent[1];
+	    };
+	    return d3.rebind(brush, event, "on");
+	  };
+	  var d3_svg_brushCursor = {
+	    n: "ns-resize",
+	    e: "ew-resize",
+	    s: "ns-resize",
+	    w: "ew-resize",
+	    nw: "nwse-resize",
+	    ne: "nesw-resize",
+	    se: "nwse-resize",
+	    sw: "nesw-resize"
+	  };
+	  var d3_svg_brushResizes = [ [ "n", "e", "s", "w", "nw", "ne", "se", "sw" ], [ "e", "w" ], [ "n", "s" ], [] ];
+	  var d3_time_format = d3_time.format = d3_locale_enUS.timeFormat;
+	  var d3_time_formatUtc = d3_time_format.utc;
+	  var d3_time_formatIso = d3_time_formatUtc("%Y-%m-%dT%H:%M:%S.%LZ");
+	  d3_time_format.iso = Date.prototype.toISOString && +new Date("2000-01-01T00:00:00.000Z") ? d3_time_formatIsoNative : d3_time_formatIso;
+	  function d3_time_formatIsoNative(date) {
+	    return date.toISOString();
+	  }
+	  d3_time_formatIsoNative.parse = function(string) {
+	    var date = new Date(string);
+	    return isNaN(date) ? null : date;
+	  };
+	  d3_time_formatIsoNative.toString = d3_time_formatIso.toString;
+	  d3_time.second = d3_time_interval(function(date) {
+	    return new d3_date(Math.floor(date / 1e3) * 1e3);
+	  }, function(date, offset) {
+	    date.setTime(date.getTime() + Math.floor(offset) * 1e3);
+	  }, function(date) {
+	    return date.getSeconds();
+	  });
+	  d3_time.seconds = d3_time.second.range;
+	  d3_time.seconds.utc = d3_time.second.utc.range;
+	  d3_time.minute = d3_time_interval(function(date) {
+	    return new d3_date(Math.floor(date / 6e4) * 6e4);
+	  }, function(date, offset) {
+	    date.setTime(date.getTime() + Math.floor(offset) * 6e4);
+	  }, function(date) {
+	    return date.getMinutes();
+	  });
+	  d3_time.minutes = d3_time.minute.range;
+	  d3_time.minutes.utc = d3_time.minute.utc.range;
+	  d3_time.hour = d3_time_interval(function(date) {
+	    var timezone = date.getTimezoneOffset() / 60;
+	    return new d3_date((Math.floor(date / 36e5 - timezone) + timezone) * 36e5);
+	  }, function(date, offset) {
+	    date.setTime(date.getTime() + Math.floor(offset) * 36e5);
+	  }, function(date) {
+	    return date.getHours();
+	  });
+	  d3_time.hours = d3_time.hour.range;
+	  d3_time.hours.utc = d3_time.hour.utc.range;
+	  d3_time.month = d3_time_interval(function(date) {
+	    date = d3_time.day(date);
+	    date.setDate(1);
+	    return date;
+	  }, function(date, offset) {
+	    date.setMonth(date.getMonth() + offset);
+	  }, function(date) {
+	    return date.getMonth();
+	  });
+	  d3_time.months = d3_time.month.range;
+	  d3_time.months.utc = d3_time.month.utc.range;
+	  function d3_time_scale(linear, methods, format) {
+	    function scale(x) {
+	      return linear(x);
+	    }
+	    scale.invert = function(x) {
+	      return d3_time_scaleDate(linear.invert(x));
+	    };
+	    scale.domain = function(x) {
+	      if (!arguments.length) return linear.domain().map(d3_time_scaleDate);
+	      linear.domain(x);
+	      return scale;
+	    };
+	    function tickMethod(extent, count) {
+	      var span = extent[1] - extent[0], target = span / count, i = d3.bisect(d3_time_scaleSteps, target);
+	      return i == d3_time_scaleSteps.length ? [ methods.year, d3_scale_linearTickRange(extent.map(function(d) {
+	        return d / 31536e6;
+	      }), count)[2] ] : !i ? [ d3_time_scaleMilliseconds, d3_scale_linearTickRange(extent, count)[2] ] : methods[target / d3_time_scaleSteps[i - 1] < d3_time_scaleSteps[i] / target ? i - 1 : i];
+	    }
+	    scale.nice = function(interval, skip) {
+	      var domain = scale.domain(), extent = d3_scaleExtent(domain), method = interval == null ? tickMethod(extent, 10) : typeof interval === "number" && tickMethod(extent, interval);
+	      if (method) interval = method[0], skip = method[1];
+	      function skipped(date) {
+	        return !isNaN(date) && !interval.range(date, d3_time_scaleDate(+date + 1), skip).length;
+	      }
+	      return scale.domain(d3_scale_nice(domain, skip > 1 ? {
+	        floor: function(date) {
+	          while (skipped(date = interval.floor(date))) date = d3_time_scaleDate(date - 1);
+	          return date;
+	        },
+	        ceil: function(date) {
+	          while (skipped(date = interval.ceil(date))) date = d3_time_scaleDate(+date + 1);
+	          return date;
+	        }
+	      } : interval));
+	    };
+	    scale.ticks = function(interval, skip) {
+	      var extent = d3_scaleExtent(scale.domain()), method = interval == null ? tickMethod(extent, 10) : typeof interval === "number" ? tickMethod(extent, interval) : !interval.range && [ {
+	        range: interval
+	      }, skip ];
+	      if (method) interval = method[0], skip = method[1];
+	      return interval.range(extent[0], d3_time_scaleDate(+extent[1] + 1), skip < 1 ? 1 : skip);
+	    };
+	    scale.tickFormat = function() {
+	      return format;
+	    };
+	    scale.copy = function() {
+	      return d3_time_scale(linear.copy(), methods, format);
+	    };
+	    return d3_scale_linearRebind(scale, linear);
+	  }
+	  function d3_time_scaleDate(t) {
+	    return new Date(t);
+	  }
+	  var d3_time_scaleSteps = [ 1e3, 5e3, 15e3, 3e4, 6e4, 3e5, 9e5, 18e5, 36e5, 108e5, 216e5, 432e5, 864e5, 1728e5, 6048e5, 2592e6, 7776e6, 31536e6 ];
+	  var d3_time_scaleLocalMethods = [ [ d3_time.second, 1 ], [ d3_time.second, 5 ], [ d3_time.second, 15 ], [ d3_time.second, 30 ], [ d3_time.minute, 1 ], [ d3_time.minute, 5 ], [ d3_time.minute, 15 ], [ d3_time.minute, 30 ], [ d3_time.hour, 1 ], [ d3_time.hour, 3 ], [ d3_time.hour, 6 ], [ d3_time.hour, 12 ], [ d3_time.day, 1 ], [ d3_time.day, 2 ], [ d3_time.week, 1 ], [ d3_time.month, 1 ], [ d3_time.month, 3 ], [ d3_time.year, 1 ] ];
+	  var d3_time_scaleLocalFormat = d3_time_format.multi([ [ ".%L", function(d) {
+	    return d.getMilliseconds();
+	  } ], [ ":%S", function(d) {
+	    return d.getSeconds();
+	  } ], [ "%I:%M", function(d) {
+	    return d.getMinutes();
+	  } ], [ "%I %p", function(d) {
+	    return d.getHours();
+	  } ], [ "%a %d", function(d) {
+	    return d.getDay() && d.getDate() != 1;
+	  } ], [ "%b %d", function(d) {
+	    return d.getDate() != 1;
+	  } ], [ "%B", function(d) {
+	    return d.getMonth();
+	  } ], [ "%Y", d3_true ] ]);
+	  var d3_time_scaleMilliseconds = {
+	    range: function(start, stop, step) {
+	      return d3.range(Math.ceil(start / step) * step, +stop, step).map(d3_time_scaleDate);
+	    },
+	    floor: d3_identity,
+	    ceil: d3_identity
+	  };
+	  d3_time_scaleLocalMethods.year = d3_time.year;
+	  d3_time.scale = function() {
+	    return d3_time_scale(d3.scale.linear(), d3_time_scaleLocalMethods, d3_time_scaleLocalFormat);
+	  };
+	  var d3_time_scaleUtcMethods = d3_time_scaleLocalMethods.map(function(m) {
+	    return [ m[0].utc, m[1] ];
+	  });
+	  var d3_time_scaleUtcFormat = d3_time_formatUtc.multi([ [ ".%L", function(d) {
+	    return d.getUTCMilliseconds();
+	  } ], [ ":%S", function(d) {
+	    return d.getUTCSeconds();
+	  } ], [ "%I:%M", function(d) {
+	    return d.getUTCMinutes();
+	  } ], [ "%I %p", function(d) {
+	    return d.getUTCHours();
+	  } ], [ "%a %d", function(d) {
+	    return d.getUTCDay() && d.getUTCDate() != 1;
+	  } ], [ "%b %d", function(d) {
+	    return d.getUTCDate() != 1;
+	  } ], [ "%B", function(d) {
+	    return d.getUTCMonth();
+	  } ], [ "%Y", d3_true ] ]);
+	  d3_time_scaleUtcMethods.year = d3_time.year.utc;
+	  d3_time.scale.utc = function() {
+	    return d3_time_scale(d3.scale.linear(), d3_time_scaleUtcMethods, d3_time_scaleUtcFormat);
+	  };
+	  d3.text = d3_xhrType(function(request) {
+	    return request.responseText;
+	  });
+	  d3.json = function(url, callback) {
+	    return d3_xhr(url, "application/json", d3_json, callback);
+	  };
+	  function d3_json(request) {
+	    return JSON.parse(request.responseText);
+	  }
+	  d3.html = function(url, callback) {
+	    return d3_xhr(url, "text/html", d3_html, callback);
+	  };
+	  function d3_html(request) {
+	    var range = d3_document.createRange();
+	    range.selectNode(d3_document.body);
+	    return range.createContextualFragment(request.responseText);
+	  }
+	  d3.xml = d3_xhrType(function(request) {
+	    return request.responseXML;
+	  });
+	  if (true) this.d3 = d3, !(__WEBPACK_AMD_DEFINE_FACTORY__ = (d3), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
+	}();
 
 /***/ },
 
 /***/ 195:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(12);
-	__webpack_require__(196);
-	module.exports = __webpack_require__(8).Array.from;
-
-/***/ },
-
-/***/ 196:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	var ctx            = __webpack_require__(20)
-	  , $export        = __webpack_require__(18)
-	  , toObject       = __webpack_require__(54)
-	  , call           = __webpack_require__(197)
-	  , isArrayIter    = __webpack_require__(198)
-	  , toLength       = __webpack_require__(44)
-	  , createProperty = __webpack_require__(199)
-	  , getIterFn      = __webpack_require__(100);
+	(function (global, factory) {
+	   true ? factory(exports) :
+	  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	  (factory((global.topojson = global.topojson || {})));
+	}(this, (function (exports) { 'use strict';
 	
-	$export($export.S + $export.F * !__webpack_require__(200)(function(iter){ Array.from(iter); }), 'Array', {
-	  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
-	  from: function from(arrayLike/*, mapfn = undefined, thisArg = undefined*/){
-	    var O       = toObject(arrayLike)
-	      , C       = typeof this == 'function' ? this : Array
-	      , aLen    = arguments.length
-	      , mapfn   = aLen > 1 ? arguments[1] : undefined
-	      , mapping = mapfn !== undefined
-	      , index   = 0
-	      , iterFn  = getIterFn(O)
-	      , length, result, step, iterator;
-	    if(mapping)mapfn = ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
-	    // if object isn't iterable or it's array with default iterator - use simple case
-	    if(iterFn != undefined && !(C == Array && isArrayIter(iterFn))){
-	      for(iterator = iterFn.call(O), result = new C; !(step = iterator.next()).done; index++){
-	        createProperty(result, index, mapping ? call(iterator, mapfn, [step.value, index], true) : step.value);
-	      }
-	    } else {
-	      length = toLength(O.length);
-	      for(result = new C(length); length > index; index++){
-	        createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
-	      }
+	function noop() {}
+	
+	function transformAbsolute(transform) {
+	  if (!transform) return noop;
+	  var x0,
+	      y0,
+	      kx = transform.scale[0],
+	      ky = transform.scale[1],
+	      dx = transform.translate[0],
+	      dy = transform.translate[1];
+	  return function(point, i) {
+	    if (!i) x0 = y0 = 0;
+	    point[0] = (x0 += point[0]) * kx + dx;
+	    point[1] = (y0 += point[1]) * ky + dy;
+	  };
+	}
+	
+	function transformRelative(transform) {
+	  if (!transform) return noop;
+	  var x0,
+	      y0,
+	      kx = transform.scale[0],
+	      ky = transform.scale[1],
+	      dx = transform.translate[0],
+	      dy = transform.translate[1];
+	  return function(point, i) {
+	    if (!i) x0 = y0 = 0;
+	    var x1 = Math.round((point[0] - dx) / kx),
+	        y1 = Math.round((point[1] - dy) / ky);
+	    point[0] = x1 - x0;
+	    point[1] = y1 - y0;
+	    x0 = x1;
+	    y0 = y1;
+	  };
+	}
+	
+	function reverse(array, n) {
+	  var t, j = array.length, i = j - n;
+	  while (i < --j) t = array[i], array[i++] = array[j], array[j] = t;
+	}
+	
+	function bisect(a, x) {
+	  var lo = 0, hi = a.length;
+	  while (lo < hi) {
+	    var mid = lo + hi >>> 1;
+	    if (a[mid] < x) lo = mid + 1;
+	    else hi = mid;
+	  }
+	  return lo;
+	}
+	
+	function feature(topology, o) {
+	  return o.type === "GeometryCollection" ? {
+	    type: "FeatureCollection",
+	    features: o.geometries.map(function(o) { return feature$1(topology, o); })
+	  } : feature$1(topology, o);
+	}
+	
+	function feature$1(topology, o) {
+	  var f = {
+	    type: "Feature",
+	    id: o.id,
+	    properties: o.properties || {},
+	    geometry: object(topology, o)
+	  };
+	  if (o.id == null) delete f.id;
+	  return f;
+	}
+	
+	function object(topology, o) {
+	  var absolute = transformAbsolute(topology.transform),
+	      arcs = topology.arcs;
+	
+	  function arc(i, points) {
+	    if (points.length) points.pop();
+	    for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length, p; k < n; ++k) {
+	      points.push(p = a[k].slice());
+	      absolute(p, k);
 	    }
-	    result.length = index;
-	    return result;
+	    if (i < 0) reverse(points, n);
 	  }
-	});
-
-
-/***/ },
-
-/***/ 197:
-/***/ function(module, exports, __webpack_require__) {
-
-	// call something on iterator step with safe closing on error
-	var anObject = __webpack_require__(24);
-	module.exports = function(iterator, fn, value, entries){
-	  try {
-	    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
-	  // 7.4.6 IteratorClose(iterator, completion)
-	  } catch(e){
-	    var ret = iterator['return'];
-	    if(ret !== undefined)anObject(ret.call(iterator));
-	    throw e;
+	
+	  function point(p) {
+	    p = p.slice();
+	    absolute(p, 0);
+	    return p;
 	  }
-	};
-
-/***/ },
-
-/***/ 198:
-/***/ function(module, exports, __webpack_require__) {
-
-	// check on default Array iterator
-	var Iterators  = __webpack_require__(34)
-	  , ITERATOR   = __webpack_require__(52)('iterator')
-	  , ArrayProto = Array.prototype;
 	
-	module.exports = function(it){
-	  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
-	};
-
-/***/ },
-
-/***/ 199:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	var $defineProperty = __webpack_require__(23)
-	  , createDesc      = __webpack_require__(31);
+	  function line(arcs) {
+	    var points = [];
+	    for (var i = 0, n = arcs.length; i < n; ++i) arc(arcs[i], points);
+	    if (points.length < 2) points.push(points[0].slice());
+	    return points;
+	  }
 	
-	module.exports = function(object, index, value){
-	  if(index in object)$defineProperty.f(object, index, createDesc(0, value));
-	  else object[index] = value;
-	};
-
-/***/ },
-
-/***/ 200:
-/***/ function(module, exports, __webpack_require__) {
-
-	var ITERATOR     = __webpack_require__(52)('iterator')
-	  , SAFE_CLOSING = false;
+	  function ring(arcs) {
+	    var points = line(arcs);
+	    while (points.length < 4) points.push(points[0].slice());
+	    return points;
+	  }
 	
-	try {
-	  var riter = [7][ITERATOR]();
-	  riter['return'] = function(){ SAFE_CLOSING = true; };
-	  Array.from(riter, function(){ throw 2; });
-	} catch(e){ /* empty */ }
+	  function polygon(arcs) {
+	    return arcs.map(ring);
+	  }
 	
-	module.exports = function(exec, skipClosing){
-	  if(!skipClosing && !SAFE_CLOSING)return false;
-	  var safe = false;
-	  try {
-	    var arr  = [7]
-	      , iter = arr[ITERATOR]();
-	    iter.next = function(){ return {done: safe = true}; };
-	    arr[ITERATOR] = function(){ return iter; };
-	    exec(arr);
-	  } catch(e){ /* empty */ }
-	  return safe;
-	};
-
-/***/ },
-
-/***/ 201:
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {!function t(e,r){ true?module.exports=r():"function"==typeof define&&define.amd?define([],r):"object"==typeof exports?exports.Raphael=r():e.Raphael=r()}(this,function(){return function(t){function e(i){if(r[i])return r[i].exports;var n=r[i]={exports:{},id:i,loaded:!1};return t[i].call(n.exports,n,n.exports,e),n.loaded=!0,n.exports}var r={};return e.m=t,e.c=r,e.p="",e(0)}([function(t,e,r){var i,n;i=[r(1),r(3),r(4)],n=function(t){return t}.apply(e,i),!(void 0!==n&&(t.exports=n))},function(t,e,r){var i,n;i=[r(2)],n=function(t){function e(r){if(e.is(r,"function"))return w?r():t.on("raphael.DOMload",r);if(e.is(r,Q))return e._engine.create[z](e,r.splice(0,3+e.is(r[0],$))).add(r);var i=Array.prototype.slice.call(arguments,0);if(e.is(i[i.length-1],"function")){var n=i.pop();return w?n.call(e._engine.create[z](e,i)):t.on("raphael.DOMload",function(){n.call(e._engine.create[z](e,i))})}return e._engine.create[z](e,arguments)}function r(t){if("function"==typeof t||Object(t)!==t)return t;var e=new t.constructor;for(var i in t)t[A](i)&&(e[i]=r(t[i]));return e}function i(t,e){for(var r=0,i=t.length;r<i;r++)if(t[r]===e)return t.push(t.splice(r,1)[0])}function n(t,e,r){function n(){var a=Array.prototype.slice.call(arguments,0),s=a.join("␀"),o=n.cache=n.cache||{},l=n.count=n.count||[];return o[A](s)?(i(l,s),r?r(o[s]):o[s]):(l.length>=1e3&&delete o[l.shift()],l.push(s),o[s]=t[z](e,a),r?r(o[s]):o[s])}return n}function a(){return this.hex}function s(t,e){for(var r=[],i=0,n=t.length;n-2*!e>i;i+=2){var a=[{x:+t[i-2],y:+t[i-1]},{x:+t[i],y:+t[i+1]},{x:+t[i+2],y:+t[i+3]},{x:+t[i+4],y:+t[i+5]}];e?i?n-4==i?a[3]={x:+t[0],y:+t[1]}:n-2==i&&(a[2]={x:+t[0],y:+t[1]},a[3]={x:+t[2],y:+t[3]}):a[0]={x:+t[n-2],y:+t[n-1]}:n-4==i?a[3]=a[2]:i||(a[0]={x:+t[i],y:+t[i+1]}),r.push(["C",(-a[0].x+6*a[1].x+a[2].x)/6,(-a[0].y+6*a[1].y+a[2].y)/6,(a[1].x+6*a[2].x-a[3].x)/6,(a[1].y+6*a[2].y-a[3].y)/6,a[2].x,a[2].y])}return r}function o(t,e,r,i,n){var a=-3*e+9*r-9*i+3*n,s=t*a+6*e-12*r+6*i;return t*s-3*e+3*r}function l(t,e,r,i,n,a,s,l,h){null==h&&(h=1),h=h>1?1:h<0?0:h;for(var u=h/2,c=12,f=[-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],p=[.2491,.2491,.2335,.2335,.2032,.2032,.1601,.1601,.1069,.1069,.0472,.0472],d=0,g=0;g<c;g++){var v=u*f[g]+u,x=o(v,t,r,n,s),y=o(v,e,i,a,l),m=x*x+y*y;d+=p[g]*Y.sqrt(m)}return u*d}function h(t,e,r,i,n,a,s,o,h){if(!(h<0||l(t,e,r,i,n,a,s,o)<h)){var u=1,c=u/2,f=u-c,p,d=.01;for(p=l(t,e,r,i,n,a,s,o,f);H(p-h)>d;)c/=2,f+=(p<h?1:-1)*c,p=l(t,e,r,i,n,a,s,o,f);return f}}function u(t,e,r,i,n,a,s,o){if(!(W(t,r)<G(n,s)||G(t,r)>W(n,s)||W(e,i)<G(a,o)||G(e,i)>W(a,o))){var l=(t*i-e*r)*(n-s)-(t-r)*(n*o-a*s),h=(t*i-e*r)*(a-o)-(e-i)*(n*o-a*s),u=(t-r)*(a-o)-(e-i)*(n-s);if(u){var c=l/u,f=h/u,p=+c.toFixed(2),d=+f.toFixed(2);if(!(p<+G(t,r).toFixed(2)||p>+W(t,r).toFixed(2)||p<+G(n,s).toFixed(2)||p>+W(n,s).toFixed(2)||d<+G(e,i).toFixed(2)||d>+W(e,i).toFixed(2)||d<+G(a,o).toFixed(2)||d>+W(a,o).toFixed(2)))return{x:c,y:f}}}}function c(t,e){return p(t,e)}function f(t,e){return p(t,e,1)}function p(t,r,i){var n=e.bezierBBox(t),a=e.bezierBBox(r);if(!e.isBBoxIntersect(n,a))return i?0:[];for(var s=l.apply(0,t),o=l.apply(0,r),h=W(~~(s/5),1),c=W(~~(o/5),1),f=[],p=[],d={},g=i?0:[],v=0;v<h+1;v++){var x=e.findDotsAtSegment.apply(e,t.concat(v/h));f.push({x:x.x,y:x.y,t:v/h})}for(v=0;v<c+1;v++)x=e.findDotsAtSegment.apply(e,r.concat(v/c)),p.push({x:x.x,y:x.y,t:v/c});for(v=0;v<h;v++)for(var y=0;y<c;y++){var m=f[v],b=f[v+1],_=p[y],w=p[y+1],k=H(b.x-m.x)<.001?"y":"x",B=H(w.x-_.x)<.001?"y":"x",C=u(m.x,m.y,b.x,b.y,_.x,_.y,w.x,w.y);if(C){if(d[C.x.toFixed(4)]==C.y.toFixed(4))continue;d[C.x.toFixed(4)]=C.y.toFixed(4);var S=m.t+H((C[k]-m[k])/(b[k]-m[k]))*(b.t-m.t),A=_.t+H((C[B]-_[B])/(w[B]-_[B]))*(w.t-_.t);S>=0&&S<=1.001&&A>=0&&A<=1.001&&(i?g++:g.push({x:C.x,y:C.y,t1:G(S,1),t2:G(A,1)}))}}return g}function d(t,r,i){t=e._path2curve(t),r=e._path2curve(r);for(var n,a,s,o,l,h,u,c,f,d,g=i?0:[],v=0,x=t.length;v<x;v++){var y=t[v];if("M"==y[0])n=l=y[1],a=h=y[2];else{"C"==y[0]?(f=[n,a].concat(y.slice(1)),n=f[6],a=f[7]):(f=[n,a,n,a,l,h,l,h],n=l,a=h);for(var m=0,b=r.length;m<b;m++){var _=r[m];if("M"==_[0])s=u=_[1],o=c=_[2];else{"C"==_[0]?(d=[s,o].concat(_.slice(1)),s=d[6],o=d[7]):(d=[s,o,s,o,u,c,u,c],s=u,o=c);var w=p(f,d,i);if(i)g+=w;else{for(var k=0,B=w.length;k<B;k++)w[k].segment1=v,w[k].segment2=m,w[k].bez1=f,w[k].bez2=d;g=g.concat(w)}}}}}return g}function g(t,e,r,i,n,a){null!=t?(this.a=+t,this.b=+e,this.c=+r,this.d=+i,this.e=+n,this.f=+a):(this.a=1,this.b=0,this.c=0,this.d=1,this.e=0,this.f=0)}function v(){return this.x+j+this.y}function x(){return this.x+j+this.y+j+this.width+" × "+this.height}function y(t,e,r,i,n,a){function s(t){return((c*t+u)*t+h)*t}function o(t,e){var r=l(t,e);return((d*r+p)*r+f)*r}function l(t,e){var r,i,n,a,o,l;for(n=t,l=0;l<8;l++){if(a=s(n)-t,H(a)<e)return n;if(o=(3*c*n+2*u)*n+h,H(o)<1e-6)break;n-=a/o}if(r=0,i=1,n=t,n<r)return r;if(n>i)return i;for(;r<i;){if(a=s(n),H(a-t)<e)return n;t>a?r=n:i=n,n=(i-r)/2+r}return n}var h=3*e,u=3*(i-e)-h,c=1-h-u,f=3*r,p=3*(n-r)-f,d=1-f-p;return o(t,1/(200*a))}function m(t,e){var r=[],i={};if(this.ms=e,this.times=1,t){for(var n in t)t[A](n)&&(i[ht(n)]=t[n],r.push(ht(n)));r.sort(Bt)}this.anim=i,this.top=r[r.length-1],this.percents=r}function b(r,i,n,a,s,o){n=ht(n);var l,h,u,c=[],f,p,d,v=r.ms,x={},m={},b={};if(a)for(w=0,B=Ee.length;w<B;w++){var _=Ee[w];if(_.el.id==i.id&&_.anim==r){_.percent!=n?(Ee.splice(w,1),u=1):h=_,i.attr(_.totalOrigin);break}}else a=+m;for(var w=0,B=r.percents.length;w<B;w++){if(r.percents[w]==n||r.percents[w]>a*r.top){n=r.percents[w],p=r.percents[w-1]||0,v=v/r.top*(n-p),f=r.percents[w+1],l=r.anim[n];break}a&&i.attr(r.anim[r.percents[w]])}if(l){if(h)h.initstatus=a,h.start=new Date-h.ms*a;else{for(var C in l)if(l[A](C)&&(pt[A](C)||i.paper.customAttributes[A](C)))switch(x[C]=i.attr(C),null==x[C]&&(x[C]=ft[C]),m[C]=l[C],pt[C]){case $:b[C]=(m[C]-x[C])/v;break;case"colour":x[C]=e.getRGB(x[C]);var S=e.getRGB(m[C]);b[C]={r:(S.r-x[C].r)/v,g:(S.g-x[C].g)/v,b:(S.b-x[C].b)/v};break;case"path":var T=Qt(x[C],m[C]),E=T[1];for(x[C]=T[0],b[C]=[],w=0,B=x[C].length;w<B;w++){b[C][w]=[0];for(var M=1,N=x[C][w].length;M<N;M++)b[C][w][M]=(E[w][M]-x[C][w][M])/v}break;case"transform":var L=i._,z=le(L[C],m[C]);if(z)for(x[C]=z.from,m[C]=z.to,b[C]=[],b[C].real=!0,w=0,B=x[C].length;w<B;w++)for(b[C][w]=[x[C][w][0]],M=1,N=x[C][w].length;M<N;M++)b[C][w][M]=(m[C][w][M]-x[C][w][M])/v;else{var F=i.matrix||new g,R={_:{transform:L.transform},getBBox:function(){return i.getBBox(1)}};x[C]=[F.a,F.b,F.c,F.d,F.e,F.f],se(R,m[C]),m[C]=R._.transform,b[C]=[(R.matrix.a-F.a)/v,(R.matrix.b-F.b)/v,(R.matrix.c-F.c)/v,(R.matrix.d-F.d)/v,(R.matrix.e-F.e)/v,(R.matrix.f-F.f)/v]}break;case"csv":var j=I(l[C])[q](k),D=I(x[C])[q](k);if("clip-rect"==C)for(x[C]=D,b[C]=[],w=D.length;w--;)b[C][w]=(j[w]-x[C][w])/v;m[C]=j;break;default:for(j=[][P](l[C]),D=[][P](x[C]),b[C]=[],w=i.paper.customAttributes[C].length;w--;)b[C][w]=((j[w]||0)-(D[w]||0))/v}var V=l.easing,O=e.easing_formulas[V];if(!O)if(O=I(V).match(st),O&&5==O.length){var Y=O;O=function(t){return y(t,+Y[1],+Y[2],+Y[3],+Y[4],v)}}else O=St;if(d=l.start||r.start||+new Date,_={anim:r,percent:n,timestamp:d,start:d+(r.del||0),status:0,initstatus:a||0,stop:!1,ms:v,easing:O,from:x,diff:b,to:m,el:i,callback:l.callback,prev:p,next:f,repeat:o||r.times,origin:i.attr(),totalOrigin:s},Ee.push(_),a&&!h&&!u&&(_.stop=!0,_.start=new Date-v*a,1==Ee.length))return Ne();u&&(_.start=new Date-_.ms*a),1==Ee.length&&Me(Ne)}t("raphael.anim.start."+i.id,i,r)}}function _(t){for(var e=0;e<Ee.length;e++)Ee[e].el.paper==t&&Ee.splice(e--,1)}e.version="2.2.0",e.eve=t;var w,k=/[, ]+/,B={circle:1,rect:1,path:1,ellipse:1,text:1,image:1},C=/\{(\d+)\}/g,S="prototype",A="hasOwnProperty",T={doc:document,win:window},E={was:Object.prototype[A].call(T.win,"Raphael"),is:T.win.Raphael},M=function(){this.ca=this.customAttributes={}},N,L="appendChild",z="apply",P="concat",F="ontouchstart"in T.win||T.win.DocumentTouch&&T.doc instanceof DocumentTouch,R="",j=" ",I=String,q="split",D="click dblclick mousedown mousemove mouseout mouseover mouseup touchstart touchmove touchend touchcancel"[q](j),V={mousedown:"touchstart",mousemove:"touchmove",mouseup:"touchend"},O=I.prototype.toLowerCase,Y=Math,W=Y.max,G=Y.min,H=Y.abs,X=Y.pow,U=Y.PI,$="number",Z="string",Q="array",J="toString",K="fill",tt=Object.prototype.toString,et={},rt="push",it=e._ISURL=/^url\(['"]?(.+?)['"]?\)$/i,nt=/^\s*((#[a-f\d]{6})|(#[a-f\d]{3})|rgba?\(\s*([\d\.]+%?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+%?(?:\s*,\s*[\d\.]+%?)?)\s*\)|hsba?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?)%?\s*\)|hsla?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?)%?\s*\))\s*$/i,at={NaN:1,Infinity:1,"-Infinity":1},st=/^(?:cubic-)?bezier\(([^,]+),([^,]+),([^,]+),([^\)]+)\)/,ot=Y.round,lt="setAttribute",ht=parseFloat,ut=parseInt,ct=I.prototype.toUpperCase,ft=e._availableAttrs={"arrow-end":"none","arrow-start":"none",blur:0,"clip-rect":"0 0 1e9 1e9",cursor:"default",cx:0,cy:0,fill:"#fff","fill-opacity":1,font:'10px "Arial"',"font-family":'"Arial"',"font-size":"10","font-style":"normal","font-weight":400,gradient:0,height:0,href:"http://raphaeljs.com/","letter-spacing":0,opacity:1,path:"M0,0",r:0,rx:0,ry:0,src:"",stroke:"#000","stroke-dasharray":"","stroke-linecap":"butt","stroke-linejoin":"butt","stroke-miterlimit":0,"stroke-opacity":1,"stroke-width":1,target:"_blank","text-anchor":"middle",title:"Raphael",transform:"",width:0,x:0,y:0,"class":""},pt=e._availableAnimAttrs={blur:$,"clip-rect":"csv",cx:$,cy:$,fill:"colour","fill-opacity":$,"font-size":$,height:$,opacity:$,path:"path",r:$,rx:$,ry:$,stroke:"colour","stroke-opacity":$,"stroke-width":$,transform:"transform",width:$,x:$,y:$},dt=/[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]/g,gt=/[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*/,vt={hs:1,rg:1},xt=/,?([achlmqrstvxz]),?/gi,yt=/([achlmrqstvz])[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*)+)/gi,mt=/([rstm])[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*)+)/gi,bt=/(-?\d*\.?\d*(?:e[\-+]?\d+)?)[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*/gi,_t=e._radial_gradient=/^r(?:\(([^,]+?)[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*([^\)]+?)\))?/,wt={},kt=function(t,e){return t.key-e.key},Bt=function(t,e){return ht(t)-ht(e)},Ct=function(){},St=function(t){return t},At=e._rectPath=function(t,e,r,i,n){return n?[["M",t+n,e],["l",r-2*n,0],["a",n,n,0,0,1,n,n],["l",0,i-2*n],["a",n,n,0,0,1,-n,n],["l",2*n-r,0],["a",n,n,0,0,1,-n,-n],["l",0,2*n-i],["a",n,n,0,0,1,n,-n],["z"]]:[["M",t,e],["l",r,0],["l",0,i],["l",-r,0],["z"]]},Tt=function(t,e,r,i){return null==i&&(i=r),[["M",t,e],["m",0,-i],["a",r,i,0,1,1,0,2*i],["a",r,i,0,1,1,0,-2*i],["z"]]},Et=e._getPath={path:function(t){return t.attr("path")},circle:function(t){var e=t.attrs;return Tt(e.cx,e.cy,e.r)},ellipse:function(t){var e=t.attrs;return Tt(e.cx,e.cy,e.rx,e.ry)},rect:function(t){var e=t.attrs;return At(e.x,e.y,e.width,e.height,e.r)},image:function(t){var e=t.attrs;return At(e.x,e.y,e.width,e.height)},text:function(t){var e=t._getBBox();return At(e.x,e.y,e.width,e.height)},set:function(t){var e=t._getBBox();return At(e.x,e.y,e.width,e.height)}},Mt=e.mapPath=function(t,e){if(!e)return t;var r,i,n,a,s,o,l;for(t=Qt(t),n=0,s=t.length;n<s;n++)for(l=t[n],a=1,o=l.length;a<o;a+=2)r=e.x(l[a],l[a+1]),i=e.y(l[a],l[a+1]),l[a]=r,l[a+1]=i;return t};if(e._g=T,e.type=T.win.SVGAngle||T.doc.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure","1.1")?"SVG":"VML","VML"==e.type){var Nt=T.doc.createElement("div"),Lt;if(Nt.innerHTML='<v:shape adj="1"/>',Lt=Nt.firstChild,Lt.style.behavior="url(#default#VML)",!Lt||"object"!=typeof Lt.adj)return e.type=R;Nt=null}e.svg=!(e.vml="VML"==e.type),e._Paper=M,e.fn=N=M.prototype=e.prototype,e._id=0,e.is=function(t,e){return e=O.call(e),"finite"==e?!at[A](+t):"array"==e?t instanceof Array:"null"==e&&null===t||e==typeof t&&null!==t||"object"==e&&t===Object(t)||"array"==e&&Array.isArray&&Array.isArray(t)||tt.call(t).slice(8,-1).toLowerCase()==e},e.angle=function(t,r,i,n,a,s){if(null==a){var o=t-i,l=r-n;return o||l?(180+180*Y.atan2(-l,-o)/U+360)%360:0}return e.angle(t,r,a,s)-e.angle(i,n,a,s)},e.rad=function(t){return t%360*U/180},e.deg=function(t){return Math.round(180*t/U%360*1e3)/1e3},e.snapTo=function(t,r,i){if(i=e.is(i,"finite")?i:10,e.is(t,Q)){for(var n=t.length;n--;)if(H(t[n]-r)<=i)return t[n]}else{t=+t;var a=r%t;if(a<i)return r-a;if(a>t-i)return r-a+t}return r};var zt=e.createUUID=function(t,e){return function(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(t,e).toUpperCase()}}(/[xy]/g,function(t){var e=16*Y.random()|0,r="x"==t?e:3&e|8;return r.toString(16)});e.setWindow=function(r){t("raphael.setWindow",e,T.win,r),T.win=r,T.doc=T.win.document,e._engine.initWin&&e._engine.initWin(T.win)};var Pt=function(t){if(e.vml){var r=/^\s+|\s+$/g,i;try{var a=new ActiveXObject("htmlfile");a.write("<body>"),a.close(),i=a.body}catch(s){i=createPopup().document.body}var o=i.createTextRange();Pt=n(function(t){try{i.style.color=I(t).replace(r,R);var e=o.queryCommandValue("ForeColor");return e=(255&e)<<16|65280&e|(16711680&e)>>>16,"#"+("000000"+e.toString(16)).slice(-6)}catch(n){return"none"}})}else{var l=T.doc.createElement("i");l.title="Raphaël Colour Picker",l.style.display="none",T.doc.body.appendChild(l),Pt=n(function(t){return l.style.color=t,T.doc.defaultView.getComputedStyle(l,R).getPropertyValue("color")})}return Pt(t)},Ft=function(){return"hsb("+[this.h,this.s,this.b]+")"},Rt=function(){return"hsl("+[this.h,this.s,this.l]+")"},jt=function(){return this.hex},It=function(t,r,i){if(null==r&&e.is(t,"object")&&"r"in t&&"g"in t&&"b"in t&&(i=t.b,r=t.g,t=t.r),null==r&&e.is(t,Z)){var n=e.getRGB(t);t=n.r,r=n.g,i=n.b}return(t>1||r>1||i>1)&&(t/=255,r/=255,i/=255),[t,r,i]},qt=function(t,r,i,n){t*=255,r*=255,i*=255;var a={r:t,g:r,b:i,hex:e.rgb(t,r,i),toString:jt};return e.is(n,"finite")&&(a.opacity=n),a};e.color=function(t){var r;return e.is(t,"object")&&"h"in t&&"s"in t&&"b"in t?(r=e.hsb2rgb(t),t.r=r.r,t.g=r.g,t.b=r.b,t.hex=r.hex):e.is(t,"object")&&"h"in t&&"s"in t&&"l"in t?(r=e.hsl2rgb(t),t.r=r.r,t.g=r.g,t.b=r.b,t.hex=r.hex):(e.is(t,"string")&&(t=e.getRGB(t)),e.is(t,"object")&&"r"in t&&"g"in t&&"b"in t?(r=e.rgb2hsl(t),t.h=r.h,t.s=r.s,t.l=r.l,r=e.rgb2hsb(t),t.v=r.b):(t={hex:"none"},t.r=t.g=t.b=t.h=t.s=t.v=t.l=-1)),t.toString=jt,t},e.hsb2rgb=function(t,e,r,i){this.is(t,"object")&&"h"in t&&"s"in t&&"b"in t&&(r=t.b,e=t.s,i=t.o,t=t.h),t*=360;var n,a,s,o,l;return t=t%360/60,l=r*e,o=l*(1-H(t%2-1)),n=a=s=r-l,t=~~t,n+=[l,o,0,0,o,l][t],a+=[o,l,l,o,0,0][t],s+=[0,0,o,l,l,o][t],qt(n,a,s,i)},e.hsl2rgb=function(t,e,r,i){this.is(t,"object")&&"h"in t&&"s"in t&&"l"in t&&(r=t.l,e=t.s,t=t.h),(t>1||e>1||r>1)&&(t/=360,e/=100,r/=100),t*=360;var n,a,s,o,l;return t=t%360/60,l=2*e*(r<.5?r:1-r),o=l*(1-H(t%2-1)),n=a=s=r-l/2,t=~~t,n+=[l,o,0,0,o,l][t],a+=[o,l,l,o,0,0][t],s+=[0,0,o,l,l,o][t],qt(n,a,s,i)},e.rgb2hsb=function(t,e,r){r=It(t,e,r),t=r[0],e=r[1],r=r[2];var i,n,a,s;return a=W(t,e,r),s=a-G(t,e,r),i=0==s?null:a==t?(e-r)/s:a==e?(r-t)/s+2:(t-e)/s+4,i=(i+360)%6*60/360,n=0==s?0:s/a,{h:i,s:n,b:a,toString:Ft}},e.rgb2hsl=function(t,e,r){r=It(t,e,r),t=r[0],e=r[1],r=r[2];var i,n,a,s,o,l;return s=W(t,e,r),o=G(t,e,r),l=s-o,i=0==l?null:s==t?(e-r)/l:s==e?(r-t)/l+2:(t-e)/l+4,i=(i+360)%6*60/360,a=(s+o)/2,n=0==l?0:a<.5?l/(2*a):l/(2-2*a),{h:i,s:n,l:a,toString:Rt}},e._path2string=function(){return this.join(",").replace(xt,"$1")};var Dt=e._preload=function(t,e){var r=T.doc.createElement("img");r.style.cssText="position:absolute;left:-9999em;top:-9999em",r.onload=function(){e.call(this),this.onload=null,T.doc.body.removeChild(this)},r.onerror=function(){T.doc.body.removeChild(this)},T.doc.body.appendChild(r),r.src=t};e.getRGB=n(function(t){if(!t||(t=I(t)).indexOf("-")+1)return{r:-1,g:-1,b:-1,hex:"none",error:1,toString:a};if("none"==t)return{r:-1,g:-1,b:-1,hex:"none",toString:a};!(vt[A](t.toLowerCase().substring(0,2))||"#"==t.charAt())&&(t=Pt(t));var r,i,n,s,o,l,h,u=t.match(nt);return u?(u[2]&&(s=ut(u[2].substring(5),16),n=ut(u[2].substring(3,5),16),i=ut(u[2].substring(1,3),16)),u[3]&&(s=ut((l=u[3].charAt(3))+l,16),n=ut((l=u[3].charAt(2))+l,16),i=ut((l=u[3].charAt(1))+l,16)),u[4]&&(h=u[4][q](gt),i=ht(h[0]),"%"==h[0].slice(-1)&&(i*=2.55),n=ht(h[1]),"%"==h[1].slice(-1)&&(n*=2.55),s=ht(h[2]),"%"==h[2].slice(-1)&&(s*=2.55),"rgba"==u[1].toLowerCase().slice(0,4)&&(o=ht(h[3])),h[3]&&"%"==h[3].slice(-1)&&(o/=100)),u[5]?(h=u[5][q](gt),i=ht(h[0]),"%"==h[0].slice(-1)&&(i*=2.55),n=ht(h[1]),"%"==h[1].slice(-1)&&(n*=2.55),s=ht(h[2]),"%"==h[2].slice(-1)&&(s*=2.55),("deg"==h[0].slice(-3)||"°"==h[0].slice(-1))&&(i/=360),"hsba"==u[1].toLowerCase().slice(0,4)&&(o=ht(h[3])),h[3]&&"%"==h[3].slice(-1)&&(o/=100),e.hsb2rgb(i,n,s,o)):u[6]?(h=u[6][q](gt),i=ht(h[0]),"%"==h[0].slice(-1)&&(i*=2.55),n=ht(h[1]),"%"==h[1].slice(-1)&&(n*=2.55),s=ht(h[2]),"%"==h[2].slice(-1)&&(s*=2.55),("deg"==h[0].slice(-3)||"°"==h[0].slice(-1))&&(i/=360),"hsla"==u[1].toLowerCase().slice(0,4)&&(o=ht(h[3])),h[3]&&"%"==h[3].slice(-1)&&(o/=100),e.hsl2rgb(i,n,s,o)):(u={r:i,g:n,b:s,toString:a},u.hex="#"+(16777216|s|n<<8|i<<16).toString(16).slice(1),e.is(o,"finite")&&(u.opacity=o),u)):{r:-1,g:-1,b:-1,hex:"none",error:1,toString:a}},e),e.hsb=n(function(t,r,i){return e.hsb2rgb(t,r,i).hex}),e.hsl=n(function(t,r,i){return e.hsl2rgb(t,r,i).hex}),e.rgb=n(function(t,e,r){function i(t){return t+.5|0}return"#"+(16777216|i(r)|i(e)<<8|i(t)<<16).toString(16).slice(1)}),e.getColor=function(t){var e=this.getColor.start=this.getColor.start||{h:0,s:1,b:t||.75},r=this.hsb2rgb(e.h,e.s,e.b);return e.h+=.075,e.h>1&&(e.h=0,e.s-=.2,e.s<=0&&(this.getColor.start={h:0,s:1,b:e.b})),r.hex},e.getColor.reset=function(){delete this.start},e.parsePathString=function(t){if(!t)return null;var r=Vt(t);if(r.arr)return Yt(r.arr);var i={a:7,c:6,h:1,l:2,m:2,r:4,q:4,s:4,t:2,v:1,z:0},n=[];return e.is(t,Q)&&e.is(t[0],Q)&&(n=Yt(t)),n.length||I(t).replace(yt,function(t,e,r){var a=[],s=e.toLowerCase();if(r.replace(bt,function(t,e){e&&a.push(+e)}),"m"==s&&a.length>2&&(n.push([e][P](a.splice(0,2))),s="l",e="m"==e?"l":"L"),"r"==s)n.push([e][P](a));else for(;a.length>=i[s]&&(n.push([e][P](a.splice(0,i[s]))),i[s]););}),n.toString=e._path2string,r.arr=Yt(n),n},e.parseTransformString=n(function(t){if(!t)return null;var r={r:3,s:4,t:2,m:6},i=[];return e.is(t,Q)&&e.is(t[0],Q)&&(i=Yt(t)),i.length||I(t).replace(mt,function(t,e,r){var n=[],a=O.call(e);r.replace(bt,function(t,e){e&&n.push(+e)}),i.push([e][P](n))}),i.toString=e._path2string,i});var Vt=function(t){var e=Vt.ps=Vt.ps||{};return e[t]?e[t].sleep=100:e[t]={sleep:100},setTimeout(function(){for(var r in e)e[A](r)&&r!=t&&(e[r].sleep--,!e[r].sleep&&delete e[r])}),e[t]};e.findDotsAtSegment=function(t,e,r,i,n,a,s,o,l){var h=1-l,u=X(h,3),c=X(h,2),f=l*l,p=f*l,d=u*t+3*c*l*r+3*h*l*l*n+p*s,g=u*e+3*c*l*i+3*h*l*l*a+p*o,v=t+2*l*(r-t)+f*(n-2*r+t),x=e+2*l*(i-e)+f*(a-2*i+e),y=r+2*l*(n-r)+f*(s-2*n+r),m=i+2*l*(a-i)+f*(o-2*a+i),b=h*t+l*r,_=h*e+l*i,w=h*n+l*s,k=h*a+l*o,B=90-180*Y.atan2(v-y,x-m)/U;return(v>y||x<m)&&(B+=180),{x:d,y:g,m:{x:v,y:x},n:{x:y,y:m},start:{x:b,y:_},end:{x:w,y:k},alpha:B}},e.bezierBBox=function(t,r,i,n,a,s,o,l){e.is(t,"array")||(t=[t,r,i,n,a,s,o,l]);var h=Zt.apply(null,t);return{x:h.min.x,y:h.min.y,x2:h.max.x,y2:h.max.y,width:h.max.x-h.min.x,height:h.max.y-h.min.y}},e.isPointInsideBBox=function(t,e,r){return e>=t.x&&e<=t.x2&&r>=t.y&&r<=t.y2},e.isBBoxIntersect=function(t,r){var i=e.isPointInsideBBox;return i(r,t.x,t.y)||i(r,t.x2,t.y)||i(r,t.x,t.y2)||i(r,t.x2,t.y2)||i(t,r.x,r.y)||i(t,r.x2,r.y)||i(t,r.x,r.y2)||i(t,r.x2,r.y2)||(t.x<r.x2&&t.x>r.x||r.x<t.x2&&r.x>t.x)&&(t.y<r.y2&&t.y>r.y||r.y<t.y2&&r.y>t.y)},e.pathIntersection=function(t,e){return d(t,e)},e.pathIntersectionNumber=function(t,e){return d(t,e,1)},e.isPointInsidePath=function(t,r,i){var n=e.pathBBox(t);return e.isPointInsideBBox(n,r,i)&&d(t,[["M",r,i],["H",n.x2+10]],1)%2==1},e._removedFactory=function(e){return function(){t("raphael.log",null,"Raphaël: you are calling to method “"+e+"” of removed object",e)}};var Ot=e.pathBBox=function(t){var e=Vt(t);if(e.bbox)return r(e.bbox);if(!t)return{x:0,y:0,width:0,height:0,x2:0,y2:0};t=Qt(t);for(var i=0,n=0,a=[],s=[],o,l=0,h=t.length;l<h;l++)if(o=t[l],"M"==o[0])i=o[1],n=o[2],a.push(i),s.push(n);else{var u=Zt(i,n,o[1],o[2],o[3],o[4],o[5],o[6]);a=a[P](u.min.x,u.max.x),s=s[P](u.min.y,u.max.y),i=o[5],n=o[6]}var c=G[z](0,a),f=G[z](0,s),p=W[z](0,a),d=W[z](0,s),g=p-c,v=d-f,x={x:c,y:f,x2:p,y2:d,width:g,height:v,cx:c+g/2,cy:f+v/2};return e.bbox=r(x),x},Yt=function(t){var i=r(t);return i.toString=e._path2string,i},Wt=e._pathToRelative=function(t){var r=Vt(t);if(r.rel)return Yt(r.rel);e.is(t,Q)&&e.is(t&&t[0],Q)||(t=e.parsePathString(t));var i=[],n=0,a=0,s=0,o=0,l=0;"M"==t[0][0]&&(n=t[0][1],a=t[0][2],s=n,o=a,l++,i.push(["M",n,a]));for(var h=l,u=t.length;h<u;h++){var c=i[h]=[],f=t[h];if(f[0]!=O.call(f[0]))switch(c[0]=O.call(f[0]),c[0]){case"a":c[1]=f[1],c[2]=f[2],c[3]=f[3],c[4]=f[4],c[5]=f[5],c[6]=+(f[6]-n).toFixed(3),c[7]=+(f[7]-a).toFixed(3);break;case"v":c[1]=+(f[1]-a).toFixed(3);break;case"m":s=f[1],o=f[2];default:for(var p=1,d=f.length;p<d;p++)c[p]=+(f[p]-(p%2?n:a)).toFixed(3)}else{c=i[h]=[],"m"==f[0]&&(s=f[1]+n,o=f[2]+a);for(var g=0,v=f.length;g<v;g++)i[h][g]=f[g]}var x=i[h].length;switch(i[h][0]){case"z":n=s,a=o;break;case"h":n+=+i[h][x-1];break;case"v":a+=+i[h][x-1];break;default:n+=+i[h][x-2],a+=+i[h][x-1]}}return i.toString=e._path2string,r.rel=Yt(i),i},Gt=e._pathToAbsolute=function(t){var r=Vt(t);if(r.abs)return Yt(r.abs);if(e.is(t,Q)&&e.is(t&&t[0],Q)||(t=e.parsePathString(t)),!t||!t.length)return[["M",0,0]];var i=[],n=0,a=0,o=0,l=0,h=0;"M"==t[0][0]&&(n=+t[0][1],a=+t[0][2],o=n,l=a,h++,i[0]=["M",n,a]);for(var u=3==t.length&&"M"==t[0][0]&&"R"==t[1][0].toUpperCase()&&"Z"==t[2][0].toUpperCase(),c,f,p=h,d=t.length;p<d;p++){if(i.push(c=[]),f=t[p],f[0]!=ct.call(f[0]))switch(c[0]=ct.call(f[0]),c[0]){case"A":c[1]=f[1],c[2]=f[2],c[3]=f[3],c[4]=f[4],c[5]=f[5],c[6]=+(f[6]+n),c[7]=+(f[7]+a);break;case"V":c[1]=+f[1]+a;break;case"H":c[1]=+f[1]+n;break;case"R":for(var g=[n,a][P](f.slice(1)),v=2,x=g.length;v<x;v++)g[v]=+g[v]+n,g[++v]=+g[v]+a;i.pop(),i=i[P](s(g,u));break;case"M":o=+f[1]+n,l=+f[2]+a;default:for(v=1,x=f.length;v<x;v++)c[v]=+f[v]+(v%2?n:a)}else if("R"==f[0])g=[n,a][P](f.slice(1)),i.pop(),i=i[P](s(g,u)),c=["R"][P](f.slice(-2));else for(var y=0,m=f.length;y<m;y++)c[y]=f[y];switch(c[0]){case"Z":n=o,a=l;break;case"H":n=c[1];break;case"V":a=c[1];break;case"M":o=c[c.length-2],l=c[c.length-1];default:n=c[c.length-2],a=c[c.length-1]}}return i.toString=e._path2string,r.abs=Yt(i),i},Ht=function(t,e,r,i){return[t,e,r,i,r,i]},Xt=function(t,e,r,i,n,a){var s=1/3,o=2/3;return[s*t+o*r,s*e+o*i,s*n+o*r,s*a+o*i,n,a]},Ut=function(t,e,r,i,a,s,o,l,h,u){var c=120*U/180,f=U/180*(+a||0),p=[],d,g=n(function(t,e,r){var i=t*Y.cos(r)-e*Y.sin(r),n=t*Y.sin(r)+e*Y.cos(r);return{x:i,y:n}});if(u)S=u[0],A=u[1],B=u[2],C=u[3];else{d=g(t,e,-f),t=d.x,e=d.y,d=g(l,h,-f),l=d.x,h=d.y;var v=Y.cos(U/180*a),x=Y.sin(U/180*a),y=(t-l)/2,m=(e-h)/2,b=y*y/(r*r)+m*m/(i*i);b>1&&(b=Y.sqrt(b),r=b*r,i=b*i);var _=r*r,w=i*i,k=(s==o?-1:1)*Y.sqrt(H((_*w-_*m*m-w*y*y)/(_*m*m+w*y*y))),B=k*r*m/i+(t+l)/2,C=k*-i*y/r+(e+h)/2,S=Y.asin(((e-C)/i).toFixed(9)),A=Y.asin(((h-C)/i).toFixed(9));S=t<B?U-S:S,A=l<B?U-A:A,S<0&&(S=2*U+S),A<0&&(A=2*U+A),o&&S>A&&(S-=2*U),!o&&A>S&&(A-=2*U)}var T=A-S;if(H(T)>c){var E=A,M=l,N=h;A=S+c*(o&&A>S?1:-1),l=B+r*Y.cos(A),h=C+i*Y.sin(A),p=Ut(l,h,r,i,a,0,o,M,N,[A,E,B,C])}T=A-S;var L=Y.cos(S),z=Y.sin(S),F=Y.cos(A),R=Y.sin(A),j=Y.tan(T/4),I=4/3*r*j,D=4/3*i*j,V=[t,e],O=[t+I*z,e-D*L],W=[l+I*R,h-D*F],G=[l,h];if(O[0]=2*V[0]-O[0],O[1]=2*V[1]-O[1],u)return[O,W,G][P](p);p=[O,W,G][P](p).join()[q](",");for(var X=[],$=0,Z=p.length;$<Z;$++)X[$]=$%2?g(p[$-1],p[$],f).y:g(p[$],p[$+1],f).x;return X},$t=function(t,e,r,i,n,a,s,o,l){var h=1-l;return{x:X(h,3)*t+3*X(h,2)*l*r+3*h*l*l*n+X(l,3)*s,y:X(h,3)*e+3*X(h,2)*l*i+3*h*l*l*a+X(l,3)*o}},Zt=n(function(t,e,r,i,n,a,s,o){var l=n-2*r+t-(s-2*n+r),h=2*(r-t)-2*(n-r),u=t-r,c=(-h+Y.sqrt(h*h-4*l*u))/2/l,f=(-h-Y.sqrt(h*h-4*l*u))/2/l,p=[e,o],d=[t,s],g;return H(c)>"1e12"&&(c=.5),H(f)>"1e12"&&(f=.5),c>0&&c<1&&(g=$t(t,e,r,i,n,a,s,o,c),d.push(g.x),p.push(g.y)),f>0&&f<1&&(g=$t(t,e,r,i,n,a,s,o,f),d.push(g.x),p.push(g.y)),l=a-2*i+e-(o-2*a+i),h=2*(i-e)-2*(a-i),u=e-i,c=(-h+Y.sqrt(h*h-4*l*u))/2/l,f=(-h-Y.sqrt(h*h-4*l*u))/2/l,H(c)>"1e12"&&(c=.5),H(f)>"1e12"&&(f=.5),c>0&&c<1&&(g=$t(t,e,r,i,n,a,s,o,c),d.push(g.x),p.push(g.y)),f>0&&f<1&&(g=$t(t,e,r,i,n,a,s,o,f),d.push(g.x),p.push(g.y)),{min:{x:G[z](0,d),y:G[z](0,p)},max:{x:W[z](0,d),y:W[z](0,p)}}}),Qt=e._path2curve=n(function(t,e){var r=!e&&Vt(t);if(!e&&r.curve)return Yt(r.curve);for(var i=Gt(t),n=e&&Gt(e),a={x:0,y:0,bx:0,by:0,X:0,Y:0,qx:null,qy:null},s={x:0,y:0,bx:0,by:0,X:0,Y:0,qx:null,qy:null},o=(function(t,e,r){var i,n,a={T:1,Q:1};if(!t)return["C",e.x,e.y,e.x,e.y,e.x,e.y];switch(!(t[0]in a)&&(e.qx=e.qy=null),t[0]){case"M":e.X=t[1],e.Y=t[2];break;case"A":t=["C"][P](Ut[z](0,[e.x,e.y][P](t.slice(1))));break;case"S":"C"==r||"S"==r?(i=2*e.x-e.bx,n=2*e.y-e.by):(i=e.x,n=e.y),t=["C",i,n][P](t.slice(1));break;case"T":"Q"==r||"T"==r?(e.qx=2*e.x-e.qx,e.qy=2*e.y-e.qy):(e.qx=e.x,e.qy=e.y),t=["C"][P](Xt(e.x,e.y,e.qx,e.qy,t[1],t[2]));break;case"Q":e.qx=t[1],e.qy=t[2],t=["C"][P](Xt(e.x,e.y,t[1],t[2],t[3],t[4]));break;case"L":t=["C"][P](Ht(e.x,e.y,t[1],t[2]));break;case"H":t=["C"][P](Ht(e.x,e.y,t[1],e.y));break;case"V":t=["C"][P](Ht(e.x,e.y,e.x,t[1]));break;case"Z":t=["C"][P](Ht(e.x,e.y,e.X,e.Y))}return t}),l=function(t,e){if(t[e].length>7){t[e].shift();for(var r=t[e];r.length;)u[e]="A",n&&(c[e]="A"),t.splice(e++,0,["C"][P](r.splice(0,6)));t.splice(e,1),g=W(i.length,n&&n.length||0)}},h=function(t,e,r,a,s){t&&e&&"M"==t[s][0]&&"M"!=e[s][0]&&(e.splice(s,0,["M",a.x,a.y]),r.bx=0,r.by=0,r.x=t[s][1],r.y=t[s][2],g=W(i.length,n&&n.length||0))},u=[],c=[],f="",p="",d=0,g=W(i.length,n&&n.length||0);d<g;d++){i[d]&&(f=i[d][0]),"C"!=f&&(u[d]=f,d&&(p=u[d-1])),i[d]=o(i[d],a,p),"A"!=u[d]&&"C"==f&&(u[d]="C"),l(i,d),n&&(n[d]&&(f=n[d][0]),"C"!=f&&(c[d]=f,d&&(p=c[d-1])),n[d]=o(n[d],s,p),"A"!=c[d]&&"C"==f&&(c[d]="C"),l(n,d)),h(i,n,a,s,d),h(n,i,s,a,d);var v=i[d],x=n&&n[d],y=v.length,m=n&&x.length;a.x=v[y-2],a.y=v[y-1],a.bx=ht(v[y-4])||a.x,a.by=ht(v[y-3])||a.y,s.bx=n&&(ht(x[m-4])||s.x),s.by=n&&(ht(x[m-3])||s.y),s.x=n&&x[m-2],s.y=n&&x[m-1]}return n||(r.curve=Yt(i)),n?[i,n]:i},null,Yt),Jt=e._parseDots=n(function(t){for(var r=[],i=0,n=t.length;i<n;i++){var a={},s=t[i].match(/^([^:]*):?([\d\.]*)/);if(a.color=e.getRGB(s[1]),a.color.error)return null;a.opacity=a.color.opacity,a.color=a.color.hex,s[2]&&(a.offset=s[2]+"%"),r.push(a)}for(i=1,n=r.length-1;i<n;i++)if(!r[i].offset){for(var o=ht(r[i-1].offset||0),l=0,h=i+1;h<n;h++)if(r[h].offset){l=r[h].offset;break}l||(l=100,h=n),l=ht(l);for(var u=(l-o)/(h-i+1);i<h;i++)o+=u,r[i].offset=o+"%"}return r}),Kt=e._tear=function(t,e){t==e.top&&(e.top=t.prev),t==e.bottom&&(e.bottom=t.next),t.next&&(t.next.prev=t.prev),t.prev&&(t.prev.next=t.next)},te=e._tofront=function(t,e){e.top!==t&&(Kt(t,e),t.next=null,t.prev=e.top,e.top.next=t,e.top=t)},ee=e._toback=function(t,e){e.bottom!==t&&(Kt(t,e),t.next=e.bottom,t.prev=null,e.bottom.prev=t,e.bottom=t)},re=e._insertafter=function(t,e,r){Kt(t,r),e==r.top&&(r.top=t),e.next&&(e.next.prev=t),t.next=e.next,t.prev=e,e.next=t},ie=e._insertbefore=function(t,e,r){Kt(t,r),e==r.bottom&&(r.bottom=t),e.prev&&(e.prev.next=t),t.prev=e.prev,e.prev=t,t.next=e},ne=e.toMatrix=function(t,e){var r=Ot(t),i={_:{transform:R},getBBox:function(){return r}};return se(i,e),i.matrix},ae=e.transformPath=function(t,e){return Mt(t,ne(t,e))},se=e._extractTransform=function(t,r){if(null==r)return t._.transform;r=I(r).replace(/\.{3}|\u2026/g,t._.transform||R);var i=e.parseTransformString(r),n=0,a=0,s=0,o=1,l=1,h=t._,u=new g;if(h.transform=i||[],i)for(var c=0,f=i.length;c<f;c++){var p=i[c],d=p.length,v=I(p[0]).toLowerCase(),x=p[0]!=v,y=x?u.invert():0,m,b,_,w,k;"t"==v&&3==d?x?(m=y.x(0,0),b=y.y(0,0),_=y.x(p[1],p[2]),w=y.y(p[1],p[2]),u.translate(_-m,w-b)):u.translate(p[1],p[2]):"r"==v?2==d?(k=k||t.getBBox(1),u.rotate(p[1],k.x+k.width/2,k.y+k.height/2),n+=p[1]):4==d&&(x?(_=y.x(p[2],p[3]),w=y.y(p[2],p[3]),u.rotate(p[1],_,w)):u.rotate(p[1],p[2],p[3]),n+=p[1]):"s"==v?2==d||3==d?(k=k||t.getBBox(1),u.scale(p[1],p[d-1],k.x+k.width/2,k.y+k.height/2),o*=p[1],l*=p[d-1]):5==d&&(x?(_=y.x(p[3],p[4]),w=y.y(p[3],p[4]),u.scale(p[1],p[2],_,w)):u.scale(p[1],p[2],p[3],p[4]),o*=p[1],l*=p[2]):"m"==v&&7==d&&u.add(p[1],p[2],p[3],p[4],p[5],p[6]),h.dirtyT=1,t.matrix=u}t.matrix=u,h.sx=o,h.sy=l,h.deg=n,h.dx=a=u.e,h.dy=s=u.f,1==o&&1==l&&!n&&h.bbox?(h.bbox.x+=+a,h.bbox.y+=+s):h.dirtyT=1},oe=function(t){var e=t[0];switch(e.toLowerCase()){case"t":return[e,0,0];case"m":return[e,1,0,0,1,0,0];case"r":return 4==t.length?[e,0,t[2],t[3]]:[e,0];case"s":return 5==t.length?[e,1,1,t[3],t[4]]:3==t.length?[e,1,1]:[e,1]}},le=e._equaliseTransform=function(t,r){r=I(r).replace(/\.{3}|\u2026/g,t),t=e.parseTransformString(t)||[],r=e.parseTransformString(r)||[];for(var i=W(t.length,r.length),n=[],a=[],s=0,o,l,h,u;s<i;s++){if(h=t[s]||oe(r[s]),u=r[s]||oe(h),h[0]!=u[0]||"r"==h[0].toLowerCase()&&(h[2]!=u[2]||h[3]!=u[3])||"s"==h[0].toLowerCase()&&(h[3]!=u[3]||h[4]!=u[4]))return;for(n[s]=[],a[s]=[],o=0,l=W(h.length,u.length);o<l;o++)o in h&&(n[s][o]=h[o]),o in u&&(a[s][o]=u[o])}return{from:n,to:a}};e._getContainer=function(t,r,i,n){var a;if(a=null!=n||e.is(t,"object")?t:T.doc.getElementById(t),null!=a)return a.tagName?null==r?{container:a,width:a.style.pixelWidth||a.offsetWidth,height:a.style.pixelHeight||a.offsetHeight}:{container:a,width:r,height:i}:{container:1,x:t,y:r,width:i,height:n}},e.pathToRelative=Wt,e._engine={},e.path2curve=Qt,e.matrix=function(t,e,r,i,n,a){return new g(t,e,r,i,n,a)},function(t){function r(t){return t[0]*t[0]+t[1]*t[1]}function i(t){var e=Y.sqrt(r(t));t[0]&&(t[0]/=e),t[1]&&(t[1]/=e)}t.add=function(t,e,r,i,n,a){var s=[[],[],[]],o=[[this.a,this.c,this.e],[this.b,this.d,this.f],[0,0,1]],l=[[t,r,n],[e,i,a],[0,0,1]],h,u,c,f;for(t&&t instanceof g&&(l=[[t.a,t.c,t.e],[t.b,t.d,t.f],[0,0,1]]),h=0;h<3;h++)for(u=0;u<3;u++){for(f=0,c=0;c<3;c++)f+=o[h][c]*l[c][u];s[h][u]=f}this.a=s[0][0],this.b=s[1][0],this.c=s[0][1],this.d=s[1][1],this.e=s[0][2],this.f=s[1][2]},t.invert=function(){var t=this,e=t.a*t.d-t.b*t.c;return new g(t.d/e,-t.b/e,-t.c/e,t.a/e,(t.c*t.f-t.d*t.e)/e,(t.b*t.e-t.a*t.f)/e)},t.clone=function(){return new g(this.a,this.b,this.c,this.d,this.e,this.f)},t.translate=function(t,e){
-	this.add(1,0,0,1,t,e)},t.scale=function(t,e,r,i){null==e&&(e=t),(r||i)&&this.add(1,0,0,1,r,i),this.add(t,0,0,e,0,0),(r||i)&&this.add(1,0,0,1,-r,-i)},t.rotate=function(t,r,i){t=e.rad(t),r=r||0,i=i||0;var n=+Y.cos(t).toFixed(9),a=+Y.sin(t).toFixed(9);this.add(n,a,-a,n,r,i),this.add(1,0,0,1,-r,-i)},t.x=function(t,e){return t*this.a+e*this.c+this.e},t.y=function(t,e){return t*this.b+e*this.d+this.f},t.get=function(t){return+this[I.fromCharCode(97+t)].toFixed(4)},t.toString=function(){return e.svg?"matrix("+[this.get(0),this.get(1),this.get(2),this.get(3),this.get(4),this.get(5)].join()+")":[this.get(0),this.get(2),this.get(1),this.get(3),0,0].join()},t.toFilter=function(){return"progid:DXImageTransform.Microsoft.Matrix(M11="+this.get(0)+", M12="+this.get(2)+", M21="+this.get(1)+", M22="+this.get(3)+", Dx="+this.get(4)+", Dy="+this.get(5)+", sizingmethod='auto expand')"},t.offset=function(){return[this.e.toFixed(4),this.f.toFixed(4)]},t.split=function(){var t={};t.dx=this.e,t.dy=this.f;var n=[[this.a,this.c],[this.b,this.d]];t.scalex=Y.sqrt(r(n[0])),i(n[0]),t.shear=n[0][0]*n[1][0]+n[0][1]*n[1][1],n[1]=[n[1][0]-n[0][0]*t.shear,n[1][1]-n[0][1]*t.shear],t.scaley=Y.sqrt(r(n[1])),i(n[1]),t.shear/=t.scaley;var a=-n[0][1],s=n[1][1];return s<0?(t.rotate=e.deg(Y.acos(s)),a<0&&(t.rotate=360-t.rotate)):t.rotate=e.deg(Y.asin(a)),t.isSimple=!(+t.shear.toFixed(9)||t.scalex.toFixed(9)!=t.scaley.toFixed(9)&&t.rotate),t.isSuperSimple=!+t.shear.toFixed(9)&&t.scalex.toFixed(9)==t.scaley.toFixed(9)&&!t.rotate,t.noRotation=!+t.shear.toFixed(9)&&!t.rotate,t},t.toTransformString=function(t){var e=t||this[q]();return e.isSimple?(e.scalex=+e.scalex.toFixed(4),e.scaley=+e.scaley.toFixed(4),e.rotate=+e.rotate.toFixed(4),(e.dx||e.dy?"t"+[e.dx,e.dy]:R)+(1!=e.scalex||1!=e.scaley?"s"+[e.scalex,e.scaley,0,0]:R)+(e.rotate?"r"+[e.rotate,0,0]:R)):"m"+[this.get(0),this.get(1),this.get(2),this.get(3),this.get(4),this.get(5)]}}(g.prototype);for(var he=function(){this.returnValue=!1},ue=function(){return this.originalEvent.preventDefault()},ce=function(){this.cancelBubble=!0},fe=function(){return this.originalEvent.stopPropagation()},pe=function(t){var e=T.doc.documentElement.scrollTop||T.doc.body.scrollTop,r=T.doc.documentElement.scrollLeft||T.doc.body.scrollLeft;return{x:t.clientX+r,y:t.clientY+e}},de=function(){return T.doc.addEventListener?function(t,e,r,i){var n=function(t){var e=pe(t);return r.call(i,t,e.x,e.y)};if(t.addEventListener(e,n,!1),F&&V[e]){var a=function(e){for(var n=pe(e),a=e,s=0,o=e.targetTouches&&e.targetTouches.length;s<o;s++)if(e.targetTouches[s].target==t){e=e.targetTouches[s],e.originalEvent=a,e.preventDefault=ue,e.stopPropagation=fe;break}return r.call(i,e,n.x,n.y)};t.addEventListener(V[e],a,!1)}return function(){return t.removeEventListener(e,n,!1),F&&V[e]&&t.removeEventListener(V[e],a,!1),!0}}:T.doc.attachEvent?function(t,e,r,i){var n=function(t){t=t||T.win.event;var e=T.doc.documentElement.scrollTop||T.doc.body.scrollTop,n=T.doc.documentElement.scrollLeft||T.doc.body.scrollLeft,a=t.clientX+n,s=t.clientY+e;return t.preventDefault=t.preventDefault||he,t.stopPropagation=t.stopPropagation||ce,r.call(i,t,a,s)};t.attachEvent("on"+e,n);var a=function(){return t.detachEvent("on"+e,n),!0};return a}:void 0}(),ge=[],ve=function(e){for(var r=e.clientX,i=e.clientY,n=T.doc.documentElement.scrollTop||T.doc.body.scrollTop,a=T.doc.documentElement.scrollLeft||T.doc.body.scrollLeft,s,o=ge.length;o--;){if(s=ge[o],F&&e.touches){for(var l=e.touches.length,h;l--;)if(h=e.touches[l],h.identifier==s.el._drag.id){r=h.clientX,i=h.clientY,(e.originalEvent?e.originalEvent:e).preventDefault();break}}else e.preventDefault();var u=s.el.node,c,f=u.nextSibling,p=u.parentNode,d=u.style.display;T.win.opera&&p.removeChild(u),u.style.display="none",c=s.el.paper.getElementByPoint(r,i),u.style.display=d,T.win.opera&&(f?p.insertBefore(u,f):p.appendChild(u)),c&&t("raphael.drag.over."+s.el.id,s.el,c),r+=a,i+=n,t("raphael.drag.move."+s.el.id,s.move_scope||s.el,r-s.el._drag.x,i-s.el._drag.y,r,i,e)}},xe=function(r){e.unmousemove(ve).unmouseup(xe);for(var i=ge.length,n;i--;)n=ge[i],n.el._drag={},t("raphael.drag.end."+n.el.id,n.end_scope||n.start_scope||n.move_scope||n.el,r);ge=[]},ye=e.el={},me=D.length;me--;)!function(t){e[t]=ye[t]=function(r,i){return e.is(r,"function")&&(this.events=this.events||[],this.events.push({name:t,f:r,unbind:de(this.shape||this.node||T.doc,t,r,i||this)})),this},e["un"+t]=ye["un"+t]=function(r){for(var i=this.events||[],n=i.length;n--;)i[n].name!=t||!e.is(r,"undefined")&&i[n].f!=r||(i[n].unbind(),i.splice(n,1),!i.length&&delete this.events);return this}}(D[me]);ye.data=function(r,i){var n=wt[this.id]=wt[this.id]||{};if(0==arguments.length)return n;if(1==arguments.length){if(e.is(r,"object")){for(var a in r)r[A](a)&&this.data(a,r[a]);return this}return t("raphael.data.get."+this.id,this,n[r],r),n[r]}return n[r]=i,t("raphael.data.set."+this.id,this,i,r),this},ye.removeData=function(t){return null==t?wt[this.id]={}:wt[this.id]&&delete wt[this.id][t],this},ye.getData=function(){return r(wt[this.id]||{})},ye.hover=function(t,e,r,i){return this.mouseover(t,r).mouseout(e,i||r)},ye.unhover=function(t,e){return this.unmouseover(t).unmouseout(e)};var be=[];ye.drag=function(r,i,n,a,s,o){function l(l){(l.originalEvent||l).preventDefault();var h=l.clientX,u=l.clientY,c=T.doc.documentElement.scrollTop||T.doc.body.scrollTop,f=T.doc.documentElement.scrollLeft||T.doc.body.scrollLeft;if(this._drag.id=l.identifier,F&&l.touches)for(var p=l.touches.length,d;p--;)if(d=l.touches[p],this._drag.id=d.identifier,d.identifier==this._drag.id){h=d.clientX,u=d.clientY;break}this._drag.x=h+f,this._drag.y=u+c,!ge.length&&e.mousemove(ve).mouseup(xe),ge.push({el:this,move_scope:a,start_scope:s,end_scope:o}),i&&t.on("raphael.drag.start."+this.id,i),r&&t.on("raphael.drag.move."+this.id,r),n&&t.on("raphael.drag.end."+this.id,n),t("raphael.drag.start."+this.id,s||a||this,l.clientX+f,l.clientY+c,l)}return this._drag={},be.push({el:this,start:l}),this.mousedown(l),this},ye.onDragOver=function(e){e?t.on("raphael.drag.over."+this.id,e):t.unbind("raphael.drag.over."+this.id)},ye.undrag=function(){for(var r=be.length;r--;)be[r].el==this&&(this.unmousedown(be[r].start),be.splice(r,1),t.unbind("raphael.drag.*."+this.id));!be.length&&e.unmousemove(ve).unmouseup(xe),ge=[]},N.circle=function(t,r,i){var n=e._engine.circle(this,t||0,r||0,i||0);return this.__set__&&this.__set__.push(n),n},N.rect=function(t,r,i,n,a){var s=e._engine.rect(this,t||0,r||0,i||0,n||0,a||0);return this.__set__&&this.__set__.push(s),s},N.ellipse=function(t,r,i,n){var a=e._engine.ellipse(this,t||0,r||0,i||0,n||0);return this.__set__&&this.__set__.push(a),a},N.path=function(t){t&&!e.is(t,Z)&&!e.is(t[0],Q)&&(t+=R);var r=e._engine.path(e.format[z](e,arguments),this);return this.__set__&&this.__set__.push(r),r},N.image=function(t,r,i,n,a){var s=e._engine.image(this,t||"about:blank",r||0,i||0,n||0,a||0);return this.__set__&&this.__set__.push(s),s},N.text=function(t,r,i){var n=e._engine.text(this,t||0,r||0,I(i));return this.__set__&&this.__set__.push(n),n},N.set=function(t){!e.is(t,"array")&&(t=Array.prototype.splice.call(arguments,0,arguments.length));var r=new ze(t);return this.__set__&&this.__set__.push(r),r.paper=this,r.type="set",r},N.setStart=function(t){this.__set__=t||this.set()},N.setFinish=function(t){var e=this.__set__;return delete this.__set__,e},N.getSize=function(){var t=this.canvas.parentNode;return{width:t.offsetWidth,height:t.offsetHeight}},N.setSize=function(t,r){return e._engine.setSize.call(this,t,r)},N.setViewBox=function(t,r,i,n,a){return e._engine.setViewBox.call(this,t,r,i,n,a)},N.top=N.bottom=null,N.raphael=e;var _e=function(t){var e=t.getBoundingClientRect(),r=t.ownerDocument,i=r.body,n=r.documentElement,a=n.clientTop||i.clientTop||0,s=n.clientLeft||i.clientLeft||0,o=e.top+(T.win.pageYOffset||n.scrollTop||i.scrollTop)-a,l=e.left+(T.win.pageXOffset||n.scrollLeft||i.scrollLeft)-s;return{y:o,x:l}};N.getElementByPoint=function(t,e){var r=this,i=r.canvas,n=T.doc.elementFromPoint(t,e);if(T.win.opera&&"svg"==n.tagName){var a=_e(i),s=i.createSVGRect();s.x=t-a.x,s.y=e-a.y,s.width=s.height=1;var o=i.getIntersectionList(s,null);o.length&&(n=o[o.length-1])}if(!n)return null;for(;n.parentNode&&n!=i.parentNode&&!n.raphael;)n=n.parentNode;return n==r.canvas.parentNode&&(n=i),n=n&&n.raphael?r.getById(n.raphaelid):null},N.getElementsByBBox=function(t){var r=this.set();return this.forEach(function(i){e.isBBoxIntersect(i.getBBox(),t)&&r.push(i)}),r},N.getById=function(t){for(var e=this.bottom;e;){if(e.id==t)return e;e=e.next}return null},N.forEach=function(t,e){for(var r=this.bottom;r;){if(t.call(e,r)===!1)return this;r=r.next}return this},N.getElementsByPoint=function(t,e){var r=this.set();return this.forEach(function(i){i.isPointInside(t,e)&&r.push(i)}),r},ye.isPointInside=function(t,r){var i=this.realPath=Et[this.type](this);return this.attr("transform")&&this.attr("transform").length&&(i=e.transformPath(i,this.attr("transform"))),e.isPointInsidePath(i,t,r)},ye.getBBox=function(t){if(this.removed)return{};var e=this._;return t?(!e.dirty&&e.bboxwt||(this.realPath=Et[this.type](this),e.bboxwt=Ot(this.realPath),e.bboxwt.toString=x,e.dirty=0),e.bboxwt):((e.dirty||e.dirtyT||!e.bbox)&&(!e.dirty&&this.realPath||(e.bboxwt=0,this.realPath=Et[this.type](this)),e.bbox=Ot(Mt(this.realPath,this.matrix)),e.bbox.toString=x,e.dirty=e.dirtyT=0),e.bbox)},ye.clone=function(){if(this.removed)return null;var t=this.paper[this.type]().attr(this.attr());return this.__set__&&this.__set__.push(t),t},ye.glow=function(t){if("text"==this.type)return null;t=t||{};var e={width:(t.width||10)+(+this.attr("stroke-width")||1),fill:t.fill||!1,opacity:null==t.opacity?.5:t.opacity,offsetx:t.offsetx||0,offsety:t.offsety||0,color:t.color||"#000"},r=e.width/2,i=this.paper,n=i.set(),a=this.realPath||Et[this.type](this);a=this.matrix?Mt(a,this.matrix):a;for(var s=1;s<r+1;s++)n.push(i.path(a).attr({stroke:e.color,fill:e.fill?e.color:"none","stroke-linejoin":"round","stroke-linecap":"round","stroke-width":+(e.width/r*s).toFixed(3),opacity:+(e.opacity/r).toFixed(3)}));return n.insertBefore(this).translate(e.offsetx,e.offsety)};var we={},ke=function(t,r,i,n,a,s,o,u,c){return null==c?l(t,r,i,n,a,s,o,u):e.findDotsAtSegment(t,r,i,n,a,s,o,u,h(t,r,i,n,a,s,o,u,c))},Be=function(t,r){return function(i,n,a){i=Qt(i);for(var s,o,l,h,u="",c={},f,p=0,d=0,g=i.length;d<g;d++){if(l=i[d],"M"==l[0])s=+l[1],o=+l[2];else{if(h=ke(s,o,l[1],l[2],l[3],l[4],l[5],l[6]),p+h>n){if(r&&!c.start){if(f=ke(s,o,l[1],l[2],l[3],l[4],l[5],l[6],n-p),u+=["C"+f.start.x,f.start.y,f.m.x,f.m.y,f.x,f.y],a)return u;c.start=u,u=["M"+f.x,f.y+"C"+f.n.x,f.n.y,f.end.x,f.end.y,l[5],l[6]].join(),p+=h,s=+l[5],o=+l[6];continue}if(!t&&!r)return f=ke(s,o,l[1],l[2],l[3],l[4],l[5],l[6],n-p),{x:f.x,y:f.y,alpha:f.alpha}}p+=h,s=+l[5],o=+l[6]}u+=l.shift()+l}return c.end=u,f=t?p:r?c:e.findDotsAtSegment(s,o,l[0],l[1],l[2],l[3],l[4],l[5],1),f.alpha&&(f={x:f.x,y:f.y,alpha:f.alpha}),f}},Ce=Be(1),Se=Be(),Ae=Be(0,1);e.getTotalLength=Ce,e.getPointAtLength=Se,e.getSubpath=function(t,e,r){if(this.getTotalLength(t)-r<1e-6)return Ae(t,e).end;var i=Ae(t,r,1);return e?Ae(i,e).end:i},ye.getTotalLength=function(){var t=this.getPath();if(t)return this.node.getTotalLength?this.node.getTotalLength():Ce(t)},ye.getPointAtLength=function(t){var e=this.getPath();if(e)return Se(e,t)},ye.getPath=function(){var t,r=e._getPath[this.type];if("text"!=this.type&&"set"!=this.type)return r&&(t=r(this)),t},ye.getSubpath=function(t,r){var i=this.getPath();if(i)return e.getSubpath(i,t,r)};var Te=e.easing_formulas={linear:function(t){return t},"<":function(t){return X(t,1.7)},">":function(t){return X(t,.48)},"<>":function(t){var e=.48-t/1.04,r=Y.sqrt(.1734+e*e),i=r-e,n=X(H(i),1/3)*(i<0?-1:1),a=-r-e,s=X(H(a),1/3)*(a<0?-1:1),o=n+s+.5;return 3*(1-o)*o*o+o*o*o},backIn:function(t){var e=1.70158;return t*t*((e+1)*t-e)},backOut:function(t){t-=1;var e=1.70158;return t*t*((e+1)*t+e)+1},elastic:function(t){return t==!!t?t:X(2,-10*t)*Y.sin((t-.075)*(2*U)/.3)+1},bounce:function(t){var e=7.5625,r=2.75,i;return t<1/r?i=e*t*t:t<2/r?(t-=1.5/r,i=e*t*t+.75):t<2.5/r?(t-=2.25/r,i=e*t*t+.9375):(t-=2.625/r,i=e*t*t+.984375),i}};Te.easeIn=Te["ease-in"]=Te["<"],Te.easeOut=Te["ease-out"]=Te[">"],Te.easeInOut=Te["ease-in-out"]=Te["<>"],Te["back-in"]=Te.backIn,Te["back-out"]=Te.backOut;var Ee=[],Me=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||window.oRequestAnimationFrame||window.msRequestAnimationFrame||function(t){setTimeout(t,16)},Ne=function(){for(var r=+new Date,i=0;i<Ee.length;i++){var n=Ee[i];if(!n.el.removed&&!n.paused){var a=r-n.start,s=n.ms,o=n.easing,l=n.from,h=n.diff,u=n.to,c=n.t,f=n.el,p={},d,g={},v;if(n.initstatus?(a=(n.initstatus*n.anim.top-n.prev)/(n.percent-n.prev)*s,n.status=n.initstatus,delete n.initstatus,n.stop&&Ee.splice(i--,1)):n.status=(n.prev+(n.percent-n.prev)*(a/s))/n.anim.top,!(a<0))if(a<s){var x=o(a/s);for(var y in l)if(l[A](y)){switch(pt[y]){case $:d=+l[y]+x*s*h[y];break;case"colour":d="rgb("+[Le(ot(l[y].r+x*s*h[y].r)),Le(ot(l[y].g+x*s*h[y].g)),Le(ot(l[y].b+x*s*h[y].b))].join(",")+")";break;case"path":d=[];for(var m=0,_=l[y].length;m<_;m++){d[m]=[l[y][m][0]];for(var w=1,k=l[y][m].length;w<k;w++)d[m][w]=+l[y][m][w]+x*s*h[y][m][w];d[m]=d[m].join(j)}d=d.join(j);break;case"transform":if(h[y].real)for(d=[],m=0,_=l[y].length;m<_;m++)for(d[m]=[l[y][m][0]],w=1,k=l[y][m].length;w<k;w++)d[m][w]=l[y][m][w]+x*s*h[y][m][w];else{var B=function(t){return+l[y][t]+x*s*h[y][t]};d=[["m",B(0),B(1),B(2),B(3),B(4),B(5)]]}break;case"csv":if("clip-rect"==y)for(d=[],m=4;m--;)d[m]=+l[y][m]+x*s*h[y][m];break;default:var C=[][P](l[y]);for(d=[],m=f.paper.customAttributes[y].length;m--;)d[m]=+C[m]+x*s*h[y][m]}p[y]=d}f.attr(p),function(e,r,i){setTimeout(function(){t("raphael.anim.frame."+e,r,i)})}(f.id,f,n.anim)}else{if(function(r,i,n){setTimeout(function(){t("raphael.anim.frame."+i.id,i,n),t("raphael.anim.finish."+i.id,i,n),e.is(r,"function")&&r.call(i)})}(n.callback,f,n.anim),f.attr(u),Ee.splice(i--,1),n.repeat>1&&!n.next){for(v in u)u[A](v)&&(g[v]=n.totalOrigin[v]);n.el.attr(g),b(n.anim,n.el,n.anim.percents[0],null,n.totalOrigin,n.repeat-1)}n.next&&!n.stop&&b(n.anim,n.el,n.next,null,n.totalOrigin,n.repeat)}}}Ee.length&&Me(Ne)},Le=function(t){return t>255?255:t<0?0:t};ye.animateWith=function(t,r,i,n,a,s){var o=this;if(o.removed)return s&&s.call(o),o;var l=i instanceof m?i:e.animation(i,n,a,s),h,u;b(l,o,l.percents[0],null,o.attr());for(var c=0,f=Ee.length;c<f;c++)if(Ee[c].anim==r&&Ee[c].el==t){Ee[f-1].start=Ee[c].start;break}return o},ye.onAnimation=function(e){return e?t.on("raphael.anim.frame."+this.id,e):t.unbind("raphael.anim.frame."+this.id),this},m.prototype.delay=function(t){var e=new m(this.anim,this.ms);return e.times=this.times,e.del=+t||0,e},m.prototype.repeat=function(t){var e=new m(this.anim,this.ms);return e.del=this.del,e.times=Y.floor(W(t,0))||1,e},e.animation=function(t,r,i,n){if(t instanceof m)return t;!e.is(i,"function")&&i||(n=n||i||null,i=null),t=Object(t),r=+r||0;var a={},s,o;for(o in t)t[A](o)&&ht(o)!=o&&ht(o)+"%"!=o&&(s=!0,a[o]=t[o]);if(s)return i&&(a.easing=i),n&&(a.callback=n),new m({100:a},r);if(n){var l=0;for(var h in t){var u=ut(h);t[A](h)&&u>l&&(l=u)}l+="%",!t[l].callback&&(t[l].callback=n)}return new m(t,r)},ye.animate=function(t,r,i,n){var a=this;if(a.removed)return n&&n.call(a),a;var s=t instanceof m?t:e.animation(t,r,i,n);return b(s,a,s.percents[0],null,a.attr()),a},ye.setTime=function(t,e){return t&&null!=e&&this.status(t,G(e,t.ms)/t.ms),this},ye.status=function(t,e){var r=[],i=0,n,a;if(null!=e)return b(t,this,-1,G(e,1)),this;for(n=Ee.length;i<n;i++)if(a=Ee[i],a.el.id==this.id&&(!t||a.anim==t)){if(t)return a.status;r.push({anim:a.anim,status:a.status})}return t?0:r},ye.pause=function(e){for(var r=0;r<Ee.length;r++)Ee[r].el.id!=this.id||e&&Ee[r].anim!=e||t("raphael.anim.pause."+this.id,this,Ee[r].anim)!==!1&&(Ee[r].paused=!0);return this},ye.resume=function(e){for(var r=0;r<Ee.length;r++)if(Ee[r].el.id==this.id&&(!e||Ee[r].anim==e)){var i=Ee[r];t("raphael.anim.resume."+this.id,this,i.anim)!==!1&&(delete i.paused,this.status(i.anim,i.status))}return this},ye.stop=function(e){for(var r=0;r<Ee.length;r++)Ee[r].el.id!=this.id||e&&Ee[r].anim!=e||t("raphael.anim.stop."+this.id,this,Ee[r].anim)!==!1&&Ee.splice(r--,1);return this},t.on("raphael.remove",_),t.on("raphael.clear",_),ye.toString=function(){return"Raphaël’s object"};var ze=function(t){if(this.items=[],this.length=0,this.type="set",t)for(var e=0,r=t.length;e<r;e++)!t[e]||t[e].constructor!=ye.constructor&&t[e].constructor!=ze||(this[this.items.length]=this.items[this.items.length]=t[e],this.length++)},Pe=ze.prototype;Pe.push=function(){for(var t,e,r=0,i=arguments.length;r<i;r++)t=arguments[r],!t||t.constructor!=ye.constructor&&t.constructor!=ze||(e=this.items.length,this[e]=this.items[e]=t,this.length++);return this},Pe.pop=function(){return this.length&&delete this[this.length--],this.items.pop()},Pe.forEach=function(t,e){for(var r=0,i=this.items.length;r<i;r++)if(t.call(e,this.items[r],r)===!1)return this;return this};for(var Fe in ye)ye[A](Fe)&&(Pe[Fe]=function(t){return function(){var e=arguments;return this.forEach(function(r){r[t][z](r,e)})}}(Fe));return Pe.attr=function(t,r){if(t&&e.is(t,Q)&&e.is(t[0],"object"))for(var i=0,n=t.length;i<n;i++)this.items[i].attr(t[i]);else for(var a=0,s=this.items.length;a<s;a++)this.items[a].attr(t,r);return this},Pe.clear=function(){for(;this.length;)this.pop()},Pe.splice=function(t,e,r){t=t<0?W(this.length+t,0):t,e=W(0,G(this.length-t,e));var i=[],n=[],a=[],s;for(s=2;s<arguments.length;s++)a.push(arguments[s]);for(s=0;s<e;s++)n.push(this[t+s]);for(;s<this.length-t;s++)i.push(this[t+s]);var o=a.length;for(s=0;s<o+i.length;s++)this.items[t+s]=this[t+s]=s<o?a[s]:i[s-o];for(s=this.items.length=this.length-=e-o;this[s];)delete this[s++];return new ze(n)},Pe.exclude=function(t){for(var e=0,r=this.length;e<r;e++)if(this[e]==t)return this.splice(e,1),!0},Pe.animate=function(t,r,i,n){(e.is(i,"function")||!i)&&(n=i||null);var a=this.items.length,s=a,o,l=this,h;if(!a)return this;n&&(h=function(){!--a&&n.call(l)}),i=e.is(i,Z)?i:h;var u=e.animation(t,r,i,h);for(o=this.items[--s].animate(u);s--;)this.items[s]&&!this.items[s].removed&&this.items[s].animateWith(o,u,u),this.items[s]&&!this.items[s].removed||a--;return this},Pe.insertAfter=function(t){for(var e=this.items.length;e--;)this.items[e].insertAfter(t);return this},Pe.getBBox=function(){for(var t=[],e=[],r=[],i=[],n=this.items.length;n--;)if(!this.items[n].removed){var a=this.items[n].getBBox();t.push(a.x),e.push(a.y),r.push(a.x+a.width),i.push(a.y+a.height)}return t=G[z](0,t),e=G[z](0,e),r=W[z](0,r),i=W[z](0,i),{x:t,y:e,x2:r,y2:i,width:r-t,height:i-e}},Pe.clone=function(t){t=this.paper.set();for(var e=0,r=this.items.length;e<r;e++)t.push(this.items[e].clone());return t},Pe.toString=function(){return"Raphaël‘s set"},Pe.glow=function(t){var e=this.paper.set();return this.forEach(function(r,i){var n=r.glow(t);null!=n&&n.forEach(function(t,r){e.push(t)})}),e},Pe.isPointInside=function(t,e){var r=!1;return this.forEach(function(i){if(i.isPointInside(t,e))return r=!0,!1}),r},e.registerFont=function(t){if(!t.face)return t;this.fonts=this.fonts||{};var e={w:t.w,face:{},glyphs:{}},r=t.face["font-family"];for(var i in t.face)t.face[A](i)&&(e.face[i]=t.face[i]);if(this.fonts[r]?this.fonts[r].push(e):this.fonts[r]=[e],!t.svg){e.face["units-per-em"]=ut(t.face["units-per-em"],10);for(var n in t.glyphs)if(t.glyphs[A](n)){var a=t.glyphs[n];if(e.glyphs[n]={w:a.w,k:{},d:a.d&&"M"+a.d.replace(/[mlcxtrv]/g,function(t){return{l:"L",c:"C",x:"z",t:"m",r:"l",v:"c"}[t]||"M"})+"z"},a.k)for(var s in a.k)a[A](s)&&(e.glyphs[n].k[s]=a.k[s])}}return t},N.getFont=function(t,r,i,n){if(n=n||"normal",i=i||"normal",r=+r||{normal:400,bold:700,lighter:300,bolder:800}[r]||400,e.fonts){var a=e.fonts[t];if(!a){var s=new RegExp("(^|\\s)"+t.replace(/[^\w\d\s+!~.:_-]/g,R)+"(\\s|$)","i");for(var o in e.fonts)if(e.fonts[A](o)&&s.test(o)){a=e.fonts[o];break}}var l;if(a)for(var h=0,u=a.length;h<u&&(l=a[h],l.face["font-weight"]!=r||l.face["font-style"]!=i&&l.face["font-style"]||l.face["font-stretch"]!=n);h++);return l}},N.print=function(t,r,i,n,a,s,o,l){s=s||"middle",o=W(G(o||0,1),-1),l=W(G(l||1,3),1);var h=I(i)[q](R),u=0,c=0,f=R,p;if(e.is(n,"string")&&(n=this.getFont(n)),n){p=(a||16)/n.face["units-per-em"];for(var d=n.face.bbox[q](k),g=+d[0],v=d[3]-d[1],x=0,y=+d[1]+("baseline"==s?v+ +n.face.descent:v/2),m=0,b=h.length;m<b;m++){if("\n"==h[m])u=0,w=0,c=0,x+=v*l;else{var _=c&&n.glyphs[h[m-1]]||{},w=n.glyphs[h[m]];u+=c?(_.w||n.w)+(_.k&&_.k[h[m]]||0)+n.w*o:0,c=1}w&&w.d&&(f+=e.transformPath(w.d,["t",u*p,x*p,"s",p,p,g,y,"t",(t-g)/p,(r-y)/p]))}}return this.path(f).attr({fill:"#000",stroke:"none"})},N.add=function(t){if(e.is(t,"array"))for(var r=this.set(),i=0,n=t.length,a;i<n;i++)a=t[i]||{},B[A](a.type)&&r.push(this[a.type]().attr(a));return r},e.format=function(t,r){var i=e.is(r,Q)?[0][P](r):arguments;return t&&e.is(t,Z)&&i.length-1&&(t=t.replace(C,function(t,e){return null==i[++e]?R:i[e]})),t||R},e.fullfill=function(){var t=/\{([^\}]+)\}/g,e=/(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g,r=function(t,r,i){var n=i;return r.replace(e,function(t,e,r,i,a){e=e||i,n&&(e in n&&(n=n[e]),"function"==typeof n&&a&&(n=n()))}),n=(null==n||n==i?t:n)+""};return function(e,i){return String(e).replace(t,function(t,e){return r(t,e,i)})}}(),e.ninja=function(){if(E.was)T.win.Raphael=E.is;else{window.Raphael=void 0;try{delete window.Raphael}catch(t){}}return e},e.st=Pe,t.on("raphael.DOMload",function(){w=!0}),function(t,r,i){function n(){/in/.test(t.readyState)?setTimeout(n,9):e.eve("raphael.DOMload")}null==t.readyState&&t.addEventListener&&(t.addEventListener(r,i=function(){t.removeEventListener(r,i,!1),t.readyState="complete"},!1),t.readyState="loading"),n()}(document,"DOMContentLoaded"),e}.apply(e,i),!(void 0!==n&&(t.exports=n))},function(t,e,r){var i,n;!function(r){var a="0.5.0",s="hasOwnProperty",o=/[\.\/]/,l=/\s*,\s*/,h="*",u=function(){},c=function(t,e){return t-e},f,p,d={n:{}},g=function(){for(var t=0,e=this.length;t<e;t++)if("undefined"!=typeof this[t])return this[t]},v=function(){for(var t=this.length;--t;)if("undefined"!=typeof this[t])return this[t]},x=Object.prototype.toString,y=String,m=Array.isArray||function(t){return t instanceof Array||"[object Array]"==x.call(t)};eve=function(t,e){var r=d,i=p,n=Array.prototype.slice.call(arguments,2),a=eve.listeners(t),s=0,o=!1,l,h=[],u={},x=[],y=f,m=[];x.firstDefined=g,x.lastDefined=v,f=t,p=0;for(var b=0,_=a.length;b<_;b++)"zIndex"in a[b]&&(h.push(a[b].zIndex),a[b].zIndex<0&&(u[a[b].zIndex]=a[b]));for(h.sort(c);h[s]<0;)if(l=u[h[s++]],x.push(l.apply(e,n)),p)return p=i,x;for(b=0;b<_;b++)if(l=a[b],"zIndex"in l)if(l.zIndex==h[s]){if(x.push(l.apply(e,n)),p)break;do if(s++,l=u[h[s]],l&&x.push(l.apply(e,n)),p)break;while(l)}else u[l.zIndex]=l;else if(x.push(l.apply(e,n)),p)break;return p=i,f=y,x},eve._events=d,eve.listeners=function(t){var e=m(t)?t:t.split(o),r=d,i,n,a,s,l,u,c,f,p=[r],g=[];for(s=0,l=e.length;s<l;s++){for(f=[],u=0,c=p.length;u<c;u++)for(r=p[u].n,n=[r[e[s]],r[h]],a=2;a--;)i=n[a],i&&(f.push(i),g=g.concat(i.f||[]));p=f}return g},eve.separator=function(t){t?(t=y(t).replace(/(?=[\.\^\]\[\-])/g,"\\"),t="["+t+"]",o=new RegExp(t)):o=/[\.\/]/},eve.on=function(t,e){if("function"!=typeof e)return function(){};for(var r=m(t)?m(t[0])?t:[t]:y(t).split(l),i=0,n=r.length;i<n;i++)!function(t){for(var r=m(t)?t:y(t).split(o),i=d,n,a=0,s=r.length;a<s;a++)i=i.n,i=i.hasOwnProperty(r[a])&&i[r[a]]||(i[r[a]]={n:{}});for(i.f=i.f||[],a=0,s=i.f.length;a<s;a++)if(i.f[a]==e){n=!0;break}!n&&i.f.push(e)}(r[i]);return function(t){+t==+t&&(e.zIndex=+t)}},eve.f=function(t){var e=[].slice.call(arguments,1);return function(){eve.apply(null,[t,null].concat(e).concat([].slice.call(arguments,0)))}},eve.stop=function(){p=1},eve.nt=function(t){var e=m(f)?f.join("."):f;return t?new RegExp("(?:\\.|\\/|^)"+t+"(?:\\.|\\/|$)").test(e):e},eve.nts=function(){return m(f)?f:f.split(o)},eve.off=eve.unbind=function(t,e){if(!t)return void(eve._events=d={n:{}});var r=m(t)?m(t[0])?t:[t]:y(t).split(l);if(r.length>1)for(var i=0,n=r.length;i<n;i++)eve.off(r[i],e);else{r=m(t)?t:y(t).split(o);var a,u,c,i,n,f,p,g=[d];for(i=0,n=r.length;i<n;i++)for(f=0;f<g.length;f+=c.length-2){if(c=[f,1],a=g[f].n,r[i]!=h)a[r[i]]&&c.push(a[r[i]]);else for(u in a)a[s](u)&&c.push(a[u]);g.splice.apply(g,c)}for(i=0,n=g.length;i<n;i++)for(a=g[i];a.n;){if(e){if(a.f){for(f=0,p=a.f.length;f<p;f++)if(a.f[f]==e){a.f.splice(f,1);break}!a.f.length&&delete a.f}for(u in a.n)if(a.n[s](u)&&a.n[u].f){var v=a.n[u].f;for(f=0,p=v.length;f<p;f++)if(v[f]==e){v.splice(f,1);break}!v.length&&delete a.n[u].f}}else{delete a.f;for(u in a.n)a.n[s](u)&&a.n[u].f&&delete a.n[u].f}a=a.n}}},eve.once=function(t,e){var r=function(){return eve.off(t,r),e.apply(this,arguments)};return eve.on(t,r)},eve.version=a,eve.toString=function(){return"You are running Eve "+a},"undefined"!=typeof t&&t.exports?t.exports=eve:(i=[],n=function(){return eve}.apply(e,i),!(void 0!==n&&(t.exports=n)))}(this)},function(t,e,r){var i,n;i=[r(1)],n=function(t){if(!t||t.svg){var e="hasOwnProperty",r=String,i=parseFloat,n=parseInt,a=Math,s=a.max,o=a.abs,l=a.pow,h=/[, ]+/,u=t.eve,c="",f=" ",p="http://www.w3.org/1999/xlink",d={block:"M5,0 0,2.5 5,5z",classic:"M5,0 0,2.5 5,5 3.5,3 3.5,2z",diamond:"M2.5,0 5,2.5 2.5,5 0,2.5z",open:"M6,1 1,3.5 6,6",oval:"M2.5,0A2.5,2.5,0,0,1,2.5,5 2.5,2.5,0,0,1,2.5,0z"},g={};t.toString=function(){return"Your browser supports SVG.\nYou are running Raphaël "+this.version};var v=function(i,n){if(n){"string"==typeof i&&(i=v(i));for(var a in n)n[e](a)&&("xlink:"==a.substring(0,6)?i.setAttributeNS(p,a.substring(6),r(n[a])):i.setAttribute(a,r(n[a])))}else i=t._g.doc.createElementNS("http://www.w3.org/2000/svg",i),i.style&&(i.style.webkitTapHighlightColor="rgba(0,0,0,0)");return i},x=function(e,n){var h="linear",u=e.id+n,f=.5,p=.5,d=e.node,g=e.paper,x=d.style,y=t._g.doc.getElementById(u);if(!y){if(n=r(n).replace(t._radial_gradient,function(t,e,r){if(h="radial",e&&r){f=i(e),p=i(r);var n=2*(p>.5)-1;l(f-.5,2)+l(p-.5,2)>.25&&(p=a.sqrt(.25-l(f-.5,2))*n+.5)&&.5!=p&&(p=p.toFixed(5)-1e-5*n)}return c}),n=n.split(/\s*\-\s*/),"linear"==h){var b=n.shift();if(b=-i(b),isNaN(b))return null;var _=[0,0,a.cos(t.rad(b)),a.sin(t.rad(b))],w=1/(s(o(_[2]),o(_[3]))||1);_[2]*=w,_[3]*=w,_[2]<0&&(_[0]=-_[2],_[2]=0),_[3]<0&&(_[1]=-_[3],_[3]=0)}var k=t._parseDots(n);if(!k)return null;if(u=u.replace(/[\(\)\s,\xb0#]/g,"_"),e.gradient&&u!=e.gradient.id&&(g.defs.removeChild(e.gradient),delete e.gradient),!e.gradient){y=v(h+"Gradient",{id:u}),e.gradient=y,v(y,"radial"==h?{fx:f,fy:p}:{x1:_[0],y1:_[1],x2:_[2],y2:_[3],gradientTransform:e.matrix.invert()}),g.defs.appendChild(y);for(var B=0,C=k.length;B<C;B++)y.appendChild(v("stop",{offset:k[B].offset?k[B].offset:B?"100%":"0%","stop-color":k[B].color||"#fff","stop-opacity":isFinite(k[B].opacity)?k[B].opacity:1}))}}return v(d,{fill:m(u),opacity:1,"fill-opacity":1}),x.fill=c,x.opacity=1,x.fillOpacity=1,1},y=function(){var t=document.documentMode;return t&&(9===t||10===t)},m=function(t){if(y())return"url('#"+t+"')";var e=document.location,r=e.protocol+"//"+e.host+e.pathname+e.search;return"url('"+r+"#"+t+"')"},b=function(t){var e=t.getBBox(1);v(t.pattern,{patternTransform:t.matrix.invert()+" translate("+e.x+","+e.y+")"})},_=function(i,n,a){if("path"==i.type){for(var s=r(n).toLowerCase().split("-"),o=i.paper,l=a?"end":"start",h=i.node,u=i.attrs,f=u["stroke-width"],p=s.length,x="classic",y,m,b,_,w,k=3,B=3,C=5;p--;)switch(s[p]){case"block":case"classic":case"oval":case"diamond":case"open":case"none":x=s[p];break;case"wide":B=5;break;case"narrow":B=2;break;case"long":k=5;break;case"short":k=2}if("open"==x?(k+=2,B+=2,C+=2,b=1,_=a?4:1,w={fill:"none",stroke:u.stroke}):(_=b=k/2,w={fill:u.stroke,stroke:"none"}),i._.arrows?a?(i._.arrows.endPath&&g[i._.arrows.endPath]--,i._.arrows.endMarker&&g[i._.arrows.endMarker]--):(i._.arrows.startPath&&g[i._.arrows.startPath]--,i._.arrows.startMarker&&g[i._.arrows.startMarker]--):i._.arrows={},"none"!=x){var S="raphael-marker-"+x,A="raphael-marker-"+l+x+k+B+"-obj"+i.id;t._g.doc.getElementById(S)?g[S]++:(o.defs.appendChild(v(v("path"),{"stroke-linecap":"round",d:d[x],id:S})),g[S]=1);var T=t._g.doc.getElementById(A),E;T?(g[A]++,E=T.getElementsByTagName("use")[0]):(T=v(v("marker"),{id:A,markerHeight:B,markerWidth:k,orient:"auto",refX:_,refY:B/2}),E=v(v("use"),{"xlink:href":"#"+S,transform:(a?"rotate(180 "+k/2+" "+B/2+") ":c)+"scale("+k/C+","+B/C+")","stroke-width":(1/((k/C+B/C)/2)).toFixed(4)}),T.appendChild(E),o.defs.appendChild(T),g[A]=1),v(E,w);var M=b*("diamond"!=x&&"oval"!=x);a?(y=i._.arrows.startdx*f||0,m=t.getTotalLength(u.path)-M*f):(y=M*f,m=t.getTotalLength(u.path)-(i._.arrows.enddx*f||0)),w={},w["marker-"+l]="url(#"+A+")",(m||y)&&(w.d=t.getSubpath(u.path,y,m)),v(h,w),i._.arrows[l+"Path"]=S,i._.arrows[l+"Marker"]=A,i._.arrows[l+"dx"]=M,i._.arrows[l+"Type"]=x,i._.arrows[l+"String"]=n}else a?(y=i._.arrows.startdx*f||0,m=t.getTotalLength(u.path)-y):(y=0,m=t.getTotalLength(u.path)-(i._.arrows.enddx*f||0)),i._.arrows[l+"Path"]&&v(h,{d:t.getSubpath(u.path,y,m)}),delete i._.arrows[l+"Path"],delete i._.arrows[l+"Marker"],delete i._.arrows[l+"dx"],delete i._.arrows[l+"Type"],delete i._.arrows[l+"String"];for(w in g)if(g[e](w)&&!g[w]){var N=t._g.doc.getElementById(w);N&&N.parentNode.removeChild(N)}}},w={"-":[3,1],".":[1,1],"-.":[3,1,1,1],"-..":[3,1,1,1,1,1],". ":[1,3],"- ":[4,3],"--":[8,3],"- .":[4,3,1,3],"--.":[8,3,1,3],"--..":[8,3,1,3,1,3]},k=function(t,e,i){if(e=w[r(e).toLowerCase()]){for(var n=t.attrs["stroke-width"]||"1",a={round:n,square:n,butt:0}[t.attrs["stroke-linecap"]||i["stroke-linecap"]]||0,s=[],o=e.length;o--;)s[o]=e[o]*n+(o%2?1:-1)*a;v(t.node,{"stroke-dasharray":s.join(",")})}else v(t.node,{"stroke-dasharray":"none"})},B=function(i,a){var l=i.node,u=i.attrs,f=l.style.visibility;l.style.visibility="hidden";for(var d in a)if(a[e](d)){if(!t._availableAttrs[e](d))continue;var g=a[d];switch(u[d]=g,d){case"blur":i.blur(g);break;case"title":var y=l.getElementsByTagName("title");if(y.length&&(y=y[0]))y.firstChild.nodeValue=g;else{y=v("title");var m=t._g.doc.createTextNode(g);y.appendChild(m),l.appendChild(y)}break;case"href":case"target":var w=l.parentNode;if("a"!=w.tagName.toLowerCase()){var B=v("a");w.insertBefore(B,l),B.appendChild(l),w=B}"target"==d?w.setAttributeNS(p,"show","blank"==g?"new":g):w.setAttributeNS(p,d,g);break;case"cursor":l.style.cursor=g;break;case"transform":i.transform(g);break;case"arrow-start":_(i,g);break;case"arrow-end":_(i,g,1);break;case"clip-rect":var C=r(g).split(h);if(4==C.length){i.clip&&i.clip.parentNode.parentNode.removeChild(i.clip.parentNode);var A=v("clipPath"),T=v("rect");A.id=t.createUUID(),v(T,{x:C[0],y:C[1],width:C[2],height:C[3]}),A.appendChild(T),i.paper.defs.appendChild(A),v(l,{"clip-path":"url(#"+A.id+")"}),i.clip=T}if(!g){var E=l.getAttribute("clip-path");if(E){var M=t._g.doc.getElementById(E.replace(/(^url\(#|\)$)/g,c));M&&M.parentNode.removeChild(M),v(l,{"clip-path":c}),delete i.clip}}break;case"path":"path"==i.type&&(v(l,{d:g?u.path=t._pathToAbsolute(g):"M0,0"}),i._.dirty=1,i._.arrows&&("startString"in i._.arrows&&_(i,i._.arrows.startString),"endString"in i._.arrows&&_(i,i._.arrows.endString,1)));break;case"width":if(l.setAttribute(d,g),i._.dirty=1,!u.fx)break;d="x",g=u.x;case"x":u.fx&&(g=-u.x-(u.width||0));case"rx":if("rx"==d&&"rect"==i.type)break;case"cx":l.setAttribute(d,g),i.pattern&&b(i),i._.dirty=1;break;case"height":if(l.setAttribute(d,g),i._.dirty=1,!u.fy)break;d="y",g=u.y;case"y":u.fy&&(g=-u.y-(u.height||0));case"ry":if("ry"==d&&"rect"==i.type)break;case"cy":l.setAttribute(d,g),i.pattern&&b(i),i._.dirty=1;break;case"r":"rect"==i.type?v(l,{rx:g,ry:g}):l.setAttribute(d,g),i._.dirty=1;break;case"src":"image"==i.type&&l.setAttributeNS(p,"href",g);break;case"stroke-width":1==i._.sx&&1==i._.sy||(g/=s(o(i._.sx),o(i._.sy))||1),l.setAttribute(d,g),u["stroke-dasharray"]&&k(i,u["stroke-dasharray"],a),
-	i._.arrows&&("startString"in i._.arrows&&_(i,i._.arrows.startString),"endString"in i._.arrows&&_(i,i._.arrows.endString,1));break;case"stroke-dasharray":k(i,g,a);break;case"fill":var N=r(g).match(t._ISURL);if(N){A=v("pattern");var L=v("image");A.id=t.createUUID(),v(A,{x:0,y:0,patternUnits:"userSpaceOnUse",height:1,width:1}),v(L,{x:0,y:0,"xlink:href":N[1]}),A.appendChild(L),function(e){t._preload(N[1],function(){var t=this.offsetWidth,r=this.offsetHeight;v(e,{width:t,height:r}),v(L,{width:t,height:r})})}(A),i.paper.defs.appendChild(A),v(l,{fill:"url(#"+A.id+")"}),i.pattern=A,i.pattern&&b(i);break}var z=t.getRGB(g);if(z.error){if(("circle"==i.type||"ellipse"==i.type||"r"!=r(g).charAt())&&x(i,g)){if("opacity"in u||"fill-opacity"in u){var P=t._g.doc.getElementById(l.getAttribute("fill").replace(/^url\(#|\)$/g,c));if(P){var F=P.getElementsByTagName("stop");v(F[F.length-1],{"stop-opacity":("opacity"in u?u.opacity:1)*("fill-opacity"in u?u["fill-opacity"]:1)})}}u.gradient=g,u.fill="none";break}}else delete a.gradient,delete u.gradient,!t.is(u.opacity,"undefined")&&t.is(a.opacity,"undefined")&&v(l,{opacity:u.opacity}),!t.is(u["fill-opacity"],"undefined")&&t.is(a["fill-opacity"],"undefined")&&v(l,{"fill-opacity":u["fill-opacity"]});z[e]("opacity")&&v(l,{"fill-opacity":z.opacity>1?z.opacity/100:z.opacity});case"stroke":z=t.getRGB(g),l.setAttribute(d,z.hex),"stroke"==d&&z[e]("opacity")&&v(l,{"stroke-opacity":z.opacity>1?z.opacity/100:z.opacity}),"stroke"==d&&i._.arrows&&("startString"in i._.arrows&&_(i,i._.arrows.startString),"endString"in i._.arrows&&_(i,i._.arrows.endString,1));break;case"gradient":("circle"==i.type||"ellipse"==i.type||"r"!=r(g).charAt())&&x(i,g);break;case"opacity":u.gradient&&!u[e]("stroke-opacity")&&v(l,{"stroke-opacity":g>1?g/100:g});case"fill-opacity":if(u.gradient){P=t._g.doc.getElementById(l.getAttribute("fill").replace(/^url\(#|\)$/g,c)),P&&(F=P.getElementsByTagName("stop"),v(F[F.length-1],{"stop-opacity":g}));break}default:"font-size"==d&&(g=n(g,10)+"px");var R=d.replace(/(\-.)/g,function(t){return t.substring(1).toUpperCase()});l.style[R]=g,i._.dirty=1,l.setAttribute(d,g)}}S(i,a),l.style.visibility=f},C=1.2,S=function(i,a){if("text"==i.type&&(a[e]("text")||a[e]("font")||a[e]("font-size")||a[e]("x")||a[e]("y"))){var s=i.attrs,o=i.node,l=o.firstChild?n(t._g.doc.defaultView.getComputedStyle(o.firstChild,c).getPropertyValue("font-size"),10):10;if(a[e]("text")){for(s.text=a.text;o.firstChild;)o.removeChild(o.firstChild);for(var h=r(a.text).split("\n"),u=[],f,p=0,d=h.length;p<d;p++)f=v("tspan"),p&&v(f,{dy:l*C,x:s.x}),f.appendChild(t._g.doc.createTextNode(h[p])),o.appendChild(f),u[p]=f}else for(u=o.getElementsByTagName("tspan"),p=0,d=u.length;p<d;p++)p?v(u[p],{dy:l*C,x:s.x}):v(u[0],{dy:0});v(o,{x:s.x,y:s.y}),i._.dirty=1;var g=i._getBBox(),x=s.y-(g.y+g.height/2);x&&t.is(x,"finite")&&v(u[0],{dy:x})}},A=function(t){return t.parentNode&&"a"===t.parentNode.tagName.toLowerCase()?t.parentNode:t},T=function(e,r){function i(){return("0000"+(Math.random()*Math.pow(36,5)<<0).toString(36)).slice(-5)}var n=0,a=0;this[0]=this.node=e,e.raphael=!0,this.id=i(),e.raphaelid=this.id,this.matrix=t.matrix(),this.realPath=null,this.paper=r,this.attrs=this.attrs||{},this._={transform:[],sx:1,sy:1,deg:0,dx:0,dy:0,dirty:1},!r.bottom&&(r.bottom=this),this.prev=r.top,r.top&&(r.top.next=this),r.top=this,this.next=null},E=t.el;T.prototype=E,E.constructor=T,t._engine.path=function(t,e){var r=v("path");e.canvas&&e.canvas.appendChild(r);var i=new T(r,e);return i.type="path",B(i,{fill:"none",stroke:"#000",path:t}),i},E.rotate=function(t,e,n){if(this.removed)return this;if(t=r(t).split(h),t.length-1&&(e=i(t[1]),n=i(t[2])),t=i(t[0]),null==n&&(e=n),null==e||null==n){var a=this.getBBox(1);e=a.x+a.width/2,n=a.y+a.height/2}return this.transform(this._.transform.concat([["r",t,e,n]])),this},E.scale=function(t,e,n,a){if(this.removed)return this;if(t=r(t).split(h),t.length-1&&(e=i(t[1]),n=i(t[2]),a=i(t[3])),t=i(t[0]),null==e&&(e=t),null==a&&(n=a),null==n||null==a)var s=this.getBBox(1);return n=null==n?s.x+s.width/2:n,a=null==a?s.y+s.height/2:a,this.transform(this._.transform.concat([["s",t,e,n,a]])),this},E.translate=function(t,e){return this.removed?this:(t=r(t).split(h),t.length-1&&(e=i(t[1])),t=i(t[0])||0,e=+e||0,this.transform(this._.transform.concat([["t",t,e]])),this)},E.transform=function(r){var i=this._;if(null==r)return i.transform;if(t._extractTransform(this,r),this.clip&&v(this.clip,{transform:this.matrix.invert()}),this.pattern&&b(this),this.node&&v(this.node,{transform:this.matrix}),1!=i.sx||1!=i.sy){var n=this.attrs[e]("stroke-width")?this.attrs["stroke-width"]:1;this.attr({"stroke-width":n})}return this},E.hide=function(){return this.removed||(this.node.style.display="none"),this},E.show=function(){return this.removed||(this.node.style.display=""),this},E.remove=function(){var e=A(this.node);if(!this.removed&&e.parentNode){var r=this.paper;r.__set__&&r.__set__.exclude(this),u.unbind("raphael.*.*."+this.id),this.gradient&&r.defs.removeChild(this.gradient),t._tear(this,r),e.parentNode.removeChild(e),this.removeData();for(var i in this)this[i]="function"==typeof this[i]?t._removedFactory(i):null;this.removed=!0}},E._getBBox=function(){if("none"==this.node.style.display){this.show();var t=!0}var e=!1,r;this.paper.canvas.parentElement?r=this.paper.canvas.parentElement.style:this.paper.canvas.parentNode&&(r=this.paper.canvas.parentNode.style),r&&"none"==r.display&&(e=!0,r.display="");var i={};try{i=this.node.getBBox()}catch(n){i={x:this.node.clientLeft,y:this.node.clientTop,width:this.node.clientWidth,height:this.node.clientHeight}}finally{i=i||{},e&&(r.display="none")}return t&&this.hide(),i},E.attr=function(r,i){if(this.removed)return this;if(null==r){var n={};for(var a in this.attrs)this.attrs[e](a)&&(n[a]=this.attrs[a]);return n.gradient&&"none"==n.fill&&(n.fill=n.gradient)&&delete n.gradient,n.transform=this._.transform,n}if(null==i&&t.is(r,"string")){if("fill"==r&&"none"==this.attrs.fill&&this.attrs.gradient)return this.attrs.gradient;if("transform"==r)return this._.transform;for(var s=r.split(h),o={},l=0,c=s.length;l<c;l++)r=s[l],r in this.attrs?o[r]=this.attrs[r]:t.is(this.paper.customAttributes[r],"function")?o[r]=this.paper.customAttributes[r].def:o[r]=t._availableAttrs[r];return c-1?o:o[s[0]]}if(null==i&&t.is(r,"array")){for(o={},l=0,c=r.length;l<c;l++)o[r[l]]=this.attr(r[l]);return o}if(null!=i){var f={};f[r]=i}else null!=r&&t.is(r,"object")&&(f=r);for(var p in f)u("raphael.attr."+p+"."+this.id,this,f[p]);for(p in this.paper.customAttributes)if(this.paper.customAttributes[e](p)&&f[e](p)&&t.is(this.paper.customAttributes[p],"function")){var d=this.paper.customAttributes[p].apply(this,[].concat(f[p]));this.attrs[p]=f[p];for(var g in d)d[e](g)&&(f[g]=d[g])}return B(this,f),this},E.toFront=function(){if(this.removed)return this;var e=A(this.node);e.parentNode.appendChild(e);var r=this.paper;return r.top!=this&&t._tofront(this,r),this},E.toBack=function(){if(this.removed)return this;var e=A(this.node),r=e.parentNode;r.insertBefore(e,r.firstChild),t._toback(this,this.paper);var i=this.paper;return this},E.insertAfter=function(e){if(this.removed||!e)return this;var r=A(this.node),i=A(e.node||e[e.length-1].node);return i.nextSibling?i.parentNode.insertBefore(r,i.nextSibling):i.parentNode.appendChild(r),t._insertafter(this,e,this.paper),this},E.insertBefore=function(e){if(this.removed||!e)return this;var r=A(this.node),i=A(e.node||e[0].node);return i.parentNode.insertBefore(r,i),t._insertbefore(this,e,this.paper),this},E.blur=function(e){var r=this;if(0!==+e){var i=v("filter"),n=v("feGaussianBlur");r.attrs.blur=e,i.id=t.createUUID(),v(n,{stdDeviation:+e||1.5}),i.appendChild(n),r.paper.defs.appendChild(i),r._blur=i,v(r.node,{filter:"url(#"+i.id+")"})}else r._blur&&(r._blur.parentNode.removeChild(r._blur),delete r._blur,delete r.attrs.blur),r.node.removeAttribute("filter");return r},t._engine.circle=function(t,e,r,i){var n=v("circle");t.canvas&&t.canvas.appendChild(n);var a=new T(n,t);return a.attrs={cx:e,cy:r,r:i,fill:"none",stroke:"#000"},a.type="circle",v(n,a.attrs),a},t._engine.rect=function(t,e,r,i,n,a){var s=v("rect");t.canvas&&t.canvas.appendChild(s);var o=new T(s,t);return o.attrs={x:e,y:r,width:i,height:n,rx:a||0,ry:a||0,fill:"none",stroke:"#000"},o.type="rect",v(s,o.attrs),o},t._engine.ellipse=function(t,e,r,i,n){var a=v("ellipse");t.canvas&&t.canvas.appendChild(a);var s=new T(a,t);return s.attrs={cx:e,cy:r,rx:i,ry:n,fill:"none",stroke:"#000"},s.type="ellipse",v(a,s.attrs),s},t._engine.image=function(t,e,r,i,n,a){var s=v("image");v(s,{x:r,y:i,width:n,height:a,preserveAspectRatio:"none"}),s.setAttributeNS(p,"href",e),t.canvas&&t.canvas.appendChild(s);var o=new T(s,t);return o.attrs={x:r,y:i,width:n,height:a,src:e},o.type="image",o},t._engine.text=function(e,r,i,n){var a=v("text");e.canvas&&e.canvas.appendChild(a);var s=new T(a,e);return s.attrs={x:r,y:i,"text-anchor":"middle",text:n,"font-family":t._availableAttrs["font-family"],"font-size":t._availableAttrs["font-size"],stroke:"none",fill:"#000"},s.type="text",B(s,s.attrs),s},t._engine.setSize=function(t,e){return this.width=t||this.width,this.height=e||this.height,this.canvas.setAttribute("width",this.width),this.canvas.setAttribute("height",this.height),this._viewBox&&this.setViewBox.apply(this,this._viewBox),this},t._engine.create=function(){var e=t._getContainer.apply(0,arguments),r=e&&e.container,i=e.x,n=e.y,a=e.width,s=e.height;if(!r)throw new Error("SVG container not found.");var o=v("svg"),l="overflow:hidden;",h;return i=i||0,n=n||0,a=a||512,s=s||342,v(o,{height:s,version:1.1,width:a,xmlns:"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink"}),1==r?(o.style.cssText=l+"position:absolute;left:"+i+"px;top:"+n+"px",t._g.doc.body.appendChild(o),h=1):(o.style.cssText=l+"position:relative",r.firstChild?r.insertBefore(o,r.firstChild):r.appendChild(o)),r=new t._Paper,r.width=a,r.height=s,r.canvas=o,r.clear(),r._left=r._top=0,h&&(r.renderfix=function(){}),r.renderfix(),r},t._engine.setViewBox=function(t,e,r,i,n){u("raphael.setViewBox",this,this._viewBox,[t,e,r,i,n]);var a=this.getSize(),o=s(r/a.width,i/a.height),l=this.top,h=n?"xMidYMid meet":"xMinYMin",c,p;for(null==t?(this._vbSize&&(o=1),delete this._vbSize,c="0 0 "+this.width+f+this.height):(this._vbSize=o,c=t+f+e+f+r+f+i),v(this.canvas,{viewBox:c,preserveAspectRatio:h});o&&l;)p="stroke-width"in l.attrs?l.attrs["stroke-width"]:1,l.attr({"stroke-width":p}),l._.dirty=1,l._.dirtyT=1,l=l.prev;return this._viewBox=[t,e,r,i,!!n],this},t.prototype.renderfix=function(){var t=this.canvas,e=t.style,r;try{r=t.getScreenCTM()||t.createSVGMatrix()}catch(i){r=t.createSVGMatrix()}var n=-r.e%1,a=-r.f%1;(n||a)&&(n&&(this._left=(this._left+n)%1,e.left=this._left+"px"),a&&(this._top=(this._top+a)%1,e.top=this._top+"px"))},t.prototype.clear=function(){t.eve("raphael.clear",this);for(var e=this.canvas;e.firstChild;)e.removeChild(e.firstChild);this.bottom=this.top=null,(this.desc=v("desc")).appendChild(t._g.doc.createTextNode("Created with Raphaël "+t.version)),e.appendChild(this.desc),e.appendChild(this.defs=v("defs"))},t.prototype.remove=function(){u("raphael.remove",this),this.canvas.parentNode&&this.canvas.parentNode.removeChild(this.canvas);for(var e in this)this[e]="function"==typeof this[e]?t._removedFactory(e):null};var M=t.st;for(var N in E)E[e](N)&&!M[e](N)&&(M[N]=function(t){return function(){var e=arguments;return this.forEach(function(r){r[t].apply(r,e)})}}(N))}}.apply(e,i),!(void 0!==n&&(t.exports=n))},function(t,e,r){var i,n;i=[r(1)],n=function(t){if(!t||t.vml){var e="hasOwnProperty",r=String,i=parseFloat,n=Math,a=n.round,s=n.max,o=n.min,l=n.abs,h="fill",u=/[, ]+/,c=t.eve,f=" progid:DXImageTransform.Microsoft",p=" ",d="",g={M:"m",L:"l",C:"c",Z:"x",m:"t",l:"r",c:"v",z:"x"},v=/([clmz]),?([^clmz]*)/gi,x=/ progid:\S+Blur\([^\)]+\)/g,y=/-?[^,\s-]+/g,m="position:absolute;left:0;top:0;width:1px;height:1px;behavior:url(#default#VML)",b=21600,_={path:1,rect:1,image:1},w={circle:1,ellipse:1},k=function(e){var i=/[ahqstv]/gi,n=t._pathToAbsolute;if(r(e).match(i)&&(n=t._path2curve),i=/[clmz]/g,n==t._pathToAbsolute&&!r(e).match(i)){var s=r(e).replace(v,function(t,e,r){var i=[],n="m"==e.toLowerCase(),s=g[e];return r.replace(y,function(t){n&&2==i.length&&(s+=i+g["m"==e?"l":"L"],i=[]),i.push(a(t*b))}),s+i});return s}var o=n(e),l,h;s=[];for(var u=0,c=o.length;u<c;u++){l=o[u],h=o[u][0].toLowerCase(),"z"==h&&(h="x");for(var f=1,x=l.length;f<x;f++)h+=a(l[f]*b)+(f!=x-1?",":d);s.push(h)}return s.join(p)},B=function(e,r,i){var n=t.matrix();return n.rotate(-e,.5,.5),{dx:n.x(r,i),dy:n.y(r,i)}},C=function(t,e,r,i,n,a){var s=t._,o=t.matrix,u=s.fillpos,c=t.node,f=c.style,d=1,g="",v,x=b/e,y=b/r;if(f.visibility="hidden",e&&r){if(c.coordsize=l(x)+p+l(y),f.rotation=a*(e*r<0?-1:1),a){var m=B(a,i,n);i=m.dx,n=m.dy}if(e<0&&(g+="x"),r<0&&(g+=" y")&&(d=-1),f.flip=g,c.coordorigin=i*-x+p+n*-y,u||s.fillsize){var _=c.getElementsByTagName(h);_=_&&_[0],c.removeChild(_),u&&(m=B(a,o.x(u[0],u[1]),o.y(u[0],u[1])),_.position=m.dx*d+p+m.dy*d),s.fillsize&&(_.size=s.fillsize[0]*l(e)+p+s.fillsize[1]*l(r)),c.appendChild(_)}f.visibility="visible"}};t.toString=function(){return"Your browser doesn’t support SVG. Falling down to VML.\nYou are running Raphaël "+this.version};var S=function(t,e,i){for(var n=r(e).toLowerCase().split("-"),a=i?"end":"start",s=n.length,o="classic",l="medium",h="medium";s--;)switch(n[s]){case"block":case"classic":case"oval":case"diamond":case"open":case"none":o=n[s];break;case"wide":case"narrow":h=n[s];break;case"long":case"short":l=n[s]}var u=t.node.getElementsByTagName("stroke")[0];u[a+"arrow"]=o,u[a+"arrowlength"]=l,u[a+"arrowwidth"]=h},A=function(n,l){n.attrs=n.attrs||{};var c=n.node,f=n.attrs,g=c.style,v,x=_[n.type]&&(l.x!=f.x||l.y!=f.y||l.width!=f.width||l.height!=f.height||l.cx!=f.cx||l.cy!=f.cy||l.rx!=f.rx||l.ry!=f.ry||l.r!=f.r),y=w[n.type]&&(f.cx!=l.cx||f.cy!=l.cy||f.r!=l.r||f.rx!=l.rx||f.ry!=l.ry),m=n;for(var B in l)l[e](B)&&(f[B]=l[B]);if(x&&(f.path=t._getPath[n.type](n),n._.dirty=1),l.href&&(c.href=l.href),l.title&&(c.title=l.title),l.target&&(c.target=l.target),l.cursor&&(g.cursor=l.cursor),"blur"in l&&n.blur(l.blur),(l.path&&"path"==n.type||x)&&(c.path=k(~r(f.path).toLowerCase().indexOf("r")?t._pathToAbsolute(f.path):f.path),n._.dirty=1,"image"==n.type&&(n._.fillpos=[f.x,f.y],n._.fillsize=[f.width,f.height],C(n,1,1,0,0,0))),"transform"in l&&n.transform(l.transform),y){var A=+f.cx,E=+f.cy,M=+f.rx||+f.r||0,L=+f.ry||+f.r||0;c.path=t.format("ar{0},{1},{2},{3},{4},{1},{4},{1}x",a((A-M)*b),a((E-L)*b),a((A+M)*b),a((E+L)*b),a(A*b)),n._.dirty=1}if("clip-rect"in l){var z=r(l["clip-rect"]).split(u);if(4==z.length){z[2]=+z[2]+ +z[0],z[3]=+z[3]+ +z[1];var P=c.clipRect||t._g.doc.createElement("div"),F=P.style;F.clip=t.format("rect({1}px {2}px {3}px {0}px)",z),c.clipRect||(F.position="absolute",F.top=0,F.left=0,F.width=n.paper.width+"px",F.height=n.paper.height+"px",c.parentNode.insertBefore(P,c),P.appendChild(c),c.clipRect=P)}l["clip-rect"]||c.clipRect&&(c.clipRect.style.clip="auto")}if(n.textpath){var R=n.textpath.style;l.font&&(R.font=l.font),l["font-family"]&&(R.fontFamily='"'+l["font-family"].split(",")[0].replace(/^['"]+|['"]+$/g,d)+'"'),l["font-size"]&&(R.fontSize=l["font-size"]),l["font-weight"]&&(R.fontWeight=l["font-weight"]),l["font-style"]&&(R.fontStyle=l["font-style"])}if("arrow-start"in l&&S(m,l["arrow-start"]),"arrow-end"in l&&S(m,l["arrow-end"],1),null!=l.opacity||null!=l.fill||null!=l.src||null!=l.stroke||null!=l["stroke-width"]||null!=l["stroke-opacity"]||null!=l["fill-opacity"]||null!=l["stroke-dasharray"]||null!=l["stroke-miterlimit"]||null!=l["stroke-linejoin"]||null!=l["stroke-linecap"]){var j=c.getElementsByTagName(h),I=!1;if(j=j&&j[0],!j&&(I=j=N(h)),"image"==n.type&&l.src&&(j.src=l.src),l.fill&&(j.on=!0),null!=j.on&&"none"!=l.fill&&null!==l.fill||(j.on=!1),j.on&&l.fill){var q=r(l.fill).match(t._ISURL);if(q){j.parentNode==c&&c.removeChild(j),j.rotate=!0,j.src=q[1],j.type="tile";var D=n.getBBox(1);j.position=D.x+p+D.y,n._.fillpos=[D.x,D.y],t._preload(q[1],function(){n._.fillsize=[this.offsetWidth,this.offsetHeight]})}else j.color=t.getRGB(l.fill).hex,j.src=d,j.type="solid",t.getRGB(l.fill).error&&(m.type in{circle:1,ellipse:1}||"r"!=r(l.fill).charAt())&&T(m,l.fill,j)&&(f.fill="none",f.gradient=l.fill,j.rotate=!1)}if("fill-opacity"in l||"opacity"in l){var V=((+f["fill-opacity"]+1||2)-1)*((+f.opacity+1||2)-1)*((+t.getRGB(l.fill).o+1||2)-1);V=o(s(V,0),1),j.opacity=V,j.src&&(j.color="none")}c.appendChild(j);var O=c.getElementsByTagName("stroke")&&c.getElementsByTagName("stroke")[0],Y=!1;!O&&(Y=O=N("stroke")),(l.stroke&&"none"!=l.stroke||l["stroke-width"]||null!=l["stroke-opacity"]||l["stroke-dasharray"]||l["stroke-miterlimit"]||l["stroke-linejoin"]||l["stroke-linecap"])&&(O.on=!0),("none"==l.stroke||null===l.stroke||null==O.on||0==l.stroke||0==l["stroke-width"])&&(O.on=!1);var W=t.getRGB(l.stroke);O.on&&l.stroke&&(O.color=W.hex),V=((+f["stroke-opacity"]+1||2)-1)*((+f.opacity+1||2)-1)*((+W.o+1||2)-1);var G=.75*(i(l["stroke-width"])||1);if(V=o(s(V,0),1),null==l["stroke-width"]&&(G=f["stroke-width"]),l["stroke-width"]&&(O.weight=G),G&&G<1&&(V*=G)&&(O.weight=1),O.opacity=V,l["stroke-linejoin"]&&(O.joinstyle=l["stroke-linejoin"]||"miter"),O.miterlimit=l["stroke-miterlimit"]||8,l["stroke-linecap"]&&(O.endcap="butt"==l["stroke-linecap"]?"flat":"square"==l["stroke-linecap"]?"square":"round"),"stroke-dasharray"in l){var H={"-":"shortdash",".":"shortdot","-.":"shortdashdot","-..":"shortdashdotdot",". ":"dot","- ":"dash","--":"longdash","- .":"dashdot","--.":"longdashdot","--..":"longdashdotdot"};O.dashstyle=H[e](l["stroke-dasharray"])?H[l["stroke-dasharray"]]:d}Y&&c.appendChild(O)}if("text"==m.type){m.paper.canvas.style.display=d;var X=m.paper.span,U=100,$=f.font&&f.font.match(/\d+(?:\.\d*)?(?=px)/);g=X.style,f.font&&(g.font=f.font),f["font-family"]&&(g.fontFamily=f["font-family"]),f["font-weight"]&&(g.fontWeight=f["font-weight"]),f["font-style"]&&(g.fontStyle=f["font-style"]),$=i(f["font-size"]||$&&$[0])||10,g.fontSize=$*U+"px",m.textpath.string&&(X.innerHTML=r(m.textpath.string).replace(/</g,"&#60;").replace(/&/g,"&#38;").replace(/\n/g,"<br>"));var Z=X.getBoundingClientRect();m.W=f.w=(Z.right-Z.left)/U,m.H=f.h=(Z.bottom-Z.top)/U,m.X=f.x,m.Y=f.y+m.H/2,("x"in l||"y"in l)&&(m.path.v=t.format("m{0},{1}l{2},{1}",a(f.x*b),a(f.y*b),a(f.x*b)+1));for(var Q=["x","y","text","font","font-family","font-weight","font-style","font-size"],J=0,K=Q.length;J<K;J++)if(Q[J]in l){m._.dirty=1;break}switch(f["text-anchor"]){case"start":m.textpath.style["v-text-align"]="left",m.bbx=m.W/2;break;case"end":m.textpath.style["v-text-align"]="right",m.bbx=-m.W/2;break;default:m.textpath.style["v-text-align"]="center",m.bbx=0}m.textpath.style["v-text-kern"]=!0}},T=function(e,a,s){e.attrs=e.attrs||{};var o=e.attrs,l=Math.pow,h,u,c="linear",f=".5 .5";if(e.attrs.gradient=a,a=r(a).replace(t._radial_gradient,function(t,e,r){return c="radial",e&&r&&(e=i(e),r=i(r),l(e-.5,2)+l(r-.5,2)>.25&&(r=n.sqrt(.25-l(e-.5,2))*(2*(r>.5)-1)+.5),f=e+p+r),d}),a=a.split(/\s*\-\s*/),"linear"==c){var g=a.shift();if(g=-i(g),isNaN(g))return null}var v=t._parseDots(a);if(!v)return null;if(e=e.shape||e.node,v.length){e.removeChild(s),s.on=!0,s.method="none",s.color=v[0].color,s.color2=v[v.length-1].color;for(var x=[],y=0,m=v.length;y<m;y++)v[y].offset&&x.push(v[y].offset+p+v[y].color);s.colors=x.length?x.join():"0% "+s.color,"radial"==c?(s.type="gradientTitle",s.focus="100%",s.focussize="0 0",s.focusposition=f,s.angle=0):(s.type="gradient",s.angle=(270-g)%360),e.appendChild(s)}return 1},E=function(e,r){this[0]=this.node=e,e.raphael=!0,this.id=t._oid++,e.raphaelid=this.id,this.X=0,this.Y=0,this.attrs={},this.paper=r,this.matrix=t.matrix(),this._={transform:[],sx:1,sy:1,dx:0,dy:0,deg:0,dirty:1,dirtyT:1},!r.bottom&&(r.bottom=this),this.prev=r.top,r.top&&(r.top.next=this),r.top=this,this.next=null},M=t.el;E.prototype=M,M.constructor=E,M.transform=function(e){if(null==e)return this._.transform;var i=this.paper._viewBoxShift,n=i?"s"+[i.scale,i.scale]+"-1-1t"+[i.dx,i.dy]:d,a;i&&(a=e=r(e).replace(/\.{3}|\u2026/g,this._.transform||d)),t._extractTransform(this,n+e);var s=this.matrix.clone(),o=this.skew,l=this.node,h,u=~r(this.attrs.fill).indexOf("-"),c=!r(this.attrs.fill).indexOf("url(");if(s.translate(1,1),c||u||"image"==this.type)if(o.matrix="1 0 0 1",o.offset="0 0",h=s.split(),u&&h.noRotation||!h.isSimple){l.style.filter=s.toFilter();var f=this.getBBox(),g=this.getBBox(1),v=f.x-g.x,x=f.y-g.y;l.coordorigin=v*-b+p+x*-b,C(this,1,1,v,x,0)}else l.style.filter=d,C(this,h.scalex,h.scaley,h.dx,h.dy,h.rotate);else l.style.filter=d,o.matrix=r(s),o.offset=s.offset();return null!==a&&(this._.transform=a,t._extractTransform(this,a)),this},M.rotate=function(t,e,n){if(this.removed)return this;if(null!=t){if(t=r(t).split(u),t.length-1&&(e=i(t[1]),n=i(t[2])),t=i(t[0]),null==n&&(e=n),null==e||null==n){var a=this.getBBox(1);e=a.x+a.width/2,n=a.y+a.height/2}return this._.dirtyT=1,this.transform(this._.transform.concat([["r",t,e,n]])),this}},M.translate=function(t,e){return this.removed?this:(t=r(t).split(u),t.length-1&&(e=i(t[1])),t=i(t[0])||0,e=+e||0,this._.bbox&&(this._.bbox.x+=t,this._.bbox.y+=e),this.transform(this._.transform.concat([["t",t,e]])),this)},M.scale=function(t,e,n,a){if(this.removed)return this;if(t=r(t).split(u),t.length-1&&(e=i(t[1]),n=i(t[2]),a=i(t[3]),isNaN(n)&&(n=null),isNaN(a)&&(a=null)),t=i(t[0]),null==e&&(e=t),null==a&&(n=a),null==n||null==a)var s=this.getBBox(1);return n=null==n?s.x+s.width/2:n,a=null==a?s.y+s.height/2:a,this.transform(this._.transform.concat([["s",t,e,n,a]])),this._.dirtyT=1,this},M.hide=function(){return!this.removed&&(this.node.style.display="none"),this},M.show=function(){return!this.removed&&(this.node.style.display=d),this},M.auxGetBBox=t.el.getBBox,M.getBBox=function(){var t=this.auxGetBBox();if(this.paper&&this.paper._viewBoxShift){var e={},r=1/this.paper._viewBoxShift.scale;return e.x=t.x-this.paper._viewBoxShift.dx,e.x*=r,e.y=t.y-this.paper._viewBoxShift.dy,e.y*=r,e.width=t.width*r,e.height=t.height*r,e.x2=e.x+e.width,e.y2=e.y+e.height,e}return t},M._getBBox=function(){return this.removed?{}:{x:this.X+(this.bbx||0)-this.W/2,y:this.Y-this.H,width:this.W,height:this.H}},M.remove=function(){if(!this.removed&&this.node.parentNode){this.paper.__set__&&this.paper.__set__.exclude(this),t.eve.unbind("raphael.*.*."+this.id),t._tear(this,this.paper),this.node.parentNode.removeChild(this.node),this.shape&&this.shape.parentNode.removeChild(this.shape);for(var e in this)this[e]="function"==typeof this[e]?t._removedFactory(e):null;this.removed=!0}},M.attr=function(r,i){if(this.removed)return this;if(null==r){var n={};for(var a in this.attrs)this.attrs[e](a)&&(n[a]=this.attrs[a]);return n.gradient&&"none"==n.fill&&(n.fill=n.gradient)&&delete n.gradient,n.transform=this._.transform,n}if(null==i&&t.is(r,"string")){if(r==h&&"none"==this.attrs.fill&&this.attrs.gradient)return this.attrs.gradient;for(var s=r.split(u),o={},l=0,f=s.length;l<f;l++)r=s[l],r in this.attrs?o[r]=this.attrs[r]:t.is(this.paper.customAttributes[r],"function")?o[r]=this.paper.customAttributes[r].def:o[r]=t._availableAttrs[r];return f-1?o:o[s[0]]}if(this.attrs&&null==i&&t.is(r,"array")){for(o={},l=0,f=r.length;l<f;l++)o[r[l]]=this.attr(r[l]);return o}var p;null!=i&&(p={},p[r]=i),null==i&&t.is(r,"object")&&(p=r);for(var d in p)c("raphael.attr."+d+"."+this.id,this,p[d]);if(p){for(d in this.paper.customAttributes)if(this.paper.customAttributes[e](d)&&p[e](d)&&t.is(this.paper.customAttributes[d],"function")){var g=this.paper.customAttributes[d].apply(this,[].concat(p[d]));this.attrs[d]=p[d];for(var v in g)g[e](v)&&(p[v]=g[v])}p.text&&"text"==this.type&&(this.textpath.string=p.text),A(this,p)}return this},M.toFront=function(){return!this.removed&&this.node.parentNode.appendChild(this.node),this.paper&&this.paper.top!=this&&t._tofront(this,this.paper),this},M.toBack=function(){return this.removed?this:(this.node.parentNode.firstChild!=this.node&&(this.node.parentNode.insertBefore(this.node,this.node.parentNode.firstChild),t._toback(this,this.paper)),this)},M.insertAfter=function(e){return this.removed?this:(e.constructor==t.st.constructor&&(e=e[e.length-1]),e.node.nextSibling?e.node.parentNode.insertBefore(this.node,e.node.nextSibling):e.node.parentNode.appendChild(this.node),t._insertafter(this,e,this.paper),this)},M.insertBefore=function(e){return this.removed?this:(e.constructor==t.st.constructor&&(e=e[0]),e.node.parentNode.insertBefore(this.node,e.node),t._insertbefore(this,e,this.paper),this)},M.blur=function(e){var r=this.node.runtimeStyle,i=r.filter;return i=i.replace(x,d),0!==+e?(this.attrs.blur=e,r.filter=i+p+f+".Blur(pixelradius="+(+e||1.5)+")",r.margin=t.format("-{0}px 0 0 -{0}px",a(+e||1.5))):(r.filter=i,r.margin=0,delete this.attrs.blur),this},t._engine.path=function(t,e){var r=N("shape");r.style.cssText=m,r.coordsize=b+p+b,r.coordorigin=e.coordorigin;var i=new E(r,e),n={fill:"none",stroke:"#000"};t&&(n.path=t),i.type="path",i.path=[],i.Path=d,A(i,n),e.canvas&&e.canvas.appendChild(r);var a=N("skew");return a.on=!0,r.appendChild(a),i.skew=a,i.transform(d),i},t._engine.rect=function(e,r,i,n,a,s){var o=t._rectPath(r,i,n,a,s),l=e.path(o),h=l.attrs;return l.X=h.x=r,l.Y=h.y=i,l.W=h.width=n,l.H=h.height=a,h.r=s,h.path=o,l.type="rect",l},t._engine.ellipse=function(t,e,r,i,n){var a=t.path(),s=a.attrs;return a.X=e-i,a.Y=r-n,a.W=2*i,a.H=2*n,a.type="ellipse",A(a,{cx:e,cy:r,rx:i,ry:n}),a},t._engine.circle=function(t,e,r,i){var n=t.path(),a=n.attrs;return n.X=e-i,n.Y=r-i,n.W=n.H=2*i,n.type="circle",A(n,{cx:e,cy:r,r:i}),n},t._engine.image=function(e,r,i,n,a,s){var o=t._rectPath(i,n,a,s),l=e.path(o).attr({stroke:"none"}),u=l.attrs,c=l.node,f=c.getElementsByTagName(h)[0];return u.src=r,l.X=u.x=i,l.Y=u.y=n,l.W=u.width=a,l.H=u.height=s,u.path=o,l.type="image",f.parentNode==c&&c.removeChild(f),f.rotate=!0,f.src=r,f.type="tile",l._.fillpos=[i,n],l._.fillsize=[a,s],c.appendChild(f),C(l,1,1,0,0,0),l},t._engine.text=function(e,i,n,s){var o=N("shape"),l=N("path"),h=N("textpath");i=i||0,n=n||0,s=s||"",l.v=t.format("m{0},{1}l{2},{1}",a(i*b),a(n*b),a(i*b)+1),l.textpathok=!0,h.string=r(s),h.on=!0,o.style.cssText=m,o.coordsize=b+p+b,o.coordorigin="0 0";var u=new E(o,e),c={fill:"#000",stroke:"none",font:t._availableAttrs.font,text:s};u.shape=o,u.path=l,u.textpath=h,u.type="text",u.attrs.text=r(s),u.attrs.x=i,u.attrs.y=n,u.attrs.w=1,u.attrs.h=1,A(u,c),o.appendChild(h),o.appendChild(l),e.canvas.appendChild(o);var f=N("skew");return f.on=!0,o.appendChild(f),u.skew=f,u.transform(d),u},t._engine.setSize=function(e,r){var i=this.canvas.style;return this.width=e,this.height=r,e==+e&&(e+="px"),r==+r&&(r+="px"),i.width=e,i.height=r,i.clip="rect(0 "+e+" "+r+" 0)",this._viewBox&&t._engine.setViewBox.apply(this,this._viewBox),this},t._engine.setViewBox=function(e,r,i,n,a){t.eve("raphael.setViewBox",this,this._viewBox,[e,r,i,n,a]);var s=this.getSize(),o=s.width,l=s.height,h,u;return a&&(h=l/n,u=o/i,i*h<o&&(e-=(o-i*h)/2/h),n*u<l&&(r-=(l-n*u)/2/u)),this._viewBox=[e,r,i,n,!!a],this._viewBoxShift={dx:-e,dy:-r,scale:s},this.forEach(function(t){t.transform("...")}),this};var N;t._engine.initWin=function(t){var e=t.document;e.styleSheets.length<31?e.createStyleSheet().addRule(".rvml","behavior:url(#default#VML)"):e.styleSheets[0].addRule(".rvml","behavior:url(#default#VML)");try{!e.namespaces.rvml&&e.namespaces.add("rvml","urn:schemas-microsoft-com:vml"),N=function(t){return e.createElement("<rvml:"+t+' class="rvml">')}}catch(r){N=function(t){return e.createElement("<"+t+' xmlns="urn:schemas-microsoft.com:vml" class="rvml">')}}},t._engine.initWin(t._g.win),t._engine.create=function(){var e=t._getContainer.apply(0,arguments),r=e.container,i=e.height,n,a=e.width,s=e.x,o=e.y;if(!r)throw new Error("VML container not found.");var l=new t._Paper,h=l.canvas=t._g.doc.createElement("div"),u=h.style;return s=s||0,o=o||0,a=a||512,i=i||342,l.width=a,l.height=i,a==+a&&(a+="px"),i==+i&&(i+="px"),l.coordsize=1e3*b+p+1e3*b,l.coordorigin="0 0",l.span=t._g.doc.createElement("span"),l.span.style.cssText="position:absolute;left:-9999em;top:-9999em;padding:0;margin:0;line-height:1;",h.appendChild(l.span),u.cssText=t.format("top:0;left:0;width:{0};height:{1};display:inline-block;position:relative;clip:rect(0 {0} {1} 0);overflow:hidden",a,i),1==r?(t._g.doc.body.appendChild(h),u.left=s+"px",u.top=o+"px",u.position="absolute"):r.firstChild?r.insertBefore(h,r.firstChild):r.appendChild(h),l.renderfix=function(){},l},t.prototype.clear=function(){t.eve("raphael.clear",this),this.canvas.innerHTML=d,this.span=t._g.doc.createElement("span"),this.span.style.cssText="position:absolute;left:-9999em;top:-9999em;padding:0;margin:0;line-height:1;display:inline;",this.canvas.appendChild(this.span),this.bottom=this.top=null},t.prototype.remove=function(){t.eve("raphael.remove",this),this.canvas.parentNode.removeChild(this.canvas);for(var e in this)this[e]="function"==typeof this[e]?t._removedFactory(e):null;return!0};var L=t.st;for(var z in M)M[e](z)&&!L[e](z)&&(L[z]=function(t){return function(){var e=arguments;return this.forEach(function(r){r[t].apply(r,e)})}}(z))}}.apply(e,i),!(void 0!==n&&(t.exports=n))}])});
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-
-/***/ 202:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
+	  function geometry(o) {
+	    var t = o.type;
+	    return t === "GeometryCollection" ? {type: t, geometries: o.geometries.map(geometry)}
+	        : t in geometryType ? {type: t, coordinates: geometryType[t](o)}
+	        : null;
+	  }
 	
-	var _slicedToArray2 = __webpack_require__(203);
+	  var geometryType = {
+	    Point: function(o) { return point(o.coordinates); },
+	    MultiPoint: function(o) { return o.coordinates.map(point); },
+	    LineString: function(o) { return line(o.arcs); },
+	    MultiLineString: function(o) { return o.arcs.map(line); },
+	    Polygon: function(o) { return polygon(o.arcs); },
+	    MultiPolygon: function(o) { return o.arcs.map(polygon); }
+	  };
 	
-	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+	  return geometry(o);
+	}
 	
-	var _entries = __webpack_require__(207);
+	function stitchArcs(topology, arcs) {
+	  var stitchedArcs = {},
+	      fragmentByStart = {},
+	      fragmentByEnd = {},
+	      fragments = [],
+	      emptyIndex = -1;
 	
-	var _entries2 = _interopRequireDefault(_entries);
+	  // Stitch empty arcs first, since they may be subsumed by other arcs.
+	  arcs.forEach(function(i, j) {
+	    var arc = topology.arcs[i < 0 ? ~i : i], t;
+	    if (arc.length < 3 && !arc[1][0] && !arc[1][1]) {
+	      t = arcs[++emptyIndex], arcs[emptyIndex] = i, arcs[j] = t;
+	    }
+	  });
 	
-	var _getIterator2 = __webpack_require__(97);
+	  arcs.forEach(function(i) {
+	    var e = ends(i),
+	        start = e[0],
+	        end = e[1],
+	        f, g;
 	
-	var _getIterator3 = _interopRequireDefault(_getIterator2);
-	
-	var _defineProperty2 = __webpack_require__(211);
-	
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	// http://commons.wikimedia.org/wiki/File:Blank_US_Map.svg
-	// http://commons.wikimedia.org/wiki/File:Usa_edcp_relief_location_map.png
-	// http://www.ravelrumba.com/code/demos/us-map-raphael/demo-animated.html
-	// http://mathworld.wolfram.com/AlbersEqual-AreaConicProjection.html
-	// from https://github.com/the55/usmap
-	
-	var Raphael = __webpack_require__(201);
-	
-	Raphael.fn.USMap = function () {
-	  var _pointStyle;
-	
-	  var paper = this;
-	  var map = {
-	    width: 950, // this is the svg width
-	    drawnStates: new Array(50),
-	    stateStyle: {
-	      //"fill": "#d3d3d3",
-	      "fill": "#74bbfa",
-	      "fill-opacity": "1",
-	      "stroke": "#eee",
-	      "stroke-opacity": "1",
-	      "stroke-linejoin": "round",
-	      "stroke-miterlimit": "4",
-	      //"stroke-width": "0.75",
-	      "stroke-width": "2.25",
-	      "stroke-dasharray": "none"
-	
-	    },
-	    pointStyle: (_pointStyle = { 'fill': '#ff4100', 'stroke-width': 0, "r": 8 }, (0, _defineProperty3.default)(_pointStyle, "stroke-width", 0), (0, _defineProperty3.default)(_pointStyle, "stroke", "#771e00"), _pointStyle),
-	    //pointStyle: {"fill": "#bee620", stroke: "#11cbf7", "stroke-width": 2, "r": 5},
-	    states: {
-	      hi: "M 233.08751,519.30948 L 235.02744,515.75293 L 237.2907,515.42961 L 237.61402,516.23791 L 235.51242,519.30948 L 233.08751,519.30948 z M 243.27217,515.59127 L 249.4153,518.17784 L 251.51689,517.85452 L 253.1335,513.97465 L 252.48686,510.57977 L 248.28366,510.09479 L 244.24213,511.87306 L 243.27217,515.59127 z M 273.9878,525.61427 L 277.706,531.11074 L 280.13092,530.78742 L 281.26255,530.30244 L 282.7175,531.59573 L 286.43571,531.43407 L 287.40568,529.97912 L 284.49577,528.20085 L 282.55584,524.48263 L 280.45424,520.92609 L 274.63444,523.83599 L 273.9878,525.61427 z M 294.19545,534.50564 L 295.48874,532.5657 L 300.17691,533.53566 L 300.82356,533.05068 L 306.96668,533.69732 L 306.64336,534.99062 L 304.05678,536.44556 L 299.69193,536.12224 L 294.19545,534.50564 z M 299.53027,539.67879 L 301.47021,543.55866 L 304.54176,542.42703 L 304.86509,540.81041 L 303.24848,538.70882 L 299.53027,538.3855 L 299.53027,539.67879 z M 306.4817,538.54716 L 308.74496,535.63726 L 313.43313,538.06218 L 317.79798,539.19381 L 322.16284,541.94205 L 322.16284,543.88198 L 318.6063,545.66026 L 313.75645,546.63022 L 311.33154,545.17527 L 306.4817,538.54716 z M 323.13281,554.06663 L 324.74942,552.77335 L 328.14431,554.38997 L 335.74238,557.94651 L 339.13727,560.0481 L 340.75387,562.47302 L 342.69381,566.83787 L 346.73534,569.42445 L 346.41202,570.71775 L 342.53215,573.95097 L 338.32896,575.40592 L 336.87401,574.75928 L 333.80244,576.53754 L 331.37753,579.77077 L 329.11427,582.68067 L 327.33599,582.51901 L 323.77945,579.93243 L 323.45613,575.40592 L 324.10277,572.981 L 322.48616,567.32286 L 320.38456,565.54458 L 320.2229,562.958 L 322.48616,561.98804 L 324.58776,558.91648 L 325.07274,557.94651 L 323.45613,556.16823 L 323.13281,554.06663 z",
-	      ak: "M 158.07671,453.67502 L 157.75339,539.03215 L 159.36999,540.00211 L 162.44156,540.16377 L 163.8965,539.03215 L 166.48308,539.03215 L 166.64475,541.94205 L 173.59618,548.73182 L 174.08117,551.3184 L 177.47605,549.37846 L 178.1227,549.2168 L 178.44602,546.14524 L 179.90096,544.52863 L 181.0326,544.36697 L 182.97253,542.91201 L 186.04409,545.01361 L 186.69074,547.92352 L 188.63067,549.05514 L 189.7623,551.48006 L 193.64218,553.25833 L 197.03706,559.2398 L 199.78529,563.11966 L 202.04855,565.86791 L 203.50351,569.58611 L 208.515,571.36439 L 213.68817,573.46598 L 214.65813,577.83084 L 215.14311,580.9024 L 214.17315,584.29729 L 212.39487,586.56054 L 210.77826,585.75224 L 209.32331,582.68067 L 206.57507,581.22573 L 204.7968,580.09409 L 203.98849,580.9024 L 205.44344,583.65065 L 205.6051,587.36885 L 204.47347,587.85383 L 202.53354,585.9139 L 200.43195,584.62061 L 200.91693,586.23722 L 202.21021,588.0155 L 201.40191,588.8238 C 201.40191,588.8238 200.59361,588.50048 200.10863,587.85383 C 199.62363,587.20719 198.00703,584.45895 198.00703,584.45895 L 197.03706,582.19569 C 197.03706,582.19569 196.71374,583.48898 196.06709,583.16565 C 195.42044,582.84233 194.7738,581.71071 194.7738,581.71071 L 196.55207,579.77077 L 195.09712,578.31582 L 195.09712,573.30432 L 194.28882,573.30432 L 193.48052,576.6992 L 192.34888,577.1842 L 191.37892,573.46598 L 190.73227,569.74777 L 189.92396,569.26279 L 190.24729,574.92094 L 190.24729,576.05256 L 188.79233,574.75928 L 185.23579,568.77781 L 183.13419,568.29283 L 182.48755,564.57462 L 180.87094,561.66472 L 179.25432,560.53308 L 179.25432,558.26983 L 181.35592,556.97654 L 180.87094,556.65322 L 178.28436,557.29986 L 174.88947,554.87495 L 172.30289,551.96504 L 167.45306,549.37846 L 163.41152,546.79188 L 164.70482,543.55866 L 164.70482,541.94205 L 162.92654,543.55866 L 160.01664,544.69029 L 156.29843,543.55866 L 150.64028,541.13375 L 145.14381,541.13375 L 144.49717,541.61873 L 138.03072,537.73885 L 135.92912,537.41553 L 133.18088,531.59573 L 129.62433,531.91905 L 126.06778,533.374 L 126.55277,537.90052 L 127.68439,534.99062 L 128.65437,535.31394 L 127.19941,539.67879 L 130.43263,536.93055 L 131.07928,538.54716 L 127.19941,542.91201 L 125.90612,542.58869 L 125.42114,540.64875 L 124.12785,539.84045 L 122.83456,540.97208 L 120.08632,539.19381 L 117.01475,541.29541 L 115.23649,543.397 L 111.8416,545.4986 L 107.15342,545.33693 L 106.66844,543.23534 L 110.38664,542.58869 L 110.38664,541.29541 L 108.12338,540.64875 L 109.09336,538.22384 L 111.35661,534.34397 L 111.35661,532.5657 L 111.51827,531.75739 L 115.88313,529.49413 L 116.85309,530.78742 L 119.60134,530.78742 L 118.30805,528.20085 L 114.58983,527.87752 L 109.57834,530.62576 L 107.15342,534.02064 L 105.37515,536.60723 L 104.24352,538.87049 L 100.04033,540.32543 L 96.96876,542.91201 L 96.645439,544.52863 L 98.908696,545.4986 L 99.717009,547.60018 L 96.96876,550.83341 L 90.502321,555.03661 L 82.742574,559.2398 L 80.640977,560.37142 L 75.306159,561.50306 L 69.971333,563.76631 L 71.749608,565.0596 L 70.294654,566.51455 L 69.809672,567.64618 L 67.061434,566.67621 L 63.828214,566.83787 L 63.019902,569.10113 L 62.049939,569.10113 L 62.37326,566.67621 L 58.816709,567.96951 L 55.90681,568.93947 L 52.511924,567.64618 L 49.602023,569.58611 L 46.368799,569.58611 L 44.267202,570.87941 L 42.65059,571.68771 L 40.548995,571.36439 L 37.962415,570.23276 L 35.699158,570.87941 L 34.729191,571.84937 L 33.112578,570.71775 L 33.112578,568.77781 L 36.184142,567.48452 L 42.488929,568.13117 L 46.853782,566.51455 L 48.955378,564.41296 L 51.86528,563.76631 L 53.643553,562.958 L 56.391794,563.11966 L 58.008406,564.41296 L 58.978369,564.08964 L 61.241626,561.3414 L 64.313196,560.37142 L 67.708076,559.72478 L 69.00137,559.40146 L 69.648012,559.88644 L 70.456324,559.88644 L 71.749608,556.16823 L 75.791141,554.71329 L 77.731077,550.99508 L 79.994336,546.46856 L 81.610951,545.01361 L 81.934272,542.42703 L 80.317657,543.72032 L 76.922764,544.36697 L 76.276122,541.94205 L 74.982838,541.61873 L 74.012865,542.58869 L 73.851205,545.4986 L 72.39625,545.33693 L 70.941306,539.51713 L 69.648012,540.81041 L 68.516388,540.32543 L 68.193068,538.3855 L 64.151535,538.54716 L 62.049939,539.67879 L 59.463361,539.35547 L 60.918305,537.90052 L 61.403286,535.31394 L 60.756645,533.374 L 62.211599,532.40404 L 63.504883,532.24238 L 62.858241,530.4641 L 62.858241,526.09925 L 61.888278,525.12928 L 61.079966,526.58423 L 54.936843,526.58423 L 53.481892,525.29094 L 52.835247,521.41108 L 50.733651,517.85452 L 50.733651,516.88456 L 52.835247,516.07625 L 52.996908,513.97465 L 54.128536,512.84303 L 53.320231,512.35805 L 52.026941,512.84303 L 50.895313,510.09479 L 51.86528,505.08328 L 56.391794,501.85007 L 58.978369,500.23345 L 60.918305,496.51525 L 63.666554,495.22195 L 66.253132,496.35359 L 66.576453,498.77851 L 69.00137,498.45517 L 72.23459,496.03026 L 73.851205,496.67691 L 74.821167,497.32355 L 76.437782,497.32355 L 78.701041,496.03026 L 79.509354,491.6654 C 79.509354,491.6654 79.832675,488.75551 80.479317,488.27052 C 81.125959,487.78554 81.44928,487.30056 81.44928,487.30056 L 80.317657,485.36062 L 77.731077,486.16893 L 74.497847,486.97723 L 72.557911,486.49225 L 69.00137,484.71397 L 63.989875,484.55231 L 60.433324,480.83411 L 60.918305,476.95424 L 61.564957,474.52932 L 59.463361,472.75105 L 57.523423,469.03283 L 58.008406,468.22453 L 64.798177,467.73955 L 66.899773,467.73955 L 67.869736,468.70951 L 68.516388,468.70951 L 68.354728,467.0929 L 72.23459,466.44626 L 74.821167,466.76958 L 76.276122,467.90121 L 74.821167,470.00281 L 74.336186,471.45775 L 77.084435,473.07437 L 82.095932,474.85264 L 83.874208,473.88268 L 81.610951,469.51783 L 80.640977,466.2846 L 81.610951,465.47629 L 78.21606,463.53636 L 77.731077,462.40472 L 78.21606,460.78812 L 77.407756,456.90825 L 74.497847,452.22007 L 72.072929,448.01688 L 74.982838,446.07694 L 78.21606,446.07694 L 79.994336,446.72359 L 84.197528,446.56193 L 87.915733,443.00539 L 89.047366,439.93382 L 92.765578,437.5089 L 94.382182,438.47887 L 97.130421,437.83222 L 100.84863,435.73062 L 101.98027,435.56896 L 102.95023,436.37728 L 107.47674,436.21561 L 110.22498,433.14405 L 111.35661,433.14405 L 114.91316,435.56896 L 116.85309,437.67056 L 116.36811,438.80219 L 117.01475,439.93382 L 118.63137,438.31721 L 122.51124,438.64053 L 122.83456,442.35873 L 124.7745,443.81369 L 131.88759,444.46033 L 138.19238,448.66352 L 139.64732,447.69356 L 144.82049,450.28014 L 146.92208,449.6335 L 148.86202,448.82518 L 153.71185,450.76512 L 158.07671,453.67502 z M 42.973913,482.61238 L 45.075509,487.9472 L 44.913847,488.91717 L 42.003945,488.59384 L 40.225672,484.55231 L 38.447399,483.09737 L 36.02248,483.09737 L 35.86082,480.51078 L 37.639093,478.08586 L 38.770722,480.51078 L 40.225672,481.96573 L 42.973913,482.61238 z M 40.387333,516.07625 L 44.105542,516.88456 L 47.823749,517.85452 L 48.632056,518.8245 L 47.015444,522.5427 L 43.94388,522.38104 L 40.548995,518.8245 L 40.387333,516.07625 z M 19.694697,502.01173 L 20.826327,504.5983 L 21.957955,506.21492 L 20.826327,507.02322 L 18.72473,503.95166 L 18.72473,502.01173 L 19.694697,502.01173 z M 5.9534943,575.0826 L 9.3483796,572.81934 L 12.743265,571.84937 L 15.329845,572.17269 L 15.814828,573.7893 L 17.754763,574.27429 L 19.694697,572.33436 L 19.371375,570.71775 L 22.119616,570.0711 L 25.029518,572.65768 L 23.897889,574.43595 L 19.533037,575.56758 L 16.784795,575.0826 L 13.066588,573.95097 L 8.7017347,575.40592 L 7.0851227,575.72924 L 5.9534943,575.0826 z M 54.936843,570.55609 L 56.553455,572.49602 L 58.655048,570.87941 L 57.2001,569.58611 L 54.936843,570.55609 z M 57.846745,573.62764 L 58.978369,571.36439 L 61.079966,571.68771 L 60.271663,573.62764 L 57.846745,573.62764 z M 81.44928,571.68771 L 82.904234,573.46598 L 83.874208,572.33436 L 83.065895,570.39442 L 81.44928,571.68771 z M 90.17899,559.2398 L 91.310623,565.0596 L 94.220522,565.86791 L 99.232017,562.958 L 103.59687,560.37142 L 101.98027,557.94651 L 102.46525,555.52159 L 100.36365,556.81488 L 97.453752,556.00657 L 99.070357,554.87495 L 101.01029,555.68325 L 104.89016,553.90497 L 105.37515,552.45003 L 102.95023,551.64172 L 103.75853,549.70178 L 101.01029,551.64172 L 96.322118,555.19827 L 91.472284,558.10817 L 90.17899,559.2398 z M 132.53423,539.35547 L 134.95915,537.90052 L 133.98918,536.12224 L 132.21091,537.09221 L 132.53423,539.35547 z",
-	      fl: "M 759.8167,439.1428 L 762.08236,446.4614 L 765.81206,456.20366 L 771.14685,465.57996 L 774.86504,471.88472 L 779.71486,477.38118 L 783.75637,481.09937 L 785.37297,484.00926 L 784.24135,485.30254 L 783.43305,486.59582 L 786.34293,494.03221 L 789.25282,496.94209 L 791.83939,502.27689 L 795.39592,508.09667 L 799.92241,516.34135 L 801.2157,523.93939 L 801.70068,535.90227 L 802.34732,537.68053 L 802.024,541.0754 L 799.59909,542.36869 L 799.92241,544.30861 L 799.27577,546.24854 L 799.59909,548.67344 L 800.08407,550.61337 L 797.33585,553.84658 L 794.2643,555.30152 L 790.38445,555.46318 L 788.9295,557.07979 L 786.5046,558.04975 L 785.21131,557.56477 L 784.07969,556.59481 L 783.75637,553.68492 L 782.94806,550.29005 L 779.55319,545.11691 L 775.99666,542.85367 L 772.11681,542.53035 L 771.30851,543.82363 L 768.23696,539.4588 L 767.59032,535.90227 L 765.00375,531.86076 L 763.22549,530.72913 L 761.60888,532.83072 L 759.83062,532.5074 L 757.72903,527.49592 L 754.81914,523.61607 L 751.90925,518.28128 L 749.32269,515.20973 L 745.76616,511.49154 L 747.86774,509.06663 L 751.10095,503.57017 L 750.93929,501.95357 L 746.4128,500.98361 L 744.79619,501.63025 L 745.11952,502.27689 L 747.70608,503.24685 L 746.25114,507.77335 L 745.44284,508.25833 L 743.66457,504.21682 L 742.37129,499.367 L 742.04797,496.61877 L 743.50291,491.93062 L 743.50291,482.39265 L 740.43136,478.67446 L 739.13808,475.60291 L 733.96494,474.30963 L 732.02502,473.66299 L 730.40841,471.07642 L 727.01354,469.45981 L 725.88192,466.06494 L 723.13369,465.09498 L 720.70878,461.37679 L 716.50561,459.92185 L 713.59572,458.4669 L 711.00916,458.4669 L 706.96764,459.27521 L 706.80598,461.21513 L 707.61429,462.18509 L 707.1293,463.31672 L 704.05776,463.15506 L 700.33957,466.71159 L 696.78303,468.65151 L 692.90318,468.65151 L 689.66997,469.9448 L 689.34665,467.19657 L 687.73005,465.25664 L 684.82016,464.12502 L 683.20356,462.67007 L 675.12053,458.79022 L 667.52249,457.01196 L 663.15766,457.6586 L 657.17622,458.14358 L 651.19478,460.24517 L 647.71554,460.85813 L 647.47762,452.80838 L 644.89105,450.86846 L 643.11278,449.09019 L 643.4361,446.01863 L 653.62072,444.72535 L 679.16312,441.81546 L 685.95287,441.16882 L 691.38887,441.44909 L 693.97544,445.32895 L 695.43038,446.78389 L 703.52854,447.29911 L 714.34829,446.65247 L 735.86068,445.35918 L 741.3064,444.68481 L 746.41398,444.88932 L 746.84081,447.79921 L 749.07381,448.60751 L 749.30875,443.97751 L 747.78053,439.80456 L 749.08893,438.36473 L 754.64356,438.81948 L 759.8167,439.1428 z M 772.36211,571.54788 L 774.78703,570.90124 L 776.08031,570.65875 L 777.53527,568.31466 L 779.87935,566.69805 L 781.17264,567.18304 L 782.87008,567.50636 L 783.27423,568.55715 L 779.79853,569.76961 L 775.59533,571.22456 L 773.25125,572.43702 L 772.36211,571.54788 z M 785.86081,566.53639 L 787.07327,567.58719 L 789.82151,565.4856 L 795.15632,561.28241 L 798.87452,557.40254 L 801.38027,550.77444 L 802.35024,549.077 L 802.5119,545.68212 L 801.78442,546.1671 L 800.81446,548.99617 L 799.3595,553.6035 L 796.12628,558.8575 L 791.76144,563.06068 L 788.36656,565.00061 L 785.86081,566.53639 z",
-	      nh: "M 880.79902,142.42476 L 881.66802,141.34826 L 882.75824,138.05724 L 880.21516,137.14377 L 879.73017,134.07221 L 875.85032,132.94059 L 875.527,130.19235 L 868.25225,106.75153 L 863.65083,92.208542 L 862.75375,92.203482 L 862.10711,93.820087 L 861.46047,93.335106 L 860.4905,92.365143 L 859.03556,94.305068 L 858.98709,99.337122 L 859.29874,105.00434 L 861.23866,107.75258 L 861.23866,111.7941 L 857.52046,116.85688 L 854.93389,117.98852 L 854.93389,119.12014 L 856.06552,120.89841 L 856.06552,129.46643 L 855.25721,138.6811 L 855.09555,143.53092 L 856.06552,144.82422 L 855.90386,149.35071 L 855.41887,151.12899 L 856.38768,151.83821 L 873.17535,147.41366 L 875.35022,146.81121 L 877.19379,144.03788 L 880.79902,142.42476 z",
-	      mi: "M581.61931,82.059006 L 583.4483,80.001402 L 585.62022,79.201221 L 590.99286,75.314624 L 593.27908,74.743065 L 593.73634,75.200319 L 588.59232,80.344339 L 585.27728,82.287628 L 583.21967,83.202124 L 581.61931,82.059006 z M 667.79369,114.18719 L 668.44033,116.69293 L 671.67355,116.85459 L 672.96684,115.64213 C 672.96684,115.64213 672.88601,114.18719 672.56269,114.02552 C 672.23936,113.86386 670.94608,112.16642 670.94608,112.16642 L 668.76366,112.40891 L 667.14704,112.57057 L 666.82372,113.7022 L 667.79369,114.18719 z M 567.49209,111.21318 L 568.20837,110.63278 L 570.9566,109.82447 L 574.51313,107.56123 L 574.51313,106.59126 L 575.15978,105.94462 L 581.14121,104.97466 L 583.56612,103.03473 L 587.93095,100.93315 L 588.09261,99.639864 L 590.03254,96.729975 L 591.8108,95.921673 L 593.10409,94.143408 L 595.36733,91.880161 L 599.73217,89.455254 L 604.42032,88.970273 L 605.55194,90.101896 L 605.22862,91.071859 L 601.51043,92.041822 L 600.05549,95.113371 L 597.79224,95.921673 L 597.30726,98.34658 L 594.88235,101.57979 L 594.55903,104.16636 L 595.36733,104.65134 L 596.3373,103.51972 L 599.89383,100.60983 L 601.18711,101.90311 L 603.45036,101.90311 L 606.68357,102.87307 L 608.13851,104.0047 L 609.59345,107.07625 L 612.34168,109.82447 L 616.22153,109.66281 L 617.67648,108.69285 L 619.29308,109.98613 L 620.90969,110.47112 L 622.20297,109.66281 L 623.33459,109.66281 L 624.9512,108.69285 L 628.99271,105.13632 L 632.38758,104.0047 L 639.01566,103.68138 L 643.54215,101.74145 L 646.12872,100.44817 L 647.58367,100.60983 L 647.58367,106.26794 L 648.06865,106.59126 L 650.97853,107.39957 L 652.91846,106.91458 L 659.06156,105.29798 L 660.19318,104.16636 L 661.64813,104.65134 L 661.64813,111.60274 L 664.88134,114.67429 L 666.17462,115.32093 L 667.4679,116.29089 L 666.17462,116.61421 L 665.36632,116.29089 L 661.64813,115.80591 L 659.54654,116.45255 L 657.28329,116.29089 L 654.05008,117.74584 L 652.27182,117.74584 L 646.45204,116.45255 L 641.27891,116.61421 L 639.33898,119.20078 L 632.38758,119.84742 L 629.96267,120.65572 L 628.83105,123.72727 L 627.53777,124.8589 L 627.05279,124.69724 L 625.59784,123.08063 L 621.07135,125.50554 L 620.42471,125.50554 L 619.29308,123.88893 L 618.48478,124.05059 L 616.54486,128.41543 L 615.57489,132.45694 L 612.39377,139.45774 L 611.21701,138.42347 L 609.84527,137.39215 L 607.90449,127.10413 L 604.36001,125.73408 L 602.30743,123.44785 L 590.18707,120.70437 L 587.3318,119.67473 L 579.10138,117.50199 L 571.21139,116.35887 L 567.49209,111.21318 z,M697.8,177.2L694.6,168.9L692.3,159.9L689.9,156.7L687.3,154.9L685.7,156L681.8,157.8L679.9,162.8L677.1,166.5L676,167.2L674.5,166.5 C 674.5,166.5 671.9,165.1 672.1,164.4 C 672.3,163.8 672.6,159.4 672.6,159.4L676,158.1L676.8,154.7L677.4,152.1L679.9,150.5L679.5,140.5L677.9,138.2L676.6,137.4L675.8,135.3L676.6,134.5L678.2,134.8L678.4,133.2L676,131L674.7,128.4L672.1,128.4L667.6,126.9L662.1,123.5L659.3,123.5L658.7,124.2L657.7,123.7L654.6,121.4L651.7,123.2L648.8,125.5L649.2,129L650.1,129.3L652.2,129.8L652.7,130.6L650.1,131.4L647.5,131.8L646.1,133.5L645.8,135.6L646.1,137.3L646.4,142.8L642.8,144.9L642.2,144.7L642.2,140.5L643.5,138.1L644.1,135.6L643.3,134.8L641.4,135.6L640.4,139.8L637.7,141L635.9,142.9L635.7,143.9L636.4,144.7L635.7,147.3L633.5,147.8L633.5,148.9L634.3,151.3L633.1,157.5L631.5,161.5L632.2,166.2L632.7,167.3L631.9,169.8L631.5,170.6L631.2,173.3L634.8,179.3L637.7,185.8L639.1,190.6L638.3,195.3L637.3,201.3L634.9,206.4L634.6,209.2L631.3,212.3L635.8,212.1L657.2,209.9L664.4,208.9L664.5,210.5L671.4,209.3L681.7,207.8L685.5,207.4L685.7,206.8L685.8,205.3L687.9,201.6L689.9,199.9L689.7,194.8L691.3,193.2L692.4,192.9L692.6,189.3L694.2,186.3L695.2,186.9L695.4,187.5L696.2,187.7L698.1,186.7L697.8,177.2z",
-	      vt: "M 844.48416,154.05791 L 844.80086,148.71228 L 841.91015,137.92811 L 841.26351,137.60479 L 838.35361,136.3115 L 839.16191,133.40161 L 838.35361,131.30002 L 835.65356,126.66004 L 836.62353,122.78018 L 835.81522,117.60703 L 833.39031,111.14059 L 832.58474,106.21808 L 859.0041,99.48626 L 859.3128,105.00847 L 861.22906,107.7507 L 861.22906,111.79222 L 857.52191,116.85021 L 854.93534,117.99288 L 854.92429,119.11345 L 856.23426,120.63257 L 855.92333,128.73054 L 855.3139,137.9894 L 855.08595,143.54634 L 856.05591,144.83963 L 855.89425,149.41032 L 855.40927,151.10021 L 856.42345,151.82737 L 848.9859,153.33408 L 844.48416,154.05791 z",
-	      me: "M 922.83976,78.830719 L 924.77969,80.932305 L 927.04294,84.650496 L 927.04294,86.590422 L 924.94135,91.278575 L 923.00142,91.925217 L 919.60655,94.996766 L 914.75674,100.49322 C 914.75674,100.49322 914.1101,100.49322 913.46346,100.49322 C 912.81682,100.49322 912.49349,98.391636 912.49349,98.391636 L 910.71523,98.553296 L 909.74527,100.00824 L 907.32036,101.46319 L 906.3504,102.91813 L 907.967,104.37307 L 907.48202,105.01972 L 906.99704,107.76794 L 905.05711,107.60628 L 905.05711,105.98968 L 904.73379,104.69639 L 903.27885,105.01972 L 901.50058,101.78651 L 899.399,103.07979 L 900.69228,104.53473 L 901.0156,105.66636 L 900.2073,106.95964 L 900.53062,110.03119 L 900.69228,111.64779 L 899.07568,114.23436 L 896.16579,114.71934 L 895.84247,117.62923 L 890.50767,120.70078 L 889.21439,121.18576 L 887.59778,119.73082 L 884.52623,123.28735 L 885.4962,126.52056 L 884.04125,127.81384 L 883.87959,132.17867 L 882.75631,138.43803 L 880.29406,137.28208 L 879.80907,134.21052 L 875.92922,133.07889 L 875.6059,130.33065 L 868.33115,106.88983 L 863.63257,92.250088 L 865.05311,92.131923 L 866.5669,92.541822 L 866.5669,89.955254 L 867.8752,85.458798 L 870.46177,80.770645 L 871.91672,76.729133 L 869.97679,74.304226 L 869.97679,68.322789 L 870.78509,67.352826 L 871.5934,64.604598 L 871.43174,63.149654 L 871.27007,58.29984 L 873.04834,53.450026 L 875.95823,44.5587 L 878.05981,40.355528 L 879.3531,40.355528 L 880.64638,40.517188 L 880.64638,41.648811 L 881.93967,43.912058 L 884.68789,44.5587 L 885.4962,43.750397 L 885.4962,42.780435 L 889.53771,39.870546 L 891.31597,38.092281 L 892.77092,38.253942 L 898.75235,40.678849 L 900.69228,41.648811 L 909.74527,71.555998 L 915.7267,71.555998 L 916.53501,73.495924 L 916.69667,78.345738 L 919.60655,80.608984 L 920.41486,80.608984 L 920.57652,80.124003 L 920.09154,78.99238 L 922.83976,78.830719 z M 901.90801,108.97825 L 903.44379,107.44247 L 904.81791,108.49327 L 905.38372,110.91819 L 903.68628,111.80732 L 901.90801,108.97825 z M 908.61694,103.07763 L 910.39521,104.93673 C 910.39521,104.93673 911.6885,105.01755 911.6885,104.69423 C 911.6885,104.37091 911.93099,102.67347 911.93099,102.67347 L 912.82013,101.86517 L 912.01182,100.08689 L 909.99106,100.81437 L 908.61694,103.07763 z",
-	      ri: "M 874.07001,178.89536 L 870.37422,163.93937 L 876.6435,162.09423 L 878.83463,164.02135 L 882.14112,168.342 L 884.82902,172.74409 L 881.82968,174.36888 L 880.5364,174.20722 L 879.40478,175.98549 L 876.97987,177.92541 L 874.07001,178.89536 z",
-	      ny: "M 830.37944,188.7456 L 829.24781,187.77564 L 826.66123,187.61398 L 824.39799,185.67406 L 822.76738,179.54493 L 819.30892,179.63547 L 816.86521,176.92727 L 797.47989,181.30921 L 754.47811,190.0389 L 746.94846,191.26689 L 746.2103,184.79855 L 747.6384,183.67317 L 748.93168,182.54155 L 749.90165,180.92494 L 751.67991,179.79332 L 753.61984,178.01505 L 754.10482,176.39845 L 756.2064,173.65022 L 757.33803,172.68026 L 757.17637,171.71029 L 755.88308,168.63875 L 754.10482,168.47709 L 752.16489,162.33399 L 755.07478,160.55572 L 759.43961,159.10078 L 763.48113,157.80749 L 766.71434,157.32251 L 773.01909,157.16085 L 774.95902,158.45414 L 776.57562,158.6158 L 778.67721,157.32251 L 781.26378,156.19089 L 786.43691,155.70591 L 788.5385,153.92764 L 790.31676,150.69443 L 791.93337,148.75451 L 794.03495,148.75451 L 795.97488,147.62288 L 796.13654,145.35964 L 794.6816,143.25805 L 794.35828,141.80311 L 795.4899,139.70152 L 795.4899,138.24658 L 793.71163,138.24658 L 791.93337,137.43828 L 791.12507,136.30665 L 790.96341,133.72008 L 796.78318,128.22363 L 797.42982,127.41533 L 798.88477,124.50544 L 801.79466,119.97894 L 804.54289,116.26075 L 806.64447,113.83585 L 809.05957,112.01024 L 812.14093,110.7643 L 817.63738,109.47101 L 820.87059,109.63267 L 825.39709,108.17773 L 832.96228,106.10656 L 833.48207,111.08623 L 835.90699,117.55267 L 836.71529,122.72582 L 835.74533,126.60568 L 838.3319,131.13218 L 839.1402,133.23377 L 838.3319,136.14367 L 841.2418,137.43695 L 841.88844,137.76027 L 844.96,148.75321 L 844.42371,153.81288 L 843.93873,164.64415 L 844.74703,170.14062 L 845.55533,173.69716 L 847.01028,180.9719 L 847.01028,189.05494 L 845.87865,191.31819 L 847.71798,193.31098 L 848.51453,194.9894 L 846.57461,196.76767 L 846.89793,198.06095 L 848.19121,197.73763 L 849.64616,196.44435 L 851.9094,193.85778 L 853.04103,193.21114 L 854.65763,193.85778 L 856.92088,194.01944 L 864.84224,190.13959 L 867.75213,187.39136 L 869.04541,185.93642 L 873.24858,187.55302 L 869.85371,191.10955 L 865.97386,194.01944 L 858.8608,199.35423 L 856.27424,200.3242 L 850.45446,202.26412 L 846.41295,203.39575 L 845.23821,202.86282 L 844.99419,199.17429 L 845.47917,196.42605 L 845.31751,194.32447 L 842.504,192.62547 L 837.9775,191.6555 L 834.09764,190.52388 L 830.37944,188.7456 z",
-	      pa: "M 825.1237,224.69205 L 826.43212,224.42105 L 828.76165,223.1678 L 829.97353,220.68473 L 831.59014,218.42148 L 834.82335,215.34992 L 834.82335,214.54162 L 832.39844,212.92502 L 828.8419,210.5001 L 827.87194,207.91353 L 825.1237,207.59021 L 824.96204,206.45858 L 824.15374,203.71035 L 826.417,202.57873 L 826.57866,200.15381 L 825.28536,198.86052 L 825.44702,197.24391 L 827.38696,194.17236 L 827.38696,191.1008 L 830.08459,188.45492 L 829.16431,187.77994 L 826.64023,187.58703 L 824.34574,185.64711 L 822.79582,179.53105 L 819.29124,179.63157 L 816.83601,176.92824 L 798.74502,181.12601 L 755.74324,189.8557 L 746.85189,191.31064 L 746.23122,184.78925 L 740.86869,189.8569 L 739.5754,190.34188 L 735.37311,193.35077 L 738.28387,212.48822 L 740.76553,222.21758 L 744.33733,241.47907 L 747.60664,240.84139 L 759.55022,239.33892 L 797.47685,231.67372 L 812.35306,228.8504 L 820.65341,227.22804 L 820.92052,226.98951 L 823.02212,225.37289 L 825.1237,224.69205 z",
-	      nj: "M 829.67942,188.46016 L 827.35687,191.19443 L 827.35687,194.26599 L 825.41693,197.33754 L 825.25527,198.95416 L 826.54857,200.24744 L 826.38691,202.67236 L 824.12365,203.80398 L 824.93195,206.55221 L 825.09361,207.68384 L 827.84185,208.00716 L 828.81181,210.59373 L 832.36835,213.01865 L 834.79326,214.63525 L 834.79326,215.44356 L 831.81005,218.14012 L 830.19344,220.40336 L 828.73849,223.1516 L 826.47524,224.44488 L 826.01279,226.04736 L 825.77029,227.25982 L 825.16106,229.86656 L 826.25333,232.11075 L 829.48654,235.02064 L 834.33635,237.28389 L 838.37786,237.93053 L 838.53952,239.38547 L 837.73122,240.35543 L 838.05454,243.10366 L 838.86284,243.10366 L 840.96443,240.67876 L 841.77273,235.82894 L 844.52096,231.78743 L 847.59251,225.32101 L 848.72413,219.82456 L 848.07749,218.69293 L 847.91583,209.31662 L 846.29922,205.92176 L 845.1676,206.73006 L 842.41937,207.05338 L 841.93439,206.5684 L 843.06602,205.59843 L 845.1676,203.65851 L 845.23066,202.56468 L 844.84627,199.13084 L 845.41964,196.3826 L 845.30217,194.41359 L 842.49463,192.66324 L 837.40249,191.48748 L 833.26505,190.10585 L 829.67942,188.46016 z",
-	      de: "M 825.6261,228.2791 L 825.99441,226.13221 L 826.36948,224.44116 L 824.74648,224.83892 L 823.13102,225.30648 L 820.92476,227.07078 L 822.64488,232.11366 L 824.90814,237.77178 L 827.00972,247.47143 L 828.62634,253.77621 L 833.63782,253.61455 L 839.77994,252.43387 L 837.51571,245.0476 L 836.54574,245.53258 L 832.98921,243.10768 L 831.21095,238.41952 L 829.27102,234.86299 L 826.1239,231.99268 L 825.25974,229.89456 L 825.6261,228.2791 z",
-	      md: "M 839.79175,252.41476 L 833.7832,253.6186 L 828.6403,253.73606 L 826.79674,246.81373 L 824.87193,237.64441 L 822.29931,231.45596 L 821.01093,227.05763 L 813.50491,228.67999 L 798.6287,231.50331 L 761.17727,239.05421 L 762.30857,244.06587 L 763.27853,249.72398 L 763.60185,249.40066 L 765.70345,246.97576 L 767.96669,244.3581 L 770.3916,243.74254 L 771.84656,242.28759 L 773.62482,239.70102 L 774.9181,240.34767 L 777.82799,240.02434 L 780.41457,237.92276 L 782.42146,236.46949 L 784.26669,235.98451 L 785.91104,237.11446 L 788.82093,238.5694 L 790.76085,240.34767 L 791.97331,241.88345 L 796.09566,243.58088 L 796.09566,246.49077 L 801.59212,247.78406 L 802.73656,248.32604 L 804.14846,246.29772 L 807.03043,248.26788 L 805.75226,250.74981 L 804.98699,254.73547 L 803.20873,257.32204 L 803.20873,259.42363 L 803.85537,261.2019 L 808.91932,262.55759 L 813.23042,262.49587 L 816.30196,263.46584 L 818.40355,263.78916 L 819.37351,261.68757 L 817.91857,259.58599 L 817.91857,257.80772 L 815.49366,255.70613 L 813.39208,250.20968 L 814.68536,244.87488 L 814.5237,242.7733 L 813.23042,241.48001 C 813.23042,241.48001 814.68536,239.86341 814.68536,239.21677 C 814.68536,238.57012 815.17034,237.11518 815.17034,237.11518 L 817.11027,235.8219 L 819.05019,234.20529 L 819.53517,235.17526 L 818.08023,236.79186 L 816.78695,240.51005 L 817.11027,241.64167 L 818.88853,241.96499 L 819.37351,247.46145 L 817.27193,248.43141 L 817.59525,251.98794 L 818.08023,251.82628 L 819.21185,249.88636 L 820.82846,251.66462 L 819.21185,252.95791 L 818.88853,256.35278 L 821.4751,259.74765 L 825.35495,260.23263 L 826.97156,259.42433 L 830.20811,263.60726 L 831.56646,264.14356 L 838.22013,261.34661 L 840.22771,257.32274 L 839.79175,252.41476 z M 823.82217,261.44348 L 824.95379,263.94923 L 825.11545,265.7275 L 826.24708,267.5866 C 826.24708,267.5866 827.13622,266.69746 827.13622,266.37414 C 827.13622,266.05082 826.40875,263.30258 826.40875,263.30258 L 825.68127,260.95849 L 823.82217,261.44348 z",
-	      va: "M 831.63885,266.06892 L 831.49494,264.12189 L 837.94837,261.57201 L 837.17796,264.78985 L 834.25801,268.56896 L 833.83992,273.15478 L 834.30167,276.54522 L 832.4737,281.52338 L 830.30943,283.43952 L 828.83909,278.79871 L 829.28498,273.3496 L 830.87198,269.16653 L 831.63885,266.06892 z M 834.97904,294.37028 L 776.80486,306.94571 L 739.37789,312.22478 L 732.69956,311.8496 L 730.11431,313.77598 L 722.77518,313.99667 L 714.39307,314.97434 L 703.47811,316.58896 L 713.94754,310.97776 L 713.93442,308.90283 L 715.45447,306.7567 L 726.00825,295.25527 L 729.95497,299.73273 L 733.73798,300.69671 L 736.28144,299.55639 L 738.51866,298.24523 L 741.05527,299.58875 L 744.96944,298.16099 L 746.84617,293.60465 L 749.44709,294.14467 L 752.30233,292.01342 L 754.1016,292.50702 L 756.92881,288.83045 L 757.27706,286.74734 L 756.3134,285.47177 L 757.31617,283.60514 L 762.59044,271.32799 L 763.20721,265.59291 L 764.4361,265.06937 L 766.61463,267.51224 L 770.55049,267.21107 L 772.4797,259.63744 L 775.27369,259.07658 L 776.32344,256.33551 L 778.90326,253.98863 L 781.67509,248.29344 L 781.76002,243.22589 L 791.58153,247.04871 C 792.26238,247.38913 792.41441,241.99956 792.41441,241.99956 L 796.06697,243.59789 L 796.1353,246.53605 L 801.91955,247.83554 L 804.0525,249.01174 L 805.71242,251.06743 L 805.05787,254.7161 L 803.11043,257.30708 L 803.22028,259.36615 L 803.80924,261.21906 L 808.78799,262.48749 L 813.23926,262.52737 L 816.30809,263.48601 L 818.2516,263.79531 L 818.96641,266.88377 L 822.15685,267.2863 L 823.02492,268.48632 L 822.58543,273.1764 L 823.96016,274.27895 L 823.48121,276.20934 L 824.71062,276.99911 L 824.48882,278.38371 L 821.79483,278.28877 L 821.88379,279.90429 L 824.16478,281.44716 L 824.28632,282.85906 L 826.05943,284.64444 L 826.55122,287.16857 L 823.99818,288.54988 L 825.5704,290.04418 L 831.37142,288.35835 L 834.97904,294.37028 z",
-	      wv: "M 761.18551,238.96731 L 762.29752,243.91184 L 763.38096,249.94317 L 765.51125,247.36283 L 767.77449,244.29127 L 770.31287,243.67572 L 771.76782,242.22078 L 773.54609,239.63421 L 774.99107,240.28085 L 777.90096,239.95753 L 780.48754,237.85594 L 782.49443,236.40268 L 784.33966,235.91769 L 785.64358,236.93416 L 789.28683,238.75579 L 791.22676,240.53406 L 792.60088,241.82734 L 791.83916,247.38228 L 786.00425,244.84106 L 781.759,243.21904 L 781.65786,248.39747 L 778.91022,253.9342 L 776.38019,256.36086 L 775.1881,259.11025 L 772.54452,259.61035 L 771.64668,263.21223 L 770.60345,267.1619 L 766.63521,267.50264 L 764.31148,265.06376 L 763.24033,265.62317 L 762.60765,271.09287 L 761.25736,274.62737 L 756.29896,285.58234 L 757.19565,286.74304 L 756.98979,288.65158 L 754.1811,292.53605 L 752.3726,291.99176 L 749.40455,294.1515 L 746.86217,293.57929 L 744.86294,298.13486 C 744.86294,298.13486 741.60363,299.56508 740.94003,299.50258 C 740.77952,299.48746 738.47093,298.25348 738.47093,298.25348 L 736.13441,299.63285 L 733.72461,300.67725 L 729.97992,299.78813 L 728.85852,298.61985 L 726.6663,295.59649 L 723.52371,293.60837 L 721.81214,289.98513 L 717.52726,286.51694 L 716.88061,284.25369 L 714.29404,282.79874 L 713.48573,281.18214 L 713.24324,275.92816 L 715.42566,275.84733 L 717.3656,275.03903 L 717.52726,272.2908 L 719.14386,270.83585 L 719.30552,265.82437 L 720.27548,261.94451 L 721.56877,261.29787 L 722.86205,262.42949 L 723.34704,264.20776 L 725.12531,263.23779 L 725.61029,261.62119 L 724.47867,259.84292 L 724.47867,257.41801 L 725.44863,256.12472 L 727.71188,252.72985 L 729.00516,251.27491 L 731.10676,251.75989 L 733.37,250.14327 L 736.44155,246.7484 L 738.70481,242.86854 L 739.02813,237.21043 L 739.51311,232.19894 L 739.51311,227.51078 L 738.38149,224.43923 L 739.35145,222.98427 L 740.63493,221.69099 L 744.12618,241.51811 L 748.75719,240.76696 L 761.18551,238.96731 z",
-	      oh: "M 735.32497,193.32832 L 729.23143,197.38167 L 725.35158,199.64492 L 721.95671,203.36311 L 717.9152,207.24296 L 714.68199,208.05126 L 711.7721,208.53624 L 706.27564,211.12281 L 704.17406,211.28447 L 700.77919,208.21292 L 695.60605,208.85957 L 693.01949,207.40462 L 690.63842,206.05379 L 685.74585,206.7572 L 675.56123,208.37381 L 664.35436,210.55854 L 665.64765,225.18882 L 667.42592,238.92999 L 670.01248,262.37079 L 670.5783,267.20196 L 674.70065,267.07294 L 677.12556,266.26463 L 680.48936,267.76777 L 682.55985,272.1326 L 687.69879,272.1155 L 689.59053,274.2342 L 691.3517,274.1689 L 693.89009,272.82744 L 696.39426,273.19894 L 701.81554,273.68162 L 703.54251,271.54894 L 705.88816,270.25566 L 707.95865,269.57481 L 708.60529,272.32305 L 710.38357,273.29301 L 713.85926,275.63708 L 716.04168,275.55626 L 717.3748,275.06378 L 717.55951,272.30225 L 719.14487,270.84729 L 719.24403,266.05457 C 719.24403,266.05457 720.26799,261.94551 720.26799,261.94551 L 721.56726,261.34423 L 722.88861,262.49197 L 723.42676,264.18899 L 725.14589,263.15157 L 725.58487,261.69082 L 724.46818,259.78776 L 724.53447,257.47333 L 725.28347,256.40102 L 727.43623,253.09454 L 728.48645,251.5512 L 730.58804,252.03618 L 732.85129,250.41957 L 735.92284,247.0247 L 738.69433,242.94597 L 739.01466,237.89046 L 739.49964,232.87897 L 739.32286,227.57209 L 738.36802,224.67731 L 738.71926,223.48753 L 740.52365,221.73742 L 738.23486,212.69009 L 735.32497,193.32832 z",
-	      ind: "M 619.56954,299.97132 L 619.63482,297.11274 L 620.11981,292.58623 L 622.38305,289.67635 L 624.16133,285.79648 L 626.74789,281.59331 L 626.26291,275.77352 L 624.48465,273.02529 L 624.16133,269.79208 L 624.96963,264.29561 L 624.48465,257.3442 L 623.19135,241.33979 L 621.89807,225.98203 L 620.9276,214.26201 L 623.99866,215.15152 L 625.45361,216.12148 L 626.58523,215.79816 L 628.68682,213.85824 L 631.51639,212.24125 L 636.60919,212.07921 L 658.59506,209.81595 L 664.17079,209.28279 L 665.67393,225.239 L 669.92528,262.08055 L 670.52374,267.85215 L 670.15224,270.1154 L 671.38022,271.91077 L 671.47661,273.28332 L 668.95532,274.88283 L 665.41589,276.43414 L 662.21376,276.98442 L 661.6153,281.85135 L 657.04061,285.16382 L 654.24419,289.17426 L 654.56751,291.55099 L 653.98617,293.08519 L 650.6597,293.08519 L 649.07417,291.46859 L 646.58086,292.73079 L 643.8979,294.23393 L 644.05957,297.28838 L 642.86578,297.54641 L 642.3979,296.52827 L 640.23102,295.02513 L 636.9807,296.36661 L 635.42939,299.37286 L 633.99155,298.56456 L 632.5366,296.96505 L 628.07226,297.45004 L 622.47943,298.42 L 619.56954,299.97132 z",
-	      il: "M 619.54145,300.34244 L 619.5727,297.11273 L 620.14009,292.46677 L 622.47262,289.55091 L 624.33927,285.47515 L 626.57229,281.47982 L 626.20079,276.22742 L 624.19558,272.68485 L 624.0992,269.33817 L 624.79403,264.06866 L 623.96862,256.89029 L 622.90228,241.11284 L 621.609,226.0955 L 620.68672,214.4563 L 620.41421,213.53491 L 619.60591,210.94834 L 618.31263,207.23015 L 616.69602,205.45188 L 615.24108,202.86532 L 615.00751,197.37636 L 569.21108,199.97461 L 569.4397,202.34656 L 571.72593,203.03243 L 572.64041,204.17554 L 573.09766,206.00452 L 576.98424,209.43386 L 577.67012,211.72009 L 576.98424,215.14943 L 575.15526,218.80739 L 574.4694,221.32223 L 572.18317,223.15122 L 570.35419,223.83709 L 565.09587,225.20882 L 564.41,227.0378 L 563.72413,229.09541 L 564.41,230.46715 L 566.23898,232.06751 L 566.01036,236.18271 L 564.18137,237.78307 L 563.49551,239.38343 L 563.49551,242.1269 L 561.66653,242.58414 L 560.06617,243.72726 L 559.83755,245.099 L 560.06617,247.1566 L 558.3515,248.47117 L 557.3227,251.27181 L 557.77994,254.92976 L 560.06617,262.24569 L 567.3821,269.79024 L 572.86903,273.4482 L 572.64041,277.79203 L 573.55491,279.16377 L 579.95634,279.62101 L 582.69981,280.99275 L 582.01395,284.65071 L 579.72772,290.5949 L 579.04185,293.79562 L 581.32807,297.6822 L 587.72951,302.94052 L 592.30197,303.62639 L 594.35956,308.65609 L 596.41717,311.8568 L 595.50268,314.82889 L 597.10304,318.9441 L 598.93202,321.00171 L 600.34605,320.12102 L 601.25371,318.04623 L 603.46679,316.29903 L 605.59826,315.68463 L 608.20079,316.86443 L 611.82778,318.24013 L 613.01673,317.9419 L 613.2166,315.68345 L 611.9293,313.27166 L 612.23352,310.89494 L 614.07192,309.54749 L 617.09446,308.7372 L 618.35536,308.27868 L 617.74275,306.8918 L 616.95138,304.53743 L 618.38398,303.55647 L 619.54145,300.34244 z",
-	      ct: "M 874.06831,178.86288 L 870.39088,163.98407 L 865.67206,164.90438 L 844.44328,169.64747 L 845.44347,172.87314 L 846.89842,180.14788 L 847.0752,189.1148 L 845.85518,191.28967 L 847.77597,193.22201 L 852.0475,189.31637 L 855.60403,186.08316 L 857.54395,183.98157 L 858.35226,184.62821 L 861.10048,183.17327 L 866.27362,182.04165 L 874.06831,178.86288 z",
-	      wi: "M 615.06589,197.36866 L 614.99915,194.21124 L 613.82004,189.68474 L 613.1734,183.54165 L 612.04178,181.11674 L 613.01174,178.04519 L 613.82004,175.1353 L 615.27499,172.54874 L 614.62834,169.15387 L 613.9817,165.59734 L 614.46668,163.81907 L 616.40661,161.39416 L 616.56827,158.64593 L 615.75997,157.35265 L 616.40661,154.76608 L 615.95409,150.59537 L 618.70232,144.93726 L 621.61221,138.14752 L 621.77387,135.88427 L 621.45055,134.91431 L 620.64224,135.39929 L 616.43907,141.70405 L 613.69084,145.74556 L 611.75092,147.52383 L 610.94262,149.78707 L 608.98767,150.59537 L 607.85605,152.5353 L 606.4011,152.21198 L 606.23944,150.43371 L 607.53273,148.00881 L 609.63431,143.32065 L 611.41258,141.70405 L 612.40341,139.3462 L 609.84296,137.44486 L 607.86814,127.07787 L 604.32067,125.73589 L 602.37441,123.42756 L 590.2447,120.70592 L 587.36881,119.69387 L 579.15569,117.52658 L 571.23777,116.36783 L 567.47261,111.23716 L 566.72221,111.79117 L 565.5243,111.62951 L 564.87765,110.49789 L 563.54364,110.79444 L 562.41201,110.9561 L 560.63375,111.92606 L 559.66378,111.27942 L 560.31043,109.33949 L 562.25035,106.26794 L 563.38197,105.13632 L 561.44205,103.68138 L 559.34046,104.48968 L 556.43057,106.4296 L 548.99419,109.66281 L 546.0843,110.30945 L 543.17442,109.82447 L 542.19269,108.94622 L 540.07599,111.7814 L 539.84737,114.52487 L 539.84737,122.9839 L 538.70425,124.58427 L 533.44593,128.47084 L 531.15971,134.41503 L 531.61695,134.64365 L 534.1318,136.70126 L 534.81766,139.90198 L 532.98868,143.10269 L 532.98868,146.98928 L 533.44593,153.61933 L 536.41802,156.59143 L 539.84737,156.59143 L 541.67635,159.79215 L 545.10568,160.24939 L 548.99227,165.96496 L 556.07957,170.08017 L 558.13717,172.82364 L 559.05167,180.25388 L 559.73753,183.5689 L 562.02376,185.16926 L 562.25238,186.541 L 560.19478,189.97033 L 560.4234,193.17106 L 562.93825,197.05764 L 565.4531,198.20075 L 568.42519,198.65799 L 569.76753,200.03811 L 615.06589,197.36866 z",
-	      nc: "M 834.98153,294.31554 L 837.06653,299.23289 L 840.62306,305.69931 L 843.04796,308.12422 L 843.6946,310.38747 L 841.2697,310.54913 L 842.078,311.19577 L 841.75468,315.39894 L 839.16811,316.69222 L 838.52147,318.79381 L 837.22819,321.7037 L 833.50999,323.3203 L 831.08509,322.99698 L 829.63014,322.83532 L 828.01354,321.54204 L 828.33686,322.83532 L 828.33686,323.80529 L 830.27679,323.80529 L 831.08509,325.09857 L 829.14516,331.40333 L 833.34833,331.40333 L 833.99498,333.01993 L 836.25822,330.75669 L 837.55151,330.2717 L 835.61158,333.82823 L 832.54003,338.67805 L 831.24675,338.67805 L 830.11512,338.19307 L 827.3669,338.83971 L 822.19376,341.26462 L 815.72734,346.59941 L 812.33247,351.28756 L 810.39255,357.75398 L 809.90757,360.17889 L 805.21941,360.66387 L 799.76628,362.00053 L 789.81987,353.798 L 777.21033,346.19995 L 774.30044,345.39164 L 761.69091,346.84659 L 757.41445,347.59674 L 755.79785,344.36352 L 752.82749,342.24682 L 736.3381,342.7318 L 729.06336,343.5401 L 720.01037,348.06661 L 713.86726,350.65317 L 692.68971,353.23975 L 693.1898,349.18542 L 694.96807,347.73048 L 697.71631,347.08383 L 698.36295,343.36563 L 702.56613,340.61741 L 706.44598,339.16245 L 710.64917,335.60592 L 715.014,333.50433 L 715.66064,330.43277 L 719.5405,326.55292 L 720.18714,326.39126 C 720.18714,326.39126 720.18714,327.52289 720.99545,327.52289 C 721.80375,327.52289 722.93538,327.84621 722.93538,327.84621 L 725.19863,324.28967 L 727.30022,323.64302 L 729.56346,323.96635 L 731.18008,320.40982 L 734.08997,317.82324 L 734.57495,315.72165 L 734.76245,312.07346 L 739.03895,312.05094 L 746.23754,311.19515 L 761.99477,308.94272 L 777.13081,306.85615 L 798.77129,302.1368 L 818.75461,297.87823 L 829.93155,295.47242 L 834.98153,294.31554 z M 839.25199,327.52211 L 841.83857,325.01636 L 844.99095,322.42978 L 846.52673,321.78314 L 846.68839,319.76238 L 846.04175,313.61926 L 844.5868,311.27518 L 843.94015,309.41608 L 844.66763,309.17358 L 847.41587,314.67006 L 847.82002,319.11573 L 847.65836,322.51062 L 844.26348,324.04639 L 841.43441,326.47131 L 840.30279,327.68377 L 839.25199,327.52211 z",
-	      dc: "M 805.81945,250.84384 L 803.96117,249.01967 L 802.72854,248.33338 L 804.17155,246.31091 L 807.06064,248.25941 L 805.81945,250.84384 z",
-	      ma: "M 899.62349,173.25394 L 901.79541,172.56806 L 902.25267,170.85339 L 903.28147,170.9677 L 904.31027,173.25394 L 903.05285,173.71118 L 899.16625,173.8255 L 899.62349,173.25394 z M 890.24995,174.05412 L 892.53617,171.42495 L 894.13654,171.42495 L 895.96553,172.911 L 893.56499,173.9398 L 891.39307,174.9686 L 890.24995,174.05412 z M 855.45082,152.06593 L 873.09769,147.42525 L 875.36095,146.77861 L 877.27503,143.9829 L 881.0118,142.31959 L 883.90104,146.73243 L 881.47613,151.90557 L 881.15281,153.36051 L 883.09274,155.94708 L 884.22436,155.13878 L 886.00263,155.13878 L 888.26587,157.72534 L 892.14573,163.70678 L 895.70226,164.19176 L 897.9655,163.2218 L 899.74377,161.44353 L 898.93546,158.69531 L 896.83388,157.0787 L 895.37893,157.887 L 894.40897,156.59372 L 894.89395,156.10874 L 896.99554,155.94708 L 898.7738,156.75538 L 900.71373,159.18029 L 901.68369,162.09018 L 902.00701,164.51508 L 897.80384,165.97003 L 893.92399,167.90995 L 890.04414,172.43645 L 888.10421,173.89139 L 888.10421,172.92143 L 890.52912,171.46648 L 891.0141,169.68822 L 890.2058,166.61667 L 887.29591,168.07161 L 886.48761,169.52656 L 886.97259,171.7898 L 884.90626,172.79023 L 882.15906,168.2631 L 878.76418,163.89826 L 876.69368,162.08579 L 870.16041,163.96199 L 865.06808,165.01278 L 844.39292,169.60499 L 843.72516,164.83714 L 844.3718,154.24837 L 848.66107,153.35923 L 855.45082,152.06593 z",
-	      tn: "M 696.67788,318.25411 L 644.78479,323.2656 L 629.02523,325.04386 L 624.40403,325.55657 L 620.53568,325.52885 L 620.31471,329.62968 L 612.12933,329.89369 L 605.17792,330.54033 L 597.08709,330.41647 L 595.67331,337.48933 L 593.97708,342.96938 L 590.68391,345.72022 L 589.33517,350.10128 L 589.01185,352.68785 L 584.97033,354.95109 L 586.42527,358.50763 L 585.45531,362.87247 L 584.48693,363.66212 L 692.64548,353.25457 L 693.04875,349.29963 L 694.85948,347.80924 L 697.69363,347.05979 L 698.36556,343.34281 L 702.46416,340.63785 L 706.51109,339.14382 L 710.59467,335.57349 L 715.03076,333.54803 L 715.55202,330.48068 L 719.61662,326.49569 L 720.16742,326.38152 C 720.16742,326.38152 720.19867,327.51314 721.00697,327.51314 C 721.81527,327.51314 722.9469,327.86771 722.9469,327.86771 L 725.21015,324.27992 L 727.28049,323.63328 L 729.5556,323.92849 L 731.15391,320.39563 L 734.10916,317.75172 L 734.53084,315.81261 L 734.8398,312.10146 L 732.69325,311.90169 L 730.09157,313.93002 L 723.09826,313.95909 L 704.73897,316.34591 L 696.67788,318.25411 z",
-	      ar: "M 593.82477,343.05296 L 589.84489,343.76966 L 584.73274,343.13563 L 585.15344,341.53356 L 588.13319,338.96687 L 589.07657,335.31062 L 587.24759,332.33852 L 508.83002,334.85337 L 510.43038,341.71206 L 510.43037,349.94248 L 511.80212,360.91647 L 512.03074,398.7534 L 514.31697,400.69669 L 517.28906,399.32496 L 520.03254,400.46807 L 520.71288,407.04137 L 576.33414,405.90077 L 577.47977,403.8104 L 577.19315,400.26089 L 575.36752,397.28879 L 576.96621,395.80358 L 575.36752,393.29208 L 576.05172,390.78225 L 577.42011,385.17682 L 579.9383,383.11419 L 579.25243,380.82963 L 582.9104,375.45784 L 585.65387,374.08945 L 585.54039,372.59587 L 585.19495,370.77023 L 588.0519,365.1715 L 590.45494,363.91491 L 590.83907,360.48728 L 592.60974,359.24558 L 589.46622,358.76131 L 588.12476,354.75087 L 590.92884,352.37416 L 591.4791,350.35496 L 592.75858,346.30835 L 593.82477,343.05296 z",
-	      mo: "M 558.44022,248.11316 L 555.92035,245.02591 L 554.77723,242.73968 L 490.42,245.14022 L 488.13374,245.25453 L 489.39117,247.76938 L 489.16255,250.0556 L 491.67739,253.94219 L 494.76379,258.0574 L 497.8502,260.80087 L 500.01143,261.02949 L 501.50816,261.94399 L 501.50816,264.91608 L 499.67919,266.51644 L 499.22193,268.80266 L 501.27954,272.23201 L 503.7944,275.2041 L 506.30924,277.03308 L 507.68097,288.69283 L 507.99511,324.76504 L 508.22373,329.45179 L 508.68097,334.8353 L 531.11396,333.96848 L 554.31999,333.28261 L 575.12465,332.4816 L 586.77939,332.2513 L 588.94879,335.6773 L 588.2646,338.9848 L 585.17735,341.38784 L 584.60496,343.22518 L 589.98345,343.68244 L 593.87841,342.99656 L 595.59559,337.50293 L 596.24701,331.64614 L 598.34504,329.09098 L 600.94107,327.60409 L 600.9925,324.55385 L 602.00852,322.61737 L 600.31429,320.0736 L 598.98336,321.05786 L 596.99074,318.83062 L 595.70571,314.07162 L 596.50672,311.55342 L 594.56259,308.12576 L 592.73195,303.54996 L 587.93254,302.75062 L 580.96374,297.15187 L 579.24488,293.03834 L 580.04423,289.83762 L 582.1035,283.77995 L 582.56242,280.91632 L 580.61328,279.88501 L 573.75794,279.08734 L 572.72997,277.37518 L 572.61817,273.14482 L 567.13123,269.71381 L 560.15572,261.94231 L 557.8695,254.62638 L 557.63921,250.40106 L 558.44022,248.11316 z",
-	      ga: "M 672.29229,355.5518 L 672.29229,357.73422 L 672.45395,359.83582 L 673.10059,363.23069 L 676.49547,371.15206 L 678.92038,381.01337 L 680.37532,387.15648 L 681.99193,392.00629 L 683.44688,398.9577 L 685.54847,405.26247 L 688.13504,408.65735 L 688.62002,412.05222 L 690.55995,412.86052 L 690.72161,414.96212 L 688.94334,419.81193 L 688.45836,423.04515 L 688.2967,424.98508 L 689.91331,429.34992 L 690.23663,434.68472 L 689.42832,437.10963 L 690.07497,437.91794 L 691.52992,438.72624 L 691.73462,441.94433 L 693.96763,445.29386 L 696.21807,447.45591 L 704.13945,447.61757 L 714.9592,446.97093 L 736.47159,445.67765 L 741.91731,445.00328 L 746.49456,445.03101 L 746.65622,447.9409 L 749.24279,448.7492 L 749.56611,444.38436 L 747.9495,439.85786 L 749.08113,438.24126 L 754.90091,439.04956 L 759.87832,439.36734 L 759.1029,433.06855 L 761.36614,423.0456 L 762.82109,418.84242 L 762.3361,416.25586 L 765.67051,410.01156 L 765.16021,408.65988 L 763.2468,409.36446 L 760.66024,408.07116 L 760.01359,405.96957 L 758.72031,402.41304 L 756.45705,400.31145 L 753.87049,399.66481 L 752.25388,394.81499 L 749.32887,388.47999 L 745.1257,386.54006 L 743.0241,384.60013 L 741.73081,382.01356 L 739.62923,380.07363 L 737.36598,378.78034 L 735.10273,375.87045 L 732.03118,373.60721 L 727.50467,371.82893 L 727.01969,370.37399 L 724.59478,367.4641 L 724.1098,366.00915 L 720.71492,361.03867 L 717.19505,361.13784 L 713.44014,358.7817 L 712.02186,357.48842 L 711.69854,355.71015 L 712.56934,353.77023 L 714.79598,352.66009 L 714.16204,350.56287 L 672.29229,355.5518 z",
-	      sc: "M 764.94328,408.16488 L 763.16622,409.13438 L 760.57965,407.84109 L 759.93301,405.7395 L 758.63973,402.18297 L 756.37647,400.08137 L 753.7899,399.43473 L 752.1733,394.58492 L 749.42506,388.60347 L 745.22189,386.66353 L 743.12029,384.72361 L 741.82701,382.13704 L 739.72542,380.1971 L 737.46217,378.90382 L 735.19892,375.99393 L 732.12737,373.73069 L 727.60086,371.95241 L 727.11588,370.49747 L 724.69098,367.58758 L 724.20599,366.13262 L 720.81111,360.95949 L 717.41624,361.12115 L 713.37472,358.69623 L 712.08144,357.40295 L 711.75812,355.62468 L 712.56642,353.68476 L 714.82967,352.71478 L 714.31885,350.4257 L 720.08695,348.08913 L 729.20245,343.50013 L 736.97718,342.69182 L 753.09158,342.26934 L 755.72983,344.14677 L 757.40893,347.50499 L 761.71128,346.89501 L 774.32081,345.44005 L 777.2307,346.24836 L 789.84024,353.84642 L 799.94832,361.9681 L 794.52715,367.42644 L 791.94058,373.56954 L 791.4556,379.8743 L 789.839,380.6826 L 788.70737,383.43083 L 786.28247,384.07747 L 784.18088,387.634 L 781.43265,390.38223 L 779.16941,393.7771 L 777.5528,394.5854 L 773.99627,397.98027 L 771.08638,398.14193 L 772.05635,401.37514 L 767.04487,406.8716 L 764.94328,408.16488 z",
-	      ky: "M 725.9944,295.2707 L 723.70108,297.67238 L 720.12289,301.66642 L 715.19834,307.13109 L 713.98257,308.84686 L 713.92007,310.94844 L 709.54021,313.11253 L 703.88209,316.50741 L 696.65022,318.30626 L 644.78233,323.20512 L 629.02277,324.98338 L 624.40157,325.49609 L 620.53322,325.46837 L 620.30627,329.68865 L 612.12686,329.83321 L 605.17545,330.47985 L 597.18797,330.41963 L 598.39575,329.09955 L 600.89529,327.5587 L 601.12392,324.35797 L 602.03841,322.52899 L 600.43159,319.99009 L 601.23342,318.08328 L 603.49668,316.30502 L 605.59826,315.65837 L 608.34649,316.95166 L 611.90303,318.24494 L 613.03466,317.92162 L 613.19632,315.65837 L 611.90303,313.23346 L 612.22635,310.97021 L 614.16628,309.51527 L 616.75286,308.86862 L 618.36946,308.22198 L 617.56116,306.44371 L 616.91452,304.50378 L 618.42114,303.50798 C 618.42442,303.47086 619.6751,299.98569 619.65943,299.85017 L 622.71265,298.37149 L 628.03244,297.40153 L 632.52648,296.91655 L 633.91892,298.54398 L 635.44719,299.41478 L 637.03796,296.30657 L 640.22504,295.02395 L 642.43013,296.50798 L 642.84069,297.50702 L 644.01421,297.24301 L 643.85254,294.29008 L 646.98341,292.54089 L 649.1315,291.46741 L 650.66086,293.12822 L 653.97901,293.08402 L 654.56634,291.51277 L 654.19883,289.24953 L 656.79936,285.25103 L 661.57591,281.81313 L 662.28186,276.97727 L 665.20688,276.52136 L 668.99834,274.87568 L 671.44166,273.16744 L 671.24333,271.60251 L 670.10088,270.14757 L 670.6667,267.15266 L 674.85155,267.03516 L 677.15146,266.28936 L 680.49885,267.71846 L 682.55296,272.0833 L 687.68525,272.09412 L 689.73626,274.30231 L 691.35171,274.15461 L 693.9534,272.87644 L 699.19046,273.44981 L 701.76538,273.66732 L 703.45296,271.61108 L 706.07091,270.1852 L 707.95269,269.4781 L 708.59933,272.31473 L 710.64276,273.37307 L 713.28552,275.45556 L 713.40299,281.1288 L 714.21129,282.70121 L 716.80101,284.25749 L 717.57265,286.552 L 721.73254,289.98894 L 723.53785,293.61218 L 725.9944,295.2707 z",
-	      al: "M 631.30647,460.41572 L 629.81587,446.09422 L 627.06763,427.34158 L 627.22929,413.27709 L 628.03759,382.23824 L 627.87593,365.58718 L 628.04102,359.16812 L 672.5255,355.54867 L 672.3777,357.73109 L 672.53936,359.83269 L 673.18601,363.22756 L 676.58089,371.14893 L 679.00579,381.01024 L 680.46074,387.15335 L 682.07734,392.00317 L 683.5323,398.95458 L 685.63388,405.25934 L 688.22045,408.65423 L 688.70543,412.04909 L 690.64537,412.8574 L 690.80703,414.95899 L 689.02875,419.80881 L 688.54377,423.04203 L 688.38211,424.98195 L 689.99873,429.3468 L 690.32205,434.68159 L 689.51373,437.10651 L 690.16039,437.91481 L 691.61533,438.72311 L 691.94347,441.61193 L 686.34581,441.25838 L 679.55606,441.90503 L 654.01366,444.81491 L 643.6021,446.22168 L 643.38072,449.09908 L 645.15899,450.87735 L 647.74556,452.81727 L 648.32642,460.75271 L 642.78436,463.32561 L 640.03614,463.00229 L 642.78436,461.06236 L 642.78436,460.0924 L 639.71282,454.11096 L 637.44957,453.46432 L 635.99462,457.82915 L 634.70134,460.57738 L 634.0547,460.41572 L 631.30647,460.41572 z",
-	      la: "M 607.96706,459.16125 L 604.68245,455.99511 L 605.69236,450.49488 L 605.03101,449.6018 L 595.76934,450.60836 L 570.74102,451.06728 L 570.05683,448.6726 L 570.96964,440.2169 L 574.28552,434.27105 L 579.31688,425.58003 L 578.74281,423.18201 L 579.9994,422.50116 L 580.45833,420.54867 L 578.17209,418.49274 L 578.0603,416.55029 L 576.22964,412.20478 L 576.08259,405.86618 L 520.6088,406.79015 L 520.63737,416.36372 L 521.32324,425.73725 L 522.00911,429.62383 L 524.52396,433.73904 L 525.43845,438.76875 L 529.78228,444.25568 L 530.0109,447.4564 L 530.69677,448.14227 L 530.0109,456.60131 L 527.03881,461.631 L 528.63917,463.68861 L 527.95329,466.20345 L 527.26743,473.51938 L 525.89569,476.72009 L 526.01815,480.33654 L 530.70463,478.81639 L 542.81798,479.0234 L 553.16425,482.57993 L 559.63067,483.71156 L 563.34886,482.25661 L 566.58207,483.38824 L 569.81528,484.3582 L 570.62358,482.25661 L 567.39037,481.12499 L 564.8038,481.60997 L 562.05557,479.99337 C 562.05557,479.99337 562.21724,478.70008 562.86388,478.53842 C 563.51052,478.37676 565.93543,477.56846 565.93543,477.56846 L 567.71369,479.0234 L 569.49196,478.05344 L 572.72517,478.70008 L 574.18011,481.12499 L 574.50343,483.38824 L 579.02992,483.71156 L 580.80819,485.48982 L 579.99989,487.10643 L 578.7066,487.91473 L 580.32321,489.53133 L 588.72955,493.08786 L 592.28608,491.79458 L 593.25605,489.36967 L 595.84261,488.72303 L 597.62088,487.26809 L 598.91416,488.23805 L 599.72246,491.14794 L 597.45922,491.95624 L 598.10586,492.60288 L 601.50073,491.3096 L 603.76398,487.91473 L 604.57228,487.42975 L 602.47069,487.10643 L 603.27899,485.48982 L 603.11733,484.03488 L 605.21892,483.5499 L 606.35054,482.25661 L 606.99718,483.06491 C 606.99718,483.06491 606.83552,486.13646 607.64383,486.13646 C 608.45213,486.13646 611.847,486.78311 611.847,486.78311 L 615.88851,488.72303 L 616.85847,490.17798 L 619.76836,490.17798 L 620.89999,491.14794 L 623.16323,488.07639 L 623.16323,486.62144 L 621.86995,486.62144 L 618.47508,483.87322 L 612.6553,483.06491 L 609.42209,480.80167 L 610.55372,478.05344 L 612.81696,478.37676 L 612.97862,477.73012 L 611.20036,476.76016 L 611.20036,476.27517 L 614.43357,476.27517 L 616.21183,473.20363 L 614.91855,471.2637 L 614.59523,468.51547 L 613.14028,468.67713 L 611.20036,470.77872 L 610.55372,473.36529 L 607.48217,472.71864 L 606.5122,470.94038 L 608.29047,469.00045 L 610.1938,465.55485 L 609.1327,463.14258 L 607.96706,459.16125 z",
-	      ms: "M 631.55882,459.34458 L 631.30456,460.60073 L 626.13142,460.60073 L 624.67648,459.79243 L 622.57489,459.46911 L 615.78515,461.40903 L 614.00689,460.60073 L 611.42032,464.8039 L 610.31778,465.58192 L 609.19395,463.09394 L 608.05083,459.20735 L 604.6215,456.00664 L 605.7646,450.46209 L 605.07874,449.5476 L 603.24976,449.77622 L 595.33184,450.64959 L 570.78534,451.02296 L 570.0156,448.7976 L 570.88897,440.4208 L 574.00581,434.74799 L 579.23288,425.60309 L 578.78714,423.17049 L 580.024,422.51424 L 580.45987,420.59477 L 578.14239,418.51579 L 578.02727,416.37431 L 576.19155,412.25322 L 576.08255,406.29045 L 577.41008,403.80948 L 577.18678,400.39373 L 575.41729,397.31114 L 576.94371,395.82893 L 575.3731,393.32939 L 575.83035,391.67718 L 577.40775,385.15081 L 579.8937,383.11446 L 579.25203,380.74749 L 582.91,375.44496 L 585.74186,374.08854 L 585.52089,372.41338 L 585.23276,370.73228 L 588.10882,365.16461 L 590.45454,363.9331 L 590.60617,363.04009 L 627.94965,359.15892 L 628.13451,365.44225 L 628.29617,382.09331 L 627.48787,413.13216 L 627.32621,427.19665 L 630.07445,445.94929 L 631.55882,459.34458 z",
-	      ia: "M 569.19154,199.5843 L 569.45592,202.3705 L 571.67964,202.94776 L 572.63358,204.17309 L 573.13359,206.02845 L 576.92643,209.3871 L 577.6123,211.7786 L 576.93796,215.20307 L 575.35565,218.43505 L 574.55631,221.17684 L 572.38356,222.77888 L 570.66805,223.35128 L 565.08903,225.21148 L 563.69757,229.06017 L 564.42621,230.43191 L 566.26672,232.1145 L 565.98379,236.15079 L 564.22064,237.68865 L 563.44923,239.33179 L 563.57645,242.10811 L 561.69014,242.56535 L 560.06469,243.67026 L 559.7859,245.02289 L 560.06469,247.13781 L 558.51367,248.25388 L 556.04314,245.1206 L 554.78057,242.67073 L 489.04475,245.18558 L 488.12672,245.35102 L 486.07432,240.83506 L 485.8457,234.20499 L 484.24534,230.08978 L 483.55948,224.83147 L 481.27325,221.1735 L 480.35877,216.37243 L 477.61529,208.82788 L 476.47218,203.45524 L 475.10044,201.28333 L 473.50008,198.53987 L 475.45406,193.69604 L 476.8258,187.98047 L 474.08233,185.92286 L 473.62508,183.17939 L 474.53958,180.66454 L 476.25425,180.66454 L 558.90825,179.39506 L 559.74251,183.57818 L 561.99469,185.13915 L 562.2514,186.56224 L 560.22186,189.95155 L 560.41227,193.15707 L 562.92713,196.95527 L 565.45392,198.24889 L 568.5332,198.75194 L 569.19154,199.5843 z",
-	      mn: "M 475.23781,128.82439 L 474.78056,120.36535 L 472.95158,113.04943 L 471.1226,99.560705 L 470.66535,89.729927 L 468.83637,86.300584 L 467.23601,81.270889 L 467.23601,70.982869 L 467.92187,67.096282 L 466.10094,61.644615 L 496.23336,61.679886 L 496.55668,53.435202 L 497.20332,53.273541 L 499.46657,53.758523 L 501.40649,54.566825 L 502.21479,60.063281 L 503.66974,66.206379 L 505.28634,67.822984 L 510.13616,67.822984 L 510.45948,69.277928 L 516.76424,69.601249 L 516.76424,71.702835 L 521.61405,71.702835 L 521.93737,70.409551 L 523.06899,69.277928 L 525.33224,68.631286 L 526.62552,69.601249 L 529.53541,69.601249 L 533.41526,72.187816 L 538.75006,74.612723 L 541.17497,75.097705 L 541.65995,74.127742 L 543.11489,73.64276 L 543.59987,76.552649 L 546.18644,77.845933 L 546.67142,77.360951 L 547.96471,77.522612 L 547.96471,79.624198 L 550.55127,80.594161 L 553.62282,80.594161 L 555.23943,79.785858 L 558.47264,76.552649 L 561.0592,76.067668 L 561.86751,77.845933 L 562.35249,79.139216 L 563.32245,79.139216 L 564.29241,78.330914 L 573.18374,78.007593 L 574.962,81.079142 L 575.60865,81.079142 L 576.32226,79.994863 L 580.76217,79.624198 L 580.15007,81.903657 L 576.21135,83.740782 L 566.96557,87.80191 L 562.19083,89.808807 L 559.11928,92.395375 L 556.69437,95.951905 L 554.43113,99.831756 L 552.65286,100.64006 L 548.12637,105.65153 L 546.83308,105.81319 L 542.5053,108.57031 L 540.04242,111.77542 L 539.8138,114.96681 L 539.90816,123.01016 L 538.53212,124.69891 L 533.45058,128.45888 L 531.2205,134.44129 L 534.09225,136.675 L 534.77214,139.90198 L 532.9169,143.14091 L 533.08769,146.88893 L 533.45655,153.61933 L 536.4848,156.62132 L 539.8138,156.62132 L 541.70491,159.75392 L 545.08408,160.25719 L 548.94324,165.92866 L 556.03053,170.04541 L 558.17368,172.92053 L 558.84483,179.36004 L 477.63333,180.50483 L 477.29541,144.82798 L 476.83817,141.85589 L 472.72296,138.42655 L 471.57984,136.59757 L 471.57984,134.9972 L 473.63744,133.39685 L 475.00918,132.02511 L 475.23781,128.82439 z",
-	      ok: "M 380.34313,320.82146 L 363.65895,319.54815 L 362.77873,330.50058 L 383.24411,331.65746 L 415.29966,332.96106 L 412.96506,357.37971 L 412.50781,375.21228 L 412.73644,376.81264 L 417.08027,380.4706 L 419.13787,381.61371 L 419.82374,381.38509 L 420.50961,379.32748 L 421.88135,381.15647 L 423.93895,381.15647 L 423.93895,379.78473 L 426.68242,381.15647 L 426.22518,385.04305 L 430.34039,385.27167 L 432.85523,386.41479 L 436.97044,387.10066 L 439.48529,388.92964 L 441.77152,386.87204 L 445.20086,387.5579 L 447.71571,390.98724 L 448.63019,390.98724 L 448.63019,393.27347 L 450.91642,393.95933 L 453.20264,391.67311 L 455.03163,392.35897 L 457.54647,392.35897 L 458.46097,394.87383 L 464.76204,396.9528 L 466.13378,396.26694 L 467.96276,392.15173 L 469.10587,392.15173 L 470.24899,394.20933 L 474.3642,394.8952 L 478.02215,396.26694 L 480.99425,397.18143 L 482.82324,396.26694 L 483.5091,393.75209 L 487.85293,393.75209 L 489.91053,394.66658 L 492.654,392.60897 L 493.79712,392.60897 L 494.48299,394.20933 L 498.59819,394.20933 L 500.19855,392.15173 L 502.02754,392.60897 L 504.08514,395.12383 L 507.28585,396.9528 L 510.48658,397.8673 L 512.42766,398.98623 L 512.03856,361.76922 L 510.66681,350.79524 L 510.50635,341.9229 L 509.06646,335.38517 L 508.28826,328.20553 L 508.22012,324.38931 L 496.08328,324.70805 L 449.67324,324.25081 L 404.63433,322.19319 L 380.34313,320.82146 z",
-	      tx: "M 361.46423,330.57358 L 384.15502,331.65952 L 415.24771,332.80264 L 412.9131,356.25844 L 412.61634,374.41196 L 412.68448,376.49375 L 417.02831,380.31218 L 419.01496,381.75934 L 420.19917,381.19965 L 420.57254,379.38193 L 421.71286,381.18555 L 423.8245,381.22948 L 423.82183,379.78239 L 425.49177,380.74966 L 426.63047,381.15853 L 426.2712,385.12618 L 430.35939,385.21969 L 433.28471,386.41686 L 437.23945,386.94224 L 439.62083,389.02122 L 441.74493,386.94505 L 445.46987,387.55996 L 447.69078,390.7849 L 448.76574,391.10586 L 448.60527,393.07113 L 450.81888,393.86342 L 453.14903,391.80862 L 455.28205,392.42354 L 457.51143,392.45902 L 458.4445,394.89446 L 464.77259,397.00891 L 466.36564,396.24198 L 467.85511,392.06427 L 468.19583,392.06427 L 469.10232,392.14591 L 470.33137,394.21454 L 474.26125,394.87982 L 477.59825,396.0027 L 481.02388,397.19867 L 482.86446,396.22367 L 483.57822,393.70883 L 488.03144,393.75303 L 489.84018,394.68381 L 492.63943,392.5773 L 493.74307,392.6215 L 494.59411,394.22657 L 498.64883,394.22657 L 500.1677,392.19795 L 502.03507,392.60519 L 503.9811,395.00847 L 507.50167,397.05262 L 510.36043,397.86243 L 511.87405,398.66227 L 514.32075,400.65959 L 517.36379,399.3318 L 520.05488,400.47068 L 520.61869,406.57662 L 520.57893,416.27879 L 521.26479,425.8128 L 521.96697,429.41791 L 524.6423,433.83777 L 525.54048,438.7885 L 529.75643,444.32652 L 529.95245,447.47146 L 530.69882,448.2573 L 529.96875,456.63737 L 527.09665,461.64387 L 528.62962,463.79674 L 527.99954,466.13482 L 527.32997,473.53914 L 525.82565,476.87714 L 526.12053,480.37949 L 520.45565,481.96467 L 510.59436,486.49117 L 509.6244,488.43109 L 507.03783,490.37102 L 504.93625,491.82596 L 503.64296,492.63426 L 497.98485,497.96906 L 495.23662,500.07065 L 489.90182,503.30385 L 484.24371,505.72876 L 477.93895,509.12363 L 476.16069,510.57858 L 470.34091,514.13511 L 466.94604,514.78175 L 463.06619,520.2782 L 459.02468,520.60153 L 458.05471,522.54145 L 460.31796,524.48138 L 458.86301,529.97783 L 457.56973,534.50433 L 456.43811,538.38418 L 455.62981,542.91067 L 456.43811,545.33558 L 458.21637,552.28698 L 459.18634,558.43007 L 460.9646,561.1783 L 459.99464,562.63325 L 456.92309,564.57317 L 451.26497,560.69332 L 445.76852,559.5617 L 444.47523,560.04668 L 441.24202,559.40004 L 437.03885,556.32849 L 431.86572,555.19687 L 424.26767,551.802 L 422.16609,547.92214 L 420.8728,541.45573 L 417.6396,539.5158 L 416.99295,537.25255 L 417.6396,536.60591 L 417.96292,533.21104 L 416.66963,532.5644 L 416.02299,531.59444 L 417.31627,527.2296 L 415.69967,524.96636 L 412.46646,523.67307 L 409.07159,519.30824 L 405.51506,512.68016 L 401.31189,510.09359 L 401.47355,508.15367 L 396.13875,495.86747 L 395.33045,491.6643 L 393.55219,489.72438 L 393.39053,488.26943 L 387.40909,482.93464 L 384.82252,479.86309 L 384.82252,478.73146 L 382.23595,476.62988 L 375.44621,475.49825 L 368.00983,474.85161 L 364.93828,472.58837 L 360.41179,474.36663 L 356.85526,475.82158 L 354.59201,479.05478 L 353.62205,482.77298 L 349.25722,488.91607 L 346.83231,491.34098 L 344.24574,490.37102 L 342.46748,489.23939 L 340.52755,488.59275 L 336.6477,486.32951 L 336.6477,485.68286 L 334.86944,483.74294 L 329.6963,481.64135 L 322.25992,473.88165 L 319.99667,469.1935 L 319.99667,461.11047 L 316.76346,454.64405 L 316.27848,451.89583 L 314.66188,450.92586 L 313.53025,448.82428 L 308.51878,446.72269 L 307.2255,445.10609 L 300.11243,437.18472 L 298.81915,433.95151 L 294.13099,431.68826 L 292.67604,427.32339 L 290.08945,424.41352 L 288.14954,423.92856 L 287.50031,419.25092 L 295.50218,419.93681 L 324.53717,422.68026 L 353.57225,424.28062 L 355.80578,404.8188 L 359.69233,349.26378 L 361.29272,330.51646 L 362.66446,330.54504 M 461.69381,560.20778 L 461.128,553.0947 L 458.37976,545.90078 L 457.81394,538.86853 L 459.34972,530.62382 L 462.66378,523.75323 L 466.13948,518.33758 L 469.29188,514.78103 L 469.93852,515.02353 L 465.16952,521.65163 L 460.80468,528.19891 L 458.78391,534.827 L 458.46059,540.00016 L 459.34972,546.14328 L 461.9363,553.3372 L 462.42128,558.51034 L 462.58294,559.9653 L 461.69381,560.20778 z",
-	      nm: "M 288.15255,424.01315 L 287.37714,419.26505 L 296.02092,419.79045 L 326.19268,422.73635 L 353.46084,424.42624 L 355.67611,405.71877 L 359.53347,349.8428 L 361.27115,330.45357 L 362.84285,330.58213 L 363.66825,319.41874 L 259.6638,308.78279 L 242.16645,429.2176 L 257.62712,431.20675 L 258.9204,421.1838 L 288.15255,424.01315 z",
-	      ks: "M 507.88059,324.38028 L 495.26233,324.58471 L 449.17324,324.12748 L 404.61576,322.06985 L 379.98602,320.81244 L 383.87981,256.21747 L 405.96327,256.89264 L 446.2524,257.73404 L 490.55364,258.72162 L 495.64927,258.72162 L 497.83367,260.88402 L 499.85133,260.86264 L 501.49163,261.87511 L 501.42913,264.88434 L 499.60015,266.60971 L 499.2679,268.84188 L 501.11098,272.24421 L 504.06334,275.43927 L 506.39069,277.05373 L 507.69146,288.29455 L 507.88059,324.38028 z",
-	      ne: "M 486.09787,240.70058 L 489.32848,247.72049 L 489.19985,250.02301 L 492.65907,255.51689 L 495.37836,258.66923 L 490.32888,258.66923 L 446.84632,257.73055 L 406.05946,256.84025 L 383.80724,256.05638 L 384.88001,234.72853 L 352.56177,231.80828 L 356.9056,187.79842 L 372.45193,188.82723 L 392.57072,189.97033 L 410.40329,191.11345 L 434.18005,192.25656 L 444.92531,191.79932 L 446.98291,194.08554 L 451.78399,197.05764 L 452.9271,197.97213 L 457.27093,196.60039 L 461.15752,196.14315 L 463.90099,195.91452 L 465.72997,197.28626 L 469.7874,198.88662 L 472.75949,200.48698 L 473.21674,202.08734 L 474.13123,204.14494 L 475.96021,204.14494 L 476.75819,204.19111 L 477.65242,208.87293 L 480.57268,217.34085 L 481.14521,221.09756 L 483.6687,224.87181 L 484.23829,229.98595 L 485.84553,234.22632 L 486.09787,240.70058 z",
-	      sd: "M 476.44687,204.02465 L 476.39942,203.44378 L 473.50371,198.59834 L 475.36394,193.88623 L 476.85667,187.99969 L 474.0748,185.91998 L 473.68964,183.17652 L 474.48204,180.62217 L 477.67055,180.63738 L 477.54747,175.63124 L 477.21417,145.45699 L 476.59644,141.68941 L 472.52412,138.35848 L 471.54149,136.68152 L 471.47899,135.0727 L 473.50111,133.5433 L 475.03333,131.87763 L 475.27829,129.22084 L 417.0212,127.62049 L 362.22199,124.1714 L 356.89672,187.86259 L 371.48699,188.76639 L 391.43684,189.972 L 409.17989,190.90059 L 432.95665,192.20417 L 444.93935,191.77953 L 446.90565,194.02471 L 452.10029,197.27806 L 452.86418,198.00081 L 457.40562,196.548 L 463.94616,195.93309 L 465.62146,197.26936 L 469.82597,198.86549 L 472.77103,200.50132 L 473.17001,201.98513 L 474.2095,204.22601 L 476.44687,204.02465 z",
-	      nd: "M 475.30528,128.91846 L 474.69037,120.48479 L 473.01342,113.66887 L 471.12193,100.64465 L 470.66469,89.657624 L 468.92523,86.580482 L 467.16862,81.386086 L 467.19987,70.941816 L 467.82323,67.117729 L 465.98913,61.649968 L 437.34688,61.085941 L 418.75593,60.439299 L 392.24361,59.146015 L 369.29727,57.012146 L 362.30403,124.18898 L 417.23627,127.53263 L 475.30528,128.91846 z",
-	      wy: "M 360.37668,143.27587 L 253.63408,129.81881 L 239.5506,218.27684 L 352.81521,231.86233 L 360.37668,143.27587 z",
-	      mt: "M 369.20952,56.969133 L 338.5352,54.1613 L 309.27465,50.60477 L 280.01411,46.563258 L 247.68201,41.228463 L 229.25272,37.833593 L 196.52907,30.900857 L 192.05005,52.248389 L 195.47939,59.79293 L 194.10765,64.365382 L 195.93663,68.937833 L 199.13736,70.309572 L 203.75818,81.079025 L 206.45328,84.255548 L 206.91052,85.398666 L 210.33986,86.541784 L 210.79711,88.599377 L 203.70981,106.20333 L 203.70981,108.71818 L 206.22466,111.91889 L 207.13914,111.91889 L 211.94021,108.9468 L 212.62609,107.80368 L 214.22645,108.48955 L 213.99782,113.74787 L 216.7413,126.32212 L 219.71339,128.83696 L 220.62787,129.52283 L 222.45686,131.80905 L 221.99961,135.2384 L 222.68548,138.66773 L 223.8286,139.58223 L 226.11482,137.296 L 228.85829,137.296 L 232.05901,138.89636 L 234.57386,137.98187 L 238.68907,137.98187 L 242.34702,139.58223 L 245.0905,139.12498 L 245.54774,136.15288 L 248.51983,135.46702 L 249.89157,136.83876 L 250.34882,140.03947 L 251.77469,140.87411 L 253.66164,129.83937 L 360.40731,143.26829 L 369.20952,56.969133 z",
-	      co: "M 380.03242,320.96457 L 384.93566,234.63961 L 271.5471,221.99565 L 259.33328,309.93481 L 380.03242,320.96457 z",
-	      id: "M 148.47881,176.48395 L 157.24968,141.26323 L 158.62142,137.03371 L 161.13626,131.08953 L 159.87884,128.8033 L 157.36398,128.91761 L 156.56381,127.88881 L 157.02106,126.7457 L 157.36398,123.65929 L 161.82213,118.17234 L 163.65111,117.7151 L 164.79422,116.57199 L 165.36578,113.37127 L 166.28026,112.68541 L 170.16685,106.85553 L 174.05344,102.5117 L 174.28206,98.739432 L 170.85272,96.110269 L 169.31717,91.709286 L 182.94208,28.367595 L 196.45967,30.895706 L 192.05159,52.278719 L 195.61194,59.764071 L 194.03083,64.424911 L 196.00068,69.066144 L 199.1389,70.321335 L 202.97424,79.877923 L 206.48693,84.315077 L 206.99418,85.458195 L 210.33513,86.601313 L 210.70398,88.698388 L 203.73297,106.07448 L 203.56779,108.64041 L 206.19891,111.96211 L 207.10399,111.91321 L 212.01528,108.88761 L 212.6927,107.79264 L 214.25501,108.4515 L 213.97657,113.80522 L 216.71582,126.38793 L 220.63365,129.56584 L 222.31483,131.73129 L 221.59822,135.81515 L 222.66444,138.62256 L 223.72607,139.71384 L 226.20536,137.36242 L 229.05352,137.41131 L 231.97277,138.74651 L 234.75279,138.06458 L 238.54705,137.9041 L 242.52595,139.50446 L 245.26943,139.2077 L 245.76617,136.17039 L 248.69876,135.40556 L 249.95893,136.92147 L 250.39986,139.86643 L 251.8242,141.07964 L 243.4382,194.6883 C 243.4382,194.6883 155.47221,177.98769 148.47881,176.48395 z",
-	      ut: "M 259.49836,310.10509 L 175.74933,298.23284 L 196.33694,185.69149 L 243.11725,194.43663 L 241.63245,205.06705 L 239.32083,218.23971 L 247.12852,219.16808 L 263.53504,220.97287 L 271.74601,221.82851 L 259.49836,310.10509 z",
-	      az: "M 144.9112,382.62909 L 142.28419,384.78742 L 141.96087,386.24237 L 142.44585,387.21233 L 161.36012,397.88192 L 173.48466,405.47996 L 188.19576,414.04797 L 205.00845,424.07092 L 217.29465,426.49583 L 242.24581,429.20074 L 259.50142,310.07367 L 175.76579,298.15642 L 172.6734,314.56888 L 171.06711,314.58419 L 169.35244,317.21335 L 166.83759,317.09903 L 165.58017,314.35556 L 162.8367,314.01263 L 161.9222,312.86952 L 161.00772,312.86952 L 160.09322,313.44108 L 158.14993,314.46988 L 158.03563,321.44286 L 157.80699,323.15753 L 157.23545,335.73177 L 155.7494,337.90368 L 155.17784,341.21871 L 157.92131,346.1341 L 159.17873,351.96398 L 159.97892,352.99278 L 161.00772,353.56434 L 160.8934,355.85056 L 159.29305,357.22229 L 155.86371,358.93696 L 153.92042,360.88026 L 152.43437,364.53821 L 151.86281,369.4536 L 149.00503,372.19707 L 146.94743,372.88294 L 147.08312,373.71282 L 146.62587,375.42749 L 147.08312,376.22767 L 150.74108,376.79921 L 150.16952,379.54269 L 148.68347,381.7146 L 144.9112,382.62909 z",
-	      nv: "M 196.39273,185.57552 L 172.75382,314.39827 L 170.92158,314.74742 L 169.34882,317.1536 L 166.97588,317.16429 L 165.50393,314.42082 L 162.88546,314.0424 L 162.11454,312.93477 L 161.07671,312.88073 L 158.29834,314.52502 L 157.98808,321.3105 L 157.62599,327.08767 L 157.27742,335.68048 L 155.83032,337.76964 L 153.3914,336.69561 L 84.311514,232.49442 L 103.30063,164.90951 L 196.39273,185.57552 z",
-	      or: "M 148.72184,175.53153 L 157.57154,140.73002 L 158.62233,136.5005 L 160.9767,130.87727 L 160.36119,129.71439 L 157.84633,129.66821 L 156.56473,127.99751 L 157.02197,126.53344 L 157.52538,123.28656 L 161.98353,117.79961 L 163.81251,116.70046 L 164.95562,115.55735 L 166.44166,111.99172 L 170.48872,106.32232 L 174.05435,102.45992 L 174.28297,99.008606 L 171.01411,96.539924 L 169.2307,91.897299 L 156.56693,88.285329 L 141.47784,84.741679 L 126.04582,84.855985 L 125.58858,83.484256 L 120.10163,85.54186 L 115.64349,84.970301 L 113.24295,83.36994 L 111.98553,84.055815 L 107.29877,83.827183 L 105.5841,82.455454 L 100.32578,80.39785 L 99.525598,80.512166 L 95.181768,79.02611 L 93.238477,80.855093 L 87.065665,80.512166 L 81.121482,76.396957 L 81.807347,75.596777 L 82.035968,67.823604 L 79.749743,63.937027 L 75.634535,63.365468 L 74.94867,60.850621 L 72.594738,60.384056 L 66.796213,62.44284 L 64.532966,68.909258 L 61.299757,78.932207 L 58.066547,85.398626 L 53.055073,99.463087 L 46.588654,113.04256 L 38.505631,125.65208 L 36.565705,128.56197 L 35.757403,137.12997 L 36.143498,149.2102 L 148.72184,175.53153 z",
-	      wa: "M 102.07324,7.6117734 L 106.43807,9.0667177 L 116.1377,11.814946 L 124.7057,13.754871 L 144.7516,19.412988 L 167.70739,25.071104 L 182.93051,28.278277 L 169.29815,91.864088 L 156.85315,88.33877 L 141.34514,84.768091 L 126.11585,84.801329 L 125.66028,83.45663 L 120.06106,85.635923 L 115.46563,84.899179 L 113.31866,83.315125 L 112.00545,83.973101 L 107.26979,83.832858 L 105.57143,82.483225 L 100.30839,80.370922 L 99.573419,80.51784 L 95.184297,78.993392 L 93.290999,80.810771 L 87.025093,80.512038 L 81.099395,76.386336 L 81.878352,75.453573 L 81.999575,67.776121 L 79.717576,63.93642 L 75.602368,63.32938 L 74.924958,60.818764 L 72.649446,60.361832 L 69.094498,61.592408 L 66.831251,58.373161 L 67.154572,55.463272 L 69.9028,55.139951 L 71.519405,51.09844 L 68.932837,49.966816 L 69.094498,46.248625 L 73.459331,45.601984 L 70.711103,42.853756 L 69.256158,35.740695 L 69.9028,32.830807 L 69.9028,24.909444 L 68.124535,21.676234 L 70.387782,12.299927 L 72.489368,12.784908 L 74.914275,15.694797 L 77.662503,18.281364 L 80.895712,20.22129 L 85.422205,22.322876 L 88.493756,22.969518 L 91.403645,24.424462 L 94.798518,25.394425 L 97.061764,25.232765 L 97.061764,22.807857 L 98.355048,21.676234 L 100.45663,20.38295 L 100.77996,21.514574 L 101.10328,23.292839 L 98.840029,23.77782 L 98.516708,25.879406 L 100.29497,27.334351 L 101.4266,29.759258 L 102.07324,31.699183 L 103.52818,31.537523 L 103.68984,30.244239 L 102.71988,28.950955 L 102.2349,25.717746 L 103.0432,23.939481 L 102.39656,22.484537 L 102.39656,20.22129 L 104.17483,16.66476 L 103.0432,14.078192 L 100.61829,9.2283781 L 100.94162,8.4200758 L 102.07324,7.6117734 z M 92.616548,13.590738 L 94.637312,13.429078 L 95.122294,14.803197 L 96.658073,13.186582 L 99.002155,13.186582 L 99.810458,14.722361 L 98.274678,16.419801 L 98.92133,17.228114 L 98.193853,19.248875 L 96.819734,19.653021 C 96.819734,19.653021 95.930596,19.733857 95.930596,19.410536 C 95.930596,19.087215 97.385551,16.823958 97.385551,16.823958 L 95.688111,16.258141 L 95.36479,17.713095 L 94.637312,18.359737 L 93.10153,16.09648 L 92.616548,13.590738 z",
-	      ca: "M 144.69443,382.19813 L 148.63451,381.70951 L 150.12055,379.69807 L 150.66509,376.75698 L 147.11357,376.16686 L 146.5994,375.49864 L 147.0769,373.46633 L 146.91762,372.87666 L 148.84019,372.25707 L 151.88297,369.42439 L 152.46453,364.42929 L 153.84443,361.02718 L 155.78772,358.86092 L 159.30659,357.27125 L 160.96098,355.66642 L 161.02971,353.55758 L 160.03638,352.97757 L 159.01323,351.90484 L 157.85801,346.05639 L 155.17281,341.2263 L 155.73862,337.7213 L 153.31904,336.69199 L 84.257718,232.51359 L 103.15983,164.9121 L 36.079967,149.21414 L 34.573071,153.94738 L 34.41141,161.38376 L 29.238275,173.18497 L 26.166727,175.77154 L 25.843406,176.90316 L 24.06514,177.71147 L 22.610196,181.91464 L 21.801894,185.14785 L 24.550122,189.35102 L 26.166727,193.55419 L 27.29835,197.11072 L 26.975029,203.57714 L 25.196764,206.64869 L 24.550122,212.46847 L 23.580159,216.18666 L 25.358424,220.06651 L 28.106652,224.593 L 30.369899,229.44282 L 31.663182,233.48433 L 31.339862,236.71754 L 31.016541,237.20252 L 31.016541,239.3041 L 36.674657,245.60886 L 36.189676,248.03377 L 35.543034,250.29702 L 34.896392,252.23694 L 35.058052,260.48163 L 37.159638,264.19982 L 39.099564,266.78638 L 41.847792,267.27137 L 42.817755,270.01959 L 41.686132,273.57612 L 39.584545,275.19273 L 38.452922,275.19273 L 37.64462,279.07258 L 38.129601,281.98247 L 41.362811,286.3473 L 42.979415,291.6821 L 44.434359,296.37025 L 45.727643,299.4418 L 49.122513,305.26158 L 50.577457,307.84814 L 51.062439,310.75803 L 52.679043,311.72799 L 52.679043,314.1529 L 51.870741,316.09283 L 50.092476,323.20589 L 49.607494,325.14581 L 52.032402,327.89404 L 56.235574,328.37902 L 60.762067,330.15729 L 64.641918,332.25887 L 67.551807,332.25887 L 70.461695,335.33042 L 73.048262,340.18024 L 74.179886,342.44348 L 78.059737,344.54507 L 82.909551,345.35337 L 84.364495,347.45496 L 85.011137,350.68817 L 83.556193,351.33481 L 83.879514,352.30477 L 87.112725,353.11307 L 89.860953,353.27474 L 93.020842,351.58789 L 96.900696,355.79106 L 97.708998,358.05431 L 100.29557,362.25748 L 100.61889,365.49069 L 100.61889,374.867 L 101.10387,376.64526 L 111.12682,378.10021 L 130.84939,380.84843 L 144.69443,382.19813 z M 56.559218,338.48145 L 57.852506,340.01723 L 57.690846,341.31052 L 54.457625,341.22969 L 53.891811,340.01723 L 53.245167,338.56228 L 56.559218,338.48145 z M 58.49915,338.48145 L 59.711608,337.83481 L 63.268151,339.9364 L 66.339711,341.14885 L 65.450575,341.79551 L 60.924066,341.55301 L 59.307456,339.9364 L 58.49915,338.48145 z M 79.191764,358.28493 L 80.970029,360.62901 L 81.778342,361.59898 L 83.314121,362.16479 L 83.879928,360.70984 L 82.909965,358.93157 L 80.242562,356.91081 L 79.191764,357.07247 L 79.191764,358.28493 z M 77.736809,366.93379 L 79.515085,370.08618 L 80.727543,372.02612 L 79.272589,372.2686 L 77.979305,371.05615 C 77.979305,371.05615 77.251828,369.6012 77.251828,369.19704 C 77.251828,368.7929 77.251828,367.01462 77.251828,367.01462 L 77.736809,366.93379 z"
-	    },
-	
-	    draw: function draw() {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-	
-	      try {
-	        for (var _iterator = (0, _getIterator3.default)((0, _entries2.default)(this.states)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var _step$value = (0, _slicedToArray3.default)(_step.value, 2),
-	              state = _step$value[0],
-	              statePath = _step$value[1];
-	
-	          this.drawnStates[state] = paper.path(statePath).attr(this.stateStyle);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-	    },
-	
-	    plot: function plot(lat, lng, message) {
-	      var coords = this.convertCoords(lat, lng);
-	      var point = paper.circle(coords[0], coords[1], 3).attr(this.pointStyle);
-	
-	      if (message) point.attr({ title: message });
-	
-	      return point;
-	    },
-	
-	    colorState: function colorState(state, color) {
-	      this.fetchStateBy2Letter(state).attr({ fill: color });
-	    },
-	
-	    darkenState: function darkenState(state, increment) {
-	      drawnState = this.fetchStateBy2Letter(state);
-	      if (!drawnState) {
-	        return false;
-	      }
-	      hsl = Raphael.rgb2hsl(drawnState.attr('fill'));
-	
-	      var newLightness = hsl.l - increment <= 0 ? 0 : hsl.l - increment;
-	      drawnState.darken(increment);
-	    },
-	
-	    fetchStateBy2Letter: function fetchStateBy2Letter(state) {
-	      state = state.toLowerCase();
-	      if (state == 'in') {
-	        state = 'ind';
-	      }
-	      return this.drawnStates[state];
-	    },
-	
-	    convertCoords: function convertCoords(lat, lng) {
-	      var xOffset, yOffset, scaleX, scaleY;
-	      var coords = [];
-	
-	      if (lat > 51) {
-	        // alaska
-	        // Lat: 51°20'N to 71°50'N, Lng: 130°W to 172°E
-	        // (9, 433) to (223, 599)
-	
-	        // these are guesses
-	        var phi1 = 15; // standard parallels
-	        var phi2 = 105;
-	        var midLng = -134;
-	        var scale = 530;
-	        coords = this.latLngToGrid(lat, lng, phi1, phi2, midLng, scale);
-	        xOffset = 190;
-	        yOffset = 543;
-	        scaleX = 1;
-	        scaleY = -1;
-	      } else if (lng < -140) {
-	        // hawaii
-	        // Lat: 18° 55′ N to 28° 27′ N, Lng:  154° 48′ W to 178° 22′ W
-	        // (225, 504) to (356, 588) on map
-	
-	        // these are guesses
-	        var phi1 = 0; // standard parallels
-	        var phi2 = 26;
-	        var midLng = -166;
-	        var scale = 1280;
-	        coords = this.latLngToGrid(lat, lng, phi1, phi2, midLng, scale);
-	        xOffset = 115;
-	        yOffset = 723;
-	        scaleX = 1;
-	        scaleY = -1;
+	    if (f = fragmentByEnd[start]) {
+	      delete fragmentByEnd[f.end];
+	      f.push(i);
+	      f.end = end;
+	      if (g = fragmentByStart[end]) {
+	        delete fragmentByStart[g.start];
+	        var fg = g === f ? f : f.concat(g);
+	        fragmentByStart[fg.start = f.start] = fragmentByEnd[fg.end = g.end] = fg;
 	      } else {
-	        xOffset = -17;
-	        yOffset = -22;
-	        scaleX = 10.05;
-	        scaleY = 6.26;
-	
-	        coords[0] = 50.0 + 124.03149777329222 * ((1.9694462586094064 - lat * Math.PI / 180) * Math.sin(0.6010514667026994 * (lng + 96) * Math.PI / 180));
-	        coords[1] = 50.0 + 1.6155950752393982 * 124.03149777329222 * 0.02613325650382181 - 1.6155950752393982 * 124.03149777329222 * (1.3236744353715044 - (1.9694462586094064 - lat * Math.PI / 180) * Math.cos(0.6010514667026994 * (lng + 96) * Math.PI / 180));
+	        fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
 	      }
-	      return [coords[0] * scaleX + xOffset, coords[1] * scaleY + yOffset];
-	    },
-	
-	    latLngToGrid: function latLngToGrid(lat, lng, phi1, phi2, midLng, scale) {
-	      var pi = Math.PI;
-	      var midLat = (phi1 + phi2) / 2;
-	      var n, tmp1, tmp2, tmp3, x, y, p;
-	
-	      n = (Math.sin(phi1 / 180 * pi) + Math.sin(phi2 / 180 * pi)) / 2;
-	      tmp1 = Math.sqrt(Math.cos(phi1 / 180 * pi)) + 2 * n * Math.sin(phi1 / 180 * pi);
-	      tmp2 = scale * Math.pow(tmp1 - 2 * n * Math.sin(midLat / 180 * pi), 0.5) / n;
-	      tmp3 = n * (lng - midLng);
-	      p = scale * Math.pow(tmp1 - 2 * n * Math.sin(lat / 180 * pi), 0.5) / n;
-	      x = p * Math.sin(tmp3 / 180 * pi);
-	      y = tmp2 - p * Math.cos(tmp3 / 180 * pi);
-	      return [x, y];
-	    }
-	  };
-	
-	  map.draw();
-	  return map;
-	};
-	
-	Raphael.el.darken = function (increment) {
-	  hsl = Raphael.rgb2hsl(this.attr('fill'));
-	  var newLightness = hsl.l - increment <= 0 ? 0 : hsl.l - increment;
-	  this.attr({ fill: "hsl(" + hsl.h + "," + hsl.s + "," + newLightness + ")" });
-	};
-	
-	Raphael.el.lighten = function (increment) {
-	  hsl = Raphael.rgb2hsl(this.attr('fill'));
-	  var newLightness = hsl.l + increment >= 1 ? 1 : hsl.l + increment;
-	  this.attr({ fill: "hsl(" + hsl.h + "," + hsl.s + "," + newLightness + ")" });
-	};
-
-/***/ },
-
-/***/ 203:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	exports.__esModule = true;
-	
-	var _isIterable2 = __webpack_require__(204);
-	
-	var _isIterable3 = _interopRequireDefault(_isIterable2);
-	
-	var _getIterator2 = __webpack_require__(97);
-	
-	var _getIterator3 = _interopRequireDefault(_getIterator2);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	exports.default = function () {
-	  function sliceIterator(arr, i) {
-	    var _arr = [];
-	    var _n = true;
-	    var _d = false;
-	    var _e = undefined;
-	
-	    try {
-	      for (var _i = (0, _getIterator3.default)(arr), _s; !(_n = (_s = _i.next()).done); _n = true) {
-	        _arr.push(_s.value);
-	
-	        if (i && _arr.length === i) break;
+	    } else if (f = fragmentByStart[end]) {
+	      delete fragmentByStart[f.start];
+	      f.unshift(i);
+	      f.start = start;
+	      if (g = fragmentByEnd[start]) {
+	        delete fragmentByEnd[g.end];
+	        var gf = g === f ? f : g.concat(f);
+	        fragmentByStart[gf.start = g.start] = fragmentByEnd[gf.end = f.end] = gf;
+	      } else {
+	        fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
 	      }
-	    } catch (err) {
-	      _d = true;
-	      _e = err;
-	    } finally {
-	      try {
-	        if (!_n && _i["return"]) _i["return"]();
-	      } finally {
-	        if (_d) throw _e;
-	      }
-	    }
-	
-	    return _arr;
-	  }
-	
-	  return function (arr, i) {
-	    if (Array.isArray(arr)) {
-	      return arr;
-	    } else if ((0, _isIterable3.default)(Object(arr))) {
-	      return sliceIterator(arr, i);
 	    } else {
-	      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+	      f = [i];
+	      fragmentByStart[f.start = start] = fragmentByEnd[f.end = end] = f;
 	    }
-	  };
-	}();
-
-/***/ },
-
-/***/ 204:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(205), __esModule: true };
-
-/***/ },
-
-/***/ 205:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(55);
-	__webpack_require__(12);
-	module.exports = __webpack_require__(206);
-
-/***/ },
-
-/***/ 206:
-/***/ function(module, exports, __webpack_require__) {
-
-	var classof   = __webpack_require__(101)
-	  , ITERATOR  = __webpack_require__(52)('iterator')
-	  , Iterators = __webpack_require__(34);
-	module.exports = __webpack_require__(8).isIterable = function(it){
-	  var O = Object(it);
-	  return O[ITERATOR] !== undefined
-	    || '@@iterator' in O
-	    || Iterators.hasOwnProperty(classof(O));
-	};
-
-/***/ },
-
-/***/ 207:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(208), __esModule: true };
-
-/***/ },
-
-/***/ 208:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(209);
-	module.exports = __webpack_require__(8).Object.entries;
-
-/***/ },
-
-/***/ 209:
-/***/ function(module, exports, __webpack_require__) {
-
-	// https://github.com/tc39/proposal-object-values-entries
-	var $export  = __webpack_require__(18)
-	  , $entries = __webpack_require__(210)(true);
+	  });
 	
-	$export($export.S, 'Object', {
-	  entries: function entries(it){
-	    return $entries(it);
+	  function ends(i) {
+	    var arc = topology.arcs[i < 0 ? ~i : i], p0 = arc[0], p1;
+	    if (topology.transform) p1 = [0, 0], arc.forEach(function(dp) { p1[0] += dp[0], p1[1] += dp[1]; });
+	    else p1 = arc[arc.length - 1];
+	    return i < 0 ? [p1, p0] : [p0, p1];
 	  }
-	});
-
-/***/ },
-
-/***/ 210:
-/***/ function(module, exports, __webpack_require__) {
-
-	var getKeys   = __webpack_require__(38)
-	  , toIObject = __webpack_require__(40)
-	  , isEnum    = __webpack_require__(68).f;
-	module.exports = function(isEntries){
-	  return function(it){
-	    var O      = toIObject(it)
-	      , keys   = getKeys(O)
-	      , length = keys.length
-	      , i      = 0
-	      , result = []
-	      , key;
-	    while(length > i)if(isEnum.call(O, key = keys[i++])){
-	      result.push(isEntries ? [key, O[key]] : O[key]);
-	    } return result;
-	  };
-	};
-
-/***/ },
-
-/***/ 211:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
 	
-	exports.__esModule = true;
+	  function flush(fragmentByEnd, fragmentByStart) {
+	    for (var k in fragmentByEnd) {
+	      var f = fragmentByEnd[k];
+	      delete fragmentByStart[f.start];
+	      delete f.start;
+	      delete f.end;
+	      f.forEach(function(i) { stitchedArcs[i < 0 ? ~i : i] = 1; });
+	      fragments.push(f);
+	    }
+	  }
 	
-	var _defineProperty = __webpack_require__(212);
+	  flush(fragmentByEnd, fragmentByStart);
+	  flush(fragmentByStart, fragmentByEnd);
+	  arcs.forEach(function(i) { if (!stitchedArcs[i < 0 ? ~i : i]) fragments.push([i]); });
 	
-	var _defineProperty2 = _interopRequireDefault(_defineProperty);
+	  return fragments;
+	}
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	function mesh(topology) {
+	  return object(topology, meshArcs.apply(this, arguments));
+	}
 	
-	exports.default = function (obj, key, value) {
-	  if (key in obj) {
-	    (0, _defineProperty2.default)(obj, key, {
-	      value: value,
-	      enumerable: true,
-	      configurable: true,
-	      writable: true
-	    });
+	function meshArcs(topology, o, filter) {
+	  var arcs = [];
+	
+	  function arc(i) {
+	    var j = i < 0 ? ~i : i;
+	    (geomsByArc[j] || (geomsByArc[j] = [])).push({i: i, g: geom});
+	  }
+	
+	  function line(arcs) {
+	    arcs.forEach(arc);
+	  }
+	
+	  function polygon(arcs) {
+	    arcs.forEach(line);
+	  }
+	
+	  function geometry(o) {
+	    if (o.type === "GeometryCollection") o.geometries.forEach(geometry);
+	    else if (o.type in geometryType) geom = o, geometryType[o.type](o.arcs);
+	  }
+	
+	  if (arguments.length > 1) {
+	    var geomsByArc = [],
+	        geom;
+	
+	    var geometryType = {
+	      LineString: line,
+	      MultiLineString: polygon,
+	      Polygon: polygon,
+	      MultiPolygon: function(arcs) { arcs.forEach(polygon); }
+	    };
+	
+	    geometry(o);
+	
+	    geomsByArc.forEach(arguments.length < 3
+	        ? function(geoms) { arcs.push(geoms[0].i); }
+	        : function(geoms) { if (filter(geoms[0].g, geoms[geoms.length - 1].g)) arcs.push(geoms[0].i); });
 	  } else {
-	    obj[key] = value;
+	    for (var i = 0, n = topology.arcs.length; i < n; ++i) arcs.push(i);
 	  }
 	
-	  return obj;
-	};
-
-/***/ },
-
-/***/ 212:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(213), __esModule: true };
-
-/***/ },
-
-/***/ 213:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(214);
-	var $Object = __webpack_require__(8).Object;
-	module.exports = function defineProperty(it, key, desc){
-	  return $Object.defineProperty(it, key, desc);
-	};
-
-/***/ },
-
-/***/ 214:
-/***/ function(module, exports, __webpack_require__) {
-
-	var $export = __webpack_require__(18);
-	// 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
-	$export($export.S + $export.F * !__webpack_require__(27), 'Object', {defineProperty: __webpack_require__(23).f});
+	  return {type: "MultiLineString", arcs: stitchArcs(topology, arcs)};
+	}
+	
+	function cartesianTriangleArea(triangle) {
+	  var a = triangle[0], b = triangle[1], c = triangle[2];
+	  return Math.abs((a[0] - c[0]) * (b[1] - a[1]) - (a[0] - b[0]) * (c[1] - a[1]));
+	}
+	
+	function ring(ring) {
+	  var i = -1,
+	      n = ring.length,
+	      a,
+	      b = ring[n - 1],
+	      area = 0;
+	
+	  while (++i < n) {
+	    a = b;
+	    b = ring[i];
+	    area += a[0] * b[1] - a[1] * b[0];
+	  }
+	
+	  return area / 2;
+	}
+	
+	function merge(topology) {
+	  return object(topology, mergeArcs.apply(this, arguments));
+	}
+	
+	function mergeArcs(topology, objects) {
+	  var polygonsByArc = {},
+	      polygons = [],
+	      components = [];
+	
+	  objects.forEach(function(o) {
+	    if (o.type === "Polygon") register(o.arcs);
+	    else if (o.type === "MultiPolygon") o.arcs.forEach(register);
+	  });
+	
+	  function register(polygon) {
+	    polygon.forEach(function(ring$$) {
+	      ring$$.forEach(function(arc) {
+	        (polygonsByArc[arc = arc < 0 ? ~arc : arc] || (polygonsByArc[arc] = [])).push(polygon);
+	      });
+	    });
+	    polygons.push(polygon);
+	  }
+	
+	  function area(ring$$) {
+	    return Math.abs(ring(object(topology, {type: "Polygon", arcs: [ring$$]}).coordinates[0]));
+	  }
+	
+	  polygons.forEach(function(polygon) {
+	    if (!polygon._) {
+	      var component = [],
+	          neighbors = [polygon];
+	      polygon._ = 1;
+	      components.push(component);
+	      while (polygon = neighbors.pop()) {
+	        component.push(polygon);
+	        polygon.forEach(function(ring$$) {
+	          ring$$.forEach(function(arc) {
+	            polygonsByArc[arc < 0 ? ~arc : arc].forEach(function(polygon) {
+	              if (!polygon._) {
+	                polygon._ = 1;
+	                neighbors.push(polygon);
+	              }
+	            });
+	          });
+	        });
+	      }
+	    }
+	  });
+	
+	  polygons.forEach(function(polygon) {
+	    delete polygon._;
+	  });
+	
+	  return {
+	    type: "MultiPolygon",
+	    arcs: components.map(function(polygons) {
+	      var arcs = [], n;
+	
+	      // Extract the exterior (unique) arcs.
+	      polygons.forEach(function(polygon) {
+	        polygon.forEach(function(ring$$) {
+	          ring$$.forEach(function(arc) {
+	            if (polygonsByArc[arc < 0 ? ~arc : arc].length < 2) {
+	              arcs.push(arc);
+	            }
+	          });
+	        });
+	      });
+	
+	      // Stitch the arcs into one or more rings.
+	      arcs = stitchArcs(topology, arcs);
+	
+	      // If more than one ring is returned,
+	      // at most one of these rings can be the exterior;
+	      // choose the one with the greatest absolute area.
+	      if ((n = arcs.length) > 1) {
+	        for (var i = 1, k = area(arcs[0]), ki, t; i < n; ++i) {
+	          if ((ki = area(arcs[i])) > k) {
+	            t = arcs[0], arcs[0] = arcs[i], arcs[i] = t, k = ki;
+	          }
+	        }
+	      }
+	
+	      return arcs;
+	    })
+	  };
+	}
+	
+	function neighbors(objects) {
+	  var indexesByArc = {}, // arc index -> array of object indexes
+	      neighbors = objects.map(function() { return []; });
+	
+	  function line(arcs, i) {
+	    arcs.forEach(function(a) {
+	      if (a < 0) a = ~a;
+	      var o = indexesByArc[a];
+	      if (o) o.push(i);
+	      else indexesByArc[a] = [i];
+	    });
+	  }
+	
+	  function polygon(arcs, i) {
+	    arcs.forEach(function(arc) { line(arc, i); });
+	  }
+	
+	  function geometry(o, i) {
+	    if (o.type === "GeometryCollection") o.geometries.forEach(function(o) { geometry(o, i); });
+	    else if (o.type in geometryType) geometryType[o.type](o.arcs, i);
+	  }
+	
+	  var geometryType = {
+	    LineString: line,
+	    MultiLineString: polygon,
+	    Polygon: polygon,
+	    MultiPolygon: function(arcs, i) { arcs.forEach(function(arc) { polygon(arc, i); }); }
+	  };
+	
+	  objects.forEach(geometry);
+	
+	  for (var i in indexesByArc) {
+	    for (var indexes = indexesByArc[i], m = indexes.length, j = 0; j < m; ++j) {
+	      for (var k = j + 1; k < m; ++k) {
+	        var ij = indexes[j], ik = indexes[k], n;
+	        if ((n = neighbors[ij])[i = bisect(n, ik)] !== ik) n.splice(i, 0, ik);
+	        if ((n = neighbors[ik])[i = bisect(n, ij)] !== ij) n.splice(i, 0, ij);
+	      }
+	    }
+	  }
+	
+	  return neighbors;
+	}
+	
+	function compareArea(a, b) {
+	  return a[1][2] - b[1][2];
+	}
+	
+	function minAreaHeap() {
+	  var heap = {},
+	      array = [],
+	      size = 0;
+	
+	  heap.push = function(object) {
+	    up(array[object._ = size] = object, size++);
+	    return size;
+	  };
+	
+	  heap.pop = function() {
+	    if (size <= 0) return;
+	    var removed = array[0], object;
+	    if (--size > 0) object = array[size], down(array[object._ = 0] = object, 0);
+	    return removed;
+	  };
+	
+	  heap.remove = function(removed) {
+	    var i = removed._, object;
+	    if (array[i] !== removed) return; // invalid request
+	    if (i !== --size) object = array[size], (compareArea(object, removed) < 0 ? up : down)(array[object._ = i] = object, i);
+	    return i;
+	  };
+	
+	  function up(object, i) {
+	    while (i > 0) {
+	      var j = ((i + 1) >> 1) - 1,
+	          parent = array[j];
+	      if (compareArea(object, parent) >= 0) break;
+	      array[parent._ = i] = parent;
+	      array[object._ = i = j] = object;
+	    }
+	  }
+	
+	  function down(object, i) {
+	    while (true) {
+	      var r = (i + 1) << 1,
+	          l = r - 1,
+	          j = i,
+	          child = array[j];
+	      if (l < size && compareArea(array[l], child) < 0) child = array[j = l];
+	      if (r < size && compareArea(array[r], child) < 0) child = array[j = r];
+	      if (j === i) break;
+	      array[child._ = i] = child;
+	      array[object._ = i = j] = object;
+	    }
+	  }
+	
+	  return heap;
+	}
+	
+	function presimplify(topology, triangleArea) {
+	  var absolute = transformAbsolute(topology.transform),
+	      relative = transformRelative(topology.transform),
+	      heap = minAreaHeap();
+	
+	  if (!triangleArea) triangleArea = cartesianTriangleArea;
+	
+	  topology.arcs.forEach(function(arc) {
+	    var triangles = [],
+	        maxArea = 0,
+	        triangle,
+	        i,
+	        n,
+	        p;
+	
+	    // To store each point’s effective area, we create a new array rather than
+	    // extending the passed-in point to workaround a Chrome/V8 bug (getting
+	    // stuck in smi mode). For midpoints, the initial effective area of
+	    // Infinity will be computed in the next step.
+	    for (i = 0, n = arc.length; i < n; ++i) {
+	      p = arc[i];
+	      absolute(arc[i] = [p[0], p[1], Infinity], i);
+	    }
+	
+	    for (i = 1, n = arc.length - 1; i < n; ++i) {
+	      triangle = arc.slice(i - 1, i + 2);
+	      triangle[1][2] = triangleArea(triangle);
+	      triangles.push(triangle);
+	      heap.push(triangle);
+	    }
+	
+	    for (i = 0, n = triangles.length; i < n; ++i) {
+	      triangle = triangles[i];
+	      triangle.previous = triangles[i - 1];
+	      triangle.next = triangles[i + 1];
+	    }
+	
+	    while (triangle = heap.pop()) {
+	      var previous = triangle.previous,
+	          next = triangle.next;
+	
+	      // If the area of the current point is less than that of the previous point
+	      // to be eliminated, use the latter's area instead. This ensures that the
+	      // current point cannot be eliminated without eliminating previously-
+	      // eliminated points.
+	      if (triangle[1][2] < maxArea) triangle[1][2] = maxArea;
+	      else maxArea = triangle[1][2];
+	
+	      if (previous) {
+	        previous.next = next;
+	        previous[2] = triangle[2];
+	        update(previous);
+	      }
+	
+	      if (next) {
+	        next.previous = previous;
+	        next[0] = triangle[0];
+	        update(next);
+	      }
+	    }
+	
+	    arc.forEach(relative);
+	  });
+	
+	  function update(triangle) {
+	    heap.remove(triangle);
+	    triangle[1][2] = triangleArea(triangle);
+	    heap.push(triangle);
+	  }
+	
+	  return topology;
+	}
+	
+	var version = "1.6.27";
+	
+	exports.version = version;
+	exports.mesh = mesh;
+	exports.meshArcs = meshArcs;
+	exports.merge = merge;
+	exports.mergeArcs = mergeArcs;
+	exports.feature = feature;
+	exports.neighbors = neighbors;
+	exports.presimplify = presimplify;
+	
+	Object.defineProperty(exports, '__esModule', { value: true });
+	
+	})));
 
 /***/ }
 
