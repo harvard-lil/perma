@@ -1,9 +1,11 @@
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.conf.urls import handler500
+from django.conf.urls import handler500 # noqa
 
 admin.autodiscover()
 
+# Setting our custom route handler so that images are displayed properly
+# Used implicitly by Django
 handler500 = 'perma.views.error_management.server_error'
 
 urlpatterns = [
