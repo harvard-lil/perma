@@ -443,7 +443,7 @@ class CachedLoader(BlockLoader):
                 # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
                 if file_contents is None:
                     file_contents = super(CachedLoader, self).load(url).read()
-                    logging.info("Got content from local disk")
+                    logging.debug("Got content from local disk")
 
                 # cache file contents
                 # use a short timeout so large warcs don't evict everything else in the cache
