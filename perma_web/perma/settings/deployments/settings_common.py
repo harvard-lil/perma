@@ -271,6 +271,12 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True
         },
+        'warcprox': {
+            'level': 'WARNING'
+        },
+        'requests' : {
+            'level': 'WARNING'
+        }
     }
 }
 LOG_PLAYBACK_404 = False

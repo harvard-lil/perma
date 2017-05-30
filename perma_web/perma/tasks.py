@@ -884,9 +884,6 @@ def run_next_capture():
                     proxied_responses["size"] += response.response_recorder.len
                     proxied_pair[1] = response
 
-        # suppress verbose warcprox logs
-        logging.disable(logging.INFO)
-
         # connect warcprox to an open port
         warcprox_port = 27500
         recorded_url_queue = queue.Queue()
@@ -1067,9 +1064,6 @@ def run_next_capture():
     finally:
         try:
             teardown(link, thread_list, browser, display, warcprox_controller, warcprox_thread)
-
-            # un-suppress logging
-            logging.disable(logging.NOTSET)
 
             # save page metadata
             if have_html:
