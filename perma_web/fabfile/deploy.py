@@ -182,3 +182,14 @@ def backup_code():
         out_file_path = os.path.join(env.CODE_BACKUP_DIR, "perma_web_%s.tar.gz" % date.today().isoformat())
         # || [[ $? -eq 1 ]] makes sure that we still consider an exit code of 1 (meaning files changed during tar) a success
         run_as_web_user("cd .. && tar -cvzf %s perma_web || [[ $? -eq 1 ]]" % out_file_path)
+
+@task
+def sync_cdxline_fields(last_guid=None):
+    from perma.models import Link, CDXLine
+    links = Link.objects.order_by('-creation_timestamp').values('guid', 'is_private', 'is_unlisted', 'creation_timestamp')
+    if last_guid:
+        links = links.filter(creation_timestamp__lt=Link.objects.get(pk=last_guid).creation_timestamp)
+    for i, link in enumerate(links):
+        if not i % 1000:
+            print("%s: %s, %s" % (i, link['guid'], link['creation_timestamp']))
+        CDXLine.objects.filter(link_id=link['guid']).update(is_private=link['is_private'], is_unlisted=link['is_unlisted'])
