@@ -47,3 +47,10 @@ def csrf_failure(request, reason="CSRF Failure."):
         our custom template.
     '''
     return render(request, '403_csrf.html')
+
+def server_error(request):
+    '''
+        Custom view for 500 failures, required for proper rendering of
+        our custom template.
+    '''
+    return render(request, '500.html')
