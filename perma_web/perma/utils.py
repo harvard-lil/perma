@@ -20,6 +20,7 @@ from django.utils import timezone
 
 
 logger = logging.getLogger(__name__)
+warn = logger.warn
 
 
 ### celery helpers ###
@@ -166,18 +167,6 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
             break
         to_file_handle.write(data)
 
-def json_serial(obj):
-        """
-        JSON serializer for objects not serializable by default json code
-
-        Thanks, http://stackoverflow.com/a/22238613
-        """
-
-        if isinstance(obj, datetime):
-            serial = obj.isoformat()
-            return serial
-        raise TypeError ("Type not serializable")
-
 ### rate limiting ###
 
 def ratelimit_ip_key(group, request):
@@ -240,7 +229,7 @@ def tz_datetime(*args, **kwargs):
 ### addresses ###
 
 def get_lat_long(address):
-    r = requests.get('https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'.format(address, settings.GEOCODING_KEY))
+    r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
     if r.status_code == 200:
         rj = r.json()
         status = rj['status']
@@ -250,22 +239,16 @@ def get_lat_long(address):
                 (lat, lng) = (results[0]['geometry']['location']['lat'], results[0]['geometry']['location']['lng'])
                 return (lat, lng)
             else:
-                # Ambiguous address
-                pass
+                warn("Multiple locations returned for address.")
         elif status == 'ZERO_RESULTS':
-            # Ambiguous address
-            pass
+            warn("No location returned for address.")
         elif status == 'REQUEST_DENIED':
-            # We should probably let ourselves know, without failing
-            pass
+            warn("Geocoding API request denied.")
         elif status == 'OVER_QUERY_LIMIT':
-            # We should probably let ourselves know, without failing
-            pass
+            warn("Geocoding API request over query limit.")
         else:
-            # We should probably let ourselves know, without failing
-            return "Weird problem from Google."
+            warn("Unknown response from geocoding API: %s" % status)
     else:
-        # We should probably let ourselves know, without failing
-        return "Problem at http request level."
+        warn("Error connecting to geocoding API: %s" % r.status_code)
 
 

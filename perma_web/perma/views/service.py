@@ -1,16 +1,16 @@
-import json, pytz
+import pytz
 from datetime import timedelta, datetime
 
 from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.utils.http import urlencode
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import json_serial, get_lat_long
-from django.http import HttpResponse
+from perma.utils import get_lat_long
+from django.http import JsonResponse
+
 
 def stats_sums(request):
     """
@@ -23,7 +23,10 @@ def stats_sums(request):
     # serializers.serialize wraps our key/value pairs in a 'fields' key. extract.
     extracted_fields = [d['fields'] for d in raw_data]
 
-    return HttpResponse(json.dumps(extracted_fields, default=json_serial), content_type="application/json", status=200)
+    return JsonResponse(
+        extracted_fields,
+        safe=False  # tell Django not to worry about security risk of delivering JSON array -- see https://security.stackexchange.com/a/110552
+    )
 
 
 def stats_now(request):
@@ -71,8 +74,7 @@ def stats_now(request):
         if event.registrars_sum:
             registrars.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
-    return HttpResponse(json.dumps({'links': links, 'users': users, 'organizations': organizations,
-        'registrars': registrars}), content_type="application/json", status=200)
+    return JsonResponse({'links': links, 'users': users, 'organizations': organizations, 'registrars': registrars})
 
 
 def bookmarklet_create(request):
@@ -96,22 +98,11 @@ def bookmarklet_create(request):
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
 def coordinates_from_address(request):
     """ Return {lat:#, lng:#, success: True} of any address or {success: False} if lookup fails."""
-    address = urlencode({"address": request.GET.get('address', '')})
+    address = request.GET.get('address', '')
     if address:
-        print address
         try:
-            thing = get_lat_long(address)
-            print thing
             (lat, lng) = get_lat_long(address)
-            return HttpResponse(
-                json.dumps({'lat': lat, 'lng': lng, 'success': True}),
-                content_type = 'application/javascript; charset=utf8',
-                status=200
-            )
+            return JsonResponse({'lat': lat, 'lng': lng, 'success': True})
         except TypeError:
             pass
-    return HttpResponse(
-                json.dumps({'success': False}),
-                content_type = 'application/javascript; charset=utf8',
-                status=200
-            )
+    return JsonResponse({'success': False})

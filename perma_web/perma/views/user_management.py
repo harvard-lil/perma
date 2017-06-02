@@ -29,7 +29,7 @@ from django.contrib import messages
 
 from perma.forms import (
     RegistrarForm,
-    ExpandedRegistrarForm,
+    LibraryRegistrarForm,
     OrganizationWithRegistrarForm,
     OrganizationForm,
     UserForm,
@@ -42,8 +42,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, \
-    send_user_email, send_user_template_email, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403
 from perma.email import send_admin_email, send_user_email
 
 logger = logging.getLogger(__name__)
@@ -1187,7 +1186,7 @@ def libraries(request):
     Info for libraries, allow them to request accounts
     """
     if request.method == 'POST':
-        registrar_form = ExpandedRegistrarForm(request.POST, request.FILES, prefix = "b")
+        registrar_form = LibraryRegistrarForm(request.POST, request.FILES, prefix ="b")
         if request.user.is_authenticated():
             user_form = None
         else:
@@ -1239,9 +1238,9 @@ def libraries(request):
             user_form = UserForm(prefix = "a")
             user_form.fields['email'].label = "Your email"
         if request_data:
-            registrar_form = ExpandedRegistrarForm(request_data, prefix = "b")
+            registrar_form = LibraryRegistrarForm(request_data, prefix ="b")
         else:
-            registrar_form = ExpandedRegistrarForm(prefix = "b")
+            registrar_form = LibraryRegistrarForm(prefix ="b")
 
     return render(request, "registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form})

@@ -1,5 +1,4 @@
 import logging
-import imghdr
 
 from django import forms
 from django.forms import ModelForm
@@ -10,14 +9,6 @@ from perma.models import Registrar, Organization, LinkUser
 logger = logging.getLogger(__name__)
 
 ### HELPERS ###
-
-class BootstrapCheckboxInput(forms.CheckboxInput):
-    """
-        Form widget identical to regular checkboxes, but which
-        should be rendered in templates using Bootstrap's markup.
-        See fieldset.html
-    """
-    pass
 
 class OrganizationField(forms.ModelMultipleChoiceField):
     def __init__(self,
@@ -60,31 +51,30 @@ class RegistrarForm(ModelForm):
         fields = ['name', 'email', 'website']
 
 
-class ExpandedRegistrarForm(ModelForm):
+class LibraryRegistrarForm(ModelForm):
     class Meta:
         model = Registrar
-        fields = ['name', 'email', 'website', 'address', 'logo', 'show_partner_status']
+        fields = ['name', 'email', 'website', 'address']  #, 'logo', 'show_partner_status']
 
     def __init__(self, *args, **kwargs):
-        super(ExpandedRegistrarForm, self).__init__(*args, **kwargs)
+        super(LibraryRegistrarForm, self).__init__(*args, **kwargs)
         self.fields['name'].label = "Library name"
         self.fields['email'].label = "Library email"
         self.fields['website'].label = "Library website"
-        self.fields['address'].label = "Library address"
-        self.fields['logo'].label = "Library/University logo"
-        # If you change here, please also change in clean_logo below
-        self.fields['logo'].widget.attrs['accept'] = ".png,.jpg,.jpeg,.gif"
-        self.fields['show_partner_status'].label = "Display us in the list of Perma.cc partners"
-        self.fields['show_partner_status'].widget = BootstrapCheckboxInput()
-        self.fields['show_partner_status'].initial = True
+        self.fields['address'].label = "Library physical address"
+        # self.fields['logo'].label = "Library/University logo"
+        # # If you change here, please also change in clean_logo below
+        # self.fields['logo'].widget.attrs['accept'] = ".png,.jpg,.jpeg,.gif"
+        # self.fields['show_partner_status'].label = "Display us in the list of Perma.cc partners"
+        # self.fields['show_partner_status'].initial = True
 
-    def clean(self):
-        logo = self.cleaned_data['logo']
-        if not logo or imghdr.what(logo) not in ['png', 'jpg', 'gif']:
-            if self.cleaned_data.get('show_partner', None):
-              msg = "Please include a logo (.png, .jpg, .gif)."
-              self.add_error('logo', msg)
-        return logo
+    # def clean(self):
+    #     logo = self.cleaned_data['logo']
+    #     if not logo or imghdr.what(logo) not in ['png', 'jpg', 'gif']:
+    #         if self.cleaned_data.get('show_partner', None):
+    #           msg = "Please include a logo (.png, .jpg, .gif)."
+    #           self.add_error('logo', msg)
+    #     return logo
 
 ### ORGANIZATION FORMS ###
 

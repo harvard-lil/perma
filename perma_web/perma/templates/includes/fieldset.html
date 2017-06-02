@@ -4,10 +4,11 @@
     {{ hidden }}
   {% endfor %}
   {% for field in form.visible_fields %}
-    {% if field|input_type = "BootstrapCheckboxInput" %}
+    {% if field|input_type == "CheckboxInput" %}
+      {# display checkboxes Bootstrap-style #}
       <div class="checkbox {{ form_classes }} {% if field.errors %} _error{% endif %}">
-          <label for="{{ field.id_for_label }}">{{ field.label }}
-            {{ field }}
+          <label for="{{ field.id_for_label }}">
+            {{ field }} {{ field.label }}
           </label>
       </div>
     {% else %}
