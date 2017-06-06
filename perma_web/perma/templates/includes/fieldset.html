@@ -1,19 +1,29 @@
+{% load input_type %}
 <fieldset>
   {% for hidden in form.hidden_fields %}
     {{ hidden }}
   {% endfor %}
   {% for field in form.visible_fields %}
-    <div class="form-group {{ form_classes }} {% if field.errors %} _error{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}
-        {% for error in field.errors %}
-          <span class="field-error">{{ error }}</span>
-        {% endfor %}
-      {% elif field.help_text %}
-        <span class="help-inline">{{ field.help_text }}</span>
-      {% endif %}
-    </div>
+    {% if field|input_type == "CheckboxInput" %}
+      {# display checkboxes Bootstrap-style #}
+      <div class="checkbox {{ form_classes }} {% if field.errors %} _error{% endif %}">
+          <label for="{{ field.id_for_label }}">
+            {{ field }} {{ field.label }}
+          </label>
+      </div>
+    {% else %}
+      <div class="form-group {{ form_classes }} {% if field.errors %} _error{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+          {% endfor %}
+        {% elif field.help_text %}
+          <span class="help-inline">{{ field.help_text }}</span>
+        {% endif %}
+      </div>
+    {% endif %}
   {% endfor %}
   {% if form.non_field_errors %}
     <span class="field-error">{{ form.non_field_errors }}</span>

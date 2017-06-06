@@ -486,3 +486,8 @@ REST_FRAMEWORK = {
 # for rest framework -- cause django_filters to raise exceptions for malformed filters so our API can return them to the user
 from django_filters import STRICTNESS
 FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR
+
+
+# If using geocoding
+# Via https://console.developers.google.com/apis/api/geocoding_backend/overview
+GEOCODING_KEY = None

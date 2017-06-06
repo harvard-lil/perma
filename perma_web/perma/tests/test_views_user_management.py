@@ -988,7 +988,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         rand = random()
         return { 'email': u'library{}@university.org'.format(rand),
                  'name': u'University Library {}'.format(rand),
-                 'website': u'http://website{}.org'.format(rand) }
+                 'website': u'http://website{}.org'.format(rand),
+                 'address': u'{} Main St., Boston MA 02144'.format(rand)}
 
     def new_lib_user(self):
         rand = random()
@@ -1045,7 +1046,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
         inputs = soup.select('input')
-        self.assertEqual(len(inputs), 7)
+        self.assertEqual(len(inputs), 8)
         for input in inputs:
             if input['name'] == 'csrfmiddlewaretoken':
                 self.assertTrue(input.get('value', ''))
@@ -1060,6 +1061,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         session['request_data'] = { u'b-email': new_lib['email'],
                                     u'b-website': new_lib['website'],
                                     u'b-name': new_lib['name'],
+                                    u'b-address': new_lib['address'],
                                     u'a-email': new_lib_user['email'],
                                     u'a-first_name': new_lib_user['first'],
                                     u'a-last_name': new_lib_user['last'],
@@ -1070,7 +1072,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
         inputs = soup.select('input')
-        self.assertEqual(len(inputs), 7)
+        self.assertEqual(len(inputs), 8)
         for input in inputs:
             if input['name'] == 'csrfmiddlewaretoken':
                 self.assertTrue(input.get('value', ''))
@@ -1093,9 +1095,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         self.check_library_labels(soup)
         inputs = soup.select('input')
-        self.assertEqual(len(inputs), 5) # 5 because csrf is here and in the logout form
+        self.assertEqual(len(inputs), 6) # 6 because csrf is here and in the logout form
         for input in inputs:
-            self.assertIn(input['name'],['csrfmiddlewaretoken', 'b-name', 'b-email', 'b-website'])
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'b-name', 'b-email', 'b-website', 'b-address'])
             if input['name'] == 'csrfmiddlewaretoken':
                 self.assertTrue(input.get('value', ''))
             else:

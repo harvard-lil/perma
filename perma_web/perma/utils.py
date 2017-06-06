@@ -8,6 +8,7 @@ from datetime import datetime
 import logging
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
+import requests
 
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -19,6 +20,7 @@ from django.utils import timezone
 
 
 logger = logging.getLogger(__name__)
+warn = logger.warn
 
 
 ### celery helpers ###
@@ -165,18 +167,6 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
             break
         to_file_handle.write(data)
 
-def json_serial(obj):
-        """
-        JSON serializer for objects not serializable by default json code
-
-        Thanks, http://stackoverflow.com/a/22238613
-        """
-
-        if isinstance(obj, datetime):
-            serial = obj.isoformat()
-            return serial
-        raise TypeError ("Type not serializable")
-
 ### rate limiting ###
 
 def ratelimit_ip_key(group, request):
@@ -235,3 +225,30 @@ def get_client_ip(request):
 
 def tz_datetime(*args, **kwargs):
     return timezone.make_aware(datetime(*args, **kwargs))
+
+### addresses ###
+
+def get_lat_long(address):
+    r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
+    if r.status_code == 200:
+        rj = r.json()
+        status = rj['status']
+        if status == 'OK':
+            results = rj['results']
+            if len(results) == 1:
+                (lat, lng) = (results[0]['geometry']['location']['lat'], results[0]['geometry']['location']['lng'])
+                return (lat, lng)
+            else:
+                warn("Multiple locations returned for address.")
+        elif status == 'ZERO_RESULTS':
+            warn("No location returned for address.")
+        elif status == 'REQUEST_DENIED':
+            warn("Geocoding API request denied.")
+        elif status == 'OVER_QUERY_LIMIT':
+            warn("Geocoding API request over query limit.")
+        else:
+            warn("Unknown response from geocoding API: %s" % status)
+    else:
+        warn("Error connecting to geocoding API: %s" % r.status_code)
+
+

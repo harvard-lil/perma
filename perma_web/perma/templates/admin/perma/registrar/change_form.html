@@ -1,0 +1,25 @@
+{% extends "admin/change_form.html" %}
+
+{% block admin_change_form_document_ready %}
+  {{ block.super }}
+  <script type="text/javascript">
+    (function($) {
+      $(document).ready(function() {
+        var coord_btn = $("<button>", {"id": "add_coordinates",
+                                       "type": "button",
+                                       "style": "margin-left: 5px;"});
+        coord_btn.text("Look up latitude and longitude");
+        coord_btn.click(function(){
+          var address = $('#id_address').val()
+          $.getJSON( "/service/get-coordinates?address=" + address, function( data ) {
+            if (data['success']){
+              $('#id_latitude').val(data['lat']);
+              $('#id_longitude').val(data['lng']);
+            }
+          });
+        });
+        $('#id_address').after(coord_btn);
+      });
+    })(django.jQuery);
+  </script>
+{% endblock %}

@@ -16,9 +16,12 @@
 
     <h4 class="body-ch">Registrar information</h4>
     <ul class="data-list">
-      <li>{{target_registrar.name}}</li>
-      <li>{{target_registrar.email}}</li>
-      <li><a href="{{target_registrar.website}}" target="_blank">{{target_registrar.website}}</a></li>
+      <li>Name: {{target_registrar.name}}</li>
+      <li>Email: {{target_registrar.email}}</li>
+      <li>Website: <a href="{{target_registrar.website}}" target="_blank">{{target_registrar.website}}</a></li>
+      {% if target_registrar.address %}
+        <li>Address: {{ target_registrar.address }}</li>
+      {% endif %}
     </ul>
 
     <h4 class="body-ch">Requested by</h4>
