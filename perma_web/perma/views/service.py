@@ -5,10 +5,9 @@ from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required, user_passes_test
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import get_lat_long
+from perma.utils import get_lat_long, user_passes_test_or_403
 from django.http import JsonResponse
 
 
@@ -94,8 +93,7 @@ def bookmarklet_create(request):
     add_url = "{}?url={}".format(reverse('create_link'), tocapture)
     return redirect(add_url)
 
-@login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def coordinates_from_address(request):
     """ Return {lat:#, lng:#, success: True} of any address or {success: False} if lookup fails."""
     address = request.GET.get('address', '')
