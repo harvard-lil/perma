@@ -1222,7 +1222,6 @@ def libraries(request):
                     pass
             if user_form:
                 new_user = user_form.save(commit=False)
-                new_user.backend='django.contrib.auth.backends.ModelBackend'
                 new_user.pending_registrar = new_registrar
                 new_user.save()
                 email_pending_registrar_user(request, new_user)
@@ -1253,12 +1252,8 @@ def sign_up(request):
     if request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.backend='django.contrib.auth.backends.ModelBackend'
-            new_user.save()
-
+            new_user = form.save()
             email_new_user(request, new_user)
-
             return HttpResponseRedirect(reverse('register_email_instructions'))
     else:
         form = UserForm()
