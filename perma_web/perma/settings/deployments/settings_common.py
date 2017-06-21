@@ -8,6 +8,7 @@ this_module = unicode(
     sys.executable if hasattr(sys, "frozen") else __file__,
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
+SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # make sure mysql uses innodb and utf8
 _mysql_connection_options = {
@@ -321,7 +322,8 @@ BANNED_IP_RANGES = [
 # TRUSTED_PROXIES should be a list of reverse proxies in the chain, where each proxy is a whitelist of IP ranges
 # for that proxy. Proxies should be in order from client to server. For example, given:
 
-#    TRUSTED_PROXIES = [['<cloudflare range>', '<cloudflare range>'], ['<nginx server ip>']]
+#    from .utils.helpers import get_cloudflare_ips
+#    TRUSTED_PROXIES = [get_cloudflare_ips(CLOUDFLARE_DIR), ['<nginx server ip>']]
 
 # if we see a request like:
 
@@ -332,6 +334,7 @@ BANNED_IP_RANGES = [
 # fail to match, wsgi.py will return a 400 Bad Request.
 
 TRUSTED_PROXIES = []
+CLOUDFLARE_DIR = os.path.join(SERVICES_DIR, 'cloudflare')
 
 # Http header we will use to determine/test/validate a client's IP address.
 CLIENT_IP_HEADER = 'REMOTE_ADDR'
