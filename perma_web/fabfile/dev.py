@@ -722,3 +722,18 @@ def update_cloudflare_cache():
     for ip_filename in ('ips-v4', 'ips-v6'):
         with open(os.path.join(settings.CLOUDFLARE_DIR, ip_filename), 'w') as ip_file:
             ip_file.write(requests.get('https://www.cloudflare.com/%s' % ip_filename).text)
+
+
+@task
+def test_db_connection(connection):
+    """
+    Open a database connection.
+    Use this task repeatedly, possibly with different database connection settings,
+    e.g. in order to flush out a transient SSL connection problem, something like:
+    while [ 1 ] ; do date ; fab dev.test_db_connection:some-connection ; sleep 1 ; done
+    """
+    from django.db import connections
+    print("Attempting connection to %s ..." % connection)
+    cursor = connections[connection].cursor()
+    print("Succeeded.")
+    cursor.close()
