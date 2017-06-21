@@ -713,3 +713,12 @@ def md5hash(path, storage):
                 break
             m.update(buf)
         return m.hexdigest()
+
+
+@task
+def update_cloudflare_cache():
+    """ Update Cloudflare IP lists. """
+    import requests
+    for ip_filename in ('ips-v4', 'ips-v6'):
+        with open(os.path.join(settings.CLOUDFLARE_DIR, ip_filename), 'w') as ip_file:
+            ip_file.write(requests.get('https://www.cloudflare.com/%s' % ip_filename).text)

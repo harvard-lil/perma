@@ -4,7 +4,6 @@ import os
 
 DEBUG = True
 WARC_HOST = 'perma-archives.dev:8000'
-SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
