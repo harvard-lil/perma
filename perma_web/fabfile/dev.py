@@ -134,7 +134,7 @@ def reset_hard_db():
 
     local("python manage.py sqlflush --database default | python manage.py dbshell")
     local("python manage.py sqlflush --database perma-cdxline | python manage.py dbshell")
-    init_db();
+    init_db()
 
 @task
 def screenshots(base_url='http://perma.dev:8000'):
