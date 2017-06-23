@@ -127,9 +127,10 @@ def init_db():
 def reset_hard_db():
     """
         Drops the perma and perma_cdxline databases and creates and inits them again
+        Let folks run this if they're not in Django's debug mode
     """
 
-    if not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
+    if settings.DEBUG and not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
         abort("No DBs dropped. Aborted.")
 
     local("python manage.py sqlflush --database default | python manage.py dbshell")
