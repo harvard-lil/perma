@@ -132,7 +132,8 @@ def reset_hard_db():
     if not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
         abort("No DBs dropped. Aborted.")
 
-    local("python manage.py sqlflush | python manage.py dbshell")
+    local("python manage.py sqlflush --database default | python manage.py dbshell")
+    local("python manage.py sqlflush --database perma-cdxline | python manage.py dbshell")
     init_db();
 
 @task
