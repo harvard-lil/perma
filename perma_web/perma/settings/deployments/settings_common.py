@@ -12,7 +12,7 @@ SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # make sure mysql uses innodb and utf8
 _mysql_connection_options = {
-    "init_command": "SET storage_engine=INNODB; SET NAMES 'utf8';",
+    "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
     # for mysql 5.7+, use:
     # "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
     "charset": "utf8",
