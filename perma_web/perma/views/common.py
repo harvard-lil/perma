@@ -1,5 +1,5 @@
 from wsgiref.util import FileWrapper
-import logging, io, gzip, itertools, json
+import logging, itertools, json
 from time import mktime
 from collections import OrderedDict
 
