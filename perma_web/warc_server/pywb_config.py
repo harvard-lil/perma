@@ -473,6 +473,8 @@ def new_rewrite(self, status_headers, urlrewriter, cookie_rewriter):
 HeaderRewriter.rewrite = new_rewrite
 
 
+
+
 # =================================================================
 def create_perma_wb_router(config={}):
     """
