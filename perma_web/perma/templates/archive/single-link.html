@@ -209,6 +209,13 @@
           {% endif %}
         {% endif %}
       </div>
+
+      {# In IE, our tray shows behind iframes containing PDFs. Adding a blank iframe at z-index -1 fixes the problem. Via https://stackoverflow.com/a/12977151/307769 #}
+      <script type="text/javascript">
+        if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) // only add this useless iframe in IE: https://stackoverflow.com/a/29988202/307769
+            document.write('<iframe src="about:blank" style="border: none;position: absolute;top: 0;left: 0;height: 100%;width: 100%;z-index: -1;"></iframe><![endif]-->');
+      </script>
+
     </div>
 
     {% if can_view and link.is_private %}
