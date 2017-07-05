@@ -130,11 +130,11 @@ def reset_hard_db():
         Let folks run this if they're not in Django's debug mode
     """
 
-    if settings.DEBUG and not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
+    if not settings.DEBUG and not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
         abort("No DBs dropped. Aborted.")
 
-    local("python manage.py sqlflush --database default | python manage.py dbshell")
-    local("python manage.py sqlflush --database perma-cdxline | python manage.py dbshell")
+    local("mysql -uroot -p -e 'drop database perma; create database perma character set utf8;'")
+    local("mysql -uroot -p -e 'drop database perma_cdxline; create database perma_cdxline character set utf8;'")
     init_db()
 
 @task
