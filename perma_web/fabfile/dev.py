@@ -130,7 +130,10 @@ def reset_hard_db():
         Let folks run this if they're not in Django's debug mode
     """
 
-    if not settings.DEBUG and not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
+    if not settings.DEBUG:
+        abort("Django's settings.DEBUG is set to False. You might be running in produciton. Do not use this method!")
+
+    if not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
         abort("No DBs dropped. Aborted.")
 
     local("mysql -uroot -p -e 'drop database perma; create database perma character set utf8;'")
