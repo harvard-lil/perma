@@ -1,14 +1,15 @@
 from wsgiref.util import FileWrapper
-import logging
+import logging, itertools, json
 from time import mktime
+from collections import OrderedDict
 
-from django.contrib.auth.views import redirect_to_login
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from wsgiref.handlers import format_date_time
 from ua_parser import user_agent_parser
 from urllib import urlencode
 
+from django.contrib.auth.views import redirect_to_login
 from django.core.files.storage import default_storage
 from django.forms import widgets
 from django.http import HttpResponseForbidden, Http404
@@ -25,6 +26,8 @@ from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import if_anonymous, ratelimit_ip_key
 from ..email import send_admin_email, send_user_email_copy_admins
+
+from warcio.warcwriter import BufferWARCWriter
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -134,9 +137,54 @@ def single_linky(request, guid):
         if link.user_deleted:
             raise Http404
         elif request.user.can_view(link):
-            response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
-                                             content_type="application/gzip")
-            response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
+
+            def make_warcinfo(filename, guid, coll_title, coll_desc, rec_title, pages):
+                # #
+                # Thank you! Rhizome/WebRecorder.io/Ilya Kreymer
+                # #
+
+                coll_metadata = {'type': 'collection',
+                                 'title': coll_title,
+                                 'desc': coll_desc
+                                }
+
+                rec_metadata = {'type': 'recording',
+                                'title': rec_title,
+                                'pages': pages}
+
+                # Coll info
+                writer = BufferWARCWriter(gzip=True)
+                params = OrderedDict([('operator', 'Perma.cc download'),
+                                      ('Perma-GUID', guid),
+                                      ('format', 'WARC File Format 1.0'),
+                                      ('json-metadata', json.dumps(coll_metadata))])
+
+                record = writer.create_warcinfo_record(filename, params)
+                writer.write_record(record)
+
+                # Rec Info
+                params['json-metadata'] = json.dumps(rec_metadata)
+
+                record = writer.create_warcinfo_record(filename, params)
+                writer.write_record(record)
+
+                return writer.get_contents()
+
+
+            filename = "%s.warc.gz" % link.guid
+
+            warcinfo = make_warcinfo( filename = filename,
+                         guid = link.guid,
+                         coll_title = 'Perma Archive, %s' % link.submitted_title,
+                         coll_desc = link.submitted_description,
+                         rec_title = 'Perma Archive of %s' % link.submitted_title,
+                         pages= [{'title': link.submitted_title, 'url': link.submitted_url}])
+
+            warc_stream = FileWrapper(default_storage.open(link.warc_storage_file()))
+            warc_stream = itertools.chain([warcinfo], warc_stream)
+            response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
+            response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+
             return response
         else:
             return HttpResponseForbidden('Private archive.')
