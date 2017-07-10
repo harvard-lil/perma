@@ -1152,16 +1152,32 @@ def delete_from_internet_archive(self, link_guid):
     link = Link.objects.get(guid=link_guid)
     item = internetarchive.get_item(identifier)
 
+    metadata_identifiers = [
+        "%s_meta.sqlite" % identifier,
+        "%s_meta.xml" % identifier,
+        "%s_files.xml" % identifier
+    ]
+
     if not item.exists:
         return False
+
     for f in item.files:
-        file = item.get_file(f["name"])
-        file.delete(
-            verbose=True,
-            cascade_delete=True,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-        )
+        ia_file = item.get_file(f["name"])
+        try:
+            # try to delete all files
+            # if failed, the file might be metadata, auto-created by IA
+            # from https://internetarchive.readthedocs.io/en/latest/api.html#deleting, Note: Some system files, such as <itemname>_meta.xml, cannot be deleted.
+            ia_file.delete(
+                verbose=True,
+                cascade_delete=True,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+        except requests.HTTPError:
+            if f["name"] not in metadata_identifiers:
+                raise Exception("Attempt to delete file %s from Internet Archive failed" % f["name"])
+            else:
+                pass
 
     metadata = {
         "description":"",
