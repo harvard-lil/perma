@@ -7,6 +7,9 @@ from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
+from fabric.contrib.console import confirm
+from fabric.api import abort
+
 
 from perma.tests.utils import reset_failed_test_files_folder
 
@@ -120,6 +123,22 @@ def init_db():
     local("python manage.py migrate --database=perma-cdxline")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
+@task
+def reset_hard_db():
+    """
+        Drops the perma and perma_cdxline databases and creates and inits them again
+        Let folks run this if they're not in Django's debug mode
+    """
+
+    if not settings.DEBUG:
+        abort("Django's settings.DEBUG is set to False. You might be running in produciton. Do not use this method!")
+
+    if not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
+        abort("No DBs dropped. Aborted.")
+
+    local("mysql -uroot -p -e 'drop database perma; create database perma character set utf8;'")
+    local("mysql -uroot -p -e 'drop database perma_cdxline; create database perma_cdxline character set utf8;'")
+    init_db()
 
 @task
 def screenshots(base_url='http://perma.dev:8000'):
