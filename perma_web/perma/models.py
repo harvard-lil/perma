@@ -1316,8 +1316,10 @@ class CDXLineManager(models.Manager):
             lines = []
             for line in cdx_io:
                 lines.append(CDXLine(raw=line, link_id=link.guid, is_unlisted=link.is_unlisted, is_private=link.is_private))
+            # Delete any existing rows to reduce the likelihood of a race condition,
+            # if someone hits the link before the capture process has written the CDXLine db.
+            CDXLine.objects.get(link_id=link.guid).delete()
             results = CDXLine.objects.bulk_create(lines)
-        # does anything consume this return value?
         return results
 
 
