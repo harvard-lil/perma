@@ -1313,14 +1313,13 @@ class CDXLineManager(models.Manager):
             write_cdx_index(cdx_io, warc_file, warc_path)
             cdx_io.seek(0)
             next(cdx_io) # first line is a header so skip it
-            results = []
+            lines = []
             for line in cdx_io:
-                cdxline = CDXLine.objects.get_or_create(raw=line, link_id=link.guid)[0]
-                cdxline.is_unlisted = link.is_unlisted
-                cdxline.is_private = link.is_private
-                cdxline.save()
-                results.append(cdxline)
-
+                lines.append(CDXLine(raw=line, link_id=link.guid, is_unlisted=link.is_unlisted, is_private=link.is_private))
+            # Delete any existing rows to reduce the likelihood of a race condition,
+            # if someone hits the link before the capture process has written the CDXLine db.
+            CDXLine.objects.filter(link_id=link.guid).delete()
+            results = CDXLine.objects.bulk_create(lines)
         return results
 
 
