@@ -15,7 +15,7 @@ from django.forms import widgets
 from django.http import HttpResponseForbidden, Http404
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, StreamingHttpResponse
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.conf import settings
 from django.utils import timezone
 from django.views.generic import TemplateView
@@ -383,3 +383,29 @@ def contact_thanks(request):
     """
     registrar = Registrar.objects.filter(pk=request.GET.get('registrar', '-1')).first()
     return render(request, 'contact-thanks.html', {'registrar': registrar})
+
+
+def robots_txt(request):
+    """
+    robots.txt
+    """
+    from ..urls import urlpatterns
+
+    # redundant -- from models.py
+    guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    disallowed_prefixes = ['errors', 'log', 'manage', 'password', 'register', 'service', 'settings', 'sign-up']
+    allow = []
+    names = [urlpattern.name for urlpattern in urlpatterns if urlpattern.name is not None]
+    for name in names:
+        try:
+            disallowed = False
+            url = reverse(name)
+            for disallowed_prefix in disallowed_prefixes:
+                if url[1:].startswith(disallowed_prefix):
+                    disallowed = True
+            if not disallowed and url != '/':
+                allow.append(url)
+        except NoReverseMatch:
+            pass
+    disallow = [x for x in guid_character_set] + disallowed_prefixes
+    return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')

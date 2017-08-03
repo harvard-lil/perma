@@ -1,0 +1,6 @@
+User-agent: *
+
+{% for url in allow %}Allow: {{ url }}
+{% endfor %}
+{% for fragment in disallow %}Disallow: /{{ fragment }}
+{% endfor %}
