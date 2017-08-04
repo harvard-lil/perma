@@ -1431,6 +1431,12 @@ def court_request_response(request):
     """
     return render(request, 'registration/court_request.html')
 
+def firm_request_response(request):
+    """
+    After the user has requested info about a firm account
+    """
+    return render(request, 'registration/firm_request.html')
+
 
 def email_new_user(request, user):
     """
@@ -1528,7 +1534,7 @@ def email_court_request(request, court):
         }
     )
 
-def email_firm_request(request, court):
+def email_firm_request(request, firm):
     """
     Send email to Perma.cc admins when a firm requests an account
     """

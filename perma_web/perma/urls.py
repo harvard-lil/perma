@@ -65,6 +65,7 @@ urlpatterns = [
     url(r'^register/email/?$', user_management.register_email_instructions, name='register_email_instructions'),
     url(r'^register/library/?$', user_management.register_library_instructions, name='register_library_instructions'),
     url(r'^register/court/?$', user_management.court_request_response, name='court_request_response'),
+    url(r'^register/firm/?$', user_management.firm_request_response, name='firm_request_response'),
     url(r'^password/change/?$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='password_change'),
     url(r'^password/change/done/?$', auth_views.password_change_done, {'template_name': 'registration/password_change_done.html'},   name='password_change_done'),
     url(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
