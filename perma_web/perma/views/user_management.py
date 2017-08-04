@@ -1550,7 +1550,7 @@ def email_firm_request(request, firm):
         {
             "first_name": firm.first_name,
             "last_name": firm.last_name,
-            "court_name": firm.requested_account_note,
+            "firm_name": firm.requested_account_note,
             "has_account": target_user
         }
     )
