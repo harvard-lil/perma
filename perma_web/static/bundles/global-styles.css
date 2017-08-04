@@ -8654,6 +8654,17 @@ a.cc:active {
   }
 }
 
+.col-sm-by6 {
+  width: 100%;
+}
+
+@media only screen and (min-width: 990px) {
+  .col-sm-by6 {
+    width: 16.66666667%;
+    float: left;
+  }
+}
+
 @media only screen and (min-width: 990px) {
   .col-md-60 {
     width: 60%;
