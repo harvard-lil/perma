@@ -3,7 +3,7 @@ python:
   - "2.7"
 env: CFLAGS="-O0"
 
-dist: precise
+dist: trusty
 
 # make sure perma.dev resolves to localhost so our tests work
 addons:
@@ -39,6 +39,9 @@ install:
   # node reqs
   - nvm install 6
   - npm install
+
+  # upgrade selenium
+  - pip install -U selenium
 
 before_script:
   # linting
