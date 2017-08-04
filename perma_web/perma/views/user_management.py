@@ -36,6 +36,7 @@ from perma.forms import (
     UserFormWithRegistrar,
     UserFormWithOrganization,
     CreateUserFormWithCourt,
+    CreateUserFormWithFirm,
     CreateUserFormWithUniversity,
     UserAddRegistrarForm,
     UserAddOrganizationForm,
@@ -1322,6 +1323,45 @@ def sign_up_faculty(request):
 
     return render(request, "registration/sign-up-faculty.html", {'form': form})
 
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+def sign_up_firm(request):
+    """
+    Register a new law firm user
+    """
+    if request.method == 'POST':
+        form = CreateUserFormWithFirm(request.POST)
+        user_email = request.POST.get('email', None)
+        try:
+            target_user = LinkUser.objects.get(email=user_email)
+        except LinkUser.DoesNotExist:
+            target_user = None
+        if target_user:
+            requested_account_note = request.POST.get('requested_account_note', None)
+            target_user.requested_account_type = 'firm'
+            target_user.requested_account_note = requested_account_note
+            target_user.save()
+            email_firm_request(request, target_user)
+            return HttpResponseRedirect(reverse('firm_request_response'))
+
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.requested_account_type = 'firm'
+            create_account = request.POST.get('create_account', None)
+            if create_account:
+                new_user.save()
+                email_new_user(request, new_user)
+                email_firm_request(request, new_user)
+                messages.add_message(request, messages.INFO, "We will shortly follow up with more information about how Perma.cc could work in your firm.")
+                return HttpResponseRedirect(reverse('register_email_instructions'))
+            else:
+                email_firm_request(request, new_user)
+                return HttpResponseRedirect(reverse('firm_request_response'))
+
+    else:
+        form = CreateUserFormWithFirm()
+
+    return render(request, "registration/sign-up-firms.html", {'form': form})
+
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_journals(request):
@@ -1484,6 +1524,27 @@ def email_court_request(request, court):
             "first_name": court.first_name,
             "last_name": court.last_name,
             "court_name": court.requested_account_note,
+            "has_account": target_user
+        }
+    )
+
+def email_firm_request(request, court):
+    """
+    Send email to Perma.cc admins when a firm requests an account
+    """
+    try:
+        target_user = LinkUser.objects.get(email=firm.email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+    send_admin_email(
+        "Perma.cc new law firm account information request",
+        firm.email,
+        request,
+        "email/admin/firm_request.txt",
+        {
+            "first_name": firm.first_name,
+            "last_name": firm.last_name,
+            "court_name": firm.requested_account_note,
             "has_account": target_user
         }
     )

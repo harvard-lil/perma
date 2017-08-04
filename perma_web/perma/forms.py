@@ -149,6 +149,24 @@ class CreateUserFormWithCourt(UserForm):
         self.fields['last_name'].label = "Your last name"
         self.fields['email'].label = "Your email"
 
+class CreateUserFormWithFirm(UserForm):
+    """
+    add firm to the create user form
+    """
+
+    requested_account_note = forms.CharField(required=True)
+
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "requested_account_note"]
+
+    def __init__(self, *args, **kwargs):
+        super(CreateUserFormWithFirm, self).__init__(*args, **kwargs)
+        self.fields['requested_account_note'].label = "Your firm"
+        self.fields['first_name'].label = "Your first name"
+        self.fields['last_name'].label = "Your last name"
+        self.fields['email'].label = "Your email"
+
 
 class CreateUserFormWithUniversity(UserForm):
     """

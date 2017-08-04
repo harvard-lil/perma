@@ -58,6 +58,7 @@ urlpatterns = [
     url(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', user_management.sign_up_faculty, name='sign_up_faculty'),
     url(r'^sign-up/journals/?$', user_management.sign_up_journals, name='sign_up_journals'),
+    url(r'^sign-up/firms/?$', user_management.sign_up_firm, name='sign_up_firm'),
     url(r'^libraries/?$', user_management.libraries, name='libraries'),
     #url(r'^register/confirm/(?P<code>\w+)/$', user_management.register_email_code_confirmation, name='confirm_register'),
     url(r'^register/password/(?P<code>\w+)/$', user_management.register_email_code_password, name='register_password'),
