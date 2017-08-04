@@ -391,21 +391,18 @@ def robots_txt(request):
     """
     from ..urls import urlpatterns
 
-    # redundant -- from models.py
-    guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     disallowed_prefixes = ['errors', 'log', 'manage', 'password', 'register', 'service', 'settings', 'sign-up']
     allow = []
+    # some urlpatterns do not have names
     names = [urlpattern.name for urlpattern in urlpatterns if urlpattern.name is not None]
     for name in names:
+        # urlpatterns that take parameters can't be reversed
         try:
-            disallowed = False
             url = reverse(name)
-            for disallowed_prefix in disallowed_prefixes:
-                if url[1:].startswith(disallowed_prefix):
-                    disallowed = True
+            disallowed = any(url[1:].startswith(prefix) for prefix in disallowed_prefixes)
             if not disallowed and url != '/':
                 allow.append(url)
         except NoReverseMatch:
             pass
-    disallow = [x for x in guid_character_set] + disallowed_prefixes
+    disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
