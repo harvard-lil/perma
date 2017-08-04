@@ -666,6 +666,7 @@ class Link(DeletableModel):
     This is the core of the Perma link.
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
+    GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
@@ -743,10 +744,9 @@ class Link(DeletableModel):
                 # only try 100 attempts at finding an unused GUID
                 # (100 attempts should never be necessary, since we'll expand the keyspace long before
                 # there are frequent collisions)
-                guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
                 for i in range(100):
                     # Generate an 8-character random string like "1A2B3C4D"
-                    guid = ''.join(random.choice(guid_character_set) for _ in range(8))
+                    guid = ''.join(random.choice(self.GUID_CHARACTER_SET) for _ in range(8))
 
                     # apply standard formatting (hyphens)
                     guid = Link.get_canonical_guid(guid)
