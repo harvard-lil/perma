@@ -920,6 +920,14 @@ div.col-right {
   }
 }
 
+.col-sm-by6 {
+  width: 100%;
+  @include respond-desktop {
+    width: 100 / 6 * 1%;
+    float: left;
+  }
+}
+
 .col-md-60 {
   @include respond-desktop {
     width: 60%

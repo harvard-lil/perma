@@ -1,0 +1,64 @@
+{% extends "base-responsive.html" %}
+
+{% block meta_description %}Perma.cc for courts{% endblock %}
+
+{% block bodyFlags %}_signup _courts{% endblock %}
+{% block mainFlags %}{% endblock %}
+
+{% block mainContent %}
+<div class="container cont-fixed">
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Perma.cc for law firms</h1>
+      <p class="page-dek">Law firms use Perma.cc to protect links in court filings and marketing materials.</p>
+    </div>
+  </div>
+</div>
+
+{% include "registration/includes/sign-up-navigation.html" with this_page="firms" %}
+
+<div class="container cont-reading cont-fixed">
+  <div class="row signup-info">
+    <div class="col-sm-4 signup-learnMore-form">
+      <h2 class="body-ah">Request information for firms</h2>
+      <form method="post" action="">
+        {% csrf_token %}
+        <fieldset>
+          {% for field in form %}
+            <div class="form-group{% if field.errors %} _error{% endif %}">
+              <label for="id_{{ field.name }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+              {%elif field.help_text %}
+                <span class="help-inline">{{ field.help_text }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="checkbox">
+            <label>
+              <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
+            </label>
+          </div>
+          {% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+          <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+        </fieldset>
+        <button type="submit" class="btn">Send request</button>
+      </form>
+    </div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Why should lawyers and law firms use Perma.cc?</h2>
+      <p class="body-text">Link rot ruins citations in briefs and other court filings. It also harms links in blog posts, white papers and any materials used to attract and inform clients. If law firms are using links, they should be concerned about link rot.</p>
+
+      <h3 class="body-bh">Trusted by courts and lawyers</h3>
+      <p class="body-text">Many state and federal courts rely on Perma.cc to protect links in their opinions, and lawyers have used Perma in briefs filed in the U.S. Supreme Court, in multiple U.S. Courts of Appeals and in state appellate courts across the country. Perma also has been relied on by the Law Library of Congress, the Department of Justice and the ABA, and Perma links are encouraged by the Bluebook.<p class="body-text">
+
+      <h3 class="body-bh">Paid option coming soon</h3>
+      <p class="body-text">Right now, individual lawyers can use Perma.cc on a limited basis, for free, to protect up to 10 links per month. Soon we'll be launching a paid service for law firms and lawyers needing more links. If you’d like to learn more about how Perma.cc can help your firm, please fill out this form and we’ll follow up soon.<p class="body-text">
+
+      <h3 class="body-bh">Try it now</h3>
+      <p class="body-text">Create a free individual account now by leaving the “Create a free personal account” box checked.<p class="body-text">
+    </div>
+  </div>
+</div>
+{% endblock mainContent %}
