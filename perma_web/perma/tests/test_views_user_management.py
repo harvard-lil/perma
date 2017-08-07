@@ -1345,7 +1345,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         our_address = settings.DEFAULT_FROM_EMAIL
 
         # Doesn't check email contents yet; too many variations possible presently
-        self.assertEqual(message.subject, "Perma.cc new firm account information request")
+        self.assertEqual(message.subject, "Perma.cc new law firm account information request")
         self.assertEqual(message.from_email, our_address)
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': firm_email})

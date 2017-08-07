@@ -1,4 +1,4 @@
-from ..settings import *
+from ..__init__ import *
 
 #########
 # Setup #
