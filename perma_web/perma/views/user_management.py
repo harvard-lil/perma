@@ -1484,6 +1484,12 @@ def email_registrar_request(request, pending_registrar):
     Send email to Perma.cc admins when a library requests an account
     """
     host = request.get_host()
+    try:
+        email = request.user.email
+    except AttributeError:
+        # User did not have an account
+        email = request.POST.get('a-email')
+
     send_admin_email(
         "Perma.cc new library registrar account request",
         pending_registrar.email,
@@ -1492,6 +1498,7 @@ def email_registrar_request(request, pending_registrar):
         {
             "name": pending_registrar.name,
             "email": pending_registrar.email,
+            "requested_by_email": email,
             "host": host,
             "confirmation_route": reverse('user_management_approve_pending_registrar', args=[pending_registrar.id])
         }
