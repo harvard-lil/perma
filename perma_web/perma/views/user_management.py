@@ -1235,12 +1235,12 @@ def libraries(request):
         request_data = request.session.get('request_data','')
         user_form = None
         if not request.user.is_authenticated():
-            user_form = UserForm(prefix = "a")
+            user_form = UserForm(prefix="a")
             user_form.fields['email'].label = "Your email"
         if request_data:
-            registrar_form = LibraryRegistrarForm(request_data, prefix ="b")
+            registrar_form = LibraryRegistrarForm(request_data, prefix="b")
         else:
-            registrar_form = LibraryRegistrarForm(prefix ="b")
+            registrar_form = LibraryRegistrarForm(prefix="b")
 
     return render(request, "registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form})
