@@ -1009,7 +1009,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         email_label = soup.find('label', {'for': 'id_a-email'})
         self.assertEqual(email_label.text, "Your email")
 
-    def check_lib_email(self, message, new_lib):
+    def check_lib_email(self, message, new_lib, user):
         our_address = settings.DEFAULT_FROM_EMAIL
 
         self.assertIn(new_lib['name'], message.body)
@@ -1017,6 +1017,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         id = Registrar.objects.get(email=new_lib['email']).id
         approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
         self.assertIn(approve_url, message.body)
+        self.assertIn(user['email'], message.body)
         self.assertEqual(message.subject, "Perma.cc new library registrar account request")
         self.assertEqual(message.from_email, our_address)
         self.assertEqual(message.recipients(), [our_address])
@@ -1120,7 +1121,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
         self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
 
         # Not logged in, submit all fields including first and last name
@@ -1136,7 +1137,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
         self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
 
         # Logged in
@@ -1150,7 +1151,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           user=existing_lib_user['email'])
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib, existing_lib_user)
 
     def test_new_library_submit_failure(self):
         '''
