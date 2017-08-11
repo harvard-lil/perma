@@ -1235,12 +1235,12 @@ def libraries(request):
         request_data = request.session.get('request_data','')
         user_form = None
         if not request.user.is_authenticated():
-            user_form = UserForm(prefix = "a")
+            user_form = UserForm(prefix="a")
             user_form.fields['email'].label = "Your email"
         if request_data:
-            registrar_form = LibraryRegistrarForm(request_data, prefix ="b")
+            registrar_form = LibraryRegistrarForm(request_data, prefix="b")
         else:
-            registrar_form = LibraryRegistrarForm(prefix ="b")
+            registrar_form = LibraryRegistrarForm(prefix="b")
 
     return render(request, "registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form})
@@ -1484,14 +1484,21 @@ def email_registrar_request(request, pending_registrar):
     Send email to Perma.cc admins when a library requests an account
     """
     host = request.get_host()
+    try:
+        email = request.user.email
+    except AttributeError:
+        # User did not have an account
+        email = request.POST.get('a-email')
+
     send_admin_email(
         "Perma.cc new library registrar account request",
-        pending_registrar.email,
+        email,
         request,
         'email/admin/registrar_request.txt',
         {
             "name": pending_registrar.name,
             "email": pending_registrar.email,
+            "requested_by_email": email,
             "host": host,
             "confirmation_route": reverse('user_management_approve_pending_registrar', args=[pending_registrar.id])
         }
