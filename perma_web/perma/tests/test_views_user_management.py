@@ -1014,14 +1014,16 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         self.assertIn(new_lib['name'], message.body)
         self.assertIn(new_lib['email'], message.body)
+
+        self.assertIn(user['email'], message.body)
+
         id = Registrar.objects.get(email=new_lib['email']).id
         approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
         self.assertIn(approve_url, message.body)
-        self.assertIn(user['email'], message.body)
         self.assertEqual(message.subject, "Perma.cc new library registrar account request")
         self.assertEqual(message.from_email, our_address)
         self.assertEqual(message.recipients(), [our_address])
-        self.assertDictEqual(message.extra_headers, {'Reply-To': new_lib['email']})
+        self.assertDictEqual(message.extra_headers, {'Reply-To': user['email']})
 
     def check_lib_user_email(self, message, new_lib_user):
         our_address = settings.DEFAULT_FROM_EMAIL

@@ -1492,7 +1492,7 @@ def email_registrar_request(request, pending_registrar):
 
     send_admin_email(
         "Perma.cc new library registrar account request",
-        pending_registrar.email,
+        email,
         request,
         'email/admin/registrar_request.txt',
         {
