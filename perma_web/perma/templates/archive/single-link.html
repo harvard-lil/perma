@@ -245,6 +245,8 @@
 
   {% if link.user_deleted %}
     {% include "archive/deleted.html" %}
+  {% elif download_pdf_view %}
+    {% include "archive/download_to_view_pdf.html" %}
   {% elif can_view %}
     {% include "archive/iframe.html" %}
   {% elif link.is_private %}
