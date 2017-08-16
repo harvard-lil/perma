@@ -245,9 +245,9 @@ def single_linky(request, guid):
 
     response = render(request, 'archive/single-link.html', context)
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
-    link_memento  = protocol + settings.HOST + '/' + link.guid
+    link_memento = protocol + settings.HOST + '/' + link.guid
     link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
-    link_timemap  = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
+    link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
     response['Memento-Datetime'] = date_header
 
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
