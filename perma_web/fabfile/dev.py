@@ -105,7 +105,7 @@ def sauce_tunnel():
         Set up Sauce tunnel before running functional tests targeted at localhost.
     """
     if subprocess.call(['which','sc']) == 1: # error return code -- program not found
-        sys.exit("Please check that the `sc` program is installed and in your path. To install: https://docs.saucelabs.com/reference/sauce-connect/")
+        sys.exit("Please check that the `sc` program is installed and in your path. To install: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy")
     local("sc -u %s -k %s" % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY))
 
 
