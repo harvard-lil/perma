@@ -212,7 +212,13 @@ def single_linky(request, guid):
 
     # Special handling for mobile pdf viewing because it can be buggy
     # Redirecting to a download page if on mobile
-    redirect_to_download_view = redirect_to_download(capture.mime_type(), raw_user_agent)
+    try:
+        capture_mime_type = capture.mime_type()
+        redirect_to_download_view = redirect_to_download(capture.mime_type(), raw_user_agent)
+    except AttributeError:
+        # if capture is deleted, we will catch it here
+        capture_mime_type = None
+        redirect_to_download_view = False
 
     # If this record was just created by the current user, show them a new record message
     new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
@@ -229,7 +235,7 @@ def single_linky(request, guid):
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
-        'mime_type': capture.mime_type(),
+        'mime_type': capture_mime_type,
         'can_view': request.user.can_view(link),
         'can_edit': request.user.can_edit(link),
         'can_delete': request.user.can_delete(link),
