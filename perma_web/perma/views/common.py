@@ -214,7 +214,7 @@ def single_linky(request, guid):
     # Redirecting to a download page if on mobile
     try:
         capture_mime_type = capture.mime_type()
-        redirect_to_download_view = redirect_to_download(capture.mime_type(), raw_user_agent)
+        redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
     except AttributeError:
         # if capture is deleted, we will catch it here
         capture_mime_type = None

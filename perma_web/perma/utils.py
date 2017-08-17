@@ -257,13 +257,11 @@ def parse_user_agent(user_agent_str):
     return user_agent_parser.ParseUserAgent(user_agent_str)
 
 
-### pdf handling on mobile apple ###
+### pdf handling on mobile ###
 
 def redirect_to_download(capture_mime_type, user_agent_str):
     # redirecting to a page with a download button (and not attempting to display)
     # if mobile apple device, and the request is a pdf
     parsed_agent = parse_user_agent(user_agent_str)
 
-    if "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type:
-            return True
-    return False
+    return "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
