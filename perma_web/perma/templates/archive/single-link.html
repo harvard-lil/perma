@@ -246,10 +246,12 @@
 
   {% if link.user_deleted %}
     {% include "archive/deleted.html" %}
-  {% elif redirect_to_download_view %}
-    {% include "archive/download_to_view_pdf.html" %}
   {% elif can_view %}
-    {% include "archive/iframe.html" %}
+    {% if redirect_to_download_view %}
+      {% include "archive/download_to_view_pdf.html" %}
+    {% else %}
+      {% include "archive/iframe.html" %}
+    {% endif %}
   {% elif link.is_private %}
     {% include "archive/dark-archive.html" %}
   {% endif %}
