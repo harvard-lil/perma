@@ -210,15 +210,15 @@ def single_linky(request, guid):
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
             return HttpResponseRedirect(reverse('single_linky', args=[guid])+"?type=image")
 
-    # Special handling for mobile pdf viewing because it can be buggy
-    # Redirecting to a download page if on mobile
     try:
         capture_mime_type = capture.mime_type()
-        redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
     except AttributeError:
-        # if capture is deleted, we will catch it here
+        # If capture is deleted, then mime type does not exist. Catch error.
         capture_mime_type = None
-        redirect_to_download_view = False
+
+    # Special handling for mobile pdf viewing because it can be buggy
+    # Redirecting to a download page if on mobile
+    redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
 
     # If this record was just created by the current user, show them a new record message
     new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
