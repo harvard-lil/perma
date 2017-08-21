@@ -6,7 +6,6 @@ from collections import OrderedDict
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from wsgiref.handlers import format_date_time
-from ua_parser import user_agent_parser
 from urllib import urlencode
 
 from django.contrib.auth.views import redirect_to_login
@@ -24,7 +23,7 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import if_anonymous, ratelimit_ip_key
+from ..utils import if_anonymous, ratelimit_ip_key, redirect_to_download, parse_user_agent
 from ..email import send_admin_email, send_user_email_copy_admins
 
 from warcio.warcwriter import BufferWARCWriter
@@ -109,6 +108,7 @@ def single_linky(request, guid):
     """
     Given a Perma ID, serve it up.
     """
+    raw_user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
@@ -195,7 +195,7 @@ def single_linky(request, guid):
     # safari=1 in the query string indicates that the redirect has already happened.
     # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
     if link.is_private and not request.GET.get('safari'):
-        user_agent = user_agent_parser.ParseUserAgent(request.META.get('HTTP_USER_AGENT', ''))
+        user_agent = parse_user_agent(raw_user_agent)
         if user_agent.get('family') == 'Safari':
             return redirect_to_login(request.build_absolute_uri(),
                                      "//%s%s" % (settings.WARC_HOST, reverse('user_management_set_safari_cookie')))
@@ -209,6 +209,16 @@ def single_linky(request, guid):
         # if primary capture did not work, but screenshot did work, forward to screenshot
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
             return HttpResponseRedirect(reverse('single_linky', args=[guid])+"?type=image")
+
+    try:
+        capture_mime_type = capture.mime_type()
+    except AttributeError:
+        # If capture is deleted, then mime type does not exist. Catch error.
+        capture_mime_type = None
+
+    # Special handling for mobile pdf viewing because it can be buggy
+    # Redirecting to a download page if on mobile
+    redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
 
     # If this record was just created by the current user, show them a new record message
     new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
@@ -224,6 +234,8 @@ def single_linky(request, guid):
 
     context = {
         'link': link,
+        'redirect_to_download_view': redirect_to_download_view,
+        'mime_type': capture_mime_type,
         'can_view': request.user.can_view(link),
         'can_edit': request.user.can_edit(link),
         'can_delete': request.user.can_delete(link),
@@ -239,9 +251,9 @@ def single_linky(request, guid):
 
     response = render(request, 'archive/single-link.html', context)
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
-    link_memento  = protocol + settings.HOST + '/' + link.guid
+    link_memento = protocol + settings.HOST + '/' + link.guid
     link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
-    link_timemap  = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
+    link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
     response['Memento-Datetime'] = date_header
 
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'

@@ -9,6 +9,7 @@ import logging
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
 import requests
+from ua_parser import user_agent_parser
 
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -252,3 +253,15 @@ def get_lat_long(address):
         warn("Error connecting to geocoding API: %s" % r.status_code)
 
 
+def parse_user_agent(user_agent_str):
+    return user_agent_parser.ParseUserAgent(user_agent_str)
+
+
+### pdf handling on mobile ###
+
+def redirect_to_download(capture_mime_type, user_agent_str):
+    # redirecting to a page with a download button (and not attempting to display)
+    # if mobile apple device, and the request is a pdf
+    parsed_agent = parse_user_agent(user_agent_str)
+
+    return "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
