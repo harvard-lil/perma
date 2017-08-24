@@ -1,11 +1,9 @@
 from wsgiref.util import FileWrapper
 import logging, itertools, json
-from time import mktime
 from collections import OrderedDict
 
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
-from wsgiref.handlers import format_date_time
 from urllib import urlencode
 
 from django.contrib.auth.views import redirect_to_login
@@ -23,7 +21,7 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import if_anonymous, ratelimit_ip_key, redirect_to_download, parse_user_agent
+from ..utils import if_anonymous, ratelimit_ip_key, redirect_to_download, parse_user_agent, protocol
 from ..email import send_admin_email, send_user_email_copy_admins
 
 from warcio.warcwriter import BufferWARCWriter
@@ -227,8 +225,6 @@ def single_linky(request, guid):
     # Provide the max upload size, in case the upload form is used
     max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
 
-    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
-
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
@@ -246,24 +242,15 @@ def single_linky(request, guid):
         'this_page': 'single_link',
         'max_size': max_size,
         'link_url': settings.HOST + '/' + link.guid,
-        'protocol': protocol,
+        'protocol': protocol(),
     }
 
     response = render(request, 'archive/single-link.html', context)
 
-    # Prepare header values for memento: https://mementoweb.org/guide/rfc/
-    # http://perma.dev:8000/23W3-NDSB
-    link_memento = protocol + settings.HOST + '/' + link.guid
-    # http://perma-archives.dev:8000/warc/timegate/http://example.com
-    link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.ascii_safe_url
-    # http://perma-archives.dev:8000/warc/timemap/*/http://example.com
-    link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.ascii_safe_url
-    date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
-
     # Add memento headers
-    response['Memento-Datetime'] = date_header
+    response['Memento-Datetime'] = link.memento_formatted_date
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
-    response['Link'] = link_memento_headers.format(link.ascii_safe_url, date_header, link_memento, link_timegate, link_timemap)
+    response['Link'] = link_memento_headers.format(link.ascii_safe_url, link.memento_formatted_date, link.memento, link.timegate, link.timemap)
 
     return response
 
