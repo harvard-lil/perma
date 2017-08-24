@@ -252,8 +252,11 @@ def single_linky(request, guid):
     response = render(request, 'archive/single-link.html', context)
 
     # Prepare header values for memento: https://mementoweb.org/guide/rfc/
+    # http://perma.dev:8000/23W3-NDSB
     link_memento = protocol + settings.HOST + '/' + link.guid
+    # http://perma-archives.dev:8000/warc/timegate/http://example.com
     link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
+    # http://perma-archives.dev:8000/warc/timemap/*/http://example.com
     link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
 
