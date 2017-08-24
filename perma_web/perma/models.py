@@ -698,13 +698,13 @@ class Link(DeletableModel):
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
     @cached_property
-    def safe_url(self):
+    def ascii_safe_url(self):
         """ Encoded URL as string rather than unicode. """
         return iri_to_uri(self.submitted_url)
 
     @cached_property
     def url_details(self):
-        return urlparse(self.safe_url)
+        return urlparse(self.ascii_safe_url)
 
     @cached_property
     def ip(self):
@@ -717,7 +717,7 @@ class Link(DeletableModel):
     def headers(self):
         try:
             return requests.get(
-                self.safe_url,
+                self.ascii_safe_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
                 timeout=HEADER_CHECK_TIMEOUT,

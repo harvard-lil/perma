@@ -255,15 +255,15 @@ def single_linky(request, guid):
     # http://perma.dev:8000/23W3-NDSB
     link_memento = protocol + settings.HOST + '/' + link.guid
     # http://perma-archives.dev:8000/warc/timegate/http://example.com
-    link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
+    link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.ascii_safe_url
     # http://perma-archives.dev:8000/warc/timemap/*/http://example.com
-    link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
+    link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.ascii_safe_url
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
 
     # Add memento headers
     response['Memento-Datetime'] = date_header
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
-    response['Link'] = link_memento_headers.format(link.safe_url, date_header, link_memento, link_timegate, link_timemap)
+    response['Link'] = link_memento_headers.format(link.ascii_safe_url, date_header, link_memento, link_timegate, link_timemap)
 
     return response
 

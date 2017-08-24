@@ -202,7 +202,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                 try:
                     validate = URLValidator()
                     temp_link = Link(submitted_url=data['submitted_url'])
-                    validate(temp_link.safe_url)
+                    validate(temp_link.ascii_safe_url)
 
                     # Don't force URL resolution validation if a file is provided
                     if not uploaded_file:

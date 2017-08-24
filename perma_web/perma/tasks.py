@@ -823,7 +823,7 @@ def run_next_capture():
         # basic setup
         start_time = time.time()
         link = capture_job.link
-        target_url = link.safe_url
+        target_url = link.ascii_safe_url
         browser = warcprox_controller = warcprox_thread = display = None
         have_content = have_warc = have_html = False
         thread_list = []
