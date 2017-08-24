@@ -232,8 +232,6 @@ def single_linky(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
-    capture_safe_url = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
-
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
@@ -243,7 +241,6 @@ def single_linky(request, guid):
         'can_delete': request.user.can_delete(link),
         'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,
-        'capture_safe_url': capture_safe_url,
         'serve_type': serve_type,
         'new_record': new_record,
         'this_page': 'single_link',
@@ -256,7 +253,7 @@ def single_linky(request, guid):
 
     # Prepare header values for memento: https://mementoweb.org/guide/rfc/
     link_memento = protocol + settings.HOST + '/' + link.guid
-    link_timegate = capture_safe_url
+    link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
     link_timemap = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
 
