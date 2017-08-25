@@ -208,24 +208,19 @@ def get_browser(user_agent, proxy_address, cert_path):
 
     # Chrome
     elif settings.CAPTURE_BROWSER == 'Chrome':
-        display = start_virtual_display()
-
         # http://blog.likewise.org/2015/01/setting-up-chromedriver-and-the-selenium-webdriver-python-bindings-on-ubuntu-14-dot-04/
+        # and from 2017-04-17: https://intoli.com/blog/running-selenium-with-headless-chrome/
         download_dir = os.path.abspath('./downloads')
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('proxy-server=%s' % proxy_address)
+        chrome_options.add_argument('headless')
+        chrome_options.add_argument('hide-scrollbars')
 
-        # To use Chrome beta channel, if installed:
-        # chrome_options.binary_location = '/usr/bin/google-chrome-beta'
-
-        chrome_options.add_argument('--proxy-server=%s' % proxy_address)
-        chrome_options.add_argument('--test-type')  # needed?
-        # chrome_options.add_argument('--headless')  # not selenium compatible yet, keep using start_virtual_display for now
-        chrome_options.add_argument('--disable-gpu')  # needed?
-        chrome_options.add_argument('--hide-scrollbars')  # not currently working -- see workaround in get_screenshot
         chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
                                                          "download.default_directory": download_dir,
                                                          "download.prompt_for_download": "false"})
+
         desired_capabilities = chrome_options.to_capabilities()
         desired_capabilities["acceptSslCerts"] = True
 
@@ -636,6 +631,9 @@ def get_srcset_image_urls(dom_tree):
             src = src.strip().split()[0]
             if src:
                 urls.append(src)
+    # get src, too: Chrome doesn't do this automatically, although phantomjs does
+    for el in dom_tree('img[src]'):
+        urls.append(el.attrib.get('src', ''))
     return urls
 
 def get_audio_video_urls(dom_tree):
@@ -675,15 +673,6 @@ def get_screenshot(link, browser):
     if page_pixels_in_allowed_range(page_size):
 
         if settings.CAPTURE_BROWSER == 'Chrome':
-            # workaround for failure of --hide-scrollbars flag in Chrome:
-            browser.execute_script("""
-                ['body', 'html', 'frameset'].forEach(function(elType){
-                    try {
-                        document.getElementsByTagName(elType)[0].style.overflow = 'hidden';
-                    } catch(e) {}
-                });
-            """)
-
             # set window size to page size in Chrome, so we get a full-page screenshot:
             browser.set_window_size(max(page_size['width'], BROWSER_SIZE[0]), max(page_size['height'], BROWSER_SIZE[1]))
 
@@ -694,18 +683,25 @@ def get_screenshot(link, browser):
         print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
         safe_save_fields(link.screenshot_capture, status='failed')
 
+
 def get_page_size(browser):
     try:
-        root_element = browser.find_element_by_tag_name('html')
-    except (NoSuchElementException, URLError):
+        return browser.execute_script("""
+            return {'height': document.body.scrollHeight, 'width': document.body.scrollWidth}
+        """)
+    except:
         try:
-            root_element = browser.find_element_by_tag_name('frameset')
+            root_element = browser.find_element_by_tag_name('html')
         except (NoSuchElementException, URLError):
-            # NoSuchElementException: HTML structure is weird somehow.
-            # URLError: the headless browser has gone away for some reason.
-            root_element = None
-    if root_element:
-        return root_element.size
+            try:
+                root_element = browser.find_element_by_tag_name('frameset')
+            except (NoSuchElementException, URLError):
+                # NoSuchElementException: HTML structure is weird somehow.
+                # URLError: the headless browser has gone away for some reason.
+                root_element = None
+        if root_element:
+            return root_element.size
+
 
 def page_pixels_in_allowed_range(page_size):
     return page_size and page_size['width'] * page_size['height'] < settings.MAX_IMAGE_SIZE
