@@ -288,7 +288,7 @@ class FunctionalTest(BaseTestCase):
                 return  # can only check this on local server
             err_count = UncaughtError.objects.count()
             self.driver.execute_script("setTimeout(function(){doesNotExist()})")
-            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
+            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=10)  # give time for background thread to create exception
             self.assertIn('doesNotExist', UncaughtError.objects.last().message)
 
         def test_playback(capture_url, warc_url):
