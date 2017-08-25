@@ -15,6 +15,8 @@ import itertools
 import time
 import hmac
 import uuid
+from time import mktime
+from wsgiref.handlers import format_date_time
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -43,7 +45,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .utils import copy_file_data, tz_datetime
+from .utils import copy_file_data, tz_datetime, protocol
 
 
 logger = logging.getLogger(__name__)
@@ -698,13 +700,13 @@ class Link(DeletableModel):
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
     @cached_property
-    def safe_url(self):
+    def ascii_safe_url(self):
         """ Encoded URL as string rather than unicode. """
         return iri_to_uri(self.submitted_url)
 
     @cached_property
     def url_details(self):
-        return urlparse(self.safe_url)
+        return urlparse(self.ascii_safe_url)
 
     @cached_property
     def ip(self):
@@ -717,7 +719,7 @@ class Link(DeletableModel):
     def headers(self):
         try:
             return requests.get(
-                self.safe_url,
+                self.ascii_safe_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
                 timeout=HEADER_CHECK_TIMEOUT,
@@ -725,6 +727,35 @@ class Link(DeletableModel):
             ).headers
         except (requests.ConnectionError, requests.Timeout):
             return False
+
+
+    # header values for memento: https://mementoweb.org/guide/rfc/
+
+    @cached_property
+    def memento(self):
+        """
+        http://perma.dev:8000/23W3-NDSB
+        """
+        return protocol() + settings.HOST + '/' + self.guid
+
+    @cached_property
+    def timegate(self):
+        """
+        http://perma-archives.dev:8000/warc/timegate/http://example.com
+        """
+        return protocol() + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
+
+    @cached_property
+    def timemap(self):
+        """
+        http://perma-archives.dev:8000/warc/timemap/*/http://example.com
+        """
+        return protocol() + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
+
+    @cached_property
+    def memento_formatted_date(self):
+        return format_date_time(mktime(self.creation_timestamp.timetuple()))
+
 
     def save(self, *args, **kwargs):
         # Set a default title if one is missing

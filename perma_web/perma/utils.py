@@ -265,3 +265,9 @@ def redirect_to_download(capture_mime_type, user_agent_str):
     parsed_agent = parse_user_agent(user_agent_str)
 
     return "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
+
+
+### playback
+
+def protocol():
+    return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
