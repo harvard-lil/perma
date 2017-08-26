@@ -9,7 +9,6 @@
 amqp==1.4.9               # via kombu
 anyjson==0.3.3            # via kombu
 apipkg==1.4               # via execnet
-appdirs==1.4.3            # via setuptools
 argh==0.26.2              # via watchdog
 argparse==1.4.0           # via jasmine
 args==0.1.0               # via clint
@@ -83,7 +82,7 @@ netaddr==0.7.12
 newrelic==2.66.0.49
 opbeat==3.3.3
 ordereddict==1.1          # via jasmine-core
-packaging==16.8           # via cryptography, setuptools
+packaging==16.8           # via cryptography
 paramiko==1.18.2          # via fabric
 pathlib==1.0.1            # via pyscss
 pathtools==0.1.2          # via watchdog
@@ -116,7 +115,7 @@ s3transfer==0.1.10        # via boto3
 sauceclient==0.1.0
 schema==0.5.0             # via internetarchive
 selenium==2.47.3
-six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, setuptools, surt
+six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt, warcio
 smhasher==0.150.1
 sorl-thumbnail==12.3
 surt==0.3.0               # via pywb
@@ -124,7 +123,7 @@ tempdir==0.6
 tldextract==2.0.2         # via surt
 tqdm==4.11.2
 ua-parser==0.7.1
-Wand==0.4
+Wand==0.4.4
 warcio==1.3.3
 warctools==4.10.0
 watchdog==0.8.3           # via pywb
