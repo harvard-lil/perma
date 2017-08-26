@@ -221,6 +221,9 @@ def get_browser(user_agent, proxy_address, cert_path):
                                                          "download.default_directory": download_dir,
                                                          "download.prompt_for_download": "false"})
 
+        # set by https://github.com/heroku/heroku-buildpack-google-chrome
+        chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_SHIM', '')
+
         desired_capabilities = chrome_options.to_capabilities()
         desired_capabilities["acceptSslCerts"] = True
 
