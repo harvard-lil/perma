@@ -634,9 +634,10 @@ def get_srcset_image_urls(dom_tree):
             src = src.strip().split()[0]
             if src:
                 urls.append(src)
-    # get src, too: Chrome doesn't do this automatically, although phantomjs does
-    for el in dom_tree('img[src]'):
-        urls.append(el.attrib.get('src', ''))
+    if settings.CAPTURE_BROWSER != 'PhantomJS':
+        # Get src, too: Chrome doesn't do this automatically, although PhantomJS does.
+        for el in dom_tree('img[src]'):
+            urls.append(el.attrib.get('src', ''))
     return urls
 
 def get_audio_video_urls(dom_tree):
