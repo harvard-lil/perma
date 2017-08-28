@@ -1,0 +1,17 @@
+{% extends "base-responsive.html" %}
+
+{% block mainContent %}
+  <div class="col-xs-12 no-wide">
+    <h1 class="page-title">Oops!</h1>
+    <p class="page-dek">
+      There's a JS error on this page. Can you find it?? (Can our JS error-tracking code?)
+    </p>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+      throw "doesNotExist";
+    </script>
+{% endblock %}
