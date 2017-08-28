@@ -175,15 +175,23 @@ class FunctionalTest(BaseTestCase):
 
     def setUpLocal(self):
         try:
-            # use Firefox if available on local system
-            self.virtual_display = Display(visible=0, size=(1024, 800))
-            self.virtual_display.start()
-            self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+            # use Chrome if available on local system
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('headless')
+            chrome_options.add_argument('window-size=1024x800')
+            desired_capabilities = chrome_options.to_capabilities()
+            self.driver = webdriver.Chrome(desired_capabilities=desired_capabilities)
         except RuntimeError:
-            self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+            try:
+                # use Firefox if available on local system
+                self.virtual_display = Display(visible=0, size=(1024, 800))
+                self.virtual_display.start()
+                self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+            except RuntimeError:
+                self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+            self.driver.set_window_size(1024, 800)
         print("Using %s for integration tests." % (type(self.driver)))
         socket.setdefaulttimeout(30)
-        self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
         self.driver.quit()
