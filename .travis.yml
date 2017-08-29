@@ -5,9 +5,10 @@ env: CFLAGS="-O0"
 
 dist: trusty
 
-# make sure perma.dev resolves to localhost so our tests work
 addons:
   chrome: stable
+
+  # make sure perma.dev resolves to localhost so our tests work
   hosts:
     - perma.dev
 
