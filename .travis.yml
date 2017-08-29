@@ -1,5 +1,6 @@
-dist: precise
 sudo: required
+
+dist: trusty
 
 language: python
 python:
