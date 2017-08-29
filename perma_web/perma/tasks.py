@@ -691,7 +691,24 @@ def get_screenshot(link, browser):
 def get_page_size(browser):
     try:
         return browser.execute_script("""
-            return {'height': document.body.scrollHeight, 'width': document.body.scrollWidth}
+            var body = document.body;
+            var html = document.documentElement;
+
+            var height = Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.clientHeight,
+                    html.scrollHeight,
+                    html.offsetHeight
+            );
+            var width = Math.max(
+                    body.scrollWidth,
+                    body.offsetWidth,
+                    html.clientWidth,
+                    html.scrollWidth,
+                    html.offsetWidth
+            );
+            return {'height': height, 'width': width}
         """)
     except:
         try:
