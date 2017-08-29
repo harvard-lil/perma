@@ -32,7 +32,7 @@ before_install:
   - unzip chromedriver_linux64.zip
   - mv chromedriver $PWD/travis-chromedriver/
   - export PATH=$PWD/travis-chromedriver:$PATH
-  - apt-get install libnss3-tools
+  - sudo apt-get install libnss3-tools
   - certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i services/warcprox/perma-warcprox-ca.pem
   - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
   - cd perma_web
