@@ -26,7 +26,19 @@ export function generateLinkFields(link, query) {
   if (Date.now() < Date.parse(link.archive_timestamp)) {
     link.delete_available = true;
   }
-  if (! link.captures.some(c => (c.role=="primary" && c.status=="success") || (c.role=="screenshot" && c.role=="success"))){
+  // mark the capture as failed if both the primary and the screenshot capture failed.
+  // (ignore if the favicon capture failed)
+  var primary_failed = false;
+  var screenshot_failed = false;
+  link.captures.forEach(function(c){
+    if (c.role=="primary" && c.status=="failed"){
+      primary_failed = true;
+    }
+    if (c.role=="screenshot" && c.status=="failed"){
+      screenshot_failed = true;
+    }
+  });
+  if (primary_failed && screenshot_failed){
     link.is_failed = true;
   };
   return link;
