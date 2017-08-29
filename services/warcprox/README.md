@@ -12,6 +12,4 @@ List certs with
 	
 and add the cert to your development system, if necessary, with 
 
-    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert'
-    -i services/warcprox/perma-warcprox-ca.pem
-	
+    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i services/warcprox/perma-warcprox-ca.pem
