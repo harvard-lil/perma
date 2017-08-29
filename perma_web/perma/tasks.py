@@ -227,13 +227,7 @@ def get_browser(user_agent, proxy_address, cert_path):
         desired_capabilities = chrome_options.to_capabilities()
         desired_capabilities["acceptSslCerts"] = True
 
-        # for more detailed progress updates
-        # desired_capabilities["loggingPrefs"] = {'performance': 'INFO'}
-        # then:
-        # performance_log = browser.get_log('performance')
-
         browser = webdriver.Chrome(desired_capabilities=desired_capabilities)
-
     else:
         assert False, "Invalid value for CAPTURE_BROWSER."
 
@@ -889,10 +883,14 @@ def run_next_capture():
         recorded_url_queue = queue.Queue()
         for i in xrange(500):
             try:
+                from certauth.certauth import CertificateAuthority
                 proxy = WarcProxy(
                     server_address=("127.0.0.1", warcprox_port),
                     recorded_url_q=recorded_url_queue,
-                    req_handler_class=TrackingRequestHandler
+                    req_handler_class=TrackingRequestHandler,
+                    ca=CertificateAuthority(ca_file=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem'),
+                                            certs_dir=os.path.join(os.getcwd(), 'certs'),
+                                            ca_name='warcprox CA cert')
                 )
                 break
             except socket_error as e:
