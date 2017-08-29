@@ -3,10 +3,11 @@ python:
   - "2.7"
 env: CFLAGS="-O0"
 
-dist: precise
+dist: trusty
 
 # make sure perma.dev resolves to localhost so our tests work
 addons:
+  chrome: stable
   hosts:
     - perma.dev
 
