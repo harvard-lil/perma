@@ -36,7 +36,7 @@ before_install:
   - mv chromedriver $PWD/travis-chromedriver/
   - export PATH=$PWD/travis-chromedriver:$PATH
   - mkdir -p $HOME/.pki/nssdb
-  - certutil -d $HOME/.pki/nssdb -N
+  - certutil -d $HOME/.pki/nssdb -N --empty-password
   - certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i services/warcprox/perma-warcprox-ca.pem
   - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
   - cd perma_web

@@ -215,6 +215,7 @@ def get_browser(user_agent, proxy_address, cert_path):
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('proxy-server=%s' % proxy_address)
         chrome_options.add_argument('headless')
+        chrome_options.add_argument('disable-gpu')
         chrome_options.add_argument('hide-scrollbars')
 
         chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
