@@ -1,3 +1,4 @@
+from decimal import Decimal
 import hashlib
 import io
 import json
@@ -140,6 +141,15 @@ class Registrar(models.Model):
     address = models.CharField(max_length=500, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+
+    upgrade_eligible = models.BooleanField(default=False, help_text="Whether this registrar qualifies for a paid account.")
+    monthly_rate =  models.DecimalField(
+        max_digits=19,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Base rate for calculating subscription cost."
+    )
+
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
 
     objects = RegistrarQuerySet.as_manager()
@@ -168,6 +178,13 @@ class Registrar(models.Model):
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
+
+    def has_upgraded(self):
+        """
+        How should we track this?
+        """
+        return False
+
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
@@ -445,6 +462,11 @@ class LinkUser(AbstractBaseUser):
             return False
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
+
+    def can_upgrade(self):
+        registrar = self.registrar
+        return registrar.upgrade_eligible and not registrar.has_upgraded()
+
 
     ### link permissions ###
 

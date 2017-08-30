@@ -30,7 +30,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
+        (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'upgrade_eligible', 'monthly_rate')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [

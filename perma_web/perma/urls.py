@@ -80,6 +80,8 @@ urlpatterns = [
     url(r'^settings/affiliations/?$', user_management.settings_affiliations, name='user_management_settings_affiliations'),
     url(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', user_management.settings_tools, name='user_management_settings_tools'),
+    url(r'^settings/upgrade/?$', user_management.settings_upgrade, name='user_management_settings_upgrade'),
+
 
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),

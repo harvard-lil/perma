@@ -70,3 +70,5 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_public_key': b'fi\x16S\xa0\x1dBSk\x0c"\xcd#^x\x1d!\x87\xf7\xa8\xe3\xb3mT\x03r\xbeb\x9a\x9e\xcdh',
 }
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
+
+SUBSCRIBE_URL = 'https://perma-payments-subscribe-route'

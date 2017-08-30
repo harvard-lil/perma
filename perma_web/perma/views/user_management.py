@@ -1,7 +1,7 @@
 import random, string, logging
 import itertools
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from celery.task.control import inspect as celery_inspect
 from django.core.exceptions import PermissionDenied
@@ -43,7 +43,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
 from perma.email import send_admin_email, send_user_email
 
 logger = logging.getLogger(__name__)
@@ -1001,6 +1001,50 @@ def settings_tools(request):
     """
     context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
     return render(request, 'user_management/settings-tools.html', context)
+
+
+@user_passes_test_or_403(lambda user: user.can_upgrade())
+def settings_upgrade(request):
+    """
+    Subscribe your registrar to a paid tier of Perma.cc service.
+    """
+    registrar = request.user.registrar
+    monthly_rate = str(registrar.monthly_rate)
+    quarterly_rate = str(registrar.monthly_rate * 3)
+    annual_rate = str(registrar.monthly_rate * 12)
+    common = {
+        'registrar': registrar.id,
+        'timestamp': to_timestamp(datetime.utcnow())
+    }
+    monthly = {
+        'recurring_frequency': "monthly",
+        'amount': monthly_rate,
+        'recurring_amount': monthly_rate,
+    }
+    quarterly = {
+        'recurring_frequency': "quarterly",
+        'amount': quarterly_rate,
+        'recurring_amount': quarterly_rate,
+    }
+    annually = {
+        'recurring_frequency': "annually",
+        'amount': annual_rate,
+        'recurring_amount': annual_rate,
+    }
+    monthly.update(common)
+    quarterly.update(common)
+    annually.update(common)
+    context = {
+        'this_page': 'settings_upgrade',
+        'subscribe_url': settings.SUBSCRIBE_URL,
+        'monthly_rate': monthly_rate,
+        'quarterly_rate': quarterly_rate,
+        'annual_rate': annual_rate,
+        'data_monthly': prep_for_perma_payments(monthly),
+        'data_quarterly': prep_for_perma_payments(quarterly),
+        'data_annually': prep_for_perma_payments(annually)
+    }
+    return render(request, 'user_management/settings-upgrade.html', context)
 
 
 @login_required

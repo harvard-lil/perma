@@ -1,0 +1,31 @@
+{% extends "settings-layout.html" %}
+{% block title %} | Settings{% endblock %}
+
+{% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
+
+{% block dashboardContent %}
+
+  <h3 class="body-ah">Upgrade</h3>
+  <p class="page-dek">Purchase upgrade for {{ request.user.registrar.name }}</p>
+
+    <div class="row">
+
+      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
+        <button style="border-color: rgba(223,182,103,1);;"><span>Monthly</span><br>${{ monthly_rate }}/month</button>
+        <input type="hidden" name="encrypted_data" value={{ data_monthly }}>
+      </form>
+
+      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
+        <button style="border-color: rgba(160,160,160,1);"><span>Quarterly</span><br>${{ quarterly_rate }}/quarter</button>
+        <input type="hidden" name="encrypted_data" value={{ data_quarterly }}>
+      </form>
+
+      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
+          <button style="border-color: rgba(242,215,50,1);"><span>Annually</span><br>${{ annual_rate }}/year</button>
+          <input type="hidden" name="encrypted_data" value={{ data_annually }}>
+      </form>
+    </div>
+
+
+{% endblock %}
+
