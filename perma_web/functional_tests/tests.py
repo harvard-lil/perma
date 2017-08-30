@@ -175,15 +175,23 @@ class FunctionalTest(BaseTestCase):
 
     def setUpLocal(self):
         try:
-            # use Firefox if available on local system
-            self.virtual_display = Display(visible=0, size=(1024, 800))
-            self.virtual_display.start()
-            self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+            # use Chrome if available on local system
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('headless')
+            chrome_options.add_argument('window-size=1024x800')
+            desired_capabilities = chrome_options.to_capabilities()
+            self.driver = webdriver.Chrome(desired_capabilities=desired_capabilities)
         except RuntimeError:
-            self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+            try:
+                # use Firefox if available on local system
+                self.virtual_display = Display(visible=0, size=(1024, 800))
+                self.virtual_display.start()
+                self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+            except RuntimeError:
+                self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+            self.driver.set_window_size(1024, 800)
         print("Using %s for integration tests." % (type(self.driver)))
         socket.setdefaulttimeout(30)
-        self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
         self.driver.quit()
@@ -287,8 +295,8 @@ class FunctionalTest(BaseTestCase):
             if REMOTE_SERVER_URL:
                 return  # can only check this on local server
             err_count = UncaughtError.objects.count()
-            self.driver.execute_script("setTimeout(function(){doesNotExist()})")
-            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
+            self.driver.get(self.server_url + '/tests/js_error')
+            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=10)  # give time for background thread to create exception
             self.assertIn('doesNotExist', UncaughtError.objects.last().message)
 
         def test_playback(capture_url, warc_url):
@@ -322,9 +330,6 @@ class FunctionalTest(BaseTestCase):
             get_id('id_password').send_keys('pass')
             get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
             assert_text_displayed('Create a new', 'h1')  # wait for load
-
-            info("Testing javascript error reporting -- logged in user")
-            test_js_error_handling()
 
             info("Dismissing browser tool reminder.")
             self.assertNotIn('supress_reminder', self.driver.get_cookies())
@@ -435,6 +440,9 @@ class FunctionalTest(BaseTestCase):
                     self.driver.get(self.server_url + reverse(urlpattern.name))
             if not REMOTE_SERVER_URL and UncaughtError.objects.exclude(message__contains="doesNotExist").count():
                 self.assertTrue(False, "Unexpected javascript errors (see log for details)")
+
+            info("Testing javascript error reporting -- logged in user")
+            test_js_error_handling()
 
             #
             # Next, tests while logged out (tested last so that the newly created Capture is available)

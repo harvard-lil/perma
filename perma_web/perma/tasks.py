@@ -26,7 +26,7 @@ from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException, TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from pyvirtualdisplay import Display
@@ -208,34 +208,27 @@ def get_browser(user_agent, proxy_address, cert_path):
 
     # Chrome
     elif settings.CAPTURE_BROWSER == 'Chrome':
-        display = start_virtual_display()
-
         # http://blog.likewise.org/2015/01/setting-up-chromedriver-and-the-selenium-webdriver-python-bindings-on-ubuntu-14-dot-04/
+        # and from 2017-04-17: https://intoli.com/blog/running-selenium-with-headless-chrome/
         download_dir = os.path.abspath('./downloads')
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('proxy-server=%s' % proxy_address)
+        chrome_options.add_argument('headless')
+        chrome_options.add_argument('disable-gpu')
+        chrome_options.add_argument('hide-scrollbars')
 
-        # To use Chrome beta channel, if installed:
-        # chrome_options.binary_location = '/usr/bin/google-chrome-beta'
-
-        chrome_options.add_argument('--proxy-server=%s' % proxy_address)
-        chrome_options.add_argument('--test-type')  # needed?
-        # chrome_options.add_argument('--headless')  # not selenium compatible yet, keep using start_virtual_display for now
-        chrome_options.add_argument('--disable-gpu')  # needed?
-        chrome_options.add_argument('--hide-scrollbars')  # not currently working -- see workaround in get_screenshot
         chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
                                                          "download.default_directory": download_dir,
                                                          "download.prompt_for_download": "false"})
+
+        # set by https://github.com/heroku/heroku-buildpack-google-chrome
+        chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_SHIM', '')
+
         desired_capabilities = chrome_options.to_capabilities()
         desired_capabilities["acceptSslCerts"] = True
 
-        # for more detailed progress updates
-        # desired_capabilities["loggingPrefs"] = {'performance': 'INFO'}
-        # then:
-        # performance_log = browser.get_log('performance')
-
         browser = webdriver.Chrome(desired_capabilities=desired_capabilities)
-
     else:
         assert False, "Invalid value for CAPTURE_BROWSER."
 
@@ -272,7 +265,7 @@ def scroll_browser(browser):
         """)
         # In python, wait for javascript background scrolling to finish.
         time.sleep(min(scroll_delay,1))
-    except (WebDriverException, URLError):
+    except (WebDriverException, TimeoutException, CannotSendRequest, URLError):
         # Don't panic if we can't scroll -- we've already captured something useful anyway.
         # WebDriverException: the page can't execute JS for some reason.
         # URLError: the headless browser has gone away for some reason.
@@ -285,7 +278,7 @@ def get_page_source(browser):
     """
     try:
         return browser.execute_script("return document.documentElement.outerHTML")
-    except (WebDriverException, CannotSendRequest):
+    except (WebDriverException, TimeoutException, CannotSendRequest):
         return browser.page_source
 
 def parse_page_source(source):
@@ -334,7 +327,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
         # (usually due to content security policy)
         try:
             current_url = browser.current_url
-        except WebDriverException:
+        except (WebDriverException, TimeoutException):
             return
 
         # skip about:blank, about:srcdoc, and any other non-http frames
@@ -636,6 +629,10 @@ def get_srcset_image_urls(dom_tree):
             src = src.strip().split()[0]
             if src:
                 urls.append(src)
+    if settings.CAPTURE_BROWSER != 'PhantomJS':
+        # Get src, too: Chrome doesn't do this automatically, although PhantomJS does.
+        for el in dom_tree('img[src]'):
+            urls.append(el.attrib.get('src', ''))
     return urls
 
 def get_audio_video_urls(dom_tree):
@@ -675,15 +672,6 @@ def get_screenshot(link, browser):
     if page_pixels_in_allowed_range(page_size):
 
         if settings.CAPTURE_BROWSER == 'Chrome':
-            # workaround for failure of --hide-scrollbars flag in Chrome:
-            browser.execute_script("""
-                ['body', 'html', 'frameset'].forEach(function(elType){
-                    try {
-                        document.getElementsByTagName(elType)[0].style.overflow = 'hidden';
-                    } catch(e) {}
-                });
-            """)
-
             # set window size to page size in Chrome, so we get a full-page screenshot:
             browser.set_window_size(max(page_size['width'], BROWSER_SIZE[0]), max(page_size['height'], BROWSER_SIZE[1]))
 
@@ -694,18 +682,42 @@ def get_screenshot(link, browser):
         print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
         safe_save_fields(link.screenshot_capture, status='failed')
 
+
 def get_page_size(browser):
     try:
-        root_element = browser.find_element_by_tag_name('html')
-    except (NoSuchElementException, URLError):
+        return browser.execute_script("""
+            var body = document.body;
+            var html = document.documentElement;
+
+            var height = Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.clientHeight,
+                    html.scrollHeight,
+                    html.offsetHeight
+            );
+            var width = Math.max(
+                    body.scrollWidth,
+                    body.offsetWidth,
+                    html.clientWidth,
+                    html.scrollWidth,
+                    html.offsetWidth
+            );
+            return {'height': height, 'width': width}
+        """)
+    except:
         try:
-            root_element = browser.find_element_by_tag_name('frameset')
-        except (NoSuchElementException, URLError):
-            # NoSuchElementException: HTML structure is weird somehow.
-            # URLError: the headless browser has gone away for some reason.
-            root_element = None
-    if root_element:
-        return root_element.size
+            root_element = browser.find_element_by_tag_name('html')
+        except (TimeoutException, NoSuchElementException, URLError, CannotSendRequest):
+            try:
+                root_element = browser.find_element_by_tag_name('frameset')
+            except (TimeoutException, NoSuchElementException, URLError, CannotSendRequest):
+                # NoSuchElementException: HTML structure is weird somehow.
+                # URLError: the headless browser has gone away for some reason.
+                root_element = None
+        if root_element:
+            return root_element.size
+
 
 def page_pixels_in_allowed_range(page_size):
     return page_size and page_size['width'] * page_size['height'] < settings.MAX_IMAGE_SIZE
@@ -889,10 +901,14 @@ def run_next_capture():
         recorded_url_queue = queue.Queue()
         for i in xrange(500):
             try:
+                from certauth.certauth import CertificateAuthority
                 proxy = WarcProxy(
                     server_address=("127.0.0.1", warcprox_port),
                     recorded_url_q=recorded_url_queue,
-                    req_handler_class=TrackingRequestHandler
+                    req_handler_class=TrackingRequestHandler,
+                    ca=CertificateAuthority(ca_file=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem'),
+                                            certs_dir=os.path.join(os.getcwd(), 'certs'),
+                                            ca_name='warcprox CA cert')
                 )
                 break
             except socket_error as e:
@@ -1000,7 +1016,7 @@ def run_next_capture():
             with browser_running(browser):
                 try:
                     post_load_function = get_post_load_function(browser.current_url)
-                except WebDriverException:
+                except (WebDriverException, TimeoutException, CannotSendRequest):
                     post_load_function = get_post_load_function(content_url)
                 if post_load_function:
                     print("Running domain's post-load function")

@@ -149,5 +149,6 @@ if settings.DEBUG:
 if settings.TESTING:
     import tests.views
     urlpatterns += [
-        url(r'tests/client_ip$', tests.views.client_ip)
+        url(r'tests/client_ip$', tests.views.client_ip),
+        url(r'tests/js_error$', tests.views.js_error)
     ]
