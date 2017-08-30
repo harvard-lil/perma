@@ -142,7 +142,7 @@ class Registrar(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
-    upgrade_eligible = models.BooleanField(default=False, help_text="Whether this registrar qualifies for a paid account.")
+    nonpaying = models.BooleanField(default=True, help_text="Whether this registrar qualifies for a free account.")
     monthly_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
@@ -465,7 +465,7 @@ class LinkUser(AbstractBaseUser):
 
     def can_upgrade(self):
         registrar = self.registrar
-        return registrar.upgrade_eligible and not registrar.has_upgraded()
+        return not registrar.nonpaying and not registrar.has_upgraded()
 
 
     ### link permissions ###
