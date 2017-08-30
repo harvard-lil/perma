@@ -26,7 +26,7 @@ from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException, TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from pyvirtualdisplay import Display
@@ -265,7 +265,7 @@ def scroll_browser(browser):
         """)
         # In python, wait for javascript background scrolling to finish.
         time.sleep(min(scroll_delay,1))
-    except (WebDriverException, URLError):
+    except (WebDriverException, TimeoutException, CannotSendRequest, URLError):
         # Don't panic if we can't scroll -- we've already captured something useful anyway.
         # WebDriverException: the page can't execute JS for some reason.
         # URLError: the headless browser has gone away for some reason.
@@ -278,7 +278,7 @@ def get_page_source(browser):
     """
     try:
         return browser.execute_script("return document.documentElement.outerHTML")
-    except (WebDriverException, CannotSendRequest):
+    except (WebDriverException, TimeoutException, CannotSendRequest):
         return browser.page_source
 
 def parse_page_source(source):
@@ -327,7 +327,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
         # (usually due to content security policy)
         try:
             current_url = browser.current_url
-        except WebDriverException:
+        except (WebDriverException, TimeoutException):
             return
 
         # skip about:blank, about:srcdoc, and any other non-http frames
@@ -686,15 +686,32 @@ def get_screenshot(link, browser):
 def get_page_size(browser):
     try:
         return browser.execute_script("""
-            return {'height': document.body.scrollHeight, 'width': document.body.scrollWidth}
+            var body = document.body;
+            var html = document.documentElement;
+
+            var height = Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.clientHeight,
+                    html.scrollHeight,
+                    html.offsetHeight
+            );
+            var width = Math.max(
+                    body.scrollWidth,
+                    body.offsetWidth,
+                    html.clientWidth,
+                    html.scrollWidth,
+                    html.offsetWidth
+            );
+            return {'height': height, 'width': width}
         """)
     except:
         try:
             root_element = browser.find_element_by_tag_name('html')
-        except (NoSuchElementException, URLError):
+        except (TimeoutException, NoSuchElementException, URLError, CannotSendRequest):
             try:
                 root_element = browser.find_element_by_tag_name('frameset')
-            except (NoSuchElementException, URLError):
+            except (TimeoutException, NoSuchElementException, URLError, CannotSendRequest):
                 # NoSuchElementException: HTML structure is weird somehow.
                 # URLError: the headless browser has gone away for some reason.
                 root_element = None
@@ -999,7 +1016,7 @@ def run_next_capture():
             with browser_running(browser):
                 try:
                     post_load_function = get_post_load_function(browser.current_url)
-                except WebDriverException:
+                except (WebDriverException, TimeoutException, CannotSendRequest):
                     post_load_function = get_post_load_function(content_url)
                 if post_load_function:
                     print("Running domain's post-load function")
