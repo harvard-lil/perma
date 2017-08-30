@@ -45,6 +45,9 @@ function linkNot (jqXHR) {
     $('.links-remaining').text('0');
     upload_allowed = false;
   }
+  if (message.indexOf("subscription") > -1) {
+    upload_allowed = false;
+  }
 
   var templateArgs = {
     message: message,

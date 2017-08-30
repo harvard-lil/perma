@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime
 import hashlib
 import io
 import json
@@ -46,7 +47,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .utils import copy_file_data, tz_datetime, protocol
+from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, verify_perma_payments_transmission
 
 
 logger = logging.getLogger(__name__)
@@ -184,6 +185,26 @@ class Registrar(models.Model):
         How should we track this?
         """
         return False
+
+    def link_creation_allowed(self):
+        if self.nonpaying:
+            return True
+
+        if not settings.CONFIRM_SUBSCRIPTIONS_CURRENT:
+            return True
+
+        data = {
+            'timestamp': to_timestamp(datetime.utcnow()),
+            'registrar':  self.pk
+        }
+        r = requests.post(settings.SUBSCRIPTION_CURRENT_URL, data={'encrypted_data': prep_for_perma_payments(data)})
+
+        if r.status_code != 200:
+            logger.error('Communication with perma-payments failed. Status: {}'.format(r.status_code))
+            return settings.ALLOW_CAPTURES_IF_PP_DOWN
+
+        post_data = verify_perma_payments_transmission(r.json(), ('registrar', 'current'))
+        return post_data['current']
 
 
 class OrganizationQuerySet(QuerySet):

@@ -494,3 +494,7 @@ FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR
 # If using geocoding
 # Via https://console.developers.google.com/apis/api/geocoding_backend/overview
 GEOCODING_KEY = None
+
+# perma-payments
+CONFIRM_SUBSCRIPTIONS_CURRENT = False
+ALLOW_CAPTURES_IF_PP_DOWN = True

@@ -336,6 +336,9 @@ class AuthenticatedLinkListView(BaseView):
             links_remaining = request.user.get_links_remaining()
             if links_remaining < 1:
                 raise_validation_error("You've already reached your limit.")
+        else:
+            if not folder.organization.registrar.link_creation_allowed():
+                raise_validation_error("Here's a helpful message for when there's a problem with your subscription.")
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
