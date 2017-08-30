@@ -1,14 +1,18 @@
+import base64
 import socket
 from contextlib import contextmanager
 import operator
 from urlparse import urlparse
 import os
 import tempdir
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
 import logging
+from nacl.public import Box, PrivateKey, PublicKey
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
 import requests
+import time
 from ua_parser import user_agent_parser
 
 from django.core.paginator import Paginator
@@ -18,6 +22,9 @@ from django.core.exceptions import PermissionDenied
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.views.decorators.debug import sensitive_variables
+
+from .exceptions import InvalidTransmissionException
 
 
 logger = logging.getLogger(__name__)
@@ -271,3 +278,94 @@ def redirect_to_download(capture_mime_type, user_agent_str):
 
 def protocol():
     return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+
+
+### perma payments
+
+def to_timestamp(dt):
+    """
+    Replicate python3 datetime.timestamp() method (https://docs.python.org/3.3/library/datetime.html#datetime.datetime.timestamp)
+    https://stackoverflow.com/a/30021134
+    """
+    return int((time.mktime(dt.timetuple())+ dt.microsecond/1e6))
+
+
+@sensitive_variables()
+def retrieve_fields(transmitted_data, fields):
+    try:
+        data = {}
+        for field in fields:
+            data[field] = transmitted_data[field]
+    except KeyError as e:
+        logger.warning('Incomplete data received: missing {}'.format(e))
+        raise InvalidTransmissionException
+    return data
+
+
+@sensitive_variables()
+def pack_data(dictionary):
+    """
+    Takes a dict. Converts to a bytestring, suitable for passing to an encryption function.
+    """
+    return json.dumps(dictionary, encoding='utf-8')
+
+
+@sensitive_variables()
+def unpack_data(data):
+    """
+    Reverses pack_data.
+
+    Takes a bytestring, returns a dict
+    """
+    return json.loads(data, encoding='utf-8')
+
+
+def is_valid_timestamp(stamp, max_age):
+    return stamp <= to_timestamp(datetime.utcnow() + timedelta(seconds=max_age))
+
+
+@sensitive_variables()
+def encrypt_for_perma_payments(message):
+    """
+    Basic public key encryption ala pynacl.
+    """
+    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    return box.encrypt(message)
+
+
+@sensitive_variables()
+def decrypt_from_perma_payments(ciphertext):
+    """
+    Decrypt bytes encrypted by perma-payments.
+    """
+    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    return box.decrypt(ciphertext)
+
+
+@sensitive_variables()
+def verify_perma_payments_transmission(transmitted_data, fields):
+    # Transmitted data should contain a single field, 'encrypted data', which
+    # must be a JSON dict, encrypted by Perma-Payments and base64-encoded.
+    try:
+        encrypted_data = base64.b64decode(transmitted_data.__getitem__('encrypted_data'))
+        post_data = unpack_data(decrypt_from_perma_payments(encrypted_data))
+    except Exception as e:
+        logger.warning('Encryption problem with transmitted data: {}'.format(e))
+        raise InvalidTransmissionException
+
+    # The encrypted data must include a valid timestamp.
+    try:
+        timestamp = post_data['timestamp']
+    except KeyError:
+        logger.warning('Missing timestamp in data.')
+        raise InvalidTransmissionException
+    if not is_valid_timestamp(timestamp, settings.PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS):
+        logger.warning('Expired timestamp in data.')
+        raise InvalidTransmissionException
+
+    return retrieve_fields(post_data, fields)
+
+
+@sensitive_variables()
+def prep_for_perma_payments(dictionary):
+    return base64.b64encode(encrypt_for_perma_payments(pack_data(dictionary)))

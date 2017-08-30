@@ -20,7 +20,7 @@ botocore==1.5.49          # via boto3, s3transfer
 brotlipy==0.6.0           # via pywb
 celery==3.1.25
 certauth==1.1.3
-cffi==1.10.0              # via brotlipy, cryptography
+cffi==1.10.0              # via brotlipy, cryptography, pynacl
 chardet==2.3              # via jasmine, pywb
 CherryPy==3.8.2           # via jasmine
 click==6.7                # via flask, pip-tools
@@ -96,6 +96,7 @@ pyasn1==0.2.3             # via requests
 pycparser==2.17           # via cffi
 pycrypto==2.6.1           # via paramiko
 pyflakes==1.0.0           # via flake8
+pynacl==1.1.2
 pyopenssl==16.2.0         # via certauth, ndg-httpsclient, requests
 pyparsing==2.2.0          # via packaging
 pyquery==1.2.17
@@ -115,7 +116,7 @@ s3transfer==0.1.10        # via boto3
 sauceclient==0.1.0
 schema==0.5.0             # via internetarchive
 selenium==2.47.3
-six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt, warcio
+six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, packaging, pip-tools, pynacl, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt, warcio
 smhasher==0.150.1
 sorl-thumbnail==12.3
 surt==0.3.0               # via pywb

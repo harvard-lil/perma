@@ -54,6 +54,9 @@ djangorestframework==3.6.2
 django-crispy-forms==1.6.1  # interactive docs
 django-filter==1.0.2        # searching
 
+# perma-payments
+pynacl==1.1.2               # encryption
+
 # deployment
 gunicorn==19.3.0
 gevent==1.0.2

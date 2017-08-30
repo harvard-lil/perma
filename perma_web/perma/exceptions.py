@@ -11,3 +11,6 @@ class BadFiletypeError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
+class InvalidTransmissionException(Exception):
+    pass
