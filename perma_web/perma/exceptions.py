@@ -14,3 +14,6 @@ class BadFiletypeError(Exception):
 
 class InvalidTransmissionException(Exception):
     pass
+
+class PermaPaymentsCommunicationException(Exception):
+    pass

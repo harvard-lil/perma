@@ -45,6 +45,7 @@ from perma.forms import (
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
 from perma.email import send_admin_email, send_user_email
+from perma.exceptions import PermaPaymentsCommunicationException
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
@@ -1003,12 +1004,19 @@ def settings_tools(request):
     return render(request, 'user_management/settings-tools.html', context)
 
 
-@user_passes_test_or_403(lambda user: user.can_upgrade())
-def settings_upgrade(request):
-    """
-    Subscribe your registrar to a paid tier of Perma.cc service.
-    """
+@user_passes_test_or_403(lambda user: user.can_view_subscription())
+def settings_subscription(request):
     registrar = request.user.registrar
+
+    try:
+        subscription = registrar.get_subscription()
+    except PermaPaymentsCommunicationException:
+        context = {
+            'this_page': 'settings_subscription',
+        }
+        return render(request, 'user_management/settings-subscription-unavailable.html', context)
+
+    # this needs refactoring
     monthly_rate = str(registrar.monthly_rate)
     quarterly_rate = str(registrar.monthly_rate * 3)
     annual_rate = str(registrar.monthly_rate * 12)
@@ -1034,18 +1042,35 @@ def settings_upgrade(request):
     monthly.update(common)
     quarterly.update(common)
     annually.update(common)
+
     context = {
-        'this_page': 'settings_upgrade',
+        'this_page': 'settings_subscription',
+        'subscription': subscription,
+        # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
         'monthly_rate': monthly_rate,
         'quarterly_rate': quarterly_rate,
         'annual_rate': annual_rate,
         'data_monthly': prep_for_perma_payments(monthly),
         'data_quarterly': prep_for_perma_payments(quarterly),
-        'data_annually': prep_for_perma_payments(annually)
+        'data_annually': prep_for_perma_payments(annually),
+        # for cancelling
+        'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
     }
-    return render(request, 'user_management/settings-upgrade.html', context)
+    return render(request, 'user_management/settings-subscription.html', context)
 
+
+@user_passes_test_or_403(lambda user: user.can_view_subscription())
+def settings_subscription_cancel(request):
+    context = {
+        'this_page': 'settings_subscription',
+        'cancel_url': settings.CANCEL_URL,
+        'data': prep_for_perma_payments({
+            'registrar': str(request.user.registrar.id),
+            'timestamp': to_timestamp(datetime.utcnow())
+        })
+    }
+    return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)
 
 @login_required
 def api_key_create(request):

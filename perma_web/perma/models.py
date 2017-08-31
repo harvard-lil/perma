@@ -47,6 +47,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
+from .exceptions import PermaPaymentsCommunicationException
 from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, verify_perma_payments_transmission
 
 
@@ -180,31 +181,39 @@ class Registrar(models.Model):
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
 
-    def has_upgraded(self):
+    def get_subscription(self):
         """
-        How should we track this?
         """
-        return False
-
-    def link_creation_allowed(self):
         if self.nonpaying:
-            return True
-
-        if not settings.CONFIRM_SUBSCRIPTIONS_CURRENT:
-            return True
+            return None
 
         data = {
             'timestamp': to_timestamp(datetime.utcnow()),
             'registrar':  self.pk
         }
-        r = requests.post(settings.SUBSCRIPTION_CURRENT_URL, data={'encrypted_data': prep_for_perma_payments(data)})
-
+        r = requests.post(settings.SUBSCRIPTION_STATUS_URL, data={'encrypted_data': prep_for_perma_payments(data)})
         if r.status_code != 200:
             logger.error('Communication with perma-payments failed. Status: {}'.format(r.status_code))
-            return settings.ALLOW_CAPTURES_IF_PP_DOWN
+            raise PermaPaymentsCommunicationException
 
-        post_data = verify_perma_payments_transmission(r.json(), ('registrar', 'current'))
-        return post_data['current']
+        post_data = verify_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
+
+        if type(post_data['subscription']) == type(None):
+            return None
+
+        return {
+            'status': post_data['subscription'],
+        }
+
+
+    def link_creation_allowed(self):
+        if self.nonpaying:
+            return True
+        try:
+            subscription = self.get_subscription()
+        except PermaPaymentsCommunicationException:
+            return settings.ALLOW_CAPTURES_IF_PP_DOWN
+        return subscription and subscription['status'] in ['Current', 'Cancellation Requested']
 
 
 class OrganizationQuerySet(QuerySet):
@@ -484,9 +493,9 @@ class LinkUser(AbstractBaseUser):
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
 
-    def can_upgrade(self):
+    def can_view_subscription(self):
         registrar = self.registrar
-        return not registrar.nonpaying and not registrar.has_upgraded()
+        return registrar and not registrar.nonpaying
 
 
     ### link permissions ###

@@ -72,4 +72,5 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 
 SUBSCRIBE_URL = 'https://perma-payments-subscribe-route'
-SUBSCRIPTION_CURRENT_URL = 'https://perma-payments-current-route'
+CANCEL_URL = 'https://perma-payments-cancel-request-route'
+SUBSCRIPTION_STATUS_URL = 'https://perma-payments-status-route'

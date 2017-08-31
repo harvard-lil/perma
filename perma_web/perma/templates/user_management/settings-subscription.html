@@ -1,12 +1,11 @@
 {% extends "settings-layout.html" %}
 {% block title %} | Settings{% endblock %}
 
-{% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
-
 {% block dashboardContent %}
 
-  <h3 class="body-ah">Upgrade</h3>
-  <p class="page-dek">Purchase upgrade for {{ request.user.registrar.name }}</p>
+  {% if not subscription %}
+    <h3 class="body-ah">Subscribe</h3>
+    <p class="page-dek">Purchase a subscription for {{ request.user.registrar.name }}</p>
 
     <div class="row">
 
@@ -25,6 +24,25 @@
           <input type="hidden" name="encrypted_data" value={{ data_annually }}>
       </form>
     </div>
+
+  {% elif subscription.status == 'Cancellation Requested' %}
+    <h3 class="body-ah _hideMobile">Cancellation Request Pending</h3>
+
+    <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
+
+    <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation; you will continue to be able to create Permalinks for {{ request.user.registrar.name }} until it's official.</p>
+
+  {% else %}
+    <h3 class="body-ah _hideMobile">Subscription</h3>
+
+    <p class="page-dek">{{ request.user.registrar.name }}</p>
+
+    <p class="page-dek">Subscription Status: {{ subscription.status }}</p>
+
+    <a href="{{ cancel_confirm_url }}" class="btn btn-primary" type="submit">
+      Cancel Subscription
+    </a>
+  {% endif %}
 
 
 {% endblock %}
