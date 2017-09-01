@@ -21,14 +21,14 @@
 
             <li{% if this_page == 'settings_password' %} class="active"{% endif %}><a href="{% url 'user_management_settings_password' %}"><span>Password</span></a></li>
 
+            {% if request.user.can_view_subscription %}
+            <li{% if this_page == 'settings_subscription' %} class="active"{% endif %}><a href="{% url 'user_management_settings_subscription' %}" id="dashboard-settings"><span>Subscription</span></a></li>
+            {% endif %}
+
             <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}"><span>Tools</span></a></li>
 
             {% if request.user.is_organization_user or request.user.is_registrar_user or request.user.has_registrar_pending %}
             <li{% if this_page == 'settings_affiliations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_affiliations' %}" id="dashboard-settings"><span>Your Affiliations</span></a></li>
-            {% endif %}
-
-            {% if request.user.can_view_subscription %}
-            <li{% if this_page == 'settings_subscription' %} class="active"{% endif %}><a href="{% url 'user_management_settings_subscription' %}" id="dashboard-settings"><span>Subscription</span></a></li>
             {% endif %}
 
           </ul><!--/#dashboard-tabs-->
