@@ -1189,6 +1189,10 @@ button {
   background-color: $color-trans-lightgray;
 }
 
+.subscription-buttons .btn {
+  width: 100%
+}
+
 /////////////////////////////////////////
 
 // UI
@@ -2987,7 +2991,7 @@ button#addlink,
   }
 }
 
-// special styling for upgrade form
+// special styling for subscription forms
 
 .upgrade-form button {
   padding: 8px 8px 32px 24px;
@@ -3011,6 +3015,9 @@ button#addlink,
   line-height: 2;
 }
 
+.subscription-buttons form {
+  margin-top: 0;
+}
 
 
 /////////////////////////////////////////

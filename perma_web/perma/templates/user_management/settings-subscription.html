@@ -33,15 +33,30 @@
     <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation; you will continue to be able to create Permalinks for {{ request.user.registrar.name }} until it's official.</p>
 
   {% else %}
-    <h3 class="body-ah _hideMobile">Subscription</h3>
+    <h3 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h3>
 
-    <p class="page-dek">{{ request.user.registrar.name }}</p>
+    {% if subscription.status == 'On Hold' %}
+      <p class="page-dek">Your subscription is <em>on hold</em>  due to a problem with your credit card.</p>
 
-    <p class="page-dek">Subscription Status: {{ subscription.status }}</p>
+      <p class="page-dek">You can update payment information by clicking the button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
+    {% else %}
+      <p class="page-dek">Your subscription is <em>{{ subscription.status | lower }}</em>.</p>
+    {% endif %}
 
-    <a href="{{ cancel_confirm_url }}" class="btn btn-primary" type="submit">
-      Cancel Subscription
-    </a>
+    <div class="row subscription-buttons">
+      <div class="col-xs-12 col-md-6">
+        <form method="post" action="{{ update_url }}">
+          <input type="hidden" name="encrypted_data" value={{ data_update }}>
+          <button class="btn btn-primary" type="submit">
+            Update Payment Information
+          </button>
+        </form>
+      </div>
+      <div class="col-xs-12 col-md-6">
+        <a href="{{ cancel_confirm_url }}" class="btn cancel" type="submit">
+          Cancel Subscription
+        </a>
+      </div>
   {% endif %}
 
 

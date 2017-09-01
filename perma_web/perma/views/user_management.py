@@ -1056,6 +1056,9 @@ def settings_subscription(request):
         'data_annually': prep_for_perma_payments(annually),
         # for cancelling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
+        # for updating
+        'data_update': prep_for_perma_payments(common),
+        'update_url': settings.UPDATE_URL
     }
     return render(request, 'user_management/settings-subscription.html', context)
 

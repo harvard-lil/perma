@@ -8979,6 +8979,10 @@ button #addlink {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+.subscription-buttons .btn {
+  width: 100%;
+}
+
 .style-ui-inline,
 .ui-private {
   overflow: hidden;
@@ -11232,6 +11236,10 @@ button#addlink,
   text-transform: uppercase;
   font-weight: bold;
   line-height: 2;
+}
+
+.subscription-buttons form {
+  margin-top: 0;
 }
 
 .navbar-default {
