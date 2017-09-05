@@ -1,6 +1,7 @@
 import base64
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from functools import wraps
 import json
 import logging
@@ -229,10 +230,30 @@ def url_in_allowed_ip_range(url):
 def get_client_ip(request):
     return request.META[settings.CLIENT_IP_HEADER]
 
-### timezone ###
+### dates and times ###
 
 def tz_datetime(*args, **kwargs):
     return timezone.make_aware(datetime(*args, **kwargs))
+
+
+def to_timestamp(dt):
+    """
+    Replicate python3 datetime.timestamp() method (https://docs.python.org/3.3/library/datetime.html#datetime.datetime.timestamp)
+    https://stackoverflow.com/a/30021134
+    """
+    return int((time.mktime(dt.timetuple())+ dt.microsecond/1e6))
+
+
+def first_day_of_next_month(now):
+    # use first of month instead of today to avoid issues w/ variable length months
+    first_of_month = now.replace(day=1)
+    return first_of_month + relativedelta(months=1)
+
+
+def today_next_year(now):
+    # relativedelta handles leap years: 2/29 -> 2/28
+    return now + relativedelta(years=1)
+
 
 ### addresses ###
 
@@ -281,14 +302,6 @@ def protocol():
 
 
 ### perma payments
-
-def to_timestamp(dt):
-    """
-    Replicate python3 datetime.timestamp() method (https://docs.python.org/3.3/library/datetime.html#datetime.datetime.timestamp)
-    https://stackoverflow.com/a/30021134
-    """
-    return int((time.mktime(dt.timetuple())+ dt.microsecond/1e6))
-
 
 @sensitive_variables()
 def retrieve_fields(transmitted_data, fields):

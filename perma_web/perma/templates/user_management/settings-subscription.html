@@ -9,18 +9,13 @@
 
     <div class="row">
 
-      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
-        <button style="border-color: rgba(223,182,103,1);;"><span>Monthly</span><br>${{ monthly_rate }}/month</button>
+      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
+        <button><span>Monthly</span><br>${{ monthly_rate }}/month<br><br>${{ first_month_cost }} this month (prorated)</button>
         <input type="hidden" name="encrypted_data" value={{ data_monthly }}>
       </form>
 
-      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
-        <button style="border-color: rgba(160,160,160,1);"><span>Quarterly</span><br>${{ quarterly_rate }}/quarter</button>
-        <input type="hidden" name="encrypted_data" value={{ data_quarterly }}>
-      </form>
-
-      <form class="upgrade-form col-xs-12 col-md-4" method="post" action="{{ subscribe_url }}">
-          <button style="border-color: rgba(242,215,50,1);"><span>Annually</span><br>${{ annual_rate }}/year</button>
+      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
+          <button><span>Annually</span><br>${{ annual_rate }}/year</button>
           <input type="hidden" name="encrypted_data" value={{ data_annually }}>
       </form>
     </div>

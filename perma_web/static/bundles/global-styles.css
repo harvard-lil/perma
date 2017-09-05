@@ -11218,7 +11218,7 @@ button#addlink,
   background-color: #F6F8F1;
   border-radius: 4px;
   padding: 16px 8px;
-  border: 1px solid white;
+  border: 1px solid rgba(100, 100, 100, 0.07);
   margin: 0;
 }
 

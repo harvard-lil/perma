@@ -1,3 +1,4 @@
+import calendar
 from decimal import Decimal
 from datetime import datetime
 import hashlib
@@ -48,7 +49,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException
-from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, verify_perma_payments_transmission
+from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, verify_perma_payments_transmission, first_day_of_next_month, today_next_year
 
 
 logger = logging.getLogger(__name__)
@@ -205,6 +206,40 @@ class Registrar(models.Model):
             'status': post_data['subscription'],
         }
 
+
+    def annual_rate(self):
+        return self.monthly_rate * 12
+
+
+    def prorated_first_month_cost(self, now):
+        days_in_month = calendar.monthrange(now.year, now.month)[1]
+        days_until_end_of_month = days_in_month - now.day
+        # Decimal to force accurate division; add one day, to charge for today
+        return round(self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month), 2)
+
+
+    def get_rate_info(self, now):
+        return {
+            'monthly': {
+                'display_rate': self.monthly_rate,
+                'display_prorated': self.prorated_first_month_cost(now),
+                'fields': {
+                    'recurring_frequency': "monthly",
+                    'amount': str(self.prorated_first_month_cost(now)),
+                    'recurring_amount': str(self.monthly_rate),
+                    'recurring_start_date': first_day_of_next_month(now).strftime("%Y-%m-%d")
+                }
+            },
+            'annually': {
+                'display_rate': self.annual_rate(),
+                'fields': {
+                    'recurring_frequency': "annually",
+                    'amount': str(self.annual_rate()),
+                    'recurring_amount': str(self.annual_rate()),
+                    'recurring_start_date': today_next_year(now).strftime("%Y-%m-%d")
+                }
+            }
+        }
 
     def link_creation_allowed(self):
         if self.nonpaying:

@@ -1016,44 +1016,25 @@ def settings_subscription(request):
         }
         return render(request, 'user_management/settings-subscription-unavailable.html', context)
 
-    # this needs refactoring
-    monthly_rate = str(registrar.monthly_rate)
-    quarterly_rate = str(registrar.monthly_rate * 3)
-    annual_rate = str(registrar.monthly_rate * 12)
+    now = datetime.utcnow()
     common = {
         'registrar': registrar.id,
-        'timestamp': to_timestamp(datetime.utcnow())
+        'timestamp': to_timestamp(now)
     }
-    monthly = {
-        'recurring_frequency': "monthly",
-        'amount': monthly_rate,
-        'recurring_amount': monthly_rate,
-    }
-    quarterly = {
-        'recurring_frequency': "quarterly",
-        'amount': quarterly_rate,
-        'recurring_amount': quarterly_rate,
-    }
-    annually = {
-        'recurring_frequency': "annually",
-        'amount': annual_rate,
-        'recurring_amount': annual_rate,
-    }
-    monthly.update(common)
-    quarterly.update(common)
-    annually.update(common)
+    rate_info = registrar.get_rate_info(now)
+    rate_info['monthly']['fields'].update(common)
+    rate_info['annually']['fields'].update(common)
 
     context = {
         'this_page': 'settings_subscription',
         'subscription': subscription,
         # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'monthly_rate': monthly_rate,
-        'quarterly_rate': quarterly_rate,
-        'annual_rate': annual_rate,
-        'data_monthly': prep_for_perma_payments(monthly),
-        'data_quarterly': prep_for_perma_payments(quarterly),
-        'data_annually': prep_for_perma_payments(annually),
+        'monthly_rate': rate_info['monthly']['display_rate'],
+        'first_month_cost': rate_info['monthly']['display_prorated'],
+        'annual_rate': rate_info['annually']['display_rate'],
+        'data_monthly': prep_for_perma_payments(rate_info['monthly']['fields']),
+        'data_annually': prep_for_perma_payments(rate_info['annually']['fields']),
         # for cancelling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         # for updating
