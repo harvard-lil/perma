@@ -199,7 +199,7 @@ class Registrar(models.Model):
 
         post_data = verify_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
 
-        if type(post_data['subscription']) == type(None):
+        if post_data['subscription'] is None:
             return None
 
         return {
