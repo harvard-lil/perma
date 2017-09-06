@@ -1,4 +1,6 @@
 {% extends "settings-layout.html" %}
+{% load humanize %}
+
 {% block title %} | Settings{% endblock %}
 
 {% block dashboardContent %}
@@ -10,12 +12,12 @@
     <div class="row">
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-        <button><span>Monthly</span><br>${{ monthly_rate }}/month<br><br>${{ first_month_cost }} this month (prorated)</button>
+        <button><span>Monthly</span><br>${{ rate_info.monthly.display_rate | intcomma }}/month<br><br>${{ rate_info.monthly.display_prorated | intcomma }} this month (prorated)</button>
         <input type="hidden" name="encrypted_data" value={{ data_monthly }}>
       </form>
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-          <button><span>Annually</span><br>${{ annual_rate }}/year</button>
+          <button><span>Annually</span><br>${{ rate_info.annual.annually.display_rate | intcomma }}/year</button>
           <input type="hidden" name="encrypted_data" value={{ data_annually }}>
       </form>
     </div>
@@ -38,6 +40,21 @@
       <p class="page-dek">Your subscription is <em>{{ subscription.status | lower }}</em>.</p>
     {% endif %}
 
+    <div class="row">
+      <div class="col-xs-12">
+        <dl class="dl-horizontal">
+          {% if subscription.frequency == 'monthly' %}
+            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
+            <dt>Next payment:</dt><dd>{{ rate_info.monthly.display_next_payment}}</dd>
+          {% elif subscription.frequency == 'annually'%}
+            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
+            <dt>Next payment:</dt><dd>{{ rate_info.annually.display_next_payment}}</dd>
+          {% endif %}
+          <dt>Links:</dt><dd>unlimited</dd>
+        </dl>
+      </div>
+    </div>
+
     <div class="row subscription-buttons">
       <div class="col-xs-12 col-md-6">
         <form method="post" action="{{ update_url }}">
@@ -52,6 +69,8 @@
           Cancel Subscription
         </a>
       </div>
+    </div>
+
   {% endif %}
 
 

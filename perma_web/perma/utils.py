@@ -2,6 +2,7 @@ import base64
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import inflect
 from functools import wraps
 import json
 import logging
@@ -20,6 +21,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -254,6 +256,9 @@ def today_next_year(now):
     # relativedelta handles leap years: 2/29 -> 2/28
     return now + relativedelta(years=1)
 
+def pretty_date(date):
+    i = inflect.engine()
+    return "{date:%B} {day}, {date:%Y}".format(date=date, day=i.ordinal(date.day))
 
 ### addresses ###
 
@@ -320,7 +325,7 @@ def pack_data(dictionary):
     """
     Takes a dict. Converts to a bytestring, suitable for passing to an encryption function.
     """
-    return json.dumps(dictionary, encoding='utf-8')
+    return json.dumps(dictionary, cls=DjangoJSONEncoder, encoding='utf-8')
 
 
 @sensitive_variables()
@@ -369,6 +374,7 @@ def verify_perma_payments_transmission(transmitted_data, fields):
     # The encrypted data must include a valid timestamp.
     try:
         timestamp = post_data['timestamp']
+        print(timestamp, type(timestamp))
     except KeyError:
         logger.warning('Missing timestamp in data.')
         raise InvalidTransmissionException

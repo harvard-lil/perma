@@ -1028,11 +1028,9 @@ def settings_subscription(request):
     context = {
         'this_page': 'settings_subscription',
         'subscription': subscription,
+        'rate_info': rate_info,
         # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'monthly_rate': rate_info['monthly']['display_rate'],
-        'first_month_cost': rate_info['monthly']['display_prorated'],
-        'annual_rate': rate_info['annually']['display_rate'],
         'data_monthly': prep_for_perma_payments(rate_info['monthly']['fields']),
         'data_annually': prep_for_perma_payments(rate_info['annually']['fields']),
         # for cancelling

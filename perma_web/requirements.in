@@ -48,6 +48,7 @@ django_webpack_loader==0.3.3    # frontend assets building
 tqdm==4.11.2                    # progress bar in dev fab tasks
 pyquery==1.2.17                 # extract data from HTML in capture task
 warcio==1.3.3                   # helps us write metadata and inspect our WARCs
+inflect==0.2.5                  # language helper
 
 # api
 djangorestframework==3.6.2

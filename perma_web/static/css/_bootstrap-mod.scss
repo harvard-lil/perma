@@ -225,3 +225,10 @@ img {
     content: none;
   }
 }
+
+// added
+@media (max-width: 768px) {
+  dd {
+    margin-bottom: 15px;
+  }
+}

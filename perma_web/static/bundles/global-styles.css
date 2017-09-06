@@ -7480,6 +7480,12 @@ img {
   }
 }
 
+@media (max-width: 768px) {
+  dd {
+    margin-bottom: 15px;
+  }
+}
+
 @font-face {
   font-family: "Roboto Slab";
   font-style: normal;
