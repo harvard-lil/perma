@@ -33,11 +33,11 @@
     <h3 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h3>
 
     {% if subscription.status == 'On Hold' %}
-      <p class="page-dek">Your subscription is <em>on hold</em>  due to a problem with your credit card.</p>
+      <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
 
       <p class="page-dek">You can update payment information by clicking the button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
     {% else %}
-      <p class="page-dek">Your subscription is <em>{{ subscription.status | lower }}</em>.</p>
+      <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
     {% endif %}
 
     <div class="row">

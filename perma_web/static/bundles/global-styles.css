@@ -8126,6 +8126,10 @@ strong.vocab {
   height: 48px;
 }
 
+.blue-text {
+  color: #2D76EE;
+}
+
 a {
   font-weight: inherit;
 }
