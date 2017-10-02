@@ -13,6 +13,7 @@ argh==0.26.2              # via watchdog
 argparse==1.4.0           # via jasmine
 args==0.1.0               # via clint
 asn1crypto==0.22.0        # via cryptography
+attrs==17.2.0             # via hypothesis
 beautifulsoup4==4.5.1
 billiard==3.3.0.23        # via celery
 boto3==1.4.4
@@ -47,7 +48,7 @@ docopt==0.6.2             # via internetarchive
 docutils==0.13.1          # via botocore
 EasyProcess==0.2.3        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
-enum34==1.1.6             # via brotlipy, cryptography, pyscss
+enum34==1.1.6             # via brotlipy, cryptography, hypothesis, pyscss
 execnet==1.4.1            # via pytest-xdist
 Fabric==1.11.1
 fakeredis==0.7.0
@@ -60,6 +61,7 @@ gevent==1.0.2
 glob2==0.5                # via jasmine-core
 greenlet==0.4.12          # via gevent
 gunicorn==19.3.0
+hypothesis==3.31.2
 idna==2.5                 # via cryptography, tldextract
 inflect==0.2.5
 internetarchive==1.0.10

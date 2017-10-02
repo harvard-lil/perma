@@ -333,7 +333,7 @@ def process_perma_payments_transmission(transmitted_data, fields):
         timestamp = post_data['timestamp']
     except KeyError:
         logger.warning('Missing timestamp in data.')
-        raise InvalidTransmissionException
+        raise InvalidTransmissionException('Missing timestamp in data.')
     if not is_valid_timestamp(timestamp, settings.PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS):
         logger.warning('Expired timestamp in data.')
         raise InvalidTransmissionException('Expired timestamp in data.')

@@ -83,3 +83,4 @@ flake8==2.5.4                   # code linting
 beautifulsoup4==4.5.1           # parses html of responses
 mock                            # safe monkey patching
 coverage==4.3.4                 # record code coverage
+hypothesis==3.31.2               # run tests with lots of generated input
