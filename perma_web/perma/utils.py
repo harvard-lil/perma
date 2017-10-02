@@ -1,4 +1,3 @@
-import base64
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -6,6 +5,7 @@ import inflect
 from functools import wraps
 import json
 import logging
+from nacl import encoding
 from nacl.public import Box, PrivateKey, PublicKey
 from netaddr import IPAddress, IPNetwork
 import operator
@@ -308,6 +308,45 @@ def protocol():
 
 ### perma payments
 
+# communication
+
+@sensitive_variables()
+def prep_for_perma_payments(dictionary):
+    return encrypt_for_perma_payments(stringify_data(dictionary))
+
+
+@sensitive_variables()
+def process_perma_payments_transmission(transmitted_data, fields):
+    # Transmitted data should contain a single field, 'encrypted data', which
+    # must be a JSON dict, encrypted by Perma-Payments and base64-encoded.
+    encrypted_data = transmitted_data.get('encrypted_data', '')
+    if not encrypted_data:
+        raise InvalidTransmissionException('No encrypted_data in POST.')
+    try:
+        post_data = unstringify_data(decrypt_from_perma_payments(encrypted_data))
+    except Exception as e:
+        logger.warning('Problem with transmitted data. {}'.format(format_exception(e)))
+        raise InvalidTransmissionException(format_exception(e))
+
+    # The encrypted data must include a valid timestamp.
+    try:
+        timestamp = post_data['timestamp']
+    except KeyError:
+        logger.warning('Missing timestamp in data.')
+        raise InvalidTransmissionException
+    if not is_valid_timestamp(timestamp, settings.PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS):
+        logger.warning('Expired timestamp in data.')
+        raise InvalidTransmissionException('Expired timestamp in data.')
+
+    return retrieve_fields(post_data, fields)
+
+
+# helpers
+
+def format_exception(e):
+    return "{}: {}".format(type(e).__name__, e)
+
+
 @sensitive_variables()
 def retrieve_fields(transmitted_data, fields):
     try:
@@ -315,27 +354,10 @@ def retrieve_fields(transmitted_data, fields):
         for field in fields:
             data[field] = transmitted_data[field]
     except KeyError as e:
-        logger.warning('Incomplete data received: missing {}'.format(e))
-        raise InvalidTransmissionException
+        msg = 'Incomplete data received: missing {}'.format(e)
+        logger.warning(msg)
+        raise InvalidTransmissionException(msg)
     return data
-
-
-@sensitive_variables()
-def pack_data(dictionary):
-    """
-    Takes a dict. Converts to a bytestring, suitable for passing to an encryption function.
-    """
-    return json.dumps(dictionary, cls=DjangoJSONEncoder, encoding='utf-8')
-
-
-@sensitive_variables()
-def unpack_data(data):
-    """
-    Reverses pack_data.
-
-    Takes a bytestring, returns a dict
-    """
-    return json.loads(data, encoding='utf-8')
 
 
 def is_valid_timestamp(stamp, max_age):
@@ -343,48 +365,34 @@ def is_valid_timestamp(stamp, max_age):
 
 
 @sensitive_variables()
-def encrypt_for_perma_payments(message):
+def stringify_data(data):
+    """
+    Takes any json-serializable data. Converts to a bytestring, suitable for passing to an encryption function.
+    """
+    return json.dumps(data, cls=DjangoJSONEncoder, encoding='utf-8')
+
+
+@sensitive_variables()
+def unstringify_data(data):
+    """
+    Reverses stringify_data. Takes a bytestring, returns deserialized json.
+    """
+    return json.loads(data, 'utf-8')
+
+
+@sensitive_variables()
+def encrypt_for_perma_payments(message, encoder=encoding.Base64Encoder):
     """
     Basic public key encryption ala pynacl.
     """
     box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
-    return box.encrypt(message)
+    return box.encrypt(message, encoder=encoder)
 
 
 @sensitive_variables()
-def decrypt_from_perma_payments(ciphertext):
+def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
     """
     Decrypt bytes encrypted by perma-payments.
     """
     box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
-    return box.decrypt(ciphertext)
-
-
-@sensitive_variables()
-def verify_perma_payments_transmission(transmitted_data, fields):
-    # Transmitted data should contain a single field, 'encrypted data', which
-    # must be a JSON dict, encrypted by Perma-Payments and base64-encoded.
-    try:
-        encrypted_data = base64.b64decode(transmitted_data.__getitem__('encrypted_data'))
-        post_data = unpack_data(decrypt_from_perma_payments(encrypted_data))
-    except Exception as e:
-        logger.warning('Encryption problem with transmitted data: {}'.format(e))
-        raise InvalidTransmissionException
-
-    # The encrypted data must include a valid timestamp.
-    try:
-        timestamp = post_data['timestamp']
-        print(timestamp, type(timestamp))
-    except KeyError:
-        logger.warning('Missing timestamp in data.')
-        raise InvalidTransmissionException
-    if not is_valid_timestamp(timestamp, settings.PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS):
-        logger.warning('Expired timestamp in data.')
-        raise InvalidTransmissionException
-
-    return retrieve_fields(post_data, fields)
-
-
-@sensitive_variables()
-def prep_for_perma_payments(dictionary):
-    return base64.b64encode(encrypt_for_perma_payments(pack_data(dictionary)))
+    return box.decrypt(ciphertext, encoder=encoder)

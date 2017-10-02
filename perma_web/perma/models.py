@@ -49,7 +49,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException
-from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, verify_perma_payments_transmission, first_day_of_next_month, today_next_year, pretty_date
+from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year, pretty_date
 
 
 logger = logging.getLogger(__name__)
@@ -197,7 +197,7 @@ class Registrar(models.Model):
             logger.error('Communication with perma-payments failed. Status: {}'.format(r.status_code))
             raise PermaPaymentsCommunicationException
 
-        post_data = verify_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
+        post_data = process_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
 
         subscription = post_data['subscription']
         if subscription is None:
