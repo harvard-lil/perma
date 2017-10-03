@@ -158,7 +158,7 @@ class Registrar(models.Model):
 
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
     cached_subscription_status = models.CharField(
-        max_length=20,
+        max_length=50,
         null=True,
         blank=True,
         help_text="The last known status of registrar's paid subscription, from Perma Payments"

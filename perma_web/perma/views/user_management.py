@@ -1037,11 +1037,12 @@ def settings_subscription_cancel(request):
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
         'data': prep_for_perma_payments({
-            'registrar': str(request.user.registrar.id),
+            'registrar': request.user.registrar.pk,
             'timestamp': to_timestamp(datetime.utcnow())
         })
     }
     return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)
+
 
 @login_required
 def api_key_create(request):
