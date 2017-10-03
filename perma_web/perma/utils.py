@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-import inflect
 from functools import wraps
 import json
 import logging
@@ -256,9 +255,6 @@ def today_next_year(now):
     # relativedelta handles leap years: 2/29 -> 2/28
     return now + relativedelta(years=1)
 
-def pretty_date(date):
-    i = inflect.engine()
-    return "{date:%B} {day}, {date:%Y}".format(date=date, day=i.ordinal(date.day))
 
 ### addresses ###
 

@@ -49,7 +49,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException
-from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year, pretty_date
+from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year
 
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class RegistrarQuerySet(QuerySet):
 
 class Registrar(models.Model):
     """
-    This is generally a library.
+    This is a library, a court, a firm, or similar.
     """
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
@@ -225,26 +225,19 @@ class Registrar(models.Model):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         return {
+            'next_month': next_month,
+            'next_year': next_year,
             'monthly': {
-                'display_rate': self.monthly_rate,
-                'display_prorated': self.prorated_first_month_cost(now),
-                'display_next_payment': pretty_date(next_month),
-                'fields': {
-                    'recurring_frequency': "monthly",
-                    'amount': str(self.prorated_first_month_cost(now)),
-                    'recurring_amount': str(self.monthly_rate),
-                    'recurring_start_date': next_month.strftime("%Y-%m-%d")
-                }
+                'recurring_frequency': "monthly",
+                'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
+                'recurring_amount': "{0:.2f}".format(self.monthly_rate),
+                'recurring_start_date': next_month.strftime("%Y-%m-%d")
             },
             'annually': {
-                'display_rate': self.annual_rate(),
-                'display_next_payment': pretty_date(next_year),
-                'fields': {
-                    'recurring_frequency': "annually",
-                    'amount': str(self.annual_rate()),
-                    'recurring_amount': str(self.annual_rate()),
-                    'recurring_start_date': next_year.strftime("%Y-%m-%d")
-                }
+                'recurring_frequency': "annually",
+                'amount': "{0:.2f}".format(self.annual_rate()),
+                'recurring_amount': "{0:.2f}".format(self.annual_rate()),
+                'recurring_start_date': next_year.strftime("%Y-%m-%d")
             }
         }
 

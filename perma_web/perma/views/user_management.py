@@ -1022,8 +1022,8 @@ def settings_subscription(request):
         'timestamp': to_timestamp(now)
     }
     rate_info = registrar.get_rate_info(now)
-    rate_info['monthly']['fields'].update(common)
-    rate_info['annually']['fields'].update(common)
+    rate_info['monthly'].update(common)
+    rate_info['annually'].update(common)
 
     context = {
         'this_page': 'settings_subscription',
@@ -1031,8 +1031,8 @@ def settings_subscription(request):
         'rate_info': rate_info,
         # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'data_monthly': prep_for_perma_payments(rate_info['monthly']['fields']),
-        'data_annually': prep_for_perma_payments(rate_info['annually']['fields']),
+        'data_monthly': prep_for_perma_payments(rate_info['monthly']),
+        'data_annually': prep_for_perma_payments(rate_info['annually']),
         # for cancelling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         # for updating

@@ -1,5 +1,5 @@
 {% extends "settings-layout.html" %}
-{% load humanize %}
+{% load humanize pretty_date %}
 
 {% block title %} | Settings{% endblock %}
 
@@ -12,12 +12,12 @@
     <div class="row">
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-        <button><span>Monthly</span><br>${{ rate_info.monthly.display_rate | intcomma }}/month<br><br>${{ rate_info.monthly.display_prorated | intcomma }} this month (prorated)</button>
+        <button><span>Monthly</span><br>${{ rate_info.monthly.recurring_amount | intcomma }}/month<br><br>${{ rate_info.monthly.amount | intcomma }} this month (prorated)</button>
         <input type="hidden" name="encrypted_data" value={{ data_monthly }}>
       </form>
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-          <button><span>Annually</span><br>${{ rate_info.annual.annually.display_rate | intcomma }}/year</button>
+          <button><span>Annually</span><br>${{ rate_info.annually.amount | intcomma }}/year</button>
           <input type="hidden" name="encrypted_data" value={{ data_annually }}>
       </form>
     </div>
@@ -45,10 +45,10 @@
         <dl class="dl-horizontal">
           {% if subscription.frequency == 'monthly' %}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-            <dt>Next payment:</dt><dd>{{ rate_info.monthly.display_next_payment}}</dd>
+            <dt>Next payment:</dt><dd>{{ rate_info.next_month | pretty_date }}</dd>
           {% elif subscription.frequency == 'annually'%}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-            <dt>Next payment:</dt><dd>{{ rate_info.annually.display_next_payment}}</dd>
+            <dt>Next payment:</dt><dd>{{ rate_info.next_year | pretty_date }}</dd>
           {% endif %}
           <dt>Links:</dt><dd>unlimited</dd>
         </dl>
