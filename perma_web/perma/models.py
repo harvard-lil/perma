@@ -54,6 +54,9 @@ from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for
 
 logger = logging.getLogger(__name__)
 
+### CONSTANTS
+ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
+
 
 ### HELPERS ###
 
@@ -154,6 +157,12 @@ class Registrar(models.Model):
     )
 
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
+    cached_subscription_status = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="The last known status of registrar's paid subscription, from Perma Payments"
+    )
 
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
@@ -210,6 +219,10 @@ class Registrar(models.Model):
         if post_data['subscription'] is None:
             return None
 
+        # store the subscription status locally, for use if Perma Payments is unavailable
+        self.cached_subscription_status = post_data['subscription']['status']
+        self.save(update_fields=['cached_subscription_status'])
+
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
@@ -265,8 +278,10 @@ class Registrar(models.Model):
         try:
             subscription = self.get_subscription()
         except PermaPaymentsCommunicationException:
-            return settings.ALLOW_CAPTURES_IF_PP_DOWN
-        return subscription and subscription['status'] in ['Current', 'Cancellation Requested']
+            subscription = {
+                'status': self.cached_subscription_status
+            }
+        return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
 
 
 class OrganizationQuerySet(QuerySet):
