@@ -89,6 +89,9 @@ def most_active_org_in_time_period(organizations, start_time=None, end_time=None
             .order_by('-num_links')\
             .first()
 
+def subscription_is_active(subscription):
+    return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
+
 # classes
 
 class DeletableManager(models.Manager):
@@ -281,7 +284,7 @@ class Registrar(models.Model):
             subscription = {
                 'status': self.cached_subscription_status
             }
-        return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
+        return subscription_is_active(subscription)
 
 
 class OrganizationQuerySet(QuerySet):

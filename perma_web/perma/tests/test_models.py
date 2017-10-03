@@ -1,8 +1,29 @@
 from django.utils import timezone
 
+from mock import patch, sentinel
+
 from perma.models import *
 
 from .utils import PermaTestCase
+
+
+# Fixtures
+
+def nonpaying_registrar():
+    r = Registrar()
+    r.save()
+    assert r.nonpaying
+    return r
+
+
+def paying_registrar():
+    r = Registrar(
+        nonpaying=False,
+        cached_subscription_status="Sentinel Status"
+    )
+    r.save()
+    assert not r.nonpaying
+    return r
 
 
 class ModelsTestCase(PermaTestCase):
@@ -219,4 +240,56 @@ class ModelsTestCase(PermaTestCase):
         now5.save()
 
         self.assertEqual(r.most_active_org_this_year(), o2)
+
+    #
+    # Related to Perma Payments
+    #
+
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_link_creation_always_allowed_if_nonpaying(self, get_subscription):
+        r = nonpaying_registrar()
+        self.assertTrue(r.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 0)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
+        get_subscription.side_effect = PermaPaymentsCommunicationException
+        r = paying_registrar()
+        r.link_creation_allowed()
+        get_subscription.assert_called_once_with(r)
+        is_active.assert_called_once_with({
+            'status': 'Sentinel Status'
+        })
+
+
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_link_creation_disallowed_if_no_subscription(self, get_subscription):
+        get_subscription.return_value = None
+        r = paying_registrar()
+        self.assertFalse(r.link_creation_allowed())
+        get_subscription.assert_called_once_with(r)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_link_creation_disallowed_if_subscription_inactive(self, get_subscription, is_active):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = False
+        r = paying_registrar()
+        self.assertFalse(r.link_creation_allowed())
+        get_subscription.assert_called_once_with(r)
+        is_active.assert_called_once_with(sentinel.subscription)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = True
+        r = paying_registrar()
+        self.assertTrue(r.link_creation_allowed())
+        get_subscription.assert_called_once_with(r)
+        is_active.assert_called_once_with(sentinel.subscription)
 
