@@ -48,7 +48,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .exceptions import PermaPaymentsCommunicationException
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year
 
 
@@ -183,30 +183,37 @@ class Registrar(models.Model):
         return self.users.filter(is_active=True)
 
     def get_subscription(self):
-        """
-        """
         if self.nonpaying:
             return None
 
-        data = {
-            'timestamp': to_timestamp(datetime.utcnow()),
-            'registrar':  self.pk
-        }
-        r = requests.post(settings.SUBSCRIPTION_STATUS_URL, data={'encrypted_data': prep_for_perma_payments(data)})
+        r = requests.post(
+            settings.SUBSCRIPTION_STATUS_URL,
+            data={
+                'encrypted_data': prep_for_perma_payments({
+                    'timestamp': to_timestamp(datetime.utcnow()),
+                    'registrar':  self.pk
+                })
+            }
+        )
         if r.status_code != 200:
-            logger.error('Communication with perma-payments failed. Status: {}'.format(r.status_code))
-            raise PermaPaymentsCommunicationException
+            msg = "Communication with Perma-Payments failed. Status: {}".format(r.status_code)
+            logger.error(msg)
+            raise PermaPaymentsCommunicationException(msg)
 
         post_data = process_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
 
-        subscription = post_data['subscription']
-        if subscription is None:
+        if post_data['registrar'] != self.pk:
+            msg = "Unexpected response from Perma-Payments."
+            logger.error(msg)
+            raise InvalidTransmissionException(msg)
+
+        if post_data['subscription'] is None:
             return None
 
         return {
-            'status': subscription['status'],
-            'rate': subscription['rate'],
-            'frequency': subscription['frequency']
+            'status': post_data['subscription']['status'],
+            'rate': post_data['subscription']['rate'],
+            'frequency': post_data['subscription']['frequency']
         }
 
 
@@ -221,25 +228,36 @@ class Registrar(models.Model):
         return round(self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month), 2)
 
 
-    def get_rate_info(self, now):
+    def get_subscription_info(self, now):
+        timestamp = to_timestamp(now)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         return {
-            'next_month': next_month,
-            'next_year': next_year,
-            'monthly': {
+            'subscription': self.get_subscription(),
+            'next_monthly_payment': next_month,
+            'next_annual_payment': next_year,
+            'monthly_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
                 'recurring_frequency': "monthly",
                 'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
                 'recurring_amount': "{0:.2f}".format(self.monthly_rate),
                 'recurring_start_date': next_month.strftime("%Y-%m-%d")
             },
-            'annually': {
+            'annual_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
                 'recurring_frequency': "annually",
                 'amount': "{0:.2f}".format(self.annual_rate()),
                 'recurring_amount': "{0:.2f}".format(self.annual_rate()),
                 'recurring_start_date': next_year.strftime("%Y-%m-%d")
+            },
+            'update_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
             }
         }
+
 
     def link_creation_allowed(self):
         if self.nonpaying:

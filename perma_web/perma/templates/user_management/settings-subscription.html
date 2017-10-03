@@ -4,7 +4,7 @@
 {% block title %} | Settings{% endblock %}
 
 {% block dashboardContent %}
-
+{% with subscription=subscription_info.subscription %}
   {% if not subscription %}
     <h3 class="body-ah">Subscribe</h3>
     <p class="page-dek">Purchase a subscription for {{ request.user.registrar.name }}</p>
@@ -12,13 +12,13 @@
     <div class="row">
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-        <button><span>Monthly</span><br>${{ rate_info.monthly.recurring_amount | intcomma }}/month<br><br>${{ rate_info.monthly.amount | intcomma }} this month (prorated)</button>
-        <input type="hidden" name="encrypted_data" value={{ data_monthly }}>
+        <button><span>Monthly</span><br>${{ subscription_info.monthly_required_fields.recurring_amount | intcomma }}/month<br><br>${{ subscription_info.monthly_required_fields.amount | intcomma }} this month (prorated)</button>
+        <input type="hidden" name="encrypted_data" value={{ encrypted_data_monthly }}>
       </form>
 
       <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-          <button><span>Annually</span><br>${{ rate_info.annually.amount | intcomma }}/year</button>
-          <input type="hidden" name="encrypted_data" value={{ data_annually }}>
+          <button><span>Annually</span><br>${{ subscription_info.annual_required_fields.amount | intcomma }}/year</button>
+          <input type="hidden" name="encrypted_data" value={{ encrypted_data_annual }}>
       </form>
     </div>
 
@@ -45,10 +45,10 @@
         <dl class="dl-horizontal">
           {% if subscription.frequency == 'monthly' %}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-            <dt>Next payment:</dt><dd>{{ rate_info.next_month | pretty_date }}</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | pretty_date }}</dd>
           {% elif subscription.frequency == 'annually'%}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-            <dt>Next payment:</dt><dd>{{ rate_info.next_year | pretty_date }}</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_annual_payment | pretty_date }}</dd>
           {% endif %}
           <dt>Links:</dt><dd>unlimited</dd>
         </dl>
@@ -58,7 +58,7 @@
     <div class="row subscription-buttons">
       <div class="col-xs-12 col-md-6">
         <form method="post" action="{{ update_url }}">
-          <input type="hidden" name="encrypted_data" value={{ data_update }}>
+          <input type="hidden" name="encrypted_data" value={{ encrypted_data_update }}>
           <button class="btn btn-primary" type="submit">
             Update Payment Information
           </button>
@@ -73,6 +73,6 @@
 
   {% endif %}
 
-
+{% endwith %}
 {% endblock %}
 

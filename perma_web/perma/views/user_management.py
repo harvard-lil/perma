@@ -1007,36 +1007,25 @@ def settings_tools(request):
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription(request):
     registrar = request.user.registrar
-
     try:
-        subscription = registrar.get_subscription()
+        subscription_info = registrar.get_subscription_info(datetime.utcnow())
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
         }
         return render(request, 'user_management/settings-subscription-unavailable.html', context)
 
-    now = datetime.utcnow()
-    common = {
-        'registrar': registrar.id,
-        'timestamp': to_timestamp(now)
-    }
-    rate_info = registrar.get_rate_info(now)
-    rate_info['monthly'].update(common)
-    rate_info['annually'].update(common)
-
     context = {
         'this_page': 'settings_subscription',
-        'subscription': subscription,
-        'rate_info': rate_info,
+        'subscription_info': subscription_info,
         # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'data_monthly': prep_for_perma_payments(rate_info['monthly']),
-        'data_annually': prep_for_perma_payments(rate_info['annually']),
+        'encrypted_data_monthly': prep_for_perma_payments(subscription_info['monthly_required_fields']),
+        'encrypted_data_annual': prep_for_perma_payments(subscription_info['annual_required_fields']),
         # for cancelling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         # for updating
-        'data_update': prep_for_perma_payments(common),
+        'encrypted_data_update': prep_for_perma_payments(subscription_info['update_required_fields']),
         'update_url': settings.UPDATE_URL
     }
     return render(request, 'user_management/settings-subscription.html', context)
