@@ -82,3 +82,8 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_payments_public_key': b'\x0co(\xf5\xc4\xb9.\x07\xae\xbb\xb5\xc0\x17O,\xc3F\x8e_\xb9\x89\x16\xefSTK]\xae\xb0P\x1c6',
 }
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
+
+SUBSCRIBE_URL = '/subscribe/'
+CANCEL_URL = '/cancel-request/'
+SUBSCRIPTION_STATUS_URL = '/subscription/'
+UPDATE_URL = '/update/'
