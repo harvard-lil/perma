@@ -372,6 +372,11 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual((r.monthly_rate / 31 * 16).quantize(Decimal('.01')), cost)
 
 
+    # Does this have to be tested? It's important, but.....
+    # def test_get_subscription_info(self, get_subscription):
+    #     pass
+
+
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_link_creation_always_allowed_if_nonpaying(self, get_subscription):
         r = nonpaying_registrar()
