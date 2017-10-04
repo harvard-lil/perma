@@ -7,6 +7,7 @@ from perma.models import Link, LinkUser, Folder, Capture, CDXLine
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
+from mock import patch
 
 class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
@@ -26,8 +27,10 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.regular_user = LinkUser.objects.get(pk=4)
         self.related_org_user = LinkUser.objects.get(pk=5) # belongs to the same org as the one that created the link
         self.unrelated_org_user = LinkUser.objects.get(pk=6)  # belongs to a different org than the one that created the link
+        self.firm_user = LinkUser.objects.get(email="case_one_lawyer@firm.com")
 
         self.regular_user_empty_child_folder = Folder.objects.get(pk=29)
+        self.firm_folder = Folder.objects.get(name="Some Case")
 
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
@@ -96,6 +99,24 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_create_from_logged_out_user(self):
         self.rejected_post(self.list_url, data=self.post_data)
+
+    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
+    def test_should_reject_create_if_folder_registrar_bad_standing(self, allowed):
+        allowed.return_value = False
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.firm_user,
+            data=dict(self.post_data,
+                      folder=self.firm_folder.pk)
+        )
+        allowed.assert_called_once_with(self.firm_folder.organization.registrar)
+        self.assertIn("problem with your subscription", response.content)
+
+    # tests for permitted creations in test_link_resource, where the
+    # to-be-captured url is actually being served up.
+    # this should be fixed.
+
 
     ###########
     # Editing #
