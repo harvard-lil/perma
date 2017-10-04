@@ -1,3 +1,5 @@
+from datetime import datetime
+from decimal import Decimal
 from django.utils import timezone
 
 from mock import patch, sentinel
@@ -9,6 +11,8 @@ from .utils import PermaTestCase
 
 # Fixtures
 
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
+
 def nonpaying_registrar():
     r = Registrar()
     r.save()
@@ -19,12 +23,41 @@ def nonpaying_registrar():
 def paying_registrar():
     r = Registrar(
         nonpaying=False,
-        cached_subscription_status="Sentinel Status"
+        cached_subscription_status="Sentinel Status",
+        monthly_rate=Decimal(100.00)
     )
     r.save()
     assert not r.nonpaying
     return r
 
+
+def spoof_pp_response_wrong_registrar(r):
+    d = {
+        "registrar": "not_the_id"
+    }
+    assert r.pk != d['registrar']
+    return d
+
+
+def spoof_pp_response_no_subscription(r):
+    return {
+        "registrar": r.pk,
+        "subscription": None
+    }
+
+
+def spoof_pp_response_subscription(r):
+    return {
+        "registrar": r.pk,
+        "subscription": {
+            "status": "Sentinel Status",
+            "rate": "Sentinel Rate",
+            "frequency": "Sentinel Frequency"
+        }
+    }
+
+
+# Tests
 
 class ModelsTestCase(PermaTestCase):
 
@@ -244,6 +277,100 @@ class ModelsTestCase(PermaTestCase):
     #
     # Related to Perma Payments
     #
+
+
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_none_and_no_network_call_if_nonpaying(self, post):
+        r = nonpaying_registrar()
+        self.assertIsNone(r.get_subscription())
+        self.assertEqual(post.call_count, 0)
+
+
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_raises_on_non_200(self, post):
+        r = paying_registrar()
+        response_codes = ['400', '404', '500', '502']
+        post.return_value.status_code.side_effect = response_codes
+        for code in response_codes:
+            with self.assertRaises(PermaPaymentsCommunicationException):
+                r.get_subscription()
+        self.assertEqual(post.call_count, len(response_codes))
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_verifies_transmission_valid(self, post, process):
+        r = paying_registrar()
+        post.return_value.status_code = 200
+        post.return_value.json.return_value = sentinel.json
+        # This will raise an exception further down in the function;
+        # we don't care at this point
+        with self.assertRaises(Exception):
+            r.get_subscription()
+        self.assertEqual(post.call_count, 1)
+        process.assert_called_once_with(sentinel.json, FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_raises_if_unexpected_registrar_id(self, post, process):
+        r = paying_registrar()
+        post.return_value.status_code = 200
+        process.return_value = spoof_pp_response_wrong_registrar(r)
+        with self.assertRaises(InvalidTransmissionException):
+            r.get_subscription()
+        self.assertEqual(post.call_count, 1)
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_no_subscription(self, post, process):
+        r = paying_registrar()
+        post.return_value.status_code = 200
+        process.return_value = spoof_pp_response_no_subscription(r)
+        self.assertIsNone(r.get_subscription())
+        self.assertEqual(post.call_count, 1)
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_happy_path(self, post, process):
+        r = paying_registrar()
+        response = spoof_pp_response_subscription(r)
+        post.return_value.status_code = 200
+        process.return_value = response
+        subscription = r.get_subscription()
+        self.assertEqual(r.cached_subscription_status, response['subscription']['status'])
+        self.assertEqual(subscription, {
+            'status': response['subscription']['status'],
+            'rate': response['subscription']['rate'],
+            'frequency': response['subscription']['frequency']
+        })
+        self.assertEqual(post.call_count, 1)
+
+
+    def test_annual_rate(self):
+        r = paying_registrar()
+        self.assertEqual(r.annual_rate() / 12, r.monthly_rate)
+
+
+    def test_prorated_first_month_cost_full_month(self):
+        r = paying_registrar()
+        cost = r.prorated_first_month_cost(GENESIS)
+        self.assertEqual(r.monthly_rate, cost)
+
+
+    def test_prorated_first_month_cost_last_day_of_month(self):
+        r = paying_registrar()
+        cost = r.prorated_first_month_cost(GENESIS.replace(day=31))
+        self.assertEqual((r.monthly_rate / 31).quantize(Decimal('.01')), cost)
+
+
+    def test_prorated_first_month_cost_mid_month(self):
+        r = paying_registrar()
+        cost = r.prorated_first_month_cost(GENESIS.replace(day=16))
+        self.assertEqual((r.monthly_rate / 31 * 16).quantize(Decimal('.01')), cost)
+
 
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_link_creation_always_allowed_if_nonpaying(self, get_subscription):

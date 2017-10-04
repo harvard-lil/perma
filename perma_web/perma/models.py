@@ -57,6 +57,13 @@ logger = logging.getLogger(__name__)
 ### CONSTANTS
 ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
 
+FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
+    'get_subscription': [
+        'registrar',
+        'subscription',
+    ]
+}
+
 
 ### HELPERS ###
 
@@ -212,7 +219,7 @@ class Registrar(models.Model):
             logger.error(msg)
             raise PermaPaymentsCommunicationException(msg)
 
-        post_data = process_perma_payments_transmission(r.json(), ('registrar', 'subscription'))
+        post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
 
         if post_data['registrar'] != self.pk:
             msg = "Unexpected response from Perma-Payments."
@@ -241,7 +248,7 @@ class Registrar(models.Model):
         days_in_month = calendar.monthrange(now.year, now.month)[1]
         days_until_end_of_month = days_in_month - now.day
         # Decimal to force accurate division; add one day, to charge for today
-        return round(self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month), 2)
+        return (self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month)).quantize(Decimal('.01'))
 
 
     def get_subscription_info(self, now):
