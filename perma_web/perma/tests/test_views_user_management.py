@@ -3,13 +3,43 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 from django.conf import settings
 
+from mock import patch, sentinel
+
 from perma.models import *
+from perma.exceptions import PermaPaymentsCommunicationException
 
 from .utils import PermaTestCase
 
 from random import random
 from bs4 import BeautifulSoup
 
+
+# Fixtures
+
+def spoof_current_monthly_subscription():
+    return {
+        "status": "Current",
+        "rate": "Sentinel Rate",
+        "frequency": "monthly"
+    }
+
+def spoof_on_hold_monthly_subscription():
+    return {
+        "status": "On Hold",
+        "rate": "Sentinel Rate",
+        "frequency": "monthly"
+    }
+
+
+def spoof_cancellation_requested_subscription():
+    return {
+        "status": "Cancellation Requested",
+        "rate": "Sentinel Rate",
+        "frequency": "Sentinel Frequency"
+    }
+
+
+# Tests
 
 class UserManagementViewsTestCase(PermaTestCase):
 
@@ -927,36 +957,121 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     # Subscription
 
-    def test_authorized_user_can_see_subscription_page(self):
-        pass
-
-
     def test_unauthorized_user_cannot_see_subscription_page(self):
-        pass
+        u = LinkUser.objects.get(email='test_user@example.com')
+        assert not u.can_view_subscription()
+        self.get('user_management_settings_subscription',
+                  user=u,
+                  require_status_code=403)
 
 
-    def test_subscribe_form_if_no_standing_subscription(self):
-        pass
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_authorized_user_can_see_subscription_page(self, get_subscription):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        assert u.can_view_subscription()
+        self.get('user_management_settings_subscription',
+                  user=u,
+                  require_status_code=200)
 
 
-    def test_update_cancel_and_subscription_info_present_if_standing_subscription(self):
-        pass
+    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_subscribe_form_if_no_standing_subscription(self, get_subscription, prepped):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        get_subscription.return_value = None
+        prepped.return_value = sentinel.prepped
+
+        r = self.get('user_management_settings_subscription',
+                      user=u)
+
+        self.assertIn('Purchase a subscription', r.content)
+        self.assertIn('<form class="upgrade-form', r.content)
+        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(str(sentinel.prepped), r.content)
+        get_subscription.assert_called_once_with(u.registrar)
 
 
-    def test_help_present_if_subscription_on_hold(self):
-        pass
+    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_update_cancel_and_subscription_info_present_if_standing_subscription(self, get_subscription, prepped):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        subscription = spoof_current_monthly_subscription()
+        get_subscription.return_value = subscription
+        prepped.return_value = sentinel.prepped
+
+        r = self.get('user_management_settings_subscription',
+                      user=u)
+
+        self.assertIn('Rate', r.content)
+        self.assertIn('Next payment', r.content)
+        self.assertIn(subscription['status'].lower(), r.content)
+        self.assertIn('Update Payment Information', r.content)
+        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(str(sentinel.prepped), r.content)
+        self.assertIn('Cancel Subscription', r.content)
+        get_subscription.assert_called_once_with(u.registrar)
 
 
-    def test_cancellation_info_present_if_cancellation_requested(self):
-        pass
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_help_present_if_subscription_on_hold(self, get_subscription):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        subscription = spoof_on_hold_monthly_subscription()
+        get_subscription.return_value = subscription
+
+        r = self.get('user_management_settings_subscription',
+                      user=u)
+
+        self.assertIn('problem with your credit card', r.content)
+        get_subscription.assert_called_once_with(u.registrar)
 
 
-    def test_apology_page_displayed_if_perma_payments_is_down(self):
-        pass
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_cancellation_info_present_if_cancellation_requested(self, get_subscription):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        subscription = spoof_cancellation_requested_subscription()
+        get_subscription.return_value = subscription
+
+        r = self.get('user_management_settings_subscription',
+                      user=u)
+
+        self.assertNotIn('<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn('received the request to cancel', r.content)
+        get_subscription.assert_called_once_with(u.registrar)
 
 
-    def test_cancellation_confirm_form(self):
-        pass
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_apology_page_displayed_if_perma_payments_is_down(self, get_subscription):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        get_subscription.side_effect = PermaPaymentsCommunicationException
+
+        r = self.get('user_management_settings_subscription',
+                      user=u)
+
+        self.assertNotIn('<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn('subscription information is currently unavailable', r.content)
+        get_subscription.assert_called_once_with(u.registrar)
+
+
+    def test_unauthorized_user_cannot_see_cancellation_page(self):
+        u = LinkUser.objects.get(email='test_user@example.com')
+        assert not u.can_view_subscription()
+        self.get('user_management_settings_subscription_cancel',
+                  user=u,
+                  require_status_code=403)
+
+
+    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    def test_authorized_user_cancellation_confirm_form(self, prepped):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        assert u.can_view_subscription()
+        prepped.return_value = sentinel.prepped
+
+        r = self.get('user_management_settings_subscription_cancel',
+                      user=u)
+
+        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(str(sentinel.prepped), r.content)
+        self.assertIn('Are you sure you want to cancel', r.content)
 
 
     # Tools
@@ -1390,7 +1505,8 @@ class UserManagementViewsTestCase(PermaTestCase):
                           error_keys = ['email', 'requested_account_note'])
         self.assertEqual(len(mail.outbox), 0)
 
-        ### Firms ###
+
+    ### Firms ###
 
     def new_firm(self):
         rand = random()
