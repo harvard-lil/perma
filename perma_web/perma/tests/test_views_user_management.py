@@ -924,6 +924,41 @@ class UserManagementViewsTestCase(PermaTestCase):
                   user='test_admin_user@example.com',
                   require_status_code=404)
 
+
+    # Subscription
+
+    def test_authorized_user_can_see_subscription_page(self):
+        pass
+
+
+    def test_unauthorized_user_cannot_see_subscription_page(self):
+        pass
+
+
+    def test_subscribe_form_if_no_standing_subscription(self):
+        pass
+
+
+    def test_update_cancel_and_subscription_info_present_if_standing_subscription(self):
+        pass
+
+
+    def test_help_present_if_subscription_on_hold(self):
+        pass
+
+
+    def test_cancellation_info_present_if_cancellation_requested(self):
+        pass
+
+
+    def test_apology_page_displayed_if_perma_payments_is_down(self):
+        pass
+
+
+    def test_cancellation_confirm_form(self):
+        pass
+
+
     # Tools
 
     def test_api_key(self):
