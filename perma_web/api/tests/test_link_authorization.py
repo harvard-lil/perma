@@ -111,7 +111,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
                       folder=self.firm_folder.pk)
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
-        self.assertIn("problem with your subscription", response.content)
+        self.assertIn("subscription", response.content)
 
     # tests for permitted creations in test_link_resource, where the
     # to-be-captured url is actually being served up.

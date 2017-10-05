@@ -337,8 +337,15 @@ class AuthenticatedLinkListView(BaseView):
             if links_remaining < 1:
                 raise_validation_error("You've already reached your limit.")
         else:
-            if not folder.organization.registrar.link_creation_allowed():
-                raise_validation_error("Here's a helpful message for when there's a problem with your subscription.")
+            registrar = folder.organization.registrar
+            if not registrar.link_creation_allowed():
+                error = 'Perma.cc cannot presently make links on behalf of {}. '.format(registrar.name)
+                if request.user.registrar:
+                    contact = 'Visit your settings for subscription information.'
+                else:
+                    registrar_users = [user.email for user in registrar.active_registrar_users()]
+                    contact = 'For assistance with your subscription, contact:  {}.'.format(", ".join(registrar_users))
+                raise_validation_error(error + contact)
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():

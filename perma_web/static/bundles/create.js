@@ -10875,18 +10875,21 @@ webpackJsonp([1],[
 	  }
 	
 	  var upload_allowed = true;
+	  var show_generic = true;
 	  if (message.indexOf("limit") > -1) {
 	    $('.links-remaining').text('0');
 	    upload_allowed = false;
 	  }
 	  if (message.indexOf("subscription") > -1) {
 	    upload_allowed = false;
+	    show_generic = false;
 	  }
 	
 	  var templateArgs = {
 	    message: message,
 	    upload_allowed: upload_allowed,
-	    contact_url: contact_url
+	    contact_url: contact_url,
+	    show_generic: show_generic
 	  };
 	
 	  changeTemplate('#error-template', templateArgs, '#error-container');
