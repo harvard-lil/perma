@@ -622,7 +622,11 @@ def check_storage(start_date=None):
         return
     end_datetime = pytz.utc.localize(datetime.now())
 
-    # this can be generalized later to an arbitrary number of storages
+    # The abstraction of multiple storages is an artifact of the
+    # transition to S3 for storage; although it's conceivable that we'd
+    # want multiple storages at some point again, there's no need right now
+    # to diverge from the Django norm. The abstraction remains here as a
+    # point of historical interest.
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
 
     # only use cache files when all are present: link cache, and one for each storage
