@@ -180,6 +180,7 @@ class FunctionalTest(BaseTestCase):
             self.virtual_display = Display(visible=0, size=(1024, 800))
             self.virtual_display.start()
             self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+            self.driver.implicitly_wait(20)
         except RuntimeError:
             self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
         print("Using %s for integration tests." % (type(self.driver)))
