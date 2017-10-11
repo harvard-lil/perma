@@ -189,7 +189,10 @@ class FunctionalTest(BaseTestCase):
     def quitDriver(self):
         # to get past transient error (selenium OSError: [Errno 9] Bad file descriptor),
         # send signal according to https://stackoverflow.com/a/45786385/4074877
-        self.driver.service.process.send_signal(signal.SIGTERM)
+        try:
+            self.driver.service.process.send_signal(signal.SIGTERM)
+        except AttributeError:
+            pass
         self.driver.quit()
 
     def tearDownLocal(self):
