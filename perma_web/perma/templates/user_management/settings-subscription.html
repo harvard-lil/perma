@@ -45,10 +45,10 @@
         <dl class="dl-horizontal">
           {% if subscription.frequency == 'monthly' %}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-            <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | pretty_date }}</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | date:"F jS, Y" }}</dd>
           {% elif subscription.frequency == 'annually'%}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-            <dt>Next payment:</dt><dd>{{ subscription_info.next_annual_payment | pretty_date }}</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_annual_payment | date:"F jS, Y" }}</dd>
           {% endif %}
           <dt>Links:</dt><dd>unlimited</dd>
         </dl>
