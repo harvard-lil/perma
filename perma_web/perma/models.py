@@ -572,8 +572,7 @@ class LinkUser(AbstractBaseUser):
                self.is_organization_user
 
     def can_view_subscription(self):
-        registrar = self.registrar
-        return registrar and not registrar.nonpaying
+        return self.is_registrar_user() and not self.registrar.nonpaying
 
 
     ### link permissions ###
