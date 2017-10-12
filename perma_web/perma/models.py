@@ -205,17 +205,19 @@ class Registrar(models.Model):
         if self.nonpaying:
             return None
 
-        r = requests.post(
-            settings.SUBSCRIPTION_STATUS_URL,
-            data={
-                'encrypted_data': prep_for_perma_payments({
-                    'timestamp': to_timestamp(datetime.utcnow()),
-                    'registrar':  self.pk
-                })
-            }
-        )
-        if r.status_code != 200:
-            msg = "Communication with Perma-Payments failed. Status: {}".format(r.status_code)
+        try:
+            r = requests.post(
+                settings.SUBSCRIPTION_STATUS_URL,
+                data={
+                    'encrypted_data': prep_for_perma_payments({
+                        'timestamp': to_timestamp(datetime.utcnow()),
+                        'registrar':  self.pk
+                    })
+                }
+            )
+            assert r.ok
+        except (requests.RequestException, AssertionError) as e:
+            msg = "Communication with Perma-Payments failed: {}".format(str(e))
             logger.error(msg)
             raise PermaPaymentsCommunicationException(msg)
 

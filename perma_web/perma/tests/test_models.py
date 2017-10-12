@@ -289,12 +289,10 @@ class ModelsTestCase(PermaTestCase):
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_raises_on_non_200(self, post):
         r = paying_registrar()
-        response_codes = ['400', '404', '500', '502']
-        post.return_value.status_code.side_effect = response_codes
-        for code in response_codes:
-            with self.assertRaises(PermaPaymentsCommunicationException):
-                r.get_subscription()
-        self.assertEqual(post.call_count, len(response_codes))
+        post.return_value.ok = False
+        with self.assertRaises(PermaPaymentsCommunicationException):
+            r.get_subscription()
+        self.assertEqual(post.call_count, 1)
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
