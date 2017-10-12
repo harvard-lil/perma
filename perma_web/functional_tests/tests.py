@@ -13,6 +13,7 @@ from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
+import signal
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.urlresolvers import reverse
@@ -185,8 +186,17 @@ class FunctionalTest(BaseTestCase):
         socket.setdefaulttimeout(30)
         self.driver.set_window_size(1024, 800)
 
-    def tearDownLocal(self):
+    def quitDriver(self):
+        # to get past transient error (selenium OSError: [Errno 9] Bad file descriptor),
+        # send signal according to https://stackoverflow.com/a/45786385/4074877
+        try:
+            self.driver.service.process.send_signal(signal.SIGTERM)
+        except AttributeError:
+            pass
         self.driver.quit()
+
+    def tearDownLocal(self):
+        self.quitDriver()
         if self.virtual_display:
             self.virtual_display.stop()
 
@@ -198,7 +208,7 @@ class FunctionalTest(BaseTestCase):
             else:
                 sauce.jobs.update_job(self.driver.session_id, passed=False)
         finally:
-            self.driver.quit()
+            self.quitDriver()
 
     def test_all(self):
 
