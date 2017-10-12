@@ -37,12 +37,16 @@ If you are using Vagrant, all of your logs will end up in /vagrant/services/logs
 
 ### Python requirements
 
-Top-level requirements should go in `requirements.in`. If you change that file, you should then regenerate the
-`requirements.txt` file with:
+Top-level requirements should go in `requirements.in`, usually without a version specified.
+If you change that file, you should then regenerate the `requirements.txt` file with:
 
-    pip-compile --output-file requirements.txt requirements.in
+    pip-compile
 
 This ensures that our sub-requirements are always pinned to fixed versions.
+
+To update a requirement to latest, run:
+
+    pip-compile -P package-name
 
 ### Node requirements
 
