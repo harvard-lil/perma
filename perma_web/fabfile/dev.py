@@ -622,10 +622,12 @@ def check_storage(start_date=None):
         return
     end_datetime = pytz.utc.localize(datetime.now())
 
-    # this can be generalized later to an arbitrary number of storages
+    # The abstraction of multiple storages is an artifact of the
+    # transition to S3 for storage; although it's conceivable that we'd
+    # want multiple storages at some point again, there's no need right now
+    # to diverge from the Django norm. The abstraction remains here as a
+    # point of historical interest.
     storages = {'primary': {'storage': default_storage, 'lookup': {}}}
-    if hasattr(default_storage, 'secondary_storage'):
-        storages.update({'secondary': {'storage': default_storage.secondary_storage, 'lookup': {}}})
 
     # only use cache files when all are present: link cache, and one for each storage
     link_cache = '/tmp/perma_link_cache{0}.txt'.format("" if start_date is None else start_date)
@@ -670,7 +672,8 @@ def check_storage(start_date=None):
                             storages[key]['lookup'][path] = hash
                 else:
                     if hasattr(storage, '_root_path'):
-                        # SFTP
+                        # SFTP -- no longer in use, but leaving this here to show that different storages may have
+                        # different bases
                         base = storage._root_path
                     else:
                         # local file storage -- are there other possibilities to consider?
