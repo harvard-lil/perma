@@ -381,7 +381,14 @@ def encrypt_for_perma_payments(message, encoder=encoding.Base64Encoder):
     """
     Basic public key encryption ala pynacl.
     """
-    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    box = Box(
+        PrivateKey(
+            settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key'], encoder=encoder
+        ),
+        PublicKey(
+            settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key'], encoder=encoder
+        )
+    )
     return box.encrypt(message, encoder=encoder)
 
 
@@ -390,5 +397,12 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
     """
     Decrypt bytes encrypted by perma-payments.
     """
-    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    box = Box(
+        PrivateKey(
+            settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key'], encoder=encoder
+        ),
+        PublicKey(
+            settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key'], encoder=encoder
+        )
+    )
     return box.decrypt(ciphertext, encoder=encoder)
