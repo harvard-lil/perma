@@ -1,23 +1,32 @@
-import socket
 from contextlib import contextmanager
-import operator
-from urlparse import urlparse
-import os
-import tempdir
-from datetime import datetime
-import logging
-from netaddr import IPAddress, IPNetwork
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from functools import wraps
+import json
+import logging
+from nacl import encoding
+from nacl.public import Box, PrivateKey, PublicKey
+from netaddr import IPAddress, IPNetwork
+import operator
+import os
 import requests
+import socket
+import tempdir
+import time
 from ua_parser import user_agent_parser
+from urlparse import urlparse
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.views.decorators.debug import sensitive_variables
+
+from .exceptions import InvalidTransmissionException
 
 
 logger = logging.getLogger(__name__)
@@ -222,10 +231,30 @@ def url_in_allowed_ip_range(url):
 def get_client_ip(request):
     return request.META[settings.CLIENT_IP_HEADER]
 
-### timezone ###
+### dates and times ###
 
 def tz_datetime(*args, **kwargs):
     return timezone.make_aware(datetime(*args, **kwargs))
+
+
+def to_timestamp(dt):
+    """
+    Replicate python3 datetime.timestamp() method (https://docs.python.org/3.3/library/datetime.html#datetime.datetime.timestamp)
+    https://stackoverflow.com/a/30021134
+    """
+    return int((time.mktime(dt.timetuple())+ dt.microsecond/1e6))
+
+
+def first_day_of_next_month(now):
+    # use first of month instead of today to avoid issues w/ variable length months
+    first_of_month = now.replace(day=1)
+    return first_of_month + relativedelta(months=1)
+
+
+def today_next_year(now):
+    # relativedelta handles leap years: 2/29 -> 2/28
+    return now + relativedelta(years=1)
+
 
 ### addresses ###
 
@@ -271,3 +300,95 @@ def redirect_to_download(capture_mime_type, user_agent_str):
 
 def protocol():
     return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+
+
+### perma payments
+
+# communication
+
+@sensitive_variables()
+def prep_for_perma_payments(dictionary):
+    return encrypt_for_perma_payments(stringify_data(dictionary))
+
+
+@sensitive_variables()
+def process_perma_payments_transmission(transmitted_data, fields):
+    # Transmitted data should contain a single field, 'encrypted data', which
+    # must be a JSON dict, encrypted by Perma-Payments and base64-encoded.
+    encrypted_data = transmitted_data.get('encrypted_data', '')
+    if not encrypted_data:
+        raise InvalidTransmissionException('No encrypted_data in POST.')
+    try:
+        post_data = unstringify_data(decrypt_from_perma_payments(encrypted_data))
+    except Exception as e:
+        logger.warning('Problem with transmitted data. {}'.format(format_exception(e)))
+        raise InvalidTransmissionException(format_exception(e))
+
+    # The encrypted data must include a valid timestamp.
+    try:
+        timestamp = post_data['timestamp']
+    except KeyError:
+        logger.warning('Missing timestamp in data.')
+        raise InvalidTransmissionException('Missing timestamp in data.')
+    if not is_valid_timestamp(timestamp, settings.PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS):
+        logger.warning('Expired timestamp in data.')
+        raise InvalidTransmissionException('Expired timestamp in data.')
+
+    return retrieve_fields(post_data, fields)
+
+
+# helpers
+
+def format_exception(e):
+    return "{}: {}".format(type(e).__name__, e)
+
+
+@sensitive_variables()
+def retrieve_fields(transmitted_data, fields):
+    try:
+        data = {}
+        for field in fields:
+            data[field] = transmitted_data[field]
+    except KeyError as e:
+        msg = 'Incomplete data received: missing {}'.format(e)
+        logger.warning(msg)
+        raise InvalidTransmissionException(msg)
+    return data
+
+
+def is_valid_timestamp(stamp, max_age):
+    return stamp <= to_timestamp(datetime.utcnow() + timedelta(seconds=max_age))
+
+
+@sensitive_variables()
+def stringify_data(data):
+    """
+    Takes any json-serializable data. Converts to a bytestring, suitable for passing to an encryption function.
+    """
+    return json.dumps(data, cls=DjangoJSONEncoder, encoding='utf-8')
+
+
+@sensitive_variables()
+def unstringify_data(data):
+    """
+    Reverses stringify_data. Takes a bytestring, returns deserialized json.
+    """
+    return json.loads(data, 'utf-8')
+
+
+@sensitive_variables()
+def encrypt_for_perma_payments(message, encoder=encoding.Base64Encoder):
+    """
+    Basic public key encryption ala pynacl.
+    """
+    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    return box.encrypt(message, encoder=encoder)
+
+
+@sensitive_variables()
+def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
+    """
+    Decrypt bytes encrypted by perma-payments.
+    """
+    box = Box(PrivateKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_secret_key']), PublicKey(settings.PERMA_PAYMENTS_ENCRYPTION_KEYS['perma_payments_public_key']))
+    return box.decrypt(ciphertext, encoder=encoder)

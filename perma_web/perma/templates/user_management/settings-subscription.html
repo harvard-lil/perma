@@ -1,0 +1,78 @@
+{% extends "settings-layout.html" %}
+{% load humanize %}
+
+{% block title %} | Settings{% endblock %}
+
+{% block dashboardContent %}
+{% with subscription=subscription_info.subscription %}
+  {% if not subscription %}
+    <h3 class="body-ah">Subscribe</h3>
+    <p class="page-dek">Purchase a subscription for {{ request.user.registrar.name }}</p>
+
+    <div class="row">
+
+      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
+        <button><span>Monthly</span><br>${{ subscription_info.monthly_required_fields.recurring_amount | intcomma }}/month<br><br>${{ subscription_info.monthly_required_fields.amount | intcomma }} this month (prorated)</button>
+        <input type="hidden" name="encrypted_data" value={{ encrypted_data_monthly }}>
+      </form>
+
+      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
+          <button><span>Annually</span><br>${{ subscription_info.annual_required_fields.amount | intcomma }}/year</button>
+          <input type="hidden" name="encrypted_data" value={{ encrypted_data_annual }}>
+      </form>
+    </div>
+
+  {% elif subscription.status == 'Cancellation Requested' %}
+    <h3 class="body-ah _hideMobile">Cancellation Request Pending</h3>
+
+    <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
+
+    <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation; you will continue to be able to create Permalinks for {{ request.user.registrar.name }} until it's official.</p>
+
+  {% else %}
+    <h3 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h3>
+
+    {% if subscription.status == 'On Hold' %}
+      <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
+
+      <p class="page-dek">You can update payment information by clicking the button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
+    {% else %}
+      <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <dl class="dl-horizontal">
+          {% if subscription.frequency == 'monthly' %}
+            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | date:"F jS, Y" }}</dd>
+          {% elif subscription.frequency == 'annually'%}
+            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
+            <dt>Next payment:</dt><dd>{{ subscription_info.next_annual_payment | date:"F jS, Y" }}</dd>
+          {% endif %}
+          <dt>Links:</dt><dd>unlimited</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="row subscription-buttons">
+      <div class="col-xs-12 col-md-6">
+        <form method="post" action="{{ update_url }}">
+          <input type="hidden" name="encrypted_data" value={{ encrypted_data_update }}>
+          <button class="btn btn-primary" type="submit">
+            Update Payment Information
+          </button>
+        </form>
+      </div>
+      <div class="col-xs-12 col-md-6">
+        <a href="{{ cancel_confirm_url }}" class="btn cancel" type="submit">
+          Cancel Subscription
+        </a>
+      </div>
+    </div>
+
+  {% endif %}
+
+{% endwith %}
+{% endblock %}
+

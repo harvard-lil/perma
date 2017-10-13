@@ -7,9 +7,10 @@ from django.core.urlresolvers import reverse
 from surt import surt
 import json
 import urllib
+from mock import patch
 
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
-from perma.models import Link, LinkUser, CDXLine
+from perma.models import Link, LinkUser, CDXLine, Folder
 
 
 # Use a TransactionTestCase here because archive capture is threaded
@@ -38,6 +39,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         self.org_user = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
+        self.firm_user = LinkUser.objects.get(email="case_one_lawyer@firm.com")
+        self.firm_folder = Folder.objects.get(name="Some Case")
 
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.link = Link.objects.get(pk="3SLN-JHX9")
@@ -97,9 +100,24 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
 
+
     ########################
     # URL Archive Creation #
     ########################
+
+    # This doesn't really belong here. Try to readdress.
+    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
+    def test_should_permit_create_if_folder_registrar_good_standing(self, allowed):
+        allowed.return_value = True
+        self.rejected_post(
+            self.list_url,
+            expected_status_code=201,
+            user=self.firm_user,
+            data=dict(self.post_data,
+                      folder=self.firm_folder.pk)
+        )
+        allowed.assert_called_once_with(self.firm_folder.organization.registrar)
+
 
     def test_should_create_archive_from_html_url(self):
         target_folder = self.org_user.root_folder
@@ -127,8 +145,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         # check folder
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
 
-    def test_should_create_archive_from_pdf_url(self):
+
+    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
+    def test_should_create_archive_from_pdf_url(self, allowed):
         target_org = self.org_user.organizations.first()
+        allowed.return_value = True
         obj = self.successful_post(self.list_url,
                                    data={
                                        'url': self.server_url + "/test.pdf",
@@ -142,6 +163,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         # check folder
         self.assertTrue(link.folders.filter(pk=target_org.shared_folder.pk).exists())
         self.assertEqual(link.organization, target_org)
+        allowed.assert_called_once_with(target_org.shared_folder.organization.registrar)
+
 
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,

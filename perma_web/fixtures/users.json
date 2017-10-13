@@ -1,336 +1,616 @@
 [
   {
-    "pk": 1,
     "model": "perma.registrar",
+    "pk": 1,
     "fields": {
-      "status": "approved",
       "name": "Test Library",
       "email": "library@university.edu",
       "website": "http://university.edu/library",
       "date_created": "2013-06-26T00:00:00Z",
+      "status": "approved",
       "show_partner_status": true,
-      "latitude": "42.3770",
-      "longitude": "-71.1167"
+      "partner_display_name": null,
+      "logo": "",
+      "address": null,
+      "latitude": 42.377,
+      "longitude": -71.1167,
+      "nonpaying": true,
+      "monthly_rate": "0.00",
+      "link_count": 0
     }
   },
   {
-    "pk": 2,
     "model": "perma.registrar",
+    "pk": 2,
     "fields": {
-      "status": "pending",
       "name": "Another Library",
       "email": "library@university2.edu",
       "website": "http://university2.edu/library",
-      "date_created": "2014-07-27T00:00:00Z"
+      "date_created": "2014-07-27T00:00:00Z",
+      "status": "pending",
+      "show_partner_status": false,
+      "partner_display_name": null,
+      "logo": "",
+      "address": null,
+      "latitude": null,
+      "longitude": null,
+      "nonpaying": true,
+      "monthly_rate": "0.00",
+      "link_count": 0
     }
   },
   {
-    "pk": 3,
     "model": "perma.registrar",
+    "pk": 3,
     "fields": {
-      "status": "approved",
       "name": "A Third Library",
       "email": "library@university3.edu",
       "website": "http://university3.edu/library",
       "date_created": "2016-10-25T00:00:00Z",
+      "status": "approved",
       "show_partner_status": true,
-      "latitude": "41.3163",
-      "longitude": "-72.9223"
+      "partner_display_name": null,
+      "logo": "",
+      "address": null,
+      "latitude": 41.3163,
+      "longitude": -72.9223,
+      "nonpaying": true,
+      "monthly_rate": "0.00",
+      "link_count": 0
     }
   },
   {
-    "pk": 1,
-    "model": "perma.Organization",
+    "model": "perma.registrar",
+    "pk": 4,
     "fields": {
+      "name": "Test Firm",
+      "email": "firm@firm.com",
+      "website": "http://www.firm.com",
+      "date_created": "2017-09-28T19:32:48Z",
+      "status": "approved",
+      "show_partner_status": false,
+      "partner_display_name": "",
+      "logo": "",
+      "address": "",
+      "latitude": null,
+      "longitude": null,
+      "nonpaying": false,
+      "monthly_rate": "1.00",
+      "link_count": 0
+    }
+  },
+  {
+    "model": "perma.organization",
+    "pk": 1,
+    "fields": {
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
       "name": "Test Journal",
       "registrar": 1,
       "shared_folder": 27,
-      "date_created": "2013-06-26T00:00:00Z"
+      "date_created": "2013-06-26T00:00:00Z",
+      "default_to_private": false,
+      "link_count": 0
     }
   },
   {
+    "model": "perma.organization",
     "pk": 2,
-    "model": "perma.Organization",
     "fields": {
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
       "name": "Another Journal",
       "registrar": 1,
       "shared_folder": 28,
-      "date_created": "2013-06-26T00:00:00Z"
+      "date_created": "2013-06-26T00:00:00Z",
+      "default_to_private": false,
+      "link_count": 0
     }
   },
   {
+    "model": "perma.organization",
     "pk": 3,
-    "model": "perma.Organization",
     "fields": {
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
       "name": "A Third Journal",
       "registrar": 1,
       "shared_folder": 31,
-      "date_created": "2013-06-26T00:00:00Z"
+      "date_created": "2013-06-26T00:00:00Z",
+      "default_to_private": false,
+      "link_count": 0
     }
   },
   {
+    "model": "perma.organization",
     "pk": 4,
-    "model": "perma.Organization",
     "fields": {
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
       "name": "Another Library's Journal",
       "registrar": 2,
       "shared_folder": 40,
-      "date_created": "2014-07-27T00:00:00Z"
+      "date_created": "2014-07-27T00:00:00Z",
+      "default_to_private": false,
+      "link_count": 0
     }
   },
   {
-    "pk": 1,
-    "model": "perma.LinkUser",
+    "model": "perma.organization",
+    "pk": 5,
     "fields": {
-      "is_active": true,
-      "is_staff": true,
-      "is_confirmed": true,
-      "last_login": "2013-07-23T18:55:41Z",
-      "password": "pbkdf2_sha256$10000$BK8BC1FXesBM$I+R1mquCsp5PWrHsHfv+6xuUNO560YEPqdbzWZFNzlo=",
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
+      "name": "Some Case",
+      "registrar": 4,
+      "shared_folder": 51,
+      "date_created": "2017-09-28T19:34:40Z",
+      "default_to_private": false,
+      "link_count": 0
+    }
+  },
+  {
+    "model": "perma.organization",
+    "pk": 6,
+    "fields": {
+      "user_deleted": false,
+      "user_deleted_timestamp": null,
+      "name": "Some Other Case",
+      "registrar": 4,
+      "shared_folder": 52,
+      "date_created": "2017-09-28T19:34:53Z",
+      "default_to_private": false,
+      "link_count": 0
+    }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$Dv7jdRxtSyqc$8LoTP7uO5dPsNGIkdlAnTFKbEgkFeEiybEudRxuVIj0=",
+      "last_login": "2017-09-28T19:32:28Z",
       "email": "test_admin_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": true,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Admin",
       "last_name": "User",
-      "root_folder": 22
+      "confirmation_code": "",
+      "root_folder": 22,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 2,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2013-07-23T18:56:14Z",
+      "email": "test_registrar_user@example.com",
       "registrar": 1,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "test_registrar_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Registrar",
       "last_name": "User",
-      "root_folder": 23
+      "confirmation_code": "",
+      "root_folder": 23,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 3,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [1],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "test_org_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_org_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Organization",
       "last_name": "User",
-      "root_folder": 24
+      "confirmation_code": "",
+      "root_folder": 24,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        1
+      ]
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 4,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "test_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:55:25Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Regular",
       "last_name": "User",
-      "root_folder": 25
+      "confirmation_code": "",
+      "root_folder": 25,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 5,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [1],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "test_org_rando_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_org_rando_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Org-Rando",
       "last_name": "User",
-      "root_folder": 26
+      "confirmation_code": "",
+      "root_folder": 26,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        1
+      ]
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 6,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [3],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "test_another_org_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_another_org_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Another-Org",
       "last_name": "User",
-      "root_folder": 32
+      "confirmation_code": "",
+      "root_folder": 32,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        3
+      ]
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 7,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [3,4],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "test_another_library_org_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_another_library_org_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Another-Library",
       "last_name": "Organization-User",
-      "root_folder": 41
+      "confirmation_code": "",
+      "root_folder": 41,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        3,
+        4
+      ]
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 8,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "test_requested_registrar_account@example.com",
+      "registrar": null,
+      "pending_registrar": 2,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_requested_registrar_account@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "Requested",
       "last_name": "Registrar",
-      "pending_registrar": 2
+      "confirmation_code": "",
+      "root_folder": null,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 9,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2013-07-23T18:56:14Z",
+      "email": "another_library_user@example.com",
       "registrar": 2,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "another_library_user@example.com",
+      "is_staff": false,
       "date_joined": "2013-06-26T00:00:00Z",
       "first_name": "AnotherLibrary",
       "last_name": "User",
-      "root_folder": 42
+      "confirmation_code": "",
+      "root_folder": 42,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 10,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [1,2,3,4],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:38:27Z",
+      "email": "multi_registrar_org_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2013-07-23T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "multi_registrar_org_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-17T00:00:00Z",
       "first_name": "Multi-Registrar",
       "last_name": "Organization-User",
-      "root_folder": 43
+      "confirmation_code": "",
+      "root_folder": 43,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        1,
+        2,
+        3,
+        4
+      ]
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 11,
-    "model": "perma.LinkUser",
     "fields": {
-      "organizations": [4],
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2016-10-17T18:38:27Z",
+      "email": "test_yet_another_library_org_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": true,
       "is_confirmed": true,
-      "last_login": "2016-10-17T18:38:27Z",
-      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-      "email": "test_yet_another_library_org_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-17T00:00:00Z",
       "first_name": "Yet-Another-Library",
       "last_name": "Organization-User",
-      "root_folder": 44
+      "confirmation_code": "",
+      "root_folder": 44,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        4
+      ]
     }
   },
   {
-
+    "model": "perma.linkuser",
     "pk": 12,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2016-10-18T18:56:14Z",
+      "email": "deactivated_registrar_user@example.com",
       "registrar": 2,
+      "pending_registrar": null,
       "is_active": false,
       "is_confirmed": true,
-      "last_login": "2016-10-18T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "deactivated_registrar_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-18T00:00:00Z",
       "first_name": "DeactivatedRegistrar",
       "last_name": "User",
-      "root_folder": 45
+      "confirmation_code": "",
+      "root_folder": 45,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 13,
-    "model": "perma.LinkUser",
     "fields": {
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2016-10-18T18:56:14Z",
+      "email": "unactivated_registrar_user@example.com",
       "registrar": 2,
+      "pending_registrar": null,
       "is_active": false,
       "is_confirmed": false,
-      "last_login": "2016-10-18T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "unactivated_registrar_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-18T00:00:00Z",
       "first_name": "UnactivatedRegistrar",
       "last_name": "User",
-      "root_folder": 46
+      "confirmation_code": "",
+      "root_folder": 46,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 14,
-    "model": "perma.LinkUser",
     "fields": {
-      "requested_account_type": "court",
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2016-10-18T18:56:14Z",
+      "email": "unactivated_court_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": false,
       "is_confirmed": false,
-      "last_login": "2016-10-18T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "unactivated_court_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-18T00:00:00Z",
       "first_name": "UnactivatedCourt",
       "last_name": "User",
-      "root_folder": 47
+      "confirmation_code": "",
+      "root_folder": 47,
+      "requested_account_type": "court",
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 15,
-    "model": "perma.LinkUser",
     "fields": {
-      "requested_account_type": "journal",
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2016-10-18T18:56:14Z",
+      "email": "unactivated_journal_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": false,
       "is_confirmed": false,
-      "last_login": "2016-10-18T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "unactivated_journal_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-18T00:00:00Z",
       "first_name": "UnactivatedJournal",
       "last_name": "User",
-      "root_folder": 48
+      "confirmation_code": "",
+      "root_folder": 48,
+      "requested_account_type": "journal",
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
     }
   },
   {
+    "model": "perma.linkuser",
     "pk": 16,
-    "model": "perma.LinkUser",
     "fields": {
-      "requested_account_type": "faculty",
+      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+      "last_login": "2016-10-18T18:56:14Z",
+      "email": "unactivated_faculty_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
       "is_active": false,
       "is_confirmed": false,
-      "last_login": "2016-10-18T18:56:14Z",
-      "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-      "email": "unactivated_faculty_user@example.com",
+      "is_staff": false,
       "date_joined": "2016-10-18T00:00:00Z",
       "first_name": "UnactivatedFaculty",
       "last_name": "User",
-      "root_folder": 49
+      "confirmation_code": "",
+      "root_folder": 49,
+      "requested_account_type": "faculty",
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
+    }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 17,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$hSV3yzdacQEo$glE2Q5YUR3jYpyfvNLHi/r31XJs0oObqiNZXjhXFAps=",
+      "last_login": null,
+      "email": "registrar_user@firm.com",
+      "registrar": 4,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2017-09-28T19:33:47Z",
+      "first_name": "Firm Registrar",
+      "last_name": "User",
+      "confirmation_code": "lhVWDfjbbhMgRTkx8hz38shj8QlRam",
+      "root_folder": 50,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": []
+    }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 18,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$QP5GYS5jwwAH$UhRTdy8rvIMQEB0qArvC8OqGil1MYRrg/Jv79Nfn2ro=",
+      "last_login": null,
+      "email": "case_one_lawyer@firm.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2017-09-28T19:36:07Z",
+      "first_name": "Some Lawyer",
+      "last_name": "",
+      "confirmation_code": "wOZJCaDTPWtaIJ98Hx8bjCoA4EGqwb",
+      "root_folder": 53,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "monthly_link_limit": 10,
+      "organizations": [
+        5
+      ]
     }
   }
 ]

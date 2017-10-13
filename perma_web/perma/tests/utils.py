@@ -11,6 +11,10 @@ from django.core.urlresolvers import reverse
 from perma.models import LinkUser
 
 
+class SentinelException(Exception):
+    pass
+
+
 failed_test_files_path = os.path.join(settings.PROJECT_ROOT, "failed_test_files")
 
 def reset_failed_test_files_folder():

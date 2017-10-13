@@ -1,0 +1,19 @@
+{% extends "settings-layout.html" %}
+{% block title %} | Settings{% endblock %}
+
+{% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
+
+{% block dashboardContent %}
+
+    <h3 class="body-ah _hideMobile">Cancel Your Subscription</h3>
+    <p class="page-dek">Are you sure you want to cancel the subscription for {{ request.user.registrar.name }}?</p>
+
+    <form method="post" action="{{ cancel_url }}">
+      <input type="hidden" name="encrypted_data" value={{ data }}>
+      <button class="btn btn-primary" type="submit">
+        Yes, cancel the subscription
+      </button>
+    </form>
+
+{% endblock %}
+

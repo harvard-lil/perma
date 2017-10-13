@@ -7480,6 +7480,12 @@ img {
   }
 }
 
+@media (max-width: 768px) {
+  dd {
+    margin-bottom: 15px;
+  }
+}
+
 @font-face {
   font-family: "Roboto Slab";
   font-style: normal;
@@ -8118,6 +8124,10 @@ strong.vocab {
 .circle.size-l {
   width: 48px;
   height: 48px;
+}
+
+.blue-text {
+  color: #2D76EE;
 }
 
 a {
@@ -8977,6 +8987,10 @@ button #addlink {
   padding: 4px 3px 4px 6px;
   margin: 0px 0.3em 0px 0px;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.subscription-buttons .btn {
+  width: 100%;
 }
 
 .style-ui-inline,
@@ -11207,6 +11221,35 @@ button#addlink,
   background-size: cover;
   margin-right: 4px;
   bottom: -2px;
+}
+
+.upgrade-form button {
+  padding: 8px 8px 32px 24px;
+  background-color: #F6F8F1;
+  border-radius: 4px;
+  padding: 16px 8px;
+  border: 1px solid rgba(100, 100, 100, 0.07);
+  margin: 0;
+}
+
+.upgrade-form {
+  display: inline-block;
+}
+
+.upgrade-form button {
+  width: 100%;
+  min-height: 200px;
+  margin-right: 15px;
+}
+
+.upgrade-form button span {
+  text-transform: uppercase;
+  font-weight: bold;
+  line-height: 2;
+}
+
+.subscription-buttons form {
+  margin-top: 0;
 }
 
 .navbar-default {

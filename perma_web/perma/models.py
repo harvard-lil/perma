@@ -1,3 +1,6 @@
+import calendar
+from decimal import Decimal
+from datetime import datetime
 import hashlib
 import io
 import json
@@ -45,10 +48,21 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .utils import copy_file_data, tz_datetime, protocol
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
+from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year
 
 
 logger = logging.getLogger(__name__)
+
+### CONSTANTS
+ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
+
+FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
+    'get_subscription': [
+        'registrar',
+        'subscription',
+    ]
+}
 
 
 ### HELPERS ###
@@ -81,6 +95,9 @@ def most_active_org_in_time_period(organizations, start_time=None, end_time=None
             .exclude(num_links=0)\
             .order_by('-num_links')\
             .first()
+
+def subscription_is_active(subscription):
+    return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
 
 # classes
 
@@ -126,7 +143,7 @@ class RegistrarQuerySet(QuerySet):
 
 class Registrar(models.Model):
     """
-    This is generally a library.
+    This is a library, a court, a firm, or similar.
     """
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
@@ -140,7 +157,22 @@ class Registrar(models.Model):
     address = models.CharField(max_length=500, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+
+    nonpaying = models.BooleanField(default=True, help_text="Whether this registrar qualifies for a free account.")
+    monthly_rate =  models.DecimalField(
+        max_digits=19,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Base rate for calculating subscription cost."
+    )
+
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
+    cached_subscription_status = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="The last known status of registrar's paid subscription, from Perma Payments"
+    )
 
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
@@ -168,6 +200,101 @@ class Registrar(models.Model):
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
+
+    def get_subscription(self):
+        if self.nonpaying:
+            return None
+
+        try:
+            r = requests.post(
+                settings.SUBSCRIPTION_STATUS_URL,
+                data={
+                    'encrypted_data': prep_for_perma_payments({
+                        'timestamp': to_timestamp(datetime.utcnow()),
+                        'registrar':  self.pk
+                    })
+                }
+            )
+            assert r.ok
+        except (requests.RequestException, AssertionError) as e:
+            msg = "Communication with Perma-Payments failed: {}".format(str(e))
+            logger.error(msg)
+            raise PermaPaymentsCommunicationException(msg)
+
+        post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
+
+        if post_data['registrar'] != self.pk:
+            msg = "Unexpected response from Perma-Payments."
+            logger.error(msg)
+            raise InvalidTransmissionException(msg)
+
+        if post_data['subscription'] is None:
+            return None
+
+        # store the subscription status locally, for use if Perma Payments is unavailable
+        self.cached_subscription_status = post_data['subscription']['status']
+        self.save(update_fields=['cached_subscription_status'])
+
+        return {
+            'status': post_data['subscription']['status'],
+            'rate': post_data['subscription']['rate'],
+            'frequency': post_data['subscription']['frequency']
+        }
+
+
+    def annual_rate(self):
+        return self.monthly_rate * 12
+
+
+    def prorated_first_month_cost(self, now):
+        days_in_month = calendar.monthrange(now.year, now.month)[1]
+        days_until_end_of_month = days_in_month - now.day
+        # Decimal to force accurate division; add one day, to charge for today
+        return (self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month)).quantize(Decimal('.01'))
+
+
+    def get_subscription_info(self, now):
+        timestamp = to_timestamp(now)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        return {
+            'subscription': self.get_subscription(),
+            'next_monthly_payment': next_month,
+            'next_annual_payment': next_year,
+            'monthly_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
+                'recurring_frequency': "monthly",
+                'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
+                'recurring_amount': "{0:.2f}".format(self.monthly_rate),
+                'recurring_start_date': next_month.strftime("%Y-%m-%d")
+            },
+            'annual_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
+                'recurring_frequency': "annually",
+                'amount': "{0:.2f}".format(self.annual_rate()),
+                'recurring_amount': "{0:.2f}".format(self.annual_rate()),
+                'recurring_start_date': next_year.strftime("%Y-%m-%d")
+            },
+            'update_required_fields': {
+                'registrar': self.pk,
+                'timestamp': timestamp,
+            }
+        }
+
+
+    def link_creation_allowed(self):
+        if self.nonpaying:
+            return True
+        try:
+            subscription = self.get_subscription()
+        except PermaPaymentsCommunicationException:
+            subscription = {
+                'status': self.cached_subscription_status
+            }
+        return subscription_is_active(subscription)
+
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
@@ -445,6 +572,10 @@ class LinkUser(AbstractBaseUser):
             return False
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
+
+    def can_view_subscription(self):
+        return self.is_registrar_user() and not self.registrar.nonpaying
+
 
     ### link permissions ###
 

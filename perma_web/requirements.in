@@ -51,6 +51,8 @@ warcio                              # helps us write metadata and inspect our WA
 cryptography                        # pyopenssl and requests only require 1.8.1; we need 1.9+ to install on stretch
 
 # api
+# perma-payments
+pynacl==1.1.2               # encryption
 djangorestframework
 django-crispy-forms                 # interactive docs
 django-filter                       # searching
@@ -70,6 +72,7 @@ django-storages
 boto3                               # required for django-storages to use s3 backend
 
 # testing
+hypothesis==3.31.2               # run tests with lots of generated input
 sauceclient
 pytest
 pytest-django

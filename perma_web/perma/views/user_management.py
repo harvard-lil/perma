@@ -1,7 +1,7 @@
 import random, string, logging
 import itertools
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from celery.task.control import inspect as celery_inspect
 from django.core.exceptions import PermissionDenied
@@ -43,8 +43,9 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
 from perma.email import send_admin_email, send_user_email
+from perma.exceptions import PermaPaymentsCommunicationException
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
@@ -1001,6 +1002,46 @@ def settings_tools(request):
     """
     context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
     return render(request, 'user_management/settings-tools.html', context)
+
+
+@user_passes_test_or_403(lambda user: user.can_view_subscription())
+def settings_subscription(request):
+    registrar = request.user.registrar
+    try:
+        subscription_info = registrar.get_subscription_info(datetime.utcnow())
+    except PermaPaymentsCommunicationException:
+        context = {
+            'this_page': 'settings_subscription',
+        }
+        return render(request, 'user_management/settings-subscription-unavailable.html', context)
+
+    context = {
+        'this_page': 'settings_subscription',
+        'subscription_info': subscription_info,
+        # for subscribing
+        'subscribe_url': settings.SUBSCRIBE_URL,
+        'encrypted_data_monthly': prep_for_perma_payments(subscription_info['monthly_required_fields']),
+        'encrypted_data_annual': prep_for_perma_payments(subscription_info['annual_required_fields']),
+        # for cancelling
+        'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
+        # for updating
+        'encrypted_data_update': prep_for_perma_payments(subscription_info['update_required_fields']),
+        'update_url': settings.UPDATE_URL
+    }
+    return render(request, 'user_management/settings-subscription.html', context)
+
+
+@user_passes_test_or_403(lambda user: user.can_view_subscription())
+def settings_subscription_cancel(request):
+    context = {
+        'this_page': 'settings_subscription',
+        'cancel_url': settings.CANCEL_URL,
+        'data': prep_for_perma_payments({
+            'registrar': request.user.registrar.pk,
+            'timestamp': to_timestamp(datetime.utcnow())
+        })
+    }
+    return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)
 
 
 @login_required
