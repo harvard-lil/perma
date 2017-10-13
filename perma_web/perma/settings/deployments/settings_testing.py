@@ -77,9 +77,9 @@ CACHES = {
 # SECURITY WARNING: keep the production secret key secret!
 PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'id': 1,
-    'perma_secret_key': b'\xa3]m\xee\x81\xac&\x7fSA\xf7j\xa9N\xfbq\x97\x8b\xd7\xe6\xae\x85\x03\x16EO\xa0u\x9a\xecW\x9d',
-    'perma_public_key': b'fi\x16S\xa0\x1dBSk\x0c"\xcd#^x\x1d!\x87\xf7\xa8\xe3\xb3mT\x03r\xbeb\x9a\x9e\xcdh',
-    'perma_payments_public_key': b'\x0co(\xf5\xc4\xb9.\x07\xae\xbb\xb5\xc0\x17O,\xc3F\x8e_\xb9\x89\x16\xefSTK]\xae\xb0P\x1c6',
+    'perma_secret_key': 'o11t7oGsJn9TQfdqqU77cZeL1+auhQMWRU+gdZrsV50=',
+    'perma_public_key': 'ZmkWU6AdQlNrDCLNI154HSGH96jjs21UA3K+YpqezWg=',
+    'perma_payments_public_key': 'DG8o9cS5Lgeuu7XAF08sw0aOX7mJFu9TVEtdrrBQHDY=',
 }
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 
