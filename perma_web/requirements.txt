@@ -39,7 +39,7 @@ django-mptt==0.8.7
 django-ratelimit==1.0.0
 django-redis==4.4.3
 django-settings-context-processor==0.2
-django-simple-history==1.8.1
+django-simple-history==1.9.0
 django-sslserver==0.14
 django-storages==1.5.2
 django-taggit==0.20.2
@@ -133,7 +133,3 @@ webencodings==0.5.1       # via pywb
 werkzeug==0.11.1
 whitenoise==3.2.2
 wsgiref==0.1.2
-
-# The following packages are commented out because they are
-# considered to be unsafe in a requirements file:
-# setuptools                # via django-sslserver, pip-tools, pytest, tldextract
