@@ -1,7 +1,9 @@
 import os
+import shutil
 import subprocess
 import sys
 import signal
+import tempfile
 
 from django.conf import settings
 from fabric.context_managers import shell_env
@@ -74,7 +76,17 @@ def test_python(apps=_default_tests):
     if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
         local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
-    local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+    # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
+    tmp = tempfile.mkdtemp()
+    print(tmp)
+    shell_envs = {
+        'DJANGO__MEDIA_ROOT': tmp
+    }
+    with shell_env(**shell_envs):
+        local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+
+    # clean up after ourselves
+    shutil.rmtree(tmp)
 
 @task
 def test_js():
