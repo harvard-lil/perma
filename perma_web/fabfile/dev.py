@@ -78,7 +78,6 @@ def test_python(apps=_default_tests):
 
     # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
     tmp = tempfile.mkdtemp()
-    print(tmp)
     shell_envs = {
         'DJANGO__MEDIA_ROOT': tmp
     }
