@@ -1484,8 +1484,9 @@ def email_new_user(request, user):
     Send email to newly created accounts
     """
     if not user.confirmation_code:
+        r = random.SystemRandom()
         user.confirmation_code = ''.join(
-            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
+            r.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
 
     host = request.get_host()
@@ -1504,8 +1505,9 @@ def email_pending_registrar_user(request, user):
     Send email to newly created accounts for folks requesting library accounts
     """
     if not user.confirmation_code:
+        r = random.SystemRandom()
         user.confirmation_code = ''.join(
-            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
+            r.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
 
     host = request.get_host()
