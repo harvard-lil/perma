@@ -906,9 +906,10 @@ class Link(DeletableModel):
                 # only try 100 attempts at finding an unused GUID
                 # (100 attempts should never be necessary, since we'll expand the keyspace long before
                 # there are frequent collisions)
+                r = random.SystemRandom()
                 for i in range(100):
                     # Generate an 8-character random string like "1A2B3C4D"
-                    guid = ''.join(random.choice(self.GUID_CHARACTER_SET) for _ in range(8))
+                    guid = ''.join(r.choice(self.GUID_CHARACTER_SET) for _ in range(8))
 
                     # apply standard formatting (hyphens)
                     guid = Link.get_canonical_guid(guid)
@@ -1136,7 +1137,8 @@ class Link(DeletableModel):
 
         # append a random number to warc_url if we're replacing a file, to avoid browser cache
         if cache_break:
-            warc_url += "?version=%s" % (str(random.random()).replace('.', ''))
+            r = random.SystemRandom()
+            warc_url += "?version=%s" % (str(r.random()).replace('.', ''))
 
         capture = Capture(link=self,
                           role='primary',
