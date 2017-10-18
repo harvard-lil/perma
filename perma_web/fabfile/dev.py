@@ -78,14 +78,16 @@ def test_python(apps=_default_tests):
 
     # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
     tmp = tempfile.mkdtemp()
-    shell_envs = {
-        'DJANGO__MEDIA_ROOT': tmp
-    }
-    with shell_env(**shell_envs):
-        local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+    try:
+        shell_envs = {
+            'DJANGO__MEDIA_ROOT': tmp
+        }
+        with shell_env(**shell_envs):
+            local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+    finally:
+        # clean up after ourselves
+        shutil.rmtree(tmp)
 
-    # clean up after ourselves
-    shutil.rmtree(tmp)
 
 @task
 def test_js():
