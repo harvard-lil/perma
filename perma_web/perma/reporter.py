@@ -112,4 +112,5 @@ class CustomAdminEmailHandler(log.AdminEmailHandler):
 
         reporter = CustomExceptionReporter(request, is_email=True, *exc_info)
         message = "%s\n\n%s" % (self.format(no_exc_record), reporter.get_traceback_text())
-        self.send_mail(subject, message, fail_silently=True)
+        html_message = reporter.get_traceback_html() if self.include_html else None
+        self.send_mail(subject, message, fail_silently=True, html_message=html_message)
