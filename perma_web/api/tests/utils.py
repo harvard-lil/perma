@@ -135,19 +135,12 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         super(ApiResourceTestCaseMixin, self).setUp()
 
         self.api_client = LoggingAPIClient()
-
-        self._media_org = settings.MEDIA_ROOT
-        self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
-
         try:
             self.list_url = "{0}{1}".format(self.url_base, self.resource_url)
         except:
             pass
 
     def tearDown(self):
-        settings.MEDIA_ROOT = self._media_org
-        shutil.rmtree(self._media_tmp)
-
         # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
         from django_redis import get_redis_connection
         get_redis_connection("default").flushall()
