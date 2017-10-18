@@ -263,7 +263,7 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'perma.reporter.CustomAdminEmailHandler'
         },
     },
     'loggers': {
@@ -271,6 +271,11 @@ LOGGING = {
             'handlers': ['default', 'mail_admins'],
             'level': 'DEBUG',
             'propagate': True
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'warcprox': {
             'level': 'WARNING'
