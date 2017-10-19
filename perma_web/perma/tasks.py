@@ -22,7 +22,6 @@ import json
 import robotparser
 import errno
 import tempdir
-import signal
 from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -723,12 +722,6 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
     if browser:
         if not browser_still_running(browser):
             link.tags.add('browser-crashed')
-        # to get past transient error (selenium OSError: [Errno 9] Bad file descriptor),
-        # send signal according to https://stackoverflow.com/a/45786385/4074877
-        try:
-            browser.service.process.send_signal(signal.SIGTERM)
-        except AttributeError:
-            pass
         browser.quit()  # shut down phantomjs
     if display:
         display.stop()  # shut down virtual display
