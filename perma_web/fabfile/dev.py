@@ -60,15 +60,15 @@ def run_ssl(port="0.0.0.0:8000"):
 _default_tests = "perma api functional_tests lockss"
 
 @task
-def test(apps=_default_tests):
+def test(apps=_default_tests, pytest=True):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
     reset_failed_test_files_folder()
-    test_python(apps)
+    test_python(apps, pytest)
     if apps == _default_tests:
         test_js()
 
 @task
-def test_python(apps=_default_tests):
+def test_python(apps=_default_tests, pytest=True):
     """ Run Python tests. """
 
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
@@ -83,7 +83,11 @@ def test_python(apps=_default_tests):
             'DJANGO__MEDIA_ROOT': tmp
         }
         with shell_env(**shell_envs):
-            local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+            # all arguments to Fabric tasks are interpretted as strings
+            if pytest == 'False':
+                local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+            else:
+                local("pytest %s --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
     finally:
         # clean up after ourselves
         shutil.rmtree(tmp)
