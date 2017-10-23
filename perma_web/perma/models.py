@@ -9,7 +9,6 @@ import logging
 import random
 import re
 import socket
-import tempfile
 from urllib import urlencode
 from urlparse import urlparse
 import simple_history
@@ -49,7 +48,10 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
-from .utils import copy_file_data, tz_datetime, protocol, to_timestamp, prep_for_perma_payments, process_perma_payments_transmission, first_day_of_next_month, today_next_year
+from .utils import (copy_file_data, tz_datetime, protocol, to_timestamp,
+    prep_for_perma_payments, process_perma_payments_transmission,
+    first_day_of_next_month, today_next_year, open_warc_for_writing,
+    write_resource_record_from_asset)
 
 
 logger = logging.getLogger(__name__)
@@ -1069,61 +1071,6 @@ class Link(DeletableModel):
     def favicon_capture(self):
         return self.captures.filter(role='favicon').first()
 
-    def write_warc_header(self, out_file):
-        # build warcinfo header
-        headers = [
-            (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
-            (warctools.WarcRecord.TYPE, warctools.WarcRecord.WARCINFO),
-            (warctools.WarcRecord.DATE, warctools.warc.warc_datetime_str(self.creation_timestamp))
-        ]
-        warcinfo_fields = [
-            b'operator: Perma.cc',
-            b'format: WARC File Format 1.0',
-            b'Perma-GUID: %s' % self.guid,
-        ]
-        data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
-        warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
-        warcinfo_record.write_to(out_file, gzip=True)
-
-    def write_warc_resource_record(self, source_file_handle_or_data, url, content_type, warc_date=None, out_file=None):
-        data = source_file_handle_or_data.read() if hasattr(source_file_handle_or_data, 'read') else source_file_handle_or_data
-        return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, content_type, warc_date, out_file)
-
-    def write_warc_record(self, record_type, url, data, content_type, warc_date=None, out_file=None, extra_headers=None):
-        # set default date and convert to string if necessary
-        warc_date = warc_date or timezone.now()
-        if hasattr(warc_date, 'isoformat'):
-            warc_date = warctools.warc.warc_datetime_str(warc_date).replace('+00:00Z', 'Z')
-
-        close_file = not out_file
-        out_file = out_file or self.open_warc_for_writing()
-        headers = [
-            (warctools.WarcRecord.TYPE, record_type),
-            (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
-            (warctools.WarcRecord.DATE, warc_date),
-            (warctools.WarcRecord.URL, url),
-            (warctools.WarcRecord.BLOCK_DIGEST, b'sha1:%s' % hashlib.sha1(data).hexdigest())
-        ]
-        if extra_headers:
-            headers.extend(extra_headers)
-        record = warctools.WarcRecord(headers=headers, content=(content_type, data))
-        record.write_to(out_file, gzip=True)
-
-        if close_file:
-            self.close_warc_after_writing(out_file)
-
-        return headers
-
-    def write_warc_raw_data(self, source_file_handle_or_data, out_file=None):
-        close_file = not out_file
-        out_file = out_file or self.open_warc_for_writing()
-        if hasattr(source_file_handle_or_data, 'read'):
-            copy_file_data(source_file_handle_or_data, out_file)
-        else:
-            out_file.write(source_file_handle_or_data)
-        if close_file:
-            self.close_warc_after_writing(out_file)
-
     def write_uploaded_file(self, uploaded_file, cache_break=False):
         """
             Given a file uploaded by a user, create a Capture record and warc.
@@ -1147,23 +1094,10 @@ class Link(DeletableModel):
                           user_upload='True',
                           content_type=mime_type,
                           url=warc_url)
-        uploaded_file.file.seek(0)
-        capture.write_warc_resource_record(uploaded_file)
+        with open_warc_for_writing(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
+            uploaded_file.file.seek(0)
+            write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
         capture.save()
-
-    def open_warc_for_writing(self):
-        out = tempfile.TemporaryFile()
-        if default_storage.exists(self.warc_storage_file()):
-            copy_file_data(default_storage.open(self.warc_storage_file()), out)
-        else:
-            self.write_warc_header(out)
-        return out
-
-    def close_warc_after_writing(self, out):
-        out.flush()
-        out.seek(0)
-        default_storage.store_file(out, self.warc_storage_file(), overwrite=True)
-        out.close()
 
     def safe_delete_warc(self):
         old_name = self.warc_storage_file()
@@ -1247,9 +1181,6 @@ class Capture(models.Model):
 
     def __unicode__(self):
         return "%s %s" % (self.role, self.status)
-
-    def write_warc_resource_record(self, in_file, warc_date=None, out_file=None):
-        return self.link.write_warc_resource_record(in_file, self.url, self.content_type, warc_date, out_file)
 
     def replay(self):
         """ Replay this capture through pywb. Returns a werkzeug BaseResponse object. """
