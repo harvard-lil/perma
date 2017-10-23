@@ -779,8 +779,11 @@ def save_warc(warc_writer, capture_job, link, content_type, screenshot, successf
         warc_size=default_storage.size(link.warc_storage_file())
     )
 
-    print("Writing CDX lines to the DB")
-    CDXLine.objects.create_all_from_link(link)
+    try:
+        print("Writing CDX lines to the DB")
+        CDXLine.objects.create_all_from_link(link)
+    except Exception as e:
+        print("Unable to create CDX lines at this time: {}".format(e))
 
 
 def save_favicons(link, successful_favicon_urls):
