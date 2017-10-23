@@ -2,6 +2,8 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from functools import wraps
+import hashlib
+from hanzo import warctools
 import json
 import logging
 from nacl import encoding
@@ -12,6 +14,7 @@ import os
 import requests
 import socket
 import tempdir
+import tempfile
 import time
 from ua_parser import user_agent_parser
 from urlparse import urlparse
@@ -23,6 +26,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
@@ -406,3 +410,66 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
         )
     )
     return box.decrypt(ciphertext, encoder=encoder)
+
+#
+# warc writing
+#
+
+@contextmanager
+def open_warc_for_writing(guid, timestamp, destination):
+    """
+        Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
+        temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
+        leaving temp files around.
+    """
+    out = tempfile.TemporaryFile()
+    write_perma_warc_header(out, guid, timestamp)
+    try:
+        yield out
+    finally:
+        out.flush()
+        out.seek(0)
+        default_storage.store_file(out, destination, overwrite=True)
+        out.close()
+
+def write_perma_warc_header(out_file, guid, timestamp):
+    # build warcinfo header
+    headers = [
+        (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+        (warctools.WarcRecord.TYPE, warctools.WarcRecord.WARCINFO),
+        (warctools.WarcRecord.DATE, warctools.warc.warc_datetime_str(timestamp))
+    ]
+    warcinfo_fields = [
+        b'operator: Perma.cc',
+        b'format: WARC File Format 1.0',
+        b'Perma-GUID: %s' % guid,
+    ]
+    data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
+    warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
+    warcinfo_record.write_to(out_file, gzip=True)
+
+
+def write_warc_records_recorded_from_web(source_file_handle, out_file):
+    """
+    Copies a series of pre-recorded WARC Request/Response records to out_file
+    """
+    copy_file_data(source_file_handle, out_file)
+
+
+def write_resource_record_from_asset(data, url, content_type, out_file, extra_headers=None):
+    """
+    Constructs a single WARC resource record from an asset (screenshot, uploaded file, etc.)
+    and writes to out_file.
+    """
+    warc_date = warctools.warc.warc_datetime_str(timezone.now()).replace('+00:00Z', 'Z')
+    headers = [
+        (warctools.WarcRecord.TYPE, warctools.WarcRecord.RESOURCE),
+        (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+        (warctools.WarcRecord.DATE, warc_date),
+        (warctools.WarcRecord.URL, url),
+        (warctools.WarcRecord.BLOCK_DIGEST, b'sha1:%s' % hashlib.sha1(data).hexdigest())
+    ]
+    if extra_headers:
+        headers.extend(extra_headers)
+    record = warctools.WarcRecord(headers=headers, content=(content_type, data))
+    record.write_to(out_file, gzip=True)
