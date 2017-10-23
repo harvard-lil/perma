@@ -20,7 +20,6 @@ import uuid
 from time import mktime
 from wsgiref.handlers import format_date_time
 
-from hanzo import warctools
 from mptt.managers import TreeManager
 from simple_history.models import HistoricalRecords
 from werkzeug.test import Client
@@ -48,7 +47,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
-from .utils import (copy_file_data, tz_datetime, protocol, to_timestamp,
+from .utils import (tz_datetime, protocol, to_timestamp,
     prep_for_perma_payments, process_perma_payments_transmission,
     first_day_of_next_month, today_next_year, open_warc_for_writing,
     write_resource_record_from_asset)
