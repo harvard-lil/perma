@@ -74,6 +74,7 @@ boto3                               # required for django-storages to use s3 bac
 hypothesis==3.31.2               # run tests with lots of generated input
 sauceclient
 pytest
+pytest-cov
 pytest-django
 pytest-xdist
 fakeredis                           # simulate redis backend for tests
