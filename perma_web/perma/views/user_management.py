@@ -14,7 +14,7 @@ from django.views.generic import UpdateView
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth import views as auth_views
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
@@ -951,7 +951,12 @@ def settings_password(request):
     """
     Settings change password ...
     """
-    context = {'next': request.get_full_path(), 'this_page': 'settings_password'}
+    form = PasswordChangeForm(get_form_data(request))
+    context = {
+        'next': request.get_full_path(),
+        'this_page': 'settings_password',
+        'form': form,
+    }
     return render(request, 'user_management/settings-password.html', context)
 
 
