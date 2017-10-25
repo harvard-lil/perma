@@ -45,15 +45,15 @@ class AuthViewsTestCase(PermaTestCase):
 
     def test_password_change(self):
         """
-        Let's make sure we can login and chagne our password
+        Let's make sure we can login and change our password
         """
 
         self.client.login(username='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
 
         self.client.post(reverse('password_change'),
-            {'old_password':'pass', 'new_password1':'changed-password',
-            'new_password2':'changed-password'})
+            {'old_password':'pass', 'new_password1':'changed-password1',
+            'new_password2':'changed-password1'})
 
         self.client.logout()
 
@@ -63,6 +63,6 @@ class AuthViewsTestCase(PermaTestCase):
 
         self.client.logout()
 
-        # Try to login with our old password
-        self.client.login(username='test_user@example.com', password='changed-password')
+        # Try to login with our new password
+        self.client.login(username='test_user@example.com', password='changed-password1')
         self.assertIn('_auth_user_id', self.client.session)

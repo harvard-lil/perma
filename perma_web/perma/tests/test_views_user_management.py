@@ -1835,12 +1835,12 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # reg confirm - non-matching passwords
         self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                         data={'new_password1':'a', 'new_password2':'b'},
+                         data={'new_password1':'new-password1', 'new_password2':'new-password2'},
                          error_keys=['new_password2'])
 
         # reg confirm - correct
         self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                         data={'new_password1': 'a', 'new_password2': 'a'},
+                         data={'new_password1': 'new-password1', 'new_password2': 'new-password1'},
                          success_url=reverse('user_management_limited_login'))
 
     def test_signup_with_existing_email_rejected(self):
