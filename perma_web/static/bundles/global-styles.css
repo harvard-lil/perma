@@ -11164,6 +11164,10 @@ textarea:focus {
   padding-bottom: 16px;
 }
 
+.field-error ul {
+  padding-left: 0;
+}
+
 .errorlist {
   list-style-type: none;
   margin: 0;

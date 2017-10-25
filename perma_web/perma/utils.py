@@ -13,6 +13,7 @@ import operator
 import os
 import requests
 import socket
+import string
 import tempdir
 import tempfile
 import time
@@ -22,7 +23,7 @@ from urlparse import urlparse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
@@ -67,6 +68,33 @@ def user_passes_test_or_403(test_func):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+### password helper ###
+
+class AlphaNumericValidator(object):
+    """
+    Adapted from https://djangosnippets.org/snippets/2551/
+    """
+
+    def validate(self, password, user=None):
+        contains_number = contains_letter = False
+        for char in password:
+            if not contains_number:
+                if char in string.digits:
+                    contains_number = True
+            if not contains_letter:
+                if char in string.letters:
+                    contains_letter = True
+            if contains_number and contains_letter:
+                break
+
+        if not contains_number or not contains_letter:
+            raise ValidationError("This password does not include at least \
+                                   one letter and at least one number.")
+
+    def get_help_text(self):
+        return "Your password must include at least \
+                one letter and at least one number."
 
 
 ### list view helpers ###
