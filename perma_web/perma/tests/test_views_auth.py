@@ -25,8 +25,11 @@ class AuthViewsTestCase(PermaTestCase):
     @override_settings(VALIDATE_ALL_PASSWORDS=True)
     def test_all_passwords_validated_with_setting(self):
         # Login through our form and make sure we get asked to change our password
-        response = self.client.post(reverse('user_management_limited_login'),
-            {'username':'test_user@example.com', 'password':'pass'})
+        response = self.client.post(
+            reverse('user_management_limited_login'),
+            {'username':'test_user@example.com', 'password':'pass'}
+        )
+        self.assertEqual(response.status_code, 200)
         self.assertIn('Your Password Has Expired', response.content)
         self.assertNotIn('_auth_user_id', self.client.session)
 
