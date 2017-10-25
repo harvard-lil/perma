@@ -185,7 +185,7 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
-
+VALIDATE_ALL_PASSWORDS = False
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 

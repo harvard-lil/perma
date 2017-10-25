@@ -12,6 +12,7 @@ import socket
 from urllib import urlencode
 from urlparse import urlparse
 import simple_history
+import string
 import requests
 import itertools
 import time
@@ -458,6 +459,12 @@ class LinkUser(AbstractBaseUser):
     # On Python 3: def __str__(self):
     def __unicode__(self):
         return self.email
+
+    def save_new_confirmation_code(self):
+        r = random.SystemRandom()
+        self.confirmation_code = ''.join(
+            r.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
+        self.save()
 
     def top_level_folders(self):
         """

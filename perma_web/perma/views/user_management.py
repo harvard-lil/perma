@@ -4,10 +4,11 @@ import itertools
 from datetime import datetime, timedelta
 
 from celery.task.control import inspect as celery_inspect
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.http import require_http_methods
 from ratelimit.decorators import ratelimit
 
 from django.views.generic import UpdateView
@@ -16,6 +17,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.password_validation import validate_password
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.utils import timezone
@@ -26,6 +28,8 @@ from django.shortcuts import get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
 from django.contrib import messages
+from django import forms
+
 
 from perma.forms import (
     RegistrarForm,
@@ -1149,8 +1153,63 @@ def limited_login(request, template_name='registration/login.html',
         def __init__(self, *args, **kwargs):
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
+            self.require_password_reset = False
 
-    return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
+        def confirm_login_allowed(self, *args, **kwargs):
+            super(LoginForm, self).confirm_login_allowed(*args, **kwargs)
+            if settings.VALIDATE_ALL_PASSWORDS:
+                try:
+                    validate_password(self.cleaned_data.get('password'))
+                except ValidationError:
+                    self.require_password_reset=True
+                    raise forms.ValidationError(
+                        'Password must be updated.',
+                        code='password_update_required',
+                    )
+
+    response = auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
+    if not isinstance(response, HttpResponseRedirect) and response.context_data['form'].require_password_reset:
+        # If we're here, the username/password authenticated successfully,
+        # but the password, valid when the user created it, doesn't meet our
+        # current password requirements and must be reset.
+        #
+        # Since we can't log the user in (or they could skip the reset process)
+        # use a token-based password setting form, like when passwords are initially set
+        target_user.save_new_confirmation_code()
+        form = SetPasswordForm(get_form_data(request))
+        context = {
+            'form': form,
+            'confirmation_code': target_user.confirmation_code,
+            'action': reverse('password_update')
+        }
+        return render(request, "registration/password_update_form.html", context)
+    return response
+
+
+@require_http_methods(['POST'])
+def update_password(request):
+    confirmation_code = request.POST.get('confirmation_code', None)
+    try:
+        user = LinkUser.objects.get(confirmation_code=confirmation_code)
+    except (LinkUser.DoesNotExist, LinkUser.MultipleObjectsReturned):
+        messages.add_message(request, messages.ERROR, 'Please try again.')
+        return HttpResponseRedirect(reverse('user_management_limited_login'))
+
+    # save new password
+    form = SetPasswordForm(user=user, data=request.POST)
+    if form.is_valid():
+        form.save()
+        # invalidate the used confirmation code
+        user.save_new_confirmation_code()
+        messages.add_message(request, messages.SUCCESS, 'Your password has been successfully reset. Please log in below.')
+        return HttpResponseRedirect(reverse('user_management_limited_login'))
+
+    context = {
+        'form': form,
+        'confirmation_code': confirmation_code,
+        'action': ''
+    }
+    return render(request, "registration/password_update_form.html", context)
 
 
 def reset_password(request):
@@ -1489,11 +1548,7 @@ def email_new_user(request, user):
     Send email to newly created accounts
     """
     if not user.confirmation_code:
-        r = random.SystemRandom()
-        user.confirmation_code = ''.join(
-            r.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
-        user.save()
-
+        user.save_new_confirmation_code()
     host = request.get_host()
     send_user_email(
         user.email,
