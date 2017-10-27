@@ -263,8 +263,12 @@ def today_next_year(now):
 ### addresses ###
 
 def get_lat_long(address):
-    r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
-    if r.status_code == 200:
+    r = None
+    try:
+        r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
+    except Exception as e:
+        warn("Error connecting to geocoding API: {}".format(e))
+    if r and r.status_code == 200:
         rj = r.json()
         status = rj['status']
         if status == 'OK':
@@ -281,9 +285,9 @@ def get_lat_long(address):
         elif status == 'OVER_QUERY_LIMIT':
             warn("Geocoding API request over query limit.")
         else:
-            warn("Unknown response from geocoding API: %s" % status)
+            warn("Unknown response from geocoding API: {}".format(status))
     else:
-        warn("Error connecting to geocoding API: %s" % r.status_code)
+        warn("Error connecting to geocoding API: {}".format(r.status_code))
 
 
 def parse_user_agent(user_agent_str):
