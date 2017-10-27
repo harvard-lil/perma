@@ -1254,13 +1254,14 @@ def libraries(request):
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
             address = registrar_form.cleaned_data.get('address', '')
-            if address:
+            if settings.GEOCODING_KEY and address:
                 try:
                     (lat, lng) = get_lat_long(address)
                     new_registrar.latitude = lat
                     new_registrar.longitude = lng
                     new_registrar.save(update_fields=["latitude", "longitude"])
                 except TypeError:
+                    # get_lat_long returned None
                     pass
             if user_form:
                 new_user = user_form.save(commit=False)
