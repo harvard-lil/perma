@@ -38,6 +38,7 @@ from django.db import models
 from django.db.models import Q, Max, Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.functional import cached_property
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
@@ -458,6 +459,10 @@ class LinkUser(AbstractBaseUser):
     # On Python 3: def __str__(self):
     def __unicode__(self):
         return self.email
+
+    def save_new_confirmation_code(self):
+        self.confirmation_code = get_random_string(length=30)
+        self.save()
 
     def top_level_folders(self):
         """
