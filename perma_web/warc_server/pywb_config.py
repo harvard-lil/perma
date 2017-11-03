@@ -366,6 +366,7 @@ class PermaTemplateView(object):
             status=status,
             content_type=content_type)
         template_result = loader.render_to_string(self.filename, template_context, request=self.fake_request)
+        # We have to cast the Django SafeText class to str because wsgiref can't handle subclasses
         return WbResponse.text_response(str(template_result), status=status, content_type=content_type)
 
 
@@ -475,7 +476,7 @@ class CachedLoader(BlockLoader):
         thread_local_data.wbrequest.mirror_name = mirror_name
 
         # turn string contents of url into file-like object
-        afile = io.StringIO(file_contents)
+        afile = io.BytesIO(file_contents)
 
         # --- from here down is taken from super() ---
         if offset > 0:
