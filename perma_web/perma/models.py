@@ -1153,7 +1153,9 @@ class Link(DeletableModel):
             return False
 
     def is_discoverable(self):
-        return not self.is_private and not self.is_unlisted
+        return not self.is_private and
+               not self.is_unlisted and
+                   self.capture_job.status == 'completed'
 
     ### functions to deal with link-specific caches ###
 
