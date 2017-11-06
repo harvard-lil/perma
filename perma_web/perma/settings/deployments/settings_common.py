@@ -185,7 +185,24 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
-
+VALIDATE_ALL_PASSWORDS = False
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 9,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'perma.utils.AlphaNumericValidator',
+    },
+]
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
@@ -263,7 +280,7 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'perma.reporter.CustomAdminEmailHandler'
         },
     },
     'loggers': {
@@ -271,6 +288,11 @@ LOGGING = {
             'handlers': ['default', 'mail_admins'],
             'level': 'DEBUG',
             'propagate': True
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'warcprox': {
             'level': 'WARNING'

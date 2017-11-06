@@ -50,7 +50,9 @@ from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
-from perma.utils import run_task, url_in_allowed_ip_range, copy_file_data
+from perma.utils import (run_task, url_in_allowed_ip_range,
+    copy_file_data, open_warc_for_writing, write_warc_records_recorded_from_web,
+    write_resource_record_from_asset)
 from perma import site_scripts
 
 import logging
@@ -687,9 +689,7 @@ def get_screenshot(link, browser):
             # set window size to page size in Chrome, so we get a full-page screenshot:
             browser.set_window_size(max(page_size['width'], BROWSER_SIZE[0]), max(page_size['height'], BROWSER_SIZE[1]))
 
-        screenshot_data = browser.get_screenshot_as_png()
-        link.screenshot_capture.write_warc_resource_record(screenshot_data)
-        safe_save_fields(link.screenshot_capture, status='success')
+        return browser.get_screenshot_as_png()
     else:
         print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
         safe_save_fields(link.screenshot_capture, status='failed')
@@ -722,12 +722,6 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
     if browser:
         if not browser_still_running(browser):
             link.tags.add('browser-crashed')
-        # to get past transient error (selenium OSError: [Errno 9] Bad file descriptor),
-        # send signal according to https://stackoverflow.com/a/45786385/4074877
-        try:
-            browser.service.process.send_signal(signal.SIGTERM)
-        except AttributeError:
-            pass
         browser.quit()  # shut down phantomjs
     if display:
         display.stop()  # shut down virtual display
@@ -753,24 +747,44 @@ def process_metadata(metadata, link):
     ## Page Title
     safe_save_fields(link, submitted_title=metadata['title'])
 
-def save_primary(warc_writer, link, content_type):
-    temp_warc_path = os.path.join(warc_writer.directory,
-                                  warc_writer._f_finalname)
-    with open(temp_warc_path, 'rb') as warc_file:
-        link.write_warc_raw_data(warc_file)
 
-    print("Writing CDX lines to the DB")
-    CDXLine.objects.create_all_from_link(link)
+def save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls):
+    recorded_warc_path = os.path.join(warc_writer.directory,
+                                      warc_writer._f_finalname)
+    with open(recorded_warc_path, 'rb') as recorded_warc_records, \
+         open_warc_for_writing(link.guid, link.creation_timestamp, link.warc_storage_file()) as perma_warc:
 
-    safe_save_fields(
-        link.primary_capture,
-        status='success',
-        content_type=content_type,
-    )
+        # screenshot first, per Perma custom
+        if screenshot:
+            write_resource_record_from_asset(screenshot, link.screenshot_capture.url, link.screenshot_capture.content_type, perma_warc)
+            safe_save_fields(
+                link.screenshot_capture,
+                status='success'
+            )
+
+        # then recorded content
+        write_warc_records_recorded_from_web(recorded_warc_records, perma_warc)
+        safe_save_fields(
+            link.primary_capture,
+            status='success',
+            content_type=content_type,
+        )
+
+        # We save the favicon Capture here since favicons live in the warc.
+        save_favicons(link, successful_favicon_urls)
+
+    capture_job.mark_completed()
     safe_save_fields(
         link,
         warc_size=default_storage.size(link.warc_storage_file())
     )
+
+    try:
+        print("Writing CDX lines to the DB")
+        CDXLine.objects.create_all_from_link(link)
+    except Exception as e:
+        print("Unable to create CDX lines at this time: {}".format(e))
+
 
 def save_favicons(link, successful_favicon_urls):
     if successful_favicon_urls:
@@ -830,8 +844,8 @@ def run_next_capture():
         start_time = time.time()
         link = capture_job.link
         target_url = link.ascii_safe_url
-        browser = warcprox_controller = warcprox_thread = display = None
-        have_content = have_warc = have_html = False
+        browser = warcprox_controller = warcprox_thread = display = screenshot = None
+        have_content = have_html = False
         thread_list = []
         page_metadata = {}
         successful_favicon_urls = []
@@ -952,8 +966,8 @@ def run_next_capture():
                         break
 
                 if have_content:
-                    # at this point we have something that's worth showing to the user
-                    have_warc = True
+                    # we have something that's worth showing to the user;
+                    # break out of "while" before running sleep code below
                     break
 
                 wait_time = time.time() - start_time
@@ -1056,7 +1070,7 @@ def run_next_capture():
         # (after all requests have loaded for best quality)
         if have_html and browser_still_running(browser):
             inc_progress(capture_job, 1, "Taking screenshot")
-            get_screenshot(link, browser)
+            screenshot = get_screenshot(link, browser)
         else:
             safe_save_fields(link.screenshot_capture, status='failed')
 
@@ -1065,7 +1079,7 @@ def run_next_capture():
     except SoftTimeLimitExceeded:
         link.tags.add('timeout-failure')
     except:
-        print "Exception while processing capture job %s:" % capture_job.link_id
+        print "Exception while capturing job %s:" % capture_job.link_id
         traceback.print_exc()
     finally:
         try:
@@ -1078,20 +1092,13 @@ def run_next_capture():
                 else:
                     meta_tag_analysis_failed(link)
 
-            # save generated warc file
-            if have_warc:
+            if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
-                save_primary(warc_writer, link, content_type)
-                capture_job.mark_completed()
-
-            # We only save the Capture for the favicon once the warc is stored,
-            # since the data for the favicon lives in the warc.
-            save_favicons(link, successful_favicon_urls)
-
+                save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls)
             print "%s capture succeeded." % link.guid
 
         except:
-            print "Exception while processing capture job %s:" % capture_job.link_id
+            print "Exception while tearing down/saving capture job %s:" % capture_job.link_id
             traceback.print_exc()
         finally:
             link.captures.filter(status='pending').update(status='failed')

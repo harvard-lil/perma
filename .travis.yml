@@ -15,8 +15,8 @@ addons:
     paths:
       - perma_web/failed_test_files
 
-  # a modern firefox
-  firefox: latest-esr
+
+
 
 cache:
   pip: true

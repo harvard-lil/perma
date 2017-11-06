@@ -84,9 +84,9 @@ urlpatterns = [
 ### error handlers ###
 
 def handler404(request):
-    HttpResponse(status=404)
+    return HttpResponse('Page Not Found', status=404)
 def handler500(request):
-    HttpResponse(status=500)
+    return HttpResponse('Internal Server Error', status=500)
 
 ### django debug toolbar ###
 

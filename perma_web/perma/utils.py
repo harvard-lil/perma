@@ -2,6 +2,8 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from functools import wraps
+import hashlib
+from hanzo import warctools
 import json
 import logging
 from nacl import encoding
@@ -11,7 +13,9 @@ import operator
 import os
 import requests
 import socket
+import string
 import tempdir
+import tempfile
 import time
 from ua_parser import user_agent_parser
 from urlparse import urlparse
@@ -19,10 +23,11 @@ from urlparse import urlparse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
@@ -63,6 +68,33 @@ def user_passes_test_or_403(test_func):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+### password helper ###
+
+class AlphaNumericValidator(object):
+    """
+    Adapted from https://djangosnippets.org/snippets/2551/
+    """
+
+    def validate(self, password, user=None):
+        contains_number = contains_letter = False
+        for char in password:
+            if not contains_number:
+                if char in string.digits:
+                    contains_number = True
+            if not contains_letter:
+                if char in string.letters:
+                    contains_letter = True
+            if contains_number and contains_letter:
+                break
+
+        if not contains_number or not contains_letter:
+            raise ValidationError("This password does not include at least \
+                                   one letter and at least one number.")
+
+    def get_help_text(self):
+        return "Your password must include at least \
+                one letter and at least one number."
 
 
 ### list view helpers ###
@@ -259,8 +291,12 @@ def today_next_year(now):
 ### addresses ###
 
 def get_lat_long(address):
-    r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
-    if r.status_code == 200:
+    r = None
+    try:
+        r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
+    except Exception as e:
+        warn("Error connecting to geocoding API: {}".format(e))
+    if r and r.status_code == 200:
         rj = r.json()
         status = rj['status']
         if status == 'OK':
@@ -277,9 +313,9 @@ def get_lat_long(address):
         elif status == 'OVER_QUERY_LIMIT':
             warn("Geocoding API request over query limit.")
         else:
-            warn("Unknown response from geocoding API: %s" % status)
+            warn("Unknown response from geocoding API: {}".format(status))
     else:
-        warn("Error connecting to geocoding API: %s" % r.status_code)
+        warn("Error connecting to geocoding API: {}".format(r.status_code))
 
 
 def parse_user_agent(user_agent_str):
@@ -406,3 +442,66 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
         )
     )
     return box.decrypt(ciphertext, encoder=encoder)
+
+#
+# warc writing
+#
+
+@contextmanager
+def open_warc_for_writing(guid, timestamp, destination):
+    """
+        Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
+        temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
+        leaving temp files around.
+    """
+    out = tempfile.TemporaryFile()
+    write_perma_warc_header(out, guid, timestamp)
+    try:
+        yield out
+    finally:
+        out.flush()
+        out.seek(0)
+        default_storage.store_file(out, destination, overwrite=True)
+        out.close()
+
+def write_perma_warc_header(out_file, guid, timestamp):
+    # build warcinfo header
+    headers = [
+        (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+        (warctools.WarcRecord.TYPE, warctools.WarcRecord.WARCINFO),
+        (warctools.WarcRecord.DATE, warctools.warc.warc_datetime_str(timestamp))
+    ]
+    warcinfo_fields = [
+        b'operator: Perma.cc',
+        b'format: WARC File Format 1.0',
+        b'Perma-GUID: %s' % guid,
+    ]
+    data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
+    warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
+    warcinfo_record.write_to(out_file, gzip=True)
+
+
+def write_warc_records_recorded_from_web(source_file_handle, out_file):
+    """
+    Copies a series of pre-recorded WARC Request/Response records to out_file
+    """
+    copy_file_data(source_file_handle, out_file)
+
+
+def write_resource_record_from_asset(data, url, content_type, out_file, extra_headers=None):
+    """
+    Constructs a single WARC resource record from an asset (screenshot, uploaded file, etc.)
+    and writes to out_file.
+    """
+    warc_date = warctools.warc.warc_datetime_str(timezone.now()).replace('+00:00Z', 'Z')
+    headers = [
+        (warctools.WarcRecord.TYPE, warctools.WarcRecord.RESOURCE),
+        (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+        (warctools.WarcRecord.DATE, warc_date),
+        (warctools.WarcRecord.URL, url),
+        (warctools.WarcRecord.BLOCK_DIGEST, b'sha1:%s' % hashlib.sha1(data).hexdigest())
+    ]
+    if extra_headers:
+        headers.extend(extra_headers)
+    record = warctools.WarcRecord(headers=headers, content=(content_type, data))
+    record.write_to(out_file, gzip=True)
