@@ -2,7 +2,7 @@
 {% block title %} | Docs{% endblock %}
 
 {% block meta_description %}
-This section of the user guide describes the way organizations, like journals and courts, can use Perma.cc.
+This section of the user guide describes how Perma accounts work.
 {% endblock %}
 
 {% block mainContent %}
@@ -10,7 +10,7 @@ This section of the user guide describes the way organizations, like journals an
 <div class="container cont-fixed">
   <div class="row">
     <div class="col-sm-12">
-      <h1>Perma.cc user guide <span class="subsection">For Organizations</span></h1>
+      <h1>Perma.cc user guide <span class="subsection">Perma Accounts and Organizations</span></h1>
     </div>
   </div>
 </div>
@@ -21,19 +21,34 @@ This section of the user guide describes the way organizations, like journals an
   <div class="row">
     <div class="col-sm-4 reading-toc" >
       <ul>
-        <li class="reading-toc-chapter"><a href="#orgs">Perma Organizations</a></li>
-        <li class="reading-toc-section"><a href="#becoming-org">Becoming a Perma org</a></li>
-        <li class="reading-toc-section"><a href="#journals-authority">Authority and responsibilities</a></li>
-        <li class="reading-toc-section"><a href="#adding-org-users">Affiliated users</a></li>
+        <li class="reading-toc-chapter"><a href="#orgs">Accounts</a></li>
+        <li class="reading-toc-section"><a href="#becoming-org">Who Needs an Account?</a></li>
+        <li class="reading-toc-section"><a href="#orgs">Getting an Account</a></li>
+        <li class="reading-toc-section"><a href="#">Usage Limits</a></li>
+        <li class="reading-toc-chapter"><a href="#orgs">Organizations</a></li>
+        <li class="reading-toc-section"><a href="#becoming-org">Free Organizational Accounts</a></li>
+        <li class="reading-toc-section"><a href="#becoming-org">Paid Organizational Accounts</a></li>
+        <li class="reading-toc-section"><a href="#journals-authority">Authority and Responsibilities</a></li>
+        <li class="reading-toc-section"><a href="#adding-org-users">Adding and Removing Org Users</a></li>
       </ul>
     </div>
 
     <div class="col-sm-8 reading-body">
-      <h2 class="body-ah">Perma Organizations</h2>
-      <p class="body-text">Journals, courts, faculty member offices and others can qualify as archiving organizations. Organizations enable groups of individual Perma users to affiliate together and to share access to Perma Records and Links.</p>
+      
+      <h2 class="body-ah">Perma Accounts</h2>
+      <h3 id="becoming-org" class="body-bh">Who Needs an Account?</h3>
 
-      <h3 id="becoming-org" class="body-bh">Becoming a Perma org</h3>
-      <p class="body-text">If you're with an academic institution, simply contact your library and ask if it is a Perma.cc registrar. If your library isn't already a registrar, invite it to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we'll help them get started. If you're part of a court, please contact us directly using <a href="{% url 'sign_up_courts' %}">this form</a> and we'll help you get started.</p>
+      <p class="body-text">To use Perma to preserve web pages, you need to set up a Perma account. Anyone can create an account for free. Just visit our <a href="{% url 'sign_up' %}">signup page</a> to get going.</p>
+
+      <p class="body-text"><p class="body-text">Every Perma account allows you to preserve up to 10 web pages per month for free. To preserve more than 10 records per month, you need to be affiliated with a Perma organization.</p>
+
+      <h2 class="body-ah">Organizations</h2>
+
+      <h3 id="becoming-org" class="body-bh">Free Organizational Accounts</h3>
+      <p class="body-text"><p class="body-text">Academic journals</p>
+
+      <h3 id="becoming-org" class="body-bh">Paid Organizational Accounts</h3>
+      <p class="body-text"><p class="body-text">An individual account lets you preserve up to 10 records per month. To preserve more than 10 records per month, you need to be affiliated with an organizational account.</p>
 
       <h3 id="journals-authority" class="body-bh">Authority and responsibilities</h3>
       <p class="body-text">The members of an archiving org can create Perma Records on behalf of the organization. They also can affiliate Perma users with the organization or remove users from the organization.</p>

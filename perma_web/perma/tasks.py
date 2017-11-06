@@ -22,7 +22,6 @@ import json
 import robotparser
 import errno
 import tempdir
-import signal
 from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded

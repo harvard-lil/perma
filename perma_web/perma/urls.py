@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
     url(r'^docs/libraries/?$', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
     url(r'^docs/faq/?$', common.faq, name='docs_faq'),
-    url(r'^docs/organizations/?$', DirectTemplateView.as_view(template_name='docs/organizations.html'), name='docs_organizations'),
+    url(r'^docs/accounts/?$', DirectTemplateView.as_view(template_name='docs/accounts.html'), name='docs_accounts'),
 
     #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),

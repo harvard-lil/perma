@@ -12,6 +12,17 @@
         {% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
       </div>
 
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/accounts" %} _active{% endif %}">
+        {% if request.path == "/docs/accounts" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs_accounts' %}">
+        {% endif %}
+          <strong class="overview-module-title">Perma Accounts and Organizations</strong>
+          <p class="overview-module-description">Learn how to create a Perma account for yourself and for your organization.</p>
+        {% if request.path == "/docs/accounts" %}</div>{% else %}</a>{% endif %}
+      </div>
+
       <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
         {% if request.path == "/docs/perma-link-creation" %}
         <div class="overview-module-content">
@@ -32,17 +43,6 @@
           <strong class="overview-module-title">For Libraries</strong>
           <p class="overview-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
         {% if request.path == "/docs/libraries" %}</div>{% else %}</a>{% endif %}
-      </div>
-
-      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/organizations" %} _active{% endif %}">
-        {% if request.path == "/docs/organizations" %}
-        <div class="overview-module-content">
-        {% else %}
-        <a class="overview-module-content" href="{% url 'docs_organizations' %}">
-        {% endif %}
-          <strong class="overview-module-title">Perma Accounts</strong>
-          <p class="overview-module-description">Learn how to create and use a Perma account.</p>
-        {% if request.path == "/docs/organizations" %}</div>{% else %}</a>{% endif %}
       </div>
 
       <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/faq" %} _active{% endif %}">
