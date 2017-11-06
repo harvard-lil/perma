@@ -83,7 +83,7 @@
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
           <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
             {% if serve_type != 'image' %}
-              {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+              {% if capture and link.screenshot_capture and link.screenshot_capture.status == 'success' %}
                 <span class="action">
                   <span class="_verbose">
                     Looks wrong?
@@ -96,7 +96,7 @@
             {% else %}
               <span class="action">
                 <span class="_verbose">This is a screenshot. </span>
-                {% if link.primary_capture and link.primary_capture.status == 'success' %}
+                {% if capture and link.primary_capture and link.primary_capture.status == 'success' %}
                   <a href="{% url 'single_linky' link.guid %}">See the Capture View</a>
                 {% endif %}
               </span>
