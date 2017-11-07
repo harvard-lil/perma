@@ -448,7 +448,7 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
 #
 
 @contextmanager
-def open_warc_for_writing(guid, timestamp, destination):
+def preserve_perma_warc(guid, timestamp, destination):
     """
         Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
         temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
