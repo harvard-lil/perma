@@ -50,7 +50,7 @@ from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (tz_datetime, protocol, to_timestamp,
     prep_for_perma_payments, process_perma_payments_transmission,
-    first_day_of_next_month, today_next_year, open_warc_for_writing,
+    first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset)
 
 
@@ -789,8 +789,7 @@ class LinkQuerySet(QuerySet):
         return self.filter(
             archive_timestamp__lte=timezone.now(),
             user_deleted=False,
-            captures__in=Capture.objects.filter(capture_filter),
-            capture_job__status='completed'
+            captures__in=Capture.objects.filter(capture_filter)
         ).exclude(
             private_reason__in=['user', 'takedown']
         ).distinct()
@@ -1099,7 +1098,7 @@ class Link(DeletableModel):
                           user_upload='True',
                           content_type=mime_type,
                           url=warc_url)
-        with open_warc_for_writing(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
+        with preserve_perma_warc(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
             uploaded_file.file.seek(0)
             write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
         capture.save()
@@ -1153,9 +1152,7 @@ class Link(DeletableModel):
             return False
 
     def is_discoverable(self):
-        return not self.is_private and \
-               not self.is_unlisted and \
-               self.capture_job.status == 'completed'
+        return not self.is_private and not self.is_unlisted
 
     ### functions to deal with link-specific caches ###
 
