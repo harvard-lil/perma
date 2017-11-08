@@ -18,8 +18,8 @@
         {% else %}
         <a class="overview-module-content" href="{% url 'docs_accounts' %}">
         {% endif %}
-          <strong class="overview-module-title">Perma Accounts and Organizations</strong>
-          <p class="overview-module-description">Learn how to create a Perma account for yourself and for your organization.</p>
+          <strong class="overview-module-title">Accounts</strong>
+          <p class="overview-module-description">Learn about individual and organizational accounts.</p>
         {% if request.path == "/docs/accounts" %}</div>{% else %}</a>{% endif %}
       </div>
 
@@ -29,7 +29,7 @@
         {% else %}
         <a class="overview-module-content" href="{% url 'docs_perma_link_creation' %}">
         {% endif %}
-          <strong class="overview-module-title">Perma Records and Links</strong>
+          <strong class="overview-module-title">Links and Records</strong>
           <p class="overview-module-description">Learn about the links and records you can create with Perma.cc.</p>
         {% if request.path == "/docs/perma-link-creation" %}</div>{% else %}</a>{% endif %}
       </div>
