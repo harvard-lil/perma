@@ -130,9 +130,12 @@ def single_linky(request, guid):
     elif serve_type not in valid_serve_types:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
+    # If the capture job failed, there is no warc.
+    failed = link.capture_job.status == 'failed'
+
     # serve raw WARC
     if serve_type == 'warc_download':
-        if link.user_deleted:
+        if failed or link.user_deleted:
             raise Http404
         elif request.user.can_view(link):
 
@@ -199,7 +202,9 @@ def single_linky(request, guid):
                                      "//%s%s" % (settings.WARC_HOST, reverse('user_management_set_safari_cookie')))
 
     # handle requested capture type
-    if serve_type == 'image':
+    if failed:
+        capture = None
+    elif serve_type == 'image':
         capture = link.screenshot_capture
     else:
         capture = link.primary_capture
