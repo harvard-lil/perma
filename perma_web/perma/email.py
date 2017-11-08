@@ -81,6 +81,27 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
 ### Collect user data, bundled for emails ###
 ###
 
+def registrar_users(registrars=None):
+    '''
+        Returns all active registrar users plus assorted metadata as
+        a list of dicts.
+    '''
+    users = []
+    if registrars is None:
+        registrars = Registrar.objects.all()
+    for registrar in registrars:
+        registrar_users = LinkUser.objects.filter(registrar = registrar.pk,
+                                                  is_active = True,
+                                                  is_confirmed = True)
+        for user in registrar_users:
+            users.append({ "id": user.id,
+                           "first_name": user.first_name,
+                           "last_name": user.last_name,
+                           "email": user.email,
+                        })
+    return users
+
+
 def registrar_users_plus_stats(destination=None, registrars=None, year=None):
     '''
         Returns all active registrar users plus assorted metadata as
