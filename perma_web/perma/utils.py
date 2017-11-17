@@ -375,6 +375,12 @@ def process_perma_payments_transmission(transmitted_data, fields):
 
 # helpers
 
+def paid_through_date_from_post(posted_value):
+    if posted_value:
+        return datetime.strptime(posted_value, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+    return None
+
+
 def format_exception(e):
     return "{}: {}".format(type(e).__name__, e)
 
