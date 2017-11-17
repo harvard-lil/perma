@@ -27,7 +27,16 @@
 
     <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
 
-    <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation; you will continue to be able to create Permalinks for {{ request.user.registrar.name }} until it's official.</p>
+    <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation.
+
+    <p class="page-dek">You will continue to be able to create Permalinks for {{ request.user.registrar.name }} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
+
+  {% elif subscription.status == 'Canceled' %}
+    <h3 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h3>
+
+    <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
+
+    <p class="page-dek">You will continue to be able to create Permalinks for {{ request.user.registrar.name }} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
 
   {% else %}
     <h3 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h3>
@@ -48,7 +57,7 @@
             <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | date:"F jS, Y" }}</dd>
           {% elif subscription.frequency == 'annually'%}
             <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-            <dt>Next payment:</dt><dd>{{ subscription_info.next_annual_payment | date:"F jS, Y" }}</dd>
+            <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
           {% endif %}
           <dt>Links:</dt><dd>unlimited</dd>
         </dl>

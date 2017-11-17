@@ -99,7 +99,12 @@ def most_active_org_in_time_period(organizations, start_time=None, end_time=None
             .first()
 
 def subscription_is_active(subscription):
-    return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
+    return subscription and (
+        subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES or (
+            subscription['status'] == "Canceled" and
+            subscription['paid_through'] >= timezone.now()
+        )
+    )
 
 # classes
 
@@ -175,6 +180,10 @@ class Registrar(models.Model):
         blank=True,
         help_text="The last known status of registrar's paid subscription, from Perma Payments"
     )
+    cached_paid_through = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
@@ -235,12 +244,14 @@ class Registrar(models.Model):
 
         # store the subscription status locally, for use if Perma Payments is unavailable
         self.cached_subscription_status = post_data['subscription']['status']
-        self.save(update_fields=['cached_subscription_status'])
+        self.cached_paid_through = post_data['subscription']['paid_through']
+        self.save(update_fields=['cached_subscription_status', 'cached_paid_through'])
 
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
-            'frequency': post_data['subscription']['frequency']
+            'frequency': post_data['subscription']['frequency'],
+            'paid_through': datetime.strptime(post_data['subscription']['paid_through'], "%Y-%m-%dT%H:%M:%S.%fZ")
         }
 
 
@@ -262,7 +273,6 @@ class Registrar(models.Model):
         return {
             'subscription': self.get_subscription(),
             'next_monthly_payment': next_month,
-            'next_annual_payment': next_year,
             'monthly_required_fields': {
                 'registrar': self.pk,
                 'timestamp': timestamp,
@@ -293,7 +303,8 @@ class Registrar(models.Model):
             subscription = self.get_subscription()
         except PermaPaymentsCommunicationException:
             subscription = {
-                'status': self.cached_subscription_status
+                'status': self.cached_subscription_status,
+                'paid_through': self.cached_paid_through
             }
         return subscription_is_active(subscription)
 

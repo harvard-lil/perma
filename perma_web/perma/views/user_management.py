@@ -1031,7 +1031,7 @@ def settings_subscription(request):
         'subscribe_url': settings.SUBSCRIBE_URL,
         'encrypted_data_monthly': prep_for_perma_payments(subscription_info['monthly_required_fields']),
         'encrypted_data_annual': prep_for_perma_payments(subscription_info['annual_required_fields']),
-        # for cancelling
+        # for canceling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         # for updating
         'encrypted_data_update': prep_for_perma_payments(subscription_info['update_required_fields']),
