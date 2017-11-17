@@ -50,6 +50,7 @@ from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (tz_datetime, protocol, to_timestamp,
     prep_for_perma_payments, process_perma_payments_transmission,
+    paid_through_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset)
 
@@ -102,6 +103,7 @@ def subscription_is_active(subscription):
     return subscription and (
         subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES or (
             subscription['status'] == "Canceled" and
+            subscription['paid_through'] and
             subscription['paid_through'] >= timezone.now()
         )
     )
@@ -244,14 +246,14 @@ class Registrar(models.Model):
 
         # store the subscription status locally, for use if Perma Payments is unavailable
         self.cached_subscription_status = post_data['subscription']['status']
-        self.cached_paid_through = post_data['subscription']['paid_through']
+        self.cached_paid_through = paid_through_date_from_post(post_data['subscription']['paid_through'])
         self.save(update_fields=['cached_subscription_status', 'cached_paid_through'])
 
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
             'frequency': post_data['subscription']['frequency'],
-            'paid_through': datetime.strptime(post_data['subscription']['paid_through'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            'paid_through': paid_through_date_from_post(post_data['subscription']['paid_through'])
         }
 
 

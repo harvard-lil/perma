@@ -6,6 +6,7 @@ from django.utils import timezone
 from mock import patch, sentinel
 
 from perma.models import *
+from perma.utils import paid_through_date_from_post
 
 from .utils import PermaTestCase
 
@@ -360,7 +361,7 @@ class ModelsTestCase(PermaTestCase):
             'status': response['subscription']['status'],
             'rate': response['subscription']['rate'],
             'frequency': response['subscription']['frequency'],
-            'paid_through': datetime.strptime('1970-01-21T00:00:00.000000Z', '%Y-%m-%dT%H:%M:%S.%fZ')
+            'paid_through': paid_through_date_from_post('1970-01-21T00:00:00.000000Z')
         })
         self.assertEqual(post.call_count, 1)
 
