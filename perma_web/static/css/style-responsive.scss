@@ -3362,7 +3362,7 @@ footer {
   font-family: $font-hed-alt;
   color: $color-white;
   font-weight: 700;
-  @include respond-desktop {
+  @include respond-wide {
     @include affix-to-bottom;
     padding-top: 0;
     background: $color-white;
@@ -3418,7 +3418,7 @@ footer {
   #footer-nav {
     padding-left: 0;
     li:last-child a {
-      @include respond-tablet {
+      @include respond-wide {
         margin-right: 0;
       }
     }
@@ -3432,7 +3432,7 @@ footer {
       padding-bottom: 0;
     }
   }
-  @include respond-desktop {
+  @include respond-wide {
     padding: $double 0 $grid * 5;
     a:hover {
       border-color: $color-orange;
