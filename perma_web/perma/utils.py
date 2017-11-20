@@ -76,6 +76,7 @@ class AlphaNumericValidator(object):
     Adapted from https://djangosnippets.org/snippets/2551/
     """
 
+    @sensitive_variables()
     def validate(self, password, user=None):
         contains_number = contains_letter = False
         for char in password:
