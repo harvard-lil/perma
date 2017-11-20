@@ -7,7 +7,8 @@ from celery.task.control import inspect as celery_inspect
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
-from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
+
 from django.views.decorators.http import require_http_methods
 from ratelimit.decorators import ratelimit
 
@@ -1013,6 +1014,7 @@ def settings_tools(request):
     return render(request, 'user_management/settings-tools.html', context)
 
 
+@sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription(request):
     registrar = request.user.registrar
@@ -1040,6 +1042,7 @@ def settings_subscription(request):
     return render(request, 'user_management/settings-subscription.html', context)
 
 
+@sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription_cancel(request):
     context = {
