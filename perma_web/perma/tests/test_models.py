@@ -1,10 +1,12 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from django.utils import timezone
 
 from mock import patch, sentinel
 
 from perma.models import *
+from perma.utils import paid_through_date_from_post
 
 from .utils import PermaTestCase
 
@@ -24,6 +26,7 @@ def paying_registrar():
     r = Registrar(
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
+        cached_paid_through="1970-01-21T00:00:00.000000Z",
         monthly_rate=Decimal(100.00)
     )
     r.save()
@@ -52,10 +55,25 @@ def spoof_pp_response_subscription(r):
         "subscription": {
             "status": "Sentinel Status",
             "rate": "Sentinel Rate",
-            "frequency": "Sentinel Frequency"
+            "frequency": "Sentinel Frequency",
+            "paid_through": "1970-01-21T00:00:00.000000Z"
+
         }
     }
 
+
+def active_cancelled_subscription():
+    return {
+        'status': "Canceled",
+        'paid_through': timezone.now() + relativedelta(years=1)
+    }
+
+
+def expired_cancelled_subscription():
+    return {
+        'status': "Canceled",
+        'paid_through': timezone.now() + relativedelta(years=-1)
+    }
 
 # Tests
 
@@ -342,7 +360,8 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(subscription, {
             'status': response['subscription']['status'],
             'rate': response['subscription']['rate'],
-            'frequency': response['subscription']['frequency']
+            'frequency': response['subscription']['frequency'],
+            'paid_through': paid_through_date_from_post('1970-01-21T00:00:00.000000Z')
         })
         self.assertEqual(post.call_count, 1)
 
@@ -390,7 +409,8 @@ class ModelsTestCase(PermaTestCase):
         r.link_creation_allowed()
         get_subscription.assert_called_once_with(r)
         is_active.assert_called_once_with({
-            'status': 'Sentinel Status'
+            'status': 'Sentinel Status',
+            'paid_through': '1970-01-21T00:00:00.000000Z'
         })
 
 
@@ -423,3 +443,18 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(r)
         is_active.assert_called_once_with(sentinel.subscription)
 
+
+    def test_subscription_is_active_with_active_status(self):
+        for status in ACTIVE_SUBSCRIPTION_STATUSES:
+            self.assertTrue(subscription_is_active({
+                'status': status,
+                'paid_through': 'some datetime'
+            }))
+
+
+    def test_subscription_is_active_with_paid_up_canceled(self):
+        self.assertTrue(subscription_is_active(active_cancelled_subscription()))
+
+
+    def test_subscription_is_active_with_expired_canceled(self):
+        self.assertFalse(subscription_is_active(expired_cancelled_subscription()))

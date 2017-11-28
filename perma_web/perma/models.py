@@ -40,6 +40,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.functional import cached_property
+from django.views.decorators.debug import sensitive_variables
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
@@ -50,7 +51,8 @@ from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (tz_datetime, protocol, to_timestamp,
     prep_for_perma_payments, process_perma_payments_transmission,
-    first_day_of_next_month, today_next_year, open_warc_for_writing,
+    paid_through_date_from_post,
+    first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset)
 
 
@@ -99,7 +101,13 @@ def most_active_org_in_time_period(organizations, start_time=None, end_time=None
             .first()
 
 def subscription_is_active(subscription):
-    return subscription and subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES
+    return subscription and (
+        subscription['status'] in ACTIVE_SUBSCRIPTION_STATUSES or (
+            subscription['status'] == "Canceled" and
+            subscription['paid_through'] and
+            subscription['paid_through'] >= timezone.now()
+        )
+    )
 
 # classes
 
@@ -175,6 +183,10 @@ class Registrar(models.Model):
         blank=True,
         help_text="The last known status of registrar's paid subscription, from Perma Payments"
     )
+    cached_paid_through = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
@@ -203,6 +215,7 @@ class Registrar(models.Model):
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
 
+    @sensitive_variables()
     def get_subscription(self):
         if self.nonpaying:
             return None
@@ -235,12 +248,14 @@ class Registrar(models.Model):
 
         # store the subscription status locally, for use if Perma Payments is unavailable
         self.cached_subscription_status = post_data['subscription']['status']
-        self.save(update_fields=['cached_subscription_status'])
+        self.cached_paid_through = paid_through_date_from_post(post_data['subscription']['paid_through'])
+        self.save(update_fields=['cached_subscription_status', 'cached_paid_through'])
 
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
-            'frequency': post_data['subscription']['frequency']
+            'frequency': post_data['subscription']['frequency'],
+            'paid_through': paid_through_date_from_post(post_data['subscription']['paid_through'])
         }
 
 
@@ -262,7 +277,6 @@ class Registrar(models.Model):
         return {
             'subscription': self.get_subscription(),
             'next_monthly_payment': next_month,
-            'next_annual_payment': next_year,
             'monthly_required_fields': {
                 'registrar': self.pk,
                 'timestamp': timestamp,
@@ -293,7 +307,8 @@ class Registrar(models.Model):
             subscription = self.get_subscription()
         except PermaPaymentsCommunicationException:
             subscription = {
-                'status': self.cached_subscription_status
+                'status': self.cached_subscription_status,
+                'paid_through': self.cached_paid_through
             }
         return subscription_is_active(subscription)
 
@@ -789,8 +804,7 @@ class LinkQuerySet(QuerySet):
         return self.filter(
             archive_timestamp__lte=timezone.now(),
             user_deleted=False,
-            captures__in=Capture.objects.filter(capture_filter),
-            capture_job__status='completed'
+            captures__in=Capture.objects.filter(capture_filter)
         ).exclude(
             private_reason__in=['user', 'takedown']
         ).distinct()
@@ -1099,7 +1113,7 @@ class Link(DeletableModel):
                           user_upload='True',
                           content_type=mime_type,
                           url=warc_url)
-        with open_warc_for_writing(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
+        with preserve_perma_warc(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
             uploaded_file.file.seek(0)
             write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
         capture.save()
@@ -1153,9 +1167,7 @@ class Link(DeletableModel):
             return False
 
     def is_discoverable(self):
-        return not self.is_private and \
-               not self.is_unlisted and \
-               self.capture_job.status == 'completed'
+        return not self.is_private and not self.is_unlisted
 
     ### functions to deal with link-specific caches ###
 

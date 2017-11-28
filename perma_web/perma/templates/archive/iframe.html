@@ -1,8 +1,8 @@
-{% if not capture or capture.status == 'failed' %}
+{% if capture.status == 'failed' %}
   <div class="record-message">
     <p class="record-message-primary">Capture failed.</p>
     <p class="record-message-secondary">Perma was unable to archive the contents of this link.</p>
-    {% if capture and link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+    {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
         <p class="record-message-secondary"><a href="?type=image">See the Screenshot View</a></p>
     {% endif %}
     <p class="record-message-secondary"><a href="{{link.submitted_url}}">View the live page</a></p>

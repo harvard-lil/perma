@@ -456,12 +456,12 @@ def read_playback_tests(*filepaths):
     print "Total:", err_count
 
 @task
-def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", year=""):
+def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", email="stats", year=""):
     '''
        Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
 
        Arguments should be strings, with multiple values separated by semi-colons
-       e.g. fab ping_registrar_users:limit_to="14;27;30",exclude_by_tag="opted_out"
+       e.g. fab ping_registrar_users:limit_to="14;27;30",exclude_by_tag="opted_out",email="special"
 
        Limit filters are applied before exclude filters.
     '''
@@ -469,7 +469,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
     from datetime import datetime
     from django.http import HttpRequest
     from perma.models import Registrar
-    from perma.email import send_user_email, send_admin_email, registrar_users_plus_stats
+    from perma.email import send_user_email, send_admin_email, registrar_users, registrar_users_plus_stats
 
     logger = logging.getLogger(__name__)
 
@@ -487,7 +487,17 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
     else:
         year = datetime.now().year - 1
 
-    users = registrar_users_plus_stats(registrars=registrars, year=year)
+    if email == 'stats':
+        template = 'email/registrar_user_ping.txt'
+        users = registrar_users_plus_stats(registrars=registrars, year=year)
+    elif email == 'special':
+        # update special template as desired, to send one-off emails
+        # update email.registrar_users if you need more context variables
+        template = 'email/special.txt'
+        users = registrar_users(registrars=registrars)
+    else:
+        NotImplementedError()
+
     logger.info("Begin emailing registrar users.")
     send_count = 0
     failed_list = []
@@ -496,7 +506,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
         context.update(user)
         context["year"] = year
         succeeded = send_user_email(user['email'],
-                                    'email/registrar_user_ping.txt',
+                                    template,
                                      context)
         if succeeded:
             send_count += 1

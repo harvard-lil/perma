@@ -51,7 +51,7 @@ from django.http import HttpRequest
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
 from perma.utils import (run_task, url_in_allowed_ip_range,
-    copy_file_data, open_warc_for_writing, write_warc_records_recorded_from_web,
+    copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset)
 from perma import site_scripts
 
@@ -749,35 +749,34 @@ def process_metadata(metadata, link):
 
 
 def save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls):
+    # save a single warc, comprising all recorded recorded content and the screenshot
     recorded_warc_path = os.path.join(warc_writer.directory,
                                       warc_writer._f_finalname)
     with open(recorded_warc_path, 'rb') as recorded_warc_records, \
-         open_warc_for_writing(link.guid, link.creation_timestamp, link.warc_storage_file()) as perma_warc:
-
+         preserve_perma_warc(link.guid, link.creation_timestamp, link.warc_storage_file()) as perma_warc:
         # screenshot first, per Perma custom
         if screenshot:
             write_resource_record_from_asset(screenshot, link.screenshot_capture.url, link.screenshot_capture.content_type, perma_warc)
-            safe_save_fields(
-                link.screenshot_capture,
-                status='success'
-            )
-
         # then recorded content
         write_warc_records_recorded_from_web(recorded_warc_records, perma_warc)
+
+    # update the db to indicate we succeeded
+    safe_save_fields(
+        link.primary_capture,
+        status='success',
+        content_type=content_type,
+    )
+    if screenshot:
         safe_save_fields(
-            link.primary_capture,
-            status='success',
-            content_type=content_type,
+            link.screenshot_capture,
+            status='success'
         )
-
-        # We save the favicon Capture here since favicons live in the warc.
-        save_favicons(link, successful_favicon_urls)
-
-    capture_job.mark_completed()
+    save_favicons(link, successful_favicon_urls)
     safe_save_fields(
         link,
         warc_size=default_storage.size(link.warc_storage_file())
     )
+    capture_job.mark_completed()
 
     try:
         print("Writing CDX lines to the DB")

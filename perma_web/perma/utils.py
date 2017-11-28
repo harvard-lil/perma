@@ -76,6 +76,7 @@ class AlphaNumericValidator(object):
     Adapted from https://djangosnippets.org/snippets/2551/
     """
 
+    @sensitive_variables()
     def validate(self, password, user=None):
         contains_number = contains_letter = False
         for char in password:
@@ -375,6 +376,12 @@ def process_perma_payments_transmission(transmitted_data, fields):
 
 # helpers
 
+def paid_through_date_from_post(posted_value):
+    if posted_value:
+        return datetime.strptime(posted_value, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+    return None
+
+
 def format_exception(e):
     return "{}: {}".format(type(e).__name__, e)
 
@@ -448,7 +455,7 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
 #
 
 @contextmanager
-def open_warc_for_writing(guid, timestamp, destination):
+def preserve_perma_warc(guid, timestamp, destination):
     """
         Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
         temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick

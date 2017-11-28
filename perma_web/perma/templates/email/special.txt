@@ -1,0 +1,11 @@
+Dear Perma.cc Registrars:
+
+We're writing to share news of an upcoming change to Perma that may affect you and some of the Perma users you support.
+
+On Wednesday, November 15, we'll be upgrading Perma to require that all user passwords satisfy a minimum security threshold. If your current password meets this threshold, you won't need to do anything. If your current password does not meet this threshold, then you will be required to create a stronger password the next time you log in. This change will apply to all Perma users.
+
+Thanks again for your continued support and enthusiasm for Perma!
+
+Sincerely,
+
+The Perma.cc Team
