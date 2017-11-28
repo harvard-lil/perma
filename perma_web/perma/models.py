@@ -23,7 +23,6 @@ from wsgiref.handlers import format_date_time
 from mptt.managers import TreeManager
 from simple_history.models import HistoricalRecords
 from werkzeug.test import Client
-from werkzeug.urls import iri_to_uri
 from werkzeug.wrappers import BaseResponse
 
 from django.core.signing import TimestampSigner, BadSignature
@@ -854,7 +853,7 @@ class Link(DeletableModel):
     @cached_property
     def ascii_safe_url(self):
         """ Encoded URL as string rather than unicode. """
-        return iri_to_uri(self.submitted_url)
+        return requests.utils.requote_uri(self.submitted_url.encode('utf-8'))
 
     @cached_property
     def url_details(self):
