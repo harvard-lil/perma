@@ -102,6 +102,10 @@ header {
         font-size: 24px;
       }
     }
+    ._isDarchive {
+      color: $color-orange;
+      border-bottom: 1px solid $color-black;
+    }
     .title:before {
       content: '';
       display: inline-block;

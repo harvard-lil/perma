@@ -175,8 +175,13 @@
             <div class="row">
               <div class="col col-sm-6 col-md-60">
                 {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
+                {{#if is_private }}
+                <div class="item-private">
+                  <span class="ui-private">[private] </span>
+                  <span class="">Private record</span>
+                </div>{{/if}}
                 <div class="item-title">
-                  {{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
+                  <span>{{ title }}</span>
                 </div>
                 <div class="item-subtitle">
                   <a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
