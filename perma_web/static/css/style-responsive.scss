@@ -2991,7 +2991,7 @@ button#addlink,
       width: 18px;
       background: url('../img/ui/perma-ui-private.png') no-repeat;
       background-size: cover;
-      margin-right: 4px;
+      margin-right: 0px;
       bottom: -2px;
     }
   }
@@ -3843,6 +3843,16 @@ footer {
   a:hover, a:focus {
     text-decoration: underline;
     @extend .style-standard-hover;
+  }
+}
+
+.item-private {
+  font-size: 14px;
+  font-weight: 200;
+  color: $color-orange;
+  left: -2px;
+  .private-hint {
+    left: -2px;
   }
 }
 

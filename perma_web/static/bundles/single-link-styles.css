@@ -4511,6 +4511,11 @@ header._isPrivate .title {
   }
 }
 
+header._isPrivate ._isDarchive {
+  color: #DD671A;
+  border-bottom: 1px solid #222;
+}
+
 header._isPrivate .title:before {
   content: '';
   display: inline-block;
