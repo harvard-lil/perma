@@ -87,7 +87,7 @@
                 <span class="action">
                   <span class="_verbose">
                     Looks wrong?
-                    <a href="{% url 'single_linky' link.guid %}?type=image">
+                    <a href="{% url 'single_permalink' link.guid %}?type=image">
                     See the Screenshot View
                     </a>
                   </span>
@@ -97,7 +97,7 @@
               <span class="action">
                 <span class="_verbose">This is a screenshot. </span>
                 {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a href="{% url 'single_linky' link.guid %}">See the Capture View</a>
+                  <a href="{% url 'single_permalink' link.guid %}">See the Capture View</a>
                 {% endif %}
               </span>
             {% endif %}
@@ -189,7 +189,7 @@
         {% endcomment %}
       </div>
       <div class="tray-actions col-xs-12">
-          <a href="{% url 'single_linky' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
+          <a href="{% url 'single_permalink' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
         {% if not can_edit %}
           <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
         {% endif %}
@@ -229,7 +229,7 @@
     {% if new_record %}
       <div class="banner banner-status row _isNewRecord">
         <span class="success">Success!</span>
-        <span class="message verbose">Your new Perma Link is <strong>https://{{ request.get_host }}{% url 'single_linky' link.guid %}</strong></span>
+        <span class="message verbose">Your new Perma Link is <strong>https://{{ request.get_host }}{% url 'single_permalink' link.guid %}</strong></span>
         <span class="link-options verbose">
           <a class="edit-link" style="cursor:pointer;">Edit<span class="_verbose _toDesktop"> link details</span></a>
           <span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span>

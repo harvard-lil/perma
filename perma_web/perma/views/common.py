@@ -98,11 +98,11 @@ def stats(request):
     """
     return render(request, 'stats.html')
 
-@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
+@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
-def single_linky(request, guid):
+def single_permalink(request, guid):
     """
     Given a Perma ID, serve it up.
     """
@@ -117,18 +117,18 @@ def single_linky(request, guid):
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
 
     if canonical_guid != guid:
-        return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
+        return HttpResponsePermanentRedirect(reverse('single_permalink', args=[canonical_guid]))
 
     # Forward to replacement link if replacement_link is set.
     if link.replacement_link_id:
-        return HttpResponseRedirect(reverse('single_linky', args=[link.replacement_link_id]))
+        return HttpResponseRedirect(reverse('single_permalink', args=[link.replacement_link_id]))
 
     # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
     serve_type = request.GET.get('type')
     if serve_type is None:
         serve_type = 'source'
     elif serve_type not in valid_serve_types:
-        return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
+        return HttpResponsePermanentRedirect(reverse('single_permalink', args=[canonical_guid]))
 
     # serve raw WARC
     if serve_type == 'warc_download':
@@ -206,7 +206,7 @@ def single_linky(request, guid):
 
         # if primary capture did not work, but screenshot did work, forward to screenshot
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
-            return HttpResponseRedirect(reverse('single_linky', args=[guid])+"?type=image")
+            return HttpResponseRedirect(reverse('single_permalink', args=[guid])+"?type=image")
 
     try:
         capture_mime_type = capture.mime_type()

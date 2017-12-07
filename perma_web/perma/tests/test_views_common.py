@@ -35,7 +35,7 @@ class CommonViewsTestCase(PermaTestCase):
     # Record page
 
     def assert_can_view_capture(self, guid):
-        response = self.get('single_linky', reverse_kwargs={'kwargs':{'guid': guid}})
+        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
         self.assertIn("<iframe ", response.content)
 
     def test_regular_archive(self):
@@ -45,13 +45,13 @@ class CommonViewsTestCase(PermaTestCase):
             self.assert_can_view_capture('3SLN-JHX9')
 
     def test_dark_archive(self):
-        response = self.get('single_linky', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}})
+        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}})
         self.assertIn("This record is private and cannot be displayed.", response.content)
 
         # check that top bar is displayed to logged-in users
         for user in self.users:
             self.log_in_user(user)
-            response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
+            response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
             self.assertIn("This record is private.", response.content)
 
     def test_redirect_to_download(self):
@@ -60,38 +60,38 @@ class CommonViewsTestCase(PermaTestCase):
         file_url = link.captures.filter(role='primary').get().playback_url_with_access_token()
 
         client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
-        response = client.get(reverse('single_linky', kwargs={'guid': link.guid}))
+        response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
         self.assertIn("Perma.cc can\'t display this file type on mobile", response.content)
         # Make sure that we're including the archived capture url
         self.assertIn(file_url, response.content)
 
         # If not on mobile, display link as normal
         client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
-        response = client.get(reverse('single_linky', kwargs={'guid': link.guid}))
+        response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
         self.assertNotIn("Perma.cc can\'t display this file type on mobile", response.content)
 
     def test_deleted(self):
-        response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}})
+        response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}})
         self.assertIn("This record has been deleted.", response.content)
 
     def test_misformatted_nonexistent_links_404(self):
-        response = self.client.get(reverse('single_linky', kwargs={'guid': 'JJ99--JJJJ'}))
+        response = self.client.get(reverse('single_permalink', kwargs={'guid': 'JJ99--JJJJ'}))
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.get(reverse('single_linky', kwargs={'guid': '988-JJJJ=JJJJ'}))
+        response = self.client.get(reverse('single_permalink', kwargs={'guid': '988-JJJJ=JJJJ'}))
         self.assertEqual(response.status_code, 404)
 
     def test_properly_formatted_nonexistent_links_404(self):
-        response = self.client.get(reverse('single_linky', kwargs={'guid': 'JJ99-JJJJ'}))
+        response = self.client.get(reverse('single_permalink', kwargs={'guid': 'JJ99-JJJJ'}))
         self.assertEqual(response.status_code, 404)
 
         # Test the original ID style. We shouldn't get a redirect.
-        response = self.client.get(reverse('single_linky', kwargs={'guid': '0J6pkzDeQwT'}))
+        response = self.client.get(reverse('single_permalink', kwargs={'guid': '0J6pkzDeQwT'}))
         self.assertEqual(response.status_code, 404)
 
     def test_replacement_link(self):
-        response = self.client.get(reverse('single_linky', kwargs={'guid': 'ABCD-0006'}))
-        self.assertRedirects(response, reverse('single_linky', kwargs={'guid': '3SLN-JHX9'}))
+        response = self.client.get(reverse('single_permalink', kwargs={'guid': 'ABCD-0006'}))
+        self.assertRedirects(response, reverse('single_permalink', kwargs={'guid': '3SLN-JHX9'}))
 
 
     ###
