@@ -22,7 +22,7 @@
                 <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
                 <input  id="file" class="file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.pdf">
               </div>
-              <button type="submit" id="updateLinky" class="btn btn-primary btn-large">Upload</button>
+              <button type="submit" id="updatePermalink" class="btn btn-primary btn-large">Upload</button>
               <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
             </div>
           {% else %}
@@ -42,7 +42,7 @@
               <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
               <input id="file" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
             </div>
-            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Create a Perma Link</button>
+            <button type="submit" id="uploadPermalink" class="btn btn-primary btn-large">Create a Perma Link</button>
             <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
           {% endif %}
           {% csrf_token %}
@@ -64,7 +64,7 @@
   <div class="modal-body">
     <div class="center">
       <h4 id="archive_upload_success">Uploading your file...</h4>
-      <p id="uploadedLinkyUrl"><a href=""></a></p>
+      <p id="uploadedPermalinkUrl"><a href=""></a></p>
     </div>
   </div>
   <div class="modal-footer upload-footer">
