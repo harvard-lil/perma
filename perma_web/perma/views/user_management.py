@@ -977,7 +977,6 @@ def settings_affiliations(request):
     orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
 
     return render(request, 'user_management/settings-affiliations.html', {
-        'next': request.get_full_path(),
         'this_page': 'settings_affiliations',
         'pending_registrar': pending_registrar,
         'orgs_by_registrar': orgs_by_registrar})
