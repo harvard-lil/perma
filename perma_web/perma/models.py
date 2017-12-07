@@ -1252,7 +1252,7 @@ class Capture(models.Model):
             urlencode({
                 'token': self.link.create_access_token(),
                 'guid': self.link_id,
-                'next': self.url_fragment(),
+                'next': self.url_fragment().encode('utf-8'),
             })
         ))
 

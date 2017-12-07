@@ -11,8 +11,8 @@ webpackJsonp([9],{
 	var Helpers = __webpack_require__(92);
 	var LinkHelpers = __webpack_require__(77);
 	
-	var updateBtnID = '#updateLinky',
-	    cancelBtnID = '#cancelUpdateLinky';
+	var updateBtnID = '#updatePermalink',
+	    cancelBtnID = '#cancelUpdatePermalink';
 	
 	function init() {
 	  // Hide query parameter from the special Safari redirect
