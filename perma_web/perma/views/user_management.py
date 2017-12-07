@@ -945,7 +945,6 @@ def settings_profile(request):
             return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
     return render(request, 'user_management/settings-profile.html', {
-        'next': request.get_full_path(),
         'this_page': 'settings_profile',
         'form': form,
     })
