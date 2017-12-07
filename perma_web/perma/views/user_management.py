@@ -957,7 +957,6 @@ def settings_password(request):
     """
     form = PasswordChangeForm(get_form_data(request))
     context = {
-        'next': request.get_full_path(),
         'this_page': 'settings_password',
         'form': form,
     }
