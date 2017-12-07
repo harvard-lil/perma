@@ -1007,8 +1007,7 @@ def settings_tools(request):
     """
     Settings tools ...
     """
-    context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
-    return render(request, 'user_management/settings-tools.html', context)
+    return render(request, 'user_management/settings-tools.html', {'this_page': 'settings_tools'})
 
 
 @sensitive_variables()
