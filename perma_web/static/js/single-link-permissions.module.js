@@ -5,8 +5,8 @@ var Helpers = require('./helpers/general.helpers.js');
 var LinkHelpers = require('./helpers/link.helpers.js');
 
 
-var updateBtnID = '#updateLinky',
-    cancelBtnID = '#cancelUpdateLinky';
+var updateBtnID = '#updatePermalink',
+    cancelBtnID = '#cancelUpdatePermalink';
 
 function init () {
   // Hide query parameter from the special Safari redirect
