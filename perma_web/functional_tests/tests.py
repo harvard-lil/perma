@@ -349,7 +349,7 @@ class FunctionalTest(BaseTestCase):
             assert_text_displayed('URL cannot be empty.', 'p')
             # don't provide a URL or a file on the Upload a file form
             get_element_with_text("upload your own archive", 'button').click()
-            get_id('uploadLinky').click()
+            get_id('uploadPermalink').click()
             assert_text_displayed('URL cannot be empty.')
             assert_text_displayed('File cannot be blank.')
 

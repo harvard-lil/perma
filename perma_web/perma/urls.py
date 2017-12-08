@@ -139,7 +139,7 @@ urlpatterns = [
 
     url(r'^errors/new?$', error_management.post_new, name='error_management_post_new'),
     # Our Perma ID catchall
-    url(r'^%s/?$' % r'(?P<guid>[^\./]+)', common.single_linky, name='single_linky'),
+    url(r'^%s/?$' % r'(?P<guid>[^\./]+)', common.single_permalink, name='single_permalink'),
 
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),

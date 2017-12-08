@@ -10941,7 +10941,7 @@ webpackJsonp([1],[
 	  }
 	
 	  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
-	  DOMHelpers.toggleBtnDisable('#uploadLinky', false);
+	  DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
 	  DOMHelpers.toggleBtnDisable('.cancel', false);
 	}
 	
@@ -11122,7 +11122,7 @@ webpackJsonp([1],[
 	
 	  // When a user uploads their own capture
 	  $(document).on('submit', '#archive_upload_form', function () {
-	    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
+	    DOMHelpers.toggleBtnDisable('#uploadPermalink', true);
 	    DOMHelpers.toggleBtnDisable('.cancel', true);
 	    var extraUploadData = {},
 	        selectedFolder = FolderTreeModule.getSavedFolder();
