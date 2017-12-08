@@ -340,7 +340,7 @@ class Organization(DeletableModel):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
-    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="top_level_for_org")
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     default_to_private = models.BooleanField(default=False)
     link_count = models.IntegerField(default=0) # A cache of the number of links under this org's purview

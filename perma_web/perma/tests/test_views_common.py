@@ -116,7 +116,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(textareas), 1)
         for textarea in textareas:
             self.assertIn(textarea['name'],['message'])
-            self.assertEqual(textarea.text, "\r\n")
+            self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_regular(self):
         '''
@@ -137,7 +137,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(textareas), 1)
         for textarea in textareas:
             self.assertIn(textarea['name'],['message'])
-            self.assertEqual(textarea.text, "\r\n")
+            self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_registrar(self):
         '''
@@ -158,7 +158,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(textareas), 1)
         for textarea in textareas:
             self.assertIn(textarea['name'],['message'])
-            self.assertEqual(textarea.text, "\r\n")
+            self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_single_reg_org_user(self):
         '''
@@ -179,7 +179,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(textareas), 1)
         for textarea in textareas:
             self.assertIn(textarea['name'],['message'])
-            self.assertEqual(textarea.text, "\r\n")
+            self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_multi_reg_org_user(self):
         '''
@@ -200,7 +200,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(textareas), 1)
         for textarea in textareas:
             self.assertIn(textarea['name'],['message'])
-            self.assertEqual(textarea.text, "\r\n")
+            self.assertEqual(textarea.text.strip(), "")
         selects = soup.select('select')
         self.assertEqual(len(selects), 1)
         for select in selects:
@@ -211,7 +211,7 @@ class CommonViewsTestCase(PermaTestCase):
         subject_field = soup.find('input', {'name': 'subject'})
         self.assertEqual(subject_field.get('value', ''), self.custom_subject)
         message_field = soup.find('textarea', {'name': 'message'})
-        self.assertEqual(message_field.text, "\r\n" + self.message_text)
+        self.assertEqual(message_field.text.strip(), self.message_text)
 
     def test_contact_params_regular(self):
         '''
@@ -227,7 +227,7 @@ class CommonViewsTestCase(PermaTestCase):
         subject_field = soup.find('input', {'name': 'subject'})
         self.assertEqual(subject_field.get('value', ''), self.flag_subject)
         message_field = soup.find('textarea', {'name': 'message'})
-        self.assertEqual(message_field.text, "\r\n" + self.flag_message)
+        self.assertEqual(message_field.text.strip(), self.flag_message)
 
     def test_contact_flags(self):
         '''
