@@ -945,7 +945,6 @@ def settings_profile(request):
             return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
     return render(request, 'user_management/settings-profile.html', {
-        'next': request.get_full_path(),
         'this_page': 'settings_profile',
         'form': form,
     })
@@ -958,7 +957,6 @@ def settings_password(request):
     """
     form = PasswordChangeForm(get_form_data(request))
     context = {
-        'next': request.get_full_path(),
         'this_page': 'settings_password',
         'form': form,
     }
@@ -979,7 +977,6 @@ def settings_affiliations(request):
     orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
 
     return render(request, 'user_management/settings-affiliations.html', {
-        'next': request.get_full_path(),
         'this_page': 'settings_affiliations',
         'pending_registrar': pending_registrar,
         'orgs_by_registrar': orgs_by_registrar})
@@ -1010,8 +1007,7 @@ def settings_tools(request):
     """
     Settings tools ...
     """
-    context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
-    return render(request, 'user_management/settings-tools.html', context)
+    return render(request, 'user_management/settings-tools.html', {'this_page': 'settings_tools'})
 
 
 @sensitive_variables()
