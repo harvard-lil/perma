@@ -2989,10 +2989,9 @@ button#addlink,
       position: relative;
       height: 16px;
       width: 18px;
-      background-image: url('../img/ui/perma-ui-private.png');
-      background-repeat: no-repeat;
+      background: url('../img/ui/perma-ui-private.png') no-repeat;
       background-size: cover;
-      margin-right: 4px;
+      margin-right: 0px;
       bottom: -2px;
     }
   }
@@ -3837,15 +3836,23 @@ footer {
     display: inline-block;
     position: relative;
     top: 3px;
-    background-image: url('../img/ui/perma-ui-affil.svg');
-    background-repeat: no-repeat;
-    background-position: 0 0;
+    background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
     background-size: 19px 18px;
     z-index: 10;
   }
   a:hover, a:focus {
     text-decoration: underline;
     @extend .style-standard-hover;
+  }
+}
+
+.item-private {
+  font-size: 14px;
+  font-weight: 200;
+  color: $color-orange-a;
+  left: -2px;
+  .private-hint {
+    left: -2px;
   }
 }
 

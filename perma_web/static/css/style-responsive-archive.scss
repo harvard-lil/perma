@@ -102,14 +102,17 @@ header {
         font-size: 24px;
       }
     }
+    ._isDarchive {
+      color: $color-orange-a;
+      border-bottom: 1px solid $color-black;
+    }
     .title:before {
       content: '';
       display: inline-block;
       position: relative;
       height: 16px;
       width: 18px;
-      background-image: url('../img/ui/perma-ui-private.png');
-      background-repeat: no-repeat;
+      background: url('../img/ui/perma-ui-private.png') no-repeat;
       background-size: cover;
       margin-right: 4px;
       bottom: -2px;
