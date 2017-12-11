@@ -40,7 +40,7 @@ urlpatterns = [
     #Services
     url(r'^service/stats/sums/?$', service.stats_sums, name='service_stats_sums'),
     url(r'^service/stats/now/?$', service.stats_now, name='service_stats_now'),
-    url(r'^service/bookmarklet-create/$', service.bookmarklet_create, name='service_bookmarklet_create'),
+    url(r'^service/bookmarklet-create/?$', service.bookmarklet_create, name='service_bookmarklet_create'),
     url(r'^service/get-coordinates/?$', service.coordinates_from_address, name='service_coordinates_from_address'),
     #url(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, service.get_thumbnail, name='service_get_thumbnail'),
 
@@ -62,7 +62,7 @@ urlpatterns = [
     url(r'^sign-up/firms/?$', user_management.sign_up_firm, name='sign_up_firm'),
     url(r'^libraries/?$', user_management.libraries, name='libraries'),
     #url(r'^register/confirm/(?P<code>\w+)/$', user_management.register_email_code_confirmation, name='confirm_register'),
-    url(r'^register/password/(?P<code>\w+)/$', user_management.register_email_code_password, name='register_password'),
+    url(r'^register/password/(?P<code>[A-Za-z0-9]+)/?$', user_management.register_email_code_password, name='register_password'),
     url(r'^register/email/?$', user_management.register_email_instructions, name='register_email_instructions'),
     url(r'^register/library/?$', user_management.register_library_instructions, name='register_library_instructions'),
     url(r'^register/court/?$', user_management.court_request_response, name='court_request_response'),
@@ -70,7 +70,7 @@ urlpatterns = [
     url(r'^password/change/?$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='password_change'),
     url(r'^password/change/done/?$', auth_views.password_change_done, {'template_name': 'registration/password_change_done.html'},   name='password_change_done'),
     url(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
-    url(r'^password/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, {'template_name': 'registration/password_reset_confirm.html'}, name='password_reset_confirm'),
+    url(r'^password/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$', auth_views.password_reset_confirm, {'template_name': 'registration/password_reset_confirm.html'}, name='password_reset_confirm'),
     url(r'^password/reset/complete/?$', auth_views.password_reset_complete, {'template_name': 'registration/password_reset_complete.html'}, name='password_reset_complete'),
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='password_reset_done'),
     url(r'^password/update/?$', user_management.update_password, name='password_update'),
@@ -80,7 +80,7 @@ urlpatterns = [
     url(r'^settings/profile/?$', user_management.settings_profile, name='user_management_settings_profile'),
     url(r'^settings/password/?$', user_management.settings_password, name='user_management_settings_password'),
     url(r'^settings/affiliations/?$', user_management.settings_affiliations, name='user_management_settings_affiliations'),
-    url(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
+    url(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/?$', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', user_management.settings_tools, name='user_management_settings_tools'),
     url(r'^settings/subscription/?$', user_management.settings_subscription, name='user_management_settings_subscription'),
     url(r'^settings/subscription/cancel/?$', user_management.settings_subscription_cancel, name='user_management_settings_subscription_cancel'),
@@ -90,7 +90,8 @@ urlpatterns = [
     url(r'^manage/create/?$', link_management.create_link, name='create_link'),
     url(r'^manage/create/(?P<org_id>\d+)/?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='create_link_with_org'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, link_management.user_delete_link, name='user_delete_link'),
-    url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'),  # we used to serve an important page here. No longer. Redirect in case anyone has this bookmakred.
+    # we used to serve an important page here. No longer. Redirect in case anyone has this bookmarked.
+    url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'),
 
     # user management
     url(r'^manage/stats/?(?P<stat_type>.*?)?/?$', user_management.stats, name='user_management_stats'),
@@ -134,12 +135,12 @@ urlpatterns = [
     #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
     # error management
-    url(r'^manage/errors/resolve?$', error_management.resolve, name='error_management_resolve'),
+    url(r'^manage/errors/resolve/?$', error_management.resolve, name='error_management_resolve'),
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
 
-    url(r'^errors/new?$', error_management.post_new, name='error_management_post_new'),
+    url(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
     # Our Perma ID catchall
-    url(r'^%s/?$' % r'(?P<guid>[^\./]+)', common.single_permalink, name='single_permalink'),
+    url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
 
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
