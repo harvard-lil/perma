@@ -1,4 +1,4 @@
-import random, string, logging
+import logging
 import itertools
 
 from datetime import datetime, timedelta
@@ -1565,10 +1565,7 @@ def email_pending_registrar_user(request, user):
     Send email to newly created accounts for folks requesting library accounts
     """
     if not user.confirmation_code:
-        r = random.SystemRandom()
-        user.confirmation_code = ''.join(
-            r.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
-        user.save()
+        user.save_new_confirmation_code()
 
     host = request.get_host()
 

@@ -2,6 +2,7 @@
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.conf import settings
+from django.urls import NoReverseMatch
 
 from mock import patch, sentinel
 
@@ -1849,8 +1850,15 @@ class UserManagementViewsTestCase(PermaTestCase):
                          error_keys=['email'])
 
     def test_registration_confirmation_with_bad_code_rejected(self):
-        response = self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
+        response = self.submit_form('register_password', reverse_kwargs={'args':['badconfirmationcode']})
         self.assertTrue('no_code' in response.context)
+
+
+    def test_registration_confirmation_with_malformed_code_rejected(self):
+        # malformed confirmation codes will 404
+        with self.assertRaises(NoReverseMatch):
+            self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
+
 
     def check_new_activation_email(self, message, user_email):
         our_address = settings.DEFAULT_FROM_EMAIL
