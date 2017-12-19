@@ -3,7 +3,7 @@ from settings_common import *
 import os
 
 DEBUG = True
-WARC_HOST = 'perma-archives.dev:8000'
+WARC_HOST = 'perma-archives.test:8000'
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
@@ -31,7 +31,7 @@ GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 # The host we want to display (used when DEBUG=False)
-HOST = 'perma.dev:8000'
+HOST = 'perma.test:8000'
 
 CELERY_RESULT_BACKEND = 'amqp'
 

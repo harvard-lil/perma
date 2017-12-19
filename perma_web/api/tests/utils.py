@@ -112,7 +112,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     # There could be a better way to handle this.
     url_base = "/api/v1"
 
-    server_domain = "perma.dev"
+    server_domain = "perma.test"
     server_port = 8999
     serve_files = []
     rejected_status_code = 401  # Unauthorized

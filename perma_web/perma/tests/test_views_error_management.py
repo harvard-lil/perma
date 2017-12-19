@@ -5,23 +5,23 @@ class ErrorManagementViewsTestCase(PermaTestCase):
     error_contents = {
         'context': {
             'userAgent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0",
-            'url': 'http://perma.dev:8000/static/js/global.setup.js',
+            'url': 'http://perma.test:8000/static/js/global.setup.js',
         },
         'errors': [
             {'backtrace': [
                 {
                     'column': 5,
-                    'file': 'http://perma.dev:8000/static/js/global.setup.js',
+                    'file': 'http://perma.test:8000/static/js/global.setup.js',
                     'function': '',
                     'line': 11
                 }, {
                     'column': 28285,
-                    'file': 'http://perma.dev:8000/static/vendors/jquery/jquery.js',
+                    'file': 'http://perma.test:8000/static/vendors/jquery/jquery.js',
                     'function': 'b.event.dispatch',
                     'line': 3
                 }, {
                     'column': 25025,
-                    'file': 'http://perma.dev:8000/static/vendors/jquery/jquery.js',
+                    'file': 'http://perma.test:8000/static/vendors/jquery/jquery.js',
                     'function': 'b.event.add/v.handle',
                     'line': 3
                 }],

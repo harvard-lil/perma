@@ -158,7 +158,7 @@ def reset_hard_db():
     init_db()
 
 @task
-def screenshots(base_url='http://perma.dev:8000'):
+def screenshots(base_url='http://perma.test:8000'):
     import StringIO
     from PIL import Image
     from selenium import webdriver
