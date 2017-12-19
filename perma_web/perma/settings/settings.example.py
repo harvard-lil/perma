@@ -55,9 +55,9 @@ SAUCE_USERNAME = ''
 SAUCE_ACCESS_KEY = ''
 
 # in a dev server, if you want to use a separate subdomain for user-generated content like on prod,
-# you can do something like this (assuming *.dev is mapped to localhost in /etc/hosts):
-# WARC_HOST = 'content.perma.dev:8000'
-# MEDIA_URL = '//content.perma.dev:8000/media/'
+# you can do something like this (assuming *.test is mapped to localhost in /etc/hosts):
+# WARC_HOST = 'content.perma.test:8000'
+# MEDIA_URL = '//content.perma.test:8000/media/'
 # DEBUG_MEDIA_URL = '/media/'
 
 # Perma.cc encryption keys for communicating with Perma-Payments

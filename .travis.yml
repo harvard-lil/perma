@@ -5,10 +5,10 @@ env: CFLAGS="-O0"
 
 dist: precise
 
-# make sure perma.dev resolves to localhost so our tests work
+# make sure perma.test resolves to localhost so our tests work
 addons:
   hosts:
-    - perma.dev
+    - perma.test
 
   # anything we might want to see from a failed build
   artifacts:
@@ -56,7 +56,7 @@ before_script:
   - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
   - date
-  
+
 script:
   - fab dev.test_python
   - fab dev.test_js

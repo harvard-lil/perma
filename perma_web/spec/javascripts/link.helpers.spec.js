@@ -7,7 +7,7 @@ describe("Test link.helpers.js", function() {
     window.linkObj = {
       captures: [ {
         content_type: "text/html",
-        playback_url: "//perma.dev:8000/warc/ZFK8-B42T/http://example.com",
+        playback_url: "//perma.test:8000/warc/ZFK8-B42T/http://example.com",
         record_type: "response",
         role: "primary",
         status: "success",
@@ -15,7 +15,7 @@ describe("Test link.helpers.js", function() {
         user_upload: false,
         }, {
           content_type:"image/png",
-          playback_url:"//perma.dev:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/cap.png",
+          playback_url:"//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/cap.png",
           record_type:"resource",
           role:"screenshot",
           status:"success",
@@ -23,7 +23,7 @@ describe("Test link.helpers.js", function() {
           user_upload:false,
         }, {
           content_type:"favicon",
-          playback_url:"//perma.dev:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico",
+          playback_url:"//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico",
           record_type:"resource",
           role:"favicon",
           status:"success",
@@ -48,7 +48,7 @@ describe("Test link.helpers.js", function() {
   describe("Test findFaviconUrl", function(){
     it("finds favicon url when one exists", function(){
       var url = LinkHelpers.findFaviconURL(window.linkObj);
-      expect(url).toEqual("//perma.dev:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico");
+      expect(url).toEqual("//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico");
     });
     it("does not error when favicon does not exist", function(){
       var linkObjCopy = window.linkObj;

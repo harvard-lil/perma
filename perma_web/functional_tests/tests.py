@@ -46,7 +46,7 @@ from perma.tests.utils import failed_test_files_path
 # (1) Configure remote vs. local server:
 
 REMOTE_SERVER_URL = os.environ.get('SERVER_URL')
-LOCAL_SERVER_DOMAIN = 'perma.dev'
+LOCAL_SERVER_DOMAIN = 'perma.test'
 build_name = datetime.datetime.now().isoformat().split('.')[0]
 
 if REMOTE_SERVER_URL:

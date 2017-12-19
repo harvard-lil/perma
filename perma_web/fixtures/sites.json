@@ -1,9 +1,9 @@
 [
   {
-    "model": "sites.site", 
-    "pk": 1, 
+    "model": "sites.site",
+    "pk": 1,
     "fields": {
-      "domain": "perma.dev", 
+      "domain": "perma.test",
       "name": "Perma"
     }
   }

@@ -9,7 +9,7 @@ To get up and running, read through the [Quick Start](#quick-start) or
 [Manual Install](#install) instructions, but first you'll need add the
 following domains to your hosts file:
 
-    127.0.0.1 perma.dev api.perma.dev perma-archives.dev
+    127.0.0.1 perma.test api.perma.test perma-archives.test
 
 For additional information on modifying your hosts file,
 [try this help doc](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file).
@@ -79,7 +79,7 @@ Then you can run the server:
     Starting development server at http://0.0.0.0:8000/
     Quit the server with CONTROL-C.
 
-That's it! You should now be able to load Perma in your browser at `http://perma.dev:8000/`. The celery workers should already be running, but if you need to stop or start them, try
+That's it! You should now be able to load Perma in your browser at `http://perma.test:8000/`. The celery workers should already be running, but if you need to stop or start them, try
 
     (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl stop celery
     (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl start celery
