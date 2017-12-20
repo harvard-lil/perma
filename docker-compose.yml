@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  db:
+    image: mysql:5.6
+    environment:
+        MYSQL_ROOT_PASSWORD: password
+    volumes:
+      # NAMED VOLUMES
+      # If the volume contains a database (a subdirectory named mysql)
+      # when you start the container, it will be left untouched and unaffected
+      # by config environment variables like $MYSQL_ROOT_PASSWORD.
+      - db_data:/var/lib/mysql:delegated
+      # BIND MOUNTS
+      - ./services/mysql/conf.d:/etc/mysql/conf.d
+  web:
+    build: ./perma_web
+    image: perma:0.2
+    tty: true
+    command: bash
+    volumes:
+      # NAMED VOLUMES
+      # Use a named, persistent volume so that the node_modules directory,
+      # which is created during the image's build process, and which our
+      # code presently expects to be nested inside the perma_web directory,
+      # isn't wiped out when mounting our code in ./perma_web code to
+      # the container. We can consider restructuring the project instead.
+      - node_modules:/perma/perma_web/node_modules
+      # BIND MOUNTS
+      - ./perma_web:/perma/perma_web
+      - ./services/celery:/perma/services/celery
+      - ./services/cloudflare:/perma/services/cloudflare
+      - ./services/django:/perma/services/django:delegated
+      - ./services/logs:/perma/services/logs:delegated
+    environment:
+      # Temporary: let Django load Docker-specific settings conditionally
+      - DOCKERIZED=True
+    extra_hosts:
+      - "perma.test:127.0.0.1"
+      - "api.perma.test:127.0.0.1"
+      - "perma-archives.test:127.0.0.1"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  node_modules:
+  db_data:
