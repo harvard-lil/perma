@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import socket
 import os
-import subprocess
+# import subprocess
 import unittest
 import re
 import datetime
@@ -56,7 +56,7 @@ if REMOTE_SERVER_URL:
 else:
     BaseTestCase = StaticLiveServerTestCase
     assert socket.gethostbyname(LOCAL_SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + LOCAL_SERVER_DOMAIN + "` to your hosts file before running this test."
-    build_name += subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()  # pretty label for local jobs: datetime-git_branch
+    # build_name += subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()  # pretty label for local jobs: datetime-git_branch
 
 
 # (2) Configure Sauce vs. local PhantomJS browsers:
