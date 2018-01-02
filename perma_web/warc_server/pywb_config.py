@@ -6,8 +6,8 @@ import random
 import threading
 import re
 from urlparse import urljoin
-import traceback
 import requests
+import sys
 from django.db import close_old_connections
 from django.template import loader
 from django.test import RequestFactory
@@ -110,7 +110,12 @@ def handle_exception(self, env, exc, print_trace):
             extra = {'request':WSGIRequest(env)}
         except:
             extra = {}
-        logging.error(traceback.format_exc(exc), extra=extra)
+        # logger.error call based on django.core.handlers.exception.handle_uncaught_exception()
+        logger.error(
+            'Internal Server Error (pywb): %s', extra['request'].path if 'request' in extra else 'unknown path',
+            exc_info=sys.exc_info(),
+            extra=dict(extra, status_code=500),
+        )
 
     # handle custom errors
     if isinstance(exc, CustomTemplateException):
