@@ -1,0 +1,16 @@
+Uncaught JS Errors
+============================================
+ {% for error in errors %}
+    ----------------------------------------
+    {{ error.current_url }}
+    Created at: {{ error.created_at }}
+    Triggered by: {{ error.user }}
+    Message: {{ error.message }}
+    User agent: {{ error.user_agent }}
+
+    Stack trace:
+
+    {{ error.stack }}
+
+ {% endfor %}
+

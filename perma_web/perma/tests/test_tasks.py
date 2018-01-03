@@ -1,11 +1,12 @@
 from mock import patch
+from datetime import datetime
 
 from django.conf import settings
 from django.core import mail
 
 from django.test import TestCase, override_settings
-from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, cm_sync
-from perma.models import Link
+from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, cm_sync, send_js_errors
+from perma.models import Link, UncaughtError
 
 @override_settings(CELERY_ALWAYS_EAGER=True, UPLOAD_TO_INTERNET_ARCHIVE=True)
 class TaskTestCase(TestCase):
@@ -61,3 +62,22 @@ class TaskTestCase(TestCase):
         self.assertIn("20", message.body)
         # 30 skipped on purpose: duplicates not in email, on purpose!
         self.assertIn("40", message.body)
+
+    def test_send_js_errors(self):
+        response = send_js_errors()
+        self.assertFalse(response)
+        self.assertEqual(len(mail.outbox), 0)
+
+        UncaughtError.objects.create(
+            message="oh no!",
+            current_url="perma.cc/about",
+            created_at=datetime.now(),
+            stack="Bad error stacktrace",
+        ).save()
+
+        response = send_js_errors()
+        self.assertTrue(response)
+
+        message = mail.outbox[0]
+        self.assertIn("oh no!", message.body)
+        self.assertIn("Bad error stacktrace", message.body)

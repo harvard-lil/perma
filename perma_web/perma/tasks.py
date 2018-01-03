@@ -15,7 +15,7 @@ import os.path
 import threading
 import Queue as queue
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 import urlparse
 import re
 import json
@@ -48,7 +48,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.http import HttpRequest
 
-from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob, UncaughtError
 from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
@@ -1325,3 +1325,20 @@ def cm_sync():
                       'email/admin/sync_to_cm.txt',
                       {"reports": reports})
     return json.dumps(reports)
+
+
+@shared_task()
+def send_js_errors():
+    """
+    finds all uncaught JS errors recorded in the last week, sends a report if errors exist
+    """
+    errors = UncaughtError.objects.filter(
+        created_at__gte=datetime.now() - timedelta(days=7),
+        resolved=False)
+    if errors:
+        send_admin_email("Uncaught Javascript errors",
+                         settings.DEFAULT_FROM_EMAIL,
+                         HttpRequest(),
+                         'email/admin/js_errors.txt',
+                         {'errors': errors})
+        return errors

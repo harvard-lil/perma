@@ -37,6 +37,10 @@ def post_process_settings(settings):
             'task': 'perma.tasks.cm_sync',
             'schedule': crontab(hour='3'),
         },
+        'send-js-errors': {
+            'task': 'perma.tasks.send_js_errors',
+            'schedule': crontab(hour='10', day_of_week=1)
+        }
 
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
