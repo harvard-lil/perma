@@ -39,6 +39,13 @@ DATABASES = {
         'OPTIONS': _mysql_connection_options
     },
 }
+if os.environ.get('DOCKERIZED'):
+    DATABASES['default']['USER'] = 'root'
+    DATABASES['default']['PASSWORD'] = 'password'
+    DATABASES['default']['HOST'] = 'db'
+    DATABASES['perma-cdxline']['USER'] = 'root'
+    DATABASES['perma-cdxline']['PASSWORD'] = 'password'
+    DATABASES['perma-cdxline']['HOST'] = 'db'
 
 # https://docs.djangoproject.com/en/1.9/topics/db/multi-db/#using-routers
 DATABASE_ROUTERS = ['perma.cdx_router.CDXRouter']

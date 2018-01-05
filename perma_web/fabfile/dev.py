@@ -71,6 +71,10 @@ def test(apps=_default_tests, pytest=True):
 def test_python(apps=_default_tests, pytest=True):
     """ Run Python tests. """
 
+    # .pyc files can contain filepaths; this permits easy switching
+    # between a Vagrant- and Docker-based dev environment
+    local("find . -name '*.pyc' -delete")
+
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
     if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
@@ -131,6 +135,14 @@ def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
     local("tail -f %s/*" % log_dir)
 
+
+@task
+def create_db(host='localhost'):
+    local("mysql -uroot -p -h {} -e 'create database perma character set utf8;'".format(host))
+    local("mysql -uroot -p -h {} -e 'create database perma_cdxline character set utf8;'".format(host))
+    init_db()
+
+
 @task
 def init_db():
     """
@@ -141,7 +153,7 @@ def init_db():
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
 @task
-def reset_hard_db():
+def reset_hard_db(host='localhost'):
     """
         Drops the perma and perma_cdxline databases and creates and inits them again
         Let folks run this if they're not in Django's debug mode
@@ -153,8 +165,8 @@ def reset_hard_db():
     if not confirm("WARNING! You're about to drop the Perma.cc DBs. Continue anyway?"):
         abort("No DBs dropped. Aborted.")
 
-    local("mysql -uroot -p -e 'drop database perma; create database perma character set utf8;'")
-    local("mysql -uroot -p -e 'drop database perma_cdxline; create database perma_cdxline character set utf8;'")
+    local("mysql -uroot -p -h {} -e 'drop database perma; create database perma character set utf8;'".format(host))
+    local("mysql -uroot -p -h {} -e 'drop database perma_cdxline; create database perma_cdxline character set utf8;'".format(host))
     init_db()
 
 @task
