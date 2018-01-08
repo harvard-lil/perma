@@ -55,5 +55,5 @@ services:
 volumes:
   node_modules:
   db_data:
-  rabbitmq_home:
-  redis_data:
+  # rabbitmq_home:
+  # redis_data:
