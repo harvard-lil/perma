@@ -15,6 +15,7 @@ MEDIA_ROOT = '/perma/assets/generated'
 CELERYBEAT_JOB_NAMES = [
     'update-stats',
     'send-links-to-internet-archives',
+    'send-js-errors',
     ]
 
 # logging
