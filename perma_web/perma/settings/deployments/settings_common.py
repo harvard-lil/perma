@@ -369,7 +369,10 @@ CLOUDFLARE_DIR = os.path.join(SERVICES_DIR, 'cloudflare')
 CLIENT_IP_HEADER = 'REMOTE_ADDR'
 
 # Celery settings
-BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+if os.environ.get('DOCKERIZED'):
+    BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
+else:
+    BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

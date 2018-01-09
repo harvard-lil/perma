@@ -2,3 +2,4 @@
 !Dockerfile
 !requirements.txt
 !package.json
+!npm-shrinkwrap.json

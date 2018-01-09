@@ -28,8 +28,10 @@ RUN apt-get update \
 
 # npm
 COPY package.json /perma/perma_web
+COPY npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
-    && rm package.json
+    && rm package.json \
+    && rm npm-shrinkwrap.json
 
 
 # pip
