@@ -1192,21 +1192,21 @@ def delete_from_internet_archive(self, link_guid):
                 pass
 
     metadata = {
-        "description":"",
-        "contributor":"",
-        "sponsor":"",
-        "submitted_url":"",
-        "perma_url":"",
-        "title":"Removed",
-        "external-identifier":"",
-        "imagecount":"",
+        "description": "",
+        "contributor": "",
+        "sponsor": "",
+        "submitted_url": "",
+        "perma_url": "",
+        "title": "Removed",
+        "external-identifier": "",
+        "imagecount": "",
     }
 
     item.modify_metadata(
-            metadata,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-        )
+        metadata,
+        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+        secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+    )
 
     link.internet_archive_upload_status = 'deleted'
     link.save()
@@ -1216,9 +1216,11 @@ def upload_all_to_internet_archive():
     # find all links created 48-24 hours ago
     # include timezone
     start_date = timezone.now() - timedelta(days=2)
-    end_date   = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() - timedelta(days=1)
 
-    links = Link.objects.filter(Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed'), creation_timestamp__range=(start_date, end_date))
+    links = Link.objects.filter(
+        Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed'),
+        creation_timestamp__range=(start_date, end_date))
     for link in links:
         if link.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive.s(link_guid=link.guid))
@@ -1226,32 +1228,32 @@ def upload_all_to_internet_archive():
 
 @shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
+
     try:
         link = Link.objects.get(guid=link_guid)
 
         if link.internet_archive_upload_status == 'failed_permanently':
             return
 
-    except:
+    except Link.DoesNotExist:
         print "Link %s does not exist" % link_guid
         return
 
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
     if not link.can_upload_to_internet_archive():
-        print "Not eligible for upload."
+        print "Link %s Not eligible for upload." % link_guid
         return
 
     metadata = {
-        "collection":settings.INTERNET_ARCHIVE_COLLECTION,
-        "title":'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
-        "mediatype":'web',
-        "description":'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
-        "contributor":'Perma.cc',
-        "submitted_url":link.submitted_url,
-        "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
-        "external-identifier":'urn:X-perma:%s' % link_guid,
+        "collection": settings.INTERNET_ARCHIVE_COLLECTION,
+        "title": '%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
+        "mediatype": 'web',
+        "description": 'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
+        "contributor": 'Perma.cc',
+        "submitted_url": link.submitted_url,
+        "perma_url": "http://%s/%s" % (settings.HOST, link_guid),
+        "external-identifier": 'urn:X-perma:%s' % link_guid,
     }
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
@@ -1263,9 +1265,9 @@ def upload_to_internet_archive(self, link_guid):
             # ia won't update its metadata in upload function
             if item.exists and item.metadata['title'] == 'Removed':
                 item.modify_metadata(metadata,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
+                                     access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                                     )
 
             warc_name = os.path.basename(link.warc_storage_file())
 
@@ -1275,15 +1277,15 @@ def upload_to_internet_archive(self, link_guid):
             temp_warc_file.seek(0)
 
             success = internetarchive.upload(
-                            identifier,
-                            {warc_name:temp_warc_file},
-                            metadata=metadata,
-                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                            retries=10,
-                            retries_sleep=60,
-                            verbose=True,
-                        )
+                identifier,
+                {warc_name: temp_warc_file},
+                metadata=metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                retries=10,
+                retries_sleep=60,
+                verbose=True,
+            )
 
             if success:
                 link.internet_archive_upload_status = 'completed'
