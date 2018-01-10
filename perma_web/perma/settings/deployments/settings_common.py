@@ -420,6 +420,7 @@ THUMBNAIL_STORAGE_PATH = 'thumbnails'
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
+BULK_UPLOADS = False
 
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False
