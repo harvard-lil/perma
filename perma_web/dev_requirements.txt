@@ -8,4 +8,4 @@ pipdeptree                      # show full pip dependency tree with the 'pipdep
 # If you install, be on the lookout for oddities soon after and consider uninstalling.
 django-debug-toolbar==1.5     # if installed, debug-toolbar will be included in INSTALLED_APPS by settings_dev.py
 #django-extensions==1.7.8        # if installed, `fab run` will use `python manage.py runserver_plus`
--e git://github.com/django-extensions/django-extensions.git@26665e26#egg=django-extensions  # switch back post 1.7.8
+-e git+http://github.com/django-extensions/django-extensions.git@26665e26#egg=django-extensions  # switch back post 1.7.8
