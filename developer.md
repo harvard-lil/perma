@@ -230,7 +230,7 @@ On the development server, emails are dumped to the standard out courtesy of EMA
 
 ## Working with Celery
 
-Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. just like cron might).
+Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. Just like cron might).
 
 In your development environment (if you are not using Vagrant, where the celery service should be running by default), you probably want to start a dev version of Celery like this:
 
@@ -454,6 +454,28 @@ Now you can start and stop RabbitMQ as a service. Something like,
 If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
 
 	export MAGICK_HOME=/opt/local
+
+## Internet Archive
+
+For extra backup, we use Internet Archive for Perma archive storage.
+Here is an [example archive](https://archive.org/details/perma_cc_8XUF-4UEQ).
+
+It is important to note that we only store public archives on IA.  
+
+Links that are made private after they have been uploaded to Internet Archive are immediately removed from the site (this means that the WARC file no longer exists in IA, and all Perma-generated metadata, except for the identifier, gets removed. There are a few auto-generated fields that IA does not allow the deletion of, like Lastfiledate and Scandate). 
+
+A [Celery](#working-with-celery) background task is responsible for running nightly uploads of 24-48 hour old public links, and uploading them to Internet Archive.
+
+
+IA-related methods (like `upload_all_to_internet_archive` and `delete_from_internet_archive`) live in [tasks.py](perma_web/perma/tasks.py).
+
+In order to run these tasks, you will need to specify some keys in your settings.py:
+
+- INTERNET_ARCHIVE_COLLECTION (The name of the collection you want to upload to. `test_collection` is good for testing, as it gets deleted every so often by IA). 
+- UPLOAD_TO_INTERNET_ARCHIVE (True or False, whether to allow uploading)
+- INTERNET_ARCHIVE_IDENTIFIER_PREFIX (In our case, our prefix is perma_cc_ so that our archives are accessible through a URL like this: https://archive.org/detail/perma_cc_GUID)
+- INTERNET_ARCHIVE_ACCESS_KEY [click here to retrieve](https://archive.org/account/s3.php)
+- INTERNET_ARCHIVE_SECRET_KEY [click here to retrieve](https://archive.org/account/s3.php)
 
 ## Other bits
 

@@ -7998,6 +7998,7 @@ p a {
 }
 
 p a:hover {
+  color: #2D76EE;
   text-decoration: underline;
 }
 
