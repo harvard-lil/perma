@@ -15,7 +15,7 @@ from perma.models import Folder, CaptureJob, Link, Capture, Organization
 
 from .utils import TastypiePagination, load_parent, raise_validation_error
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
-    LinkUserSerializer, OrganizationSerializer
+    LinkUserSerializer, OrganizationSerializer, BatchSerializer
 
 
 ### BASE VIEW ###
@@ -515,4 +515,33 @@ class LinkUserView(BaseView):
         """ Get current user details. """
         serializer = self.serializer_class(request.user)
         return Response(serializer.data)
+
+
+### BATCH ###
+
+# /batches
+class BatchesListView(BaseView):
+    serializer_class = BatchSerializer
+
+    def get(self, request, format=None):
+        """ List batches for user. """
+        queryset = Batch.objects.filter(created_by=request.user)
+        return self.simple_list(request, queryset)
+
+    def post(self, request, format=None):
+        """ Create batch. """
+        request.data['created_by'] = request.user.pk
+        serializer = self.serializer_class(data=request.data, context={'request': self.request})
+        if serializer.is_valid():
+            serializer.save(created_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        raise ValidationError(serializer.errors)
+
+# /batches/:id
+class BatchesDetailView(BaseView):
+    serializer_class = BatchSerializer
+
+    def get(self, request, pk, format=None):
+        """ Single batch details. """
+        return self.simple_get(request, pk)
 
