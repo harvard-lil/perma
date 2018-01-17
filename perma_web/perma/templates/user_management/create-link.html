@@ -40,6 +40,10 @@
               Create Perma Link
           </button>
 
+          {% if BULK_UPLOADS %}
+          <p id="batch-links">or <a href="#">create multiple links</a></p>
+          {% endif %}
+
           {% if request.user.has_limit %}
             <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs_perma_link_creation' %}#preservation-limits">Learn more about accounts</a>.</p>
           {% else %}

@@ -2725,6 +2725,38 @@ figcaption + .img-responsive {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
   }
+  #batch-links {
+    clear: both;
+    text-align: right;
+    float: left;
+    width: 100%;
+    max-width: none;
+  }
+  #batch-links {
+    font-family: $font-hed-alt;
+    font-size: 16px;
+    font-weight: 200;
+    @include respond-desktop {
+      font-size: 18px;
+      font-weight: 200;
+    }
+  }
+  #batch-links {
+    margin-top: 0;
+    margin-bottom: -$grid;
+    font-family: $font-hed-alt;
+  }
+  #batch-links {
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      &:hover {
+        color: $color-hover;
+        text-decoration: none;
+      }
+    }
+  }
 
 }
 
