@@ -77,7 +77,7 @@
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
         <div class="dropdown">
-          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Sort <span class="caret"></span></a>
+          <a role="button" data-toggle="dropdown" href="/page.html">Sort <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
             <li>
               <a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
@@ -96,7 +96,7 @@
 
         {% if request.user.is_staff and group_name == 'user' %}
           <div class="dropdown">
-            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Upgrade interest <span class="caret"></span></a>
+            <a role="button" data-toggle="dropdown" href="/page.html">Upgrade interest <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
               <li>
                 <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i class="icon-ok"></i> Court</a>
@@ -109,7 +109,7 @@
         {% endif %}
 
         <div class="dropdown">
-          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Status <span class="caret"></span></a>
+          <a role="button" data-toggle="dropdown" href="/page.html">Status <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
             <li>
               <a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
@@ -124,7 +124,7 @@
         {% if request.user.is_staff or request.user.is_registrar_user %}
           {% if group_name == 'organization_user' %}
             <div class="dropdown">
-              <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Organization <span class="caret"></span></a>
+              <a role="button" data-toggle="dropdown" href="/page.html">Organization <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                 <li>
                 {% if orgs %}
@@ -147,7 +147,7 @@
         {% if request.user.is_staff %}
           {% if not group_name == 'user' and not group_name == 'admin_user' %}
           <div class="dropdown">
-            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Registrar <span class="caret"></span></a>
+            <a role="button" data-toggle="dropdown" href="/page.html">Registrar <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
               <li>
                 {% if registrars %}
