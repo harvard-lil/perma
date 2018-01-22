@@ -1029,6 +1029,24 @@
       "resolved": "https://registry.npmjs.org/d/-/d-0.1.1.tgz",
       "dev": true
     },
+    "d3": {
+      "version": "3.5.17",
+      "from": "d3@>=3.5.6 <4.0.0",
+      "resolved": "https://registry.npmjs.org/d3/-/d3-3.5.17.tgz",
+      "dev": true
+    },
+    "d3-geo-projection": {
+      "version": "0.2.16",
+      "from": "d3-geo-projection@>=0.2.0 <0.3.0",
+      "resolved": "https://registry.npmjs.org/d3-geo-projection/-/d3-geo-projection-0.2.16.tgz",
+      "dev": true
+    },
+    "d3-queue": {
+      "version": "2.0.3",
+      "from": "d3-queue@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/d3-queue/-/d3-queue-2.0.3.tgz",
+      "dev": true
+    },
     "dashdash": {
       "version": "1.14.0",
       "from": "dashdash@>=1.12.0 <2.0.0",
@@ -1042,6 +1060,12 @@
           "dev": true
         }
       }
+    },
+    "datamaps": {
+      "version": "0.5.8",
+      "from": "datamaps@>=0.5.8 <0.6.0",
+      "resolved": "https://registry.npmjs.org/datamaps/-/datamaps-0.5.8.tgz",
+      "dev": true
     },
     "date-now": {
       "version": "0.1.4",
@@ -1311,12 +1335,6 @@
       "version": "2.0.2",
       "from": "esutils@>=2.0.2 <3.0.0",
       "resolved": "https://registry.npmjs.org/esutils/-/esutils-2.0.2.tgz",
-      "dev": true
-    },
-    "eve": {
-      "version": "0.5.0",
-      "from": "eve@0.5.0",
-      "resolved": "https://registry.npmjs.org/eve/-/eve-0.5.0.tgz",
       "dev": true
     },
     "eventemitter3": {
@@ -2147,9 +2165,9 @@
       "optional": true
     },
     "jquery": {
-      "version": "2.2.4",
-      "from": "jquery@<3.0.0",
-      "resolved": "https://registry.npmjs.org/jquery/-/jquery-2.2.4.tgz",
+      "version": "3.3.1",
+      "from": "jquery@3.3.1",
+      "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz",
       "dev": true
     },
     "jquery-form": {
@@ -3339,12 +3357,6 @@
       "resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.2.0.tgz",
       "dev": true
     },
-    "raphael": {
-      "version": "2.2.6",
-      "from": "raphael@>=2.2.6 <3.0.0",
-      "resolved": "https://registry.npmjs.org/raphael/-/raphael-2.2.6.tgz",
-      "dev": true
-    },
     "raw-body": {
       "version": "2.1.7",
       "from": "raw-body@>=2.1.7 <2.2.0",
@@ -3577,6 +3589,12 @@
       "resolved": "https://registry.npmjs.org/ripemd160/-/ripemd160-0.2.0.tgz",
       "dev": true
     },
+    "rw": {
+      "version": "1.3.3",
+      "from": "rw@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/rw/-/rw-1.3.3.tgz",
+      "dev": true
+    },
     "sass-graph": {
       "version": "2.1.2",
       "from": "sass-graph@>=2.1.1 <3.0.0",
@@ -3664,6 +3682,32 @@
       "from": "shallow-copy@>=0.0.1 <0.1.0",
       "resolved": "https://registry.npmjs.org/shallow-copy/-/shallow-copy-0.0.1.tgz",
       "dev": true
+    },
+    "shapefile": {
+      "version": "0.3.1",
+      "from": "shapefile@>=0.3.0 <0.4.0",
+      "resolved": "https://registry.npmjs.org/shapefile/-/shapefile-0.3.1.tgz",
+      "dev": true,
+      "dependencies": {
+        "d3-queue": {
+          "version": "1.2.3",
+          "from": "d3-queue@>=1.0.0 <2.0.0",
+          "resolved": "https://registry.npmjs.org/d3-queue/-/d3-queue-1.2.3.tgz",
+          "dev": true
+        },
+        "iconv-lite": {
+          "version": "0.2.11",
+          "from": "iconv-lite@>=0.2.0 <0.3.0",
+          "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.2.11.tgz",
+          "dev": true
+        },
+        "optimist": {
+          "version": "0.3.7",
+          "from": "optimist@0.3",
+          "resolved": "https://registry.npmjs.org/optimist/-/optimist-0.3.7.tgz",
+          "dev": true
+        }
+      }
     },
     "sigmund": {
       "version": "1.0.1",
@@ -4062,6 +4106,20 @@
       "from": "to-fast-properties@>=1.0.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/to-fast-properties/-/to-fast-properties-1.0.2.tgz",
       "dev": true
+    },
+    "topojson": {
+      "version": "1.6.27",
+      "from": "topojson@>=1.6.19 <2.0.0",
+      "resolved": "https://registry.npmjs.org/topojson/-/topojson-1.6.27.tgz",
+      "dev": true,
+      "dependencies": {
+        "optimist": {
+          "version": "0.3.7",
+          "from": "optimist@>=0.3.0 <0.4.0",
+          "resolved": "https://registry.npmjs.org/optimist/-/optimist-0.3.7.tgz",
+          "dev": true
+        }
+      }
     },
     "tough-cookie": {
       "version": "2.3.2",
