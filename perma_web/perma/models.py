@@ -908,10 +908,13 @@ class Link(DeletableModel):
         return format_date_time(mktime(self.creation_timestamp.timetuple()))
 
 
+    def get_default_title(self):
+        return self.url_details.netloc
+
     def save(self, *args, **kwargs):
         # Set a default title if one is missing
         if not self.submitted_title:
-            self.submitted_title = self.url_details.netloc
+            self.submitted_title = self.get_default_title()
 
         initial_folder = kwargs.pop('initial_folder', None)
 
