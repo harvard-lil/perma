@@ -793,7 +793,7 @@ def save_favicons(link, successful_favicon_urls):
             status='success',
             record_type='response',
             url=successful_favicon_urls[0][0],
-            content_type=successful_favicon_urls[0][1]
+            content_type=successful_favicon_urls[0][1].lower()
         ).save()
         print "Saved favicons %s" % successful_favicon_urls
 
@@ -959,7 +959,7 @@ def run_next_capture():
 
                         have_content = True
                         content_url = response.url
-                        content_type = response.parsed_response.headers.get('content-type')
+                        content_type = response.parsed_response.headers.get('content-type').lower()
                         robots_directives = response.parsed_response.headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')
                         break
