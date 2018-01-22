@@ -528,10 +528,13 @@ def get_metadata(page_metadata, dom_tree):
     """
         Retrieve html page metadata.
     """
-    page_metadata.update({
-        'meta_tags': get_meta_tags(dom_tree),
-        'title': get_title(dom_tree)
-    })
+    if page_metadata.get('title'):
+        page_metadata['meta_tags'] = get_meta_tags(dom_tree)
+    else:
+        page_metadata.update({
+            'meta_tags': get_meta_tags(dom_tree),
+            'title': get_title(dom_tree)
+        })
 
 def get_meta_tags(dom_tree):
     """
@@ -849,6 +852,13 @@ def run_next_capture():
         page_metadata = {}
         successful_favicon_urls = []
         requested_urls = set()  # all URLs we have requested -- used to avoid duplicate requests
+
+        # A default title is added in models.py, if an api user has not specified a title.
+        # Make sure not to override it during the capture process.
+        if not link.submitted_title.startswith("http"):
+            page_metadata = {
+                'title': link.submitted_title
+            }
 
         # Get started, unless the user has deleted the capture in the meantime
         inc_progress(capture_job, 0, "Starting capture")

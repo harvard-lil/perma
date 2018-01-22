@@ -910,6 +910,9 @@ class Link(DeletableModel):
 
     def save(self, *args, **kwargs):
         # Set a default title if one is missing
+        #
+        # N.B: if you change this default, be sure to update the
+        # title-setting logic in tasks.py to match
         if not self.submitted_title:
             self.submitted_title = self.url_details.netloc
 
