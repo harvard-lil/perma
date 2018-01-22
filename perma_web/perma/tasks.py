@@ -855,7 +855,7 @@ def run_next_capture():
 
         # A default title is added in models.py, if an api user has not specified a title.
         # Make sure not to override it during the capture process.
-        if link.submitted_title.startswith("http"):
+        if not link.submitted_title.startswith("http"):
             page_metadata = {
                 'title': link.submitted_title
             }
