@@ -524,13 +524,13 @@ def xrobots_blacklists_perma(robots_directives):
 
 # page metadata
 
-def get_metadata(page_metadata, dom_tree):
+def get_metadata(page_metadata, dom_tree, user_submitted_title):
     """
         Retrieve html page metadata.
     """
     page_metadata.update({
         'meta_tags': get_meta_tags(dom_tree),
-        'title': get_title(dom_tree)
+        'title': user_submitted_title or get_title(dom_tree)
     })
 
 def get_meta_tags(dom_tree):
@@ -843,6 +843,7 @@ def run_next_capture():
         start_time = time.time()
         link = capture_job.link
         target_url = link.ascii_safe_url
+        user_submitted_title = link.submitted_title
         browser = warcprox_controller = warcprox_thread = display = screenshot = None
         have_content = have_html = False
         thread_list = []
@@ -998,7 +999,7 @@ def run_next_capture():
             # long time, and might even crash the browser)
             print("Retrieving DOM (pre-onload)")
             dom_tree = get_dom_tree(browser)
-            get_metadata(page_metadata, dom_tree)
+            get_metadata(page_metadata, dom_tree, user_submitted_title)
 
             # get favicon urls (saved as favicon_capture_url later)
             with browser_running(browser):
@@ -1028,7 +1029,7 @@ def run_next_capture():
             # Get a fresh copy of the page's metadata, if possible.
             print("Retrieving DOM (post-onload)")
             dom_tree = get_dom_tree(browser)
-            get_metadata(page_metadata, dom_tree)
+            get_metadata(page_metadata, dom_tree, user_submitted_title)
 
             with browser_running(browser):
                 inc_progress(capture_job, 0.5, "Checking for scroll-loaded assets")
