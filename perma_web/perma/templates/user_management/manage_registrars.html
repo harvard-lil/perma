@@ -65,7 +65,7 @@
 
           <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
             <li>
-              <a {% if status == 'approved' %}class="selected" {% endif %}href="?{% current_query_string page='' status="approve" %}"><i class="icon-ok"></i> Approved</a>
+              <a {% if status == 'approved' %}class="selected" {% endif %}href="?{% current_query_string page='' status="approved" %}"><i class="icon-ok"></i> Approved</a>
               <a {% if status == 'pending' %}class="selected" {% endif %}href="?{% current_query_string page='' status="pending" %}"><i class="icon-ok"></i> Needs approval</a>
               <a {% if status == 'denied' %}class="selected" {% endif %}href="?{% current_query_string page='' status="denied" %}"><i class="icon-ok"></i> Denied</a>
             </li>
