@@ -3,7 +3,7 @@
   <head>
     <title>Perma.cc{% block title %}{% endblock %}</title>
 
-    {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
+    <!-- currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 -->
     <meta http-equiv="x-ua-compatible" content="IE=edge">
 
     <meta charset="utf-8">
@@ -29,7 +29,7 @@
     <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
     {% render_bundle 'global-styles' 'css' %}
 
-    {# Python variables for use in Javascript #}
+    <!--Python variables for use in Javascript -->
     {% include 'js_config.html' %}
 
     {% block header_scripts %}{% endblock %}
