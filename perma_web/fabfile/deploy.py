@@ -141,16 +141,18 @@ def maintenance_mode_on():
     """
         Enable maintenance mode.
 
-        (Nginx sees maintenance_on.html and routes all requests to that file.)
+        Nginx looks for the file `maintenance_on` and, when present,
+        renders `custom.html` (if present) or `maintenance.html`,
+        for all visitors except those on the VPN.
     """
-    run_as_web_user("cp static/maintenance/maintenance.html static/maintenance/maintenance_on.html ")
+    run_as_web_user("touch static/maintenance/maintenance_on ")
 
 @task
 def maintenance_mode_off():
     """
         Disable maintenance mode.
     """
-    run_as_web_user("rm static/maintenance/maintenance_on.html ")
+    run_as_web_user("rm static/maintenance/maintenance_on ")
 
 @task
 def backup_database():
