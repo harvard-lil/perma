@@ -77,8 +77,8 @@
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
         <div class="dropdown">
-          <a role="button" data-toggle="dropdown" href="/page.html">Sort <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <button class="btn-transparent" role="button" data-toggle="dropdown">Sort <span class="caret"></span></button>
+          <ul class="dropdown-menu" role="menu">
             <li>
               <a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
               <a {% if sort == '-last_name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_name" %}"><i class="icon-ok"></i> Last name Z - A</a>
@@ -96,8 +96,8 @@
 
         {% if request.user.is_staff and group_name == 'user' %}
           <div class="dropdown">
-            <a role="button" data-toggle="dropdown" href="/page.html">Upgrade interest <span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <button class="btn-transparent" role="button" data-toggle="dropdown">Upgrade interest <span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu">
               <li>
                 <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i class="icon-ok"></i> Court</a>
                 <a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
@@ -109,8 +109,8 @@
         {% endif %}
 
         <div class="dropdown">
-          <a role="button" data-toggle="dropdown" href="/page.html">Status <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <button class="btn-transparent" role="button" data-toggle="dropdown">Status <span class="caret"></span></button>
+          <ul class="dropdown-menu" role="menu">
             <li>
               <a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
               {% if request.user.is_staff and group_name|slice:"-4:" == 'user' %}
@@ -124,8 +124,8 @@
         {% if request.user.is_staff or request.user.is_registrar_user %}
           {% if group_name == 'organization_user' %}
             <div class="dropdown">
-              <a role="button" data-toggle="dropdown" href="/page.html">Organization <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+              <button class="btn-transparent" role="button" data-toggle="dropdown">Organization <span class="caret"></span></button>
+              <ul class="dropdown-menu" role="menu">
                 <li>
                 {% if orgs %}
                   {% for org in orgs %}
@@ -147,8 +147,8 @@
         {% if request.user.is_staff %}
           {% if not group_name == 'user' and not group_name == 'admin_user' %}
           <div class="dropdown">
-            <a role="button" data-toggle="dropdown" href="/page.html">Registrar <span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <button class="btn-transparent" role="button" data-toggle="dropdown">Registrar <span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu">
               <li>
                 {% if registrars %}
                   {% for registrar in registrars %}
