@@ -1031,7 +1031,7 @@ class Link(DeletableModel):
     #             if self.screenshot_capture and self.screenshot_capture.status == 'success':
     #                 warc_url = self.screenshot_capture.url
     #             else:
-    #                 pdf_capture = self.captures.filter(content_type__startswith='application/pdf').first()
+    #                 pdf_capture = self.captures.filter(content_type__istartswith='application/pdf').first()
     #                 if pdf_capture:
     #                     warc_url = pdf_capture.url
     #
@@ -1204,13 +1204,20 @@ class Capture(models.Model):
         """ Replay this capture through pywb. Returns a werkzeug BaseResponse object. """
         return self.link.replay_url(self.url)
 
+    def mime_type(self):
+        """
+            Return normalized mime type from content_type.
+            Stuff after semicolon is stripped, type is lowercased, and x- prefix is removed.
+        """
+        return self.content_type.split(";", 1)[0].lower().replace('/x-', '/')
+
     def use_sandbox(self):
         """
             Whether the iframe we use to display this capture should be sandboxed.
             Answer is yes unless we're playing back a PDF, which currently can't
             be sandboxed in Chrome.
         """
-        return not self.content_type.startswith("application/pdf")
+        return not self.mime_type().startswith("application/pdf")
 
     INLINE_TYPES = {'image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'text/html', 'text/plain', 'application/pdf',
                     'application/xhtml', 'application/xhtml+xml'}
@@ -1221,13 +1228,6 @@ class Capture(models.Model):
             True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image).
         """
         return self.mime_type() not in self.INLINE_TYPES
-
-    def mime_type(self):
-        """
-            Return normalized mime type from content_type.
-            Stuff after semicolon is stripped, type is lowercased, and x- prefix is removed.
-        """
-        return self.content_type.split(";", 1)[0].lower().replace('/x-', '/')
 
     def url_fragment(self):
         return ("id_/" if self.record_type == 'resource' else "") + self.url
