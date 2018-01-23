@@ -141,8 +141,9 @@ def maintenance_mode_on():
     """
         Enable maintenance mode.
 
-        (Nginx looks for the file maintenance_on and, when present,
-         routes all requests to maintenance.html)
+        Nginx looks for the file `maintenance_on` and, when present,
+        renders `custom.html` (if present) or `maintenance.html`,
+        for all visitors except those on the VPN.
     """
     run_as_web_user("touch static/maintenance/maintenance_on ")
 
