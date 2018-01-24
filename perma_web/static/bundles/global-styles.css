@@ -12924,6 +12924,12 @@ span.action [class*=" icon-"] {
   }
 }
 
+.sort-filter-bar button {
+  padding: 0px;
+  background: transparent;
+  border: 0px;
+}
+
 .btn-transparent {
   padding: 0px;
   background: transparent;

@@ -301,8 +301,7 @@ webpackJsonp([1],[
 	  // Content fetcher.
 	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
 	  function getNextContents() {
-	    // debugger;
-	    APIModule.request("GET", endpoint, requestData).then(function (response) {
+	    APIModule.request("GET", endpoint, requestData).done(function (response) {
 	      showLoadingMessage = false;
 	      var links = response.objects.map(generateLinkFields.bind(this, query));
 	
@@ -509,7 +508,7 @@ webpackJsonp([1],[
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(375);
+	exports.f = __webpack_require__(52);
 
 /***/ },
 /* 60 */
@@ -535,28 +534,28 @@ webpackJsonp([1],[
 	// ECMAScript 6 symbols shim
 	var global         = __webpack_require__(19)
 	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(372)
+	  , DESCRIPTORS    = __webpack_require__(27)
 	  , $export        = __webpack_require__(18)
 	  , redefine       = __webpack_require__(32)
 	  , META           = __webpack_require__(63).KEY
 	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(366)
+	  , shared         = __webpack_require__(47)
 	  , setToStringTag = __webpack_require__(51)
 	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(375)
+	  , wks            = __webpack_require__(52)
 	  , wksExt         = __webpack_require__(59)
 	  , wksDefine      = __webpack_require__(64)
 	  , keyOf          = __webpack_require__(65)
 	  , enumKeys       = __webpack_require__(66)
 	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(370)
+	  , anObject       = __webpack_require__(24)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(374)
+	  , toPrimitive    = __webpack_require__(30)
 	  , createDesc     = __webpack_require__(31)
 	  , _create        = __webpack_require__(36)
 	  , gOPNExt        = __webpack_require__(70)
 	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(369)
+	  , $DP            = __webpack_require__(23)
 	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
@@ -759,7 +758,7 @@ webpackJsonp([1],[
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(368)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -774,7 +773,7 @@ webpackJsonp([1],[
 	var META     = __webpack_require__(48)('meta')
 	  , isObject = __webpack_require__(25)
 	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(369).f
+	  , setDesc  = __webpack_require__(23).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
@@ -833,7 +832,7 @@ webpackJsonp([1],[
 	  , core           = __webpack_require__(8)
 	  , LIBRARY        = __webpack_require__(17)
 	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(369).f;
+	  , defineProperty = __webpack_require__(23).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -888,15 +887,7 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// 7.2.2 IsArray(argument)
-	var cof = __webpack_require__(42);
-	module.exports = Array.isArray || function isArray(arg){
-	  return cof(arg) == 'Array';
-	};
-
-/***/ },
+[310, 42],
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -940,12 +931,12 @@ webpackJsonp([1],[
 	var pIE            = __webpack_require__(68)
 	  , createDesc     = __webpack_require__(31)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(374)
+	  , toPrimitive    = __webpack_require__(30)
 	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(371)
+	  , IE8_DOM_DEFINE = __webpack_require__(26)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(372) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -10631,23 +10622,23 @@ webpackJsonp([1],[
 /* 109 */
 8,
 /* 110 */
-[381, 111, 119, 115],
+[316, 111, 119, 115],
 /* 111 */
-[382, 112, 114, 118, 115],
+[317, 112, 114, 118, 115],
 /* 112 */
-[383, 113],
+[318, 113],
 /* 113 */
 25,
 /* 114 */
-[384, 115, 116, 117],
+[319, 115, 116, 117],
 /* 115 */
-[385, 116],
+[320, 116],
 /* 116 */
 28,
 /* 117 */
-[386, 113, 108],
+[321, 113, 108],
 /* 118 */
-[387, 113],
+[322, 113],
 /* 119 */
 31,
 /* 120 */
@@ -10692,7 +10683,7 @@ webpackJsonp([1],[
 /* 122 */
 48,
 /* 123 */
-[380, 124],
+[315, 124],
 /* 124 */
 21,
 /* 125 */
@@ -10745,15 +10736,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 126 */
-[377, 127],
+[312, 127],
 /* 127 */
 42,
 /* 128 */
-[376, 129],
+[311, 129],
 /* 129 */
 15,
 /* 130 */
-[378, 131],
+[313, 131],
 /* 131 */
 14,
 /* 132 */
@@ -10791,9 +10782,9 @@ webpackJsonp([1],[
 /* 134 */
 [310, 127],
 /* 135 */
-[388, 136, 122, 108],
+[323, 136, 122, 108],
 /* 136 */
-[379, 108],
+[314, 108],
 /* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11141,8 +11132,8 @@ webpackJsonp([1],[
 	    $(this).ajaxSubmit({
 	      url: api_path + "/archives/",
 	      data: extraUploadData,
-	      then: uploadIt,
-	      catch: uploadNot
+	      success: uploadIt,
+	      error: uploadNot
 	    });
 	    return false;
 	  });
@@ -11166,7 +11157,7 @@ webpackJsonp([1],[
 	    // Start our spinner and disable our input field with just a tiny delay
 	    window.setTimeout(toggleCreateAvailable, 150);
 	
-	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).then(linkIt);
+	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).done(linkIt);
 	
 	    return false;
 	  });
@@ -11188,7 +11179,7 @@ webpackJsonp([1],[
 	  var $organization_select = $("#organization_select");
 	
 	  // populate organization dropdown
-	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).then(function (data) {
+	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).done(function (data) {
 	
 	    var sorted = [];
 	    (0, _keys2.default)(data.objects).sort(function (a, b) {
