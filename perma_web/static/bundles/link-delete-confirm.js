@@ -6,7 +6,7 @@ webpackJsonp([5],[
 	
 	var APIModule = __webpack_require__(78);
 	
-	$(document).ready(function () {
+	$(function () {
 	  $('button.delete-confirm').click(function () {
 	    var $this = $(this),
 	        prev_text = $this.text();
