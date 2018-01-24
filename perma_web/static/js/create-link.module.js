@@ -81,7 +81,7 @@ function uploadNot (jqXHR) {
     response;
 
   try {
-    response = jQuery.parseJSON(jqXHR.responseText);
+    response = JSON.parse(jqXHR.responseText);
   } catch (e) {
     reasons = [jqXHR.responseText];
   }
