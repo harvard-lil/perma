@@ -1,6 +1,6 @@
 var APIModule = require('./helpers/api.module.js');
 
-$(document).ready(function(){
+$(function(){
   $('button.delete-confirm').click(function(){
     var $this = $(this),
       prev_text = $this.text();
