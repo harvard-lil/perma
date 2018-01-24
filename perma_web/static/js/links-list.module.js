@@ -125,36 +125,37 @@ function showFolderContents (folderID, query) {
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
-    APIModule.request("GET", endpoint, requestData).success(function (response) {
-      showLoadingMessage = false;
-      var links = response.objects.map(generateLinkFields.bind(this, query));
+    APIModule.request("GET", endpoint, requestData)
+        .done(function (response) {
+          showLoadingMessage = false;
+          var links = response.objects.map(generateLinkFields.bind(this, query));
 
-      // append HTML
-      if(requestData.offset === 0) {
-        // first run -- initialize folder
-        DOMHelpers.emptyElement(linkTable);
-      }else{
-        // subsequent run -- appending to folder
-        var linksLoadingMore = linkTable.find('.links-loading-more');
-        DOMHelpers.removeElement(linksLoadingMore);
-        if(!links.length)
-          return;
-      }
+          // append HTML
+          if(requestData.offset === 0) {
+            // first run -- initialize folder
+            DOMHelpers.emptyElement(linkTable);
+          } else {
+            // subsequent run -- appending to folder
+            var linksLoadingMore = linkTable.find('.links-loading-more');
+            DOMHelpers.removeElement(linksLoadingMore);
+            if(!links.length)
+              return;
+          }
 
-      displayLinks(links, query);
+        displayLinks(links, query);
 
-      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
-      // Set a waypoint event to trigger when the last link comes into view.
-      if(links.length == requestCount){
-        requestData.offset += requestCount;
-        linkTable.find('.item-container:last').waypoint(function(direction) {
-          this.destroy();  // cancel waypoint
-          linkTable.append('<div class="links-loading-more">Loading more ...</div>');
-          getNextContents();
-        }, {
-          offset:'100%'  // trigger waypoint when element hits bottom of window
-        });
-      }
+        // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
+        // Set a waypoint event to trigger when the last link comes into view.
+        if(links.length == requestCount){
+          requestData.offset += requestCount;
+          linkTable.find('.item-container:last').waypoint(function(direction) {
+            this.destroy();  // cancel waypoint
+            linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+            getNextContents();
+          }, {
+            offset:'100%'  // trigger waypoint when element hits bottom of window
+          });
+        }
     });
   }
   getNextContents();

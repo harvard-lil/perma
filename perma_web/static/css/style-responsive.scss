@@ -4246,6 +4246,7 @@ span.action {
   strong {
     display: none;
   }
+
   .dropdown {
     float: left;
     margin-right: $double;
@@ -4296,13 +4297,24 @@ span.action {
       }
     }
   }
+  button {
+    padding: 0px;
+    background: transparent;
+    border: 0px;
+  }
+}
+
+.btn-transparent {
+    padding: 0px;
+    background: transparent;
+    border: 0px;
 }
 
 .sort-filter-bar .dropdown {
   padding-top: 1px;
   font-family: $font-hed-alt;
-  a[role='button']:hover,
-  a[role='button']:focus {
+  button:hover,
+  button:focus {
     color: $color-hover;
   }
   @include respond-desktop {
@@ -4346,7 +4358,7 @@ span.action {
   visibility: visible;
 }
 
-.dropdown a .caret {
+.dropdown button .caret {
   border-color: $color-blue transparent;
   margin-bottom: 2px;
 }

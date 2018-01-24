@@ -301,7 +301,7 @@ webpackJsonp([1],[
 	  // Content fetcher.
 	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
 	  function getNextContents() {
-	    APIModule.request("GET", endpoint, requestData).success(function (response) {
+	    APIModule.request("GET", endpoint, requestData).done(function (response) {
 	      showLoadingMessage = false;
 	      var links = response.objects.map(generateLinkFields.bind(this, query));
 	
@@ -10812,7 +10812,7 @@ webpackJsonp([1],[
 /* 145 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($, jQuery) {'use strict';
+	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -10914,7 +10914,7 @@ webpackJsonp([1],[
 	      response;
 	
 	  try {
-	    response = jQuery.parseJSON(jqXHR.responseText);
+	    response = JSON.parse(jqXHR.responseText);
 	  } catch (e) {
 	    reasons = [jqXHR.responseText];
 	  }
@@ -10966,16 +10966,16 @@ webpackJsonp([1],[
 	  // Get our spinner going and display a "we're working" message
 	  var $addlink = $('#addlink');
 	  if ($addlink.hasClass('_isWorking')) {
-	    $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+	    $addlink.html('Create Perma Link').prop('disabled', false).removeClass('_isWorking');
 	    spinner.stop();
-	    $('#rawUrl, #organization_select_form button').removeAttr('disabled');
+	    $('#rawUrl, #organization_select_form button').prop('disabled', false);
 	    $('#links-remaining-message').removeClass('_isWorking');
 	  } else {
-	    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
+	    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').prop('disabled', true).addClass('_isWorking');
 	    // spinner opts -- see http://spin.js.org/
 	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
 	    spinner.spin($addlink[0]);
-	    $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
+	    $('#rawUrl, #organization_select_form button').prop('disabled', true);
 	    $('#links-remaining-message').addClass('_isWorking');
 	  }
 	}
@@ -11049,15 +11049,15 @@ webpackJsonp([1],[
 	
 	  // if user has organizations available but hasn't picked one yet, require them to pick
 	  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
-	    $('#addlink').attr('disabled', 'disabled');
+	    $('#addlink').prop('disabled', true);
 	    return;
 	  }
 	
 	  // disable button if user is out of links
 	  if (!currentOrg && links_remaining < 1) {
-	    $('#addlink').attr('disabled', 'disabled');
+	    $('#addlink').prop('disabled', true);
 	  } else {
-	    $('#addlink').removeAttr('disabled');
+	    $('#addlink').prop('disabled', false);
 	  }
 	
 	  // UI indications that links saved to current org will default to private
@@ -11157,7 +11157,7 @@ webpackJsonp([1],[
 	    // Start our spinner and disable our input field with just a tiny delay
 	    window.setTimeout(toggleCreateAvailable, 150);
 	
-	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).success(linkIt);
+	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).done(linkIt);
 	
 	    return false;
 	  });
@@ -11179,7 +11179,7 @@ webpackJsonp([1],[
 	  var $organization_select = $("#organization_select");
 	
 	  // populate organization dropdown
-	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).success(function (data) {
+	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).done(function (data) {
 	
 	    var sorted = [];
 	    (0, _keys2.default)(data.objects).sort(function (a, b) {
@@ -11223,7 +11223,7 @@ webpackJsonp([1],[
 	  setupEventHandlers();
 	  populateWithUrl();
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 146 */

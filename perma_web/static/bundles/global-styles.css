@@ -12924,13 +12924,25 @@ span.action [class*=" icon-"] {
   }
 }
 
+.sort-filter-bar button {
+  padding: 0px;
+  background: transparent;
+  border: 0px;
+}
+
+.btn-transparent {
+  padding: 0px;
+  background: transparent;
+  border: 0px;
+}
+
 .sort-filter-bar .dropdown {
   padding-top: 1px;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
-.sort-filter-bar .dropdown a[role='button']:hover,
-.sort-filter-bar .dropdown a[role='button']:focus {
+.sort-filter-bar .dropdown button:hover,
+.sort-filter-bar .dropdown button:focus {
   color: #0092FF;
 }
 
@@ -12982,7 +12994,7 @@ span.action [class*=" icon-"] {
   visibility: visible;
 }
 
-.dropdown a .caret {
+.dropdown button .caret {
   border-color: #2D76EE transparent;
   margin-bottom: 2px;
 }

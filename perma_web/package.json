@@ -31,7 +31,7 @@
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "^1.14.5",
-    "jquery": "<3",
+    "jquery": "^3.3.1",
     "jquery-form": "^3.50.0",
     "jquery-ui": "^1.12.1",
     "jstree": "^3.3.2",
