@@ -351,7 +351,7 @@ function setupEventHandlers () {
     // Start our spinner and disable our input field with just a tiny delay
     window.setTimeout(toggleCreateAvailable, 150);
 
-    APIModule.request("POST", "/archives/", linker_data, {error: linkNot}).success(linkIt);
+    APIModule.request("POST", "/archives/", linker_data, {error: linkNot}).done(linkIt);
 
     return false;
   });
@@ -374,7 +374,7 @@ export function init () {
 
   // populate organization dropdown
   APIModule.request("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
-    .success(function(data) {
+    .done(function(data) {
 
       var sorted = [];
       Object.keys(data.objects).sort(function(a,b){
