@@ -133,16 +133,16 @@ function toggleCreateAvailable() {
   // Get our spinner going and display a "we're working" message
   var $addlink = $('#addlink');
   if ($addlink.hasClass('_isWorking')) {
-    $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+    $addlink.html('Create Perma Link').prop('disabled', false).removeClass('_isWorking');
     spinner.stop();
-    $('#rawUrl, #organization_select_form button').removeAttr('disabled');
+    $('#rawUrl, #organization_select_form button').prop('disabled', false);
     $('#links-remaining-message').removeClass('_isWorking');
   } else {
-    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
+    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').prop('disabled', true).addClass('_isWorking');
     // spinner opts -- see http://spin.js.org/
     spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'});
     spinner.spin($addlink[0]);
-    $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
+    $('#rawUrl, #organization_select_form button').prop('disabled', true);
     $('#links-remaining-message').addClass('_isWorking');
   }
 }
@@ -224,15 +224,15 @@ export function updateLinker () {
 
   // if user has organizations available but hasn't picked one yet, require them to pick
   if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
-    $('#addlink').attr('disabled', 'disabled');
+    $('#addlink').prop('disabled', true);
     return;
   }
 
   // disable button if user is out of links
   if (!currentOrg && links_remaining < 1) {
-    $('#addlink').attr('disabled', 'disabled');
+    $('#addlink').prop('disabled', true);
   } else {
-    $('#addlink').removeAttr('disabled');
+    $('#addlink').prop('disabled', false);
   }
 
   // UI indications that links saved to current org will default to private
