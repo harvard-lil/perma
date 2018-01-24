@@ -301,7 +301,7 @@ webpackJsonp([1],[
 	  // Content fetcher.
 	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
 	  function getNextContents() {
-	    APIModule.request("GET", endpoint, requestData).success(function (response) {
+	    APIModule.request("GET", endpoint, requestData).done(function (response) {
 	      showLoadingMessage = false;
 	      var links = response.objects.map(generateLinkFields.bind(this, query));
 	
@@ -11157,7 +11157,7 @@ webpackJsonp([1],[
 	    // Start our spinner and disable our input field with just a tiny delay
 	    window.setTimeout(toggleCreateAvailable, 150);
 	
-	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).success(linkIt);
+	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).done(linkIt);
 	
 	    return false;
 	  });
@@ -11179,7 +11179,7 @@ webpackJsonp([1],[
 	  var $organization_select = $("#organization_select");
 	
 	  // populate organization dropdown
-	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).success(function (data) {
+	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).done(function (data) {
 	
 	    var sorted = [];
 	    (0, _keys2.default)(data.objects).sort(function (a, b) {

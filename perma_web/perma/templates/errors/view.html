@@ -6,7 +6,6 @@
       <thead>
         <th>Date</th>
         <th>User ID</th>
-        <th>Resolve?</th>
         <th>Path</th>
         <th>Message</th>
         <th>Stack Trace</th>
@@ -25,9 +24,6 @@
             {% else %}
               anonymous
             {% endif %}
-          </td>
-          <td>
-            <input style="margin-left:15px" type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
           </td>
           <td>
             {{ error.current_url }}

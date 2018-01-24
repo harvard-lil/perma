@@ -5,7 +5,13 @@
 
 {% block dashboardContent %}
 
-  <h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_user %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span></a></span></h2>
+  <h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_user %}
+    <span class="action">
+      <button class="btn-transparent" data-toggle="collapse" data-target="#add-member">
+        <i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span>
+      </button>
+    </span>
+  </h2>
 
   <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
     <form method="post">
@@ -65,12 +71,12 @@
       <p class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
-        <div class="dropdown">
-          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+        <div class="btn-transparent dropdown">
+          <button type="button" data-toggle="dropdown">
             Sort <span class="caret"></span>
-          </a>
+          </button>
 
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <ul class="dropdown-menu" role="menu">
             <li>
               <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
               <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
@@ -79,18 +85,19 @@
               <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
               <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
               <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
-              <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+              <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i class="icon-ok"></i> Least links</a>
+              <a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
               <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
             </li>
           </ul>
         </div>
         {% if request.user.is_staff %}
           <div class="dropdown">
-            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+            <button type="button" data-toggle="dropdown">
               Registrar <span class="caret"></span>
-            </a>
+            </button>
 
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <ul class="dropdown-menu" role="menu">
               <li>
                 {% if registrars %}
                   {% for registrar in registrars %}
@@ -115,9 +122,15 @@
       <div class="item-container">
         <div class="row row-no-bleed">
           <div class="col col-sm-8 col-no-gutter">
-            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span> {% endif %}{{ org.name }}</a></div>
+            <div class="item-title">
+              <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}
+                <span class="ui-private">[private]</span> {% endif %}{{ org.name }}
+              </a>
+            </div>
             {% if request.user.is_staff %}
-              <div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
+              <div class="item-affil">
+                <a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a>
+              </div>
             {% endif %}
 
             <div class="row row-half-bleed item-count-groups">
