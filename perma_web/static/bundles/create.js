@@ -1938,6 +1938,8 @@ webpackJsonp([1],[
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
 	exports.init = init;
+	exports.folderListFromUrl = folderListFromUrl;
+	exports.getSavedFolders = getSavedFolders;
 	exports.getSavedFolder = getSavedFolder;
 	exports.getSavedOrg = getSavedOrg;
 	
@@ -1982,15 +1984,45 @@ webpackJsonp([1],[
 	  setCurrent: function setCurrent(orgId, folderIds) {
 	    var selectedFolders = ls.getAll();
 	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
+	
+	    history.pushState(null, null, "?folder=" + folderIds.join('-'));
+	
 	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
 	    Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
 	  }
 	};
 	
+	function folderListFromUrl() {
+	  var queryDict = Helpers.getQueryStringDict();
+	  if (queryDict['folder']) {
+	    try {
+	      var folder_list = queryDict['folder'].split('-');
+	      folder_list = folder_list.map(function (s) {
+	        return parseInt(s);
+	      });
+	      folder_list.forEach(function (i) {
+	        if (isNaN(i)) throw "Invalid folder list";
+	      });
+	      return folder_list;
+	    } catch (err) {
+	      console.error(err);
+	    }
+	    return [];
+	  }
+	}
+	
+	function getSavedFolders() {
+	  // Look up the ID of the previously selected folder (if any)
+	  // looking first at the url, and then at localStorage.
+	  return folderListFromUrl() || ls.getCurrent().folderIds;
+	}
+	
 	function getSavedFolder() {
-	  // Look up the ID of the previously selected folder (if any) from localStorage.
-	  var folderIds = ls.getCurrent().folderIds;
-	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
+	  // Look up the ID of the previously selected folder (if any)
+	  var folderIds = getSavedFolders();
+	  if (folderIds && folderIds.length) {
+	    return folderIds[folderIds.length - 1];
+	  }
 	  return null;
 	}
 	
@@ -2025,12 +2057,10 @@ webpackJsonp([1],[
 	
 	function selectSavedFolder() {
 	  var folderToSelect = getSavedFolder();
-	
 	  //select default for users with no orgs and no saved selections
 	  if (!folderToSelect && current_user.top_level_folders.length == 1) {
 	    folderToSelect = current_user.top_level_folders[0].id;
 	  }
-	
 	  folderTree.select_node(getNodeByFolderID(folderToSelect));
 	}
 	
@@ -2065,7 +2095,7 @@ webpackJsonp([1],[
 	  if (currentFolder.data) {
 	    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
 	  } else {
-	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), ls.getCurrent().folderIds, simpleCallback);
+	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), getSavedFolders(), simpleCallback);
 	  }
 	}
 	
@@ -2105,7 +2135,6 @@ webpackJsonp([1],[
 	    callback(preloadedData);
 	    return;
 	  }
-	
 	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
 	  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
 	  $.when.apply($, subfoldersToPreload.map(function (folderId) {
