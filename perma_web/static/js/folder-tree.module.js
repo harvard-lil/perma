@@ -38,7 +38,9 @@ export var ls = {
     var selectedFolders = ls.getAll();
     selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
 
-    history.pushState(null, null, "?folder=" + folderIds.join('-'));
+    if (folderIds && folderIds.length){
+      history.pushState(null, null, "?folder=" + folderIds.join('-'));
+    }
 
     Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
     Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
