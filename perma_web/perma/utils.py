@@ -1,9 +1,11 @@
 from contextlib import contextmanager
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from functools import wraps
 import hashlib
 from hanzo import warctools
+import itertools
 import json
 import logging
 from nacl import encoding
@@ -19,12 +21,15 @@ import tempfile
 import time
 from ua_parser import user_agent_parser
 from urlparse import urlparse
+from warcio.warcwriter import BufferWARCWriter
+from wsgiref.util import FileWrapper
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
@@ -487,6 +492,39 @@ def write_perma_warc_header(out_file, guid, timestamp):
     warcinfo_record.write_to(out_file, gzip=True)
 
 
+def make_detailed_warcinfo(filename, guid, coll_title, coll_desc, rec_title, pages):
+    # #
+    # Thank you! Rhizome/WebRecorder.io/Ilya Kreymer
+    # #
+
+    coll_metadata = {'type': 'collection',
+                     'title': coll_title,
+                     'desc': coll_desc
+                    }
+
+    rec_metadata = {'type': 'recording',
+                    'title': rec_title,
+                    'pages': pages}
+
+    # Coll info
+    writer = BufferWARCWriter(gzip=True)
+    params = OrderedDict([('operator', 'Perma.cc download'),
+                          ('Perma-GUID', guid),
+                          ('format', 'WARC File Format 1.0'),
+                          ('json-metadata', json.dumps(coll_metadata))])
+
+    record = writer.create_warcinfo_record(filename, params)
+    writer.write_record(record)
+
+    # Rec Info
+    params['json-metadata'] = json.dumps(rec_metadata)
+
+    record = writer.create_warcinfo_record(filename, params)
+    writer.write_record(record)
+
+    return writer.get_contents()
+
+
 def write_warc_records_recorded_from_web(source_file_handle, out_file):
     """
     Copies a series of pre-recorded WARC Request/Response records to out_file
@@ -511,3 +549,28 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
         headers.extend(extra_headers)
     record = warctools.WarcRecord(headers=headers, content=(content_type, data))
     record.write_to(out_file, gzip=True)
+
+def stream_warc(link):
+    filename = "%s.warc.gz" % link.guid
+
+    warcinfo = make_detailed_warcinfo( filename = filename,
+                 guid = link.guid,
+                 coll_title = 'Perma Archive, %s' % link.submitted_title,
+                 coll_desc = link.submitted_description,
+                 rec_title = 'Perma Archive of %s' % link.submitted_title,
+                 pages= [{'title': link.submitted_title, 'url': link.submitted_url}])
+
+    warc_stream = FileWrapper(default_storage.open(link.warc_storage_file()))
+    warc_stream = itertools.chain([warcinfo], warc_stream)
+    response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
+    response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+
+    return response
+
+def stream_warc_if_permissible(link, user):
+    if link.user_deleted:
+        raise Http404
+    elif user.can_view(link):
+        return stream_warc(link)
+    else:
+        return HttpResponseForbidden('Private archive.')
