@@ -457,9 +457,8 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
 @contextmanager
 def preserve_perma_warc(guid, timestamp, destination):
     """
-        Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
-        temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
-        leaving temp files around.
+    Context manager for opening a perma warc, ready to receive warc records.
+    Safely closes and saves the file to storage when context is exited.
     """
     out = tempfile.TemporaryFile()
     write_perma_warc_header(out, guid, timestamp)
