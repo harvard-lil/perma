@@ -41,7 +41,7 @@
           </button>
 
           {% if BULK_UPLOADS %}
-          <p id="batch-links">or <a href="#">create multiple links</a></p>
+          <p id="batch-links">or <a data-toggle="modal" href="#batch-create-modal">create multiple links</a></p>
           {% endif %}
 
           {% if request.user.has_limit %}
@@ -260,4 +260,5 @@
 
   {% endverbatim %}
   {% include "archive/includes/upload_your_own.html" %}
+  {% include "archive/includes/batch_create.html" %}
 {% endblock templates %}
