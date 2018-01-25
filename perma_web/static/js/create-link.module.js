@@ -409,7 +409,10 @@ export function init () {
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){
     FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
-    Helpers.triggerOnWindow("dropdown.selectionChange");
+    var data = {
+      folderId: $(this).attr('data-folderid')
+    };
+    Helpers.triggerOnWindow("dropdown.selectionChange", data);
   });
 
   // handle upload form button
