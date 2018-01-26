@@ -550,7 +550,7 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
     record = warctools.WarcRecord(headers=headers, content=(content_type, data))
     record.write_to(out_file, gzip=True)
 
-def stream_warc(link):
+def get_warc_stream(link):
     filename = "%s.warc.gz" % link.guid
 
     warcinfo = make_detailed_warcinfo( filename = filename,
@@ -567,10 +567,16 @@ def stream_warc(link):
 
     return response
 
-def stream_warc_if_permissible(link, user):
+def stream_warc(link):
+    # `link.user_deleted` is checked here for dev convenience:
+    # it's easy to forget that deleted links/warcs aren't truly deleted,
+    # and easy to accidentally permit the downloading of "deleted" warcs.
+    # Users of stream_warc shouldn't have to worry about / remember this.
     if link.user_deleted:
         raise Http404
-    elif user.can_view(link):
+    return get_warc_stream(link)
+
+def stream_warc_if_permissible(link, user):
+    if user.can_view(link):
         return stream_warc(link)
-    else:
-        return HttpResponseForbidden('Private archive.')
+    return HttpResponseForbidden('Private archive.')
