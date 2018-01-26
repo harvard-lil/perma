@@ -62,6 +62,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'creation_timestamp',
             'captures',
             'warc_size',
+            'warc_download_url',
             'queue_time',
             'capture_time',
         ]
