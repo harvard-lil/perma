@@ -52,11 +52,14 @@ urlpatterns = [
         url(r'^public/archives/?$', views.PublicLinkListView.as_view(), name='public_archives'),
         # /public/archives/:guid
         url(r'^public/archives/%s/?$' % guid_pattern, views.PublicLinkDetailView.as_view(), name='public_archives'),
-
+        # /public/archives/:guid/download
+        url(r'^public/archives/%s/download/?$' % guid_pattern, views.PublicLinkDownloadView.as_view(), name='public_archives_download'),
         # /archives
         url(legacy_user_prefix + r'archives/?$', views.AuthenticatedLinkListView.as_view(), name='archives'),
         # /archives/:guid
         url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
+        # /archives/:guid/download
+        url(legacy_user_prefix + r'archives/%s/download/?$' % guid_pattern, views.AuthenticatedLinkDownloadView.as_view(), name='archives_download'),
 
         # /capture_jobs
         url(legacy_user_prefix + r'capture_jobs/?$', views.CaptureJobListView.as_view(), name='capture_jobs'),

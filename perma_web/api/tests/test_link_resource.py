@@ -4,6 +4,8 @@ import os
 import dateutil.parser
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.http import StreamingHttpResponse
+import StringIO
 from surt import surt
 import json
 import urllib
@@ -43,6 +45,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.firm_folder = Folder.objects.get(name="Some Case")
 
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
+        self.unrelated_private_link = Link.objects.get(pk="ABCD-0001")
         self.link = Link.objects.get(pk="3SLN-JHX9")
 
         self.unrelated_link_detail_url = "{0}/{1}".format(self.list_url, self.unrelated_link.pk)
@@ -50,9 +53,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         self.logged_in_list_url = self.list_url
         self.logged_in_unrelated_link_detail_url = reverse('api:archives', args=[self.unrelated_link.pk])
+        self.logged_in_private_link_download_url = reverse('api:archives_download', args=[self.unrelated_private_link.pk])
 
         self.public_list_url = reverse('api:public_archives')
         self.public_link_detail_url = reverse('api:public_archives', args=[self.link.pk])
+        self.public_link_download_url = reverse('api:public_archives_download', args=[self.link.pk])
+        self.public_link_download_url_for_private_link = reverse('api:public_archives_download', args=[self.unrelated_private_link.pk])
 
         self.logged_out_fields = [
             'title',
@@ -62,6 +68,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'creation_timestamp',
             'captures',
             'warc_size',
+            'warc_download_url',
             'queue_time',
             'capture_time',
         ]
@@ -100,6 +107,35 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
 
+    @patch('api.views.stream_warc', autospec=True)
+    def test_public_download(self, stream):
+        stream.return_value = StreamingHttpResponse(StringIO.StringIO("warc placeholder"))
+        resp = self.api_client.get(self.public_link_download_url)
+        self.assertHttpOK(resp)
+        self.assertEqual(stream.call_count, 1)
+
+    def test_private_download_at_public_url(self):
+        self.rejected_get(self.public_link_download_url_for_private_link, expected_status_code=404)
+
+    def test_private_download_unauthenticated(self):
+        self.rejected_get(self.logged_in_private_link_download_url, expected_status_code=401)
+
+    def test_private_download_unauthorized(self):
+        self.rejected_get(
+            self.logged_in_private_link_download_url,
+            expected_status_code=403,
+            user=self.firm_user
+        )
+
+    @patch('perma.utils.stream_warc', autospec=True)
+    def test_private_download(self, stream):
+        stream.return_value = StreamingHttpResponse(StringIO.StringIO("warc placeholder"))
+        self.api_client.force_authenticate(user=self.regular_user)
+        resp = self.api_client.get(
+            self.logged_in_private_link_download_url,
+        )
+        self.assertHttpOK(resp)
+        self.assertEqual(stream.call_count, 1)
 
     ########################
     # URL Archive Creation #

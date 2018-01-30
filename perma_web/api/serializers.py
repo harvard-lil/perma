@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.reverse import reverse
 from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
@@ -14,7 +15,7 @@ class BaseSerializer(serializers.ModelSerializer):
     """ Base serializer from which all of our serializers inherit. """
 
     def update(self, instance, validated_data):
-        """ 
+        """
             When updating, requiring that our serializers provide a whitelist of fields that can be updated.
             This is a safety check that avoids implementation errors where users can update fields that should only be set on create.
         """
@@ -129,10 +130,11 @@ class LinkSerializer(BaseSerializer):
     captures = CaptureSerializer(many=True, read_only=True)
     queue_time = serializers.SerializerMethodField()
     capture_time = serializers.SerializerMethodField()
+    warc_download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Link
-        fields = ('guid', 'creation_timestamp', 'url', 'title', 'description', 'warc_size', 'captures', 'queue_time', 'capture_time')
+        fields = ('guid', 'creation_timestamp', 'url', 'title', 'description', 'warc_size', 'warc_download_url', 'captures', 'queue_time', 'capture_time')
 
     def get_queue_time(self, link):
         try:
@@ -148,6 +150,9 @@ class LinkSerializer(BaseSerializer):
         except:
             return None
 
+    def get_warc_download_url(self, link):
+        return  reverse('api:public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+
 
 class AuthenticatedLinkSerializer(LinkSerializer):
     """
@@ -159,6 +164,9 @@ class AuthenticatedLinkSerializer(LinkSerializer):
     class Meta(LinkSerializer.Meta):
         fields = LinkSerializer.Meta.fields + ('notes', 'created_by', 'is_private', 'private_reason', 'archive_timestamp', 'organization')
         allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
+
+    def get_warc_download_url(self, link):
+        return  reverse('api:archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
 
     def validate_url(self, url):
         # Clean up the user submitted url

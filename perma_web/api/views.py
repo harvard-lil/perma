@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from perma.utils import run_task
+from perma.utils import run_task, stream_warc, stream_warc_if_permissible
 from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization
 
@@ -77,7 +77,7 @@ class BaseView(APIView):
         queryset = self.filter_queryset(queryset)
         paginator = TastypiePagination()
         items = paginator.paginate_queryset(queryset, request)
-        serializer = self.serializer_class(items, many=True)
+        serializer = self.serializer_class(items, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
     def simple_get(self, request, pk=None, obj=None):
@@ -86,7 +86,7 @@ class BaseView(APIView):
         """
         if not obj:
             obj = self.get_object_for_user_by_pk(request.user, pk)
-        serializer = self.serializer_class(obj)
+        serializer = self.serializer_class(obj, context={"request": request})
         return Response(serializer.data)
 
     def simple_create(self, data, save_kwargs={}):
@@ -285,6 +285,21 @@ class PublicLinkDetailView(BaseView):
             raise Http404
         return self.simple_get(request, obj=obj)
 
+
+#/public/archives/:guid/download
+class PublicLinkDownloadView(BaseView):
+    permission_classes = ()  # no login required
+    serializer_class = LinkSerializer
+
+    def get(self, request, guid, format=None):
+        """ Download public link  """
+        try:
+            link = Link.objects.discoverable().get(pk=guid)
+        except Link.DoesNotExist:
+            raise Http404
+        return stream_warc(link)
+
+
 # /archives
 # /folders/:parent_id/archives
 class AuthenticatedLinkListView(BaseView):
@@ -464,6 +479,16 @@ class AuthenticatedLinkDetailView(BaseView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+#/archives/:guid/download
+class AuthenticatedLinkDownloadView(BaseView):
+    serializer_class = AuthenticatedLinkSerializer
+
+    def get(self, request, guid, format=None):
+        """ Download warc. """
+        link = self.get_object_for_user_by_pk(request.user, guid)
+        return stream_warc_if_permissible(link, request.user)
+
+
 # /folders/:parent_id/archives/:guid
 class MoveLinkView(BaseView):
     serializer_class = AuthenticatedLinkSerializer
@@ -475,7 +500,7 @@ class MoveLinkView(BaseView):
         """
         link = self.get_object_for_user_by_pk(request.user, guid)
         link.move_to_folder_for_user(request.parent, request.user)
-        serializer = self.serializer_class(link)
+        serializer = self.serializer_class(link, context={'request': request})
         return Response(serializer.data)
 
 
