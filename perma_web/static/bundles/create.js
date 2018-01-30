@@ -1951,6 +1951,7 @@ webpackJsonp([1],[
 	
 	var APIModule = __webpack_require__(78);
 	var Helpers = __webpack_require__(92);
+	var ErrorHandler = __webpack_require__(79);
 	
 	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
@@ -2007,7 +2008,7 @@ webpackJsonp([1],[
 	      });
 	      return folder_list;
 	    } catch (err) {
-	      console.error(err);
+	      ErrorHandler.airbrake.notify(err);
 	    }
 	    return [];
 	  }
