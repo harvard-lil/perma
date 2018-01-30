@@ -64,6 +64,21 @@ export function isHighDensity() {
     )) || (window.devicePixelRatio && window.devicePixelRatio > 1.3));
 }
 
+export function getQueryStringDict(){
+  var queryString = window.location.search.substring(1);
+  if (queryString){
+      var queries = queryString.split("&");
+      var queryDict = {};
+      for( var i = 0; i < queries.length; i++ ) {
+          var split = queries[i].split('=');
+          queryDict[split[0]] = split[1];
+      }
+      return queryDict;
+  } else {
+      return {};
+  }
+}
+
 export function getWindowLocationSearch() {
   return window.location.search;
 }

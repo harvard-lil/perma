@@ -4,6 +4,7 @@ require('jstree-css/default/style.min.css');
 
 var APIModule = require('./helpers/api.module.js');
 var Helpers = require('./helpers/general.helpers.js');
+var ErrorHandler = require('./error-handler.js');
 
 var localStorageKey = Helpers.variables.localStorageKey;
 var allowedEventsCount = 0;
@@ -37,16 +38,44 @@ export var ls = {
   setCurrent: function (orgId, folderIds) {
     var selectedFolders = ls.getAll();
     selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
+
+    if (folderIds && folderIds.length){
+      history.pushState(null, null, "?folder=" + folderIds.join('-'));
+    }
+
     Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
     Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
   }
 };
 
+export function folderListFromUrl() {
+  var queryDict = Helpers.getQueryStringDict();
+  if (queryDict['folder']){
+    try {
+      var folder_list = queryDict['folder'].split('-');
+      folder_list = folder_list.map(s => parseInt(s));
+      folder_list.forEach(i => {if(isNaN(i)) throw "Invalid folder list"});
+      return folder_list
+    } catch (err) {
+      ErrorHandler.airbrake.notify(err);
+    }
+    return [];
+  }
+}
+
+export function getSavedFolders(){
+  // Look up the ID of the previously selected folder (if any)
+  // looking first at the url, and then at localStorage.
+  return folderListFromUrl() || ls.getCurrent().folderIds
+}
+
+
 export function getSavedFolder(){
-  // Look up the ID of the previously selected folder (if any) from localStorage.
-  var folderIds = ls.getCurrent().folderIds;
-  if(folderIds && folderIds.length)
+  // Look up the ID of the previously selected folder (if any)
+  var folderIds = getSavedFolders()
+  if(folderIds && folderIds.length){
     return folderIds[folderIds.length - 1];
+  }
   return null;
 }
 
@@ -83,12 +112,10 @@ function handleSelectionChange () {
 
 function selectSavedFolder(){
   var folderToSelect = getSavedFolder();
-
   //select default for users with no orgs and no saved selections
   if(!folderToSelect && current_user.top_level_folders.length == 1){
     folderToSelect = current_user.top_level_folders[0].id;
   }
-
   folderTree.select_node(getNodeByFolderID(folderToSelect));
 }
 
@@ -123,7 +150,7 @@ function handleShowFoldersEvent(currentFolder, callback){
   } else {
     loadInitialFolders(
       apiFoldersToJsTreeFolders(current_user.top_level_folders),
-      ls.getCurrent().folderIds,
+      getSavedFolders(),
       simpleCallback);
   }
 }
@@ -165,7 +192,6 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
     callback(preloadedData);
     return;
   }
-
   // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
   // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
   $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", "/folders/" + folderId + "/folders/", null, {"error": null})))
