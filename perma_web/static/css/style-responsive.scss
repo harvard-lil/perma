@@ -2245,6 +2245,18 @@ p.caption {
   margin-top: $double;
 }
 
+figcaption {
+  font-weight: 300;
+
+  a {
+    text-decoration: underline;
+  }
+}
+
+figcaption + .img-responsive {
+  margin-top: 5px;
+}
+
 /////////////////////////////////////////
 
 // Signup
