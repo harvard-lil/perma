@@ -12740,7 +12740,7 @@ span.action [class*=" icon-"] {
 .admin-data-point .count-number {
   padding: 0 8px 0;
   font-weight: 200;
-  font-size: 54px;
+  font-size: 36px;
   color: #2D76EE;
   line-height: 1;
 }
@@ -12748,7 +12748,7 @@ span.action [class*=" icon-"] {
 @media only screen and (min-width: 990px) {
   .admin-data-point .count-number {
     padding: 8px 16px;
-    font-size: 60px;
+    font-size: 48px;
   }
 }
 

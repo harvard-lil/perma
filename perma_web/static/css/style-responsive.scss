@@ -4155,12 +4155,12 @@ span.action {
   .count-number {
     padding: 0 $grid 0;
     font-weight: 200;
-    font-size: 54px;
+    font-size: 36px;
     color: $color-blue;
     line-height: 1;
     @include respond-desktop {
       padding: $grid $double;
-      font-size: 60px;
+      font-size: 48px;
     }
   }
 }
