@@ -524,9 +524,11 @@ def list_users_in_group(request, group_name):
     elif group_name == 'registrar_user':
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
     elif group_name == 'organization_user':
-        users = users.exclude(organizations=None)
+        # careful handling to exclude users associated only with deleted orgs
+        users = users.filter(organizations__user_deleted=0)
     else:
-        users = users.filter(registrar_id=None, is_staff=False, organizations=None)
+        # careful handling to include users associated only with deleted orgs
+        users = users.filter(registrar_id=None, is_staff=False).exclude(organizations__user_deleted=0)
 
     # handle status filter
     status = request.GET.get('status', '')
