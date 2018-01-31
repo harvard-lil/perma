@@ -4311,7 +4311,6 @@ span.action {
 }
 
 .sort-filter-bar .dropdown {
-  padding-top: 1px;
   font-family: $font-hed-alt;
   button:hover,
   button:focus {
@@ -4325,7 +4324,8 @@ span.action {
 .sort-filter-count {
   float: left;
   font-weight: 400;
-  margin-top: $grid;
+  padding-top: $grid;
+  padding-right: $double;
   margin-bottom: $grid;
   font-family: $font-hed-alt;
   color: $color-blue;

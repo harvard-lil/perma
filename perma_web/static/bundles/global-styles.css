@@ -12937,7 +12937,6 @@ span.action [class*=" icon-"] {
 }
 
 .sort-filter-bar .dropdown {
-  padding-top: 1px;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
@@ -12955,7 +12954,8 @@ span.action [class*=" icon-"] {
 .sort-filter-count {
   float: left;
   font-weight: 400;
-  margin-top: 8px;
+  padding-top: 8px;
+  padding-right: 16px;
   margin-bottom: 8px;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
   color: #2D76EE;
