@@ -4155,12 +4155,12 @@ span.action {
   .count-number {
     padding: 0 $grid 0;
     font-weight: 200;
-    font-size: 54px;
+    font-size: 36px;
     color: $color-blue;
     line-height: 1;
     @include respond-desktop {
       padding: $grid $double;
-      font-size: 60px;
+      font-size: 48px;
     }
   }
 }
@@ -4311,7 +4311,6 @@ span.action {
 }
 
 .sort-filter-bar .dropdown {
-  padding-top: 1px;
   font-family: $font-hed-alt;
   button:hover,
   button:focus {
@@ -4325,7 +4324,8 @@ span.action {
 .sort-filter-count {
   float: left;
   font-weight: 400;
-  margin-top: $grid;
+  padding-top: $grid;
+  padding-right: $double;
   margin-bottom: $grid;
   font-family: $font-hed-alt;
   color: $color-blue;
