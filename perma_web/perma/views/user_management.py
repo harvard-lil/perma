@@ -21,6 +21,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
+from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
@@ -237,7 +238,12 @@ def manage_registrar(request):
     # handle annotations
     registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
-        last_active=Max('users__last_login'),
+        last_active_registrar=Max('users__last_login'),
+        last_active_org_user=Max('organizations__users__last_login'),
+        # Greatest on MySQL returns NULL if any fields are NULL:
+        # use of Coalesce here is a workaround
+        # https://docs.djangoproject.com/en/2.0/ref/models/database-functions/
+        last_active=Greatest(Coalesce('last_active_registrar', 'last_active_org_user'), 'last_active_org_user')
     )
 
     orgs_count = Organization.objects.filter(registrar__in=registrars).count()
