@@ -32,7 +32,7 @@
   <div class="row row-no-bleed admin-data">
     <div class="col col-xs-6 col-no-gutter admin-data-point">
       <p class="count-label">Organizations</p>
-      <p class="count-number">{{ orgs_count.count }}</p>
+      <p class="count-number">{{ orgs_count }}</p>
     </div>
     <div class="col col-xs-6 col-no-gutter admin-data-point">
       <p class="count-label">Registrars</p>
@@ -117,8 +117,8 @@
             </div>
             <div class="col col-xs-12 col-md-4 col-half-gutter">
               <div class="item-count-group">
-                <strong class="list-count-number">{{ registrar.orgs_count }}</strong>
-                <span class="item-count-label">org{{ registrar.orgs_count|pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
+                <strong class="list-count-number">{{ registrar.organizations.count }}</strong>
+                <span class="item-count-label">org{{ registrar.organizations.count | pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
               </div>
             </div>
             <div class="col col-xs-12 col-md-4 col-half-gutter">
