@@ -4,10 +4,12 @@ from collections import OrderedDict
 from functools import wraps
 
 from django.http import Http404
+from django.urls.exceptions import NoReverseMatch
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.settings import api_settings
 
 from perma.models import Folder
@@ -140,3 +142,12 @@ def url_is_invalid_unicode(url_string):
         if unicodedata.category(x)[0] == "C":
             return True
     return False
+
+def reverse_api_view(viewname, *args, **kwargs):
+    # Reverse needs to be called with the api namespace when the
+    # request is made to perma.cc/api, and cannot be called with
+    # a namespace when the request is made to api.perma.cc
+    try:
+        return reverse('api:' + viewname, *args, **kwargs)
+    except NoReverseMatch:
+        return reverse(viewname, *args, **kwargs)
