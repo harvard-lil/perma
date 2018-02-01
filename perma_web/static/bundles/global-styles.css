@@ -10321,6 +10321,18 @@ p.caption {
   margin-top: 16px;
 }
 
+figcaption {
+  font-weight: 300;
+}
+
+figcaption a {
+  text-decoration: underline;
+}
+
+figcaption + .img-responsive {
+  margin-top: 5px;
+}
+
 @media only screen and (max-width: 767px) {
   .signup-info {
     display: -ms-flexbox;
