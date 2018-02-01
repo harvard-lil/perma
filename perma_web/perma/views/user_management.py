@@ -238,10 +238,9 @@ def manage_registrar(request):
     registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        orgs_count=Count('organizations',distinct=True),
     )
 
-    orgs_count = registrars.aggregate(count=Sum('orgs_count'))
+    orgs_count = Organization.objects.filter(registrar__in=registrars).count()
     #users_count = registrars.aggregate(count=Sum('registrar_users'))
 
     # handle pagination
