@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.urls.exceptions import NoReverseMatch
 from rest_framework.reverse import reverse
 from django.core.validators import URLValidator
 from requests import TooManyRedirects
@@ -151,7 +152,13 @@ class LinkSerializer(BaseSerializer):
             return None
 
     def get_warc_download_url(self, link):
-        return  reverse('api:public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        # Reverse needs to be called with the api namespace when the
+        # request is made to perma.cc/api, and cannot be called with
+        # a namespace when the request is made to api.perma.cc
+        try:
+            return reverse('api:public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        except NoReverseMatch:
+            return reverse('public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
 
 
 class AuthenticatedLinkSerializer(LinkSerializer):
@@ -166,7 +173,14 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
 
     def get_warc_download_url(self, link):
-        return  reverse('api:archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        # Reverse needs to be called with the api namespace when the
+        # request is made to perma.cc/api, and cannot be called with
+        # a namespace when the request is made to api.perma.cc
+        try:
+            return reverse('api:archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        except NoReverseMatch:
+            return reverse('archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+
 
     def validate_url(self, url):
         # Clean up the user submitted url
