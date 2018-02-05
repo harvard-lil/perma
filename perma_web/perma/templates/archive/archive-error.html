@@ -9,7 +9,10 @@
   <div class="record-message">
     {% if status == '404 Not Found' %}
       <p class="record-message-primary">Link not found</p>
-      <p class="record-message-secondary">You are probably seeing this page because you clicked a link in one of our records. We don’t capture secondary links, but you could check <a href="https://web.archive.org/web/*/{{ err_url }}" target="_top">the Internet Archive</a> or <a href="{{ err_url }}" target="_top">view the link as it exists on the live site</a>.</p>
+      <p class="record-message-secondary">
+        You are probably seeing this page because you clicked a link in one of our records. We don’t capture secondary links,
+        but you could check <a href="http://timetravel.mementoweb.org/list/{{ timestamp }}/{{ err_url }}" target="_top">Time Travel</a> or
+        <a href="{{ err_url }}" target="_top">view the link as it exists on the live site</a>.</p>
     {% else %}
       <p class="record-message-primary">Playback Unavailable</p>
       <p class="record-message-secondary">We’re having trouble playing back this record’s Capture View. If this problem persists, please let us know. In the meantime, you could try the Screenshot View above.</p>

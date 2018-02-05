@@ -8,6 +8,8 @@ import re
 from urlparse import urljoin
 import requests
 import sys
+from datetime import datetime
+
 from django.db import close_old_connections
 from django.template import loader
 from django.test import RequestFactory
@@ -74,14 +76,24 @@ def get_archive_path():
     # 'unicode' object has no attribute 'get'
     return archive_path.encode('ascii', 'ignore')
 
-def raise_not_found(url):
+
+def raise_not_found(url, timestamp=None):
     if not settings.LOG_PLAYBACK_404:
         # use a custom error to skip pywb printing of exceptions
+        if not timestamp:
+            # if timestamp is not available, fall back on today's date
+            now = datetime.now()
+            # month and day need to be two digits
+            month = str(now.month) if now.month > 9 else "0%s" % now.month
+            day = str(now.day) if now.day > 9 else "0%s" % now.day
+            timestamp = "%s%s%s" % (now.year, month, day)
+
         raise CustomTemplateException(status='404 Not Found',
                                       template_path='archive/archive-error.html',
                                       template_kwargs={
                                           'content_host': settings.WARC_HOST,
-                                          'err_url': url
+                                          'err_url': url,
+                                          'timestamp': timestamp,
                                       })
     raise NotFoundException('No Captures found for: %s' % url, url=url)
 
@@ -142,7 +154,7 @@ class PermaRoute(archivalrouter.Route):
                     # This will filter out links that have user_deleted=True
                     link = Link.objects.get(guid=guid)
                 except Link.DoesNotExist:
-                    raise_not_found(wbrequest.wb_url)
+                    raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
                 if not wbrequest.wb_url:
                     # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
@@ -190,13 +202,13 @@ class PermaRoute(archivalrouter.Route):
                                                   'content_host': settings.WARC_HOST,
                                               })
             if not Link(pk=guid).validate_access_token(cookie.value, 3600):
-                raise_not_found(wbrequest.wb_url)
+                raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
         # check whether archive contains the requested URL
         urlkey = surt(wbrequest.wb_url.url)
         cdx_lines = cached_cdx.get(urlkey)
         if not cdx_lines:
-            raise_not_found(wbrequest.wb_url)
+            raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
