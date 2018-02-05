@@ -1,16 +1,20 @@
 Uncaught JS Errors
-============================================
- {% for error in errors %}
-    ----------------------------------------
-    {{ error.current_url }}
-    Created at: {{ error.created_at }}
-    Triggered by: {{ error.user }}
-    Message: {{ error.message }}
-    User agent: {{ error.user_agent }}
+========================================
+{% for error in errors %}
+URL: {{ error.current_url }}
+Created at: {{ error.created_at }}
+{% if error.user %}
+User id: {{ error.user }}
+{% endif %}
+Message: {{ error.message }}
+User agent: {{ error.user_agent }}
 
-    Stack trace:
-
-    {{ error.stack }}
-
- {% endfor %}
+{% if error.stack %}
+Stack trace begins with:
+Function: {{ error.stack.function }}
+File: {{ error.stack.file }}
+Line: {{ error.stack.line }}
+{% endif %}
+----------------------------------------
+{% endfor %}
 

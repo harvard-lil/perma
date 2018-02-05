@@ -39,7 +39,7 @@ def post_process_settings(settings):
         },
         'send-js-errors': {
             'task': 'perma.tasks.send_js_errors',
-            'schedule': crontab(hour='10', day_of_week=1)
+            'schedule': crontab(hour='10', minute='0', day_of_week=1)
         }
 
     }
