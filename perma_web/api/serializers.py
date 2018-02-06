@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.reverse import reverse
 from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
@@ -8,7 +7,7 @@ from rest_framework import serializers
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization
 from perma.utils import ip_in_allowed_ip_range
 
-from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode
+from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode, reverse_api_view
 
 
 class BaseSerializer(serializers.ModelSerializer):
@@ -151,7 +150,7 @@ class LinkSerializer(BaseSerializer):
             return None
 
     def get_warc_download_url(self, link):
-        return  reverse('api:public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        return reverse_api_view('public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
 
 
 class AuthenticatedLinkSerializer(LinkSerializer):
@@ -166,7 +165,8 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
 
     def get_warc_download_url(self, link):
-        return  reverse('api:archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        return reverse_api_view('archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+
 
     def validate_url(self, url):
         # Clean up the user submitted url
