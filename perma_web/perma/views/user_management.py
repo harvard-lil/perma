@@ -698,7 +698,12 @@ class BaseAddUserToGroup(UpdateView):
         response = super(BaseAddUserToGroup, self).form_valid(form)
 
         if self.is_new:
-            email_new_user(self.request, self.object)
+            email_new_user(
+                self.request,
+                self.object,
+                self.user_added_email_template,
+                { 'form': form }
+            )
             messages.add_message(self.request, messages.SUCCESS,
                                  '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % self.object.email,
                                  extra_tags='safe')
@@ -720,6 +725,7 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_organization_confirm.html'
     success_url = reverse_lazy('user_management_manage_organization_user')
     confirmation_email_template = 'email/user_added_to_organization.txt'
+    user_added_email_template = 'email/new_user_added_to_org_by_other.txt'
     new_user_form = UserFormWithOrganization
     existing_user_form = UserAddOrganizationForm
 
@@ -744,6 +750,7 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_registrar_confirm.html'
     success_url = reverse_lazy('user_management_manage_registrar_user')
     confirmation_email_template = 'email/user_added_to_registrar.txt'
+    user_added_email_template = 'email/new_user_added_to_registrar_by_other.txt'
     new_user_form = UserFormWithRegistrar
     existing_user_form = UserAddRegistrarForm
 
@@ -776,6 +783,7 @@ class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_admin_confirm.html'
     success_url = reverse_lazy('user_management_manage_admin_user')
     confirmation_email_template = 'email/user_added_to_admin.txt'
+    user_added_email_template = 'email/new_user_added_by_other.txt'
     new_user_form = UserFormWithAdmin
     existing_user_form = UserAddAdminForm
 
@@ -787,6 +795,7 @@ class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
 class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_confirm.html'
     success_url = reverse_lazy('user_management_manage_user')
+    user_added_email_template = 'email/new_user_added_by_other.txt'
     new_user_form = UserForm
     existing_user_form = UserForm
 
@@ -1550,20 +1559,22 @@ def firm_request_response(request):
     return render(request, 'registration/firm_request.html')
 
 
-def email_new_user(request, user):
+def email_new_user(request, user, template="email/new_user.txt", context={}):
     """
     Send email to newly created accounts
     """
     if not user.confirmation_code:
         user.save_new_confirmation_code()
     host = request.get_host()
+    context.update({
+        "host": host,
+        "activation_route": reverse('register_password', args=[user.confirmation_code]),
+        "request": request
+    })
     send_user_email(
         user.email,
-        "email/new_user.txt",
-        {
-            "host": host,
-            "activation_route": reverse('register_password', args=[user.confirmation_code])
-        }
+        template,
+        context
     )
 
 
