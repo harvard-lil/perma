@@ -470,7 +470,7 @@ class LinkUser(AbstractBaseUser):
         """ Use either First or Last or first half of email address as user's short name. """
         return self.first_name or self.last_name or self.email.split('@')[0]
 
-    # On Python 3: def __str__(self):
+    # In Python 3: def __str__(self):
     def __unicode__(self):
         return self.email
 
@@ -1479,3 +1479,23 @@ class UncaughtError(models.Model):
 
     resolved = models.BooleanField(default=False)
     resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved")
+
+    # In Python 3: def __str__(self):
+    def __unicode__(self):
+        return "%s: %s" % (self.id, self.message)
+
+    def format_for_reading(self):
+        formatted = {
+            'id': self.id,
+            'user_agent': self.user_agent,
+            'created_at': self.created_at,
+            'message': self.message,
+            'current_url': self.current_url,
+        }
+
+        if self.stack:
+            formatted['stack'] = json.loads(self.stack)[0]
+        if self.user:
+            formatted['user'] = self.user.id
+
+        return formatted

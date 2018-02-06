@@ -1,5 +1,5 @@
 var airbrakeJs = require('airbrake-js');
-var airbrakeJs_instrumentation_jquery = require('airbrake-js/instrumentation/jquery')
+var airbrakeJs_instrumentation_jquery = require('airbrake-js/instrumentation/jquery');
 
 export function resolve(error_id) {
   $.ajax({

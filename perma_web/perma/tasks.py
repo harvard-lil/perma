@@ -1348,9 +1348,10 @@ def send_js_errors():
         created_at__gte=datetime.now() - timedelta(days=7),
         resolved=False)
     if errors:
+        formatted_errors = map(lambda err: err.format_for_reading(), errors)
         send_admin_email("Uncaught Javascript errors",
                          settings.DEFAULT_FROM_EMAIL,
                          HttpRequest(),
                          'email/admin/js_errors.txt',
-                         {'errors': errors})
+                         {'errors': formatted_errors})
         return errors
