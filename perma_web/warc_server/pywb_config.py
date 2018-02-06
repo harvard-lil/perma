@@ -83,10 +83,7 @@ def raise_not_found(url, timestamp=None):
         if not timestamp:
             # if timestamp is not available, fall back on today's date
             now = datetime.now()
-            # month and day need to be two digits
-            month = str(now.month) if now.month > 9 else "0%s" % now.month
-            day = str(now.day) if now.day > 9 else "0%s" % now.day
-            timestamp = "%s%s%s" % (now.year, month, day)
+            timestamp = '{:%Y%m%d%H%M%S}'.format(now)
 
         raise CustomTemplateException(status='404 Not Found',
                                       template_path='archive/archive-error.html',
