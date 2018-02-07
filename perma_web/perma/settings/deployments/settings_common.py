@@ -192,7 +192,7 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
-VALIDATE_ALL_PASSWORDS = False
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

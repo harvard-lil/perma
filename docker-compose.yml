@@ -23,7 +23,7 @@ services:
       - ./services/mysql/conf.d:/etc/mysql/conf.d
   web:
     build: ./perma_web
-    image: perma:0.2
+    image: perma:0.3
     tty: true
     command: bash
     volumes:
