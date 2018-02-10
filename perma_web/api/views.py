@@ -11,12 +11,13 @@ from rest_framework.views import APIView
 
 from perma.utils import run_task, stream_warc, stream_warc_if_permissible
 from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
-from perma.models import Folder, CaptureJob, Link, Capture, Organization
+from perma.models import Folder, CaptureJob, Link, Capture, Organization, Batch
 
-from .utils import TastypiePagination, load_parent, raise_validation_error
+from .utils import TastypiePagination, load_parent, raise_validation_error, safe_get
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, BatchSerializer
 
+import perma.settings
 
 ### BASE VIEW ###
 
@@ -400,12 +401,22 @@ class AuthenticatedLinkListView(BaseView):
                 ).save()
 
                 # create CaptureJob
-                CaptureJob(link=link, human=request.data.get('human', False)).save()
+                if perma.settings.BULK_UPLOADS:
+                    batch = safe_get(Batch, request.data.get('batch_id', None))
+                    CaptureJob(link=link, human=request.data.get('human', False),
+                               submitted_url=link.submitted_url, batch=batch).save()
+                else:
+                    CaptureJob(link=link, human=request.data.get('human', False)).save()
 
                 # kick off capture tasks -- no need for guid since it'll work through the queue
                 run_task(run_next_capture.s())
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if perma.settings.BULK_UPLOADS:
+            batch = safe_get(Batch, request.data.get('batch_id', None))
+            CaptureJob(human=request.data.get('human', False), status='invalid',
+                       submitted_url=request.data.get('url', ''),
+                       batch=batch, link=None).save()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
