@@ -1266,13 +1266,15 @@ class CaptureJob(models.Model):
             (1) sorting the capture queue fairly and
             (2) reporting status during a capture.
     """
-    link = models.OneToOneField(Link, related_name='capture_job')
+    link = models.OneToOneField(Link, related_name='capture_job', null=True, blank=True)
     status = models.CharField(max_length=15,
                               default='pending',
-                              choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed')),
+                              choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed'),('invalid', 'invalid')),
                               db_index=True)
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
+    submitted_url = models.CharField(max_length=2100, blank=True, null=False)
+    batch = models.ForeignKey('Batch', blank=True, null=True)
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
@@ -1388,6 +1390,16 @@ class CaptureJob(models.Model):
     def accessible_to(self, user):
         return self.link.accessible_to(user)
 
+class Batch(models.Model):
+    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='batches')
+    started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
+
+    def accessible_to(self, user):
+        if user.is_staff:
+            return True
+        if self.created_by == user:
+            return True
+        return False
 
 #########################
 # Stats related models
