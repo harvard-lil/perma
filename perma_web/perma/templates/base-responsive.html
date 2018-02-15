@@ -73,25 +73,29 @@
         <div class="container cont-fixed">
           <div class="row">
             <div class="col col-lg-7">
-              <ul id="footer-nav">
-                <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
-                <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
-                <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
-                <li class="footer-nav-item"><a href="{% url 'stats' %}">Stats</a></li>
-                <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
-                <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
-                <li class="footer-nav-item"><a href="https://twitter.com/permacc">Twitter</a></li>
-                <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">GitHub</a></li>
-                <li class="footer-nav-item"><a href="https://status.perma.cc/">Status</a></li>
-              </ul>
+              <nav aria-label="Learn More">
+                <ul id="footer-nav">
+                  <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+                  <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+                  <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+                  <li class="footer-nav-item"><a href="{% url 'stats' %}">Stats</a></li>
+                  <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+                  <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+                  <li class="footer-nav-item"><a href="https://twitter.com/permacc">Twitter</a></li>
+                  <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">GitHub</a></li>
+                  <li class="footer-nav-item"><a href="https://status.perma.cc/">Status</a></li>
+                </ul>
+              </nav>
             </div>
             <div class="col col-lg-5">
-              <ul id="boilerplate">
-                <li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
-                <li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-                <li class="boilerplate-item"><a href="{% url 'return_policy' %}">Return Policy</a></li>
-                <li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
-              </ul>
+              <nav aria-label="Terms and Conditions">
+                <ul id="boilerplate">
+                  <li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+                  <li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                  <li class="boilerplate-item"><a href="{% url 'return_policy' %}">Return Policy</a></li>
+                  <li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div><!--/container-->
