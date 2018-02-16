@@ -10052,17 +10052,18 @@ div.cont-reading + div.overview div.overview-module-content {
   border-color: #222 !important;
 }
 
-.reading-toc li.reading-toc-chapter._active a {
+.reading-toc li .reading-toc-chapter._active a {
   border-color: #2D76EE;
   color: #2D76EE;
 }
 
-.reading-toc li.reading-toc-section + li.reading-toc-chapter {
-  margin-top: 16px;
+.reading-toc li:last-of-type {
+  margin-bottom: 16px;
 }
 
-.reading-toc li.reading-toc-chapter a {
+.reading-toc .reading-toc-chapter a {
   font-weight: 700;
+  font-size: 14px;
   border-color: #222;
 }
 

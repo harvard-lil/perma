@@ -2013,16 +2013,17 @@ div.cont-reading + div.overview {
         border-color: $color-active !important;
       }
     }
-    &.reading-toc-chapter._active a {
+    & .reading-toc-chapter._active a {
       border-color: $color-blue;
       color: $color-blue;
     }
+    &:last-of-type {
+      margin-bottom: $double;
+    }
   }
-  li.reading-toc-section + li.reading-toc-chapter {
-    margin-top: $double;
-  }
-  li.reading-toc-chapter a {
+  .reading-toc-chapter a {
     font-weight: 700;
+    font-size: 14px;
     border-color: $color-black;
   }
   li.reading-toc-section {
