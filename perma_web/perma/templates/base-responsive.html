@@ -58,7 +58,7 @@
       </nav><!--/navbar -->
     </header>
 
-    <section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
+    <main id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
       {% if this_page != 'landing' and this_page != 'manage' %}
         <div id="main-content" class="container cont-full-bleed">
       {% endif %}
@@ -69,7 +69,7 @@
       {% if this_page != 'landing' %}
         </div><!--/ #main-content"-->
       {% endif %}
-    </section><!--/#main-->
+    </main><!--/#main-->
 
     {% block footer %}
       <footer>

@@ -7882,18 +7882,21 @@ footer p {
   max-width: none !important;
 }
 
+main#main,
 section#main {
   padding-top: 32px;
   padding-bottom: 24px;
 }
 
 @media only screen and (min-width: 768px) {
+  main#main,
   section#main {
     padding-top: 32px;
   }
 }
 
 @media only screen and (min-width: 990px) {
+  main#main,
   section#main {
     padding-top: 16px;
     padding-bottom: 200px;
