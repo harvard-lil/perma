@@ -38,6 +38,7 @@
   </head>
   <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
     <a href="#main-skip-target" class="skip-link">Skip to main content</a>
+    <a href="#footer-skip-target" class="skip-link">Skip to footer</a>
     <header class="_default">
       <nav class="navbar navbar-default navbar-static-top" aria-labelledby="upper_right_menu_name">
         <div class="container cont-fixed">
@@ -75,6 +76,7 @@
         <div class="container cont-fixed">
           <div class="row">
             <div class="col col-lg-7">
+              <p id="footer-skip-target" tabindex="-1" class="sr-only">Footer</p>
               <nav aria-label="Learn More">
                 <ul id="footer-nav">
                   <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
