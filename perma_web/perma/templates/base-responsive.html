@@ -37,6 +37,7 @@
 
   </head>
   <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
+    <a href="#main-skip-target" class="skip-link">Skip to main content</a>
     <header class="_default">
       <nav class="navbar navbar-default navbar-static-top" aria-labelledby="upper_right_menu_name">
         <div class="container cont-fixed">
@@ -60,6 +61,7 @@
       {% if this_page != 'landing' and this_page != 'manage' %}
         <div id="main-content" class="container cont-full-bleed">
       {% endif %}
+      <p id="main-skip-target" tabindex="-1" class="sr-only">Main Content</p>
 
       {% block mainContent %}{% endblock mainContent %}
 
