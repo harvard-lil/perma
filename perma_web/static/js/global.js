@@ -2,6 +2,8 @@ var FastClick = require('fastclick');
 
 var ErrorHandler = require('./error-handler.js');
 var Helpers = require('./helpers/general.helpers.js');
+require('./helpers/fix-links.js');  // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
+
 
 require('bootstrap-js/dropdown');  // make menus work
 require('bootstrap-js/collapse');  // make menu toggle for small screen work
