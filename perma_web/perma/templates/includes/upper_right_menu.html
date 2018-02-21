@@ -32,22 +32,22 @@
                 {% if request.user.is_staff %}
                   <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
                 {% endif %}
-              {% endif %}
-
-              <!-- Org users -->
-              {% if request.user.is_organization_user %}
-                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
-              {% endif %}
-            </ul>
-          </li>
-          <li class="divider"></li>
+              </ul>
+            </li>
+            <li class="divider"></li>
+          {% endif %}
+          <!-- Org users -->
+          {% if request.user.is_organization_user %}
+            <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+            <li class="divider"></li>
+          {% endif %}
           {% if request.user.is_staff %}
-          <li><h3 class="dropdown-header">Admin Only</h3>
-            <ul class="dropdown-inner-list">
-              <li><a href="{% url 'admin:index' %}">Admin console</a></li>
-              <li><a href="{% url 'user_management_stats' %}">Site stats</a></li>
-            </ul>
-          </li>
+            <li><h3 class="dropdown-header">Admin Only</h3>
+              <ul class="dropdown-inner-list">
+                <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                <li><a href="{% url 'user_management_stats' %}">Site stats</a></li>
+              </ul>
+            </li>
           <li class="divider"></li>
           {% endif %}
           <li><h3 class="dropdown-header">Settings</h3>
