@@ -148,10 +148,12 @@
 	
 	var ErrorHandler = __webpack_require__(79);
 	var Helpers = __webpack_require__(92);
+	__webpack_require__(150); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 	
-	__webpack_require__(150); // make menus work
-	__webpack_require__(151); // make menu toggle for small screen work
-	__webpack_require__(152); // make carousels work
+	
+	__webpack_require__(151); // make menus work
+	__webpack_require__(152); // make menu toggle for small screen work
+	__webpack_require__(153); // make carousels work
 	
 	// We used to use modernizr but have currently dropped it.
 	// If we want to include it again this is where to put it --
@@ -10823,7 +10825,7 @@
 
 /***/ },
 /* 20 */
-[315, 21],
+[316, 21],
 /* 21 */
 /***/ function(module, exports) {
 
@@ -10834,11 +10836,11 @@
 
 /***/ },
 /* 22 */
-[316, 23, 31, 27],
+[317, 23, 31, 27],
 /* 23 */
-[317, 24, 26, 30, 27],
+[318, 24, 26, 30, 27],
 /* 24 */
-[318, 25],
+[319, 25],
 /* 25 */
 /***/ function(module, exports) {
 
@@ -10848,9 +10850,9 @@
 
 /***/ },
 /* 26 */
-[319, 27, 28, 29],
+[320, 27, 28, 29],
 /* 27 */
-[320, 28],
+[321, 28],
 /* 28 */
 /***/ function(module, exports) {
 
@@ -10864,9 +10866,9 @@
 
 /***/ },
 /* 29 */
-[321, 25, 19],
+[322, 25, 19],
 /* 30 */
-[322, 25],
+[323, 25],
 /* 31 */
 /***/ function(module, exports) {
 
@@ -11030,7 +11032,7 @@
 
 /***/ },
 /* 41 */
-[312, 42],
+[313, 42],
 /* 42 */
 /***/ function(module, exports) {
 
@@ -11068,7 +11070,7 @@
 
 /***/ },
 /* 44 */
-[313, 14],
+[314, 14],
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11092,7 +11094,7 @@
 
 /***/ },
 /* 47 */
-[314, 19],
+[315, 19],
 /* 48 */
 /***/ function(module, exports) {
 
@@ -11131,7 +11133,7 @@
 
 /***/ },
 /* 52 */
-[323, 47, 48, 19],
+[324, 47, 48, 19],
 /* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11151,7 +11153,7 @@
 
 /***/ },
 /* 54 */
-[311, 15],
+[312, 15],
 /* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -13402,6 +13404,45 @@
 
 /***/ },
 /* 150 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	/**
+	 * from https://github.com/Automattic/_s/blob/master/js/skip-link-focus-fix.js
+	 *
+	 * File skip-link-focus-fix.js.
+	 *
+	 * Helps with accessibility for keyboard only users.
+	 *
+	 * Learn more: https://git.io/vWdr2
+	 */
+	(function () {
+	    var isIe = /(trident|msie)/i.test(navigator.userAgent);
+	    if (isIe && document.getElementById && window.addEventListener) {
+	        window.addEventListener('hashchange', function () {
+	            var id = location.hash.substring(1),
+	                element;
+	
+	            if (!/^[A-z0-9_-]+$/.test(id)) {
+	                return;
+	            }
+	
+	            element = document.getElementById(id);
+	
+	            if (element) {
+	                if (!/^(?:a|select|input|button|textarea)$/i.test(element.tagName)) {
+	                    element.tabIndex = -1;
+	                }
+	
+	                element.focus();
+	            }
+	        }, false);
+	    }
+	})();
+
+/***/ },
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13573,7 +13614,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 151 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13792,7 +13833,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 152 */
+/* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -14036,7 +14077,6 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 153 */,
 /* 154 */,
 /* 155 */,
 /* 156 */,
@@ -14194,7 +14234,8 @@
 /* 308 */,
 /* 309 */,
 /* 310 */,
-/* 311 */
+/* 311 */,
+/* 312 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.13 ToObject(argument)
@@ -14204,7 +14245,7 @@
 	};
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// fallback for non-array-like ES3 and non-enumerable old V8 strings
@@ -14214,7 +14255,7 @@
 	};
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.15 ToLength
@@ -14225,7 +14266,7 @@
 	};
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	var global = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14236,7 +14277,7 @@
 	};
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// optional / simple context binding
@@ -14261,7 +14302,7 @@
 	};
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	var dP         = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14274,7 +14315,7 @@
 	};
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__, __webpack_module_template_argument_3__) {
 
 	var anObject       = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14295,7 +14336,7 @@
 	};
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	var isObject = __webpack_require__(__webpack_module_template_argument_0__);
@@ -14305,7 +14346,7 @@
 	};
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	module.exports = !__webpack_require__(__webpack_module_template_argument_0__) && !__webpack_require__(__webpack_module_template_argument_1__)(function(){
@@ -14313,7 +14354,7 @@
 	});
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// Thank's IE8 for his funny defineProperty
@@ -14322,7 +14363,7 @@
 	});
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__) {
 
 	var isObject = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14334,7 +14375,7 @@
 	};
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.1 ToPrimitive(input [, PreferredType])
@@ -14351,7 +14392,7 @@
 	};
 
 /***/ },
-/* 323 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	var store      = __webpack_require__(__webpack_module_template_argument_0__)('wks')

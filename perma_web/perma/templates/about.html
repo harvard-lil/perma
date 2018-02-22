@@ -83,8 +83,10 @@ Perma.cc prevents link rot.
     <div class="row">
       <div class="col-sm-12">
         <h2 class="body-ah">Perma.cc is used and supported by libraries and institutions around the world.</h2>
-          {% include "includes/partner_map.html" %}
+        <a href="#skip-visualizations-target" class="skip-link">Skip map and logo carousel</a>
+        {% include "includes/partner_map.html" %}
         {% include "includes/participating_institutions.html" %}
+        <p id="skip-visualizations-target" tabindex="-1" class="sr-only">End of map and logo carousel</p>
       </div><!--col-sm-12-->
     </div><!--row-->
   </div>
@@ -94,6 +96,7 @@ Perma.cc prevents link rot.
   <div class="row">
     <div class="col-sm-12 docs reading-body col-right">
       <h2 class="body-ah">Perma.cc’s Partners</h2>
+      <a href="#skip-partners-target" class="skip-link">Skip partner list</a>
       <div class="row partner-list">
         <div class="col-sm-6  docs column reading-body">
           {% for partner in partners_first_col %}
@@ -110,6 +113,7 @@ Perma.cc prevents link rot.
           {% endfor %}
         </div>
       </div>
+      <p id="skip-partners-target" tabindex="-1" class="sr-only">End of partner list</p>
     </div>
   </div>
 </div>

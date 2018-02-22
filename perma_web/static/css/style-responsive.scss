@@ -200,6 +200,42 @@ input:focus,
 
 ul { list-style-type: none; }
 
+/* adapted from https://github.com/Automattic/_s/blob/master/sass/modules/_accessibility.scss */
+.skip-link {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute !important;
+    width: 1px;
+    word-wrap: normal !important; /* Many screen reader and browser combinations announce broken words as they would appear visually. */
+
+    &:focus {
+        background-color: black;
+        border-radius: 3px;
+        box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+        clip: auto !important;
+        clip-path: none;
+        color: white;
+        display: block;
+        font-family: $font-hed;
+        font-size: 1.3em;
+        font-weight: bold;
+        height: auto;
+        left: 5px;
+        line-height: normal;
+        padding: 15px 23px 14px;
+        text-decoration: none;
+        top: 5px;
+        width: auto;
+        z-index: 100000;
+    }
+}
+
+
 /////////////////////////////////////////
 
 // The Basics (Structure)
@@ -230,6 +266,7 @@ footer {
   }
 }
 
+main#main,
 section#main {
   padding-top: $grid * 4;
   padding-bottom: $grid * 3;
