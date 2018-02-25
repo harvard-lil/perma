@@ -305,6 +305,7 @@ function setupEventHandlers () {
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
       handleSelectionChange(data);
+      $('#batch-links').show();
     })
     .on('CreateLinkModule.updateLinker', function(){
       updateLinker();
