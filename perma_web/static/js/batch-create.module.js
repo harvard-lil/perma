@@ -1,5 +1,6 @@
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
+var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
 var $input_area, $start_button, $batch_target_path, $modal;
 var target_folder;
@@ -30,31 +31,7 @@ var start_batch = function() {
 };
 
 var refresh_target_path_dropdown = function() {
-    $batch_target_path.empty();
-    function addChildren(node, depth) {
-        for (var i = 0; i < node.children.length; i++) {
-            var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-
-            // For each node, we create an <option> using text() for the folder name,
-            // and then prepend some &nbsp; to show the tree structure using html().
-            // Using html for the whole thing would be an XSS risk.
-            $batch_target_path.append(
-                $("<option/>", {
-                    value: childNode.data.folder_id,
-                    text: childNode.text.trim(),
-                    selected: childNode.data.folder_id == target_folder
-                }).prepend(
-                    new Array(depth).join('&nbsp;&nbsp;') + '- '
-                )
-            );
-
-            // recurse
-            if (childNode.children && childNode.children.length) {
-                addChildren(childNode, depth + 1);
-            }
-        }
-    }
-    addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+    FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
 };
 
 var set_folder_from_trigger = function(evt, data) {
