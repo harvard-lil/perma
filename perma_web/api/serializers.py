@@ -262,6 +262,8 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 ### BATCH ###
 
 class BatchSerializer(BaseSerializer):
+    capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+
     class Meta:
         model = Batch
-        fields = ('id', 'started_on', 'created_by')
+        fields = ('id', 'started_on', 'created_by', 'capture_jobs')

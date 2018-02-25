@@ -1274,7 +1274,7 @@ class CaptureJob(models.Model):
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
-    batch = models.ForeignKey('Batch', blank=True, null=True)
+    batch = models.ForeignKey('Batch', blank=True, null=True, related_name='capture_jobs')
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
