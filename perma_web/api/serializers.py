@@ -106,10 +106,17 @@ class OrganizationSerializer(BaseSerializer):
 
 class CaptureJobSerializer(BaseSerializer):
     guid = serializers.PrimaryKeyRelatedField(source='link', read_only=True)
+    title = serializers.SerializerMethodField()
+
     class Meta:
         model = CaptureJob
-        fields = ('guid', 'status', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position')
+        fields = ('guid', 'status', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title', 'submitted_url')
 
+    def get_title(self, capture_job):
+        if capture_job.link is None:
+            return ""
+        else:
+            return capture_job.link.submitted_title
 
 ### CAPTURE ###
 
