@@ -397,7 +397,7 @@ class FunctionalTest(BaseTestCase):
 
             # Verify that the folder used in the last capture was saved.
             self.driver.get(self.server_url + '/manage/create/')
-            self.driver.implicitly_wait(10)
+            self.driver.implicitly_wait(20)
             current_url = self.driver.current_url
             self.assertEquals(self.server_url + '/manage/create/?folder=' + folder_id, current_url)
             folder_from_storage = self.driver.execute_script("var ls = JSON.parse(localStorage.perma_selection); return ls[Object.keys(ls)[0]].folderIds[0]")
