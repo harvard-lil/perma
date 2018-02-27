@@ -202,8 +202,13 @@ class PermaRoute(archivalrouter.Route):
                 raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
         # check whether archive contains the requested URL
-        urlkey = surt(wbrequest.wb_url.url)
-        cdx_lines = cached_cdx.get(urlkey)
+        try:
+            urlkey = surt(wbrequest.wb_url.url)
+            cdx_lines = cached_cdx.get(urlkey)
+        except ValueError:
+            # calling surt on malformed urls (e.g. typos in protocol, whitespace)
+            # throws a value error; let's handle like a normal 404
+            cdx_lines = None
         if not cdx_lines:
             raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
