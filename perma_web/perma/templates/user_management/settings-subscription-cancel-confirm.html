@@ -3,7 +3,7 @@
 
 {% block dashboardContent %}
 
-    <h3 class="body-ah _hideMobile">Cancel Your Subscription</h3>
+    <h2 class="body-ah _hideMobile">Cancel Your Subscription</h2>
     <p class="page-dek">Are you sure you want to cancel the subscription for {{ request.user.registrar.name }}?</p>
 
     <form method="post" action="{{ cancel_url }}">
