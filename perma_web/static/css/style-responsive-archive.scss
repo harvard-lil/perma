@@ -105,6 +105,14 @@ header {
     ._isDarchive {
       color: $color-orange-a;
       border-bottom: 1px solid $color-black;
+
+      a {
+        text-decoration: underline;
+      }
+
+      &:hover, &:focus {
+          color: $color-blue;
+      }
     }
     .title:before {
       content: '';

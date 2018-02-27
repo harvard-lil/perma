@@ -4516,6 +4516,15 @@ header._isPrivate ._isDarchive {
   border-bottom: 1px solid #222;
 }
 
+header._isPrivate ._isDarchive a {
+  text-decoration: underline;
+}
+
+header._isPrivate ._isDarchive:hover,
+header._isPrivate ._isDarchive:focus {
+  color: #2D76EE;
+}
+
 header._isPrivate .title:before {
   content: '';
   display: inline-block;
