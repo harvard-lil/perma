@@ -7811,6 +7811,30 @@ input:focus,
   outline: none !important;
 }
 
+/*
+  In certain peculiar cases, screenreader-only text is read
+  out of order:
+  <!-- This is read "two one three" -->
+  <a href="/">One <span class="sr-only">two</span> three.</a>
+
+  IFF inside a block-level element, rather than an inline element
+  (<a> can be either, depending on context...)
+  you can address by wrapping the sr-only element in a div with
+  .sr-wrapper.
+
+  <!-- This is read "one two three" -->
+  <a href="/">One <div class="sr-wrapper"><span class="sr-only">two </span></div>three</a>
+
+  <!-- This is invalid html and won't be parsed correctly by the browser -->
+  <p><a href="/">One <div class="sr-wrapper"><span class="sr-only">two </span></div>three</a></
+
+*/
+
+.sr-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
 ul {
   list-style-type: none;
 }
@@ -12547,6 +12571,28 @@ footer #boilerplate a {
   color: #222;
 }
 
+ol.result-list {
+  list-style-type: none;
+  padding: 0;
+  /* Add zero-width space  to work around Voiceover bug */
+  /* https://unfetteredthoughts.net/2017/09/26/voiceover-and-list-style-type-none/ */
+}
+
+ol.result-list li:before {
+  content: "\200B";
+}
+
+ol.result-list .item-container {
+  margin-top: 0;
+}
+
+ol.result-list .admin-actions {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column-reverse;
+  flex-direction: column-reverse;
+}
+
 .item-container {
   padding: 16px 16px;
   border: 1px solid transparent;
@@ -12638,6 +12684,7 @@ footer #boilerplate a {
 .item-title {
   font-size: 16px;
   font-weight: 700;
+  color: #222;
 }
 
 .item-title a {
@@ -13128,6 +13175,8 @@ span.action [class*=" icon-"] {
 }
 
 .remove-search-filters .filters-title {
+  display: inline-block;
+  color: #DD671A;
   font-size: 14px;
   font-weight: 700;
 }

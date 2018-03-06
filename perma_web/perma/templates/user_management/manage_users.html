@@ -25,32 +25,36 @@
   </div><!-- add member -->
 
   <div class="row row-no-bleed admin-data">
+    <h3 class="sr-only">User List Summary</h3>
+
     <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-      <p class="count-label">Users</p>
-      <p class="count-number">{{ users.paginator.count|intcomma }}</p>
+      <div class="count-label">Users</div>
+      <div class="count-number">
+        {{ users.paginator.count|intcomma }}
+      </div>
     </div>
 
     {% if request.user.is_staff and group_name == 'user' %}
       <div class="col col-xs-3 col-no-gutter admin-data-point">
-        <p class="count-label">Deactivated Users</p>
-        <p class="count-number">{{ deactivated_users }}</p>
+        <div class="count-label">Deactivated Users</div>
+        <div class="count-number">{{ deactivated_users }}</div>
       </div>
     {% endif %}
 
     <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-      <p class="count-label">Unactivated Users</p>
-      <p class="count-number">{{ unactivated_users }}</p>
+      <div class="count-label">Unactivated Users</div>
+      <div class="count-number">{{ unactivated_users }}</div>
     </div>
 
     <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-      <p class="count-label">Links</p>
-      <p class="count-number">{{ total_created_links_count|default:0|intcomma }}</p>
+      <div class="count-label">Links</div>
+      <div class="count-number">{{ total_created_links_count|default:0|intcomma }}</div>
     </div>
   </div><!-- admin data -->
 
-
   <div class="row">
     <div class="col col-xs-12">
+      <h3 class="sr-only">Search Users</h3>
       {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" %}
     </div>
   </div><!-- search -->
@@ -59,7 +63,9 @@
     <div class="row">
       <div class="col-sm-12">
         <div class="remove-search-filters">
-          <span class="filters-title">Filters: </span>
+
+          <h3 class="filters-title"><span class="sr-only">Current</span> Filters:</h3>
+
           {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
           {% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
           {% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
@@ -73,7 +79,8 @@
 
   <div class="row row-no-bleed">
     <div class="col admin-found col-no-gutter">
-      <div class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
+      <h3 class="filters-title"><span class="sr-only">User List</h3>
+      <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
         <div class="dropdown">
@@ -171,17 +178,18 @@
   </div><!-- row -->
 
   {% if users %}
+    <ol class="result-list">
     {% for listed_user in users %}
-      <div class="item-container {% if not listed_user.is_active %}muted{% endif %}">
+      <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
         <div class="col col-sm-8 col-no-gutter">
-          <div class="item-title">
+          <h4 class="item-title">
             {% if not listed_user.first_name and not listed_user.last_name %}
               {{ listed_user.email }}
             {% else %}
               {{ listed_user.first_name }} {{ listed_user.last_name }}
             {% endif %}
             {% if listed_user == request.user %}(you){% endif %}
-          </div>
+          </h4>
           <div class="item-subtitle">{{ listed_user.email }}</div>
           {% if not listed_user.is_confirmed %}
             <p class="warning">User must activate account</p>
@@ -189,19 +197,20 @@
 
           {% if listed_user|visible_organizations:request.user %}
             <div class="item-affil">
+              <span class="sr-only">Member of:</span>
               {% for organization in listed_user|visible_organizations:request.user %}
-                <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
+                 <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
                 {% include "user_management/includes/comma.html" %}
               {% endfor %}
             </div>
           {% endif %}
 
           {% if request.user.is_staff and listed_user.requested_account_type %}
-            <p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
+            <div class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</div>
           {% endif %}
 
           {% if group_name == 'registrar_user' and request.user.is_staff %}
-            <div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
+            <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
           {% endif %}
 
           {% if group_name == 'organization_user' %}
@@ -217,57 +226,62 @@
         </div>
 
         <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-          <p class="item-status">
-            {% if listed_user.is_active %}
-              {% if request.user.is_staff %}
-                {% if group_name != 'admin_user' %}
-                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete</a>
+          <div>
+            <div class="item-activity">
+              created {{ listed_user.date_joined|date:'F j, Y' }}
+              {% if listed_user.is_confirmed %}
+                <br>
+                last active {{ listed_user.last_login|date:'F j, Y' }}
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="item-status">
+              {% if listed_user.is_active %}
+                {% if request.user.is_staff %}
+                  {% if group_name != 'admin_user' %}
+                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% else %}
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% endif %}
+                {% elif request.user.is_registrar_user and group_name == 'organization_user' %}
+                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                {% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
+                  <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                 {% else %}
-                  <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove</a>
+                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                 {% endif %}
-              {% elif request.user.is_registrar_user and group_name == 'organization_user' %}
-                <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
-              {% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
-                <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+              {% elif listed_user.is_confirmed %}
+                <span class="text-warning">deactivated account</span>
+                {% if request.user.is_staff %}
+                  <a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                {% endif %}
               {% else %}
-                <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
-              {% endif %}
-            {% elif listed_user.is_confirmed %}
-              <span class="text-warning">deactivated account</span>
-              {% if request.user.is_staff %}
-                <a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
-              {% endif %}
-            {% else %}
-              {% if request.user.is_staff %}
-                <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete</a>
-              {% else %}
-                {% if group_name == 'organization_user' %}
-                  <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove</a>
-                {% elif group_name == 'registrar_user' %}
-                  <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+                {% if request.user.is_staff %}
+                  <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                {% else %}
+                  {% if group_name == 'organization_user' %}
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% elif group_name == 'registrar_user' %}
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% endif %}
                 {% endif %}
               {% endif %}
+            </div>
+            {% if request.user.is_staff %}
+              <div class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit <div class="sr-wrapper"><span class="sr-only">{{ listed_user.get_full_name }} </span></div>in admin console</span></a></div>
             {% endif %}
-          </p>
-          {% if request.user.is_staff %}
-            <p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
-          {% endif %}
-          {% if not listed_user.is_confirmed %}
-            <p class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email</a></p>
-          {% endif %}
-          <p class="item-activity">
-            created {{ listed_user.date_joined|date:'F j, Y' }}
-            {% if listed_user.is_confirmed %}
-              <br>
-              last active {{ listed_user.last_login|date:'F j, Y' }}
+            {% if not listed_user.is_confirmed %}
+              <div class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email <span class="sr-only"> to {{ listed_user.get_full_name}}</span></a></div>
             {% endif %}
-          </p>
+          </div>
         </div>
-      </div>
+      </li>
     {% endfor %}
+    </ol>
 
   {% else %}
-    <p class="item-notification">No {{ pretty_group_name_plural|lower }} found.</p>
+    <div class="item-notification">No {{ pretty_group_name_plural|lower }} found.</div>
   {% endif %}
 
   {% include "user_management/includes/paginator.html" with page=users %}
