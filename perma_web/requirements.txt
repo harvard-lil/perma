@@ -42,7 +42,7 @@ django-sslserver==0.14
 django-storages==1.5.2
 django-taggit==0.20.2
 django-webpack-loader==0.5.0
-django==1.11.10
+django==1.11.11
 djangorestframework==3.6.2
 docopt==0.6.2             # via internetarchive
 docutils==0.13.1          # via botocore
@@ -98,7 +98,7 @@ pytest-django==3.1.2
 pytest-xdist==1.15.0
 pytest==3.0.7
 python-dateutil==2.2
-pytz==2017.2
+pytz==2018.3
 pyvirtualdisplay==0.1.5
 pywb==0.33.2
 pyyaml==3.10              # via pywb, watchdog
