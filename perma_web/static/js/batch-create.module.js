@@ -10,7 +10,9 @@ var target_folder;
 
 var start_batch = function() {
     // XXX clear screen
-    APIModule.request('POST', '/batches/').then(function(batch_object) {
+    APIModule.request('POST', '/batches/', {
+        "saved_folder": target_folder
+    }).then(function(batch_object) {
         var batch_id = batch_object.id;
         var urls = $input_area.val()
             .split("\n")

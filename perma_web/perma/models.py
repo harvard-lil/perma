@@ -1393,6 +1393,7 @@ class CaptureJob(models.Model):
 class Batch(models.Model):
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='batches')
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
+    saved_folder = models.ForeignKey(Folder, blank=False, null=False)
 
     def accessible_to(self, user):
         if user.is_staff:

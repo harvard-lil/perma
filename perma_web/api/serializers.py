@@ -273,4 +273,4 @@ class BatchSerializer(BaseSerializer):
 
     class Meta:
         model = Batch
-        fields = ('id', 'started_on', 'created_by', 'capture_jobs')
+        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'saved_folder')
