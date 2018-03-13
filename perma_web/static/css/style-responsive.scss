@@ -2725,7 +2725,7 @@ figcaption + .img-responsive {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
   }
-  #batch-links {
+  #create-batch-links {
     display: none;
     clear: both;
     text-align: right;
@@ -2733,7 +2733,7 @@ figcaption + .img-responsive {
     width: 100%;
     max-width: none;
   }
-  #batch-links {
+  #create-batch-links {
     font-family: $font-hed-alt;
     font-size: 16px;
     font-weight: 200;
@@ -2742,12 +2742,12 @@ figcaption + .img-responsive {
       font-weight: 200;
     }
   }
-  #batch-links {
+  #create-batch-links {
     margin-top: 0;
     margin-bottom: -$grid;
     font-family: $font-hed-alt;
   }
-  #batch-links {
+  #create-batch-links {
     a {
       font-weight: normal;
       color: $color-blue;
