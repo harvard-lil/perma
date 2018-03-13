@@ -7,6 +7,7 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
+var BatchViewModule = require('./batch-view.module.js');
 
 var newGUID = null;
 var refreshIntervalIds = [];
@@ -405,6 +406,33 @@ export function init () {
         $organization_select.append("<li class='personal-links'><a href='#' data-folderid='"+current_user.top_level_folders[0].id+"'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         updateLinker();
       }
+    });
+
+    // populate batches list
+    APIModule.request("GET", "/batches/").done(function(data) {
+      var batches = data.objects;
+      batches.sort(function(batch1, batch2) {
+        return new Date(batch2.started_on) - new Date(batch1.started_on);
+      });
+      $(function() {
+        var $batches_history_list = $("#batches-history-list");
+        batches.forEach(function(batch) {
+          var human_timestamp = new Date(batch.started_on).toLocaleString("en-us", {
+            year:   "numeric",
+            month:  "long",
+            day:    "numeric",
+            hour:   "numeric",
+            minute: "2-digit"
+          });
+          var $li = $("<li>")
+            .text("Batch created " + human_timestamp)
+            .click(function() {
+              BatchViewModule.show_batch(batch.id, batch.saved_folder);
+              $("#batch-view-modal").modal("show");
+            });
+          $batches_history_list.append($li);
+        });
+      });
     });
 
   // handle dropdown changes

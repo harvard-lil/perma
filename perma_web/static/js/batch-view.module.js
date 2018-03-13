@@ -31,6 +31,7 @@ var get_batch_info = function(batch_id) {
 export function show_batch(batch_id, folder_id) {
     var folder_path = FolderTreeModule.getPathForId(folder_id);
     $saved_path.html(folder_path.join(" &gt; "));
+    $batch_details.empty();
     var interval = setInterval(function() {
         get_batch_info(batch_id).then(function(links_in_batch) {
             render_batch(links_in_batch, folder_id);
