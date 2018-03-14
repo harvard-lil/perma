@@ -121,6 +121,8 @@ module.exports = {
 
       'bootstrap': 'bootstrap-sass/assets/stylesheets/bootstrap',
       'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
+
+      'papaparse': 'papaparse/papaparse.min.js',
     }
   },
 
