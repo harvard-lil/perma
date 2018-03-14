@@ -7,10 +7,30 @@
       </div>
 
       <div class="modal-body">
-          <p>The Perma links will be added to <span id="batch-saved-path"></span></p>
+          <p>The Perma Links will be added to <span id="batch-saved-path"></span></p>
           <div id="batch-details"></div>
           <a href="#" class="btn cancel" data-dismiss="modal">Exit</a>
       </div>
     </div>
   </div>
 </div>
+
+{% verbatim %}
+<script id="batch-link-row" type="text/x-handlebars-template">
+    <div class="row">
+        <div class="link-desc col col-sm-6 col-md-60">
+            <div class="item-title">{{ link.title }}</div>
+            <div class="item-subtitle">{{ link.url }}</div>
+        </div>
+        <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
+            {{#if link.isProcessing}}
+              {{> progressBar progress=link.progress }}
+            {{else if link.isComplete}}
+              DONE at {{link.guid}}!
+            {{else if link.isError }}
+              ERROR :(
+            {{/if}}
+        </div>
+    </div>
+</script>
+{% endverbatim %}

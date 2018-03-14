@@ -1,10 +1,20 @@
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
+var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
+var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 var $batch_details, $saved_path;
 
 var render_batch = function(links_in_batch, folder_id) {
-    $batch_details.text(JSON.stringify(links_in_batch));
+    $batch_details.empty();
+    links_in_batch.forEach(function(link) {
+        link.progress = (link.step_count / 5) * 100;
+        link.isProcessing = ((link.status === "pending") || (link.status === "in_progress"));
+        link.isComplete = (link.status === "completed");
+        link.isError = (!link.isProcessing && !link.isComplete);
+        var template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
+        $batch_details.append(jQuery.parseHTML(template));
+    });
 };
 
 var get_batch_info = function(batch_id) {
