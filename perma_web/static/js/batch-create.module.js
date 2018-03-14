@@ -6,7 +6,7 @@ var BatchHelpers = require('./helpers/batch.helpers.js');
 
 var $create_modal, $view_modal;
 var $input_area, $start_button, $batch_target_path;
-var $link_list;
+var $batches_history_list;
 var target_folder;
 
 var start_batch = function() {
@@ -46,6 +46,9 @@ var start_batch = function() {
                 clearInterval(interval);
                 $create_modal.modal("hide");
                 BatchHelpers.show_modal_with_batch(batch_object);
+                var $li = $("<li>");
+                BatchHelpers.create_clickable_batch_el($li, batch_object);
+                $batches_history_list.prepend($li);
             }
         }, 500);
     });
@@ -95,6 +98,7 @@ export function init() {
         $input_area = $('#batch-create-input textarea');
         $start_button = $('#start-batch');
         $batch_target_path = $('#batch-target-path');
+        $batches_history_list = $("#batches-history-list");
 
         setup_handlers();
     });
