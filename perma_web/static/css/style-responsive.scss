@@ -3136,6 +3136,10 @@ $batchModalWidth: 900px;
     }
 }
 
+#export-csv {
+    display: none;
+}
+
 #batch-saved-path {
     font-weight: bold;
 }

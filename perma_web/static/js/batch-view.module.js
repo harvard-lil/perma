@@ -1,15 +1,21 @@
+var Papa = require('papaparse');
+
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
-var $batch_details, $saved_path;
+var $batch_details, $saved_path, $export_csv;
 
 var render_batch = function(links_in_batch, folder_id) {
     $batch_details.empty();
+    var all_finished = true;
     links_in_batch.forEach(function(link) {
         link.progress = (link.step_count / 5) * 100;
         link.isProcessing = ((link.status === "pending") || (link.status === "in_progress"));
+        if (link.isProcessing) {
+            all_finished = false;
+        }
         link.isComplete = (link.status === "completed");
         link.isError = (!link.isProcessing && !link.isComplete);
         if (link.isError) {
@@ -21,10 +27,31 @@ var render_batch = function(links_in_batch, folder_id) {
                 link.error_message = "error";
             }
         }
-        link.local_url = window.host + '/' + link.guid;
+        link.local_url = window.host + "/" + link.guid;
         var template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
         $batch_details.append(jQuery.parseHTML(template));
     });
+    if (all_finished) {
+        var export_data = links_in_batch.map(function(link) {
+            var to_export = {
+                "url": link.url
+            };
+            if (link.status === "completed") {
+                to_export["status"] = "success"
+                to_export["title"] = link.title;
+                to_export["perma_link"] = "http://" + window.host + "/" + link.guid;
+            } else {
+                to_export["status"] = "error"
+                to_export["title"] = ""
+                to_export["perma_link"] = ""
+            }
+            return to_export;
+        });
+        var csv = Papa.unparse(export_data);
+        $export_csv.attr("href", "data:text/csv;charset=utf-8," + encodeURI(csv));
+        $export_csv.attr("download", "perma.csv");
+        $export_csv.show();
+    }
 };
 
 var get_batch_info = function(batch_id) {
@@ -43,8 +70,6 @@ var get_batch_info = function(batch_id) {
                 });
             }
             return cleaned_batch_data;
-        }).fail(function(response) {
-            // deal with failure
         });
 };
 
@@ -74,5 +99,6 @@ export function init() {
     $(function() {
         $batch_details = $('#batch-details');
         $saved_path = $('#batch-saved-path');
+        $export_csv = $('#export-csv');
     });
 }
