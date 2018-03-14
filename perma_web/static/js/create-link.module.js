@@ -8,6 +8,7 @@ var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var BatchViewModule = require('./batch-view.module.js');
+var BatchHelpers = require('./helpers/batch.helpers.js');
 
 var newGUID = null;
 var refreshIntervalIds = [];
@@ -417,18 +418,11 @@ export function init () {
       $(function() {
         var $batches_history_list = $("#batches-history-list");
         batches.forEach(function(batch) {
-          var human_timestamp = new Date(batch.started_on).toLocaleString("en-us", {
-            year:   "numeric",
-            month:  "long",
-            day:    "numeric",
-            hour:   "numeric",
-            minute: "2-digit"
-          });
+          var human_timestamp = BatchHelpers.human_timestamp_from_batch(batch);
           var $li = $("<li>")
             .text("Batch created " + human_timestamp)
             .click(function() {
-              BatchViewModule.show_batch(batch.id, batch.saved_folder);
-              $("#batch-view-modal").modal("show");
+              BatchHelpers.show_modal_with_batch(batch);
             });
           $batches_history_list.append($li);
         });

@@ -2,6 +2,7 @@ var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 var BatchViewModule = require('./batch-view.module.js');
+var BatchHelpers = require('./helpers/batch.helpers.js');
 
 var $create_modal, $view_modal;
 var $input_area, $start_button, $batch_target_path;
@@ -43,9 +44,8 @@ var start_batch = function() {
         var interval = setInterval(function() {
             if (Object.keys(guid_map).length === urls.length) {
                 clearInterval(interval);
-                BatchViewModule.show_batch(batch_id, target_folder);
                 $create_modal.modal("hide");
-                $view_modal.modal("show");
+                BatchHelpers.show_modal_with_batch(batch_object);
             }
         }, 500);
     });
