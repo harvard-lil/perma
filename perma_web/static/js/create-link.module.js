@@ -421,12 +421,8 @@ export function init () {
             $(function() {
                 var $batches_history_list = $("#batches-history-list");
                 batches.forEach(function(batch) {
-                    var human_timestamp = BatchHelpers.human_timestamp_from_batch(batch);
-                    var $li = $("<li>")
-                        .text("Batch created " + human_timestamp)
-                        .click(function() {
-                            BatchHelpers.show_modal_with_batch(batch);
-                        });
+                    var $li = $("<li>");
+                    BatchHelpers.create_clickable_batch_el($li, batch);
                     $batches_history_list.append($li);
                 });
             });
