@@ -1,3 +1,5 @@
+var Spinner = require('spin.js');
+
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
@@ -5,11 +7,16 @@ var BatchViewModule = require('./batch-view.module.js');
 var BatchHelpers = require('./helpers/batch.helpers.js');
 
 var $create_modal, $view_modal;
-var $input_area, $start_button, $batch_target_path;
+var $input_area, $start_button, $cancel_button, $batch_target_path;
 var $batches_history_list;
 var target_folder;
 
 var start_batch = function() {
+    $input_area.prop("disabled", true).css("cursor", "not-allowed");
+    $cancel_button.css("visibility", "hidden");
+    $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
+    var spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'}).spin($start_button[0]);
+
     APIModule.request('POST', '/batches/', {
         "saved_folder": target_folder
     }).then(function(batch_object) {
@@ -78,7 +85,6 @@ var setup_handlers = function() {
         set_folder_from_dropdown(new_folder_id);
     });
     $start_button.click(function() {
-        //show_link_list();
         start_batch();
     });
  };
@@ -89,6 +95,7 @@ export function init() {
         $view_modal = $('#batch-view-modal');
         $input_area = $('#batch-create-input textarea');
         $start_button = $('#start-batch');
+        $cancel_button = $create_modal.find('.cancel');
         $batch_target_path = $('#batch-target-path');
         $batches_history_list = $("#batches-history-list");
 
