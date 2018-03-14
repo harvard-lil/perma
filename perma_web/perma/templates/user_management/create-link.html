@@ -12,6 +12,18 @@
 {% block mainContent %}
   <!-- regular link creation -->
 
+  {% verbatim %}
+  <script id="progress-bar-template" type="text/x-handlebars-template">
+      <div position="relative" style="width: 100%; height: 0">
+          <div {{#if id}}id="{{id}}"{{/if}} class="progress" style="width: 100%; height: 0.3em; position: absolute; margin-bottom: 0">
+              <div class="progress-bar" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="background-color: #2D76EE; width: {{progress}}%">
+                  <span class="sr-only">{{progress}}% Complete</span>
+              </div>
+          </div>
+      </div>
+  </script>
+  {% endverbatim %}
+
   <div id="create-item-container" class="container cont-full-bleed">
     <div class="container cont-fixed">
       <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>

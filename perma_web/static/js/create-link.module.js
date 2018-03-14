@@ -9,6 +9,7 @@ var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var BatchViewModule = require('./batch-view.module.js');
 var BatchHelpers = require('./helpers/batch.helpers.js');
+var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
 var newGUID = null;
 var refreshIntervalIds = [];
@@ -175,19 +176,15 @@ function check_status () {
 
       // add progress bar if doesn't exist
       if (!$('#capture-progress-bar').length) {
-        $('#addlink').append(
-          '<div style="position: relative; width: 100%; height: 0">'+
-          '  <div id="capture-progress-bar" class="progress" style="width: 100%; height: 0.3em; position:absolute; margin-bottom: 0">' +
-          '    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0; background-color: #2D76EE">' +
-          '      <span class="sr-only">0% Complete</span>' +
-          '    </div>' +
-          '  </div>' +
-          '</div>');
+        var progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
+        progress_bar.appendTo($('#addlink'));
+      } else {
+        var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
       }
 
       // update progress
       var progress = data.step_count/5*100;
-      $('#capture-progress-bar .progress-bar').attr('aria-valuenow', progress).css('width', progress+'%').find('span').text(progress+'% Complete');
+      progress_bar.setProgress(progress);
 
     } else {
 
