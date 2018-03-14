@@ -1,4 +1,5 @@
 var Papa = require('papaparse');
+var Spinner = require('spin.js');
 
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
@@ -76,7 +77,7 @@ var get_batch_info = function(batch_id) {
 export function show_batch(batch_id, folder_id) {
     var folder_path = FolderTreeModule.getPathForId(folder_id);
     $saved_path.html(folder_path.join(" &gt; "));
-    $batch_details.empty();
+    var spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin($batch_details[0]);
     var interval = setInterval(function() {
         get_batch_info(batch_id).then(function(links_in_batch) {
             render_batch(links_in_batch, folder_id);
