@@ -12,6 +12,16 @@ var render_batch = function(links_in_batch, folder_id) {
         link.isProcessing = ((link.status === "pending") || (link.status === "in_progress"));
         link.isComplete = (link.status === "completed");
         link.isError = (!link.isProcessing && !link.isComplete);
+        if (link.isError) {
+            // Right now, the CaptureJob doesn't save the Serializer
+            // error so we can only save the status, and we always
+            // save "invalid" on an error.  Thus, this will always be
+            // true.
+            if (link.status === "invalid") {
+                link.error_message = "error";
+            }
+        }
+        link.local_url = window.host + '/' + link.guid;
         var template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
         $batch_details.append(jQuery.parseHTML(template));
     });
@@ -24,7 +34,7 @@ var get_batch_info = function(batch_id) {
             if (Array.isArray(batch_data.capture_jobs)) {
                 cleaned_batch_data = batch_data.capture_jobs.map(function(capture_job) {
                     return {
-                        "url": capture_job.url,
+                        "url": capture_job.submitted_url,
                         "title": capture_job.title,
                         "guid": capture_job.guid,
                         "status": capture_job.status,

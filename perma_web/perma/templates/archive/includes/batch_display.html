@@ -26,9 +26,9 @@
             {{#if link.isProcessing}}
               {{> progressBar progress=link.progress }}
             {{else if link.isComplete}}
-              DONE at {{link.guid}}!
+              <a class="perma no-drag" href="http://{{link.local_url}}" target="_blank">{{link.local_url}}</a>
             {{else if link.isError }}
-              ERROR :(
+              <span class="link-error">{{link.error_message}}</span>
             {{/if}}
         </div>
     </div>

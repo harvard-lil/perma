@@ -3109,6 +3109,51 @@ button#addlink,
   margin-top: 0;
 }
 
+/////////////////////////////////////////
+
+// Batch modals
+
+$batchModalWidth: 900px;
+
+#batch-create-modal, #batch-view-modal {
+    .modal-dialog {
+        @include respond-tablet {
+            margin-left: $batchModalWidth * -.5;
+        }
+    }
+
+    .modal-content {
+        overflow: hidden;
+          @include respond-tablet {
+              width: $batchModalWidth;
+          }
+    }
+}
+
+#batch-create-modal {
+    textarea {
+        height: 20em;
+    }
+}
+
+#batch-saved-path {
+    font-weight: bold;
+}
+
+#batch-details {
+    .row {
+        border-top: 1px solid $color-trans-darkgray;
+        padding-top: $double;
+        padding-bottom: $double;
+    }
+    .link-error {
+        border: 2px solid $color-error;
+        color: $color-error;
+        padding: 0.2em;
+        font-weight: bold;
+    }
+}
+
 
 /////////////////////////////////////////
 

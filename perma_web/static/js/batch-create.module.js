@@ -19,29 +19,21 @@ var start_batch = function() {
             .map(function(s) {
                 return s.trim();
             });
-        var guid_map = {};
+        var num_requests = 0;
         urls.forEach(function(url) {
             return APIModule.request('POST', '/archives/', {
                 folder: target_folder,
                 batch_id: batch_id,
                 url: url
-            }).then(function(response) {
-                var guid = response.guid;
-                // this should be the same as the URL we submitted,
-                // but just in case we start normalizing them somehow
-                // on the backend
-                var url = response.url;
-                guid_map[guid] = {
-                    "url": url
-                };
+            }, { "error": function(jqXHR) {} }).then(function(response) {
+                num_requests += 1;
             }).fail(function(err) {
-                console.log("fail :(");
+                num_requests += 1;
                 console.error(err);
-                // deal with fail
             });
         });
         var interval = setInterval(function() {
-            if (Object.keys(guid_map).length === urls.length) {
+            if (num_requests === urls.length) {
                 clearInterval(interval);
                 $input_area.empty();
                 $create_modal.modal("hide");
