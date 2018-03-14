@@ -307,7 +307,9 @@ function setupEventHandlers () {
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
       handleSelectionChange(data);
-      $('#create-batch-links').show();
+      if (settings.BULK_UPLOADS) {
+        $('#create-batch-links').show();
+      }
     })
     .on('CreateLinkModule.updateLinker', function(){
       updateLinker();
@@ -409,25 +411,27 @@ export function init () {
       }
     });
 
-    // populate batches list
-    APIModule.request("GET", "/batches/", {"limit": 15}).done(function(data) {
-      var batches = data.objects;
-      batches.sort(function(batch1, batch2) {
-        return new Date(batch2.started_on) - new Date(batch1.started_on);
-      });
-      $(function() {
-        var $batches_history_list = $("#batches-history-list");
-        batches.forEach(function(batch) {
-          var human_timestamp = BatchHelpers.human_timestamp_from_batch(batch);
-          var $li = $("<li>")
-            .text("Batch created " + human_timestamp)
-            .click(function() {
-              BatchHelpers.show_modal_with_batch(batch);
+    if (settings.BULK_UPLOADS) {
+        // populate batches list
+        APIModule.request("GET", "/batches/", {"limit": 15}).done(function(data) {
+            var batches = data.objects;
+            batches.sort(function(batch1, batch2) {
+                return new Date(batch2.started_on) - new Date(batch1.started_on);
             });
-          $batches_history_list.append($li);
+            $(function() {
+                var $batches_history_list = $("#batches-history-list");
+                batches.forEach(function(batch) {
+                    var human_timestamp = BatchHelpers.human_timestamp_from_batch(batch);
+                    var $li = $("<li>")
+                        .text("Batch created " + human_timestamp)
+                        .click(function() {
+                            BatchHelpers.show_modal_with_batch(batch);
+                        });
+                    $batches_history_list.append($li);
+                });
+            });
         });
-      });
-    });
+    }
 
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){

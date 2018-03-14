@@ -99,10 +99,12 @@
         <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
       </div>
       <div id="folder-tree"></div>
+      {% if BULK_UPLOADS %}
       <div class="panel-heading">
           Batches history
           <ul id="batches-history-list"></ul>
       </div>
+      {% endif %}
     </div>
 
     <div class="col-md-9 col-links">
@@ -264,6 +266,8 @@
 
   {% endverbatim %}
   {% include "archive/includes/upload_your_own.html" %}
-  {% include "archive/includes/batch_create.html" %}
-  {% include "archive/includes/batch_display.html" %}
+  {% if BULK_UPLOADS %}
+    {% include "archive/includes/batch_create.html" %}
+    {% include "archive/includes/batch_display.html" %}
+  {% endif %}
 {% endblock templates %}
