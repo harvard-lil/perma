@@ -409,7 +409,7 @@ export function init () {
     });
 
     // populate batches list
-    APIModule.request("GET", "/batches/").done(function(data) {
+    APIModule.request("GET", "/batches/", {"limit": 15}).done(function(data) {
       var batches = data.objects;
       batches.sort(function(batch1, batch2) {
         return new Date(batch2.started_on) - new Date(batch1.started_on);

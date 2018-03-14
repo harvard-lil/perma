@@ -536,7 +536,7 @@ class BatchesListView(BaseView):
 
     def get(self, request, format=None):
         """ List batches for user. """
-        queryset = Batch.objects.filter(created_by=request.user)
+        queryset = Batch.objects.filter(created_by=request.user).order_by('-started_on')
         return self.simple_list(request, queryset)
 
     def post(self, request, format=None):
