@@ -10,7 +10,6 @@ var $batches_history_list;
 var target_folder;
 
 var start_batch = function() {
-    // XXX clear screen
     APIModule.request('POST', '/batches/', {
         "saved_folder": target_folder
     }).then(function(batch_object) {
@@ -44,6 +43,7 @@ var start_batch = function() {
         var interval = setInterval(function() {
             if (Object.keys(guid_map).length === urls.length) {
                 clearInterval(interval);
+                $input_area.empty();
                 $create_modal.modal("hide");
                 BatchHelpers.show_modal_with_batch(batch_object);
                 var $li = $("<li>");
