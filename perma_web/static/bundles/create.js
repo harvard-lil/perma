@@ -214,6 +214,9 @@ webpackJsonp([1],[
 	      showFolderContents(selectedFolderID, query);
 	    }
 	  });
+	  $('.expand-toggle').on('click', function (e) {
+	    toggleLinkDetails(e);
+	  });
 	}
 	
 	function getLinkIDForFormElement(element) {
@@ -283,14 +286,14 @@ webpackJsonp([1],[
 	
 	function generateLinkFields(query, link) {
 	  return LinkHelpers.generateLinkFields(link, query);
-	};
+	}
 	
 	function showFolderContents(folderID, query) {
 	  initShowFolderDOM(query);
 	
 	  var requestCount = 20,
 	      requestData = { limit: requestCount, offset: 0 },
-	      endpoint;
+	      endpoint = void 0;
 	
 	  if (query) {
 	    requestData.q = query;
@@ -320,7 +323,7 @@ webpackJsonp([1],[
 	
 	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
 	      // Set a waypoint event to trigger when the last link comes into view.
-	      if (links.length == requestCount) {
+	      if (links.length === requestCount) {
 	        requestData.offset += requestCount;
 	        linkTable.find('.item-container:last').waypoint(function (direction) {
 	          this.destroy(); // cancel waypoint
@@ -340,6 +343,11 @@ webpackJsonp([1],[
 	  var templateArgs = { links: links, query: query };
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
+	  var toggleDetailsIcon = $('.toggle-details');
+	
+	  toggleDetailsIcon.on('click', function (e) {
+	    toggleLinkDetails(e);
+	  });
 	}
 	
 	function handleMouseDown(e) {
@@ -367,51 +375,63 @@ webpackJsonp([1],[
 	  lastRowToggleTime = new Date().getTime();
 	
 	  // hide/show link details
-	  var linkContainer = $(e.target).closest('.item-container'),
-	      details = linkContainer.find('.item-details');
-	
-	  if (details.is(':visible')) {
-	    details.hide();
-	    linkContainer.toggleClass('_active');
-	  } else {
-	    var currentFolderID, moveSelect;
-	
-	    (function () {
-	
-	      // recursively populate select ...
-	      var addChildren = function addChildren(node, depth) {
-	        for (var i = 0; i < node.children.length; i++) {
-	          var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-	
-	          // For each node, we create an <option> using text() for the folder name,
-	          // and then prepend some &nbsp; to show the tree structure using html().
-	          // Using html for the whole thing would be an XSS risk.
-	          moveSelect.append($("<option/>", {
-	            value: childNode.data.folder_id,
-	            text: childNode.text.trim(),
-	            selected: childNode.data.folder_id == currentFolderID
-	          }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
-	
-	          // recurse
-	          if (childNode.children && childNode.children.length) addChildren(childNode, depth + 1);
-	        }
-	      };
-	
-	      // when showing link details, update the move-to-folder select input
-	      // based on the current folderTree structure
-	
-	      // first clear the select ...
-	      currentFolderID = selectedFolderID;
-	      moveSelect = details.find('.move-to-folder');
-	
-	      moveSelect.find('option').remove();
-	      addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
-	
-	      details.show();
-	      linkContainer.toggleClass('_active');
-	    })();
-	  }
+	  toggleLinkDetails(e);
 	}
+	
+	var getLinkContainer = function getLinkContainer(elem) {
+	  return $(elem).closest('.item-container');
+	};
+	
+	var toggleLinkDetails = function toggleLinkDetails(e) {
+	  var linkContainer = getLinkContainer(e.target),
+	      details = linkContainer.find('.item-details');
+	  if (details.is(':visible')) {
+	    hideLinkDetails(linkContainer, details);
+	  } else {
+	    showLinkDetails(linkContainer, details);
+	  }
+	};
+	
+	var hideLinkDetails = function hideLinkDetails(linkContainer, details) {
+	  linkContainer.find('.collapse-details').blur().hide();
+	  linkContainer.find('.expand-details').show().focus();
+	  details.hide();
+	  linkContainer.toggleClass('_active');
+	};
+	
+	var showLinkDetails = function showLinkDetails(linkContainer, details) {
+	  // when showing link details, update the move-to-folder select input
+	  // based on the current folderTree structure
+	
+	  // first clear the select ...
+	  var currentFolderID = selectedFolderID,
+	      moveSelect = details.find('.move-to-folder');
+	  moveSelect.find('option').remove();
+	
+	  // recursively populate select ...
+	  var addChildren = function addChildren(node, depth) {
+	    for (var i = 0; i < node.children.length; i++) {
+	      var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
+	
+	      // For each node, we create an <option> using text() for the folder name,
+	      // and then prepend some &nbsp; to show the tree structure using html().
+	      // Using html for the whole thing would be an XSS risk.
+	      moveSelect.append($("<option/>", {
+	        value: childNode.data.folder_id,
+	        text: childNode.text.trim(),
+	        selected: childNode.data.folder_id === currentFolderID
+	      }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
+	
+	      // recurse
+	      if (childNode.children && childNode.children.length) addChildren(childNode, depth + 1);
+	    }
+	  };
+	  addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+	  details.show();
+	  linkContainer.toggleClass('_active');
+	  linkContainer.find('.expand-details').blur().hide();
+	  linkContainer.find('.collapse-details').show().focus();
+	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
@@ -508,7 +528,7 @@ webpackJsonp([1],[
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(52);
+	exports.f = __webpack_require__(1143);
 
 /***/ },
 /* 60 */
@@ -534,28 +554,28 @@ webpackJsonp([1],[
 	// ECMAScript 6 symbols shim
 	var global         = __webpack_require__(19)
 	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(27)
+	  , DESCRIPTORS    = __webpack_require__(1140)
 	  , $export        = __webpack_require__(18)
 	  , redefine       = __webpack_require__(32)
 	  , META           = __webpack_require__(63).KEY
 	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(47)
+	  , shared         = __webpack_require__(1134)
 	  , setToStringTag = __webpack_require__(51)
 	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(52)
+	  , wks            = __webpack_require__(1143)
 	  , wksExt         = __webpack_require__(59)
 	  , wksDefine      = __webpack_require__(64)
 	  , keyOf          = __webpack_require__(65)
 	  , enumKeys       = __webpack_require__(66)
 	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(24)
+	  , anObject       = __webpack_require__(1138)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(1142)
 	  , createDesc     = __webpack_require__(31)
 	  , _create        = __webpack_require__(36)
 	  , gOPNExt        = __webpack_require__(70)
 	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(23)
+	  , $DP            = __webpack_require__(1137)
 	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
@@ -758,7 +778,7 @@ webpackJsonp([1],[
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(1136)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -773,7 +793,7 @@ webpackJsonp([1],[
 	var META     = __webpack_require__(48)('meta')
 	  , isObject = __webpack_require__(25)
 	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(23).f
+	  , setDesc  = __webpack_require__(1137).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
@@ -832,7 +852,7 @@ webpackJsonp([1],[
 	  , core           = __webpack_require__(8)
 	  , LIBRARY        = __webpack_require__(17)
 	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(23).f;
+	  , defineProperty = __webpack_require__(1137).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -887,7 +907,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-[311, 42],
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.2.2 IsArray(argument)
+	var cof = __webpack_require__(42);
+	module.exports = Array.isArray || function isArray(arg){
+	  return cof(arg) == 'Array';
+	};
+
+/***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -931,12 +959,12 @@ webpackJsonp([1],[
 	var pIE            = __webpack_require__(68)
 	  , createDesc     = __webpack_require__(31)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(1142)
 	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
+	  , IE8_DOM_DEFINE = __webpack_require__(1139)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(1140) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -10654,23 +10682,23 @@ webpackJsonp([1],[
 /* 109 */
 8,
 /* 110 */
-[317, 111, 119, 115],
+[1149, 111, 119, 115],
 /* 111 */
-[318, 112, 114, 118, 115],
+[1150, 112, 114, 118, 115],
 /* 112 */
-[319, 113],
+[1151, 113],
 /* 113 */
 25,
 /* 114 */
-[320, 115, 116, 117],
+[1152, 115, 116, 117],
 /* 115 */
-[321, 116],
+[1153, 116],
 /* 116 */
 28,
 /* 117 */
-[322, 113, 108],
+[1154, 113, 108],
 /* 118 */
-[323, 113],
+[1155, 113],
 /* 119 */
 31,
 /* 120 */
@@ -10715,7 +10743,7 @@ webpackJsonp([1],[
 /* 122 */
 48,
 /* 123 */
-[316, 124],
+[1148, 124],
 /* 124 */
 21,
 /* 125 */
@@ -10768,15 +10796,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 126 */
-[313, 127],
+[1145, 127],
 /* 127 */
 42,
 /* 128 */
-[312, 129],
+[1144, 129],
 /* 129 */
 15,
 /* 130 */
-[314, 131],
+[1146, 131],
 /* 131 */
 14,
 /* 132 */
@@ -10814,9 +10842,9 @@ webpackJsonp([1],[
 /* 134 */
 [311, 127],
 /* 135 */
-[324, 136, 122, 108],
+[1156, 136, 122, 108],
 /* 136 */
-[315, 108],
+[1147, 108],
 /* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
