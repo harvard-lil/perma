@@ -167,7 +167,7 @@ function displayLinks(links, query) {
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
   let toggleDetailsIcon = $('.toggle-details');
-  $(toggleDetailsIcon).keypress(function(e){
+  $(toggleDetailsIcon).keydown(function(e){
     if (e.which === 13) {
       toggleLinkDetails(e);
     }
