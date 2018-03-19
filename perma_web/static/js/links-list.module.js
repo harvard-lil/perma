@@ -34,9 +34,6 @@ function setupEventHandlers () {
       showFolderContents(selectedFolderID, query);
     }
   });
-  $('.expand-toggle').on('click', function(e) {
-    toggleLinkDetails(e);
-  })
 }
 
 function getLinkIDForFormElement (element) {
@@ -170,9 +167,10 @@ function displayLinks(links, query) {
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
   let toggleDetailsIcon = $('.toggle-details');
-
-  toggleDetailsIcon.on('click', function(e){
-    toggleLinkDetails(e);
+  $(toggleDetailsIcon).keypress(function(e){
+    if (e.which === 13) {
+      toggleLinkDetails(e);
+    }
   });
 }
 
