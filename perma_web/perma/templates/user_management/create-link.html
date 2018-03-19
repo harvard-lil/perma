@@ -4,7 +4,6 @@
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
-
 {% block styles %}
   {% render_bundle 'create' 'css' %}
 {% endblock %}
@@ -170,10 +169,32 @@
 
       {{#each links}}
         <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}{{#if is_failed }} _isFailed{{/if}}">
-
           <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
+            <!--this input is here only so on details expand or collapse
+            the user doesn't wind up all the way up at the top of the screen again -->
+            <input style="display: none;" name="{{ guid }}">
             <div class="row">
-              <div class="col col-sm-6 col-md-60">
+              <div class="col col-sm-1 col-md-10 expand-toggle">
+                <!-- expand arrow -->
+                <a href="#{{ guid }}"
+                   class="visually-hidden toggle-details expand-details"
+                   title="Show Link Details">
+                  <img src="/static/img/expand.png"
+                     class="expand-img"
+                     aria-label="expand-img"/>
+                </a>
+
+                <!-- collapse arrow -->
+                <a href="#{{ guid }}"
+                   class="toggle-details collapse-details"
+                   title="Hide Link Details">
+                  <img src="/static/img/collapse.png"
+                     class="collapse-img"
+                     aria-label="collapse-img"/>
+                </a>
+              </div>
+
+              <div class="col col-sm-5 col-md-50">
                 {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
                 {{#if is_private }}
                 <div class="item-private">
@@ -184,7 +205,9 @@
                   <span>{{ title }}</span>
                 </div>
                 <div class="item-subtitle">
-                  <a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
+                  <a href="{{ url }}" target="_blank" class="item-link-original no-drag">
+                    {{ truncatechars url 200 }}
+                  </a>
                 </div>
               </div>
               <div class="col col-sm-6 col-md-40 align-right item-permalink">

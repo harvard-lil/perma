@@ -1,17 +1,17 @@
 require('waypoints/lib/jquery.waypoints.js');  // add .waypoint to jquery
 
-var DOMHelpers = require('./helpers/dom.helpers.js');
-var LinkHelpers = require('./helpers/link.helpers.js');
-var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
-var APIModule = require('./helpers/api.module.js');
+let DOMHelpers = require('./helpers/dom.helpers.js');
+let LinkHelpers = require('./helpers/link.helpers.js');
+let HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
+let APIModule = require('./helpers/api.module.js');
 
-var FolderTreeModule = require('./folder-tree.module.js');
+let FolderTreeModule = require('./folder-tree.module.js');
 
 
-var linkTable = null;
-var dragStartPosition = null;
-var lastRowToggleTime = 0;
-var selectedFolderID = null;
+let linkTable = null;
+let dragStartPosition = null;
+let lastRowToggleTime = 0;
+let selectedFolderID = null;
 
 export function init () {
   linkTable = $('.item-rows');
@@ -29,11 +29,14 @@ function setupEventHandlers () {
     // search form
   $('.search-query-form').on('submit', function (e) {
     e.preventDefault();
-    var query = DOMHelpers.getValue('.search-query');
+    let query = DOMHelpers.getValue('.search-query');
     if(query && query.trim()){
       showFolderContents(selectedFolderID, query);
     }
   });
+  $('.expand-toggle').on('click', function(e) {
+    toggleLinkDetails(e);
+  })
 }
 
 function getLinkIDForFormElement (element) {
@@ -57,15 +60,15 @@ function setupLinksTableEventHandlers () {
 
     // save changes to notes field
     .on('input propertychange change', '.link-notes', function () {
-      var textarea = $(this);
-      var guid = getLinkIDForFormElement(textarea);
+      let textarea = $(this);
+      let guid = getLinkIDForFormElement(textarea);
       LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
     })
 
     // save changes to title field
     .on('input', '.link-title', function () {
-      var textarea = $(this);
-      var guid = getLinkIDForFormElement(textarea);
+      let textarea = $(this);
+      let guid = getLinkIDForFormElement(textarea);
       LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
         // update display title when saved
         textarea.closest('.item-container').find('.item-title span').text(data.title);
@@ -73,22 +76,22 @@ function setupLinksTableEventHandlers () {
     })
 
     .on('input', '.link-description', function () {
-      var textarea = $(this);
-      var guid = getLinkIDForFormElement(textarea);
+      let textarea = $(this);
+      let guid = getLinkIDForFormElement(textarea);
       LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description')
     })
 
     // handle move-to-folder dropdown
     .on('change', '.move-to-folder', function () {
-      var moveSelect = $(this);
-      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) })
+      let moveSelect = $(this);
+      let data = JSON.stringify({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) })
       $(window).trigger("LinksListModule.moveLink", data)
     });
 }
 
 // *** actions ***
 
-var showLoadingMessage = false;
+let showLoadingMessage = false;
 function initShowFolderDOM (query) {
   if(!query || !query.trim()){
     // clear query after user clicks a folder
@@ -107,12 +110,12 @@ function initShowFolderDOM (query) {
 
 function generateLinkFields(query, link) {
   return LinkHelpers.generateLinkFields(link, query);
-};
+}
 
 function showFolderContents (folderID, query) {
   initShowFolderDOM(query);
 
-  var requestCount = 20,
+  let requestCount = 20,
     requestData = {limit: requestCount, offset:0},
     endpoint;
 
@@ -128,7 +131,7 @@ function showFolderContents (folderID, query) {
     APIModule.request("GET", endpoint, requestData)
         .done(function (response) {
           showLoadingMessage = false;
-          var links = response.objects.map(generateLinkFields.bind(this, query));
+          let links = response.objects.map(generateLinkFields.bind(this, query));
 
           // append HTML
           if(requestData.offset === 0) {
@@ -136,7 +139,7 @@ function showFolderContents (folderID, query) {
             DOMHelpers.emptyElement(linkTable);
           } else {
             // subsequent run -- appending to folder
-            var linksLoadingMore = linkTable.find('.links-loading-more');
+            let linksLoadingMore = linkTable.find('.links-loading-more');
             DOMHelpers.removeElement(linksLoadingMore);
             if(!links.length)
               return;
@@ -146,7 +149,7 @@ function showFolderContents (folderID, query) {
 
         // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
         // Set a waypoint event to trigger when the last link comes into view.
-        if(links.length == requestCount){
+        if(links.length === requestCount){
           requestData.offset += requestCount;
           linkTable.find('.item-container:last').waypoint(function(direction) {
             this.destroy();  // cancel waypoint
@@ -162,10 +165,15 @@ function showFolderContents (folderID, query) {
 }
 
 function displayLinks(links, query) {
-  var templateId = '#created-link-items-template';
-  var templateArgs = {links: links, query: query};
-  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+  let templateId = '#created-link-items-template';
+  let templateArgs = {links: links, query: query};
+  let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
+  let toggleDetailsIcon = $('.toggle-details');
+
+  toggleDetailsIcon.on('click', function(e){
+    toggleLinkDetails(e);
+  });
 }
 
 function handleMouseDown (e) {
@@ -198,48 +206,65 @@ function handleMouseUp (e) {
   lastRowToggleTime = new Date().getTime();
 
   // hide/show link details
-  var linkContainer = $(e.target).closest('.item-container'),
-    details = linkContainer.find('.item-details');
-
-  if (details.is(':visible')) {
-    details.hide();
-    linkContainer.toggleClass( '_active' )
-
-  } else {
-    // when showing link details, update the move-to-folder select input
-    // based on the current folderTree structure
-
-    // first clear the select ...
-    var currentFolderID = selectedFolderID,
-      moveSelect = details.find('.move-to-folder');
-    moveSelect.find('option').remove();
-
-    // recursively populate select ...
-    function addChildren(node, depth) {
-      for (var i = 0; i < node.children.length; i++) {
-        var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-
-        // For each node, we create an <option> using text() for the folder name,
-        // and then prepend some &nbsp; to show the tree structure using html().
-        // Using html for the whole thing would be an XSS risk.
-        moveSelect.append(
-          $("<option/>", {
-            value: childNode.data.folder_id,
-            text: childNode.text.trim(),
-            selected: childNode.data.folder_id == currentFolderID
-          }).prepend(
-            new Array(depth).join('&nbsp;&nbsp;') + '- '
-          )
-        );
-
-        // recurse
-        if (childNode.children && childNode.children.length)
-          addChildren(childNode, depth + 1);
-      }
-    }
-    addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
-
-    details.show();
-    linkContainer.toggleClass('_active')
-  }
+  toggleLinkDetails(e);
 }
+
+let getLinkContainer = function(elem) {
+  return $(elem).closest('.item-container');
+};
+
+let toggleLinkDetails = function(e) {
+  let linkContainer = getLinkContainer(e.target),
+      details = linkContainer.find('.item-details');
+  if (details.is(':visible')) {
+    hideLinkDetails(linkContainer, details);
+  } else {
+    showLinkDetails(linkContainer, details);
+  }
+};
+
+let hideLinkDetails = function (linkContainer, details) {
+  linkContainer.find('.collapse-details').blur().hide();
+  linkContainer.find('.expand-details').show().focus();
+  details.hide();
+  linkContainer.toggleClass( '_active' );
+};
+
+let showLinkDetails = function (linkContainer, details) {
+  // when showing link details, update the move-to-folder select input
+  // based on the current folderTree structure
+
+  // first clear the select ...
+  let currentFolderID = selectedFolderID,
+    moveSelect = details.find('.move-to-folder');
+  moveSelect.find('option').remove();
+
+  // recursively populate select ...
+  let addChildren = function(node, depth) {
+    for (let i = 0; i < node.children.length; i++) {
+      let childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
+
+      // For each node, we create an <option> using text() for the folder name,
+      // and then prepend some &nbsp; to show the tree structure using html().
+      // Using html for the whole thing would be an XSS risk.
+      moveSelect.append(
+        $("<option/>", {
+          value: childNode.data.folder_id,
+          text: childNode.text.trim(),
+          selected: childNode.data.folder_id === currentFolderID
+        }).prepend(
+          new Array(depth).join('&nbsp;&nbsp;') + '- '
+        )
+      );
+
+      // recurse
+      if (childNode.children && childNode.children.length)
+        addChildren(childNode, depth + 1);
+    }
+  };
+  addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+  details.show();
+  linkContainer.toggleClass('_active');
+  linkContainer.find('.expand-details').blur().hide();
+  linkContainer.find('.collapse-details').show().focus();
+};

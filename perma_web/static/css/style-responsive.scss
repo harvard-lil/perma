@@ -3754,7 +3754,6 @@ footer {
 }
 
 /////////////////////////////////////////
-
 // Items
 
 .item-notification {
@@ -3905,6 +3904,7 @@ footer {
     background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
     background-size: 19px 18px;
     z-index: 10;
+    margin-right: 5px;
   }
   a:hover, a:focus {
     text-decoration: underline;
@@ -4073,6 +4073,46 @@ footer {
     }
   }
 }
+
+.expand-toggle {
+  padding-right: 0;
+  max-width: 30px;
+  .toggle-details.collapse-details {
+    display: none;
+  }
+}
+.item-container._isExpandable._active {
+  .toggle-details {
+    display: inline-block;
+  }
+}
+.item-container._isExpandable:not(._active):hover,
+.item-container._isExpandable:not(._active):active {
+  .toggle-details.expand-details {
+    position: relative !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-block;
+  }
+}
+
+.visually-hidden {
+  /* https://snook.ca/archives/html_and_css/hiding-content-for-accessibility */
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+a.visually-hidden:focus,
+a.visually-hidden:hover {
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  display: inline-block;
+}
+
 
 //	hide red x in link drag-n-drop
 #jstree-dnd.jstree-default .jstree-er {
