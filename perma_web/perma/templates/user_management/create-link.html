@@ -176,22 +176,15 @@
             <div class="row">
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <!-- expand arrow -->
-
                 <a href="#{{ guid }}"
                    class="_visuallyHidden toggle-details expand-details"
                    title="Show Link Details">
-                  <img src="{{ STATIC_URL }}img/expand.png"
-                     class="toggle-details-img expand-img"
-                     aria-label="expand-img"/>
                 </a>
 
                 <!-- collapse arrow -->
                 <a href="#{{ guid }}"
                    class="toggle-details collapse-details"
                    title="Hide Link Details">
-                  <img src="{{ STATIC_URL }}img/collapse.png"
-                     class="toggle-details-img collapse-img"
-                     aria-label="collapse-img"/>
                 </a>
 
                 {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}

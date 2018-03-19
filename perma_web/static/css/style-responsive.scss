@@ -476,12 +476,13 @@ p {
   clip: rect(1px, 1px, 1px, 1px);
 }
 
+// showing content when element is in focus or is hovered on
 ._visuallyHidden:focus,
 ._visuallyHidden:hover {
   position: relative !important;
+  display: inline-block;
   width: auto !important;
   height: auto !important;
-  display: inline-block;
 }
 
 /////////////////////////////////////////
@@ -4093,17 +4094,34 @@ footer {
 
 .item-title-col {
   left: 30px;
-}
-
-.toggle-details {
-  float: left;
-  margin-left: -25px;
-  max-width: 13px;
-  margin-top: 7px;
-}
-
-.toggle-details.collapse-details {
-  display: none;
+  .toggle-details {
+    float: left;
+    margin-left: -25px;
+    max-width: 13px;
+    margin-top: 7px;
+    &::before {
+      z-index: 10;
+      width: 13px;
+      height: 7px;
+      display: inline-block;
+      position: absolute;
+      content: '';
+    }
+  }
+  ._visuallyHidden.expand-details:hover,
+  ._visuallyHidden.expand-details:focus {
+    width: 13px !important;
+    height: 7px !important;
+  }
+  .expand-details::before {
+    background: url('../img/expand.svg') no-repeat;
+  }
+  .collapse-details {
+    display: none;
+    &::before {
+      background: url('../img/collapse.svg') no-repeat;
+    }
+  }
 }
 
 .item-container._isExpandable._active {
@@ -4113,12 +4131,11 @@ footer {
 }
 
 .item-container._isExpandable:not(._active):hover,
-.item-container._isExpandable:not(._active):active {
-  .toggle-details.expand-details {
+.item-container._isExpandable:not(._active):focus {
+  ._visuallyHidden {
+    width: 13px;
+    height: 8px;
     position: relative !important;
-    width: auto !important;
-    height: auto !important;
-    display: inline-block;
   }
 }
 
