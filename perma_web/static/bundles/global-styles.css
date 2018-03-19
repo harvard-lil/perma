@@ -12706,6 +12706,15 @@ footer #boilerplate a {
   font-weight: 700;
 }
 
+.details-img-dimensions,
+.item-title-col .toggle-details,
+.item-title-col .toggle-details::before,
+.item-container._isExpandable:not(._active):hover ._visuallyHidden,
+.item-container._isExpandable:not(._active):focus ._visuallyHidden {
+  width: 13px;
+  height: 7px;
+}
+
 .item-title-col {
   left: 30px;
 }
@@ -12713,14 +12722,11 @@ footer #boilerplate a {
 .item-title-col .toggle-details {
   float: left;
   margin-left: -25px;
-  max-width: 13px;
   margin-top: 7px;
 }
 
 .item-title-col .toggle-details::before {
   z-index: 10;
-  width: 13px;
-  height: 7px;
   display: inline-block;
   position: absolute;
   content: '';
@@ -12750,8 +12756,6 @@ footer #boilerplate a {
 
 .item-container._isExpandable:not(._active):hover ._visuallyHidden,
 .item-container._isExpandable:not(._active):focus ._visuallyHidden {
-  width: 13px;
-  height: 8px;
   position: relative !important;
 }
 

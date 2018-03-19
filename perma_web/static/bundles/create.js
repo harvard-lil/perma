@@ -341,7 +341,7 @@ webpackJsonp([1],[
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
 	  var toggleDetailsIcon = $('.toggle-details');
-	  $(toggleDetailsIcon).keypress(function (e) {
+	  $(toggleDetailsIcon).keydown(function (e) {
 	    if (e.which === 13) {
 	      toggleLinkDetails(e);
 	    }
