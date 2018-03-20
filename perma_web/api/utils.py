@@ -153,9 +153,8 @@ def reverse_api_view(viewname, *args, **kwargs):
         return reverse(viewname, *args, **kwargs)
 
 def safe_get(model, pk):
-    """Returns an instance of a model by its ID, or None if it does not exist or there was some other error"""
+    """Returns an instance of a model by its ID, or None if it does not exist"""
     try:
-        instance = model.objects.get(pk=pk)
-        return instance
-    except Exception as e:
+        return model.objects.get(pk=pk)
+    except model.DoesNotExist:
         return None
