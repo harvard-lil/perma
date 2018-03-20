@@ -131,9 +131,11 @@ webpackJsonp([1],[
 	/* simple wrapper around Handlebars.compile() to cache the compiled templates */
 	function compileTemplate(templateId) {
 	  var $this = $(templateId);
-	  var template = Handlebars.compile($this.html());
-	  templateCache[templateId] = template;
-	  return template;
+	  if ($this.length) {
+	    var template = Handlebars.compile($this.html());
+	    templateCache[templateId] = template;
+	    return template;
+	  }
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -13478,12 +13480,15 @@ webpackJsonp([1],[
 	var HandlebarsHelpers = __webpack_require__(3);
 	
 	var template = HandlebarsHelpers.compileTemplate('#progress-bar-template');
-	Handlebars.registerPartial('progressBar', template);
+	if (template) {
+	    Handlebars.registerPartial('progressBar', template);
+	}
 	
 	var progress_bars_by_id = {};
 	
 	/* Creates a new "progress bar," which renders as such and exposes a simple API for setting progress */
 	function make_progress_bar(id) {
+	    var template = template || HandlebarsHelpers.compileTemplate('#progress-bar-template');
 	    var $container = $("<div>").html(template(0, id));
 	
 	    var obj = {

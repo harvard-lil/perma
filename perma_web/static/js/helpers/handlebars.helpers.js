@@ -34,7 +34,9 @@ export function renderTemplate(templateId, args) {
 /* simple wrapper around Handlebars.compile() to cache the compiled templates */
 export function compileTemplate(templateId) {
   var $this = $(templateId);
-  var template = Handlebars.compile($this.html());
-  templateCache[templateId] = template;
-  return template;
+  if ($this.length) {
+    var template = Handlebars.compile($this.html());
+    templateCache[templateId] = template;
+    return template;
+  }
 }

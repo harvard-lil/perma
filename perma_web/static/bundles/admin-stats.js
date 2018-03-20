@@ -146,9 +146,11 @@ webpackJsonp([0],[
 	/* simple wrapper around Handlebars.compile() to cache the compiled templates */
 	function compileTemplate(templateId) {
 	  var $this = $(templateId);
-	  var template = Handlebars.compile($this.html());
-	  templateCache[templateId] = template;
-	  return template;
+	  if ($this.length) {
+	    var template = Handlebars.compile($this.html());
+	    templateCache[templateId] = template;
+	    return template;
+	  }
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
