@@ -541,12 +541,14 @@ class LinkBatchesListView(BaseView):
 
     def post(self, request, format=None):
         """ Create link batch. """
-        request.data['created_by'] = request.user.pk
-        serializer = self.serializer_class(data=request.data, context={'request': self.request})
-        if serializer.is_valid():
-            serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        raise ValidationError(serializer.errors)
+        if settings.ENABLE_BATCH_LINKS:
+            request.data['created_by'] = request.user.pk
+            serializer = self.serializer_class(data=request.data, context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save(created_by=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            raise ValidationError(serializer.errors)
+        raise PermissionDenied()
 
 # /batches/:id
 class LinkBatchesDetailView(BaseView):
