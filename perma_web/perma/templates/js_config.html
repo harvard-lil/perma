@@ -5,7 +5,7 @@
     MEDIA_URL: "{{ MEDIA_URL }}",
     //ROLLBAR_ACCESS_TOKEN: "{{ ROLLBAR_CLIENT_ACCESS_TOKEN }}",
     DEBUG: {{ DEBUG|lower }},
-    BULK_UPLOADS: {{ BULK_UPLOADS|lower }}
+    ENABLE_BATCH_LINKS: {{ ENABLE_BATCH_LINKS|lower }}
   },
   api_path = "/api/v" + settings.API_VERSION
 </script>

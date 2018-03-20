@@ -304,7 +304,7 @@ function setupEventHandlers () {
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
       handleSelectionChange(data);
-      if (settings.BULK_UPLOADS) {
+      if (settings.ENABLE_BATCH_LINKS) {
         $('#create-batch-links').show();
       }
     })
@@ -408,7 +408,7 @@ export function init () {
       }
     });
 
-    if (settings.BULK_UPLOADS) {
+    if (settings.ENABLE_BATCH_LINKS) {
         // populate batches list
         APIModule.request("GET", "/batches/", {"limit": 15}).done(function(data) {
             var batches = data.objects;

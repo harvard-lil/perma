@@ -106,26 +106,27 @@ webpackJsonp([0],[
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.renderTemplate = renderTemplate;
+	exports.compileTemplate = compileTemplate;
 	var Handlebars = __webpack_require__(4);
 	
 	Handlebars.registerHelper('truncatechars', function (str, len) {
-	    if (str.length > len) {
-	        var new_str = str.substr(0, len + 1);
+	  if (str.length > len) {
+	    var new_str = str.substr(0, len + 1);
 	
-	        while (new_str.length) {
-	            var ch = new_str.substr(-1);
-	            new_str = new_str.substr(0, -1);
-	            if (ch == ' ') break;
-	        }
-	
-	        if (new_str == '') new_str = str.substr(0, len);
-	
-	        return new Handlebars.SafeString(new_str + '...');
+	    while (new_str.length) {
+	      var ch = new_str.substr(-1);
+	      new_str = new_str.substr(0, -1);
+	      if (ch == ' ') break;
 	    }
-	    return str;
+	
+	    if (new_str == '') new_str = str.substr(0, len);
+	
+	    return new Handlebars.SafeString(new_str + '...');
+	  }
+	  return str;
 	});
 	
 	/*
@@ -134,12 +135,20 @@ webpackJsonp([0],[
 	
 	var templateCache = {};
 	function renderTemplate(templateId, args) {
-	    var args = args || {};
-	    var $this = $(templateId);
-	    if (!templateCache[templateId]) {
-	        templateCache[templateId] = Handlebars.compile($this.html());
-	    }
-	    return templateCache[templateId](args);
+	  var args = args || {};
+	  var $this = $(templateId);
+	  if (!templateCache[templateId]) {
+	    templateCache[templateId] = Handlebars.compile($this.html());
+	  }
+	  return templateCache[templateId](args);
+	}
+	
+	/* simple wrapper around Handlebars.compile() to cache the compiled templates */
+	function compileTemplate(templateId) {
+	  var $this = $(templateId);
+	  var template = Handlebars.compile($this.html());
+	  templateCache[templateId] = template;
+	  return template;
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 

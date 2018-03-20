@@ -1,4 +1,5 @@
 import django_filters
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.http import Http404
 from mptt.exceptions import InvalidMove
@@ -17,7 +18,6 @@ from .utils import TastypiePagination, load_parent, raise_validation_error, safe
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, BatchSerializer
 
-import perma.settings
 
 ### BASE VIEW ###
 
@@ -401,7 +401,7 @@ class AuthenticatedLinkListView(BaseView):
                 ).save()
 
                 # create CaptureJob
-                if perma.settings.BULK_UPLOADS:
+                if settings.ENABLE_BATCH_LINKS:
                     batch = safe_get(Batch, request.data.get('batch_id', None))
                     CaptureJob(link=link, human=request.data.get('human', False),
                                submitted_url=link.submitted_url, batch=batch).save()
@@ -412,7 +412,7 @@ class AuthenticatedLinkListView(BaseView):
                 run_task(run_next_capture.s())
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if perma.settings.BULK_UPLOADS:
+        if settings.ENABLE_BATCH_LINKS:
             batch = safe_get(Batch, request.data.get('batch_id', None))
             CaptureJob(human=request.data.get('human', False), status='invalid',
                        submitted_url=request.data.get('url', ''),
