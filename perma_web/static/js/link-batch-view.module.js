@@ -56,7 +56,7 @@ var render_batch = function(links_in_batch, folder_id) {
 };
 
 var get_batch_info = function(batch_id) {
-    return APIModule.request('GET', '/batches/' + parseInt(batch_id))
+    return APIModule.request('GET', '/archives/batches/' + parseInt(batch_id))
         .then(function(batch_data) {
             var cleaned_batch_data = [];
             if (Array.isArray(batch_data.capture_jobs)) {

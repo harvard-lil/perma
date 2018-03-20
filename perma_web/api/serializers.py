@@ -4,7 +4,7 @@ from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
 
-from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, Batch
+from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, LinkBatch
 from perma.utils import ip_in_allowed_ip_range
 
 from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode, reverse_api_view
@@ -266,11 +266,11 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         return data
 
 
-### BATCH ###
+### LINKBATCH ###
 
-class BatchSerializer(BaseSerializer):
+class LinkBatchSerializer(BaseSerializer):
     capture_jobs = CaptureJobSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Batch
-        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'saved_folder')
+        model = LinkBatch
+        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'target_folder')

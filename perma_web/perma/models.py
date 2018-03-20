@@ -1274,7 +1274,7 @@ class CaptureJob(models.Model):
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
-    batch = models.ForeignKey('Batch', blank=True, null=True, related_name='capture_jobs')
+    link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs')
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
@@ -1390,17 +1390,18 @@ class CaptureJob(models.Model):
     def accessible_to(self, user):
         return self.link.accessible_to(user)
 
-class Batch(models.Model):
-    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='batches')
+class LinkBatch(models.Model):
+    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches')
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
-    saved_folder = models.ForeignKey(Folder, blank=False, null=False)
+    target_folder = models.ForeignKey(Folder, blank=False, null=False)
 
     def accessible_to(self, user):
-        if user.is_staff:
-            return True
-        if self.created_by == user:
-            return True
-        return False
+        return user.is_staff or self.created_by == user
+
+    # In Python 3: def __str__(self):
+    def __unicode__(self):
+        return u"LinkBatch %s" % (self.pk,)
+
 
 #########################
 # Stats related models

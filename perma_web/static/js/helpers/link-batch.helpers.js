@@ -1,4 +1,4 @@
-var BatchViewModule = require('../batch-view.module.js');
+var LinkBatchViewModule = require('../link-batch-view.module.js');
 
 export function human_timestamp_from_batch(batch) {
     return new Date(batch.started_on).toLocaleString("en-us", {
@@ -11,7 +11,7 @@ export function human_timestamp_from_batch(batch) {
 }
 
 export function show_modal_with_batch(batch) {
-    BatchViewModule.show_batch(batch.id, batch.saved_folder);
+    LinkBatchViewModule.show_batch(batch.id, batch.target_folder);
     $("#batch-view-modal").modal("show");
 }
 

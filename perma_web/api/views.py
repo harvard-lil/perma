@@ -12,11 +12,11 @@ from rest_framework.views import APIView
 
 from perma.utils import run_task, stream_warc, stream_warc_if_permissible
 from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
-from perma.models import Folder, CaptureJob, Link, Capture, Organization, Batch
+from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
 from .utils import TastypiePagination, load_parent, raise_validation_error, safe_get
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
-    LinkUserSerializer, OrganizationSerializer, BatchSerializer
+    LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer
 
 
 ### BASE VIEW ###
@@ -402,9 +402,9 @@ class AuthenticatedLinkListView(BaseView):
 
                 # create CaptureJob
                 if settings.ENABLE_BATCH_LINKS:
-                    batch = safe_get(Batch, request.data.get('batch_id', None))
+                    link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
                     CaptureJob(link=link, human=request.data.get('human', False),
-                               submitted_url=link.submitted_url, batch=batch).save()
+                               submitted_url=link.submitted_url, link_batch=link_batch).save()
                 else:
                     CaptureJob(link=link, human=request.data.get('human', False)).save()
 
@@ -413,10 +413,10 @@ class AuthenticatedLinkListView(BaseView):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if settings.ENABLE_BATCH_LINKS:
-            batch = safe_get(Batch, request.data.get('batch_id', None))
+            link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
             CaptureJob(human=request.data.get('human', False), status='invalid',
                        submitted_url=request.data.get('url', ''),
-                       batch=batch, link=None).save()
+                       link_batch=link_batch, link=None).save()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -528,19 +528,19 @@ class LinkUserView(BaseView):
         return Response(serializer.data)
 
 
-### BATCH ###
+### LINKBATCH ###
 
 # /batches
-class BatchesListView(BaseView):
-    serializer_class = BatchSerializer
+class LinkBatchesListView(BaseView):
+    serializer_class = LinkBatchSerializer
 
     def get(self, request, format=None):
-        """ List batches for user. """
-        queryset = Batch.objects.filter(created_by=request.user).order_by('-started_on')
+        """ List link batches for user. """
+        queryset = LinkBatch.objects.filter(created_by=request.user).order_by('-started_on')
         return self.simple_list(request, queryset)
 
     def post(self, request, format=None):
-        """ Create batch. """
+        """ Create link batch. """
         request.data['created_by'] = request.user.pk
         serializer = self.serializer_class(data=request.data, context={'request': self.request})
         if serializer.is_valid():
@@ -549,10 +549,10 @@ class BatchesListView(BaseView):
         raise ValidationError(serializer.errors)
 
 # /batches/:id
-class BatchesDetailView(BaseView):
-    serializer_class = BatchSerializer
+class LinkBatchesDetailView(BaseView):
+    serializer_class = LinkBatchSerializer
 
     def get(self, request, pk, format=None):
-        """ Single batch details. """
+        """ Single link batch details. """
         return self.simple_get(request, pk)
 

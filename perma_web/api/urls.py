@@ -61,10 +61,10 @@ urlpatterns = [
         # /archives/:guid/download
         url(legacy_user_prefix + r'archives/%s/download/?$' % guid_pattern, views.AuthenticatedLinkDownloadView.as_view(), name='archives_download'),
 
-        # /batches
-        url(legacy_user_prefix + r'batches/?$', views.BatchesListView.as_view()),
-        # /batches/:id
-        url(legacy_user_prefix + r'batches/(?P<pk>[0-9]+)/?$', views.BatchesDetailView.as_view()),
+        # /archives/batches
+        url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view()),
+        # /batches/archives/:id
+        url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/?$', views.LinkBatchesDetailView.as_view()),
 
         # /capture_jobs
         url(legacy_user_prefix + r'capture_jobs/?$', views.CaptureJobListView.as_view(), name='capture_jobs'),

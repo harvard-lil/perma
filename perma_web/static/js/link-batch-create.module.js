@@ -3,8 +3,8 @@ var Spinner = require('spin.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
-var BatchViewModule = require('./batch-view.module.js');
-var BatchHelpers = require('./helpers/batch.helpers.js');
+var LinkBatchViewModule = require('./link-batch-view.module.js');
+var LinkBatchHelpers = require('./helpers/link-batch.helpers.js');
 
 var $create_modal, $view_modal;
 var $input_area, $start_button, $cancel_button, $batch_target_path;
@@ -17,8 +17,8 @@ var start_batch = function() {
     $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
     var spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'}).spin($start_button[0]);
 
-    APIModule.request('POST', '/batches/', {
-        "saved_folder": target_folder
+    APIModule.request('POST', '/archives/batches/', {
+        "target_folder": target_folder
     }).then(function(batch_object) {
         var batch_id = batch_object.id;
         var urls = $input_area.val()
@@ -30,7 +30,7 @@ var start_batch = function() {
         urls.forEach(function(url) {
             return APIModule.request('POST', '/archives/', {
                 folder: target_folder,
-                batch_id: batch_id,
+                link_batch_id: batch_id,
                 url: url
             }, { "error": function(jqXHR) {} }).then(function(response) {
                 num_requests += 1;
@@ -44,9 +44,9 @@ var start_batch = function() {
                 clearInterval(interval);
                 $input_area.empty();
                 $create_modal.modal("hide");
-                BatchHelpers.show_modal_with_batch(batch_object);
+                LinkBatchHelpers.show_modal_with_batch(batch_object);
                 var $li = $("<li>");
-                BatchHelpers.create_clickable_batch_el($li, batch_object);
+                LinkBatchHelpers.create_clickable_batch_el($li, batch_object);
                 $batches_history_list.prepend($li);
             }
         }, 500);

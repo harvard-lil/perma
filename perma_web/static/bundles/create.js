@@ -7,14 +7,14 @@ webpackJsonp([1],[
 	var LinkListModule = __webpack_require__(5);
 	var FolderTreeModule = __webpack_require__(104);
 	var CreateLinkModule = __webpack_require__(146);
-	var BatchCreateModule = __webpack_require__(154);
-	var BatchViewModule = __webpack_require__(150);
+	var LinkBatchCreateModule = __webpack_require__(154);
+	var LinkBatchViewModule = __webpack_require__(150);
 	
 	FolderTreeModule.init();
 	LinkListModule.init();
 	CreateLinkModule.init();
-	BatchCreateModule.init();
-	BatchViewModule.init();
+	LinkBatchCreateModule.init();
+	LinkBatchViewModule.init();
 
 /***/ },
 /* 1 */,
@@ -10910,8 +10910,8 @@ webpackJsonp([1],[
 	var HandlebarsHelpers = __webpack_require__(3);
 	var APIModule = __webpack_require__(78);
 	var FolderTreeModule = __webpack_require__(104);
-	var BatchViewModule = __webpack_require__(150);
-	var BatchHelpers = __webpack_require__(153);
+	var LinkBatchViewModule = __webpack_require__(150);
+	var LinkBatchHelpers = __webpack_require__(153);
 	var ProgressBarHelper = __webpack_require__(152);
 	
 	var newGUID = null;
@@ -11290,7 +11290,7 @@ webpackJsonp([1],[
 	
 	  if (settings.ENABLE_BATCH_LINKS) {
 	    // populate batches list
-	    APIModule.request("GET", "/batches/", { "limit": 15 }).done(function (data) {
+	    APIModule.request("GET", "/archives/batches/", { "limit": 15 }).done(function (data) {
 	      var batches = data.objects;
 	      batches.sort(function (batch1, batch2) {
 	        return new Date(batch2.started_on) - new Date(batch1.started_on);
@@ -11299,7 +11299,7 @@ webpackJsonp([1],[
 	        var $batches_history_list = $("#batches-history-list");
 	        batches.forEach(function (batch) {
 	          var $li = $("<li>");
-	          BatchHelpers.create_clickable_batch_el($li, batch);
+	          LinkBatchHelpers.create_clickable_batch_el($li, batch);
 	          $batches_history_list.append($li);
 	        });
 	      });
@@ -13405,7 +13405,7 @@ webpackJsonp([1],[
 	};
 	
 	var get_batch_info = function get_batch_info(batch_id) {
-	    return APIModule.request('GET', '/batches/' + parseInt(batch_id)).then(function (batch_data) {
+	    return APIModule.request('GET', '/archives/batches/' + parseInt(batch_id)).then(function (batch_data) {
 	        var cleaned_batch_data = [];
 	        if (Array.isArray(batch_data.capture_jobs)) {
 	            cleaned_batch_data = batch_data.capture_jobs.map(function (capture_job) {
@@ -13523,7 +13523,7 @@ webpackJsonp([1],[
 	exports.human_timestamp_from_batch = human_timestamp_from_batch;
 	exports.show_modal_with_batch = show_modal_with_batch;
 	exports.create_clickable_batch_el = create_clickable_batch_el;
-	var BatchViewModule = __webpack_require__(150);
+	var LinkBatchViewModule = __webpack_require__(150);
 	
 	function human_timestamp_from_batch(batch) {
 	    return new Date(batch.started_on).toLocaleString("en-us", {
@@ -13536,7 +13536,7 @@ webpackJsonp([1],[
 	}
 	
 	function show_modal_with_batch(batch) {
-	    BatchViewModule.show_batch(batch.id, batch.saved_folder);
+	    LinkBatchViewModule.show_batch(batch.id, batch.target_folder);
 	    $("#batch-view-modal").modal("show");
 	}
 	
@@ -13572,8 +13572,8 @@ webpackJsonp([1],[
 	var APIModule = __webpack_require__(78);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
-	var BatchViewModule = __webpack_require__(150);
-	var BatchHelpers = __webpack_require__(153);
+	var LinkBatchViewModule = __webpack_require__(150);
+	var LinkBatchHelpers = __webpack_require__(153);
 	
 	var $create_modal, $view_modal;
 	var $input_area, $start_button, $cancel_button, $batch_target_path;
@@ -13586,8 +13586,8 @@ webpackJsonp([1],[
 	    $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
 	    var spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' }).spin($start_button[0]);
 	
-	    APIModule.request('POST', '/batches/', {
-	        "saved_folder": target_folder
+	    APIModule.request('POST', '/archives/batches/', {
+	        "target_folder": target_folder
 	    }).then(function (batch_object) {
 	        var batch_id = batch_object.id;
 	        var urls = $input_area.val().split("\n").map(function (s) {
@@ -13597,7 +13597,7 @@ webpackJsonp([1],[
 	        urls.forEach(function (url) {
 	            return APIModule.request('POST', '/archives/', {
 	                folder: target_folder,
-	                batch_id: batch_id,
+	                link_batch_id: batch_id,
 	                url: url
 	            }, { "error": function error(jqXHR) {} }).then(function (response) {
 	                num_requests += 1;
@@ -13611,9 +13611,9 @@ webpackJsonp([1],[
 	                clearInterval(interval);
 	                $input_area.empty();
 	                $create_modal.modal("hide");
-	                BatchHelpers.show_modal_with_batch(batch_object);
+	                LinkBatchHelpers.show_modal_with_batch(batch_object);
 	                var $li = $("<li>");
-	                BatchHelpers.create_clickable_batch_el($li, batch_object);
+	                LinkBatchHelpers.create_clickable_batch_el($li, batch_object);
 	                $batches_history_list.prepend($li);
 	            }
 	        }, 500);
