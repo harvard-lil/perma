@@ -356,8 +356,8 @@ webpackJsonp([1],[
 	  var templateArgs = { links: links, query: query };
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
-	  var toggleDetailsIcon = $('.toggle-details');
-	  $(toggleDetailsIcon).click(function (e) {
+	  $('.toggle-details, .item-container._isExpandable').click(function (e) {
+	    e.stopPropagation();
 	    toggleLinkDetails(e);
 	  });
 	}
@@ -416,27 +416,6 @@ webpackJsonp([1],[
 	  var currentFolderID = selectedFolderID,
 	      moveSelect = details.find('.move-to-folder');
 	  FolderSelectorHelper.makeFolderSelector(moveSelect, currentFolderID);
-	  moveSelect.find('option').remove();
-	
-	  // recursively populate select ...
-	  var addChildren = function addChildren(node, depth) {
-	    for (var i = 0; i < node.children.length; i++) {
-	      var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-	
-	      // For each node, we create an <option> using text() for the folder name,
-	      // and then prepend some &nbsp; to show the tree structure using html().
-	      // Using html for the whole thing would be an XSS risk.
-	      moveSelect.append($("<option/>", {
-	        value: childNode.data.folder_id,
-	        text: childNode.text.trim(),
-	        selected: childNode.data.folder_id === currentFolderID
-	      }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
-	
-	      // recurse
-	      if (childNode.children && childNode.children.length) addChildren(childNode, depth + 1);
-	    }
-	  };
-	  addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
 	  details.show();
 	  linkContainer.toggleClass('_active');
 	  linkContainer.find('.expand-details').blur().hide();
