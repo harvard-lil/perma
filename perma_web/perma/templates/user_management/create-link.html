@@ -11,6 +11,18 @@
 {% block mainContent %}
   <!-- regular link creation -->
 
+  {% verbatim %}
+  <script id="progress-bar-template" type="text/x-handlebars-template">
+      <div position="relative" style="width: 100%; height: 0">
+          <div {{#if id}}id="{{id}}"{{/if}} class="progress" style="width: 100%; height: 0.3em; position: absolute; margin-bottom: 0">
+              <div class="progress-bar" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="background-color: #2D76EE; width: {{progress}}%">
+                  <span class="sr-only">{{progress}}% Complete</span>
+              </div>
+          </div>
+      </div>
+  </script>
+  {% endverbatim %}
+
   <div id="create-item-container" class="container cont-full-bleed">
     <div class="container cont-fixed">
       <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
@@ -38,6 +50,10 @@
                   type="submit">
               Create Perma Link
           </button>
+
+          {% if ENABLE_BATCH_LINKS %}
+          <p id="create-batch-links">or <a data-toggle="modal" href="#batch-create-modal">create multiple links</a></p>
+          {% endif %}
 
           {% if request.user.has_limit %}
             <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs_perma_link_creation' %}#preservation-limits">Learn more about accounts</a>.</p>
@@ -94,6 +110,12 @@
         <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
       </div>
       <div id="folder-tree"></div>
+      {% if ENABLE_BATCH_LINKS %}
+      <div class="panel-heading">
+          Batches history
+          <ul id="batches-history-list"></ul>
+      </div>
+      {% endif %}
     </div>
 
     <div class="col-md-9 col-links">
@@ -170,8 +192,6 @@
       {{#each links}}
         <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}{{#if is_failed }} _isFailed{{/if}}">
           <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
-            <!-- this input is here only so on details expand or collapse
-            the user doesn't wind up all the way up at the top of the screen again -->
             <div class="row">
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <!-- expand arrow -->
@@ -272,4 +292,8 @@
 
   {% endverbatim %}
   {% include "archive/includes/upload_your_own.html" %}
+  {% if ENABLE_BATCH_LINKS %}
+    {% include "archive/includes/batch_create.html" %}
+    {% include "archive/includes/batch_display.html" %}
+  {% endif %}
 {% endblock templates %}

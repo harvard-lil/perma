@@ -1,0 +1,37 @@
+<!-- Display Batch modal -->
+<div  class="modal" id="batch-view-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-new">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Batch Link Creation</h3>
+      </div>
+
+      <div class="modal-body">
+          <p>The Perma Links will be added to <span id="batch-saved-path"></span></p>
+          <div id="batch-details"></div>
+          <a href="#" class="btn cancel" data-dismiss="modal">Exit</a>
+          <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% verbatim %}
+<script id="batch-link-row" type="text/x-handlebars-template">
+    <div class="row">
+        <div class="link-desc col col-sm-6 col-md-60">
+            <div class="item-title">{{ link.title }}</div>
+            <div class="item-subtitle">{{ link.url }}</div>
+        </div>
+        <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
+            {{#if link.isProcessing}}
+              {{> progressBar progress=link.progress }}
+            {{else if link.isComplete}}
+              <a class="perma no-drag" href="http://{{link.local_url}}" target="_blank">{{link.local_url}}</a>
+            {{else if link.isError }}
+              <span class="link-error">{{link.error_message}}</span>
+            {{/if}}
+        </div>
+    </div>
+</script>
+{% endverbatim %}

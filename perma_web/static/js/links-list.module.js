@@ -1,9 +1,10 @@
 require('waypoints/lib/jquery.waypoints.js');  // add .waypoint to jquery
 
-let DOMHelpers = require('./helpers/dom.helpers.js');
-let LinkHelpers = require('./helpers/link.helpers.js');
-let HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
-let APIModule = require('./helpers/api.module.js');
+var DOMHelpers = require('./helpers/dom.helpers.js');
+var LinkHelpers = require('./helpers/link.helpers.js');
+var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
+var APIModule = require('./helpers/api.module.js');
+var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
 let FolderTreeModule = require('./folder-tree.module.js');
 
@@ -230,32 +231,7 @@ let showLinkDetails = function (linkContainer, details) {
   // first clear the select ...
   let currentFolderID = selectedFolderID,
     moveSelect = details.find('.move-to-folder');
-  moveSelect.find('option').remove();
-
-  // recursively populate select ...
-  let addChildren = function(node, depth) {
-    for (let i = 0; i < node.children.length; i++) {
-      let childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-
-      // For each node, we create an <option> using text() for the folder name,
-      // and then prepend some &nbsp; to show the tree structure using html().
-      // Using html for the whole thing would be an XSS risk.
-      moveSelect.append(
-        $("<option/>", {
-          value: childNode.data.folder_id,
-          text: childNode.text.trim(),
-          selected: childNode.data.folder_id === currentFolderID
-        }).prepend(
-          new Array(depth).join('&nbsp;&nbsp;') + '- '
-        )
-      );
-
-      // recurse
-      if (childNode.children && childNode.children.length)
-        addChildren(childNode, depth + 1);
-    }
-  };
-  addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+  FolderSelectorHelper.makeFolderSelector(moveSelect, currentFolderID);
   details.show();
   linkContainer.toggleClass('_active');
   linkContainer.find('.expand-details').blur().hide();

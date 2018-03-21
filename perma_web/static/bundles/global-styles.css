@@ -10943,6 +10943,45 @@ figcaption + .img-responsive {
   border-radius: 2px;
 }
 
+#linker #create-batch-links {
+  display: none;
+  clear: both;
+  text-align: right;
+  float: left;
+  width: 100%;
+  max-width: none;
+}
+
+#linker #create-batch-links {
+  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-size: 16px;
+  font-weight: 200;
+}
+
+@media only screen and (min-width: 990px) {
+  #linker #create-batch-links {
+    font-size: 18px;
+    font-weight: 200;
+  }
+}
+
+#linker #create-batch-links {
+  margin-top: 0;
+  margin-bottom: -8px;
+  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+
+#linker #create-batch-links a {
+  font-weight: normal;
+  color: #2D76EE;
+  text-decoration: underline;
+}
+
+#linker #create-batch-links a:hover {
+  color: #0092FF;
+  text-decoration: none;
+}
+
 .manage-links {
   margin-top: 32px;
 }
@@ -11328,6 +11367,72 @@ button#addlink,
 
 .subscription-buttons form {
   margin-top: 0;
+}
+
+@media only screen and (min-width: 768px) {
+  #batch-create-modal .modal-dialog,
+  #batch-view-modal .modal-dialog {
+    margin-left: -450px;
+  }
+}
+
+#batch-create-modal .modal-content,
+#batch-view-modal .modal-content {
+  overflow: hidden;
+}
+
+@media only screen and (min-width: 768px) {
+  #batch-create-modal .modal-content,
+  #batch-view-modal .modal-content {
+    width: 900px;
+  }
+}
+
+#batch-create-modal textarea {
+  height: 20em;
+}
+
+#start-batch._isWorking {
+  font-size: 13px;
+  background-color: transparent !important;
+  text-align: center;
+  padding-bottom: 0px;
+  padding-top: 32px;
+  color: #2D76EE;
+  border-color: transparent !important;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+#start-batch._isWorking .spinner {
+  left: 50%;
+  top: 10px;
+}
+
+#start-batch._isWorking:hover,
+#start-batch._isWorking:focus {
+  color: #2D76EE !important;
+}
+
+#export-csv {
+  display: none;
+}
+
+#batch-saved-path {
+  font-weight: bold;
+}
+
+#batch-details .row {
+  border-top: 1px solid rgba(0, 0, 0, 0.5);
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+#batch-details .link-error {
+  border: 2px solid red;
+  color: red;
+  padding: 0.2em;
+  font-weight: bold;
 }
 
 .navbar-default {
@@ -12277,6 +12382,24 @@ footer #boilerplate a {
   background: white;
 }
 
+.col-folders #batches-history-list {
+  font-family: "Roboto Slab", sans-serif;
+  font-size: 12px;
+  color: #222;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.col-folders #batches-history-list li:hover {
+  cursor: pointer;
+}
+
+.col-folders #batches-history-list li:before {
+  content: "\2014   ";
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 .col-links {
   border-left: none;
   position: relative;
@@ -12712,7 +12835,7 @@ footer #boilerplate a {
 .item-container._isExpandable:not(._active):hover ._visuallyHidden,
 .item-container._isExpandable:not(._active):focus ._visuallyHidden {
   width: 13px;
-  height: 7px;
+  height: 8px;
 }
 
 .item-title-col {
@@ -12724,7 +12847,8 @@ footer #boilerplate a {
   border: 0;
   float: left;
   margin-left: -25px;
-  padding: 0;
+  padding-left: 0;
+  padding-top: 0;
   left: -7px;
   margin-top: 7px;
 }

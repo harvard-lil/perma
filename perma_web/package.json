@@ -45,6 +45,7 @@
     "moment": "^2.15.1",
     "node-sass": "^3.10.1",
     "p5": "^0.5.4",
+    "papaparse": "^4.3.7",
     "postcss-loader": "^0.13.0",
     "resolve-url-loader": "^1.6.0",
     "sass-loader": "^4.0.2",

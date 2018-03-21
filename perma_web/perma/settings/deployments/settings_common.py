@@ -420,6 +420,8 @@ THUMBNAIL_STORAGE_PATH = 'thumbnails'
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
+ENABLE_BATCH_LINKS = False
+# N.B. If True, requires RUN_TASKS_ASYNC = True
 
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False
@@ -430,7 +432,8 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
-    'DEBUG'
+    'DEBUG',
+    'ENABLE_BATCH_LINKS'
 )
 
 

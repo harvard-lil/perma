@@ -84,6 +84,12 @@ export function getSavedOrg(){
   return ls.getCurrent().orgId;
 }
 
+export function getPathForId(folderId){
+  var node = getNodeByFolderID(folderId);
+  var path = folderTree.get_path(node);
+  return path;
+}
+
 function getSelectedNode () {
   return folderTree.get_selected(true)[0];
 }
