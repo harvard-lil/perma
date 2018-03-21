@@ -176,14 +176,16 @@
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <!-- expand arrow -->
                 <button
+                   aria-label="Show Details for Link {{ guid }}"
                    class="_visuallyHidden toggle-details expand-details"
-                   title="Show Link Details">
+                   title="Show Link Details for Link {{ guid }}">
                 </button>
 
                 <!-- collapse arrow -->
-                <button href="#{{ guid }}"
+                <button
+                   aria-label="Hide Details for Link {{ guid }}"
                    class="toggle-details collapse-details"
-                   title="Hide Link Details">
+                   title="Hide Link Details for Link {{ guid }}">
                 </button>
 
                 {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
