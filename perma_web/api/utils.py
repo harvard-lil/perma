@@ -151,3 +151,10 @@ def reverse_api_view(viewname, *args, **kwargs):
         return reverse('api:' + viewname, *args, **kwargs)
     except NoReverseMatch:
         return reverse(viewname, *args, **kwargs)
+
+def safe_get(model, pk):
+    """Returns an instance of a model by its ID, or None if it does not exist"""
+    try:
+        return model.objects.get(pk=pk)
+    except model.DoesNotExist:
+        return None

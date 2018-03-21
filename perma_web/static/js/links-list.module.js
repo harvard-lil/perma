@@ -4,6 +4,7 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var LinkHelpers = require('./helpers/link.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
+var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
 var FolderTreeModule = require('./folder-tree.module.js');
 
@@ -211,33 +212,8 @@ function handleMouseUp (e) {
 
     // first clear the select ...
     var currentFolderID = selectedFolderID,
-      moveSelect = details.find('.move-to-folder');
-    moveSelect.find('option').remove();
-
-    // recursively populate select ...
-    function addChildren(node, depth) {
-      for (var i = 0; i < node.children.length; i++) {
-        var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
-
-        // For each node, we create an <option> using text() for the folder name,
-        // and then prepend some &nbsp; to show the tree structure using html().
-        // Using html for the whole thing would be an XSS risk.
-        moveSelect.append(
-          $("<option/>", {
-            value: childNode.data.folder_id,
-            text: childNode.text.trim(),
-            selected: childNode.data.folder_id == currentFolderID
-          }).prepend(
-            new Array(depth).join('&nbsp;&nbsp;') + '- '
-          )
-        );
-
-        // recurse
-        if (childNode.children && childNode.children.length)
-          addChildren(childNode, depth + 1);
-      }
-    }
-    addChildren(FolderTreeModule.folderTree.get_node('#'), 1);
+        moveSelect = details.find('.move-to-folder');
+    FolderSelectorHelper.makeFolderSelector(moveSelect, currentFolderID);
 
     details.show();
     linkContainer.toggleClass('_active')

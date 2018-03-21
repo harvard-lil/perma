@@ -2725,6 +2725,39 @@ figcaption + .img-responsive {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
   }
+  #create-batch-links {
+    display: none;
+    clear: both;
+    text-align: right;
+    float: left;
+    width: 100%;
+    max-width: none;
+  }
+  #create-batch-links {
+    font-family: $font-hed-alt;
+    font-size: 16px;
+    font-weight: 200;
+    @include respond-desktop {
+      font-size: 18px;
+      font-weight: 200;
+    }
+  }
+  #create-batch-links {
+    margin-top: 0;
+    margin-bottom: -$grid;
+    font-family: $font-hed-alt;
+  }
+  #create-batch-links {
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      &:hover {
+        color: $color-hover;
+        text-decoration: none;
+      }
+    }
+  }
 
 }
 
@@ -3074,6 +3107,76 @@ button#addlink,
 
 .subscription-buttons form {
   margin-top: 0;
+}
+
+/////////////////////////////////////////
+
+// Batch modals
+
+$batchModalWidth: 900px;
+
+#batch-create-modal, #batch-view-modal {
+    .modal-dialog {
+        @include respond-tablet {
+            margin-left: $batchModalWidth * -.5;
+        }
+    }
+
+    .modal-content {
+        overflow: hidden;
+          @include respond-tablet {
+              width: $batchModalWidth;
+          }
+    }
+}
+
+#batch-create-modal {
+    textarea {
+        height: 20em;
+    }
+}
+
+#start-batch {
+    &._isWorking {
+        font-size: 13px;
+        background-color: transparent !important;
+        text-align: center;
+        padding-bottom: 0px;
+        padding-top: 32px;
+        color: $color-blue;
+        border-color: transparent !important;
+        opacity: 1;
+        .spinner {
+            left: 50%;
+            top: 10px;
+        }
+        &:hover, &:focus {
+            color: $color-blue !important;
+        }
+        cursor: not-allowed;
+    }
+}
+
+#export-csv {
+    display: none;
+}
+
+#batch-saved-path {
+    font-weight: bold;
+}
+
+#batch-details {
+    .row {
+        border-top: 1px solid $color-trans-darkgray;
+        padding-top: $double;
+        padding-bottom: $double;
+    }
+    .link-error {
+        border: 2px solid $color-error;
+        color: $color-error;
+        padding: 0.2em;
+        font-weight: bold;
+    }
 }
 
 
@@ -3701,6 +3804,23 @@ footer {
     }
     margin-top: 0px;
     padding-left: 5px !important;
+  }
+  #batches-history-list {
+    font-family: $font-body;
+    font-size: $size-small;
+    color: $color-black;
+    margin-left: 0;
+    padding-left: 0;
+    li {
+      &:hover {
+        cursor: pointer;
+      }
+      &:before {
+        content: "\2014 "; // em-dash
+        padding-top: $half;
+        padding-bottom: $half;
+      }
+    }
   }
 }
 

@@ -5,7 +5,7 @@ webpackJsonp([7],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	__webpack_require__(197); // add .datepicker to jquery
+	__webpack_require__(203); // add .datepicker to jquery
 	
 	var DOMHelpers = __webpack_require__(2);
 	var HandlebarsHelpers = __webpack_require__(3);
@@ -249,26 +249,27 @@ webpackJsonp([7],{
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.renderTemplate = renderTemplate;
+	exports.compileTemplate = compileTemplate;
 	var Handlebars = __webpack_require__(4);
 	
 	Handlebars.registerHelper('truncatechars', function (str, len) {
-	    if (str.length > len) {
-	        var new_str = str.substr(0, len + 1);
+	  if (str.length > len) {
+	    var new_str = str.substr(0, len + 1);
 	
-	        while (new_str.length) {
-	            var ch = new_str.substr(-1);
-	            new_str = new_str.substr(0, -1);
-	            if (ch == ' ') break;
-	        }
-	
-	        if (new_str == '') new_str = str.substr(0, len);
-	
-	        return new Handlebars.SafeString(new_str + '...');
+	    while (new_str.length) {
+	      var ch = new_str.substr(-1);
+	      new_str = new_str.substr(0, -1);
+	      if (ch == ' ') break;
 	    }
-	    return str;
+	
+	    if (new_str == '') new_str = str.substr(0, len);
+	
+	    return new Handlebars.SafeString(new_str + '...');
+	  }
+	  return str;
 	});
 	
 	/*
@@ -277,12 +278,22 @@ webpackJsonp([7],{
 	
 	var templateCache = {};
 	function renderTemplate(templateId, args) {
-	    var args = args || {};
-	    var $this = $(templateId);
-	    if (!templateCache[templateId]) {
-	        templateCache[templateId] = Handlebars.compile($this.html());
-	    }
-	    return templateCache[templateId](args);
+	  var args = args || {};
+	  var $this = $(templateId);
+	  if (!templateCache[templateId]) {
+	    templateCache[templateId] = Handlebars.compile($this.html());
+	  }
+	  return templateCache[templateId](args);
+	}
+	
+	/* simple wrapper around Handlebars.compile() to cache the compiled templates */
+	function compileTemplate(templateId) {
+	  var $this = $(templateId);
+	  if ($this.length) {
+	    var template = Handlebars.compile($this.html());
+	    templateCache[templateId] = template;
+	    return template;
+	  }
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -1121,7 +1132,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 197:
+/***/ 203:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// jscs:disable maximumLineLength
@@ -1150,8 +1161,8 @@ webpackJsonp([7],{
 			// AMD. Register as an anonymous module.
 			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
 				__webpack_require__(1),
-				__webpack_require__(198),
-				__webpack_require__(199)
+				__webpack_require__(204),
+				__webpack_require__(205)
 			], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 		} else {
 	
@@ -3248,7 +3259,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 198:
+/***/ 204:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;( function( factory ) {
@@ -3272,7 +3283,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 199:
+/***/ 205:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -3293,7 +3304,7 @@ webpackJsonp([7],{
 		if ( true ) {
 	
 			// AMD. Register as an anonymous module.
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(1), __webpack_require__(198) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(1), __webpack_require__(204) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 		} else {
 	
 			// Browser globals

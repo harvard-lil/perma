@@ -4,7 +4,7 @@ from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
 
-from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization
+from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, LinkBatch
 from perma.utils import ip_in_allowed_ip_range
 
 from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode, reverse_api_view
@@ -106,10 +106,17 @@ class OrganizationSerializer(BaseSerializer):
 
 class CaptureJobSerializer(BaseSerializer):
     guid = serializers.PrimaryKeyRelatedField(source='link', read_only=True)
+    title = serializers.SerializerMethodField()
+
     class Meta:
         model = CaptureJob
-        fields = ('guid', 'status', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position')
+        fields = ('guid', 'status', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title', 'submitted_url')
 
+    def get_title(self, capture_job):
+        if capture_job.link is None:
+            return ""
+        else:
+            return capture_job.link.submitted_title
 
 ### CAPTURE ###
 
@@ -258,3 +265,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 
         return data
 
+
+### LINKBATCH ###
+
+class LinkBatchSerializer(BaseSerializer):
+    capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = LinkBatch
+        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'target_folder')
