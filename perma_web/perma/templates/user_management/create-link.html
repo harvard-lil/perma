@@ -172,20 +172,19 @@
           <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
             <!-- this input is here only so on details expand or collapse
             the user doesn't wind up all the way up at the top of the screen again -->
-            <input style="display: none;" name="{{ guid }}">
             <div class="row">
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <!-- expand arrow -->
-                <a href="#{{ guid }}"
+                <button
                    class="_visuallyHidden toggle-details expand-details"
                    title="Show Link Details">
-                </a>
+                </button>
 
                 <!-- collapse arrow -->
-                <a href="#{{ guid }}"
+                <button href="#{{ guid }}"
                    class="toggle-details collapse-details"
                    title="Hide Link Details">
-                </a>
+                </button>
 
                 {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
                 {{#if is_private }}

@@ -4100,10 +4100,14 @@ footer {
 .item-title-col {
   left: 30px;
   .toggle-details {
+    background-color: transparent;
+    border: 0;
     float: left;
     margin-left: -25px;
-    @extend .details-img-dimensions;
+    padding: 0;
+    left: -7px;
     margin-top: 7px;
+    @extend .details-img-dimensions;
     &::before {
       z-index: 10;
       @extend .details-img-dimensions;

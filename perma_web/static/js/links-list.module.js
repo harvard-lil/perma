@@ -167,10 +167,8 @@ function displayLinks(links, query) {
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
   let toggleDetailsIcon = $('.toggle-details');
-  $(toggleDetailsIcon).keydown(function(e){
-    if (e.which === 13) {
-      toggleLinkDetails(e);
-    }
+  $(toggleDetailsIcon).click(function(e){
+    toggleLinkDetails(e);
   });
 }
 
@@ -202,9 +200,6 @@ function handleMouseUp (e) {
   if(new Date().getTime() - lastRowToggleTime < 500)
     return;
   lastRowToggleTime = new Date().getTime();
-
-  // hide/show link details
-  toggleLinkDetails(e);
 }
 
 let getLinkContainer = function(elem) {
