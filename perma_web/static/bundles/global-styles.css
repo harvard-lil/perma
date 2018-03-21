@@ -12720,8 +12720,12 @@ footer #boilerplate a {
 }
 
 .item-title-col .toggle-details {
+  background-color: transparent;
+  border: 0;
   float: left;
   margin-left: -25px;
+  padding: 0;
+  left: -7px;
   margin-top: 7px;
 }
 

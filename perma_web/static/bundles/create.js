@@ -341,10 +341,8 @@ webpackJsonp([1],[
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
 	  var toggleDetailsIcon = $('.toggle-details');
-	  $(toggleDetailsIcon).keydown(function (e) {
-	    if (e.which === 13) {
-	      toggleLinkDetails(e);
-	    }
+	  $(toggleDetailsIcon).click(function (e) {
+	    toggleLinkDetails(e);
 	  });
 	}
 	
@@ -371,9 +369,6 @@ webpackJsonp([1],[
 	  // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
 	  if (new Date().getTime() - lastRowToggleTime < 500) return;
 	  lastRowToggleTime = new Date().getTime();
-	
-	  // hide/show link details
-	  toggleLinkDetails(e);
 	}
 	
 	var getLinkContainer = function getLinkContainer(elem) {
