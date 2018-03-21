@@ -167,8 +167,8 @@ function displayLinks(links, query) {
   let templateArgs = {links: links, query: query};
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
-  let toggleDetailsIcon = $('.toggle-details');
-  $(toggleDetailsIcon).click(function(e){
+  $('.toggle-details, .item-container._isExpandable').click(function(e){
+    e.stopPropagation();
     toggleLinkDetails(e);
   });
 }
