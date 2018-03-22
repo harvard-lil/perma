@@ -467,6 +467,24 @@ p {
   cursor: grab;
 }
 
+._visuallyHidden {
+  /* https://snook.ca/archives/html_and_css/hiding-content-for-accessibility */
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+// showing content when element is in focus or is hovered on
+._visuallyHidden:focus,
+._visuallyHidden:hover {
+  position: relative !important;
+  display: inline-block;
+  width: auto !important;
+  height: auto !important;
+}
+
 /////////////////////////////////////////
 
 // Character styles
@@ -3874,7 +3892,6 @@ footer {
 }
 
 /////////////////////////////////////////
-
 // Items
 
 .item-notification {
@@ -4025,6 +4042,7 @@ footer {
     background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
     background-size: 19px 18px;
     z-index: 10;
+    margin-right: 5px;
   }
   a:hover, a:focus {
     text-decoration: underline;
@@ -4191,6 +4209,66 @@ footer {
       margin-left: .7em;
       font-weight: 700;
     }
+  }
+}
+
+.details-img-dimensions {
+  width: 13px;
+  height: 8px;
+}
+
+.item-title-col {
+  left: 30px;
+  .toggle-details {
+    background-color: transparent;
+    border: 0;
+    float: left;
+    margin-left: -25px;
+    padding-left: 0;
+    padding-top: 0;
+    left: -7px;
+    margin-top: 7px;
+    @extend .details-img-dimensions;
+    @media (max-width: $width-tablet) {
+      left: 0;
+    }
+
+    &::before {
+      z-index: 10;
+      @extend .details-img-dimensions;
+      display: inline-block;
+      position: absolute;
+      content: '';
+    }
+
+  }
+  ._visuallyHidden.expand-details:hover,
+  ._visuallyHidden.expand-details:focus {
+    width: 13px !important;
+    height: 7px !important;
+  }
+  .expand-details::before {
+    background: url('../img/expand.svg') no-repeat;
+  }
+  .collapse-details {
+    display: none;
+    &::before {
+      background: url('../img/collapse.svg') no-repeat;
+    }
+  }
+}
+
+.item-container._isExpandable._active {
+  .toggle-details {
+    display: inline-block;
+  }
+}
+
+.item-container._isExpandable:not(._active):hover,
+.item-container._isExpandable:not(._active):focus {
+  ._visuallyHidden {
+    @extend .details-img-dimensions;
+    position: relative !important;
   }
 }
 

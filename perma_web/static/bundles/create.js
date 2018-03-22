@@ -203,8 +203,6 @@ webpackJsonp([1],[
 	var APIModule = __webpack_require__(78);
 	var FolderSelectorHelper = __webpack_require__(103);
 	
-	var FolderTreeModule = __webpack_require__(104);
-	
 	var linkTable = null;
 	var dragStartPosition = null;
 	var lastRowToggleTime = 0;
@@ -299,14 +297,14 @@ webpackJsonp([1],[
 	
 	function generateLinkFields(query, link) {
 	  return LinkHelpers.generateLinkFields(link, query);
-	};
+	}
 	
 	function showFolderContents(folderID, query) {
 	  initShowFolderDOM(query);
 	
 	  var requestCount = 20,
 	      requestData = { limit: requestCount, offset: 0 },
-	      endpoint;
+	      endpoint = void 0;
 	
 	  if (query) {
 	    requestData.q = query;
@@ -336,7 +334,7 @@ webpackJsonp([1],[
 	
 	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
 	      // Set a waypoint event to trigger when the last link comes into view.
-	      if (links.length == requestCount) {
+	      if (links.length === requestCount) {
 	        requestData.offset += requestCount;
 	        linkTable.find('.item-container:last').waypoint(function (direction) {
 	          this.destroy(); // cancel waypoint
@@ -356,6 +354,10 @@ webpackJsonp([1],[
 	  var templateArgs = { links: links, query: query };
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
+	  $('.toggle-details, .item-row._isDraggable').click(function (e) {
+	    e.stopPropagation();
+	    toggleLinkDetails(e);
+	  });
 	}
 	
 	function handleMouseDown(e) {
@@ -381,27 +383,42 @@ webpackJsonp([1],[
 	  // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
 	  if (new Date().getTime() - lastRowToggleTime < 500) return;
 	  lastRowToggleTime = new Date().getTime();
-	
-	  // hide/show link details
-	  var linkContainer = $(e.target).closest('.item-container'),
-	      details = linkContainer.find('.item-details');
-	
-	  if (details.is(':visible')) {
-	    details.hide();
-	    linkContainer.toggleClass('_active');
-	  } else {
-	    // when showing link details, update the move-to-folder select input
-	    // based on the current folderTree structure
-	
-	    // first clear the select ...
-	    var currentFolderID = selectedFolderID,
-	        moveSelect = details.find('.move-to-folder');
-	    FolderSelectorHelper.makeFolderSelector(moveSelect, currentFolderID);
-	
-	    details.show();
-	    linkContainer.toggleClass('_active');
-	  }
 	}
+	
+	var getLinkContainer = function getLinkContainer(elem) {
+	  return $(elem).closest('.item-container');
+	};
+	
+	var toggleLinkDetails = function toggleLinkDetails(e) {
+	  var linkContainer = getLinkContainer(e.target),
+	      details = linkContainer.find('.item-details');
+	  if (details.is(':visible')) {
+	    hideLinkDetails(linkContainer, details);
+	  } else {
+	    showLinkDetails(linkContainer, details);
+	  }
+	};
+	
+	var hideLinkDetails = function hideLinkDetails(linkContainer, details) {
+	  linkContainer.find('.collapse-details').blur().hide();
+	  linkContainer.find('.expand-details').show().focus();
+	  details.hide();
+	  linkContainer.toggleClass('_active');
+	};
+	
+	var showLinkDetails = function showLinkDetails(linkContainer, details) {
+	  // when showing link details, update the move-to-folder select input
+	  // based on the current folderTree structure
+	
+	  // first clear the select ...
+	  var currentFolderID = selectedFolderID,
+	      moveSelect = details.find('.move-to-folder');
+	  FolderSelectorHelper.makeFolderSelector(moveSelect, currentFolderID);
+	  details.show();
+	  linkContainer.toggleClass('_active');
+	  linkContainer.find('.expand-details').blur().hide();
+	  linkContainer.find('.collapse-details').show().focus();
+	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
@@ -877,7 +894,7 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-[317, 42],
+[319, 42],
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10690,23 +10707,23 @@ webpackJsonp([1],[
 /* 110 */
 8,
 /* 111 */
-[323, 112, 120, 116],
+[325, 112, 120, 116],
 /* 112 */
-[324, 113, 115, 119, 116],
+[326, 113, 115, 119, 116],
 /* 113 */
-[325, 114],
+[327, 114],
 /* 114 */
 25,
 /* 115 */
-[326, 116, 117, 118],
+[328, 116, 117, 118],
 /* 116 */
-[327, 117],
+[329, 117],
 /* 117 */
 28,
 /* 118 */
-[328, 114, 109],
+[330, 114, 109],
 /* 119 */
-[329, 114],
+[331, 114],
 /* 120 */
 31,
 /* 121 */
@@ -10751,7 +10768,7 @@ webpackJsonp([1],[
 /* 123 */
 48,
 /* 124 */
-[322, 125],
+[324, 125],
 /* 125 */
 21,
 /* 126 */
@@ -10804,15 +10821,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 127 */
-[319, 128],
+[321, 128],
 /* 128 */
 42,
 /* 129 */
-[318, 130],
+[320, 130],
 /* 130 */
 15,
 /* 131 */
-[320, 132],
+[322, 132],
 /* 132 */
 14,
 /* 133 */
@@ -10848,11 +10865,11 @@ webpackJsonp([1],[
 
 /***/ },
 /* 135 */
-[317, 128],
+[319, 128],
 /* 136 */
-[330, 137, 123, 109],
+[332, 137, 123, 109],
 /* 137 */
-[321, 109],
+[323, 109],
 /* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -13832,7 +13849,9 @@ webpackJsonp([1],[
 /* 314 */,
 /* 315 */,
 /* 316 */,
-/* 317 */
+/* 317 */,
+/* 318 */,
+/* 319 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.2.2 IsArray(argument)
