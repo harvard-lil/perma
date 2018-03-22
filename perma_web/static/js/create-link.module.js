@@ -175,11 +175,10 @@ function check_status () {
     } else if (data.status == "in_progress") {
 
       // add progress bar if doesn't exist
-      if (!$('#capture-progress-bar').length) {
+      var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
+      if (!progress_bar){
         var progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
         progress_bar.appendTo($('#addlink'));
-      } else {
-        var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
       }
 
       // update progress
