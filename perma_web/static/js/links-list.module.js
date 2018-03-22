@@ -165,7 +165,7 @@ function displayLinks(links, query) {
   let templateArgs = {links: links, query: query};
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
-  $('.toggle-details, ._isDraggable').click(function(e){
+  $('.toggle-details, .item-row._isDraggable').click(function(e){
     e.stopPropagation();
     toggleLinkDetails(e);
   });

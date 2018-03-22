@@ -12853,6 +12853,12 @@ footer #boilerplate a {
   margin-top: 7px;
 }
 
+@media (max-width: 768px) {
+  .item-title-col .toggle-details {
+    left: 0;
+  }
+}
+
 .item-title-col .toggle-details::before {
   z-index: 10;
   display: inline-block;

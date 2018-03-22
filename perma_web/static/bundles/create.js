@@ -203,8 +203,6 @@ webpackJsonp([1],[
 	var APIModule = __webpack_require__(78);
 	var FolderSelectorHelper = __webpack_require__(103);
 	
-	var FolderTreeModule = __webpack_require__(104);
-	
 	var linkTable = null;
 	var dragStartPosition = null;
 	var lastRowToggleTime = 0;
@@ -356,7 +354,7 @@ webpackJsonp([1],[
 	  var templateArgs = { links: links, query: query };
 	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
 	  linkTable.append(template);
-	  $('.toggle-details, .item-container._isExpandable').click(function (e) {
+	  $('.toggle-details, .item-row._isDraggable').click(function (e) {
 	    e.stopPropagation();
 	    toggleLinkDetails(e);
 	  });
