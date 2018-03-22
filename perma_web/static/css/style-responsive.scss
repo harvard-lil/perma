@@ -4229,6 +4229,10 @@ footer {
     left: -7px;
     margin-top: 7px;
     @extend .details-img-dimensions;
+    @media (max-width: $width-tablet) {
+      left: 0;
+    }
+
     &::before {
       z-index: 10;
       @extend .details-img-dimensions;
@@ -4236,6 +4240,7 @@ footer {
       position: absolute;
       content: '';
     }
+
   }
   ._visuallyHidden.expand-details:hover,
   ._visuallyHidden.expand-details:focus {

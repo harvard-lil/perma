@@ -6,8 +6,6 @@ var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
-let FolderTreeModule = require('./folder-tree.module.js');
-
 
 let linkTable = null;
 let dragStartPosition = null;
@@ -167,7 +165,7 @@ function displayLinks(links, query) {
   let templateArgs = {links: links, query: query};
   let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
   linkTable.append(template);
-  $('.toggle-details, .item-container._isExpandable').click(function(e){
+  $('.toggle-details, ._isDraggable').click(function(e){
     e.stopPropagation();
     toggleLinkDetails(e);
   });
