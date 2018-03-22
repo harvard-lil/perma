@@ -11076,11 +11076,10 @@ webpackJsonp([1],[
 	    } else if (data.status == "in_progress") {
 	
 	      // add progress bar if doesn't exist
-	      if (!$('#capture-progress-bar').length) {
+	      var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
+	      if (!progress_bar) {
 	        var progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
 	        progress_bar.appendTo($('#addlink'));
-	      } else {
-	        var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
 	      }
 	
 	      // update progress
@@ -13478,23 +13477,29 @@ webpackJsonp([1],[
 	exports.get_progress_bar_by_id = get_progress_bar_by_id;
 	var Handlebars = __webpack_require__(4);
 	var HandlebarsHelpers = __webpack_require__(3);
+	var template;
 	
-	var template = HandlebarsHelpers.compileTemplate('#progress-bar-template');
-	if (template) {
-	    Handlebars.registerPartial('progressBar', template);
+	function register_progress_bar() {
+	    template = HandlebarsHelpers.compileTemplate('#progress-bar-template');
+	    if (template) {
+	        Handlebars.registerPartial('progressBar', template);
+	    }
 	}
+	register_progress_bar();
 	
 	var progress_bars_by_id = {};
 	
 	/* Creates a new "progress bar," which renders as such and exposes a simple API for setting progress */
 	function make_progress_bar(id) {
-	    var template = template || HandlebarsHelpers.compileTemplate('#progress-bar-template');
-	    var $container = $("<div>").html(template(0, id));
+	    if (!template) {
+	        register_progress_bar();
+	    }
+	    var $container = $("<div>").html(template({ 'progress': 0, 'id': id }));
 	
 	    var obj = {
 	        setProgress: function setProgress(progress) {
 	            $container.empty();
-	            $container.html(template(progress, id));
+	            $container.html(template({ 'progress': progress, 'id': id }));
 	        },
 	
 	        appendTo: function appendTo($el) {
