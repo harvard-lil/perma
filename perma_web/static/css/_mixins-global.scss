@@ -237,3 +237,13 @@ $width-max-respond: $width-wide;      // 1200px;
   margin-right: -7px;
   background-color: white;
 }
+
+@mixin bottom-shadow {
+  box-shadow: 0 15px 15px -15px rgba(0,0,0,0.1);
+}
+
+@mixin top-bottom-shadow {
+  box-shadow:
+    0 15px 15px -15px rgba(0,0,0,0.1),
+    0 -2px 2px -2px rgba(0,0,0,0.2);
+}

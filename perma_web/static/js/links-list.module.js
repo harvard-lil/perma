@@ -33,6 +33,9 @@ function setupEventHandlers () {
       showFolderContents(selectedFolderID, query);
     }
   });
+
+  // scroll helper
+  DOMHelpers.markIfScrolled('.col-links');
 }
 
 function getLinkIDForFormElement (element) {
@@ -142,6 +145,8 @@ function showFolderContents (folderID, query) {
           }
 
         displayLinks(links, query);
+        // Ensure footer can be reached
+        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-links", 0.9);
 
         // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
         // Set a waypoint event to trigger when the last link comes into view.

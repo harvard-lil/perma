@@ -4,6 +4,7 @@ require('jstree-css/default/style.min.css');
 
 var APIModule = require('./helpers/api.module.js');
 var Helpers = require('./helpers/general.helpers.js');
+var DOMHelpers = require('./helpers/dom.helpers.js');
 var ErrorHandler = require('./error-handler.js');
 
 var localStorageKey = Helpers.variables.localStorageKey;
@@ -370,6 +371,13 @@ function domTreeInit () {
     // track currently hovered node in the hoveredNode variable:
     .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
     .on('dehover_node.jstree', (e, data) => hoveredNode = null);
+
+    // scroll inner div if too tall (keeps heading on top)
+    let headingHeight = $('.col-folders .panel-heading').height();
+    let viewportFraction = 0.9 * DOMHelpers.viewportHeight()
+    DOMHelpers.addCSS('.col-folders', 'max-height', viewportFraction);
+    // account for heading and appx. scrollbar height
+    DOMHelpers.addCSS('#folder-tree', 'height', viewportFraction - headingHeight - 10);
 
   folderTree = $.jstree.reference('#folder-tree');
 }

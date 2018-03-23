@@ -3769,7 +3769,8 @@ footer {
 }
 
 .col-folders {
-  padding-bottom: $double;
+  overflow-y: hidden;
+  padding-bottom: 0;
   > .panel-heading {
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
@@ -3787,8 +3788,8 @@ footer {
     }
   }
   #folder-tree {
-    padding: $double $grid $double 0;
     overflow: auto;
+    padding: $grid $grid 0 0;
     font-family: $font-hed-alt;
     margin-top: $double;
     border-top: 1px solid $color-trans-lightgray;
@@ -3807,6 +3808,7 @@ footer {
   }
   .jstree-container-ul {
     margin-left: -6px;
+    padding-bottom: 2ex;
   }
   li {
     margin-left: 1em;
@@ -3846,6 +3848,16 @@ footer {
   border-left: none;
   position: relative;
   padding-bottom: $grid * 3;
+
+  &.scrolling {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    @include bottom-shadow;
+  }
+  &.scrolled {
+    @include top-bottom-shadow;
+  }
+
   &.recent-links {
     width: 100%;
     padding-top: $grid * 3;
