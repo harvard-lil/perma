@@ -37,6 +37,9 @@ webpackJsonp([1],[
 	exports.showElement = showElement;
 	exports.hideElement = hideElement;
 	exports.addCSS = addCSS;
+	exports.scrollIfTallerThanFractionOfViewport = scrollIfTallerThanFractionOfViewport;
+	exports.viewportHeight = viewportHeight;
+	exports.markIfScrolled = markIfScrolled;
 	function setInputValue(domSelector, value) {
 	  $(domSelector).val(value);
 	}
@@ -81,6 +84,37 @@ webpackJsonp([1],[
 	
 	function addCSS(domSelector, propertyName, propertyValue) {
 	  $(domSelector).css(propertyName, propertyValue);
+	}
+	
+	function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
+	  var limit = fraction * viewportHeight();
+	  var elem = $(domSelector);
+	  if (elem.prop('scrollHeight') < limit) {
+	    elem.removeClass('scrolling');
+	    elem.css('max-height', 'initial');
+	  } else {
+	    elem.addClass('scrolling');
+	    elem.css('max-height', limit);
+	  }
+	}
+	
+	function viewportHeight() {
+	  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	}
+	
+	function markIfScrolled(domSelector) {
+	  var elem = $(domSelector);
+	  elem.scroll(function () {
+	    if (hasScrolled(elem)) {
+	      elem.addClass('scrolled');
+	    } else {
+	      elem.removeClass('scrolled');
+	    }
+	  });
+	}
+	
+	function hasScrolled(elem) {
+	  return elem.children().first().position().top < 0;
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -228,6 +262,9 @@ webpackJsonp([1],[
 	      showFolderContents(selectedFolderID, query);
 	    }
 	  });
+	
+	  // scroll helper
+	  DOMHelpers.markIfScrolled('.col-links');
 	}
 	
 	function getLinkIDForFormElement(element) {
@@ -331,6 +368,8 @@ webpackJsonp([1],[
 	      }
 	
 	      displayLinks(links, query);
+	      // Ensure footer can be reached
+	      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-links", 0.9);
 	
 	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
 	      // Set a waypoint event to trigger when the last link comes into view.
@@ -1998,6 +2037,7 @@ webpackJsonp([1],[
 	
 	var APIModule = __webpack_require__(78);
 	var Helpers = __webpack_require__(92);
+	var DOMHelpers = __webpack_require__(2);
 	var ErrorHandler = __webpack_require__(79);
 	
 	var localStorageKey = Helpers.variables.localStorageKey;
@@ -2363,6 +2403,13 @@ webpackJsonp([1],[
 	  }).on('dehover_node.jstree', function (e, data) {
 	    return hoveredNode = null;
 	  });
+	
+	  // scroll inner div if too tall (keeps heading on top)
+	  var headingHeight = $('.col-folders .panel-heading').height();
+	  var viewportFraction = 0.9 * DOMHelpers.viewportHeight();
+	  DOMHelpers.addCSS('.col-folders', 'max-height', viewportFraction);
+	  // account for heading and appx. scrollbar height
+	  DOMHelpers.addCSS('#folder-tree', 'height', viewportFraction - headingHeight - 10);
 	
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
 	}
