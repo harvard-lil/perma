@@ -263,7 +263,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count('Test Journal'), 3 + 1)
         self.assertEqual(response.count('Another Journal'), 1 + 1)
         self.assertEqual(response.count("A Third Journal"), 3 + 1)
-        self.assertEqual(response.count("Another Library&#39;s Journal"), 3 + 1)
+        self.assertEqual(response.count("Another Library's Journal"), 3 + 1)
         self.assertEqual(response.count("Some Case"), 1 + 1)
 
         # filter by org
