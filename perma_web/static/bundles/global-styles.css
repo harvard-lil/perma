@@ -12311,7 +12311,8 @@ footer #boilerplate a {
 }
 
 .col-folders {
-  padding-bottom: 16px;
+  overflow-y: hidden;
+  padding-bottom: 0;
 }
 
 .col-folders > .panel-heading {
@@ -12332,8 +12333,8 @@ footer #boilerplate a {
 }
 
 .col-folders #folder-tree {
-  padding: 16px 8px 16px 0;
   overflow: auto;
+  padding: 8px 8px 0 0;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
   margin-top: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -12356,6 +12357,7 @@ footer #boilerplate a {
 
 .col-folders .jstree-container-ul {
   margin-left: -6px;
+  padding-bottom: 2ex;
 }
 
 .col-folders li {
@@ -12404,6 +12406,16 @@ footer #boilerplate a {
   border-left: none;
   position: relative;
   padding-bottom: 24px;
+}
+
+.col-links.scrolling {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  box-shadow: 0 15px 15px -15px rgba(0, 0, 0, 0.1);
+}
+
+.col-links.scrolled {
+  box-shadow: 0 15px 15px -15px rgba(0, 0, 0, 0.1), 0 -2px 2px -2px rgba(0, 0, 0, 0.2);
 }
 
 .col-links.recent-links {

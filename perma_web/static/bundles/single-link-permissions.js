@@ -136,6 +136,9 @@ webpackJsonp([9],{
 	exports.showElement = showElement;
 	exports.hideElement = hideElement;
 	exports.addCSS = addCSS;
+	exports.scrollIfTallerThanFractionOfViewport = scrollIfTallerThanFractionOfViewport;
+	exports.viewportHeight = viewportHeight;
+	exports.markIfScrolled = markIfScrolled;
 	function setInputValue(domSelector, value) {
 	  $(domSelector).val(value);
 	}
@@ -180,6 +183,37 @@ webpackJsonp([9],{
 	
 	function addCSS(domSelector, propertyName, propertyValue) {
 	  $(domSelector).css(propertyName, propertyValue);
+	}
+	
+	function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
+	  var limit = fraction * viewportHeight();
+	  var elem = $(domSelector);
+	  if (elem.prop('scrollHeight') < limit) {
+	    elem.removeClass('scrolling');
+	    elem.css('max-height', 'initial');
+	  } else {
+	    elem.addClass('scrolling');
+	    elem.css('max-height', limit);
+	  }
+	}
+	
+	function viewportHeight() {
+	  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	}
+	
+	function markIfScrolled(domSelector) {
+	  var elem = $(domSelector);
+	  elem.scroll(function () {
+	    if (hasScrolled(elem)) {
+	      elem.addClass('scrolled');
+	    } else {
+	      elem.removeClass('scrolled');
+	    }
+	  });
+	}
+	
+	function hasScrolled(elem) {
+	  return elem.children().first().position().top < 0;
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 

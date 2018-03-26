@@ -37,6 +37,9 @@ webpackJsonp([1],[
 	exports.showElement = showElement;
 	exports.hideElement = hideElement;
 	exports.addCSS = addCSS;
+	exports.scrollIfTallerThanFractionOfViewport = scrollIfTallerThanFractionOfViewport;
+	exports.viewportHeight = viewportHeight;
+	exports.markIfScrolled = markIfScrolled;
 	function setInputValue(domSelector, value) {
 	  $(domSelector).val(value);
 	}
@@ -81,6 +84,37 @@ webpackJsonp([1],[
 	
 	function addCSS(domSelector, propertyName, propertyValue) {
 	  $(domSelector).css(propertyName, propertyValue);
+	}
+	
+	function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
+	  var limit = fraction * viewportHeight();
+	  var elem = $(domSelector);
+	  if (elem.prop('scrollHeight') < limit) {
+	    elem.removeClass('scrolling');
+	    elem.css('max-height', 'initial');
+	  } else {
+	    elem.addClass('scrolling');
+	    elem.css('max-height', limit);
+	  }
+	}
+	
+	function viewportHeight() {
+	  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	}
+	
+	function markIfScrolled(domSelector) {
+	  var elem = $(domSelector);
+	  elem.scroll(function () {
+	    if (hasScrolled(elem)) {
+	      elem.addClass('scrolled');
+	    } else {
+	      elem.removeClass('scrolled');
+	    }
+	  });
+	}
+	
+	function hasScrolled(elem) {
+	  return elem.children().first().position().top < 0;
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -228,6 +262,9 @@ webpackJsonp([1],[
 	      showFolderContents(selectedFolderID, query);
 	    }
 	  });
+	
+	  // scroll helper
+	  DOMHelpers.markIfScrolled('.col-links');
 	}
 	
 	function getLinkIDForFormElement(element) {
@@ -331,6 +368,8 @@ webpackJsonp([1],[
 	      }
 	
 	      displayLinks(links, query);
+	      // Ensure footer can be reached
+	      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-links", 0.9);
 	
 	      // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
 	      // Set a waypoint event to trigger when the last link comes into view.
@@ -1998,6 +2037,7 @@ webpackJsonp([1],[
 	
 	var APIModule = __webpack_require__(78);
 	var Helpers = __webpack_require__(92);
+	var DOMHelpers = __webpack_require__(2);
 	var ErrorHandler = __webpack_require__(79);
 	
 	var localStorageKey = Helpers.variables.localStorageKey;
@@ -2203,7 +2243,8 @@ webpackJsonp([1],[
 	    var parentFolders = preloadedData;
 	
 	    // for each folder in the path ...
-	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	
+	    var _loop = function _loop(i) {
 	
 	      // find the parent folder to load subfolders into, and mark it opened:
 	      var folderId = subfoldersToPreload[i];
@@ -2212,7 +2253,7 @@ webpackJsonp([1],[
 	      });
 	      if (!parentFolder)
 	        // tree must have changed since last time user visited
-	        break;
+	        return 'break';
 	      parentFolder.state = { opened: true };
 	
 	      // find the subfolders and load them in:
@@ -2226,8 +2267,14 @@ webpackJsonp([1],[
 	
 	        // if no subfolders, we're done
 	      } else {
-	        break;
+	        return 'break';
 	      }
+	    };
+	
+	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	      var _ret = _loop(i);
+	
+	      if (_ret === 'break') break;
 	    }
 	
 	    // pass our folder tree to jsTree for display
@@ -2275,12 +2322,14 @@ webpackJsonp([1],[
 	        } else {
 	          // internal folder action
 	          if (operation == 'rename_node') {
-	            var newName = node_position;
-	            renameFolder(node.data.folder_id, newName).done(function () {
-	              allowedEventsCount++;
-	              folderTree.rename_node(node, newName);
-	              sendSelectionChangeEvent(node);
-	            });
+	            (function () {
+	              var newName = node_position;
+	              renameFolder(node.data.folder_id, newName).done(function () {
+	                allowedEventsCount++;
+	                folderTree.rename_node(node, newName);
+	                sendSelectionChangeEvent(node);
+	              });
+	            })();
 	          } else if (operation == 'move_node') {
 	            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
 	              allowedEventsCount++;
@@ -2293,8 +2342,8 @@ webpackJsonp([1],[
 	              folderTree.select_node(node.parent);
 	            });
 	          } else if (operation == 'create_node') {
-	            var newName = node.text;
-	            createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
+	            var _newName = node.text;
+	            createFolder(node_parent.data.folder_id, _newName).done(function (server_response) {
 	              allowedEventsCount++;
 	              folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
 	                new_folder_node.data = { folder_id: server_response.id, organization_id: node_parent.data.organization_id };
@@ -2363,6 +2412,13 @@ webpackJsonp([1],[
 	  }).on('dehover_node.jstree', function (e, data) {
 	    return hoveredNode = null;
 	  });
+	
+	  // scroll inner div if too tall (keeps heading on top)
+	  var headingHeight = $('.col-folders .panel-heading').height();
+	  var viewportFraction = 0.9 * DOMHelpers.viewportHeight();
+	  DOMHelpers.addCSS('.col-folders', 'max-height', viewportFraction);
+	  // account for heading and appx. scrollbar height
+	  DOMHelpers.addCSS('#folder-tree', 'height', viewportFraction - headingHeight - 10);
 	
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
 	}

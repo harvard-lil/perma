@@ -43,3 +43,34 @@ export function hideElement (domSelector) {
 export function addCSS (domSelector, propertyName, propertyValue) {
   $(domSelector).css(propertyName, propertyValue);
 }
+
+export function scrollIfTallerThanFractionOfViewport(domSelector, fraction){
+  let limit = fraction * viewportHeight();
+  let elem = $(domSelector);
+  if(elem.prop('scrollHeight') < limit){
+    elem.removeClass('scrolling');
+    elem.css('max-height', 'initial');
+  } else {
+    elem.addClass('scrolling');
+    elem.css('max-height', limit);
+  }
+}
+
+export function viewportHeight(){
+  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+}
+
+export function markIfScrolled(domSelector){
+  let elem = $(domSelector);
+  elem.scroll(function(){
+    if (hasScrolled(elem)){
+      elem.addClass('scrolled');
+    } else {
+      elem.removeClass('scrolled');
+    }
+  })
+}
+
+function hasScrolled(elem){
+  return elem.children().first().position().top < 0;
+}
