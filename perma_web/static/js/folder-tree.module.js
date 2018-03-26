@@ -2,15 +2,15 @@ require('jstree');  // add jquery support for .tree
 require('core-js/fn/array/find');
 require('jstree-css/default/style.min.css');
 
-var APIModule = require('./helpers/api.module.js');
-var Helpers = require('./helpers/general.helpers.js');
-var DOMHelpers = require('./helpers/dom.helpers.js');
-var ErrorHandler = require('./error-handler.js');
+let APIModule = require('./helpers/api.module.js');
+let Helpers = require('./helpers/general.helpers.js');
+let DOMHelpers = require('./helpers/dom.helpers.js');
+let ErrorHandler = require('./error-handler.js');
 
-var localStorageKey = Helpers.variables.localStorageKey;
-var allowedEventsCount = 0;
-var lastSelectedFolder = null;
-var hoveredNode = null;  // track currently hovered node in jsTree
+let localStorageKey = Helpers.variables.localStorageKey;
+let allowedEventsCount = 0;
+let lastSelectedFolder = null;
+let hoveredNode = null;  // track currently hovered node in jsTree
 export var folderTree = null;
 
 export function init () {
@@ -29,15 +29,15 @@ export var ls = {
   // introduce to user support: we don't want to have to walk people through clearing local
   // storage if unexpected behavior surfaces)
   getAll: function () {
-    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+    let folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
     return folders || {};
   },
   getCurrent: function () {
-    var folders = ls.getAll();
+    let folders = ls.getAll();
     return folders[current_user.id] || {};
   },
   setCurrent: function (orgId, folderIds) {
-    var selectedFolders = ls.getAll();
+    let selectedFolders = ls.getAll();
     selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
 
     if (folderIds && folderIds.length){
@@ -50,10 +50,10 @@ export var ls = {
 };
 
 export function folderListFromUrl() {
-  var queryDict = Helpers.getQueryStringDict();
+  let queryDict = Helpers.getQueryStringDict();
   if (queryDict['folder']){
     try {
-      var folder_list = queryDict['folder'].split('-');
+      let folder_list = queryDict['folder'].split('-');
       folder_list = folder_list.map(s => parseInt(s));
       folder_list.forEach(i => {if(isNaN(i)) throw "Invalid folder list"});
       return folder_list
@@ -73,7 +73,7 @@ export function getSavedFolders(){
 
 export function getSavedFolder(){
   // Look up the ID of the previously selected folder (if any)
-  var folderIds = getSavedFolders()
+  let folderIds = getSavedFolders()
   if(folderIds && folderIds.length){
     return folderIds[folderIds.length - 1];
   }
@@ -86,8 +86,8 @@ export function getSavedOrg(){
 }
 
 export function getPathForId(folderId){
-  var node = getNodeByFolderID(folderId);
-  var path = folderTree.get_path(node);
+  let node = getNodeByFolderID(folderId);
+  let path = folderTree.get_path(node);
   return path;
 }
 
@@ -100,8 +100,8 @@ function getSelectedFolderID () {
 }
 
 function getNodeByFolderID (folderId) {
-  var folderData = folderTree._model.data;
-  for(var i in folderData) {
+  let folderData = folderTree._model.data;
+  for(let i in folderData) {
     if(folderData.hasOwnProperty(i) &&
        folderData[i].data &&
        folderData[i].data.folder_id === folderId) {
@@ -118,7 +118,7 @@ function handleSelectionChange () {
 }
 
 function selectSavedFolder(){
-  var folderToSelect = getSavedFolder();
+  let folderToSelect = getSavedFolder();
   //select default for users with no orgs and no saved selections
   if(!folderToSelect && current_user.top_level_folders.length == 1){
     folderToSelect = current_user.top_level_folders[0].id;
@@ -127,9 +127,9 @@ function selectSavedFolder(){
 }
 
 function setSavedFolder (node) {
-  var data = node.data;
+  let data = node.data;
   if (data) {
-    var folderIds = folderTree.get_path(node, false, true).map(function(id){
+    let folderIds = folderTree.get_path(node, false, true).map(function(id){
       return folderTree.get_node(id).data.folder_id;
     });
     ls.setCurrent(data.organization_id, folderIds);
@@ -138,7 +138,7 @@ function setSavedFolder (node) {
 }
 
 function sendSelectionChangeEvent (node) {
-  var data = {};
+  let data = {};
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
@@ -150,7 +150,7 @@ function sendSelectionChangeEvent (node) {
 function handleShowFoldersEvent(currentFolder, callback){
   // This function gets called by jsTree with the current folder, and a callback to return subfolders.
   // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
-  var simpleCallback = (callbackData) => callback.call(folderTree, callbackData);
+  let simpleCallback = (callbackData) => callback.call(folderTree, callbackData);
 
   if(currentFolder.data){
     loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
@@ -165,7 +165,7 @@ function handleShowFoldersEvent(currentFolder, callback){
 function apiFoldersToJsTreeFolders(apiFolders){
   // Helper to process a list of folders from our API into the form expected by jsTree.
   return apiFolders.map(function(folder){
-    var jsTreeFolder = {
+    let jsTreeFolder = {
       text: folder.name,
       data: {
         folder_id: folder.id,
@@ -205,23 +205,23 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
 
   // When all API requests have returned, loop through the responses and build the folder tree:
   .done(function(){
-    var apiResponses = arguments;
-    var parentFolders = preloadedData;
+    let apiResponses = arguments;
+    let parentFolders = preloadedData;
 
     // for each folder in the path ...
-    for(var i=0; i<subfoldersToPreload.length; i++){
+    for(let i=0; i<subfoldersToPreload.length; i++){
 
       // find the parent folder to load subfolders into, and mark it opened:
-      var folderId = subfoldersToPreload[i];
-      var parentFolder = parentFolders.find(folder => folderId == folder.data.folder_id);
+      let folderId = subfoldersToPreload[i];
+      let parentFolder = parentFolders.find(folder => folderId == folder.data.folder_id);
       if(!parentFolder)
         // tree must have changed since last time user visited
         break;
       parentFolder.state = {opened: true};
 
       // find the subfolders and load them in:
-      var apiResponse = apiResponses[i][0];
-      var subfolders = apiResponse ? apiResponse.objects : null;  // if API response doesn't make sense, we'll just stop loading the tree here
+      let apiResponse = apiResponses[i][0];
+      let subfolders = apiResponse ? apiResponse.objects : null;  // if API response doesn't make sense, we'll just stop loading the tree here
       if(subfolders && subfolders.length){
         parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
 
@@ -270,7 +270,7 @@ function domTreeInit () {
             return true;
           }
 
-          var targetNode = hoveredNode;
+          let targetNode = hoveredNode;
 
           if (more && more.is_foreign) {
             // link dragged onto folder
@@ -280,7 +280,7 @@ function domTreeInit () {
           } else {
             // internal folder action
             if (operation == 'rename_node') {
-              var newName = node_position;
+              let newName = node_position;
               renameFolder(node.data.folder_id, newName)
                 .done(function () {
                   allowedEventsCount++;
@@ -299,7 +299,7 @@ function domTreeInit () {
                 folderTree.select_node(node.parent);
               });
             } else if (operation == 'create_node') {
-              var newName = node.text;
+              let newName = node.text;
               createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
                 allowedEventsCount++;
                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
@@ -349,7 +349,7 @@ function domTreeInit () {
           data.instance.toggle_node(data.node);
       }
 
-      var lastSelectedNode = data.node;
+      let lastSelectedNode = data.node;
       setSavedFolder(lastSelectedNode);
 
     // handle open/close folder icon

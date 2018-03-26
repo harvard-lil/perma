@@ -2243,7 +2243,8 @@ webpackJsonp([1],[
 	    var parentFolders = preloadedData;
 	
 	    // for each folder in the path ...
-	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	
+	    var _loop = function _loop(i) {
 	
 	      // find the parent folder to load subfolders into, and mark it opened:
 	      var folderId = subfoldersToPreload[i];
@@ -2252,7 +2253,7 @@ webpackJsonp([1],[
 	      });
 	      if (!parentFolder)
 	        // tree must have changed since last time user visited
-	        break;
+	        return 'break';
 	      parentFolder.state = { opened: true };
 	
 	      // find the subfolders and load them in:
@@ -2266,8 +2267,14 @@ webpackJsonp([1],[
 	
 	        // if no subfolders, we're done
 	      } else {
-	        break;
+	        return 'break';
 	      }
+	    };
+	
+	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	      var _ret = _loop(i);
+	
+	      if (_ret === 'break') break;
 	    }
 	
 	    // pass our folder tree to jsTree for display
@@ -2315,12 +2322,14 @@ webpackJsonp([1],[
 	        } else {
 	          // internal folder action
 	          if (operation == 'rename_node') {
-	            var newName = node_position;
-	            renameFolder(node.data.folder_id, newName).done(function () {
-	              allowedEventsCount++;
-	              folderTree.rename_node(node, newName);
-	              sendSelectionChangeEvent(node);
-	            });
+	            (function () {
+	              var newName = node_position;
+	              renameFolder(node.data.folder_id, newName).done(function () {
+	                allowedEventsCount++;
+	                folderTree.rename_node(node, newName);
+	                sendSelectionChangeEvent(node);
+	              });
+	            })();
 	          } else if (operation == 'move_node') {
 	            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
 	              allowedEventsCount++;
@@ -2333,8 +2342,8 @@ webpackJsonp([1],[
 	              folderTree.select_node(node.parent);
 	            });
 	          } else if (operation == 'create_node') {
-	            var newName = node.text;
-	            createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
+	            var _newName = node.text;
+	            createFolder(node_parent.data.folder_id, _newName).done(function (server_response) {
 	              allowedEventsCount++;
 	              folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
 	                new_folder_node.data = { folder_id: server_response.id, organization_id: node_parent.data.organization_id };
