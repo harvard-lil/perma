@@ -12315,6 +12315,13 @@ footer #boilerplate a {
   padding-bottom: 0;
 }
 
+@media only screen and (max-width: 767px) {
+  .col-folders {
+    margin-bottom: 16px;
+    height: 30vh !important;
+  }
+}
+
 .col-folders > .panel-heading {
   border-top: 2px solid #2D76EE;
   padding-top: 8px;
@@ -12408,6 +12415,12 @@ footer #boilerplate a {
   padding-bottom: 24px;
 }
 
+@media only screen and (max-width: 767px) {
+  .col-links {
+    height: 75vh !important;
+  }
+}
+
 .col-links.scrolling {
   overflow-y: scroll;
   overflow-x: hidden;
@@ -12473,6 +12486,16 @@ footer #boilerplate a {
 
 .col-links .item-rows .alert-success {
   margin-top: 0;
+}
+
+@media only screen and (max-width: 767px) {
+  .col-links .item-container {
+    text-align: right;
+  }
+
+  .col-links .item-permalink {
+    float: right;
+  }
 }
 
 .item-notification {
@@ -12589,6 +12612,8 @@ footer #boilerplate a {
     display: flex;
     -ms-flex-direction: row;
     flex-direction: row;
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
 
   .item-permalink a.perma {
@@ -12854,6 +12879,12 @@ footer #boilerplate a {
   left: 30px;
 }
 
+@media only screen and (max-width: 767px) {
+  .item-title-col {
+    left: 0;
+  }
+}
+
 .item-title-col .toggle-details {
   background-color: transparent;
   border: 0;
@@ -12867,7 +12898,7 @@ footer #boilerplate a {
 
 @media (max-width: 768px) {
   .item-title-col .toggle-details {
-    left: 0;
+    left: 30px;
   }
 }
 

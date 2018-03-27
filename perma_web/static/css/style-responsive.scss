@@ -3771,6 +3771,14 @@ footer {
 .col-folders {
   overflow-y: hidden;
   padding-bottom: 0;
+
+  @include respond-mobile {
+    margin-bottom: $double;
+    // override IE-10 compatible JS on mobile
+    // to improve experience for users w/ few folders
+    height: 30vh !important;
+  }
+
   > .panel-heading {
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
@@ -3849,6 +3857,13 @@ footer {
   position: relative;
   padding-bottom: $grid * 3;
 
+  @include respond-mobile {
+    // override IE-10 compatible JS on mobile
+    // to improve experience for users w/ few folders
+    height: 75vh !important;
+  }
+
+
   &.scrolling {
     overflow-y: scroll;
     overflow-x: hidden;
@@ -3901,6 +3916,16 @@ footer {
       margin-top: 0;
     }
   }
+
+  @include respond-mobile {
+    .item-container {
+      text-align: right;
+    }
+    .item-permalink {
+      float: right;
+    }
+  }
+
 }
 
 /////////////////////////////////////////
@@ -4002,6 +4027,8 @@ footer {
   @include respond-mobile {
     display: flex;
     flex-direction: row;
+    padding-top: $double;
+    padding-bottom: $double;
     a.perma {
       order: -1;
     }
@@ -4231,6 +4258,10 @@ footer {
 
 .item-title-col {
   left: 30px;
+  @include respond-mobile {
+    left: 0;
+  }
+
   .toggle-details {
     background-color: transparent;
     border: 0;
@@ -4242,7 +4273,7 @@ footer {
     margin-top: 7px;
     @extend .details-img-dimensions;
     @media (max-width: $width-tablet) {
-      left: 0;
+      left: 30px;
     }
 
     &::before {
