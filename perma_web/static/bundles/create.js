@@ -376,11 +376,14 @@ webpackJsonp([1],[
 	      if (links.length === requestCount) {
 	        requestData.offset += requestCount;
 	        linkTable.find('.item-container:last').waypoint(function (direction) {
-	          this.destroy(); // cancel waypoint
-	          linkTable.append('<div class="links-loading-more">Loading more ...</div>');
-	          getNextContents();
+	          if (direction == 'down') {
+	            this.destroy(); // cancel waypoint
+	            linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+	            getNextContents();
+	          }
 	        }, {
-	          offset: '100%' // trigger waypoint when element hits bottom of window
+	          offset: '100%', // trigger waypoint when element hits bottom of window,
+	          context: '.col-links'
 	        });
 	      }
 	    });
