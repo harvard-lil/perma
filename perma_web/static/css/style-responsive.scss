@@ -3772,13 +3772,6 @@ footer {
   overflow-y: hidden;
   padding-bottom: 0;
 
-  @include respond-mobile {
-    margin-bottom: $double;
-    // override IE-10 compatible JS on mobile
-    // to improve experience for users w/ few folders
-    height: 30vh !important;
-  }
-
   > .panel-heading {
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
@@ -3852,12 +3845,22 @@ footer {
   }
 }
 
+.col-folders, #folder-tree {
+  @media (max-width: $width-desktop) {
+    margin-bottom: $double;
+    // override IE-10 compatible JS on mobile
+    // to improve experience for users w/ few folders
+    height: 30vh !important;
+    padding-bottom: 5ex !important;
+  }
+}
+
 .col-links {
   border-left: none;
   position: relative;
   padding-bottom: $grid * 3;
 
-  @include respond-mobile {
+  @media (max-width: $width-desktop) {
     // override IE-10 compatible JS on mobile
     // to improve experience for users w/ few folders
     height: 75vh !important;
@@ -3917,7 +3920,7 @@ footer {
     }
   }
 
-  @include respond-mobile {
+  @media (max-width: $width-tablet) {
     .item-container {
       text-align: right;
     }

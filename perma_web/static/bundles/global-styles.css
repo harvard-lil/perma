@@ -12315,13 +12315,6 @@ footer #boilerplate a {
   padding-bottom: 0;
 }
 
-@media only screen and (max-width: 767px) {
-  .col-folders {
-    margin-bottom: 16px;
-    height: 30vh !important;
-  }
-}
-
 .col-folders > .panel-heading {
   border-top: 2px solid #2D76EE;
   padding-top: 8px;
@@ -12409,13 +12402,22 @@ footer #boilerplate a {
   padding-bottom: 4px;
 }
 
+@media (max-width: 990px) {
+  .col-folders,
+  #folder-tree {
+    margin-bottom: 16px;
+    height: 30vh !important;
+    padding-bottom: 5ex !important;
+  }
+}
+
 .col-links {
   border-left: none;
   position: relative;
   padding-bottom: 24px;
 }
 
-@media only screen and (max-width: 767px) {
+@media (max-width: 990px) {
   .col-links {
     height: 75vh !important;
   }
@@ -12488,7 +12490,7 @@ footer #boilerplate a {
   margin-top: 0;
 }
 
-@media only screen and (max-width: 767px) {
+@media (max-width: 768px) {
   .col-links .item-container {
     text-align: right;
   }
