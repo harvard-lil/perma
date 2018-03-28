@@ -1104,7 +1104,9 @@ def run_next_capture():
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
                 save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls)
-            print "%s capture succeeded." % link.guid
+                print "%s capture succeeded." % link.guid
+            else:
+                print "%s capture failed." % link.guid
 
         except:
             print "Exception while tearing down/saving capture job %s:" % capture_job.link_id
