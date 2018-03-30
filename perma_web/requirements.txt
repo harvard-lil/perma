@@ -111,7 +111,7 @@ schema==0.5.0             # via internetarchive
 selenium==2.47.3
 six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, mock, pip-tools, pynacl, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt, warcio
 smhasher==0.150.1
-sorl-thumbnail==12.4.1
+sorl-thumbnail==12.3
 surt==0.3.0               # via pywb
 tempdir==0.6
 tldextract==2.0.2         # via surt
