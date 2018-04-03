@@ -8,8 +8,10 @@ from perma.views.user_management import AddUserToOrganization, AddUserToRegistra
 from .views.common import DirectTemplateView
 from .views import user_management, common, service, link_management, error_management
 
-
-guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]{8,11})'
+# between 9/5/2013 and 11/13/2014,
+# we created GUIDS as short as 6 chars (#-####)
+# and as long as 11 chars (#-####-#### or ###########)
+guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]{6,11})'
 
 urlpatterns = [
     # Common Pages
