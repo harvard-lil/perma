@@ -215,22 +215,22 @@ def contact(request):
         affiliation_string = ''
         if request.user.is_authenticated():
             if request.user.registrar:
-                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
+                affiliation_string = u"{} (Registrar)".format(request.user.registrar.name)
             else:
-                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                affiliations = [u"{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
                 if affiliations:
-                    affiliation_string = ', '.join(affiliations)
+                    affiliation_string = u', '.join(affiliations)
         return affiliation_string
 
     def formatted_organization_list(registrar):
-        organization_string = ''
+        organization_string = u''
         if request.user.is_organization_user:
             orgs = [org.name for org in request.user.organizations.filter(registrar=registrar)]
             org_count = len(orgs)
             if org_count > 2:
-                organization_string = ", ".join(orgs[:-1]) + " and " + orgs[-1]
+                organization_string = u", ".join(orgs[:-1]) + u" and " + orgs[-1]
             elif org_count == 2:
-                organization_string = "{} and {}".format(orgs[0], orgs[1])
+                organization_string = u"{} and {}".format(orgs[0], orgs[1])
             elif org_count == 1:
                 organization_string = orgs[0]
             else:
