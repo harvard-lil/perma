@@ -1484,7 +1484,7 @@ button {
   font-family: $font-hed-alt;
   font-weight: 700;
   color: $color-blue;
-  &:first-child {
+  &:first-child, #main-skip-target ~ & {
     margin-top: 0;
   }
   .body-text ~ form &:first-child {

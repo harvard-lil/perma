@@ -9341,7 +9341,8 @@ button #addlink {
   color: #2D76EE;
 }
 
-.body-ah:first-child {
+.body-ah:first-child,
+#main-skip-target ~ .body-ah {
   margin-top: 0;
 }
 
