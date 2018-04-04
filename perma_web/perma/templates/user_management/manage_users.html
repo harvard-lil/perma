@@ -28,8 +28,7 @@
   </div><!-- add member -->
 
   <div class="row row-no-bleed admin-data">
-    <h3 class="sr-only">User List Summary</h3>
-
+    <h3 class="sr-only">Stats</h3>
     <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
       <div class="count-label">Users</div>
       <div class="count-number">
@@ -82,7 +81,7 @@
 
   <div class="row row-no-bleed">
     <div class="col admin-found col-no-gutter">
-      <h3 class="filters-title"><span class="sr-only">User List</h3>
+      <h3 class="sr-only">User List</h3>
       <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
