@@ -7674,11 +7674,13 @@ a.cc:hover,
 form .btn:hover,
 .navbar-toggle:hover,
 span.action:hover,
+a.action-heading:hover,
 .style-button-hover:focus,
 a.cc:focus,
 form .btn:focus,
 .navbar-toggle:focus,
-span.action:focus {
+span.action:focus,
+a.action-heading:focus {
   background-color: #0092FF;
 }
 
@@ -7686,7 +7688,8 @@ span.action:focus {
 a.cc:active,
 form .btn:active,
 .navbar-toggle:active,
-span.action:active {
+span.action:active,
+a.action-heading:active {
   background-color: #222;
 }
 
@@ -13015,7 +13018,8 @@ body.dragging * {
   }
 }
 
-span.action {
+span.action,
+a.action-heading {
   display: inline-block;
   float: right;
   font-size: 16px;
@@ -13027,15 +13031,25 @@ span.action {
   cursor: pointer;
 }
 
-span.action a {
+span.action a,
+a.action-heading a {
   color: white !important;
 }
 
 span.action .icon-plus-sign,
 span.action [class^="icon-"],
-span.action [class*=" icon-"] {
+span.action [class*=" icon-"],
+a.action-heading .icon-plus-sign,
+a.action-heading [class^="icon-"],
+a.action-heading [class*=" icon-"] {
   color: white;
   top: 1px;
+}
+
+.action-heading {
+  position: absolute;
+  top: 10px;
+  right: 0;
 }
 
 .org-settings {

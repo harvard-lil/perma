@@ -5,7 +5,9 @@
 
 {% block dashboardContent %}
 
-  <h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</a></a></span></h2>
+  <h2 class="body-ah">{{ pretty_group_name_plural|title }}</h2>
+
+  <a class="action-heading" data-toggle="collapse" href="#add-member" aria-expanded="false" aria-controls="#add-member"><i class="icon-plus-sign" aria-hidden="true"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</a>
 
   {% if messages %}
     {% for message in messages %}
@@ -17,7 +19,8 @@
     <form method="get" action="{% url add_user_url %}" class="form-inline" role="form">
       <fieldset>
         <div class="form-group fg-100">
-          <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+          <label for="add" class="sr-only">new {{ pretty_group_name|lower }} email</label>
+          <input id="add" type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
         </div>
         <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
       </fieldset>

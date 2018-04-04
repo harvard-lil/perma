@@ -4399,7 +4399,7 @@ body.dragging * {
   }
 }
 
-span.action {
+span.action, a.action-heading {
   display: inline-block;
   float: right;
   font-size: 16px;
@@ -4419,6 +4419,12 @@ span.action {
     color: white;
     top: 1px;
   }
+}
+
+.action-heading {
+  position: absolute;
+  top: 10px;
+  right: 0;
 }
 
 .org-settings {
