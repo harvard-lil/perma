@@ -87,19 +87,19 @@ if perma.settings.TRUSTED_PROXIES:
             proxy_ips = [x for x in [x.strip() for x in forwarded_for.split(',')] if x] + [remote_addr]
 
             # The request must be a health check coming from the load balancer --
-            if len(proxy_ips) == 1 and proxy_ips[0] in self.whitelists[0]:
+            if len(proxy_ips) == 1 and any(proxy_ips[0] in trusted_ip_range for trusted_ip_range in self.whitelists[0]):
                 environ['REMOTE_ADDR'] = proxy_ips[0]
                 return self.app(environ, start_response)
             # OR the list must include at least one IP per proxy in our whitelists,
             # plus one for the client IP --
             if len(proxy_ips) < len(self.whitelists) + 1:
-                return self.bad_request(environ, start_response)  #, 'Header %s has insufficient entries' % self.header)
+                return self.bad_request(environ, start_response)
 
             # Each of the final IPs in the list must match the relevant whitelist.
             # If a whitelist is empty, any IP is accepted for that proxy.
             for whitelist, proxy_ip in zip(self.whitelists, proxy_ips[-len(self.whitelists):]):
                 if whitelist and not any(proxy_ip in trusted_ip_range for trusted_ip_range in whitelist):
-                    return self.bad_request(environ, start_response)  #, 'Header %s has invalid proxy IP. Value: %s' % (self.header, forwarded_for_header))
+                    return self.bad_request(environ, start_response)
 
             # Set REMOTE_ADDR to client IP reported by proxies.
             environ['REMOTE_ADDR'] = proxy_ips[-len(self.whitelists)-1]
