@@ -7,7 +7,7 @@
   <h2 class="body-ah">Organizations</h2>
   {% if request.user.is_staff or request.user.is_registrar_user %}
 
-  <a class="action-heading" data-toggle="collapse" href="#add-member" aria-expanded="false" aria-controls="#add-member"><i class="icon-plus-sign" aria-hidden="true"></i> add<span class="_verbose"> organization</a>
+  <a class="action-heading" data-toggle="collapse" href="#add-member" aria-expanded="false" aria-controls="#add-member"><i class="icon-plus-sign" aria-hidden="true"></i> add<span class="_verbose"> organization</span></a>
 
   <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
     <form method="post">
@@ -175,9 +175,9 @@
           <div>
             <div class="item-status">
               {% if org.link_count < 1 %}
-                <a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete <span class="sr-only">{{ org.name }}</a>
+                <a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete <span class="sr-only">{{ org.name }}</span></a>
               {% endif %}
-              <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit <span class="sr-only">{{ org.name }}</a>
+              <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit <span class="sr-only">{{ org.name }}</span></a>
               {% if request.user.is_staff %}
                 <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> in admin console</a>
               {% endif %}
@@ -187,6 +187,7 @@
         </div>
       </li>
     {% endfor %}
+  </ol>
   {% else %}
     <div class="item-notification">No organizations found.</div>
   {% endif %}
