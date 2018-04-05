@@ -228,7 +228,7 @@
             <div class="item-affil">
               <span class="sr-only">Member of:</span>
               {% for organization in listed_user|visible_organizations:request.user %}
-                 <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
+                 <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}#org-{{ organization.id }}">{{organization.name.strip}}</a>
                 {% include "user_management/includes/comma.html" %}
               {% endfor %}
             </div>
@@ -239,7 +239,7 @@
           {% endif %}
 
           {% if group_name == 'registrar_user' and request.user.is_staff %}
-            <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
+            <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}#registrar-{{ listed_user.registrar.id }}">{{ listed_user.registrar.name }}</a></div>
           {% endif %}
 
           {% if group_name == 'organization_user' %}

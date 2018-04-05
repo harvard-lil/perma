@@ -113,7 +113,7 @@
     {% for registrar in registrars %}
       <li class="item-container {% if registrar.status != "approved" %}muted{% endif %}">
         <div class="col col-sm-8 col-no-gutter">
-          <h4 class="item-title">
+          <h4 class="item-title" id="registrar-{{ registrar.id }}" tabindex="-1">
             {{ registrar.name }}
             {% if registrar.status == "pending" %}
               <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>

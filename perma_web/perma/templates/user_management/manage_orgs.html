@@ -133,14 +133,15 @@
     {% for org in orgs %}
       <li class="item-container">
         <div class="col col-sm-8 col-no-gutter">
-          <h4 class="item-title">
+          <h4 class="item-title" id="org-{{ org.id }}" tabindex="-1">
             {% if org.default_to_private %}<span class="ui-private">[private organization]</span> {% endif %}
             {{ org.name }}
             </a>
           </h4>
           {% if request.user.is_staff %}
             <div class="item-affil">
-              <a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}"><span class="sr-only">Associated with</span> {{ org.registrar }}</a>
+              <span class="sr-only">Associated with: </span>
+              <a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}#registrar-{{ org.registrar.id }}">{{ org.registrar }}</a>
             </div>
           {% endif %}
 
