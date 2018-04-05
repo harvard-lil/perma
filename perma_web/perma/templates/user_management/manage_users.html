@@ -313,6 +313,6 @@
     <div class="item-notification">No {{ pretty_group_name_plural|lower }} found.</div>
   {% endif %}
 
-  {% include "user_management/includes/paginator.html" with page=users %}
+  {% include "user_management/includes/paginator.html" with page=users title='User List'%}
 
 {% endblock %}

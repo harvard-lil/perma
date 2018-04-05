@@ -1,20 +1,20 @@
 {% load current_query_string %}
 {% if page.paginator.num_pages > 1 %}
-  <div class="pagination">
+  <nav class="pagination" aria-label="{% if title %}{{ title }}{% endif %} pagination">
     <ul class="pagination">
       {% if page.has_previous %}
-        <li><a href="?{% current_query_string page=page.previous_page_number %}">&lt;</a></li>
+        <li><a href="?{% current_query_string page=page.previous_page_number %}"><span class="sr-only">Previous Page</span><span aria-hidden="true">&lt;</span></a></li>
       {% endif %}
       {% for i in page.paginator.page_range %}
         {% ifequal i page.number %}
-          <li class="active"><a href="">{{ i }}</a></li>
+          <li class="active" aria-current="page"><a href="#"><span class="sr-only">Page</span> {{ i }}</a></li>
         {% else %}
-          <li><a href="?{% current_query_string page=i %}">{{ i }}</a></li>
+          <li><a href="?{% current_query_string page=i %}"><span class="sr-only">Page</span> {{ i }}</a></li>
         {% endifequal %}
       {% endfor %}
       {% if page.has_next  %}
-        <li><a href="?{% current_query_string page=page.next_page_number %}">&gt;</a></li>
+        <li><a href="?{% current_query_string page=page.next_page_number %}"><span class="sr-only">Next Page</span><span aria-hidden="true"> &gt;</span></a></li>
       {% endif %}
     </ul>
-  </div>
+  </nav>
 {% endif %}
