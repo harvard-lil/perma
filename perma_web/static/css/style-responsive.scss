@@ -198,6 +198,29 @@ input:focus,
   outline: none !important;
 }
 
+/*
+  In certain peculiar cases, screenreader-only text is read
+  out of order:
+  <!-- This is read "two one three" -->
+  <a href="/">One <span class="sr-only">two</span> three.</a>
+
+  IFF inside a block-level element, rather than an inline element
+  (<a> can be either, depending on context...)
+  you can address by wrapping the sr-only element in a div with
+  .sr-wrapper.
+
+  <!-- This is read "one two three" -->
+  <a href="/">One <div class="sr-wrapper"><span class="sr-only">two </span></div>three</a>
+
+  <!-- This is invalid html and won't be parsed correctly by the browser -->
+  <p><a href="/">One <div class="sr-wrapper"><span class="sr-only">two </span></div>three</a></
+
+*/
+.sr-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
 ul { list-style-type: none; }
 
 /* adapted from https://github.com/Automattic/_s/blob/master/sass/modules/_accessibility.scss */
@@ -299,7 +322,7 @@ td {
   margin: 0;
 }
 
-// specificty for bootstrap
+// specificity for bootstrap
 .table thead > tr > th,
 .table tbody > tr > th,
 .table tfoot > tr > th,
@@ -1461,7 +1484,7 @@ button {
   font-family: $font-hed-alt;
   font-weight: 700;
   color: $color-blue;
-  &:first-child {
+  &:first-child, #main-skip-target ~ & {
     margin-top: 0;
   }
   .body-text ~ form &:first-child {
@@ -3970,6 +3993,26 @@ footer {
   }
 }
 
+ol.result-list {
+  list-style-type: none;
+  padding: 0;
+
+  /* Add zero-width space to work around Voiceover bug */
+  /* https://unfetteredthoughts.net/2017/09/26/voiceover-and-list-style-type-none/ */
+  & li:before {
+    content: "\200B";
+  }
+
+  .item-container {
+    margin-top: 0;
+  }
+
+  .admin-actions {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
 .item-container {
   padding: $double $double;
   border: 1px solid transparent;
@@ -4051,6 +4094,7 @@ footer {
 .item-title {
   font-size: 16px;
   font-weight: 700;
+  color: $color-black;
   a {
     color: $color-black;
     @extend .style-standard-hover;
@@ -4355,7 +4399,7 @@ body.dragging * {
   }
 }
 
-span.action {
+span.action, a.action-heading {
   display: inline-block;
   float: right;
   font-size: 16px;
@@ -4375,6 +4419,12 @@ span.action {
     color: white;
     top: 1px;
   }
+}
+
+.action-heading {
+  position: absolute;
+  top: 10px;
+  right: 0;
 }
 
 .org-settings {
@@ -4489,6 +4539,8 @@ span.action {
     font-size: 16px;
   }
   .filters-title {
+    display: inline-block;
+    color: $color-orange;
     font-size: 14px;
     font-weight: 700;
     @include respond-desktop {

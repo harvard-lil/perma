@@ -254,6 +254,7 @@ def manage_registrar(request):
         # 'users_count': users_count,
         'this_page': 'users_registrars',
         'search_query': search_query,
+        'status': status,
         'sort': sort,
         'form': form,
     })

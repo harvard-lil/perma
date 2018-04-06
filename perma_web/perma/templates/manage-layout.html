@@ -2,6 +2,8 @@
 
 {% block bodyFlags %}_admin{% endblock %}
 
+{% block defaultSkipTarget %}{% comment %}empty on purpose, to override the default and provide a template-specific target below{% endcomment %}{% endblock defaultSkipTarget %}
+
 {% block mainContent %}
   <div id="dashboard-container" class="container cont-fixed">
     <div class="row">
@@ -47,6 +49,7 @@
       <!-- Dashboard tab content -->
       <div class="tab-content col-sm-9">
         <div class="tab-pane active">
+          <p id="main-skip-target" tabindex="-1" class="sr-only">Main Content</p>
           {% block dashboardContent %}{% endblock dashboardContent %}
         </div><!--/.tab-pane-->
       </div><!--/.tab-content-->
