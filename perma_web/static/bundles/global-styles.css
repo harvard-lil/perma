@@ -12578,7 +12578,7 @@ footer #boilerplate a {
 ol.result-list {
   list-style-type: none;
   padding: 0;
-  /* Add zero-width space  to work around Voiceover bug */
+  /* Add zero-width space to work around Voiceover bug */
   /* https://unfetteredthoughts.net/2017/09/26/voiceover-and-list-style-type-none/ */
 }
 
