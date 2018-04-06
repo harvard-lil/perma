@@ -232,7 +232,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # registrar name appears by each org, once in the filter dropdown, once in the "add an org" markup
         self.assertEqual(response.count('Test Library'), 3 + 2)
         self.assertEqual(response.count('Test Firm'), 2 + 2)
-        # 'Another Library' needs special handling because of the fixture orgs is
+        # 'Another Library' needs special handling because the fixture's org is
         # named 'Another Library's journal'. The "string" search finds the instance
         # by the org and the instance in the filter dropdown, but not the <option> in the "add an org" markup
         self.assertEqual(len(soup.find_all(string=re.compile(r"Another Library(?!')"))), 1 + 1)
