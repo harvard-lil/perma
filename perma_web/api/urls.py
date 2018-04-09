@@ -81,7 +81,7 @@ urlpatterns = [
         # /user
         url(r'^user/?$', views.LinkUserView.as_view(), name='user'),
 
-        # /
+        # / ('/v1/' only, not '/v1')
         url(r'^$', root_view)
     ])),
 
