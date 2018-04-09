@@ -1508,7 +1508,12 @@ class UncaughtError(models.Model):
         }
 
         if self.stack:
-            formatted['stack'] = json.loads(self.stack)[0]
+            try:
+                formatted['stack'] = json.loads(self.stack)[0]
+            except IndexError:
+                logger.warn("No stacktrace for js error {}".format(self.id))
+            except ValueError:
+                logger.warn("Stacktrace for js error {} is invalid json".format(self.id))
         if self.user:
             formatted['user'] = self.user.id
 
