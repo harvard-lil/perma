@@ -48,10 +48,20 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            user=self.org_user,
                            data={'url': self.server_url})
 
-    def test_should_reject_malformed_url(self):
+    def test_should_reject_malformed_url1(self):
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            data={'url': 'httpexamplecom'})
+
+    def test_should_reject_malformed_url2(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': '[http://example.com'})
+
+    def test_should_reject_malformed_url3(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': ']http://example.com'})
 
     def test_should_reject_bad_unicode_url(self):
         self.rejected_post(self.list_url,
