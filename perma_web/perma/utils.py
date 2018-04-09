@@ -325,6 +325,8 @@ def get_lat_long(address):
 
 
 def parse_user_agent(user_agent_str):
+    # if user_agent_str is unparseable, will return:
+    # {'brand': None, 'model': None, 'family': 'Other'}
     return user_agent_parser.ParseUserAgent(user_agent_str)
 
 
@@ -335,7 +337,8 @@ def redirect_to_download(capture_mime_type, user_agent_str):
     # if mobile apple device, and the request is a pdf
     parsed_agent = parse_user_agent(user_agent_str)
 
-    return "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
+    return parsed_agent["family"] and capture_mime_type and \
+           "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
 
 
 ### playback
