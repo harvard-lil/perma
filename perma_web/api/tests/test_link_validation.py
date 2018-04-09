@@ -86,6 +86,12 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            user=self.org_user,
                            data={'url': self.server_url + '/test.jpg'})
 
+    def test_should_reject_invalid_folder_id(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': 'http://example.com',
+                                 'folder': 'not-an-integer'})
+
     #########
     # Files #
     #########
