@@ -317,7 +317,7 @@ class AuthenticatedLinkListView(BaseView):
         if request.data.get('folder'):
             try:
                 return Folder.objects.accessible_to(request.user).get(pk=request.data['folder'])
-            except Folder.DoesNotExist:
+            except (Folder.DoesNotExist, ValueError):
                 raise ValidationError({'folder': ["Folder not found."]})
         return None
 
