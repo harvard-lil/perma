@@ -9,6 +9,8 @@
     <meta charset="utf-8">
     <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% load version %}{% perma_version as pv %}
+    <meta name="application-name" content="Perma.cc"{% if pv %} data-version="{% perma_version %}"{% endif %}>
 
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@permacc">
