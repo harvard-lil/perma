@@ -2935,6 +2935,12 @@
       "resolved": "https://registry.npmjs.org/pako/-/pako-0.2.9.tgz",
       "dev": true
     },
+    "papaparse": {
+      "version": "4.3.7",
+      "from": "papaparse@>=4.3.7 <5.0.0",
+      "resolved": "https://registry.npmjs.org/papaparse/-/papaparse-4.3.7.tgz",
+      "dev": true
+    },
     "parse-glob": {
       "version": "3.0.4",
       "from": "parse-glob@>=3.0.4 <4.0.0",
