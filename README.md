@@ -1,6 +1,6 @@
 ![](https://raw.githubusercontent.com/harvard-lil/perma/develop/perma_web/static/img/watermark.png)
 
-Perma - indelible links
+Perma - Indelible Links
 
 =====
 
