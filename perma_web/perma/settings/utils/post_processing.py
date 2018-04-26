@@ -2,6 +2,7 @@
 # here we do stuff that should be checked or fixed after ALL settings from any source are loaded
 # this is called by __init__.py
 
+import os
 from celery.schedules import crontab
 
 def post_process_settings(settings):
@@ -49,3 +50,10 @@ def post_process_settings(settings):
     if settings['USE_OPBEAT']:
         settings['INSTALLED_APPS'] += ('opbeat.contrib.django',)
         settings['MIDDLEWARE_CLASSES'] = ('opbeat.contrib.django.middleware.OpbeatAPMMiddleware',) + settings['MIDDLEWARE_CLASSES']  # put middleware at start
+
+    # set up application version for use in templates
+    try:
+        with open(os.path.join(settings['STATIC_ROOT'], 'version.txt'), 'r') as f:
+            settings['PERMA_VERSION'] = f.read().strip()
+    except IOError:
+        settings['PERMA_VERSION'] = False
