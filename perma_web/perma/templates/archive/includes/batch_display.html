@@ -9,8 +9,8 @@
       <div class="modal-body">
           <p>The Perma Links will be added to <span id="batch-saved-path"></span></p>
           <div id="batch-details"></div>
-          <a href="#" class="btn cancel" data-dismiss="modal">Exit</a>
-          <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</a>
+          <button class="btn cancel" data-dismiss="modal">Exit</button>
+          <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</button>
       </div>
     </div>
   </div>
@@ -27,7 +27,7 @@
             {{#if link.isProcessing}}
               {{> progressBar progress=link.progress }}
             {{else if link.isComplete}}
-              <a class="perma no-drag" href="http://{{link.local_url}}" target="_blank">{{link.local_url}}</a>
+              <a class="perma no-drag" href="//{{link.local_url}}" target="_blank">{{link.local_url}}</a>
             {{else if link.isError }}
               <span class="link-error">{{link.error_message}}</span>
             {{/if}}

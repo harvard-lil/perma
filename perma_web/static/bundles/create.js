@@ -1777,6 +1777,7 @@ webpackJsonp([1],[
 	
 	exports.request = request;
 	exports.getErrorMessage = getErrorMessage;
+	exports.stripDataStructure = stripDataStructure;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1807,20 +1808,11 @@ webpackJsonp([1],[
 	
 	// parse error results from API into string for display to user
 	function getErrorMessage(jqXHR) {
-	  var message;
+	  var message = void 0;
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
 	    try {
-	      var parsedResponse = JSON.parse(jqXHR.responseText);
-	      while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
-	        for (var key in parsedResponse) {
-	          if (parsedResponse.hasOwnProperty(key)) {
-	            parsedResponse = parsedResponse[key];
-	            break;
-	          }
-	        }
-	      }
-	      message = parsedResponse;
+	      message = stripDataStructure(JSON.parse(jqXHR.responseText));
 	    } catch (SyntaxError) {
 	      ErrorHandler.airbrake.notify(SyntaxError);
 	    }
@@ -1831,6 +1823,19 @@ webpackJsonp([1],[
 	  }
 	
 	  return message;
+	}
+	
+	function stripDataStructure(object) {
+	  var parsedResponse = object;
+	  while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
+	    for (var key in parsedResponse) {
+	      if (parsedResponse.hasOwnProperty(key)) {
+	        parsedResponse = parsedResponse[key];
+	        break;
+	      }
+	    }
+	  }
+	  return parsedResponse;
 	}
 	
 	// display error results from API
@@ -13437,22 +13442,20 @@ webpackJsonp([1],[
 	    var all_finished = true;
 	    links_in_batch.forEach(function (link) {
 	        link.progress = link.step_count / 5 * 100;
-	        link.isProcessing = link.status === "pending" || link.status === "in_progress";
-	        if (link.isProcessing) {
-	            all_finished = false;
+	        link.local_url = link.guid ? window.host + '/' + link.guid : null;
+	        switch (link.status) {
+	            case "pending":
+	            case "in_progress":
+	                link.isProcessing = true;
+	                all_finished = false;
+	                break;
+	            case "completed":
+	                link.isComplete = true;
+	                break;
+	            default:
+	                link.isError = true;
+	                link.error_message = APIModule.stripDataStructure(link.message);
 	        }
-	        link.isComplete = link.status === "completed";
-	        link.isError = !link.isProcessing && !link.isComplete;
-	        if (link.isError) {
-	            // Right now, the CaptureJob doesn't save the Serializer
-	            // error so we can only save the status, and we always
-	            // save "invalid" on an error.  Thus, this will always be
-	            // true.
-	            if (link.status === "invalid") {
-	                link.error_message = "error";
-	            }
-	        }
-	        link.local_url = window.host + "/" + link.guid;
 	        var template = HandlebarsHelpers.renderTemplate('#batch-link-row', { "link": link });
 	        $batch_details.append(jQuery.parseHTML(template));
 	    });
@@ -13463,10 +13466,12 @@ webpackJsonp([1],[
 	            };
 	            if (link.status === "completed") {
 	                to_export["status"] = "success";
+	                to_export["error_message"] = "";
 	                to_export["title"] = link.title;
-	                to_export["perma_link"] = "http://" + window.host + "/" + link.guid;
+	                to_export["perma_link"] = window.location.protocol + '//' + link.local_url;
 	            } else {
 	                to_export["status"] = "error";
+	                to_export["error_message"] = link.error_message;
 	                to_export["title"] = "";
 	                to_export["perma_link"] = "";
 	            }
@@ -13489,6 +13494,7 @@ webpackJsonp([1],[
 	                    "title": capture_job.title,
 	                    "guid": capture_job.guid,
 	                    "status": capture_job.status,
+	                    "message": JSON.parse(capture_job.message),
 	                    "step_count": capture_job.step_count
 	                };
 	            });

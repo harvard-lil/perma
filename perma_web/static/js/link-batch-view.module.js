@@ -10,45 +10,45 @@ var $batch_details, $saved_path, $export_csv;
 
 var render_batch = function(links_in_batch, folder_id) {
     $batch_details.empty();
-    var all_finished = true;
+    let all_finished = true;
     links_in_batch.forEach(function(link) {
         link.progress = (link.step_count / 5) * 100;
-        link.isProcessing = ((link.status === "pending") || (link.status === "in_progress"));
-        if (link.isProcessing) {
-            all_finished = false;
+        link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
+        switch(link.status){
+            case "pending":
+            case "in_progress":
+                link.isProcessing = true;
+                all_finished = false;
+                break;
+            case "completed":
+                link.isComplete = true;
+                break;
+            default:
+                link.isError = true;
+                link.error_message = APIModule.stripDataStructure(link.message);
         }
-        link.isComplete = (link.status === "completed");
-        link.isError = (!link.isProcessing && !link.isComplete);
-        if (link.isError) {
-            // Right now, the CaptureJob doesn't save the Serializer
-            // error so we can only save the status, and we always
-            // save "invalid" on an error.  Thus, this will always be
-            // true.
-            if (link.status === "invalid") {
-                link.error_message = "error";
-            }
-        }
-        link.local_url = window.host + "/" + link.guid;
-        var template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
+        let template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
         $batch_details.append(jQuery.parseHTML(template));
     });
     if (all_finished) {
-        var export_data = links_in_batch.map(function(link) {
-            var to_export = {
+        let export_data = links_in_batch.map(function(link) {
+            let to_export = {
                 "url": link.url
             };
             if (link.status === "completed") {
                 to_export["status"] = "success"
+                to_export["error_message"] = ""
                 to_export["title"] = link.title;
-                to_export["perma_link"] = "http://" + window.host + "/" + link.guid;
+                to_export["perma_link"] = `${window.location.protocol}//${link.local_url}`;
             } else {
                 to_export["status"] = "error"
+                to_export["error_message"] = link.error_message
                 to_export["title"] = ""
                 to_export["perma_link"] = ""
             }
             return to_export;
         });
-        var csv = Papa.unparse(export_data);
+        let csv = Papa.unparse(export_data);
         $export_csv.attr("href", "data:text/csv;charset=utf-8," + encodeURI(csv));
         $export_csv.attr("download", "perma.csv");
         $export_csv.show();
@@ -66,6 +66,7 @@ var get_batch_info = function(batch_id) {
                         "title": capture_job.title,
                         "guid": capture_job.guid,
                         "status": capture_job.status,
+                        "message": JSON.parse(capture_job.message),
                         "step_count": capture_job.step_count
                     };
                 });
