@@ -56,15 +56,14 @@ urlpatterns = [
         url(r'^public/archives/%s/download/?$' % guid_pattern, views.PublicLinkDownloadView.as_view(), name='public_archives_download'),
         # /archives
         url(legacy_user_prefix + r'archives/?$', views.AuthenticatedLinkListView.as_view(), name='archives'),
-        # /archives/:guid
-        url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
-        # /archives/:guid/download
-        url(legacy_user_prefix + r'archives/%s/download/?$' % guid_pattern, views.AuthenticatedLinkDownloadView.as_view(), name='archives_download'),
-
         # /archives/batches
         url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view()),
         # /batches/archives/:id
         url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/?$', views.LinkBatchesDetailView.as_view()),
+        # /archives/:guid
+        url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
+        # /archives/:guid/download
+        url(legacy_user_prefix + r'archives/%s/download/?$' % guid_pattern, views.AuthenticatedLinkDownloadView.as_view(), name='archives_download'),
 
         # /capture_jobs
         url(legacy_user_prefix + r'capture_jobs/?$', views.CaptureJobListView.as_view(), name='capture_jobs'),
