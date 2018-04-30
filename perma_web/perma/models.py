@@ -1271,7 +1271,7 @@ class CaptureJob(models.Model):
                               default='invalid',
                               choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed'),('invalid', 'invalid')),
                               db_index=True)
-    message = models.TextField(null=True, blank=True)
+    message = models.TextField(null=True, blank=True) #if we move to postgres, can be a json field
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)

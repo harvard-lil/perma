@@ -1,7 +1,8 @@
 import unicodedata
 import imghdr
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
 from functools import wraps
+import json
 
 from django.http import Http404
 from django.urls.exceptions import NoReverseMatch
@@ -32,11 +33,18 @@ class TastypiePagination(LimitOffsetPagination):
         ]))
 
 
-def raise_validation_error(message):
+def raise_general_validation_error(message):
     raise serializers.ValidationError({
         api_settings.NON_FIELD_ERRORS_KEY: [message]
     })
 
+def raise_invalid_capture_job(capture_job, err):
+    error_dict = err if isinstance(err, Mapping) else {
+        api_settings.NON_FIELD_ERRORS_KEY: [err]
+    }
+    capture_job.message = json.dumps(error_dict)
+    capture_job.save(update_fields=['message'])
+    raise serializers.ValidationError(error_dict)
 
 def log_api_call(func):
     """
@@ -152,7 +160,7 @@ def reverse_api_view(viewname, *args, **kwargs):
     except NoReverseMatch:
         return reverse(viewname, *args, **kwargs)
 
-def safe_get(model, pk):
+def get_or_none(model, pk):
     """Returns an instance of a model by its ID, or None if it does not exist"""
     try:
         return model.objects.get(pk=pk)
