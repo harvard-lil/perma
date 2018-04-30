@@ -340,6 +340,15 @@ class AuthenticatedLinkListView(BaseView):
     def post(self, request, format=None):
         """ Create new link. """
         data = request.data
+        capture_job = CaptureJob(
+            human=request.data.get('human', False),
+            submitted_url=request.data.get('url', '')
+        )
+        if settings.ENABLE_BATCH_LINKS:
+            link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
+            capture_job.link_batch = link_batch
+        capture_job.save()
+
 
         # Set target folder, in order of preference:
         # - 'folder' key in data
@@ -400,24 +409,17 @@ class AuthenticatedLinkListView(BaseView):
                     content_type='image/png',
                 ).save()
 
-                # create CaptureJob
-                if settings.ENABLE_BATCH_LINKS:
-                    link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
-                    CaptureJob(link=link, human=request.data.get('human', False),
-                               submitted_url=link.submitted_url, link_batch=link_batch).save()
-                else:
-                    CaptureJob(link=link, human=request.data.get('human', False)).save()
 
                 # kick off capture tasks -- no need for guid since it'll work through the queue
+                capture_job.status = 'pending'
+                capture_job.link = link
+                capture_job.save(update_fields=['status', 'link'])
                 run_task(run_next_capture.s())
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if settings.ENABLE_BATCH_LINKS:
-            link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
-            CaptureJob(human=request.data.get('human', False), status='invalid',
-                       submitted_url=request.data.get('url', ''),
-                       link_batch=link_batch, link=None).save()
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        raise ValidationError(serializer.errors)
+
 
 
 # /archives/:guid

@@ -110,7 +110,7 @@ class CaptureJobSerializer(BaseSerializer):
 
     class Meta:
         model = CaptureJob
-        fields = ('guid', 'status', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title', 'submitted_url')
+        fields = ('guid', 'status', 'message', 'submitted_url', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title')
 
     def get_title(self, capture_job):
         if capture_job.link is None:

@@ -1268,9 +1268,10 @@ class CaptureJob(models.Model):
     """
     link = models.OneToOneField(Link, related_name='capture_job', null=True, blank=True)
     status = models.CharField(max_length=15,
-                              default='pending',
+                              default='invalid',
                               choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed'),('invalid', 'invalid')),
                               db_index=True)
+    message = models.TextField(null=True, blank=True)
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
