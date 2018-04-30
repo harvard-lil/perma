@@ -1396,6 +1396,9 @@ class LinkBatch(models.Model):
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
     target_folder = models.ForeignKey(Folder, blank=False, null=False)
 
+    class Meta:
+        verbose_name_plural = "link batches"
+
     def accessible_to(self, user):
         return user.is_staff or self.created_by == user
 

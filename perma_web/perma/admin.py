@@ -10,7 +10,7 @@ from django.db.models.sql.where import WhereNode
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
-from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture
+from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
 from .admin_utils import new_class, InlineEditLinkMixin
 
 ### inlines ###
@@ -156,7 +156,7 @@ class LinkAdmin(SimpleHistoryAdmin):
                   can_delete=False),
         new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
                    fields=['status', 'message', 'step_count', 'step_description', 'human'],
-                   readonly_fields=['step_count', 'step_description', 'human'],
+                   readonly_fields=['message', 'step_count', 'step_description', 'human'],
                    can_delete=False)
     ]
     raw_id_fields = ['created_by','replacement_link']
@@ -195,6 +195,17 @@ class CaptureJobAdmin(admin.ModelAdmin):
         return None
 
 
+class LinkBatchAdmin(admin.ModelAdmin):
+    list_display = ['id', 'created_by', 'started_on', 'target_folder']
+
+    inlines = [
+      new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
+               fields=['status', 'message', 'step_count', 'step_description', 'human'],
+               readonly_fields=['message', 'step_count', 'step_description', 'human'],
+               can_delete=False)
+    ]
+
+
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
 admin.TabularInline.extra = 0
 admin.StackedInline.extra = 0
@@ -205,6 +216,7 @@ admin.site.unregister(Group)
 
 # add our models
 admin.site.register(Link, LinkAdmin)
+admin.site.register(LinkBatch, LinkBatchAdmin)
 admin.site.register(CaptureJob, CaptureJobAdmin)
 admin.site.register(LinkUser, LinkUserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
