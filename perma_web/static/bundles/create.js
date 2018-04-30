@@ -13454,7 +13454,7 @@ webpackJsonp([1],[
 	                break;
 	            default:
 	                link.isError = true;
-	                link.error_message = APIModule.stripDataStructure(link.message);
+	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
 	        }
 	        var template = HandlebarsHelpers.renderTemplate('#batch-link-row', { "link": link });
 	        $batch_details.append(jQuery.parseHTML(template));
@@ -13462,7 +13462,7 @@ webpackJsonp([1],[
 	    if (all_finished) {
 	        var export_data = links_in_batch.map(function (link) {
 	            var to_export = {
-	                "url": link.url
+	                "url": link.submitted_url
 	            };
 	            if (link.status === "completed") {
 	                to_export["status"] = "success";
@@ -13486,20 +13486,10 @@ webpackJsonp([1],[
 	
 	var get_batch_info = function get_batch_info(batch_id) {
 	    return APIModule.request('GET', '/archives/batches/' + parseInt(batch_id)).then(function (batch_data) {
-	        var cleaned_batch_data = [];
 	        if (Array.isArray(batch_data.capture_jobs)) {
-	            cleaned_batch_data = batch_data.capture_jobs.map(function (capture_job) {
-	                return {
-	                    "url": capture_job.submitted_url,
-	                    "title": capture_job.title,
-	                    "guid": capture_job.guid,
-	                    "status": capture_job.status,
-	                    "message": JSON.parse(capture_job.message),
-	                    "step_count": capture_job.step_count
-	                };
-	            });
+	            return batch_data.capture_jobs;
 	        }
-	        return cleaned_batch_data;
+	        return [];
 	    });
 	};
 	
