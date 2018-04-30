@@ -1,7 +1,6 @@
 from datetime import date
 import os
 from fabric.api import *
-from django.conf import settings
 
 ### HELPERS ###
 
@@ -32,22 +31,7 @@ def deploy(skip_backup=False):
     run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     restart_server()
     maintenance_mode_off()
-    notify_opbeat()
 
-@task
-def notify_opbeat():
-    """
-        Tell opbeat that deploy has completed.
-        Via https://opbeat.com/docs/articles/get-started-with-release-tracking/
-    """
-    if settings.USE_OPBEAT:
-        run_as_web_user("""
-            curl https://opbeat.com/api/v1/organizations/{ORGANIZATION_ID}/apps/{APP_ID}/releases/
-                -H "Authorization: Bearer {SECRET_TOKEN}"
-                -d rev=`git log -n 1 --pretty=format:%H`
-                -d branch=`git rev-parse --abbrev-ref HEAD`
-                -d status=completed
-            """.format(**settings.OPBEAT).replace("\n", ""))
 
 @task
 def deploy_code(restart=True):
@@ -162,8 +146,8 @@ def backup_database():
 @task
 def local_backup_database(backup_dir):
     # this is going to be triggered by calling fab on the remote server, so that LOCAL_DB_SETTINGS has the remote settings
-    import tempfile
-    from django.conf import settings
+    import tempfile  # noqa
+    from django.conf import settings  # noqa
 
     LOCAL_DB_SETTINGS = settings.DATABASES['default']
     out_file_path = os.path.join(backup_dir, "%s.sql.gz" % date.today().isoformat())

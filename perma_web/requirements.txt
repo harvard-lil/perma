@@ -76,7 +76,6 @@ mock==2.0.0
 mysql-python==1.2.5
 netaddr==0.7.12
 newrelic==2.66.0.49
-opbeat==3.3.3
 paramiko==1.18.2          # via fabric
 pathlib==1.0.1            # via pyscss
 pathtools==0.1.2          # via watchdog

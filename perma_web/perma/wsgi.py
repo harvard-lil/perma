@@ -40,20 +40,6 @@ class PywbRedirectMiddleware(object):
 
         return self.pywb(environ, start_response)
 
-# Opbeat setup
-if perma.settings.USE_OPBEAT:
-    from opbeat import Client
-    from warc_server.opbeat_wrapper import PywbOpbeatMiddleware
-
-    warc_application = PywbOpbeatMiddleware(
-        warc_application,
-        Client(
-            organization_id=perma.settings.OPBEAT['ORGANIZATION_ID'],
-            app_id=perma.settings.OPBEAT['APP_ID'],
-            secret_token=perma.settings.OPBEAT['SECRET_TOKEN'],
-        )
-    )
-
 
 # Main application setup
 application = DispatcherMiddleware(

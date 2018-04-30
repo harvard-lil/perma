@@ -220,31 +220,6 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
 def ratelimit_ip_key(group, request):
     return get_client_ip(request)
 
-### monitoring ###
-
-import opbeat
-
-class opbeat_trace(opbeat.trace):
-    """ Subclass of opbeat.trace that does nothing if settings.USE_OPBEAT is false. """
-    def __call__(self, func):
-        if settings.USE_OPBEAT:
-            return super(opbeat_trace, self).__call__(func)
-        return func
-
-    def __enter__(self):
-        if settings.USE_OPBEAT:
-            try:
-                return super(opbeat_trace, self).__enter__()
-            except Exception as e:
-                logger.exception("Error entering opbeat_trace context manager: %s" % e)
-
-    def __exit__(self, *args, **kwargs):
-        if settings.USE_OPBEAT:
-            try:
-                return super(opbeat_trace, self).__exit__(*args, **kwargs)
-            except Exception as e:
-                logger.exception("Error exiting opbeat_trace context manager: %s" % e)
-
 ### security ###
 
 def ip_in_allowed_ip_range(ip):
