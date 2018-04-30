@@ -18,20 +18,28 @@
 
 {% verbatim %}
 <script id="batch-link-row" type="text/x-handlebars-template">
-    <div class="row">
-        <div class="link-desc col col-sm-6 col-md-60">
-            <div class="item-title">{{ link.title }}</div>
-            <div class="item-subtitle">{{ link.submitted_url }}</div>
-        </div>
-        <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
-            {{#if link.isProcessing}}
-              {{> progressBar progress=link.progress }}
-            {{else if link.isComplete}}
-              <a class="perma no-drag" href="//{{link.local_url}}" target="_blank">{{link.local_url}}</a>
-            {{else if link.isError }}
-              <span class="link-error">{{link.error_message}}</span>
-            {{/if}}
-        </div>
-    </div>
+  <div class="item-container {{#if link.isError}} _isFailed{{/if}}">
+  <div class="row">
+    {{#if link.isError }}
+      <div class="link-desc col col-sm-6 col-md-60">
+        <div class="failed_header">{{ link.error_message }}</div>
+        <div class="item-title">We’re unable to create your Perma Link.</div>
+        <div class="item-date">submitted: {{ link.submitted_url }}</div>
+      </div>
+    {{ else }}
+      <div class="link-desc col col-sm-6 col-md-60">
+        <div class="item-title">{{ link.title }}</div>
+        <div class="item-subtitle">{{ link.submitted_url }}</div>
+      </div>
+      <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
+        {{#if link.isProcessing}}
+          {{> progressBar progress=link.progress }}
+        {{else if link.isComplete}}
+          <a class="perma no-drag" href="//{{link.local_url}}" target="_blank">{{link.local_url}}</a>
+        {{/if}}
+      </div>
+    {{/if}}
+  </div>
+  </div>
 </script>
 {% endverbatim %}

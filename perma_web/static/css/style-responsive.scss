@@ -3206,20 +3206,6 @@ $batchModalWidth: 900px;
     font-weight: bold;
 }
 
-#batch-details {
-    .row {
-        border-top: 1px solid $color-trans-darkgray;
-        padding-top: $double;
-        padding-bottom: $double;
-    }
-    .link-error {
-        border: 2px solid $color-error;
-        color: $color-error;
-        padding: 0.2em;
-        font-weight: bold;
-    }
-}
-
 
 /////////////////////////////////////////
 
