@@ -60,7 +60,6 @@ django-filter                       # searching
 gunicorn
 gevent
 newrelic
-opbeat
 
 # PyWB-related stuff
 pywb

@@ -47,10 +47,6 @@ def post_process_settings(settings):
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
                                            **settings.get('CELERYBEAT_SCHEDULE', {}))
 
-    if settings['USE_OPBEAT']:
-        settings['INSTALLED_APPS'] += ('opbeat.contrib.django',)
-        settings['MIDDLEWARE_CLASSES'] = ('opbeat.contrib.django.middleware.OpbeatAPMMiddleware',) + settings['MIDDLEWARE_CLASSES']  # put middleware at start
-
     # set up application version for use in templates
     try:
         with open(os.path.join(settings['STATIC_ROOT'], 'version.txt'), 'r') as f:

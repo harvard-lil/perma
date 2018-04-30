@@ -44,8 +44,6 @@ from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException, WbException
 
-from perma.utils import opbeat_trace
-
 # Use lazy model imports because Django models aren't ready yet when this file is loaded by wsgi.py
 CDXLine = apps.get_model('perma', 'CDXLine')
 Link = apps.get_model('perma', 'Link')
@@ -160,7 +158,6 @@ WSGIApp.handle_exception = handle_exception
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
-    @opbeat_trace()
     def apply_filters(self, wbrequest, matcher):
         """Parse the GUID and find the CDXLine in the DB"""
 
@@ -169,46 +166,45 @@ class PermaRoute(archivalrouter.Route):
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
-            with opbeat_trace('cdx-cache-miss'):
-                try:
-                    # This will filter out links that have user_deleted=True
-                    link = Link.objects.get(guid=guid)
-                except Link.DoesNotExist:
-                    raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
+            try:
+                # This will filter out links that have user_deleted=True
+                link = Link.objects.get(guid=guid)
+            except Link.DoesNotExist:
+                raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
-                if not wbrequest.wb_url:
-                    # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
-                    wbrequest.custom_params['guid'] = guid
-                    wbrequest.custom_params['url'] = link.ascii_safe_url
-                    return
+            if not wbrequest.wb_url:
+                # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
+                wbrequest.custom_params['guid'] = guid
+                wbrequest.custom_params['url'] = link.ascii_safe_url
+                return
 
-                # Legacy archives didn't generate CDXLines during
-                # capture so generate them on demand if not found, unless
-                # A: the warc capture hasn't been generated OR
-                # B: we know other cdx lines have already been generated
-                #    and the requested line is simply missing
-                lines = CDXLine.objects.filter(link_id=link.guid)
+            # Legacy archives didn't generate CDXLines during
+            # capture so generate them on demand if not found, unless
+            # A: the warc capture hasn't been generated OR
+            # B: we know other cdx lines have already been generated
+            #    and the requested line is simply missing
+            lines = CDXLine.objects.filter(link_id=link.guid)
 
-                if not lines:
-                    lines = CDXLine.objects.create_all_from_link(link)
+            if not lines:
+                lines = CDXLine.objects.create_all_from_link(link)
 
-                # build a lookup of all cdx lines for this link indexed by urlkey, like:
-                # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
-                cached_cdx = defaultdict(list)
-                for line in lines:
-                    cached_cdx[line.urlkey].append(str(line.raw))
+            # build a lookup of all cdx lines for this link indexed by urlkey, like:
+            # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
+            cached_cdx = defaultdict(list)
+            for line in lines:
+                cached_cdx[line.urlkey].append(str(line.raw))
 
-                # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
-                for urlkey, lines in cached_cdx.iteritems():
-                    if len(lines) > 1:
-                        lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
-                        if lines_without_redirects:
-                            cached_cdx[urlkey] = lines_without_redirects
+            # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
+            for urlkey, lines in cached_cdx.iteritems():
+                if len(lines) > 1:
+                    lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
+                    if lines_without_redirects:
+                        cached_cdx[urlkey] = lines_without_redirects
 
-                # record whether link is private so we can enforce permissions
-                cached_cdx['is_private'] = link.is_private
+            # record whether link is private so we can enforce permissions
+            cached_cdx['is_private'] = link.is_private
 
-                django_cache.set(cache_key, cached_cdx)
+            django_cache.set(cache_key, cached_cdx)
 
         # enforce permissions
         if cached_cdx.get('is_private'):
@@ -435,7 +431,6 @@ class CachedLoader(BlockLoader):
     """
         File loader that stores requested file in key-value cache for quick retrieval.
     """
-    @opbeat_trace()
     def load(self, url, offset=0, length=-1):
 
         # first try to fetch url contents from cache
@@ -450,36 +445,34 @@ class CachedLoader(BlockLoader):
         if file_contents is None:
             # url wasn't in cache -- load contents
 
-            with opbeat_trace('file-loader-cache-miss'):
+            # try fetching from each mirror in the LOCKSS network, in random order
+            if settings.USE_LOCKSS_REPLAY:
 
-                # try fetching from each mirror in the LOCKSS network, in random order
-                if settings.USE_LOCKSS_REPLAY:
+                mirrors = Mirror.get_cached_mirrors()
+                random.shuffle(mirrors)
 
-                    mirrors = Mirror.get_cached_mirrors()
-                    random.shuffle(mirrors)
+                for mirror in mirrors:
+                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
+                    lockss_url = urljoin(mirror['content_url'], 'ServeContent')
+                    try:
+                        logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
+                        response = requests.get(lockss_url, params={'url': lockss_key})
+                        assert response.ok
+                        file_contents = response.content
+                        mirror_name = mirror['name']
+                        logging.info("Got content from lockss")
+                    except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                        logging.info("Couldn't get from lockss: %s" % e)
 
-                    for mirror in mirrors:
-                        lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
-                        lockss_url = urljoin(mirror['content_url'], 'ServeContent')
-                        try:
-                            logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
-                            response = requests.get(lockss_url, params={'url': lockss_key})
-                            assert response.ok
-                            file_contents = response.content
-                            mirror_name = mirror['name']
-                            logging.info("Got content from lockss")
-                        except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
-                            logging.info("Couldn't get from lockss: %s" % e)
+            # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
+            if file_contents is None:
+                file_contents = super(CachedLoader, self).load(url).read()
+                logging.debug("Got content from local disk")
 
-                # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
-                if file_contents is None:
-                    file_contents = super(CachedLoader, self).load(url).read()
-                    logging.debug("Got content from local disk")
-
-                # cache file contents
-                # use a short timeout so large warcs don't evict everything else in the cache
-                django_cache.set(cache_key, file_contents, timeout=60)
-                django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
+            # cache file contents
+            # use a short timeout so large warcs don't evict everything else in the cache
+            django_cache.set(cache_key, file_contents, timeout=60)
+            django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
 
         else:
             mirror_name = django_cache.get(mirror_name_cache_key)
