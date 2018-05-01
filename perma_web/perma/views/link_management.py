@@ -23,20 +23,11 @@ def create_link(request):
         if link:
             messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
-    links_remaining = request.user.get_links_remaining()
-
-    if 'url' in request.GET:
-        suppress_reminder = 'true'
-    else:
-        suppress_reminder = request.COOKIES.get('suppress_reminder')
-
-    max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
-
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
-        'links_remaining': links_remaining,
-        'suppress_reminder': suppress_reminder,
-        'max_size': max_size
+        'links_remaining': request.user.get_links_remaining(),
+        'suppress_reminder': 'true' if 'url' in request.GET else request.COOKIES.get('suppress_reminder'),
+        'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
     })
 
 
