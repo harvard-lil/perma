@@ -5,7 +5,7 @@ webpackJsonp([9],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var SingleLinkModule = __webpack_require__(208);
+	var SingleLinkModule = __webpack_require__(207);
 	var DOMHelpers = __webpack_require__(2);
 	var APIModule = __webpack_require__(78);
 	var Helpers = __webpack_require__(92);
@@ -918,7 +918,7 @@ webpackJsonp([9],{
 
 	"use strict";
 	
-	// JS file used as Django template -- gets included inline in our headers
+	// JS file used by Django templatetag
 	
 	// given seconds since UTC epoch and a Django date filter/PHP date format string,
 	// return formatted date in user's local time.
@@ -1022,7 +1022,7 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 208:
+/***/ 207:
 /***/ function(module, exports) {
 
 	"use strict";

@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 
-from ..models import Link
+from ..models import Link, LinkBatch
 
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
 
@@ -27,7 +27,8 @@ def create_link(request):
         'this_page': 'create_link',
         'links_remaining': request.user.get_links_remaining(),
         'suppress_reminder': 'true' if 'url' in request.GET else request.COOKIES.get('suppress_reminder'),
-        'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
+        'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024,
+        'link_batches': LinkBatch.objects.filter(created_by=request.user).order_by('-started_on'),
     })
 
 

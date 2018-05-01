@@ -3797,12 +3797,14 @@ footer {
       @extend .style-standard-hover;
     }
   }
-  #folder-tree {
-    overflow: auto;
-    padding: $grid $grid 0 0;
+  #batch-history, #folder-tree {
     font-family: $font-hed-alt;
+    padding: $grid $grid 0 0;
     margin-top: $double;
     border-top: 1px solid $color-trans-lightgray;
+  }
+  #folder-tree {
+    overflow: auto;
     .jstree-clicked, .jstree-clicked.jstree-hovered {
       border: 1px solid $color-blue;
       color: $color-white;
@@ -3835,21 +3837,11 @@ footer {
     margin-top: 0px;
     padding-left: 5px !important;
   }
-  #batches-history-list {
-    font-family: $font-body;
-    font-size: $size-small;
-    color: $color-black;
-    margin-left: 0;
-    padding-left: 0;
+  #batch-history {
+    margin-bottom: $grid * 3;
     li {
-      &:hover {
-        cursor: pointer;
-      }
-      &:before {
-        content: "\2014 "; // em-dash
-        padding-top: $half;
-        padding-bottom: $half;
-      }
+        font-size: 14px;
+        padding: $half 0;
     }
   }
 }

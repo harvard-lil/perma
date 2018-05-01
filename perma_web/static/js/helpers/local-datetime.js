@@ -1,4 +1,4 @@
-// JS file used as Django template -- gets included inline in our headers
+// JS file used by Django templatetag
 
 // given seconds since UTC epoch and a Django date filter/PHP date format string,
 // return formatted date in user's local time.

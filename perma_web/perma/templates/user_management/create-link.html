@@ -1,5 +1,6 @@
 {% extends "base-responsive.html" %}
 {% load render_bundle from webpack_loader %}
+{% load local_datetime %}
 
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
@@ -105,10 +106,16 @@
     <div class="col-md-3 col-folders">
       {% if ENABLE_BATCH_LINKS %}
       <div class="panel-heading">
-          Batches history
+          Link Batches
       </div>
       <div>
-          <ul id="batches-history-list"></ul>
+        <ul id="batch-history" class="item-container">
+          {% for batch in link_batches %}
+            <li class="item-subtitle">
+              <a href="#" data-batch={{ batch.id }} data-folder="{{ batch.target_folder.id }}"><span class="sr-only">Batch created </span>{{ batch.started_on | local_datetime }}</a>
+            </li>
+          {% endfor %}
+        </ul>
       </div>
       {% endif %}
       <div class="panel-heading">
@@ -140,6 +147,10 @@
 
 <!-- Modals -->
 
+{% endblock %}
+
+{% block header_scripts %}
+  {% local_datetime_js %}
 {% endblock %}
 
 {% block scripts %}

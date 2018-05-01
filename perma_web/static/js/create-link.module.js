@@ -8,7 +8,6 @@ var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var LinkBatchViewModule = require('./link-batch-view.module.js');
-var LinkBatchHelpers = require('./helpers/link-batch.helpers.js');
 var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
 var newGUID = null;
@@ -406,24 +405,6 @@ export function init () {
         updateLinker();
       }
     });
-
-    if (settings.ENABLE_BATCH_LINKS) {
-        // populate batches list
-        APIModule.request("GET", "/archives/batches/", {"limit": 15}).done(function(data) {
-            var batches = data.objects;
-            batches.sort(function(batch1, batch2) {
-                return new Date(batch2.started_on) - new Date(batch1.started_on);
-            });
-            $(function() {
-                var $batches_history_list = $("#batches-history-list");
-                batches.forEach(function(batch) {
-                    var $li = $("<li>");
-                    LinkBatchHelpers.create_clickable_batch_el($li, batch);
-                    $batches_history_list.append($li);
-                });
-            });
-        });
-    }
 
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){

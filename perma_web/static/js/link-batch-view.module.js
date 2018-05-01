@@ -6,7 +6,7 @@ var FolderTreeModule = require('./folder-tree.module.js');
 var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
-var $batch_details, $saved_path, $export_csv;
+var $batch_details, $modal, $saved_path, $export_csv;
 
 
 var render_batch = function(links_in_batch, folder_id) {
@@ -67,7 +67,7 @@ var get_batch_info = function(batch_id) {
         });
 };
 
-export function show_batch(batch_id, folder_id) {
+function show_batch(batch_id, folder_id) {
     var folder_path = FolderTreeModule.getPathForId(folder_id);
     $saved_path.html(folder_path.join(" &gt; "));
     var spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin($batch_details[0]);
@@ -81,10 +81,21 @@ export function show_batch(batch_id, folder_id) {
     }, 2000);
 }
 
+export function show_modal_with_batch(batch_id, folder_id) {
+    show_batch(batch_id, folder_id);
+    $modal.modal("show");
+}
+
 export function init() {
     $(function() {
+        let $batch_history = $('#batch-history');
+        $modal = $("#batch-view-modal");
         $batch_details = $('#batch-details');
         $saved_path = $('#batch-saved-path');
         $export_csv = $('#export-csv');
+        $batch_history.delegate('a', 'click', function(e) {
+            e.preventDefault();
+            show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
+        });
     });
 }

@@ -7,7 +7,7 @@ webpackJsonp([1],[
 	var LinkListModule = __webpack_require__(5);
 	var FolderTreeModule = __webpack_require__(104);
 	var CreateLinkModule = __webpack_require__(146);
-	var LinkBatchCreateModule = __webpack_require__(154);
+	var LinkBatchCreateModule = __webpack_require__(153);
 	var LinkBatchViewModule = __webpack_require__(150);
 	
 	FolderTreeModule.init();
@@ -936,7 +936,7 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-[319, 42],
+[318, 42],
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -1874,7 +1874,7 @@ webpackJsonp([1],[
 
 	"use strict";
 	
-	// JS file used as Django template -- gets included inline in our headers
+	// JS file used by Django templatetag
 	
 	// given seconds since UTC epoch and a Django date filter/PHP date format string,
 	// return formatted date in user's local time.
@@ -10771,23 +10771,23 @@ webpackJsonp([1],[
 /* 110 */
 8,
 /* 111 */
-[325, 112, 120, 116],
+[324, 112, 120, 116],
 /* 112 */
-[326, 113, 115, 119, 116],
+[325, 113, 115, 119, 116],
 /* 113 */
-[327, 114],
+[326, 114],
 /* 114 */
 25,
 /* 115 */
-[328, 116, 117, 118],
+[327, 116, 117, 118],
 /* 116 */
-[329, 117],
+[328, 117],
 /* 117 */
 28,
 /* 118 */
-[330, 114, 109],
+[329, 114, 109],
 /* 119 */
-[331, 114],
+[330, 114],
 /* 120 */
 31,
 /* 121 */
@@ -10832,7 +10832,7 @@ webpackJsonp([1],[
 /* 123 */
 48,
 /* 124 */
-[324, 125],
+[323, 125],
 /* 125 */
 21,
 /* 126 */
@@ -10885,15 +10885,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 127 */
-[321, 128],
+[320, 128],
 /* 128 */
 42,
 /* 129 */
-[320, 130],
+[319, 130],
 /* 130 */
 15,
 /* 131 */
-[322, 132],
+[321, 132],
 /* 132 */
 14,
 /* 133 */
@@ -10929,11 +10929,11 @@ webpackJsonp([1],[
 
 /***/ },
 /* 135 */
-[319, 128],
+[318, 128],
 /* 136 */
-[332, 137, 123, 109],
+[331, 137, 123, 109],
 /* 137 */
-[323, 109],
+[322, 109],
 /* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10992,7 +10992,6 @@ webpackJsonp([1],[
 	var APIModule = __webpack_require__(78);
 	var FolderTreeModule = __webpack_require__(104);
 	var LinkBatchViewModule = __webpack_require__(150);
-	var LinkBatchHelpers = __webpack_require__(153);
 	var ProgressBarHelper = __webpack_require__(152);
 	
 	var newGUID = null;
@@ -11367,24 +11366,6 @@ webpackJsonp([1],[
 	      updateLinker();
 	    }
 	  });
-	
-	  if (settings.ENABLE_BATCH_LINKS) {
-	    // populate batches list
-	    APIModule.request("GET", "/archives/batches/", { "limit": 15 }).done(function (data) {
-	      var batches = data.objects;
-	      batches.sort(function (batch1, batch2) {
-	        return new Date(batch2.started_on) - new Date(batch1.started_on);
-	      });
-	      $(function () {
-	        var $batches_history_list = $("#batches-history-list");
-	        batches.forEach(function (batch) {
-	          var $li = $("<li>");
-	          LinkBatchHelpers.create_clickable_batch_el($li, batch);
-	          $batches_history_list.append($li);
-	        });
-	      });
-	    });
-	  }
 	
 	  // handle dropdown changes
 	  $organization_select.on('click', 'a', function () {
@@ -13425,7 +13406,7 @@ webpackJsonp([1],[
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.show_batch = show_batch;
+	exports.show_modal_with_batch = show_modal_with_batch;
 	exports.init = init;
 	var Papa = __webpack_require__(151);
 	var Spinner = __webpack_require__(147);
@@ -13435,7 +13416,7 @@ webpackJsonp([1],[
 	var ProgressBarHelper = __webpack_require__(152);
 	var HandlebarsHelpers = __webpack_require__(3);
 	
-	var $batch_details, $saved_path, $export_csv;
+	var $batch_details, $modal, $saved_path, $export_csv;
 	
 	var render_batch = function render_batch(links_in_batch, folder_id) {
 	    $batch_details.empty();
@@ -13508,11 +13489,22 @@ webpackJsonp([1],[
 	    }, 2000);
 	}
 	
+	function show_modal_with_batch(batch_id, folder_id) {
+	    show_batch(batch_id, folder_id);
+	    $modal.modal("show");
+	}
+	
 	function init() {
 	    $(function () {
+	        var $batch_history = $('#batch-history');
+	        $modal = $("#batch-view-modal");
 	        $batch_details = $('#batch-details');
 	        $saved_path = $('#batch-saved-path');
 	        $export_csv = $('#export-csv');
+	        $batch_history.delegate('a', 'click', function (e) {
+	            e.preventDefault();
+	            show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
+	        });
 	    });
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
@@ -13585,44 +13577,6 @@ webpackJsonp([1],[
 /* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.human_timestamp_from_batch = human_timestamp_from_batch;
-	exports.show_modal_with_batch = show_modal_with_batch;
-	exports.create_clickable_batch_el = create_clickable_batch_el;
-	var LinkBatchViewModule = __webpack_require__(150);
-	
-	function human_timestamp_from_batch(batch) {
-	    return new Date(batch.started_on).toLocaleString("en-us", {
-	        year: "numeric",
-	        month: "long",
-	        day: "numeric",
-	        hour: "numeric",
-	        minute: "2-digit"
-	    });
-	}
-	
-	function show_modal_with_batch(batch) {
-	    LinkBatchViewModule.show_batch(batch.id, batch.target_folder);
-	    $("#batch-view-modal").modal("show");
-	}
-	
-	function create_clickable_batch_el($el, batch) {
-	    var human_timestamp = human_timestamp_from_batch(batch);
-	    $el.text("Batch created " + human_timestamp);
-	    $el.click(function () {
-	        show_modal_with_batch(batch);
-	    });
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-/* 154 */
-/***/ function(module, exports, __webpack_require__) {
-
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -13643,11 +13597,10 @@ webpackJsonp([1],[
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
 	var LinkBatchViewModule = __webpack_require__(150);
-	var LinkBatchHelpers = __webpack_require__(153);
 	
 	var $create_modal, $view_modal;
 	var $input_area, $start_button, $cancel_button, $batch_target_path;
-	var $batches_history_list;
+	var $batch_history;
 	var target_folder;
 	
 	var start_batch = function start_batch() {
@@ -13681,10 +13634,8 @@ webpackJsonp([1],[
 	                clearInterval(interval);
 	                $input_area.empty();
 	                $create_modal.modal("hide");
-	                LinkBatchHelpers.show_modal_with_batch(batch_object);
-	                var $li = $("<li>");
-	                LinkBatchHelpers.create_clickable_batch_el($li, batch_object);
-	                $batches_history_list.prepend($li);
+	                LinkBatchViewModule.show_modal_with_batch(batch_object.id, batch_object.target_folder);
+	                // prepend a new entry to $batch_history
 	            }
 	        }, 500);
 	    });
@@ -13732,7 +13683,7 @@ webpackJsonp([1],[
 	        $start_button = $('#start-batch');
 	        $cancel_button = $create_modal.find('.cancel');
 	        $batch_target_path = $('#batch-target-path');
-	        $batches_history_list = $("#batches-history-list");
+	        $batch_history = $("#batch-history");
 	
 	        setup_handlers();
 	    });
@@ -13740,6 +13691,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
+/* 154 */,
 /* 155 */,
 /* 156 */,
 /* 157 */,
@@ -13903,8 +13855,7 @@ webpackJsonp([1],[
 /* 315 */,
 /* 316 */,
 /* 317 */,
-/* 318 */,
-/* 319 */
+/* 318 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.2.2 IsArray(argument)

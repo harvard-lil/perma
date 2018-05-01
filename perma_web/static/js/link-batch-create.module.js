@@ -4,11 +4,10 @@ var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 var LinkBatchViewModule = require('./link-batch-view.module.js');
-var LinkBatchHelpers = require('./helpers/link-batch.helpers.js');
 
 var $create_modal, $view_modal;
 var $input_area, $start_button, $cancel_button, $batch_target_path;
-var $batches_history_list;
+var $batch_history;
 var target_folder;
 
 var start_batch = function() {
@@ -44,10 +43,8 @@ var start_batch = function() {
                 clearInterval(interval);
                 $input_area.empty();
                 $create_modal.modal("hide");
-                LinkBatchHelpers.show_modal_with_batch(batch_object);
-                var $li = $("<li>");
-                LinkBatchHelpers.create_clickable_batch_el($li, batch_object);
-                $batches_history_list.prepend($li);
+                LinkBatchViewModule.show_modal_with_batch(batch_object.id, batch_object.target_folder);
+                // prepend a new entry to $batch_history
             }
         }, 500);
     });
@@ -97,7 +94,7 @@ export function init() {
         $start_button = $('#start-batch');
         $cancel_button = $create_modal.find('.cancel');
         $batch_target_path = $('#batch-target-path');
-        $batches_history_list = $("#batches-history-list");
+        $batch_history = $("#batch-history");
 
         setup_handlers();
     });
