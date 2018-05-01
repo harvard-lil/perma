@@ -1393,7 +1393,7 @@ class CaptureJob(models.Model):
 
 class LinkBatch(models.Model):
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches')
-    started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
+    started_on = models.DateTimeField(auto_now=True, blank=False, null=False, db_index=True)
     target_folder = models.ForeignKey(Folder, blank=False, null=False)
 
     class Meta:
