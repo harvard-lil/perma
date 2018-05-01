@@ -28,9 +28,9 @@ var render_batch = function(links_in_batch, folder_id) {
                 link.isError = true;
                 link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
         }
-        let template = HandlebarsHelpers.renderTemplate('#batch-link-row', {"link": link});
-        $batch_details.append(jQuery.parseHTML(template));
     });
+    let template = HandlebarsHelpers.renderTemplate('#batch-links', {"links": links_in_batch});
+    $batch_details.append(template);
     if (all_finished) {
         let export_data = links_in_batch.map(function(link) {
             let to_export = {

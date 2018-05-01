@@ -13420,7 +13420,7 @@ webpackJsonp([1],[
 /* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(jQuery, $) {'use strict';
+	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -13456,9 +13456,9 @@ webpackJsonp([1],[
 	                link.isError = true;
 	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
 	        }
-	        var template = HandlebarsHelpers.renderTemplate('#batch-link-row', { "link": link });
-	        $batch_details.append(jQuery.parseHTML(template));
 	    });
+	    var template = HandlebarsHelpers.renderTemplate('#batch-links', { "links": links_in_batch });
+	    $batch_details.append(template);
 	    if (all_finished) {
 	        var export_data = links_in_batch.map(function (link) {
 	            var to_export = {
@@ -13522,7 +13522,7 @@ webpackJsonp([1],[
 	        $export_csv = $('#export-csv');
 	    });
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 151 */

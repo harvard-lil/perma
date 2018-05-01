@@ -17,29 +17,31 @@
 </div>
 
 {% verbatim %}
-<script id="batch-link-row" type="text/x-handlebars-template">
-  <div class="item-container {{#if link.isError}} _isFailed{{/if}}">
-  <div class="row">
-    {{#if link.isError }}
-      <div class="link-desc col col-sm-6 col-md-60">
-        <div class="failed_header">{{ link.error_message }}</div>
-        <div class="item-title">We’re unable to create your Perma Link.</div>
-        <div class="item-date">submitted: {{ link.submitted_url }}</div>
-      </div>
-    {{ else }}
-      <div class="link-desc col col-sm-6 col-md-60">
-        <div class="item-title">{{ link.title }}</div>
-        <div class="item-subtitle">{{ link.submitted_url }}</div>
-      </div>
-      <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
-        {{#if link.isProcessing}}
-          {{> progressBar progress=link.progress }}
-        {{else if link.isComplete}}
-          <a class="perma no-drag" href="//{{link.local_url}}" target="_blank">{{link.local_url}}</a>
+<script id="batch-links" type="text/x-handlebars-template">
+  {{#each links}}
+    <div class="item-container {{#if isError}} _isFailed{{/if}}">
+      <div class="row">
+        {{#if isError }}
+          <div class="link-desc col col-sm-6 col-md-60">
+            <div class="failed_header">{{ error_message }}</div>
+            <div class="item-title">We’re unable to create your Perma Link.</div>
+            <div class="item-date">submitted: {{ submitted_url }}</div>
+          </div>
+        {{ else }}
+          <div class="link-desc col col-sm-6 col-md-60">
+            <div class="item-title">{{ title }}</div>
+            <div class="item-subtitle">{{ submitted_url }}</div>
+          </div>
+          <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
+            {{#if isProcessing}}
+              {{> progressBar progress=progress }}
+            {{else if isComplete}}
+              <a class="perma no-drag" href="//{{local_url}}" target="_blank">{{local_url}}</a>
+            {{/if}}
+          </div>
         {{/if}}
       </div>
-    {{/if}}
-  </div>
-  </div>
+    </div>
+  {{/each}}
 </script>
 {% endverbatim %}
