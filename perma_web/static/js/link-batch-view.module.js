@@ -11,7 +11,7 @@ var $batch_details, $saved_path, $export_csv;
 
 var render_batch = function(links_in_batch, folder_id) {
     $batch_details.empty();
-    let all_finished = true;
+    let all_completed = true;
     links_in_batch.forEach(function(link) {
         link.progress = (link.step_count / 5) * 100;
         link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
@@ -19,7 +19,7 @@ var render_batch = function(links_in_batch, folder_id) {
             case "pending":
             case "in_progress":
                 link.isProcessing = true;
-                all_finished = false;
+                all_completed = false;
                 break;
             case "completed":
                 link.isComplete = true;
@@ -31,7 +31,7 @@ var render_batch = function(links_in_batch, folder_id) {
     });
     let template = HandlebarsHelpers.renderTemplate('#batch-links', {"links": links_in_batch});
     $batch_details.append(template);
-    if (all_finished) {
+    if (all_completed) {
         let export_data = links_in_batch.map(function(link) {
             let to_export = {
                 "url": link.submitted_url
@@ -54,6 +54,7 @@ var render_batch = function(links_in_batch, folder_id) {
         $export_csv.attr("download", "perma.csv");
         $export_csv.show();
     }
+    return all_completed;
 };
 
 var get_batch_info = function(batch_id) {
@@ -72,15 +73,7 @@ export function show_batch(batch_id, folder_id) {
     var spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin($batch_details[0]);
     var interval = setInterval(function() {
         get_batch_info(batch_id).then(function(links_in_batch) {
-            render_batch(links_in_batch, folder_id);
-            var all_completed = true;
-            for (var i = 0; i < links_in_batch.length; i++) {
-                var link = links_in_batch[i];
-                if ((link.status === "pending") || (link.status === "in_progress")) {
-                    all_completed = false;
-                    break;
-                }
-            }
+            let all_completed = render_batch(links_in_batch, folder_id);
             if (all_completed) {
                 clearInterval(interval);
             }
