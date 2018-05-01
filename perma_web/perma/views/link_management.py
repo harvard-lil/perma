@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 
-from ..models import Link, Folder, Organization
+from ..models import Link
 
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
 
@@ -13,25 +13,6 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_titl
 
 @login_required
 def create_link(request):
-    try:
-        selected_org = Link.objects.filter(created_by_id=request.user.id).latest('creation_timestamp').organization
-    except:
-        selected_org = Organization.objects.accessible_to(request.user).first()
-
-    if not selected_org:
-        org_id = None
-    else:
-        org_id = selected_org.id
-
-    try:
-        org = get_object_or_404(Organization, id=org_id)
-    except:
-        org = None
-
-    folder_id = request.user.root_folder_id
-    if org:
-        folder_id = org.shared_folder_id
-    folder = Folder.objects.get(id=folder_id)
 
     deleted = request.GET.get('deleted', '')
     if deleted:
@@ -54,7 +35,6 @@ def create_link(request):
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
         'links_remaining': links_remaining,
-        'folder': folder,
         'suppress_reminder': suppress_reminder,
         'max_size': max_size
     })
