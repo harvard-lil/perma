@@ -7,13 +7,11 @@ webpackJsonp([1],[
 	var LinkListModule = __webpack_require__(5);
 	var FolderTreeModule = __webpack_require__(104);
 	var CreateLinkModule = __webpack_require__(146);
-	var LinkBatchCreateModule = __webpack_require__(153);
 	var LinkBatchViewModule = __webpack_require__(150);
 	
 	FolderTreeModule.init();
 	LinkListModule.init();
 	CreateLinkModule.init();
-	LinkBatchCreateModule.init();
 	LinkBatchViewModule.init();
 
 /***/ },
@@ -936,7 +934,7 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-[318, 42],
+[317, 42],
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10771,23 +10769,23 @@ webpackJsonp([1],[
 /* 110 */
 8,
 /* 111 */
-[324, 112, 120, 116],
+[323, 112, 120, 116],
 /* 112 */
-[325, 113, 115, 119, 116],
+[324, 113, 115, 119, 116],
 /* 113 */
-[326, 114],
+[325, 114],
 /* 114 */
 25,
 /* 115 */
-[327, 116, 117, 118],
+[326, 116, 117, 118],
 /* 116 */
-[328, 117],
+[327, 117],
 /* 117 */
 28,
 /* 118 */
-[329, 114, 109],
+[328, 114, 109],
 /* 119 */
-[330, 114],
+[329, 114],
 /* 120 */
 31,
 /* 121 */
@@ -10832,7 +10830,7 @@ webpackJsonp([1],[
 /* 123 */
 48,
 /* 124 */
-[323, 125],
+[322, 125],
 /* 125 */
 21,
 /* 126 */
@@ -10885,15 +10883,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 127 */
-[320, 128],
+[319, 128],
 /* 128 */
 42,
 /* 129 */
-[319, 130],
+[318, 130],
 /* 130 */
 15,
 /* 131 */
-[321, 132],
+[320, 132],
 /* 132 */
 14,
 /* 133 */
@@ -10929,11 +10927,11 @@ webpackJsonp([1],[
 
 /***/ },
 /* 135 */
-[318, 128],
+[317, 128],
 /* 136 */
-[331, 137, 123, 109],
+[330, 137, 123, 109],
 /* 137 */
-[322, 109],
+[321, 109],
 /* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -13406,21 +13404,39 @@ webpackJsonp([1],[
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	
+	var _typeof2 = __webpack_require__(9);
+	
+	var _typeof3 = _interopRequireDefault(_typeof2);
+	
 	exports.show_modal_with_batch = show_modal_with_batch;
 	exports.init = init;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
 	var Papa = __webpack_require__(151);
 	var Spinner = __webpack_require__(147);
 	
 	var APIModule = __webpack_require__(78);
 	var FolderTreeModule = __webpack_require__(104);
+	var FolderSelectorHelper = __webpack_require__(103);
 	var ProgressBarHelper = __webpack_require__(152);
 	var HandlebarsHelpers = __webpack_require__(3);
 	
-	var $batch_details = void 0,
-	    $modal = void 0,
+	var $modal = void 0,
+	    $input = void 0,
+	    $input_area = void 0,
+	    $start_button = void 0,
+	    $cancel_button = void 0,
+	    $batch_details_wrapper = void 0,
+	    $batch_details = void 0,
+	    $batch_history = void 0,
+	    $batch_target_path = void 0,
 	    $export_csv = void 0;
+	var target_folder = void 0;
 	
 	function render_batch(links_in_batch, folder_path) {
+	    $('.spinner').hide();
 	    $batch_details.empty();
 	    var all_completed = true;
 	    links_in_batch.forEach(function (link) {
@@ -13469,8 +13485,14 @@ webpackJsonp([1],[
 	};
 	
 	function show_batch(batch_id) {
+	    $batch_details_wrapper.show();
 	    $batch_details.empty();
-	    var spinner = new Spinner({ lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px' }).spin($batch_details[0]);
+	    var spinner = $('.spinner');
+	    if (spinner[0].childElementCount) {
+	        spinner.show();
+	    } else {
+	        new Spinner({ lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px' }).spin(spinner[0]);
+	    }
 	    var interval = setInterval(function () {
 	        APIModule.request('GET', '/archives/batches/' + batch_id).then(function (batch_data) {
 	            var folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
@@ -13487,16 +13509,108 @@ webpackJsonp([1],[
 	    $modal.modal("show");
 	}
 	
+	var start_batch = function start_batch() {
+	    $input.hide();
+	    // $input_area.prop("disabled", true).css("cursor", "not-allowed");
+	    // $cancel_button.css("visibility", "hidden");
+	    // $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
+	    // var spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'}).spin($start_button[0]);
+	
+	    APIModule.request('POST', '/archives/batches/', {
+	        "target_folder": target_folder
+	    }).then(function (batch_object) {
+	        var batch_id = batch_object.id;
+	        var urls = $input_area.val().split("\n").map(function (s) {
+	            return s.trim();
+	        });
+	        var num_requests = 0;
+	        urls.forEach(function (url) {
+	            return APIModule.request('POST', '/archives/', {
+	                folder: target_folder,
+	                link_batch_id: batch_id,
+	                url: url
+	            }, { "error": function error(jqXHR) {} }).then(function (response) {
+	                num_requests += 1;
+	            }).fail(function (err) {
+	                num_requests += 1;
+	                console.error(err);
+	            });
+	        });
+	        var interval = setInterval(function () {
+	            if (num_requests === urls.length) {
+	                clearInterval(interval);
+	                show_batch(batch_object.id);
+	                // prepend a new entry to $batch_history
+	            }
+	        }, 500);
+	    });
+	};
+	
+	var refresh_target_path_dropdown = function refresh_target_path_dropdown() {
+	    FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
+	};
+	
+	var set_folder_from_trigger = function set_folder_from_trigger(evt, data) {
+	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') {
+	        data = JSON.parse(data);
+	    }
+	    target_folder = data.folderId;
+	    $batch_target_path.find("option").each(function (ndx) {
+	        if ($(this).val() == target_folder) {
+	            $(this).prop("selected", true);
+	        }
+	    });
+	};
+	
+	var set_folder_from_dropdown = function set_folder_from_dropdown(new_folder_id) {
+	    target_folder = new_folder_id;
+	};
+	
+	var setup_handlers = function setup_handlers() {
+	
+	    $modal.on('shown.bs.modal', function () {
+	        refresh_target_path_dropdown();
+	    });
+	
+	    $modal.on('hidden.bs.modal', function () {
+	        $input.show();
+	        $input_area.val("");
+	        $batch_details_wrapper.hide();
+	    });
+	
+	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
+	
+	    $batch_target_path.change(function () {
+	        var new_folder_id = $(this).val();
+	        set_folder_from_dropdown(new_folder_id);
+	    });
+	
+	    $start_button.click(function () {
+	        start_batch();
+	    });
+	
+	    $batch_history.delegate('a', 'click', function (e) {
+	        e.preventDefault();
+	        $input.hide();
+	        show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
+	    });
+	};
+	
 	function init() {
 	    $(function () {
-	        var $batch_history = $('#batch-history');
-	        $modal = $("#batch-view-modal");
+	
+	        $modal = $("#batch-modal");
+	        $input = $('#batch-create-input');
+	        $input_area = $('#batch-create-input textarea');
+	        $start_button = $('#start-batch');
+	        $cancel_button = $modal.find('.cancel');
+	        $batch_details_wrapper = $('#batch-details-wrapper');
 	        $batch_details = $('#batch-details');
+	        $batch_history = $("#batch-history");
+	        $batch_target_path = $('#batch-target-path');
 	        $export_csv = $('#export-csv');
-	        $batch_history.delegate('a', 'click', function (e) {
-	            e.preventDefault();
-	            show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
-	        });
+	
+	        setup_handlers();
 	    });
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
@@ -13566,123 +13680,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 153 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _typeof2 = __webpack_require__(9);
-	
-	var _typeof3 = _interopRequireDefault(_typeof2);
-	
-	exports.init = init;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Spinner = __webpack_require__(147);
-	
-	var APIModule = __webpack_require__(78);
-	var FolderTreeModule = __webpack_require__(104);
-	var FolderSelectorHelper = __webpack_require__(103);
-	var LinkBatchViewModule = __webpack_require__(150);
-	
-	var $create_modal, $view_modal;
-	var $input_area, $start_button, $cancel_button, $batch_target_path;
-	var $batch_history;
-	var target_folder;
-	
-	var start_batch = function start_batch() {
-	    $input_area.prop("disabled", true).css("cursor", "not-allowed");
-	    $cancel_button.css("visibility", "hidden");
-	    $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
-	    var spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' }).spin($start_button[0]);
-	
-	    APIModule.request('POST', '/archives/batches/', {
-	        "target_folder": target_folder
-	    }).then(function (batch_object) {
-	        var batch_id = batch_object.id;
-	        var urls = $input_area.val().split("\n").map(function (s) {
-	            return s.trim();
-	        });
-	        var num_requests = 0;
-	        urls.forEach(function (url) {
-	            return APIModule.request('POST', '/archives/', {
-	                folder: target_folder,
-	                link_batch_id: batch_id,
-	                url: url
-	            }, { "error": function error(jqXHR) {} }).then(function (response) {
-	                num_requests += 1;
-	            }).fail(function (err) {
-	                num_requests += 1;
-	                console.error(err);
-	            });
-	        });
-	        var interval = setInterval(function () {
-	            if (num_requests === urls.length) {
-	                clearInterval(interval);
-	                $input_area.empty();
-	                $create_modal.modal("hide");
-	                LinkBatchViewModule.show_modal_with_batch(batch_object.id);
-	                // prepend a new entry to $batch_history
-	            }
-	        }, 500);
-	    });
-	};
-	
-	var refresh_target_path_dropdown = function refresh_target_path_dropdown() {
-	    FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
-	};
-	
-	var set_folder_from_trigger = function set_folder_from_trigger(evt, data) {
-	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') {
-	        data = JSON.parse(data);
-	    }
-	    target_folder = data.folderId;
-	    $batch_target_path.find("option").each(function (ndx) {
-	        if ($(this).val() == target_folder) {
-	            $(this).prop("selected", true);
-	        }
-	    });
-	};
-	
-	var set_folder_from_dropdown = function set_folder_from_dropdown(new_folder_id) {
-	    target_folder = new_folder_id;
-	};
-	
-	var setup_handlers = function setup_handlers() {
-	    $create_modal.on('shown.bs.modal', function () {
-	        refresh_target_path_dropdown();
-	    });
-	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
-	    $batch_target_path.change(function () {
-	        var new_folder_id = $(this).val();
-	        set_folder_from_dropdown(new_folder_id);
-	    });
-	    $start_button.click(function () {
-	        start_batch();
-	    });
-	};
-	
-	function init() {
-	    $(function () {
-	        $create_modal = $('#batch-create-modal');
-	        $view_modal = $('#batch-view-modal');
-	        $input_area = $('#batch-create-input textarea');
-	        $start_button = $('#start-batch');
-	        $cancel_button = $create_modal.find('.cancel');
-	        $batch_target_path = $('#batch-target-path');
-	        $batch_history = $("#batch-history");
-	
-	        setup_handlers();
-	    });
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
+/* 153 */,
 /* 154 */,
 /* 155 */,
 /* 156 */,
@@ -13846,8 +13844,7 @@ webpackJsonp([1],[
 /* 314 */,
 /* 315 */,
 /* 316 */,
-/* 317 */,
-/* 318 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.2.2 IsArray(argument)

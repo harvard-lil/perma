@@ -1,15 +1,25 @@
 <!-- Display Batch modal -->
-<div  class="modal" id="batch-view-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+<div  class="modal" id="batch-modal" tabindex="-1" role="dialog"  aria-hidden="true">
   <div class="modal-dialog modal-sm modal-new">
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">Batch Link Creation</h3>
       </div>
-
+      <div class="spinner"></div>
       <div class="modal-body">
-          <div id="batch-details"></div>
-          <button class="btn cancel" data-dismiss="modal">Exit</button>
-          <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</a>
+          <div id="batch-create-input">
+              <p>The Perma Links will be added to
+                  <select id="batch-target-path" class="form-control"></select>
+              </p>
+              <textarea placeholder="Paste your URLs here (one URL per line)"></textarea>
+              <a href="#" class="btn cancel" data-dismiss="modal">Cancel</a>
+              <a href="#" id="start-batch" class="btn">Create Links</a>
+          </div>
+          <div id="batch-details-wrapper">
+            <div id="batch-details"></div>
+            <button class="btn cancel" data-dismiss="modal">Exit</button>
+            <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</a>
+          </div>
       </div>
     </div>
   </div>

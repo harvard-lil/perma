@@ -68,21 +68,21 @@
 /***/ 0:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(159);
-	module.exports = __webpack_require__(195);
+	__webpack_require__(158);
+	module.exports = __webpack_require__(194);
 
 
 /***/ },
 
-/***/ 159:
+/***/ 158:
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ },
 
-/***/ 195:
-159
+/***/ 194:
+158
 
 /******/ })));
 //# sourceMappingURL=global-styles.js.map

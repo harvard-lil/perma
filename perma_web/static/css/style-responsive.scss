@@ -3156,7 +3156,8 @@ button#addlink,
 
 $batchModalWidth: 900px;
 
-#batch-create-modal, #batch-view-modal {
+#batch-modal {
+
     .modal-dialog {
         @include respond-tablet {
             margin-left: $batchModalWidth * -.5;
@@ -3169,12 +3170,15 @@ $batchModalWidth: 900px;
               width: $batchModalWidth;
           }
     }
-}
 
-#batch-create-modal {
     textarea {
         height: 20em;
     }
+
+}
+
+#batch-details-wrapper {
+  display: none;
 }
 
 #start-batch {

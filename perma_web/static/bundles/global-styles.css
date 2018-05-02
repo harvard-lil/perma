@@ -11398,26 +11398,27 @@ button#addlink,
 }
 
 @media only screen and (min-width: 768px) {
-  #batch-create-modal .modal-dialog,
-  #batch-view-modal .modal-dialog {
+  #batch-modal .modal-dialog {
     margin-left: -450px;
   }
 }
 
-#batch-create-modal .modal-content,
-#batch-view-modal .modal-content {
+#batch-modal .modal-content {
   overflow: hidden;
 }
 
 @media only screen and (min-width: 768px) {
-  #batch-create-modal .modal-content,
-  #batch-view-modal .modal-content {
+  #batch-modal .modal-content {
     width: 900px;
   }
 }
 
-#batch-create-modal textarea {
+#batch-modal textarea {
   height: 20em;
+}
+
+#batch-details-wrapper {
+  display: none;
 }
 
 #start-batch._isWorking {
