@@ -13509,7 +13509,7 @@ webpackJsonp([1],[
 	    $modal.modal("show");
 	}
 	
-	var start_batch = function start_batch() {
+	function start_batch() {
 	    $input.hide();
 	    // $input_area.prop("disabled", true).css("cursor", "not-allowed");
 	    // $cancel_button.css("visibility", "hidden");
@@ -13546,48 +13546,41 @@ webpackJsonp([1],[
 	    });
 	};
 	
-	var refresh_target_path_dropdown = function refresh_target_path_dropdown() {
+	function refresh_target_path_dropdown() {
 	    FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
 	};
 	
-	var set_folder_from_trigger = function set_folder_from_trigger(evt, data) {
+	function set_folder_from_trigger(evt, data) {
 	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') {
 	        data = JSON.parse(data);
 	    }
 	    target_folder = data.folderId;
-	    $batch_target_path.find("option").each(function (ndx) {
+	    $batch_target_path.find("option").each(function () {
 	        if ($(this).val() == target_folder) {
 	            $(this).prop("selected", true);
 	        }
 	    });
 	};
 	
-	var set_folder_from_dropdown = function set_folder_from_dropdown(new_folder_id) {
+	function set_folder_from_dropdown(new_folder_id) {
 	    target_folder = new_folder_id;
 	};
 	
-	var setup_handlers = function setup_handlers() {
+	function setup_handlers() {
+	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
 	
-	    $modal.on('shown.bs.modal', function () {
-	        refresh_target_path_dropdown();
-	    });
-	
-	    $modal.on('hidden.bs.modal', function () {
+	    $modal.on('shown.bs.modal', refresh_target_path_dropdown).on('hidden.bs.modal', function () {
 	        $input.show();
 	        $input_area.val("");
 	        $batch_details_wrapper.hide();
 	    });
-	
-	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
 	
 	    $batch_target_path.change(function () {
 	        var new_folder_id = $(this).val();
 	        set_folder_from_dropdown(new_folder_id);
 	    });
 	
-	    $start_button.click(function () {
-	        start_batch();
-	    });
+	    $start_button.click(start_batch);
 	
 	    $batch_history.delegate('a', 'click', function (e) {
 	        e.preventDefault();
@@ -13598,7 +13591,6 @@ webpackJsonp([1],[
 	
 	function init() {
 	    $(function () {
-	
 	        $modal = $("#batch-modal");
 	        $input = $('#batch-create-input');
 	        $input_area = $('#batch-create-input textarea');

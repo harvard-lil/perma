@@ -94,7 +94,7 @@ export function show_modal_with_batch(batch_id) {
     $modal.modal("show");
 }
 
-var start_batch = function() {
+function start_batch() {
     $input.hide();
     // $input_area.prop("disabled", true).css("cursor", "not-allowed");
     // $cancel_button.css("visibility", "hidden");
@@ -104,13 +104,11 @@ var start_batch = function() {
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder
     }).then(function(batch_object) {
-        var batch_id = batch_object.id;
-        var urls = $input_area.val()
+        let batch_id = batch_object.id;
+        let urls = $input_area.val()
             .split("\n")
-            .map(function(s) {
-                return s.trim();
-            });
-        var num_requests = 0;
+            .map(s => {return s.trim()});
+        let num_requests = 0;
         urls.forEach(function(url) {
             return APIModule.request('POST', '/archives/', {
                 folder: target_folder,
@@ -123,7 +121,7 @@ var start_batch = function() {
                 console.error(err);
             });
         });
-        var interval = setInterval(function() {
+        let interval = setInterval(function() {
             if (num_requests === urls.length) {
                 clearInterval(interval);
                 show_batch(batch_object.id);
@@ -133,50 +131,45 @@ var start_batch = function() {
     });
 };
 
-var refresh_target_path_dropdown = function() {
+function refresh_target_path_dropdown() {
     FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
 };
 
-var set_folder_from_trigger = function(evt, data) {
+function set_folder_from_trigger (evt, data) {
     if (typeof data !== 'object') {
         data = JSON.parse(data);
     }
     target_folder = data.folderId;
-    $batch_target_path.find("option").each(function(ndx) {
+    $batch_target_path.find("option").each(function() {
         if ($(this).val() == target_folder) {
             $(this).prop("selected", true);
         }
     });
 };
 
-var set_folder_from_dropdown = function(new_folder_id) {
+function set_folder_from_dropdown(new_folder_id) {
     target_folder = new_folder_id;
 };
 
-var setup_handlers = function() {
-
-    $modal.on('shown.bs.modal', function() {
-        refresh_target_path_dropdown();
-    });
-
-    $modal.on('hidden.bs.modal', function() {
-        $input.show();
-        $input_area.val("");
-        $batch_details_wrapper.hide();
-    });
-
+function setup_handlers() {
     $(window)
         .on('FolderTreeModule.selectionChange', set_folder_from_trigger)
         .on('dropdown.selectionChange', set_folder_from_trigger);
 
+    $modal
+      .on('shown.bs.modal', refresh_target_path_dropdown)
+      .on('hidden.bs.modal', function() {
+        $input.show();
+        $input_area.val("");
+        $batch_details_wrapper.hide();
+       });
+
     $batch_target_path.change(function() {
-        var new_folder_id = $(this).val();
+        let new_folder_id = $(this).val();
         set_folder_from_dropdown(new_folder_id);
     });
 
-    $start_button.click(function() {
-        start_batch();
-    });
+    $start_button.click(start_batch);
 
     $batch_history.delegate('a', 'click', function(e) {
         e.preventDefault();
@@ -186,10 +179,8 @@ var setup_handlers = function() {
  };
 
 
-
 export function init() {
     $(function() {
-
         $modal = $("#batch-modal");
         $input = $('#batch-create-input');
         $input_area = $('#batch-create-input textarea');
