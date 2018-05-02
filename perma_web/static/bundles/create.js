@@ -13486,7 +13486,7 @@ webpackJsonp([1],[
 	                clearInterval(interval);
 	            }
 	        });
-	    }, 2000);
+	    }(), 2000);
 	}
 	
 	function show_modal_with_batch(batch_id, folder_id) {

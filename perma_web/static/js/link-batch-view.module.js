@@ -68,17 +68,17 @@ var get_batch_info = function(batch_id) {
 };
 
 function show_batch(batch_id, folder_id) {
-    var folder_path = FolderTreeModule.getPathForId(folder_id);
+    let folder_path = FolderTreeModule.getPathForId(folder_id);
     $saved_path.html(folder_path.join(" &gt; "));
-    var spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin($batch_details[0]);
-    var interval = setInterval(function() {
+    let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin($batch_details[0]);
+    let interval = setInterval(function() {
         get_batch_info(batch_id).then(function(links_in_batch) {
             let all_completed = render_batch(links_in_batch, folder_id);
             if (all_completed) {
                 clearInterval(interval);
             }
-        });
-    }, 2000);
+        })
+    }(), 2000);
 }
 
 export function show_modal_with_batch(batch_id, folder_id) {
