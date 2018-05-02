@@ -7,7 +7,6 @@
       </div>
 
       <div class="modal-body">
-          <p>The Perma Links will be added to <span id="batch-saved-path"></span></p>
           <div id="batch-details"></div>
           <button class="btn cancel" data-dismiss="modal">Exit</button>
           <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</button>
@@ -18,6 +17,7 @@
 
 {% verbatim %}
 <script id="batch-links" type="text/x-handlebars-template">
+  <p>The Perma Links will be added to <span id="batch-saved-path">{{ folder }}</span></p>
   {{#each links}}
     <div class="item-container {{#if isError}} _isFailed{{/if}}">
       <div class="row">

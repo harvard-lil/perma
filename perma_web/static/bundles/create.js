@@ -13416,9 +13416,11 @@ webpackJsonp([1],[
 	var ProgressBarHelper = __webpack_require__(152);
 	var HandlebarsHelpers = __webpack_require__(3);
 	
-	var $batch_details, $modal, $saved_path, $export_csv;
+	var $batch_details = void 0,
+	    $modal = void 0,
+	    $export_csv = void 0;
 	
-	var render_batch = function render_batch(links_in_batch, folder_id) {
+	function render_batch(links_in_batch, folder_path) {
 	    $batch_details.empty();
 	    var all_completed = true;
 	    links_in_batch.forEach(function (link) {
@@ -13438,7 +13440,7 @@ webpackJsonp([1],[
 	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
 	        }
 	    });
-	    var template = HandlebarsHelpers.renderTemplate('#batch-links', { "links": links_in_batch });
+	    var template = HandlebarsHelpers.renderTemplate('#batch-links', { "links": links_in_batch, "folder": folder_path });
 	    $batch_details.append(template);
 	    if (all_completed) {
 	        var export_data = links_in_batch.map(function (link) {
@@ -13466,22 +13468,13 @@ webpackJsonp([1],[
 	    return all_completed;
 	};
 	
-	var get_batch_info = function get_batch_info(batch_id) {
-	    return APIModule.request('GET', '/archives/batches/' + parseInt(batch_id)).then(function (batch_data) {
-	        if (Array.isArray(batch_data.capture_jobs)) {
-	            return batch_data.capture_jobs;
-	        }
-	        return [];
-	    });
-	};
-	
-	function show_batch(batch_id, folder_id) {
-	    var folder_path = FolderTreeModule.getPathForId(folder_id);
-	    $saved_path.html(folder_path.join(" &gt; "));
+	function show_batch(batch_id) {
+	    $batch_details.empty();
 	    var spinner = new Spinner({ lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px' }).spin($batch_details[0]);
 	    var interval = setInterval(function () {
-	        get_batch_info(batch_id).then(function (links_in_batch) {
-	            var all_completed = render_batch(links_in_batch, folder_id);
+	        APIModule.request('GET', '/archives/batches/' + batch_id).then(function (batch_data) {
+	            var folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
+	            var all_completed = render_batch(batch_data.capture_jobs, folder_path);
 	            if (all_completed) {
 	                clearInterval(interval);
 	            }
@@ -13489,8 +13482,8 @@ webpackJsonp([1],[
 	    }(), 2000);
 	}
 	
-	function show_modal_with_batch(batch_id, folder_id) {
-	    show_batch(batch_id, folder_id);
+	function show_modal_with_batch(batch_id) {
+	    show_batch(batch_id);
 	    $modal.modal("show");
 	}
 	
@@ -13499,7 +13492,6 @@ webpackJsonp([1],[
 	        var $batch_history = $('#batch-history');
 	        $modal = $("#batch-view-modal");
 	        $batch_details = $('#batch-details');
-	        $saved_path = $('#batch-saved-path');
 	        $export_csv = $('#export-csv');
 	        $batch_history.delegate('a', 'click', function (e) {
 	            e.preventDefault();
@@ -13634,7 +13626,7 @@ webpackJsonp([1],[
 	                clearInterval(interval);
 	                $input_area.empty();
 	                $create_modal.modal("hide");
-	                LinkBatchViewModule.show_modal_with_batch(batch_object.id, batch_object.target_folder);
+	                LinkBatchViewModule.show_modal_with_batch(batch_object.id);
 	                // prepend a new entry to $batch_history
 	            }
 	        }, 500);

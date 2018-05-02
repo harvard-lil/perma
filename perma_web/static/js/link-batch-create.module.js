@@ -43,7 +43,7 @@ var start_batch = function() {
                 clearInterval(interval);
                 $input_area.empty();
                 $create_modal.modal("hide");
-                LinkBatchViewModule.show_modal_with_batch(batch_object.id, batch_object.target_folder);
+                LinkBatchViewModule.show_modal_with_batch(batch_object.id);
                 // prepend a new entry to $batch_history
             }
         }, 500);
