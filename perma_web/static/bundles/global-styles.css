@@ -11417,6 +11417,13 @@ button#addlink,
   height: 20em;
 }
 
+#batch-modal .spinner {
+  position: relative;
+  height: 50px;
+  width: 50px;
+  margin: 6px 0 -15px 0;
+}
+
 #batch-details-wrapper {
   display: none;
 }

@@ -16,12 +16,16 @@ let $modal,
     $batch_details,
     $batch_history,
     $batch_target_path,
-    $export_csv;
+    $export_csv,
+    $spinner;
 let target_folder;
+let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50});
 
 
 function render_batch(links_in_batch, folder_path) {
-    $('.spinner').hide();
+    debugger;
+    $spinner.hide();
+    $spinner.empty();
     $batch_details.empty();
     let all_completed = true;
     links_in_batch.forEach(function(link) {
@@ -72,11 +76,8 @@ function render_batch(links_in_batch, folder_path) {
 function show_batch(batch_id) {
     $batch_details_wrapper.show();
     $batch_details.empty();
-    let spinner = $('.spinner');
-    if (spinner[0].childElementCount) {
-        spinner.show()
-    } else {
-        new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50, top: '20px'}).spin(spinner[0]);
+    if (!$spinner[0].childElementCount) {
+        spinner.spin($spinner[0]);
     }
     let interval = setInterval(function() {
         APIModule.request('GET', `/archives/batches/${batch_id}`).then(function(batch_data) {
@@ -99,8 +100,7 @@ function start_batch() {
     // $input_area.prop("disabled", true).css("cursor", "not-allowed");
     // $cancel_button.css("visibility", "hidden");
     // $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
-    // var spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'}).spin($start_button[0]);
-
+    spinner.spin($spinner[0]);
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder
     }).then(function(batch_object) {
@@ -109,6 +109,7 @@ function start_batch() {
             .split("\n")
             .map(s => {return s.trim()});
         let num_requests = 0;
+        debugger;
         urls.forEach(function(url) {
             return APIModule.request('POST', '/archives/', {
                 folder: target_folder,
@@ -162,6 +163,8 @@ function setup_handlers() {
         $input.show();
         $input_area.val("");
         $batch_details_wrapper.hide();
+        $spinner.empty();
+        $spinner.show();
        });
 
     $batch_target_path.change(function() {
@@ -191,6 +194,7 @@ export function init() {
         $batch_history = $("#batch-history");
         $batch_target_path = $('#batch-target-path');
         $export_csv = $('#export-csv');
+        $spinner = $('.spinner');
 
         setup_handlers();
     });

@@ -3175,6 +3175,13 @@ $batchModalWidth: 900px;
         height: 20em;
     }
 
+    .spinner {
+      position: relative;
+      height: 50px;
+      width: 50px;
+      margin: 6px 0 -15px 0;
+    }
+
 }
 
 #batch-details-wrapper {
