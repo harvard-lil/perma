@@ -13567,6 +13567,9 @@ webpackJsonp([1],[
 	            if (all_completed) {
 	                clearInterval(interval);
 	            }
+	        }).catch(function () {
+	            clearInterval(interval);
+	            $modal.modal("hide");
 	        });
 	    };
 	    retrieve_and_render();
@@ -13591,6 +13594,8 @@ webpackJsonp([1],[
 	        show_batch(batch_object.id);
 	        var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": [batch_object] });
 	        $batch_history.prepend(template);
+	    }).catch(function () {
+	        $modal.modal("hide");
 	    });
 	};
 	
@@ -13616,9 +13621,13 @@ webpackJsonp([1],[
 	
 	function populate_link_batch_list() {
 	    if (settings.ENABLE_BATCH_LINKS) {
-	        APIModule.request("GET", "/archives/batches/", { "limit": 15 }).done(function (data) {
+	        APIModule.request("GET", "/archives/batches/", {
+	            "limit": 15
+	        }).then(function (data) {
 	            var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": data.objects });
 	            $batch_history.append(template);
+	        }).catch(function () {
+	            $batch_history.append('<p>(unavailable)</p>');
 	        });
 	    }
 	}

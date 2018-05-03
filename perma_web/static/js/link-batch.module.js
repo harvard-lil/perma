@@ -72,13 +72,18 @@ function show_batch(batch_id) {
         spinner.spin($spinner[0]);
     }
     let retrieve_and_render = function() {
-        APIModule.request('GET', `/archives/batches/${batch_id}`).then(function(batch_data) {
+        APIModule.request(
+            'GET', `/archives/batches/${batch_id}`
+        ).then(function(batch_data) {
             let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
             let all_completed = render_batch(batch_data.capture_jobs, folder_path);
             if (all_completed) {
                 clearInterval(interval);
             }
-        })
+        }).catch(function(){
+            clearInterval(interval);
+            $modal.modal("hide");
+        });
     }
     retrieve_and_render();
     let interval = setInterval(retrieve_and_render, 2000);
@@ -100,6 +105,8 @@ function start_batch() {
         show_batch(batch_object.id);
         let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": [batch_object]});
         $batch_history.prepend(template);
+    }).catch(function(){
+        $modal.modal("hide");
     });
 };
 
@@ -125,10 +132,14 @@ function set_folder_from_dropdown(new_folder_id) {
 
 function populate_link_batch_list() {
     if (settings.ENABLE_BATCH_LINKS) {
-        APIModule.request("GET", "/archives/batches/", {"limit": 15}).done(function(data) {
+        APIModule.request("GET", "/archives/batches/", {
+            "limit": 15
+        }).then(function(data) {
             let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": data.objects});
             $batch_history.append(template);
-        })
+        }).catch(function(){
+            $batch_history.append('<p>(unavailable)</p>')
+        });
     }
 }
 
