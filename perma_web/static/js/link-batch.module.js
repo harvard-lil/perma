@@ -7,19 +7,12 @@ let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 let HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
-let $modal,
-    $input,
-    $input_area,
-    $start_button,
-    $cancel_button,
-    $batch_details_wrapper,
-    $batch_details,
-    $batch_history,
-    $batch_target_path,
-    $export_csv,
-    $spinner;
 let target_folder;
 let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50});
+
+// elements in the DOM, retrieved during init()
+let $batch_details, $batch_details_wrapper, $batch_history, $batch_target_path,
+    $export_csv, $input, $input_area, $modal, $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
@@ -98,9 +91,6 @@ export function show_modal_with_batch(batch_id) {
 
 function start_batch() {
     $input.hide();
-    // $input_area.prop("disabled", true).css("cursor", "not-allowed");
-    // $cancel_button.css("visibility", "hidden");
-    // $start_button.prop("disabled", true).addClass("_isWorking").text(" ");
     spinner.spin($spinner[0]);
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder
@@ -122,13 +112,15 @@ function start_batch() {
                 console.error(err);
             });
         });
-        let interval = setInterval(function() {
+        let check_status = function(){
             if (num_requests === urls.length) {
                 clearInterval(interval);
                 show_batch(batch_object.id);
                 // prepend a new entry to $batch_history
             }
-        }, 500);
+        }
+        check_status();
+        let interval = setInterval(check_status, 500);
     });
 };
 
@@ -184,17 +176,16 @@ function setup_handlers() {
 
 export function init() {
     $(function() {
-        $modal = $("#batch-modal");
-        $input = $('#batch-create-input');
-        $input_area = $('#batch-create-input textarea');
-        $start_button = $('#start-batch');
-        $cancel_button = $modal.find('.cancel');
-        $batch_details_wrapper = $('#batch-details-wrapper');
         $batch_details = $('#batch-details');
+        $batch_details_wrapper = $('#batch-details-wrapper');
         $batch_history = $("#batch-history");
         $batch_target_path = $('#batch-target-path');
         $export_csv = $('#export-csv');
+        $input = $('#batch-create-input');
+        $input_area = $('#batch-create-input textarea');
+        $modal = $("#batch-modal");
         $spinner = $('.spinner');
+        $start_button = $('#start-batch');
 
         setup_handlers();
     });

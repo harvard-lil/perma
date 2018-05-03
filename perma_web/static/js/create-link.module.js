@@ -7,7 +7,6 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
-var LinkBatchViewModule = require('./link-batch-view.module.js');
 var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
 var newGUID = null;
@@ -302,9 +301,6 @@ function setupEventHandlers () {
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
       handleSelectionChange(data);
-      if (settings.ENABLE_BATCH_LINKS) {
-        $('#create-batch-links').show();
-      }
     })
     .on('CreateLinkModule.updateLinker', function(){
       updateLinker();

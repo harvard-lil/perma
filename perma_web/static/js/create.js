@@ -1,9 +1,9 @@
 var LinkListModule = require('./links-list.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
 var CreateLinkModule = require('./create-link.module.js');
-var LinkBatchViewModule = require('./link-batch-view.module.js');
+var LinkBatchModule = require('./link-batch.module.js');
 
 FolderTreeModule.init();
 LinkListModule.init();
 CreateLinkModule.init();
-LinkBatchViewModule.init();
+LinkBatchModule.init();
