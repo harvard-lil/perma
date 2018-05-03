@@ -103,6 +103,14 @@
 <div class="container cont-fixed manage-links">
   <div class="row">
     <div class="col-md-3 col-folders">
+      {% if ENABLE_BATCH_LINKS %}
+      <div class="panel-heading">
+          Batches history
+      </div>
+      <div>
+          <ul id="batches-history-list"></ul>
+      </div>
+      {% endif %}
       <div class="panel-heading">
         Folders
         <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
@@ -110,12 +118,6 @@
         <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
       </div>
       <div id="folder-tree"></div>
-      {% if ENABLE_BATCH_LINKS %}
-      <div class="panel-heading">
-          Batches history
-          <ul id="batches-history-list"></ul>
-      </div>
-      {% endif %}
     </div>
 
     <div class="col-md-9 col-links">

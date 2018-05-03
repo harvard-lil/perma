@@ -843,6 +843,7 @@ webpackJsonp([9],{
 	
 	exports.request = request;
 	exports.getErrorMessage = getErrorMessage;
+	exports.stripDataStructure = stripDataStructure;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -873,20 +874,11 @@ webpackJsonp([9],{
 	
 	// parse error results from API into string for display to user
 	function getErrorMessage(jqXHR) {
-	  var message;
+	  var message = void 0;
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
 	    try {
-	      var parsedResponse = JSON.parse(jqXHR.responseText);
-	      while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
-	        for (var key in parsedResponse) {
-	          if (parsedResponse.hasOwnProperty(key)) {
-	            parsedResponse = parsedResponse[key];
-	            break;
-	          }
-	        }
-	      }
-	      message = parsedResponse;
+	      message = stripDataStructure(JSON.parse(jqXHR.responseText));
 	    } catch (SyntaxError) {
 	      ErrorHandler.airbrake.notify(SyntaxError);
 	    }
@@ -897,6 +889,19 @@ webpackJsonp([9],{
 	  }
 	
 	  return message;
+	}
+	
+	function stripDataStructure(object) {
+	  var parsedResponse = object;
+	  while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
+	    for (var key in parsedResponse) {
+	      if (parsedResponse.hasOwnProperty(key)) {
+	        parsedResponse = parsedResponse[key];
+	        break;
+	      }
+	    }
+	  }
+	  return parsedResponse;
 	}
 	
 	// display error results from API

@@ -1268,9 +1268,10 @@ class CaptureJob(models.Model):
     """
     link = models.OneToOneField(Link, related_name='capture_job', null=True, blank=True)
     status = models.CharField(max_length=15,
-                              default='pending',
+                              default='invalid',
                               choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed'),('invalid', 'invalid')),
                               db_index=True)
+    message = models.TextField(null=True, blank=True) #if we move to postgres, can be a json field
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
@@ -1394,6 +1395,9 @@ class LinkBatch(models.Model):
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches')
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False)
     target_folder = models.ForeignKey(Folder, blank=False, null=False)
+
+    class Meta:
+        verbose_name_plural = "link batches"
 
     def accessible_to(self, user):
         return user.is_staff or self.created_by == user

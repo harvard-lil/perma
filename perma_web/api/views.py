@@ -14,7 +14,7 @@ from perma.utils import run_task, stream_warc, stream_warc_if_permissible
 from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
-from .utils import TastypiePagination, load_parent, raise_validation_error, safe_get
+from .utils import TastypiePagination, load_parent, raise_general_validation_error, raise_invalid_capture_job, get_or_none
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer
 
@@ -197,7 +197,7 @@ class FolderDetailView(BaseView):
             For nested endpoint, PUT /folders/:id into /folders/:parent_id.
         """
         if not request.parent:
-            raise_validation_error("PUT is only valid for nested folder endpoints.")
+            raise_general_validation_error("PUT is only valid for nested folder endpoints.")
         return self.folder_update(request, pk, {'parent': request.parent.pk})
 
     @load_parent
@@ -207,9 +207,9 @@ class FolderDetailView(BaseView):
 
         # delete validations
         if folder.is_shared_folder or folder.is_root_folder:
-            raise_validation_error("Top-level folders cannot be deleted.")
+            raise_general_validation_error("Top-level folders cannot be deleted.")
         elif not folder.is_empty():
-            raise_validation_error("Folders can only be deleted if they are empty.")
+            raise_general_validation_error("Folders can only be deleted if they are empty.")
 
         return self.simple_delete(folder)
 
@@ -340,18 +340,30 @@ class AuthenticatedLinkListView(BaseView):
     def post(self, request, format=None):
         """ Create new link. """
         data = request.data
+        capture_job = CaptureJob(
+            human=request.data.get('human', False),
+            submitted_url=request.data.get('url', '')
+        )
+        if settings.ENABLE_BATCH_LINKS:
+            link_batch = get_or_none(LinkBatch, request.data.get('link_batch_id', None))
+            capture_job.link_batch = link_batch
+        capture_job.save()
+
 
         # Set target folder, in order of preference:
         # - 'folder' key in data
         # - parent folder, if posting to /folders/:parent_id/archives
         # - user's personal folder
-        folder = self.get_folder_from_request(request) or request.parent or request.user.root_folder
+        try:
+            folder = self.get_folder_from_request(request) or request.parent or request.user.root_folder
+        except ValidationError as e:
+            raise_invalid_capture_job(capture_job, e.detail)
 
         # Make sure a limited user has links left to create
         if not folder.organization:
             links_remaining = request.user.get_links_remaining()
             if links_remaining < 1:
-                raise_validation_error("You've already reached your limit.")
+                raise_invalid_capture_job(capture_job, "You've already reached your limit.")
         else:
             registrar = folder.organization.registrar
             if not registrar.link_creation_allowed():
@@ -361,7 +373,7 @@ class AuthenticatedLinkListView(BaseView):
                 else:
                     registrar_users = [user.email for user in registrar.active_registrar_users()]
                     contact = 'For assistance with your subscription, contact:  {}.'.format(", ".join(registrar_users))
-                raise_validation_error(error + contact)
+                raise_invalid_capture_job(capture_job, error + contact)
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
@@ -400,24 +412,17 @@ class AuthenticatedLinkListView(BaseView):
                     content_type='image/png',
                 ).save()
 
-                # create CaptureJob
-                if settings.ENABLE_BATCH_LINKS:
-                    link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
-                    CaptureJob(link=link, human=request.data.get('human', False),
-                               submitted_url=link.submitted_url, link_batch=link_batch).save()
-                else:
-                    CaptureJob(link=link, human=request.data.get('human', False)).save()
 
                 # kick off capture tasks -- no need for guid since it'll work through the queue
+                capture_job.status = 'pending'
+                capture_job.link = link
+                capture_job.save(update_fields=['status', 'link'])
                 run_task(run_next_capture.s())
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if settings.ENABLE_BATCH_LINKS:
-            link_batch = safe_get(LinkBatch, request.data.get('link_batch_id', None))
-            CaptureJob(human=request.data.get('human', False), status='invalid',
-                       submitted_url=request.data.get('url', ''),
-                       link_batch=link_batch, link=None).save()
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        raise_invalid_capture_job(capture_job, serializer.errors)
+
 
 
 # /archives/:guid

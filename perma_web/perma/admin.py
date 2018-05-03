@@ -10,7 +10,7 @@ from django.db.models.sql.where import WhereNode
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
-from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture
+from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
 from .admin_utils import new_class, InlineEditLinkMixin
 
 ### inlines ###
@@ -155,8 +155,8 @@ class LinkAdmin(SimpleHistoryAdmin):
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
         new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
-                   fields=['status', 'step_count', 'step_description', 'human'],
-                   readonly_fields=['step_count', 'step_description', 'human'],
+                   fields=['status', 'message', 'step_count', 'step_description', 'human'],
+                   readonly_fields=['message', 'step_count', 'step_description', 'human'],
                    can_delete=False)
     ]
     raw_id_fields = ['created_by','replacement_link']
@@ -176,17 +176,35 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'link_id', 'created_by', 'creation_timestamp', 'human']
+    list_display = ['id', 'status', 'message', 'link_id', 'link_created_by', 'link_creation_timestamp', 'human']
     list_filter = ['status']
     raw_id_fields = ['link']
 
     def get_queryset(self, request):
-        return super(CaptureJobAdmin, self).get_queryset(request).filter(link__user_deleted=False).select_related('link','link__created_by')
+        q = Q(link__isnull=True) | Q(link__user_deleted=False)
+        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link','link__created_by')
 
-    def created_by(self, obj):
-        return obj.link.created_by
-    def creation_timestamp(self, obj):
-        return obj.link.creation_timestamp
+    def link_created_by(self, obj):
+        if obj.link:
+            return obj.link.created_by
+        return None
+
+    def link_creation_timestamp(self, obj):
+        if obj.link:
+            return obj.link.creation_timestamp
+        return None
+
+
+class LinkBatchAdmin(admin.ModelAdmin):
+    list_display = ['id', 'created_by', 'started_on', 'target_folder']
+
+    inlines = [
+      new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
+               fields=['status', 'message', 'step_count', 'step_description', 'human'],
+               readonly_fields=['message', 'step_count', 'step_description', 'human'],
+               can_delete=False)
+    ]
+
 
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
 admin.TabularInline.extra = 0
@@ -198,6 +216,7 @@ admin.site.unregister(Group)
 
 # add our models
 admin.site.register(Link, LinkAdmin)
+admin.site.register(LinkBatch, LinkBatchAdmin)
 admin.site.register(CaptureJob, CaptureJobAdmin)
 admin.site.register(LinkUser, LinkUserAdmin)
 admin.site.register(Organization, OrganizationAdmin)

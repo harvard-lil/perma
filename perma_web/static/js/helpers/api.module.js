@@ -25,20 +25,11 @@ export function request (method, url, data, requestArgs){
 
 // parse error results from API into string for display to user
 export function getErrorMessage (jqXHR) {
-  var message;
+  let message;
 
   if (jqXHR.status == 400 && jqXHR.responseText) {
     try {
-      var parsedResponse = JSON.parse(jqXHR.responseText);
-      while(typeof parsedResponse == 'object') {
-        for (var key in parsedResponse) {
-          if (parsedResponse.hasOwnProperty(key)) {
-            parsedResponse = parsedResponse[key];
-            break;
-          }
-        }
-      }
-      message = parsedResponse;
+      message = stripDataStructure(JSON.parse(jqXHR.responseText));
     } catch (SyntaxError) {
       ErrorHandler.airbrake.notify(SyntaxError);
     }
@@ -49,6 +40,19 @@ export function getErrorMessage (jqXHR) {
   }
 
   return message;
+}
+
+export function stripDataStructure (object){
+  let parsedResponse = object;
+  while(typeof parsedResponse == 'object') {
+    for (let key in parsedResponse) {
+      if (parsedResponse.hasOwnProperty(key)) {
+        parsedResponse = parsedResponse[key];
+        break;
+      }
+    }
+  }
+  return parsedResponse;
 }
 
 // display error results from API
