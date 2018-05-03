@@ -1,6 +1,5 @@
 {% extends "base-responsive.html" %}
 {% load render_bundle from webpack_loader %}
-{% load local_datetime %}
 
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
@@ -110,11 +109,6 @@
       </div>
       <div>
         <ul id="batch-history" class="item-container">
-          {% for batch in link_batches %}
-            <li class="item-subtitle">
-              <a href="#" data-batch={{ batch.id }} data-folder="{{ batch.target_folder.id }}"><span class="sr-only">Batch created </span>{{ batch.started_on | local_datetime }}</a>
-            </li>
-          {% endfor %}
         </ul>
       </div>
       {% endif %}
@@ -149,10 +143,6 @@
 
 {% endblock %}
 
-{% block header_scripts %}
-  {% local_datetime_js %}
-{% endblock %}
-
 {% block scripts %}
   {{ block.super }}
 
@@ -170,6 +160,14 @@
 {% block templates %}
 
   {% verbatim %}
+    <script id="link-batch-history-template" type="text/x-handlebars-template">
+      {{# each link_batches}}
+      <li class="item-subtitle">
+        <a href="#" data-batch={{ id }} data-folder="{{ target_folder.id }}"><span class="sr-only">Batch created </span>{{ human_timestamp started_on }}</a>
+      </li>
+      {{/each}}
+    </script>
+
     <script id="upload-confirm-template" type="text/x-handlebars-template">
       <p class="message-large">Upload successful!</p>
       <p><a href="{{url}}">{{url}}</a></p>

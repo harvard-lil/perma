@@ -7,9 +7,9 @@ webpackJsonp([9],{
 	
 	var SingleLinkModule = __webpack_require__(206);
 	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(78);
-	var Helpers = __webpack_require__(92);
-	var LinkHelpers = __webpack_require__(77);
+	var APIModule = __webpack_require__(79);
+	var Helpers = __webpack_require__(93);
+	var LinkHelpers = __webpack_require__(78);
 	
 	var updateBtnID = '#updatePermalink',
 	    cancelBtnID = '#cancelUpdatePermalink';
@@ -219,18 +219,140 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 9:
+/***/ 5:
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.human_timestamp = human_timestamp;
+	// function used by Django templatetag
+	// given seconds since UTC epoch and a Django date filter/PHP date format string,
+	// return formatted date in user's local time.
+	function insertLocalDateTime(elementID, epochSeconds, formatString) {
+	    var dateString = new Date(epochSeconds * 1000).format(formatString),
+	        targetElement = document.getElementById(elementID);
+	    targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
+	}
+	
+	// via http://jacwright.com/projects/javascript/date_format/
+	// Simulates PHP's date function, which is similar to Django's date format filter
+	Date.prototype.format = function (e) {
+	    var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
+	        var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
+	            t += i;
+	        } else if (n[i]) {
+	            t += n[i].call(this);
+	        } else if (i != "\\") {
+	            t += i;
+	        }
+	    }return t;
+	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
+	        return (this.getDate() < 10 ? "0" : "") + this.getDate();
+	    }, D: function D() {
+	        return Date.replaceChars.shortDays[this.getDay()];
+	    }, j: function j() {
+	        return this.getDate();
+	    }, l: function l() {
+	        return Date.replaceChars.longDays[this.getDay()];
+	    }, N: function N() {
+	        return this.getDay() + 1;
+	    }, S: function S() {
+	        return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
+	    }, w: function w() {
+	        return this.getDay();
+	    }, z: function z() {
+	        var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
+	    }, W: function W() {
+	        var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
+	    }, F: function F() {
+	        return Date.replaceChars.longMonths[this.getMonth()];
+	    }, m: function m() {
+	        return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
+	    }, M: function M() {
+	        return Date.replaceChars.shortMonths[this.getMonth()];
+	    }, n: function n() {
+	        return this.getMonth() + 1;
+	    }, t: function t() {
+	        var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+	    }, L: function L() {
+	        var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
+	    }, o: function o() {
+	        var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
+	    }, Y: function Y() {
+	        return this.getFullYear();
+	    }, y: function y() {
+	        return ("" + this.getFullYear()).substr(2);
+	    }, a: function a() {
+	        return this.getHours() < 12 ? "am" : "pm";
+	    }, A: function A() {
+	        return this.getHours() < 12 ? "AM" : "PM";
+	    }, B: function B() {
+	        return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
+	    }, g: function g() {
+	        return this.getHours() % 12 || 12;
+	    }, G: function G() {
+	        return this.getHours();
+	    }, h: function h() {
+	        return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
+	    }, H: function H() {
+	        return (this.getHours() < 10 ? "0" : "") + this.getHours();
+	    }, i: function i() {
+	        return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
+	    }, s: function s() {
+	        return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
+	    }, u: function u() {
+	        var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
+	    }, e: function e() {
+	        return "Not Yet Supported";
+	    }, I: function I() {
+	        var e = null;for (var t = 0; t < 12; ++t) {
+	            var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
+	                e = r;break;
+	            } else if (r > e) break;
+	        }return this.getTimezoneOffset() == e | 0;
+	    }, O: function O() {
+	        return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
+	    }, P: function P() {
+	        return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
+	    }, T: function T() {
+	        var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
+	    }, Z: function Z() {
+	        return -this.getTimezoneOffset() * 60;
+	    }, c: function c() {
+	        return this.format("Y-m-d\\TH:i:sP");
+	    }, r: function r() {
+	        return this.toString();
+	    }, U: function U() {
+	        return this.getTime() / 1e3;
+	    } };
+	
+	function human_timestamp(datetime) {
+	    return new Date(datetime).toLocaleString("en-us", {
+	        year: "numeric",
+	        month: "long",
+	        day: "numeric",
+	        hour: "numeric",
+	        minute: "2-digit"
+	    });
+	}
+
+/***/ },
+
+/***/ 10:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	exports.__esModule = true;
 	
-	var _iterator = __webpack_require__(10);
+	var _iterator = __webpack_require__(11);
 	
 	var _iterator2 = _interopRequireDefault(_iterator);
 	
-	var _symbol = __webpack_require__(60);
+	var _symbol = __webpack_require__(61);
 	
 	var _symbol2 = _interopRequireDefault(_symbol);
 	
@@ -246,77 +368,77 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 10:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(11), __esModule: true };
-
-/***/ },
-
 /***/ 11:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(12);
-	__webpack_require__(55);
-	module.exports = __webpack_require__(59).f('iterator');
+	module.exports = { "default": __webpack_require__(12), __esModule: true };
 
 /***/ },
 
-/***/ 59:
+/***/ 12:
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(52);
+	__webpack_require__(13);
+	__webpack_require__(56);
+	module.exports = __webpack_require__(60).f('iterator');
 
 /***/ },
 
 /***/ 60:
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(61), __esModule: true };
+	exports.f = __webpack_require__(53);
 
 /***/ },
 
 /***/ 61:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(62);
-	__webpack_require__(73);
-	__webpack_require__(74);
-	__webpack_require__(75);
-	module.exports = __webpack_require__(8).Symbol;
+	module.exports = { "default": __webpack_require__(62), __esModule: true };
 
 /***/ },
 
 /***/ 62:
 /***/ function(module, exports, __webpack_require__) {
 
+	__webpack_require__(63);
+	__webpack_require__(74);
+	__webpack_require__(75);
+	__webpack_require__(76);
+	module.exports = __webpack_require__(9).Symbol;
+
+/***/ },
+
+/***/ 63:
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	// ECMAScript 6 symbols shim
-	var global         = __webpack_require__(19)
-	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(27)
-	  , $export        = __webpack_require__(18)
-	  , redefine       = __webpack_require__(32)
-	  , META           = __webpack_require__(63).KEY
-	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(47)
-	  , setToStringTag = __webpack_require__(51)
-	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(52)
-	  , wksExt         = __webpack_require__(59)
-	  , wksDefine      = __webpack_require__(64)
-	  , keyOf          = __webpack_require__(65)
-	  , enumKeys       = __webpack_require__(66)
-	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(24)
-	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
-	  , createDesc     = __webpack_require__(31)
-	  , _create        = __webpack_require__(36)
-	  , gOPNExt        = __webpack_require__(70)
-	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(23)
-	  , $keys          = __webpack_require__(38)
+	var global         = __webpack_require__(20)
+	  , has            = __webpack_require__(34)
+	  , DESCRIPTORS    = __webpack_require__(28)
+	  , $export        = __webpack_require__(19)
+	  , redefine       = __webpack_require__(33)
+	  , META           = __webpack_require__(64).KEY
+	  , $fails         = __webpack_require__(29)
+	  , shared         = __webpack_require__(48)
+	  , setToStringTag = __webpack_require__(52)
+	  , uid            = __webpack_require__(49)
+	  , wks            = __webpack_require__(53)
+	  , wksExt         = __webpack_require__(60)
+	  , wksDefine      = __webpack_require__(65)
+	  , keyOf          = __webpack_require__(66)
+	  , enumKeys       = __webpack_require__(67)
+	  , isArray        = __webpack_require__(70)
+	  , anObject       = __webpack_require__(25)
+	  , toIObject      = __webpack_require__(41)
+	  , toPrimitive    = __webpack_require__(31)
+	  , createDesc     = __webpack_require__(32)
+	  , _create        = __webpack_require__(37)
+	  , gOPNExt        = __webpack_require__(71)
+	  , $GOPD          = __webpack_require__(73)
+	  , $DP            = __webpack_require__(24)
+	  , $keys          = __webpack_require__(39)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
 	  , gOPN           = gOPNExt.f
@@ -439,11 +561,11 @@ webpackJsonp([9],{
 	
 	  $GOPD.f = $getOwnPropertyDescriptor;
 	  $DP.f   = $defineProperty;
-	  __webpack_require__(71).f = gOPNExt.f = $getOwnPropertyNames;
-	  __webpack_require__(68).f  = $propertyIsEnumerable;
-	  __webpack_require__(67).f = $getOwnPropertySymbols;
+	  __webpack_require__(72).f = gOPNExt.f = $getOwnPropertyNames;
+	  __webpack_require__(69).f  = $propertyIsEnumerable;
+	  __webpack_require__(68).f = $getOwnPropertySymbols;
 	
-	  if(DESCRIPTORS && !__webpack_require__(17)){
+	  if(DESCRIPTORS && !__webpack_require__(18)){
 	    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
 	  }
 	
@@ -518,7 +640,7 @@ webpackJsonp([9],{
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(23)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -528,18 +650,18 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 63:
+/***/ 64:
 /***/ function(module, exports, __webpack_require__) {
 
-	var META     = __webpack_require__(48)('meta')
-	  , isObject = __webpack_require__(25)
-	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(23).f
+	var META     = __webpack_require__(49)('meta')
+	  , isObject = __webpack_require__(26)
+	  , has      = __webpack_require__(34)
+	  , setDesc  = __webpack_require__(24).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
 	};
-	var FREEZE = !__webpack_require__(28)(function(){
+	var FREEZE = !__webpack_require__(29)(function(){
 	  return isExtensible(Object.preventExtensions({}));
 	});
 	var setMeta = function(it){
@@ -587,14 +709,14 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 64:
+/***/ 65:
 /***/ function(module, exports, __webpack_require__) {
 
-	var global         = __webpack_require__(19)
-	  , core           = __webpack_require__(8)
-	  , LIBRARY        = __webpack_require__(17)
-	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(23).f;
+	var global         = __webpack_require__(20)
+	  , core           = __webpack_require__(9)
+	  , LIBRARY        = __webpack_require__(18)
+	  , wksExt         = __webpack_require__(60)
+	  , defineProperty = __webpack_require__(24).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -602,11 +724,11 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 65:
+/***/ 66:
 /***/ function(module, exports, __webpack_require__) {
 
-	var getKeys   = __webpack_require__(38)
-	  , toIObject = __webpack_require__(40);
+	var getKeys   = __webpack_require__(39)
+	  , toIObject = __webpack_require__(41);
 	module.exports = function(object, el){
 	  var O      = toIObject(object)
 	    , keys   = getKeys(O)
@@ -618,13 +740,13 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 66:
+/***/ 67:
 /***/ function(module, exports, __webpack_require__) {
 
 	// all enumerable object keys, includes symbols
-	var getKeys = __webpack_require__(38)
-	  , gOPS    = __webpack_require__(67)
-	  , pIE     = __webpack_require__(68);
+	var getKeys = __webpack_require__(39)
+	  , gOPS    = __webpack_require__(68)
+	  , pIE     = __webpack_require__(69);
 	module.exports = function(it){
 	  var result     = getKeys(it)
 	    , getSymbols = gOPS.f;
@@ -639,37 +761,37 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 67:
+/***/ 68:
 /***/ function(module, exports) {
 
 	exports.f = Object.getOwnPropertySymbols;
 
 /***/ },
 
-/***/ 68:
+/***/ 69:
 /***/ function(module, exports) {
 
 	exports.f = {}.propertyIsEnumerable;
 
 /***/ },
 
-/***/ 69:
+/***/ 70:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 7.2.2 IsArray(argument)
-	var cof = __webpack_require__(42);
+	var cof = __webpack_require__(43);
 	module.exports = Array.isArray || function isArray(arg){
 	  return cof(arg) == 'Array';
 	};
 
 /***/ },
 
-/***/ 70:
+/***/ 71:
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-	var toIObject = __webpack_require__(40)
-	  , gOPN      = __webpack_require__(71).f
+	var toIObject = __webpack_require__(41)
+	  , gOPN      = __webpack_require__(72).f
 	  , toString  = {}.toString;
 	
 	var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
@@ -690,12 +812,12 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 71:
+/***/ 72:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-	var $keys      = __webpack_require__(39)
-	  , hiddenKeys = __webpack_require__(49).concat('length', 'prototype');
+	var $keys      = __webpack_require__(40)
+	  , hiddenKeys = __webpack_require__(50).concat('length', 'prototype');
 	
 	exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
 	  return $keys(O, hiddenKeys);
@@ -703,18 +825,18 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 72:
+/***/ 73:
 /***/ function(module, exports, __webpack_require__) {
 
-	var pIE            = __webpack_require__(68)
-	  , createDesc     = __webpack_require__(31)
-	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
-	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
+	var pIE            = __webpack_require__(69)
+	  , createDesc     = __webpack_require__(32)
+	  , toIObject      = __webpack_require__(41)
+	  , toPrimitive    = __webpack_require__(31)
+	  , has            = __webpack_require__(34)
+	  , IE8_DOM_DEFINE = __webpack_require__(27)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(28) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -725,28 +847,28 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 73:
+/***/ 74:
 /***/ function(module, exports) {
 
 
 
 /***/ },
 
-/***/ 74:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(64)('asyncIterator');
-
-/***/ },
-
 /***/ 75:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(64)('observable');
+	__webpack_require__(65)('asyncIterator');
 
 /***/ },
 
-/***/ 77:
+/***/ 76:
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(65)('observable');
+
+/***/ },
+
+/***/ 78:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -758,8 +880,8 @@ webpackJsonp([9],{
 	exports.generateLinkFields = generateLinkFields;
 	exports.saveInput = saveInput;
 	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(78);
-	__webpack_require__(102); // add .format() to Date object
+	var APIModule = __webpack_require__(79);
+	__webpack_require__(5); // add .format() to Date object
 	
 	
 	function findFaviconURL(linkObj) {
@@ -824,7 +946,7 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 78:
+/***/ 79:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -833,11 +955,11 @@ webpackJsonp([9],{
 	  value: true
 	});
 	
-	var _typeof2 = __webpack_require__(9);
+	var _typeof2 = __webpack_require__(10);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
-	var _stringify = __webpack_require__(6);
+	var _stringify = __webpack_require__(7);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
@@ -848,8 +970,8 @@ webpackJsonp([9],{
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(79);
-	var Helpers = __webpack_require__(92);
+	var ErrorHandler = __webpack_require__(80);
+	var Helpers = __webpack_require__(93);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -910,115 +1032,6 @@ webpackJsonp([9],{
 	  Helpers.informUser(message, 'danger');
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-
-/***/ 102:
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	// JS file used by Django templatetag
-	
-	// given seconds since UTC epoch and a Django date filter/PHP date format string,
-	// return formatted date in user's local time.
-	function insertLocalDateTime(elementID, epochSeconds, formatString) {
-	  var dateString = new Date(epochSeconds * 1000).format(formatString),
-	      targetElement = document.getElementById(elementID);
-	  targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
-	}
-	
-	// via http://jacwright.com/projects/javascript/date_format/
-	// Simulates PHP's date function, which is similar to Django's date format filter
-	Date.prototype.format = function (e) {
-	  var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
-	    var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
-	      t += i;
-	    } else if (n[i]) {
-	      t += n[i].call(this);
-	    } else if (i != "\\") {
-	      t += i;
-	    }
-	  }return t;
-	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
-	    return (this.getDate() < 10 ? "0" : "") + this.getDate();
-	  }, D: function D() {
-	    return Date.replaceChars.shortDays[this.getDay()];
-	  }, j: function j() {
-	    return this.getDate();
-	  }, l: function l() {
-	    return Date.replaceChars.longDays[this.getDay()];
-	  }, N: function N() {
-	    return this.getDay() + 1;
-	  }, S: function S() {
-	    return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
-	  }, w: function w() {
-	    return this.getDay();
-	  }, z: function z() {
-	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
-	  }, W: function W() {
-	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
-	  }, F: function F() {
-	    return Date.replaceChars.longMonths[this.getMonth()];
-	  }, m: function m() {
-	    return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
-	  }, M: function M() {
-	    return Date.replaceChars.shortMonths[this.getMonth()];
-	  }, n: function n() {
-	    return this.getMonth() + 1;
-	  }, t: function t() {
-	    var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
-	  }, L: function L() {
-	    var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
-	  }, o: function o() {
-	    var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
-	  }, Y: function Y() {
-	    return this.getFullYear();
-	  }, y: function y() {
-	    return ("" + this.getFullYear()).substr(2);
-	  }, a: function a() {
-	    return this.getHours() < 12 ? "am" : "pm";
-	  }, A: function A() {
-	    return this.getHours() < 12 ? "AM" : "PM";
-	  }, B: function B() {
-	    return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
-	  }, g: function g() {
-	    return this.getHours() % 12 || 12;
-	  }, G: function G() {
-	    return this.getHours();
-	  }, h: function h() {
-	    return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
-	  }, H: function H() {
-	    return (this.getHours() < 10 ? "0" : "") + this.getHours();
-	  }, i: function i() {
-	    return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
-	  }, s: function s() {
-	    return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
-	  }, u: function u() {
-	    var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
-	  }, e: function e() {
-	    return "Not Yet Supported";
-	  }, I: function I() {
-	    var e = null;for (var t = 0; t < 12; ++t) {
-	      var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
-	        e = r;break;
-	      } else if (r > e) break;
-	    }return this.getTimezoneOffset() == e | 0;
-	  }, O: function O() {
-	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
-	  }, P: function P() {
-	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
-	  }, T: function T() {
-	    var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
-	  }, Z: function Z() {
-	    return -this.getTimezoneOffset() * 60;
-	  }, c: function c() {
-	    return this.format("Y-m-d\\TH:i:sP");
-	  }, r: function r() {
-	    return this.toString();
-	  }, U: function U() {
-	    return this.getTime() / 1e3;
-	  } };
 
 /***/ },
 

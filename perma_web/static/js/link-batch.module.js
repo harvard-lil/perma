@@ -116,7 +116,8 @@ function start_batch() {
             if (num_requests === urls.length) {
                 clearInterval(interval);
                 show_batch(batch_object.id);
-                // prepend a new entry to $batch_history
+                let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": [batch_object]});
+                $batch_history.prepend(template);
             }
         }
         check_status();
@@ -143,6 +144,15 @@ function set_folder_from_trigger (evt, data) {
 function set_folder_from_dropdown(new_folder_id) {
     target_folder = new_folder_id;
 };
+
+function populate_link_batch_list() {
+    if (settings.ENABLE_BATCH_LINKS) {
+        APIModule.request("GET", "/archives/batches/", {"limit": 15}).done(function(data) {
+            let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": data.objects});
+            $batch_history.append(template);
+        })
+    }
+}
 
 function setup_handlers() {
     $(window)
@@ -187,6 +197,7 @@ export function init() {
         $spinner = $('.spinner');
         $start_button = $('#start-batch');
 
+        populate_link_batch_list();
         setup_handlers();
     });
 }

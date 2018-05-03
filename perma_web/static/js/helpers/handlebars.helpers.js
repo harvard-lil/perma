@@ -1,4 +1,5 @@
 var Handlebars = require('handlebars');
+let LocalDatetime = require('./local-datetime.js');
 
 Handlebars.registerHelper ('truncatechars', function (str, len) {
     if (str.length > len) {
@@ -15,6 +16,10 @@ Handlebars.registerHelper ('truncatechars', function (str, len) {
         return new Handlebars.SafeString ( new_str +'...' );
     }
     return str;
+});
+
+Handlebars.registerHelper('human_timestamp', function(datetime) {
+  return Handlebars.escapeExpression(LocalDatetime.human_timestamp(datetime));
 });
 
 /*
