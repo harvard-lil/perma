@@ -15,7 +15,7 @@ from perma.tasks import upload_to_internet_archive, delete_from_internet_archive
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
 from .utils import TastypiePagination, load_parent, raise_general_validation_error, \
-    raise_invalid_capture_job, get_or_none, dispatch_multiple_requests, reverse_api_view_relative
+    raise_invalid_capture_job, dispatch_multiple_requests, reverse_api_view_relative
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer
 
@@ -346,8 +346,10 @@ class AuthenticatedLinkListView(BaseView):
             submitted_url=request.data.get('url', '')
         )
         if settings.ENABLE_BATCH_LINKS:
-            link_batch = get_or_none(LinkBatch, request.data.get('link_batch_id', None))
-            capture_job.link_batch = link_batch
+            # Batch is set directly on the request object by the LinkBatch api,
+            # to prevent abuse of this feature by those POSTing directly to this route.
+            if request.batch:
+                capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
         capture_job.save()
 
 
@@ -562,12 +564,11 @@ class LinkBatchesListView(BaseView):
                         'verb': 'POST',
                         'data': {
                             'url': url,
-                            'folder': request.data['target_folder'],
-                            'link_batch_id': batch_id
+                            'folder': request.data['target_folder']
                         }
                     } for url in request.data.get('urls', [])
                 ]
-                dispatch_multiple_requests(request.user, call_list)
+                dispatch_multiple_requests(request.user, call_list, {"batch": batch_id})
 
                 # Get an up-to-date version of this LinkBatch's data,
                 # formatted by the LinkBatch serializer

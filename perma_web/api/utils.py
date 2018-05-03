@@ -174,14 +174,8 @@ def reverse_api_view_relative(viewname, *args, **kwargs):
     except NoReverseMatch:
         return reverse(viewname, *args, **kwargs)
 
-def get_or_none(model, pk):
-    """Returns an instance of a model by its ID, or None if it does not exist"""
-    try:
-        return model.objects.get(pk=pk)
-    except model.DoesNotExist:
-        return None
 
-def dispatch_multiple_requests(user, call_list):
+def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
     """
     Makes a series of internal api "calls" on behalf of a user,
     all within a single http request/response cycle.
@@ -193,6 +187,11 @@ def dispatch_multiple_requests(user, call_list):
         "data": a dictionary of data to send with the request,
                 i.e., the data that would normally be sent as JSON
                 when hitting the api route
+
+    If you need to customize the request object passed to the
+    api's view function, pass a dict of attribute/value pairs.
+    For example, {"parent": 1} will set request.parent = 1 on
+    every generated request object.
 
     A list of dictionaries will be returned reporting:
         "status_code": the http status code returned by the "call"
@@ -207,6 +206,9 @@ def dispatch_multiple_requests(user, call_list):
             view, args, kwargs = resolve(call['path'])
             request = getattr(factory, call['verb'].lower())(call['path'], data=call.get('data', {}))
             request.user = user
+            if custom_request_attributes:
+                for attribute, value in custom_request_attributes.iteritems():
+                    setattr(request, attribute, value)
             response = view(request, *args, **kwargs)
         except Exception as exception:
             response = exception_handler(exception, {})
