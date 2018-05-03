@@ -23,7 +23,6 @@ let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 
 
 
 function render_batch(links_in_batch, folder_path) {
-    debugger;
     $spinner.hide();
     $spinner.empty();
     $batch_details.empty();
@@ -79,7 +78,7 @@ function show_batch(batch_id) {
     if (!$spinner[0].childElementCount) {
         spinner.spin($spinner[0]);
     }
-    let interval = setInterval(function() {
+    let retrieve_and_render = function() {
         APIModule.request('GET', `/archives/batches/${batch_id}`).then(function(batch_data) {
             let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
             let all_completed = render_batch(batch_data.capture_jobs, folder_path);
@@ -87,7 +86,9 @@ function show_batch(batch_id) {
                 clearInterval(interval);
             }
         })
-    }(), 2000);
+    }
+    retrieve_and_render();
+    let interval = setInterval(retrieve_and_render, 2000);
 }
 
 export function show_modal_with_batch(batch_id) {
@@ -109,7 +110,6 @@ function start_batch() {
             .split("\n")
             .map(s => {return s.trim()});
         let num_requests = 0;
-        debugger;
         urls.forEach(function(url) {
             return APIModule.request('POST', '/archives/', {
                 folder: target_folder,
