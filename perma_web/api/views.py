@@ -14,7 +14,8 @@ from perma.utils import run_task, stream_warc, stream_warc_if_permissible
 from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
-from .utils import TastypiePagination, load_parent, raise_general_validation_error, raise_invalid_capture_job, get_or_none
+from .utils import TastypiePagination, load_parent, raise_general_validation_error, \
+    raise_invalid_capture_job, get_or_none, dispatch_multiple_requests, reverse_api_view_relative
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer
 
@@ -551,9 +552,34 @@ class LinkBatchesListView(BaseView):
             serializer = self.serializer_class(data=request.data, context={'request': self.request})
             if serializer.is_valid():
                 serializer.save(created_by=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+                # Attempt creation of Perma Links
+                path = reverse_api_view_relative('archives')
+                batch_id = serializer.data['id']
+                call_list = [
+                    {
+                        'path': path,
+                        'verb': 'POST',
+                        'data': {
+                            'url': url,
+                            'folder': request.data['target_folder'],
+                            'link_batch_id': batch_id
+                        }
+                    } for url in request.data.get('urls', [])
+                ]
+                dispatch_multiple_requests(request.user, call_list)
+
+                # Get an up-to-date version of this LinkBatch's data,
+                # formatted by the LinkBatch serializer
+                call_for_fresh_serializer_data = [{
+                    'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
+                    'verb': 'GET'
+                }]
+                response = dispatch_multiple_requests(request.user, call_for_fresh_serializer_data)
+                return Response(response[0]['data'], status=status.HTTP_201_CREATED)
             raise ValidationError(serializer.errors)
         raise PermissionDenied()
+
 
 # /batches/:id
 class LinkBatchesDetailView(BaseView):

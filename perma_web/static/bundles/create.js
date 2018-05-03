@@ -13582,35 +13582,15 @@ webpackJsonp([1],[
 	    $input.hide();
 	    spinner.spin($spinner[0]);
 	    APIModule.request('POST', '/archives/batches/', {
-	        "target_folder": target_folder
+	        "target_folder": target_folder,
+	        "urls": $input_area.val().split("\n").map(function (s) {
+	            return s.trim();
+	        })
 	    }).then(function (batch_object) {
 	        var batch_id = batch_object.id;
-	        var urls = $input_area.val().split("\n").map(function (s) {
-	            return s.trim();
-	        });
-	        var num_requests = 0;
-	        urls.forEach(function (url) {
-	            return APIModule.request('POST', '/archives/', {
-	                folder: target_folder,
-	                link_batch_id: batch_id,
-	                url: url
-	            }, { "error": function error(jqXHR) {} }).then(function (response) {
-	                num_requests += 1;
-	            }).fail(function (err) {
-	                num_requests += 1;
-	                console.error(err);
-	            });
-	        });
-	        var check_status = function check_status() {
-	            if (num_requests === urls.length) {
-	                clearInterval(interval);
-	                show_batch(batch_object.id);
-	                var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": [batch_object] });
-	                $batch_history.prepend(template);
-	            }
-	        };
-	        check_status();
-	        var interval = setInterval(check_status, 500);
+	        show_batch(batch_object.id);
+	        var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": [batch_object] });
+	        $batch_history.prepend(template);
 	    });
 	};
 	
