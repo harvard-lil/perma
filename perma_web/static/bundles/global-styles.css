@@ -10972,7 +10972,6 @@ figcaption + .img-responsive {
 }
 
 #linker #create-batch-links {
-  display: none;
   clear: both;
   text-align: right;
   float: left;
@@ -11398,26 +11397,34 @@ button#addlink,
 }
 
 @media only screen and (min-width: 768px) {
-  #batch-create-modal .modal-dialog,
-  #batch-view-modal .modal-dialog {
+  #batch-modal .modal-dialog {
     margin-left: -450px;
   }
 }
 
-#batch-create-modal .modal-content,
-#batch-view-modal .modal-content {
+#batch-modal .modal-content {
   overflow: hidden;
 }
 
 @media only screen and (min-width: 768px) {
-  #batch-create-modal .modal-content,
-  #batch-view-modal .modal-content {
+  #batch-modal .modal-content {
     width: 900px;
   }
 }
 
-#batch-create-modal textarea {
+#batch-modal textarea {
   height: 20em;
+}
+
+#batch-modal .spinner {
+  position: relative;
+  height: 50px;
+  width: 50px;
+  margin: 6px 0 -15px 0;
+}
+
+#batch-details-wrapper {
+  display: none;
 }
 
 #start-batch._isWorking {
@@ -12347,12 +12354,16 @@ footer #boilerplate a {
   color: rgba(0, 0, 0, 0.4);
 }
 
+.col-folders #batch-history,
 .col-folders #folder-tree {
-  overflow: auto;
-  padding: 8px 8px 0 0;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+  padding: 8px 8px 0 0;
   margin-top: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.col-folders #folder-tree {
+  overflow: auto;
 }
 
 .col-folders #folder-tree .jstree-clicked,
@@ -12399,22 +12410,13 @@ footer #boilerplate a {
   background: white;
 }
 
-.col-folders #batches-history-list {
-  font-family: "Roboto Slab", sans-serif;
-  font-size: 12px;
-  color: #222;
-  margin-left: 0;
-  padding-left: 0;
+.col-folders #batch-history {
+  margin-bottom: 24px;
 }
 
-.col-folders #batches-history-list li:hover {
-  cursor: pointer;
-}
-
-.col-folders #batches-history-list li:before {
-  content: "\2014   ";
-  padding-top: 4px;
-  padding-bottom: 4px;
+.col-folders #batch-history li {
+  font-size: 14px;
+  padding: 4px 0;
 }
 
 @media (max-width: 990px) {

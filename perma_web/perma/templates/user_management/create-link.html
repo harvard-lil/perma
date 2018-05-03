@@ -52,7 +52,7 @@
           </button>
 
           {% if ENABLE_BATCH_LINKS %}
-          <p id="create-batch-links">or <a data-toggle="modal" href="#batch-create-modal">create multiple links</a></p>
+          <p id="create-batch-links">or <a data-toggle="modal" href="#batch-modal">create multiple links</a></p>
           {% endif %}
 
           {% if request.user.has_limit %}
@@ -105,10 +105,11 @@
     <div class="col-md-3 col-folders">
       {% if ENABLE_BATCH_LINKS %}
       <div class="panel-heading">
-          Batches history
+          Link Batches
       </div>
       <div>
-          <ul id="batches-history-list"></ul>
+        <ul id="batch-history" class="item-container">
+        </ul>
       </div>
       {% endif %}
       <div class="panel-heading">
@@ -159,6 +160,14 @@
 {% block templates %}
 
   {% verbatim %}
+    <script id="link-batch-history-template" type="text/x-handlebars-template">
+      {{# each link_batches}}
+      <li class="item-subtitle">
+        <a href="#" data-batch={{ id }} data-folder="{{ target_folder.id }}"><span class="sr-only">Batch created </span>{{ human_timestamp started_on }}</a>
+      </li>
+      {{/each}}
+    </script>
+
     <script id="upload-confirm-template" type="text/x-handlebars-template">
       <p class="message-large">Upload successful!</p>
       <p><a href="{{url}}">{{url}}</a></p>
@@ -295,7 +304,6 @@
   {% endverbatim %}
   {% include "archive/includes/upload_your_own.html" %}
   {% if ENABLE_BATCH_LINKS %}
-    {% include "archive/includes/batch_create.html" %}
-    {% include "archive/includes/batch_display.html" %}
+    {% include "archive/includes/link_batch_modal.html" %}
   {% endif %}
 {% endblock templates %}
