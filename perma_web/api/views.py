@@ -348,7 +348,7 @@ class AuthenticatedLinkListView(BaseView):
         if settings.ENABLE_BATCH_LINKS:
             # Batch is set directly on the request object by the LinkBatch api,
             # to prevent abuse of this feature by those POSTing directly to this route.
-            if request.batch:
+            if getattr(request, 'batch', None):
                 capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
         capture_job.save()
 
