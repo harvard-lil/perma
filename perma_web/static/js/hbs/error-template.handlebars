@@ -1,0 +1,7 @@
+<p class="message-large">{{ message }}</p>
+{{#if show_generic}}
+  <p class="message">We’re unable to create your Perma Link.</p>
+{{/if}}
+{{#if offer_upload}}
+  <p>You can <button id="upload-form-button">upload your own archive</button> or <a href="{{contact_url}}">contact us about this error.</a></p>
+{{/if}}

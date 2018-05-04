@@ -45,7 +45,6 @@ export var ls = {
     }
 
     Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-    Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
   }
 };
 
@@ -111,7 +110,8 @@ function getNodeByFolderID (folderId) {
   return null;
 }
 
-function handleSelectionChange () {
+function handleSelectionChange (e, data) {
+  ls.setCurrent(parseInt(data.orgId),[parseInt(data.folderId)]);
   folderTree.close_all();
   folderTree.deselect_all();
   selectSavedFolder();
@@ -408,7 +408,9 @@ function moveLink (folderID, linkID) {
 
 function setupEventHandlers () {
   $(window)
-    .on('dropdown.selectionChange', handleSelectionChange)
+    .on('dropdown.selectionChange', function(e, data){
+      handleSelectionChange(e, data);
+    })
     .on('LinksListModule.moveLink', function(evt, data) {
       data = JSON.parse(data);
       moveLink(data.folderId, data.linkId);

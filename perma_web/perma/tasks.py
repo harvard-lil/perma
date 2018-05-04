@@ -1086,7 +1086,7 @@ def run_next_capture():
     except HaltCaptureException:
         print("HaltCaptureException thrown")
     except SoftTimeLimitExceeded:
-        link.tags.add('timeout-failure')
+        capture_job.link.tags.add('timeout-failure')
     except:
         print "Exception while capturing job %s:" % capture_job.link_id
         traceback.print_exc()
@@ -1112,7 +1112,7 @@ def run_next_capture():
             print "Exception while tearing down/saving capture job %s:" % capture_job.link_id
             traceback.print_exc()
         finally:
-            link.captures.filter(status='pending').update(status='failed')
+            capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
                 capture_job.mark_completed('failed')
     run_task(run_next_capture.s())

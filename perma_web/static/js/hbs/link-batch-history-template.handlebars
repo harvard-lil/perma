@@ -1,0 +1,5 @@
+{{# each link_batches}}
+  <li class="item-subtitle">
+    <a href="#" data-batch={{ id }} data-folder="{{ target_folder.id }}"><span class="sr-only">Batch created </span>{{ human_timestamp started_on }}</a>
+  </li>
+{{/each}}

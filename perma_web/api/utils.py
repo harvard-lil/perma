@@ -212,9 +212,17 @@ def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
             response = view(request, *args, **kwargs)
         except Exception as exception:
             response = exception_handler(exception, {})
-        responses.append({
-            'status_code': response.status_code,
-            'status_text': response.status_text,
-            'data': response.data
-        })
+        # todo: add appropriate error data if failure
+        if response:
+            responses.append({
+                'status_code': response.status_code,
+                'status_text': response.status_text,
+                'data': response.data
+            })
+        else:
+            responses.append({
+                'status_code': 500,
+                'status_text': 'Internal Server Error',
+                'data': {}
+            })
     return responses

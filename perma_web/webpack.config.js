@@ -76,6 +76,17 @@ module.exports = {
         }
       },
 
+      // handlebars template
+      {
+        test: /\.handlebars$/,
+        loader: 'handlebars-loader',
+        query: {
+          helperDirs: [
+            __dirname + "/static/js/hbs/helpers",
+          ]
+        }
+      },
+
       // inline css
       {
         test: /\.css$/,
