@@ -72,13 +72,18 @@ function show_batch(batch_id) {
         spinner.spin($spinner[0]);
     }
     let retrieve_and_render = function() {
-        APIModule.request('GET', `/archives/batches/${batch_id}`).then(function(batch_data) {
+        APIModule.request(
+            'GET', `/archives/batches/${batch_id}`
+        ).then(function(batch_data) {
             let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
             let all_completed = render_batch(batch_data.capture_jobs, folder_path);
             if (all_completed) {
                 clearInterval(interval);
             }
-        })
+        }).catch(function(){
+            clearInterval(interval);
+            $modal.modal("hide");
+        });
     }
     retrieve_and_render();
     let interval = setInterval(retrieve_and_render, 2000);
@@ -93,35 +98,15 @@ function start_batch() {
     $input.hide();
     spinner.spin($spinner[0]);
     APIModule.request('POST', '/archives/batches/', {
-        "target_folder": target_folder
+        "target_folder": target_folder,
+        "urls": $input_area.val().split("\n").map(s => {return s.trim()})
     }).then(function(batch_object) {
         let batch_id = batch_object.id;
-        let urls = $input_area.val()
-            .split("\n")
-            .map(s => {return s.trim()});
-        let num_requests = 0;
-        urls.forEach(function(url) {
-            return APIModule.request('POST', '/archives/', {
-                folder: target_folder,
-                link_batch_id: batch_id,
-                url: url
-            }, { "error": function(jqXHR) {} }).then(function(response) {
-                num_requests += 1;
-            }).fail(function(err) {
-                num_requests += 1;
-                console.error(err);
-            });
-        });
-        let check_status = function(){
-            if (num_requests === urls.length) {
-                clearInterval(interval);
-                show_batch(batch_object.id);
-                let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": [batch_object]});
-                $batch_history.prepend(template);
-            }
-        }
-        check_status();
-        let interval = setInterval(check_status, 500);
+        show_batch(batch_object.id);
+        let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": [batch_object]});
+        $batch_history.prepend(template);
+    }).catch(function(){
+        $modal.modal("hide");
     });
 };
 
@@ -147,10 +132,14 @@ function set_folder_from_dropdown(new_folder_id) {
 
 function populate_link_batch_list() {
     if (settings.ENABLE_BATCH_LINKS) {
-        APIModule.request("GET", "/archives/batches/", {"limit": 15}).done(function(data) {
+        APIModule.request("GET", "/archives/batches/", {
+            "limit": 15
+        }).then(function(data) {
             let template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', {"link_batches": data.objects});
             $batch_history.append(template);
-        })
+        }).catch(function(){
+            $batch_history.append('<p>(unavailable)</p>')
+        });
     }
 }
 

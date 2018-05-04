@@ -5,13 +5,16 @@ from functools import wraps
 import json
 
 from django.http import Http404
+from django.urls import resolve, reverse
 from django.urls.exceptions import NoReverseMatch
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
+from rest_framework.reverse import reverse as drf_reverse
 from rest_framework.settings import api_settings
+from rest_framework.test import APIRequestFactory
+from rest_framework.views import exception_handler
 
 from perma.models import Folder
 
@@ -152,6 +155,17 @@ def url_is_invalid_unicode(url_string):
     return False
 
 def reverse_api_view(viewname, *args, **kwargs):
+    # Requires request as a kwarg.
+    #
+    # Reverse needs to be called with the api namespace when the
+    # request is made to perma.cc/api, and cannot be called with
+    # a namespace when the request is made to api.perma.cc
+    try:
+        return drf_reverse('api:' + viewname, *args, **kwargs)
+    except NoReverseMatch:
+        return drf_reverse(viewname, *args, **kwargs)
+
+def reverse_api_view_relative(viewname, *args, **kwargs):
     # Reverse needs to be called with the api namespace when the
     # request is made to perma.cc/api, and cannot be called with
     # a namespace when the request is made to api.perma.cc
@@ -160,9 +174,47 @@ def reverse_api_view(viewname, *args, **kwargs):
     except NoReverseMatch:
         return reverse(viewname, *args, **kwargs)
 
-def get_or_none(model, pk):
-    """Returns an instance of a model by its ID, or None if it does not exist"""
-    try:
-        return model.objects.get(pk=pk)
-    except model.DoesNotExist:
-        return None
+
+def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
+    """
+    Makes a series of internal api "calls" on behalf of a user,
+    all within a single http request/response cycle.
+
+    The call_list should be series of dictionaries specifying:
+        "path", the api route to "call" (e.g. /v1/folders/22/archives/)
+        "verb", the http verb to use (e.g. "GET")
+        (optional)
+        "data": a dictionary of data to send with the request,
+                i.e., the data that would normally be sent as JSON
+                when hitting the api route
+
+    If you need to customize the request object passed to the
+    api's view function, pass a dict of attribute/value pairs.
+    For example, {"parent": 1} will set request.parent = 1 on
+    every generated request object.
+
+    A list of dictionaries will be returned reporting:
+        "status_code": the http status code returned by the "call"
+        "status_text": the text associated with the http status code
+        "data": the data returned by the call, i.e., the data that would
+                normally be converted to JSON and transmitted as the http body
+    """
+    factory = APIRequestFactory()
+    responses = []
+    for call in call_list:
+        try:
+            view, args, kwargs = resolve(call['path'])
+            request = getattr(factory, call['verb'].lower())(call['path'], data=call.get('data', {}))
+            request.user = user
+            if custom_request_attributes:
+                for attribute, value in custom_request_attributes.iteritems():
+                    setattr(request, attribute, value)
+            response = view(request, *args, **kwargs)
+        except Exception as exception:
+            response = exception_handler(exception, {})
+        responses.append({
+            'status_code': response.status_code,
+            'status_text': response.status_text,
+            'data': response.data
+        })
+    return responses

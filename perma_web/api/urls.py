@@ -57,9 +57,9 @@ urlpatterns = [
         # /archives
         url(legacy_user_prefix + r'archives/?$', views.AuthenticatedLinkListView.as_view(), name='archives'),
         # /archives/batches
-        url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view()),
+        url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view(), name='link_batches'),
         # /batches/archives/:id
-        url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/?$', views.LinkBatchesDetailView.as_view()),
+        url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/?$', views.LinkBatchesDetailView.as_view(), name='link_batch'),
         # /archives/:guid
         url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
         # /archives/:guid/download
