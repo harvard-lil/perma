@@ -3862,6 +3862,7 @@ footer {
   }
 }
 
+
 .col-links {
   border-left: none;
   position: relative;
@@ -3954,12 +3955,6 @@ footer {
 }
 
 .item-container._isExpandable {
-  &:hover {
-    border-top-color: $color-blue;
-    .item-title-display {
-      color: $color-blue;
-    }
-  }
   &._active {
     @include style-card(black);
     margin: 0 -$grid $double -$grid;

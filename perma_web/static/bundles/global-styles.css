@@ -12537,14 +12537,6 @@ footer #boilerplate a {
   }
 }
 
-.item-container._isExpandable:hover {
-  border-top-color: #2D76EE;
-}
-
-.item-container._isExpandable:hover .item-title-display {
-  color: #2D76EE;
-}
-
 .item-container._isExpandable._active {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
   border: 1px solid black;
