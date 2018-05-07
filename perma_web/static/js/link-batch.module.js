@@ -5,8 +5,6 @@ let APIModule = require('./helpers/api.module.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
-let Handlebars = require('handlebars');
-let HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 let batchHistoryTemplate = require("./hbs/link-batch-history-template.handlebars");
 let batchLinksTemplate = require("./hbs/batch-links.handlebars");

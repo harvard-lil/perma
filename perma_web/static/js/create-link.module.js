@@ -4,7 +4,6 @@ require('bootstrap-js/modal');  // add .modal to jquery
 
 let Helpers = require('./helpers/general.helpers.js');
 let DOMHelpers = require('./helpers/dom.helpers.js');
-let HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 let APIModule = require('./helpers/api.module.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 

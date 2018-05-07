@@ -81,6 +81,7 @@ module.exports = {
         test: /\.handlebars$/,
         loader: 'handlebars-loader',
         query: {
+          runtime: 'handlebars/dist/handlebars.min.js',
           helperDirs: [
             __dirname + "/static/js/hbs/helpers",
           ]
