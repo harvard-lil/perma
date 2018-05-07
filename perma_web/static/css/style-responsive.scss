@@ -3855,6 +3855,13 @@ footer {
   }
 }
 
+#link-list-header .organization {
+  @include ui-shared-icon;
+  &:before {
+    top: 1px;
+  }
+}
+
 .col-links {
   border-left: none;
   position: relative;
@@ -4095,18 +4102,7 @@ ol.result-list {
   font-size: 16px;
   font-weight: 200;
   color: $color-blue;
-  &:before {
-    content: '';
-    width: 19px;
-    height: 18px;
-    display: inline-block;
-    position: relative;
-    top: 3px;
-    background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
-    background-size: 19px 18px;
-    z-index: 10;
-    margin-right: 5px;
-  }
+  @include ui-shared-icon;
   a:hover, a:focus {
     text-decoration: underline;
     @extend .style-standard-hover;
