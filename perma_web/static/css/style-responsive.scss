@@ -2592,9 +2592,11 @@ figcaption + .img-responsive {
       width: $grid * 111;
     }
   }
-  .form-priority-fieldset .btn {
+  .wrapper {
+    position: relative;
     width: 100%;
     margin-top: $double;
+    text-align: center;
     @include respond-tablet {
       margin-top: 0;
       float: right;
@@ -2603,6 +2605,11 @@ figcaption + .img-responsive {
     @include respond-desktop {
       width: $grid * 25;
     }
+  }
+  .form-priority-fieldset .btn {
+    width: 100%;
+    margin-top: 2px;
+    margin-bottom: $grid;
     &._isWorking {
       font-size: 13px;
       background-color: transparent !important;
@@ -2634,11 +2641,13 @@ figcaption + .img-responsive {
         width: $grid * 106;
       }
     }
-    .form-priority-fieldset .btn {
-      background-color: $color-orange;
+    .wrapper {
       @include respond-tablet {
         width: $grid * 30;
       }
+    }
+    .form-priority-fieldset .btn {
+      background-color: $color-orange;
     }
     #organization_select_form {
       .selector {
@@ -2650,6 +2659,19 @@ figcaption + .img-responsive {
           background-color: white;
 
         }
+      }
+    }
+  }
+  #create-batch-links {
+    width: 100%;
+    font-size: 16px;
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      &:hover {
+        color: $color-hover;
+        text-decoration: none;
       }
     }
   }
@@ -2766,39 +2788,6 @@ figcaption + .img-responsive {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
   }
-  #create-batch-links {
-    clear: both;
-    text-align: right;
-    float: left;
-    width: 100%;
-    max-width: none;
-  }
-  #create-batch-links {
-    font-family: $font-hed-alt;
-    font-size: 16px;
-    font-weight: 200;
-    @include respond-desktop {
-      font-size: 18px;
-      font-weight: 200;
-    }
-  }
-  #create-batch-links {
-    margin-top: 0;
-    margin-bottom: -$grid;
-    font-family: $font-hed-alt;
-  }
-  #create-batch-links {
-    a {
-      font-weight: normal;
-      color: $color-blue;
-      text-decoration: underline;
-      &:hover {
-        color: $color-hover;
-        text-decoration: none;
-      }
-    }
-  }
-
 }
 
 .manage-links {

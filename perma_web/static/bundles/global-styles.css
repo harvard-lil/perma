@@ -10733,13 +10733,15 @@ figcaption + .img-responsive {
   }
 }
 
-#linker .form-priority-fieldset .btn {
+#linker .wrapper {
+  position: relative;
   width: 100%;
   margin-top: 16px;
+  text-align: center;
 }
 
 @media only screen and (min-width: 768px) {
-  #linker .form-priority-fieldset .btn {
+  #linker .wrapper {
     margin-top: 0;
     float: right;
     width: 184px;
@@ -10747,9 +10749,15 @@ figcaption + .img-responsive {
 }
 
 @media only screen and (min-width: 990px) {
-  #linker .form-priority-fieldset .btn {
+  #linker .wrapper {
     width: 200px;
   }
+}
+
+#linker .form-priority-fieldset .btn {
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: 8px;
 }
 
 #linker .form-priority-fieldset .btn._isWorking {
@@ -10791,14 +10799,14 @@ figcaption + .img-responsive {
   }
 }
 
-#linker._isPrivate .form-priority-fieldset .btn {
-  background-color: #DD671A;
-}
-
 @media only screen and (min-width: 768px) {
-  #linker._isPrivate .form-priority-fieldset .btn {
+  #linker._isPrivate .wrapper {
     width: 240px;
   }
+}
+
+#linker._isPrivate .form-priority-fieldset .btn {
+  background-color: #DD671A;
 }
 
 #linker._isPrivate #organization_select_form .selector {
@@ -10808,6 +10816,22 @@ figcaption + .img-responsive {
 #linker._isPrivate #organization_select_form .dropdown.open .selector {
   color: #2D76EE;
   background-color: white;
+}
+
+#linker #create-batch-links {
+  width: 100%;
+  font-size: 16px;
+}
+
+#linker #create-batch-links a {
+  font-weight: normal;
+  color: #2D76EE;
+  text-decoration: underline;
+}
+
+#linker #create-batch-links a:hover {
+  color: #0092FF;
+  text-decoration: none;
 }
 
 #linker #links-remaining-message,
@@ -10969,44 +10993,6 @@ figcaption + .img-responsive {
 #linker .dropdown {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 2px;
-}
-
-#linker #create-batch-links {
-  clear: both;
-  text-align: right;
-  float: left;
-  width: 100%;
-  max-width: none;
-}
-
-#linker #create-batch-links {
-  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
-  font-size: 16px;
-  font-weight: 200;
-}
-
-@media only screen and (min-width: 990px) {
-  #linker #create-batch-links {
-    font-size: 18px;
-    font-weight: 200;
-  }
-}
-
-#linker #create-batch-links {
-  margin-top: 0;
-  margin-bottom: -8px;
-  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
-}
-
-#linker #create-batch-links a {
-  font-weight: normal;
-  color: #2D76EE;
-  text-decoration: underline;
-}
-
-#linker #create-batch-links a:hover {
-  color: #0092FF;
-  text-decoration: none;
 }
 
 .manage-links {
