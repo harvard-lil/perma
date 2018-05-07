@@ -1,0 +1,15 @@
+{{# eachWithPrevious orgs}}
+  {{#compare @previous.registrar "!=" registrar}}
+    <li class="dropdown-header">{{registrar}}</li>
+  {{/compare}}
+  <li>
+    <a href="#" data-orgid="{{ id }}" data-folderid="{{ shared_folder.id }}">
+      {{ name }} {{#if default_to_private }}<span class="ui-private">(Private)</span> {{/if}}<span class='links-unlimited'>unlimited</span>
+    </a>
+  </li>
+{{/eachWithPrevious}}
+<li class="personal-links">
+  <a href="#" data-folderid="{{ user_folder }}">
+    Personal Links <span class="links-remaining">{{ links_remaining }}</span>
+  </a>
+</li>

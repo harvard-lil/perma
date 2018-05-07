@@ -2,10 +2,11 @@ require('waypoints/lib/jquery.waypoints.js');  // add .waypoint to jquery
 
 var DOMHelpers = require('./helpers/dom.helpers.js');
 var LinkHelpers = require('./helpers/link.helpers.js');
-var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
+// templates
+let linkTemplate = require("./hbs/created-link-items-template.handlebars");
 
 let linkTable = null;
 let dragStartPosition = null;
@@ -169,9 +170,7 @@ function showFolderContents (folderID, query) {
 }
 
 function displayLinks(links, query) {
-  let templateId = '#created-link-items-template';
-  let templateArgs = {links: links, query: query};
-  let template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+  let template = linkTemplate({links: links, query: query});
   linkTable.append(template);
   $('.toggle-details, .item-row._isDraggable').click(function(e){
     e.stopPropagation();

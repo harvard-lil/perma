@@ -4,10 +4,10 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var LinkListModule = __webpack_require__(6);
+	var LinkListModule = __webpack_require__(5);
 	var FolderTreeModule = __webpack_require__(104);
-	var CreateLinkModule = __webpack_require__(146);
-	var LinkBatchModule = __webpack_require__(151);
+	var CreateLinkModule = __webpack_require__(148);
+	var LinkBatchModule = __webpack_require__(159);
 	
 	FolderTreeModule.init();
 	LinkListModule.init();
@@ -117,66 +117,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.renderTemplate = renderTemplate;
-	exports.compileTemplate = compileTemplate;
-	var Handlebars = __webpack_require__(4);
-	var LocalDatetime = __webpack_require__(5);
-	
-	Handlebars.registerHelper('truncatechars', function (str, len) {
-	  if (str.length > len) {
-	    var new_str = str.substr(0, len + 1);
-	
-	    while (new_str.length) {
-	      var ch = new_str.substr(-1);
-	      new_str = new_str.substr(0, -1);
-	      if (ch == ' ') break;
-	    }
-	
-	    if (new_str == '') new_str = str.substr(0, len);
-	
-	    return new Handlebars.SafeString(new_str + '...');
-	  }
-	  return str;
-	});
-	
-	Handlebars.registerHelper('human_timestamp', function (datetime) {
-	  return Handlebars.escapeExpression(LocalDatetime.human_timestamp(datetime));
-	});
-	
-	/*
-	Using handlebar's compile method to generate templates on the fly
-	*/
-	
-	var templateCache = {};
-	function renderTemplate(templateId, args) {
-	  var args = args || {};
-	  var $this = $(templateId);
-	  if (!templateCache[templateId]) {
-	    templateCache[templateId] = Handlebars.compile($this.html());
-	  }
-	  return templateCache[templateId](args);
-	}
-	
-	/* simple wrapper around Handlebars.compile() to cache the compiled templates */
-	function compileTemplate(templateId) {
-	  var $this = $(templateId);
-	  if ($this.length) {
-	    var template = Handlebars.compile($this.html());
-	    templateCache[templateId] = template;
-	    return template;
-	  }
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
+/* 3 */,
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -212,127 +153,6 @@ webpackJsonp([1],[
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.human_timestamp = human_timestamp;
-	// function used by Django templatetag
-	// given seconds since UTC epoch and a Django date filter/PHP date format string,
-	// return formatted date in user's local time.
-	function insertLocalDateTime(elementID, epochSeconds, formatString) {
-	    var dateString = new Date(epochSeconds * 1000).format(formatString),
-	        targetElement = document.getElementById(elementID);
-	    targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
-	}
-	
-	// via http://jacwright.com/projects/javascript/date_format/
-	// Simulates PHP's date function, which is similar to Django's date format filter
-	Date.prototype.format = function (e) {
-	    var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
-	        var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
-	            t += i;
-	        } else if (n[i]) {
-	            t += n[i].call(this);
-	        } else if (i != "\\") {
-	            t += i;
-	        }
-	    }return t;
-	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
-	        return (this.getDate() < 10 ? "0" : "") + this.getDate();
-	    }, D: function D() {
-	        return Date.replaceChars.shortDays[this.getDay()];
-	    }, j: function j() {
-	        return this.getDate();
-	    }, l: function l() {
-	        return Date.replaceChars.longDays[this.getDay()];
-	    }, N: function N() {
-	        return this.getDay() + 1;
-	    }, S: function S() {
-	        return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
-	    }, w: function w() {
-	        return this.getDay();
-	    }, z: function z() {
-	        var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
-	    }, W: function W() {
-	        var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
-	    }, F: function F() {
-	        return Date.replaceChars.longMonths[this.getMonth()];
-	    }, m: function m() {
-	        return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
-	    }, M: function M() {
-	        return Date.replaceChars.shortMonths[this.getMonth()];
-	    }, n: function n() {
-	        return this.getMonth() + 1;
-	    }, t: function t() {
-	        var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
-	    }, L: function L() {
-	        var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
-	    }, o: function o() {
-	        var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
-	    }, Y: function Y() {
-	        return this.getFullYear();
-	    }, y: function y() {
-	        return ("" + this.getFullYear()).substr(2);
-	    }, a: function a() {
-	        return this.getHours() < 12 ? "am" : "pm";
-	    }, A: function A() {
-	        return this.getHours() < 12 ? "AM" : "PM";
-	    }, B: function B() {
-	        return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
-	    }, g: function g() {
-	        return this.getHours() % 12 || 12;
-	    }, G: function G() {
-	        return this.getHours();
-	    }, h: function h() {
-	        return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
-	    }, H: function H() {
-	        return (this.getHours() < 10 ? "0" : "") + this.getHours();
-	    }, i: function i() {
-	        return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
-	    }, s: function s() {
-	        return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
-	    }, u: function u() {
-	        var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
-	    }, e: function e() {
-	        return "Not Yet Supported";
-	    }, I: function I() {
-	        var e = null;for (var t = 0; t < 12; ++t) {
-	            var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
-	                e = r;break;
-	            } else if (r > e) break;
-	        }return this.getTimezoneOffset() == e | 0;
-	    }, O: function O() {
-	        return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
-	    }, P: function P() {
-	        return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
-	    }, T: function T() {
-	        var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
-	    }, Z: function Z() {
-	        return -this.getTimezoneOffset() * 60;
-	    }, c: function c() {
-	        return this.format("Y-m-d\\TH:i:sP");
-	    }, r: function r() {
-	        return this.toString();
-	    }, U: function U() {
-	        return this.getTime() / 1e3;
-	    } };
-	
-	function human_timestamp(datetime) {
-	    return new Date(datetime).toLocaleString("en-us", {
-	        year: "numeric",
-	        month: "long",
-	        day: "numeric",
-	        hour: "numeric",
-	        minute: "2-digit"
-	    });
-	}
-
-/***/ },
-/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -341,11 +161,11 @@ webpackJsonp([1],[
 	  value: true
 	});
 	
-	var _stringify = __webpack_require__(7);
+	var _stringify = __webpack_require__(6);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
-	var _typeof2 = __webpack_require__(10);
+	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
@@ -353,13 +173,15 @@ webpackJsonp([1],[
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	__webpack_require__(77); // add .waypoint to jquery
+	__webpack_require__(76); // add .waypoint to jquery
 	
 	var DOMHelpers = __webpack_require__(2);
-	var LinkHelpers = __webpack_require__(78);
-	var HandlebarsHelpers = __webpack_require__(3);
-	var APIModule = __webpack_require__(79);
+	var LinkHelpers = __webpack_require__(77);
+	var APIModule = __webpack_require__(78);
 	var FolderSelectorHelper = __webpack_require__(103);
+	
+	// templates
+	var linkTemplate = __webpack_require__(146);
 	
 	var linkTable = null;
 	var dragStartPosition = null;
@@ -516,9 +338,7 @@ webpackJsonp([1],[
 	}
 	
 	function displayLinks(links, query) {
-	  var templateId = '#created-link-items-template';
-	  var templateArgs = { links: links, query: query };
-	  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+	  var template = linkTemplate({ links: links, query: query });
 	  linkTable.append(template);
 	  $('.toggle-details, .item-row._isDraggable').click(function (e) {
 	    e.stopPropagation();
@@ -588,21 +408,21 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
+/* 6 */,
 /* 7 */,
 /* 8 */,
-/* 9 */,
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	exports.__esModule = true;
 	
-	var _iterator = __webpack_require__(11);
+	var _iterator = __webpack_require__(10);
 	
 	var _iterator2 = _interopRequireDefault(_iterator);
 	
-	var _symbol = __webpack_require__(61);
+	var _symbol = __webpack_require__(60);
 	
 	var _symbol2 = _interopRequireDefault(_symbol);
 	
@@ -617,20 +437,21 @@ webpackJsonp([1],[
 	};
 
 /***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(11), __esModule: true };
+
+/***/ },
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(12), __esModule: true };
+	__webpack_require__(12);
+	__webpack_require__(55);
+	module.exports = __webpack_require__(59).f('iterator');
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(13);
-	__webpack_require__(56);
-	module.exports = __webpack_require__(60).f('iterator');
-
-/***/ },
+/* 12 */,
 /* 13 */,
 /* 14 */,
 /* 15 */,
@@ -677,59 +498,58 @@ webpackJsonp([1],[
 /* 56 */,
 /* 57 */,
 /* 58 */,
-/* 59 */,
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports.f = __webpack_require__(52);
+
+/***/ },
 /* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(53);
+	module.exports = { "default": __webpack_require__(61), __esModule: true };
 
 /***/ },
 /* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(62), __esModule: true };
+	__webpack_require__(62);
+	__webpack_require__(73);
+	__webpack_require__(74);
+	__webpack_require__(75);
+	module.exports = __webpack_require__(8).Symbol;
 
 /***/ },
 /* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(63);
-	__webpack_require__(74);
-	__webpack_require__(75);
-	__webpack_require__(76);
-	module.exports = __webpack_require__(9).Symbol;
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 	// ECMAScript 6 symbols shim
-	var global         = __webpack_require__(20)
-	  , has            = __webpack_require__(34)
-	  , DESCRIPTORS    = __webpack_require__(28)
-	  , $export        = __webpack_require__(19)
-	  , redefine       = __webpack_require__(33)
-	  , META           = __webpack_require__(64).KEY
-	  , $fails         = __webpack_require__(29)
-	  , shared         = __webpack_require__(48)
-	  , setToStringTag = __webpack_require__(52)
-	  , uid            = __webpack_require__(49)
-	  , wks            = __webpack_require__(53)
-	  , wksExt         = __webpack_require__(60)
-	  , wksDefine      = __webpack_require__(65)
-	  , keyOf          = __webpack_require__(66)
-	  , enumKeys       = __webpack_require__(67)
-	  , isArray        = __webpack_require__(70)
-	  , anObject       = __webpack_require__(25)
-	  , toIObject      = __webpack_require__(41)
-	  , toPrimitive    = __webpack_require__(31)
-	  , createDesc     = __webpack_require__(32)
-	  , _create        = __webpack_require__(37)
-	  , gOPNExt        = __webpack_require__(71)
-	  , $GOPD          = __webpack_require__(73)
-	  , $DP            = __webpack_require__(24)
-	  , $keys          = __webpack_require__(39)
+	var global         = __webpack_require__(19)
+	  , has            = __webpack_require__(33)
+	  , DESCRIPTORS    = __webpack_require__(27)
+	  , $export        = __webpack_require__(18)
+	  , redefine       = __webpack_require__(32)
+	  , META           = __webpack_require__(63).KEY
+	  , $fails         = __webpack_require__(28)
+	  , shared         = __webpack_require__(47)
+	  , setToStringTag = __webpack_require__(51)
+	  , uid            = __webpack_require__(48)
+	  , wks            = __webpack_require__(52)
+	  , wksExt         = __webpack_require__(59)
+	  , wksDefine      = __webpack_require__(64)
+	  , keyOf          = __webpack_require__(65)
+	  , enumKeys       = __webpack_require__(66)
+	  , isArray        = __webpack_require__(69)
+	  , anObject       = __webpack_require__(24)
+	  , toIObject      = __webpack_require__(40)
+	  , toPrimitive    = __webpack_require__(30)
+	  , createDesc     = __webpack_require__(31)
+	  , _create        = __webpack_require__(36)
+	  , gOPNExt        = __webpack_require__(70)
+	  , $GOPD          = __webpack_require__(72)
+	  , $DP            = __webpack_require__(23)
+	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
 	  , gOPN           = gOPNExt.f
@@ -852,11 +672,11 @@ webpackJsonp([1],[
 	
 	  $GOPD.f = $getOwnPropertyDescriptor;
 	  $DP.f   = $defineProperty;
-	  __webpack_require__(72).f = gOPNExt.f = $getOwnPropertyNames;
-	  __webpack_require__(69).f  = $propertyIsEnumerable;
-	  __webpack_require__(68).f = $getOwnPropertySymbols;
+	  __webpack_require__(71).f = gOPNExt.f = $getOwnPropertyNames;
+	  __webpack_require__(68).f  = $propertyIsEnumerable;
+	  __webpack_require__(67).f = $getOwnPropertySymbols;
 	
-	  if(DESCRIPTORS && !__webpack_require__(18)){
+	  if(DESCRIPTORS && !__webpack_require__(17)){
 	    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
 	  }
 	
@@ -931,7 +751,7 @@ webpackJsonp([1],[
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(23)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -940,18 +760,18 @@ webpackJsonp([1],[
 	setToStringTag(global.JSON, 'JSON', true);
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var META     = __webpack_require__(49)('meta')
-	  , isObject = __webpack_require__(26)
-	  , has      = __webpack_require__(34)
-	  , setDesc  = __webpack_require__(24).f
+	var META     = __webpack_require__(48)('meta')
+	  , isObject = __webpack_require__(25)
+	  , has      = __webpack_require__(33)
+	  , setDesc  = __webpack_require__(23).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
 	};
-	var FREEZE = !__webpack_require__(29)(function(){
+	var FREEZE = !__webpack_require__(28)(function(){
 	  return isExtensible(Object.preventExtensions({}));
 	});
 	var setMeta = function(it){
@@ -998,25 +818,25 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var global         = __webpack_require__(20)
-	  , core           = __webpack_require__(9)
-	  , LIBRARY        = __webpack_require__(18)
-	  , wksExt         = __webpack_require__(60)
-	  , defineProperty = __webpack_require__(24).f;
+	var global         = __webpack_require__(19)
+	  , core           = __webpack_require__(8)
+	  , LIBRARY        = __webpack_require__(17)
+	  , wksExt         = __webpack_require__(59)
+	  , defineProperty = __webpack_require__(23).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
 	};
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getKeys   = __webpack_require__(39)
-	  , toIObject = __webpack_require__(41);
+	var getKeys   = __webpack_require__(38)
+	  , toIObject = __webpack_require__(40);
 	module.exports = function(object, el){
 	  var O      = toIObject(object)
 	    , keys   = getKeys(O)
@@ -1027,13 +847,13 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// all enumerable object keys, includes symbols
-	var getKeys = __webpack_require__(39)
-	  , gOPS    = __webpack_require__(68)
-	  , pIE     = __webpack_require__(69);
+	var getKeys = __webpack_require__(38)
+	  , gOPS    = __webpack_require__(67)
+	  , pIE     = __webpack_require__(68);
 	module.exports = function(it){
 	  var result     = getKeys(it)
 	    , getSymbols = gOPS.f;
@@ -1047,26 +867,26 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports) {
 
 	exports.f = Object.getOwnPropertySymbols;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports) {
 
 	exports.f = {}.propertyIsEnumerable;
 
 /***/ },
+/* 69 */
+[328, 42],
 /* 70 */
-[317, 43],
-/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-	var toIObject = __webpack_require__(41)
-	  , gOPN      = __webpack_require__(72).f
+	var toIObject = __webpack_require__(40)
+	  , gOPN      = __webpack_require__(71).f
 	  , toString  = {}.toString;
 	
 	var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
@@ -1086,30 +906,30 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-	var $keys      = __webpack_require__(40)
-	  , hiddenKeys = __webpack_require__(50).concat('length', 'prototype');
+	var $keys      = __webpack_require__(39)
+	  , hiddenKeys = __webpack_require__(49).concat('length', 'prototype');
 	
 	exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
 	  return $keys(O, hiddenKeys);
 	};
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var pIE            = __webpack_require__(69)
-	  , createDesc     = __webpack_require__(32)
-	  , toIObject      = __webpack_require__(41)
-	  , toPrimitive    = __webpack_require__(31)
-	  , has            = __webpack_require__(34)
-	  , IE8_DOM_DEFINE = __webpack_require__(27)
+	var pIE            = __webpack_require__(68)
+	  , createDesc     = __webpack_require__(31)
+	  , toIObject      = __webpack_require__(40)
+	  , toPrimitive    = __webpack_require__(30)
+	  , has            = __webpack_require__(33)
+	  , IE8_DOM_DEFINE = __webpack_require__(26)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(28) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -1119,25 +939,25 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports) {
 
 
 
 /***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(64)('asyncIterator');
+
+/***/ },
 /* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(65)('asyncIterator');
+	__webpack_require__(64)('observable');
 
 /***/ },
 /* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(65)('observable');
-
-/***/ },
-/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {/*!
@@ -1805,7 +1625,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1817,9 +1637,8 @@ webpackJsonp([1],[
 	exports.generateLinkFields = generateLinkFields;
 	exports.saveInput = saveInput;
 	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(79);
-	__webpack_require__(5); // add .format() to Date object
-	
+	var APIModule = __webpack_require__(78);
+	__webpack_require__(102); // add .format() to Date object
 	
 	function findFaviconURL(linkObj) {
 	  if (!linkObj.captures) return '';
@@ -1882,7 +1701,7 @@ webpackJsonp([1],[
 	}
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -1891,11 +1710,11 @@ webpackJsonp([1],[
 	  value: true
 	});
 	
-	var _typeof2 = __webpack_require__(10);
+	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
-	var _stringify = __webpack_require__(7);
+	var _stringify = __webpack_require__(6);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
@@ -1906,8 +1725,8 @@ webpackJsonp([1],[
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(80);
-	var Helpers = __webpack_require__(93);
+	var ErrorHandler = __webpack_require__(79);
+	var Helpers = __webpack_require__(92);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -1970,6 +1789,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
+/* 79 */,
 /* 80 */,
 /* 81 */,
 /* 82 */,
@@ -1992,7 +1812,113 @@ webpackJsonp([1],[
 /* 99 */,
 /* 100 */,
 /* 101 */,
-/* 102 */,
+/* 102 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	// function used by Django templatetag
+	// given seconds since UTC epoch and a Django date filter/PHP date format string,
+	// return formatted date in user's local time.
+	function insertLocalDateTime(elementID, epochSeconds, formatString) {
+	  var dateString = new Date(epochSeconds * 1000).format(formatString),
+	      targetElement = document.getElementById(elementID);
+	  targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
+	}
+	
+	// via http://jacwright.com/projects/javascript/date_format/
+	// Simulates PHP's date function, which is similar to Django's date format filter
+	Date.prototype.format = function (e) {
+	  var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
+	    var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
+	      t += i;
+	    } else if (n[i]) {
+	      t += n[i].call(this);
+	    } else if (i != "\\") {
+	      t += i;
+	    }
+	  }return t;
+	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
+	    return (this.getDate() < 10 ? "0" : "") + this.getDate();
+	  }, D: function D() {
+	    return Date.replaceChars.shortDays[this.getDay()];
+	  }, j: function j() {
+	    return this.getDate();
+	  }, l: function l() {
+	    return Date.replaceChars.longDays[this.getDay()];
+	  }, N: function N() {
+	    return this.getDay() + 1;
+	  }, S: function S() {
+	    return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
+	  }, w: function w() {
+	    return this.getDay();
+	  }, z: function z() {
+	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
+	  }, W: function W() {
+	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
+	  }, F: function F() {
+	    return Date.replaceChars.longMonths[this.getMonth()];
+	  }, m: function m() {
+	    return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
+	  }, M: function M() {
+	    return Date.replaceChars.shortMonths[this.getMonth()];
+	  }, n: function n() {
+	    return this.getMonth() + 1;
+	  }, t: function t() {
+	    var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+	  }, L: function L() {
+	    var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
+	  }, o: function o() {
+	    var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
+	  }, Y: function Y() {
+	    return this.getFullYear();
+	  }, y: function y() {
+	    return ("" + this.getFullYear()).substr(2);
+	  }, a: function a() {
+	    return this.getHours() < 12 ? "am" : "pm";
+	  }, A: function A() {
+	    return this.getHours() < 12 ? "AM" : "PM";
+	  }, B: function B() {
+	    return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
+	  }, g: function g() {
+	    return this.getHours() % 12 || 12;
+	  }, G: function G() {
+	    return this.getHours();
+	  }, h: function h() {
+	    return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
+	  }, H: function H() {
+	    return (this.getHours() < 10 ? "0" : "") + this.getHours();
+	  }, i: function i() {
+	    return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
+	  }, s: function s() {
+	    return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
+	  }, u: function u() {
+	    var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
+	  }, e: function e() {
+	    return "Not Yet Supported";
+	  }, I: function I() {
+	    var e = null;for (var t = 0; t < 12; ++t) {
+	      var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
+	        e = r;break;
+	      } else if (r > e) break;
+	    }return this.getTimezoneOffset() == e | 0;
+	  }, O: function O() {
+	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
+	  }, P: function P() {
+	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
+	  }, T: function T() {
+	    var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
+	  }, Z: function Z() {
+	    return -this.getTimezoneOffset() * 60;
+	  }, c: function c() {
+	    return this.format("Y-m-d\\TH:i:sP");
+	  }, r: function r() {
+	    return this.toString();
+	  }, U: function U() {
+	    return this.getTime() / 1e3;
+	  } };
+
+/***/ },
 /* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2042,7 +1968,7 @@ webpackJsonp([1],[
 	});
 	exports.ls = exports.folderTree = undefined;
 	
-	var _stringify = __webpack_require__(7);
+	var _stringify = __webpack_require__(6);
 	
 	var _stringify2 = _interopRequireDefault(_stringify);
 	
@@ -2059,10 +1985,10 @@ webpackJsonp([1],[
 	__webpack_require__(106);
 	__webpack_require__(139);
 	
-	var APIModule = __webpack_require__(79);
-	var Helpers = __webpack_require__(93);
+	var APIModule = __webpack_require__(78);
+	var Helpers = __webpack_require__(92);
 	var DOMHelpers = __webpack_require__(2);
-	var ErrorHandler = __webpack_require__(80);
+	var ErrorHandler = __webpack_require__(79);
 	
 	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
@@ -2102,7 +2028,6 @@ webpackJsonp([1],[
 	    }
 	
 	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-	    Helpers.triggerOnWindow("CreateLinkModule.updateLinker");
 	  }
 	};
 	
@@ -2169,7 +2094,8 @@ webpackJsonp([1],[
 	  return null;
 	}
 	
-	function handleSelectionChange() {
+	function handleSelectionChange(e, data) {
+	  ls.setCurrent(parseInt(data.orgId), [parseInt(data.folderId)]);
 	  folderTree.close_all();
 	  folderTree.deselect_all();
 	  selectSavedFolder();
@@ -2472,7 +2398,9 @@ webpackJsonp([1],[
 	}
 	
 	function setupEventHandlers() {
-	  $(window).on('dropdown.selectionChange', handleSelectionChange).on('LinksListModule.moveLink', function (evt, data) {
+	  $(window).on('dropdown.selectionChange', function (e, data) {
+	    handleSelectionChange(e, data);
+	  }).on('LinksListModule.moveLink', function (evt, data) {
 	    data = JSON.parse(data);
 	    moveLink(data.folderId, data.linkId);
 	  });
@@ -10783,29 +10711,29 @@ webpackJsonp([1],[
 
 /***/ },
 /* 109 */
-20,
+19,
 /* 110 */
-9,
+8,
 /* 111 */
-[323, 112, 120, 116],
+[334, 112, 120, 116],
 /* 112 */
-[324, 113, 115, 119, 116],
+[335, 113, 115, 119, 116],
 /* 113 */
-[325, 114],
+[336, 114],
 /* 114 */
-26,
+25,
 /* 115 */
-[326, 116, 117, 118],
+[337, 116, 117, 118],
 /* 116 */
-[327, 117],
+[338, 117],
 /* 117 */
-29,
+28,
 /* 118 */
-[328, 114, 109],
+[339, 114, 109],
 /* 119 */
-[329, 114],
+[340, 114],
 /* 120 */
-32,
+31,
 /* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10844,13 +10772,13 @@ webpackJsonp([1],[
 
 /***/ },
 /* 122 */
-34,
+33,
 /* 123 */
-49,
+48,
 /* 124 */
-[322, 125],
+[333, 125],
 /* 125 */
-22,
+21,
 /* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10901,17 +10829,17 @@ webpackJsonp([1],[
 
 /***/ },
 /* 127 */
-[319, 128],
+[330, 128],
 /* 128 */
-43,
+42,
 /* 129 */
-[318, 130],
+[329, 130],
 /* 130 */
-16,
-/* 131 */
-[320, 132],
-/* 132 */
 15,
+/* 131 */
+[331, 132],
+/* 132 */
+14,
 /* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10945,11 +10873,11 @@ webpackJsonp([1],[
 
 /***/ },
 /* 135 */
-[317, 128],
+[328, 128],
 /* 136 */
-[330, 137, 123, 109],
+[341, 137, 123, 109],
 /* 137 */
-[321, 109],
+[332, 109],
 /* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10977,119 +10905,339 @@ webpackJsonp([1],[
 /* 146 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    return "  <div class=\"shared-folder-label alert-success\">\n    Search results for \""
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.query : depth0), depth0))
+	    + "\".\n    <a href=\"#\" class=\"clear-search\">Clear search.</a>\n  </div>\n";
+	},"3":function(container,depth0,helpers,partials,data) {
+	    return "  <!-- TODO: insert template from comment above -->\n";
+	},"5":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {}, alias2=container.lambda, alias3=container.escapeExpression;
+	
+	  return "  <div class=\"item-container _isExpandable"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_private : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_failed : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\">\n    <div class=\"row item-row row-no-bleed _isDraggable\" data-link_id=\""
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">\n      <div class=\"row\">\n        <div class=\"col col-sm-6 col-md-60 item-title-col\">\n          <!-- expand arrow -->\n          <button\n             aria-label=\"Show Details for Link "
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\"\n             class=\"_visuallyHidden toggle-details expand-details\"\n             title=\"Show Link Details for Link "
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">\n          </button>\n\n          <!-- collapse arrow -->\n          <button\n             aria-label=\"Hide Details for Link "
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\"\n             class=\"toggle-details collapse-details\"\n             title=\"Hide Link Details for Link "
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">\n          </button>\n\n          "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_failed : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_private : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n          <div class=\"item-title\">\n            <span>"
+	    + alias3(alias2((depth0 != null ? depth0.title : depth0), depth0))
+	    + "</span>\n          </div>\n          <div class=\"item-subtitle\">\n            <a href=\""
+	    + alias3(alias2((depth0 != null ? depth0.url : depth0), depth0))
+	    + "\" target=\"_blank\" class=\"item-link-original no-drag\">\n              "
+	    + alias3(__default(__webpack_require__(147)).call(alias1,(depth0 != null ? depth0.url : depth0),200,{"name":"truncatechars","hash":{},"data":data}))
+	    + "\n            </a>\n          </div>\n        </div>\n        <div class=\"col col-sm-6 col-md-40 align-right item-permalink\">\n          "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.delete_available : depth0),{"name":"if","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n          <a class=\"perma no-drag\" href=\"http://"
+	    + alias3(alias2((depth0 != null ? depth0.local_url : depth0), depth0))
+	    + "\" target=\"_blank\">"
+	    + alias3(alias2((depth0 != null ? depth0.local_url : depth0), depth0))
+	    + "</a>\n        </div>\n      </div>\n      <div class=\"row item-secondary\">\n        <div class=\"col col-sm-7\">\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.organization : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "        </div>\n        <div class=\"col col-sm-5 sm-align-right\">\n          <span class=\"item-date\"><span class=\"label\">Created </span>"
+	    + alias3(alias2((depth0 != null ? depth0.creation_timestamp_formatted : depth0), depth0))
+	    + "</span>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"row item-details\" "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.search_query_in_notes : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ">\n      <div class=\"col-sm-7\">\n\n        <div class=\"form-group\">\n          <label for=\"link-title-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">Display title</label>\n          <span class=\"title-save-status\"></span>\n          <input type=\"text\" class=\"link-title\" name=\"input\" id=\"link-title-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\" value=\""
+	    + alias3(alias2((depth0 != null ? depth0.title : depth0), depth0))
+	    + "\">\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"link-description-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">Display description</label>\n          <span class=\"description-save-status\"></span>\n          <input type=\"text\" class=\"link-description\" name=\"input\" id=\"link-description-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\" value=\""
+	    + alias3(alias2((depth0 != null ? depth0.description : depth0), depth0))
+	    + "\">\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"link-notes-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">Notes</label>\n          <span class=\"notes-save-status\"></span>\n          <textarea id=\"link-notes-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\" class=\"link-notes\" rows=\"6\">"
+	    + alias3(alias2((depth0 != null ? depth0.notes : depth0), depth0))
+	    + "</textarea>\n          <span class=\"muted\">\n            Notes are private to you and your organization(s)\n          </span>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"move-to-folder-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">Move to folder</label>\n          <select id=\"move-to-folder-"
+	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\" class=\"move-to-folder form-control\"></select>\n        </div>\n\n      </div>\n      <div class=\"col-sm-5 link-stats\">\n        <div><span><strong>Created by:</strong> "
+	    + alias3(alias2(((stack1 = (depth0 != null ? depth0.created_by : depth0)) != null ? stack1.full_name : stack1), depth0))
+	    + "</span></div>\n      </div>\n    </div>\n  </div>\n";
+	},"6":function(container,depth0,helpers,partials,data) {
+	    return " _isPrivate";
+	},"8":function(container,depth0,helpers,partials,data) {
+	    return " _isFailed";
+	},"10":function(container,depth0,helpers,partials,data) {
+	    return "<div class=\"failed_header\">Capture Failed</div>";
+	},"12":function(container,depth0,helpers,partials,data) {
+	    return "          <div class=\"item-private\">\n            <span class=\"ui-private\">[private] </span>\n            <span class=\"private-hint\">Private record</span>\n          </div>";
+	},"14":function(container,depth0,helpers,partials,data) {
+	    return "<a class=\"delete no-drag\" href=\"/manage/delete-link/"
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.guid : depth0), depth0))
+	    + "\">Delete</a>";
+	},"16":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return "          <div class=\"item-affil\">\n            <span>"
+	    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.organization : depth0)) != null ? stack1.name : stack1), depth0))
+	    + "</span>\n          </div>\n";
+	},"18":function(container,depth0,helpers,partials,data) {
+	    return "style=\"display:block\"";
+	},"20":function(container,depth0,helpers,partials,data) {
+	    return "  <div class=\"row item-row row-no-bleed\">\n    <div class=\"row\">\n      <div class=\"col col-xs-12\">\n        <div class=\"item-title\">\n          <p class=\"item-notification\">This is an empty folder</p>\n        </div>\n      </div>\n    </div>\n  </div>\n";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {};
+	
+	  return ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.query : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data})) != null ? stack1 : "")
+	    + "\n\n"
+	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(20, data, 0),"data":data})) != null ? stack1 : "");
+	},"useData":true});
+
+/***/ },
+/* 147 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var Handlebars = __webpack_require__(4);
+	
+	module.exports = function (str, len) {
+	  if (str.length > len) {
+	    var new_str = str.substr(0, len + 1);
+	
+	    while (new_str.length) {
+	      var ch = new_str.substr(-1);
+	      new_str = new_str.substr(0, -1);
+	      if (ch == ' ') break;
+	    }
+	
+	    if (new_str == '') new_str = str.substr(0, len);
+	
+	    return new Handlebars.SafeString(new_str + '...');
+	  }
+	  return str;
+	};
+
+/***/ },
+/* 148 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
-	var _typeof2 = __webpack_require__(10);
+	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
-	var _keys = __webpack_require__(94);
+	var _keys = __webpack_require__(93);
 	
 	var _keys2 = _interopRequireDefault(_keys);
 	
-	exports.populateWithUrl = populateWithUrl;
-	exports.updateLinker = updateLinker;
 	exports.updateLinksRemaining = updateLinksRemaining;
+	exports.handleSelectionChange = handleSelectionChange;
+	exports.populateFromUrl = populateFromUrl;
 	exports.init = init;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var Spinner = __webpack_require__(147);
-	__webpack_require__(148); // add jquery support for ajaxSubmit/ajaxForm
-	__webpack_require__(149); // add .modal to jquery
+	var Spinner = __webpack_require__(149);
+	__webpack_require__(150); // add jquery support for ajaxSubmit/ajaxForm
+	__webpack_require__(151); // add .modal to jquery
 	
-	var Helpers = __webpack_require__(93);
+	var Helpers = __webpack_require__(92);
 	var DOMHelpers = __webpack_require__(2);
-	var HandlebarsHelpers = __webpack_require__(3);
-	var APIModule = __webpack_require__(79);
-	var FolderTreeModule = __webpack_require__(104);
-	var ProgressBarHelper = __webpack_require__(150);
+	var APIModule = __webpack_require__(78);
+	var ProgressBarHelper = __webpack_require__(152);
 	
+	// templates
+	var selectedFolderTemplate = __webpack_require__(154);
+	var orgListTemplate = __webpack_require__(155);
+	var errorTemplate = __webpack_require__(158);
+	
+	var currentFolder = void 0;
+	var currentFolderPrivate = void 0;
+	// links_remaining is available from the global scope, set by the Django template
 	var newGUID = null;
-	var refreshIntervalIds = [];
-	var spinner;
 	var organizations = {};
+	var progress_bar = void 0;
+	var spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
+	var uploadFormSpinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
 	
-	// Get parameter by name
-	// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-	function getParameterByName(name) {
-	  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-	      results = regex.exec(location.search);
-	  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-	}
+	// elements in the DOM, retrieved during init()
+	var $browserToolsMessage = void 0,
+	    $createButton = void 0,
+	    $createForm = void 0,
+	    $closeBrowserTools = void 0,
+	    $createErrors = void 0,
+	    $errorContainer = void 0,
+	    $linksRemaining = void 0,
+	    $linksRemainingMessage = void 0,
+	    $organizationDropdown = void 0,
+	    $organizationDropdownButton = void 0,
+	    $organizationSelectForm = void 0,
+	    $uploadValidationError = void 0,
+	    $uploadForm = void 0,
+	    $uploadFormUrl = void 0,
+	    $uploadModal = void 0,
+	    $url = void 0;
 	
-	function linkIt(data) {
-	  // Success message from API. We should have a GUID now (but the
-	  // archive is still be generated)
-	  // Clear any error messages out
-	  DOMHelpers.removeElement('.error-row');
-	  newGUID = data.guid;
-	  refreshIntervalIds.push(setInterval(check_status, 2000));
-	}
+	//
+	// PERMA LINK CREATION HELPERS
+	//
 	
-	function linkNot(jqXHR) {
-	  if (typeof jqXHR == 'undefined') {
-	    var message = "Capture Failed";
+	function toggleInProgress() {
+	  if ($createButton.hasClass('_isWorking')) {
+	    // we're done
+	    updateButtonPrivacy();
+	    $createButton.prop('disabled', false).removeClass('_isWorking');
+	    spinner.stop();
+	    $url.prop('disabled', false);
+	    $organizationDropdownButton.prop('disabled', false);
+	    $linksRemainingMessage.removeClass('_isWorking');
 	  } else {
-	    // The API told us something went wrong.
-	    var message = APIModule.getErrorMessage(jqXHR);
+	    // we're getting started
+	    $createButton.html('<div id="capture-status">Creating your Perma Link</div>');
+	    $createButton.prop('disabled', true).addClass('_isWorking');
+	    spinner.spin($createButton[0]);
+	    $url.prop('disabled', true);
+	    $organizationDropdownButton.prop('disabled', true);
+	    $linksRemainingMessage.addClass('_isWorking');
+	  }
+	}
+	
+	function linkSucceeded(data) {
+	  // we should have a GUID, and the capture job should be underway
+	  newGUID = data.guid;
+	
+	  // clear any error messages from previous failed attempts
+	  $errorContainer.addClass("_hide");
+	  $errorContainer.empty();
+	
+	  // monitor capture job status
+	  var check_capture_status = function check_capture_status() {
+	    var request = APIModule.request("GET", '/user/capture_jobs/' + newGUID);
+	    request.then(function (data) {
+	      switch (data.status) {
+	        case "pending":
+	          break;
+	        case "in_progress":
+	          if (!progress_bar) {
+	            progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
+	            progress_bar.appendTo($createButton);
+	          }
+	          progress_bar.setProgress(data.step_count / 5 * 100);
+	          break;
+	        default:
+	          // Capture is done (one way or another)
+	          clearInterval(interval);
+	          progress_bar = null;
+	          if (data.status == "completed") {
+	            // if we succeeded, forward to the new archive
+	            window.location.href = "/" + newGUID;
+	          } else {
+	            // else show failure message and reset form.
+	            linkFailed();
+	          }
+	      }
+	    }).catch(function () {
+	      clearInterval(interval);
+	      progress_bar = null;
+	      // TODO: more error handling here
+	    });
+	  };
+	  check_capture_status();
+	  var interval = setInterval(check_capture_status, 2000);
+	}
+	
+	function linkFailed(jqXHR) {
+	  // can be called after ajax failure or as a standalone function
+	  var message = void 0;
+	  if (typeof jqXHR == 'undefined') {
+	    message = "Capture Failed";
+	  } else {
+	    message = APIModule.getErrorMessage(jqXHR);
 	  }
 	
-	  var upload_allowed = true;
+	  // special handling of certain errors
+	  var offer_upload = true;
 	  var show_generic = true;
 	  if (message.indexOf("limit") > -1) {
-	    $('.links-remaining').text('0');
-	    upload_allowed = false;
+	    updateLinksRemaining(0);
+	    offer_upload = false;
 	  }
 	  if (message.indexOf("subscription") > -1) {
-	    upload_allowed = false;
+	    offer_upload = false;
 	    show_generic = false;
 	  }
+	  if (message.indexOf("Error 0") > -1) {
+	    message = "Perma.cc Temporarily Unavailable";
+	    offer_upload = false;
+	  }
 	
-	  var templateArgs = {
+	  // display error message
+	  var template = errorTemplate({
 	    message: message,
-	    upload_allowed: upload_allowed,
+	    offer_upload: offer_upload,
 	    contact_url: contact_url,
 	    show_generic: show_generic
-	  };
+	  });
+	  $errorContainer.html(template).removeClass("_hide");
 	
-	  changeTemplate('#error-template', templateArgs, '#error-container');
-	
-	  $('.create-errors').addClass('_active');
-	  $('#error-container').hide().fadeIn(0);
-	  $('#error-container').removeClass('_hide');
-	
-	  toggleCreateAvailable();
+	  // reset form
+	  toggleInProgress();
 	}
 	
-	/* Handle an upload - start */
-	function uploadNot(jqXHR) {
+	//
+	// UPLOAD HELPERS
+	//
+	
+	function displayUploadModal() {
+	  $uploadValidationError.text('');
+	  $uploadFormUrl.val($url.val());
+	  $uploadModal.modal('show');
+	}
+	
+	function successfulUpload(data) {
+	  $uploadModal.modal('hide');
+	  window.location.href = '/' + data.guid;
+	}
+	
+	function failedUpload(jqXHR) {
 	  // Display an error message in our upload modal
+	  // TODO: refactor this when addressing form validation accessibility
+	
+	  $('.js-warning').remove();
+	  $('.has-error').removeClass('has-error');
 	
 	  // special handling if user becomes unexpectedly logged out
 	  if (jqXHR.status == 401) {
 	    APIModule.showError(jqXHR);
 	    return;
 	  }
-	  var reasons = [],
-	      response;
 	
+	  var response = void 0;
+	  var reasons = [];
 	  try {
 	    response = JSON.parse(jqXHR.responseText);
 	  } catch (e) {
 	    reasons = [jqXHR.responseText];
 	  }
-	
-	  DOMHelpers.hideElement('.spinner');
-	
-	  $('.js-warning').remove();
-	  $('.has-error').removeClass('has-error');
-	
 	  if (response) {
 	    // If error message comes in as {file:"message",url:"message"},
 	    // show appropriate error message next to each field.
@@ -11105,299 +11253,203 @@ webpackJsonp([1],[
 	      }
 	    }
 	  }
-	
-	  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
+	  $uploadValidationError.text('Upload failed. ' + reasons.join(". "));
 	  DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
 	  DOMHelpers.toggleBtnDisable('.cancel', false);
 	}
 	
-	function uploadIt(data) {
-	  // If a user wants to upload their own screen capture, we display
-	  // a modal and the form in that modal is handled here
-	  $('#archive-upload').modal('hide');
+	//
+	// HELPERS FOR RESPONDING TO OTHER USER INTERACTIONS
+	//
 	
-	  window.location.href = '/' + data.guid;
+	// Exported for access from JS tests
+	function updateLinksRemaining(links_num) {
+	  links_remaining = links_num;
+	  DOMHelpers.changeText('.links-remaining', links_remaining);
 	}
 	
-	function upload_form() {
-	  $('#upload-error').text('');
-	  $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
-	  $('#archive-upload').modal('show');
-	  return false;
-	}
-	
-	/* Handle the the main action (enter url, hit the button) button - start */
-	
-	function toggleCreateAvailable() {
-	  // Get our spinner going and display a "we're working" message
-	  var $addlink = $('#addlink');
-	  if ($addlink.hasClass('_isWorking')) {
-	    $addlink.html('Create Perma Link').prop('disabled', false).removeClass('_isWorking');
-	    spinner.stop();
-	    $('#rawUrl, #organization_select_form button').prop('disabled', false);
-	    $('#links-remaining-message').removeClass('_isWorking');
+	function updateButtonPrivacy() {
+	  if (currentFolderPrivate) {
+	    $createButton.text("Create Private Perma Link");
+	    $createForm.addClass('_isPrivate');
 	  } else {
-	    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').prop('disabled', true).addClass('_isWorking');
-	    // spinner opts -- see http://spin.js.org/
-	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
-	    spinner.spin($addlink[0]);
-	    $('#rawUrl, #organization_select_form button').prop('disabled', true);
-	    $('#links-remaining-message').addClass('_isWorking');
+	    $createButton.text("Create Perma Link");
+	    $createForm.removeClass('_isPrivate');
 	  }
 	}
 	
-	/* The plan is to set a timer to periodically check if the thumbnail
-	 exists. Once it does, we append it to the page and clear the
-	 thumbnail. The reason we're keeping a list of interval IDs rather
-	 than just one is as a hacky solution to the problem of a user
-	 creating a Perma link for some URL and then immediately clicking
-	 the button again for the same URL. Since all these requests are
-	 done with AJAX, that results in two different interval IDs getting
-	 created. Both requests will end up completing but the old interval
-	 ID will be overwritten and never cleared, causing a bunch of copies
-	 of the screenshot to get appended to the page. We thus just append
-	 them to the list and then clear the whole list once the request
-	 succeeds. */
+	// Exported for access from JS tests
+	function handleSelectionChange(data) {
+	  var currentOrg = data.orgId;
+	  var path = data.path;
+	  var outOfLinks = !currentOrg && links_remaining < 1;
 	
-	function check_status() {
+	  // update top-level variables
+	  currentFolder = data.folderId;
+	  currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
 	
-	  // Check our status service to see if we have archiving jobs pending
-	  var request = APIModule.request("GET", "/user/capture_jobs/" + newGUID + "/");
-	  request.done(function (data) {
-	    // While status is pending or in progress, update progress display
-	    if (data.status == "pending") {
-	      // todo -- could display data.queue_position here
-	
-	    } else if (data.status == "in_progress") {
-	
-	      // add progress bar if doesn't exist
-	      var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
-	      if (!progress_bar) {
-	        var progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
-	        progress_bar.appendTo($('#addlink'));
-	      }
-	
-	      // update progress
-	      var progress = data.step_count / 5 * 100;
-	      progress_bar.setProgress(progress);
-	    } else {
-	
-	      // Capture is done (one way or another) -- clear out our pending jobs
-	      $.each(refreshIntervalIds, function (ndx, id) {
-	        clearInterval(id);
-	      });
-	
-	      // If we succeeded, forward to the new archive
-	      if (data.status == "completed") {
-	        window.location.href = "/" + newGUID;
-	      } else {
-	        // Else show failure message and reset form.
-	        linkNot();
-	      }
-	    }
+	  // update the dropdown (no-op if dropdown isn't displayed)
+	  var template = selectedFolderTemplate({
+	    "path": path.join(" > "),
+	    "private": currentFolderPrivate,
+	    "links_remaining": !currentOrg || currentOrg === "None" ? links_remaining : null
 	  });
-	}
+	  $organizationDropdownButton.html(template);
 	
-	/* Our polling function for the thumbnail completion - end */
-	function populateWithUrl() {
-	  var url = Helpers.getWindowLocationSearch().split("url=")[1];
-	  if (url) {
-	    url = decodeURIComponent(url);
-	    DOMHelpers.setInputValue("#rawUrl", url);
-	    return url;
-	  }
-	}
-	
-	// This handles the dropdown menu for selecting a folder, which only appears for
-	// org users, registrar users, and admins, and alters related UI elements depending
-	// on what has been selected.
-	function updateLinker() {
-	  var currentOrg = FolderTreeModule.getSavedOrg();
-	  var organizationsExist = (0, _keys2.default)(organizations).length;
-	
-	  // if user has organizations available but hasn't picked one yet, require them to pick
-	  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
-	    $('#addlink').prop('disabled', true);
-	    return;
-	  }
-	
-	  // disable button if user is out of links
-	  if (!currentOrg && links_remaining < 1) {
-	    $('#addlink').prop('disabled', true);
+	  // update the create button
+	  updateButtonPrivacy();
+	  if (outOfLinks) {
+	    $createButton.prop('disabled', true);
 	  } else {
-	    $('#addlink').prop('disabled', false);
-	  }
-	
-	  // UI indications that links saved to current org will default to private
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-	    $('#addlink').text("Create Private Perma Link");
-	    $('#linker').addClass('_isPrivate');
-	    // add the little eye icon to the dropdown
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
-	  } else {
-	    $('#addlink').text("Create Perma Link");
-	    $('#linker').removeClass('_isPrivate');
-	    $('#organization_select_form').find('.dropdown-toggle > span').removeClass('ui-private');
+	    $createButton.prop('disabled', false);
 	  }
 	
 	  // suggest switching folder if user has orgs and is running out of personal links
 	  var already_warned = Helpers.getCookie("suppress_link_warning");
-	  if (already_warned != "true" && !currentOrg && organizationsExist && links_remaining == 3) {
+	  if (already_warned != "true" && !currentOrg && (0, _keys2.default)(organizations).length && links_remaining == 3) {
 	    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders.";
 	    Helpers.informUser(message, 'danger');
 	    Helpers.setCookie("suppress_link_warning", "true", 120);
 	  }
 	}
 	
-	function handleSelectionChange(data) {
-	  updateLinker();
+	//
+	// PAGE LOAD HELPERS
+	//
 	
-	  if (data && data.path) {
-	    updateAffiliationPath(data.orgId, data.path);
+	// Exported for access from JS tests
+	function populateFromUrl() {
+	  var url = Helpers.getWindowLocationSearch().split("url=")[1];
+	  if (url) {
+	    $url.val(decodeURIComponent(url));
 	  }
 	}
 	
-	function updateAffiliationPath(currentOrg, path) {
-	
-	  var stringPath = path.join(" &gt; ");
-	  stringPath += "<span></span>";
-	
-	  $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
-	
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
-	  }
-	
-	  if (!currentOrg || currentOrg === "None") {
-	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('links-remaining').text(links_remaining);
-	  }
+	function populateOrgDropdown() {
+	  APIModule.request("GET", "/organizations/", {
+	    limit: 300,
+	    order_by: 'registrar,name'
+	  }).then(function (data) {
+	    // populate the top-level "organizations" var
+	    data.objects.map(function (org) {
+	      organizations[org.id] = org;
+	    });
+	    if ((0, _keys2.default)(organizations).length) {
+	      var template = orgListTemplate({
+	        "orgs": data.objects,
+	        "user_folder": current_user.top_level_folders[0].id,
+	        "links_remaining": links_remaining
+	      });
+	      $organizationDropdown.append(template);
+	    }
+	  });
 	}
 	
-	function updateLinksRemaining(links_num) {
-	  links_remaining = links_num;
-	  DOMHelpers.changeText('.links-remaining', links_remaining);
-	}
+	//
+	// EVENT HANDLERS
+	//
 	
 	function setupEventHandlers() {
+	
+	  // listen for folder selection changes
 	  $(window).on('FolderTreeModule.selectionChange', function (evt, data) {
-	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') data = JSON.parse(data);
+	    if ((typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) !== 'object') {
+	      data = JSON.parse(data);
+	    }
 	    handleSelectionChange(data);
-	  }).on('CreateLinkModule.updateLinker', function () {
-	    updateLinker();
-	  }).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
+	  });
+	
+	  // listen for updated link counts, after links have been moved
+	  $(window).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
 	    updateLinksRemaining(data);
 	  });
 	
-	  // When a user uploads their own capture
-	  $(document).on('submit', '#archive_upload_form', function () {
+	  // announce dropdown changes
+	  $organizationDropdown.on('click', 'a', function (e) {
+	    e.preventDefault();
+	    Helpers.triggerOnWindow("dropdown.selectionChange", {
+	      folderId: $(this).data('folderid'),
+	      orgId: $(this).data('orgid')
+	    });
+	  });
+	
+	  // create a normal Perma Link
+	  $createForm.submit(function (e) {
+	    e.preventDefault();
+	    var formData = {
+	      url: $url.val(),
+	      human: true
+	    };
+	    if (currentFolder) {
+	      formData.folder = currentFolder;
+	    }
+	    toggleInProgress();
+	    APIModule.request("POST", "/archives/", formData, { error: linkFailed }).done(linkSucceeded);
+	  });
+	
+	  // display the upload-modal
+	  // the button is only present in the DOM after errors,
+	  // so the event handler must be set on the document
+	  $(document.body).on('click', '#upload-form-button', function (e) {
+	    e.preventDefault();
+	    displayUploadModal();
+	  });
+	
+	  // create a Perma Link from an uploaded file
+	  $uploadForm.submit(function (e) {
+	    e.preventDefault();
 	    DOMHelpers.toggleBtnDisable('#uploadPermalink', true);
 	    DOMHelpers.toggleBtnDisable('.cancel', true);
-	    var extraUploadData = {},
-	        selectedFolder = FolderTreeModule.getSavedFolder();
-	    if (selectedFolder) extraUploadData.folder = selectedFolder;
-	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
-	    spinner.spin(this);
+	    var extraUploadData = {};
+	    if (currentFolder) {
+	      extraUploadData.folder = currentFolder;
+	    }
+	    uploadFormSpinner.spin(this);
 	    $(this).ajaxSubmit({
 	      url: api_path + "/archives/",
 	      data: extraUploadData,
-	      success: uploadIt,
-	      error: uploadNot
+	      success: successfulUpload,
+	      error: failedUpload
 	    });
-	    return false;
 	  });
 	
-	  // Toggle users dropdown
-	  $('#dashboard-users').click(function () {
-	    $('.users-secondary').toggle();
-	  });
-	
-	  // When a new url is entered into our form
-	  $('#linker').submit(function () {
-	    var $this = $(this);
-	    var linker_data = {
-	      url: $this.find("input[name=url]").val(),
-	      human: true
-	    };
-	    var selectedFolder = FolderTreeModule.getSavedFolder();
-	
-	    if (selectedFolder) linker_data.folder = selectedFolder;
-	
-	    // Start our spinner and disable our input field with just a tiny delay
-	    window.setTimeout(toggleCreateAvailable, 150);
-	
-	    APIModule.request("POST", "/archives/", linker_data, { error: linkNot }).done(linkIt);
-	
-	    return false;
-	  });
-	}
-	
-	/* templateContainer: DOM selector, where the newly rendered template will live */
-	function changeTemplate(template, args, templateContainer) {
-	  var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args);
-	  DOMHelpers.changeHTML(templateContainer, renderedTemplate);
-	}
-	
-	function init() {
-	  // Dismiss browser tools message
-	  $('.close-browser-tools').click(function () {
-	    $('#browser-tools-message').hide();
+	  // dismiss browser tools message
+	  $closeBrowserTools.click(function () {
+	    $browserToolsMessage.hide();
 	    Helpers.setCookie("suppress_reminder", "true", 120);
 	  });
+	}
 	
-	  var $organization_select = $("#organization_select");
+	//
+	// PUBLIC METHODS
+	//
 	
-	  // populate organization dropdown
-	  APIModule.request("GET", "/user/organizations/", { limit: 300, order_by: 'registrar' }).done(function (data) {
+	function init() {
+	  $browserToolsMessage = $('#browser-tools-message');
+	  $createButton = $('#addlink');
+	  $createForm = $('#linker');
+	  $closeBrowserTools = $('.close-browser-tools');
+	  $createErrors = $('.create-errors');
+	  $errorContainer = $('#error-container');
+	  $linksRemaining = $('.links-remaining');
+	  $linksRemainingMessage = $('#links-remaining-message');
+	  $organizationDropdown = $('#organization_select');
+	  $organizationDropdownButton = $('#dropdownMenu1');
+	  $organizationSelectForm = $('#organization_select_form');
+	  $uploadValidationError = $('#upload-error');
+	  $uploadForm = $('#archive_upload_form');
+	  $uploadFormUrl = $('#archive_upload_form input[name="url"]');
+	  $uploadModal = $('#archive-upload');
+	  $url = $('#rawUrl');
 	
-	    var sorted = [];
-	    (0, _keys2.default)(data.objects).sort(function (a, b) {
-	      return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
-	    }).forEach(function (key) {
-	      sorted.push(data.objects[key]);
-	    });
-	    data.objects = sorted;
-	
-	    if (data.objects.length > 0) {
-	      var optgroup = data.objects[0].registrar;
-	      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-	      data.objects.map(function (organization) {
-	        organizations[organization.id] = organization;
-	
-	        if (organization.registrar !== optgroup) {
-	          optgroup = organization.registrar;
-	          $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-	        }
-	        var opt_text = organization.name;
-	        if (organization.default_to_private) {
-	          opt_text += ' <span class="ui-private">(Private)</span>';
-	        }
-	        $organization_select.append("<li><a href='#' data-orgid='" + organization.id + "' data-folderid='" + organization.shared_folder.id + "'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
-	      });
-	
-	      $organization_select.append("<li class='personal-links'><a href='#' data-folderid='" + current_user.top_level_folders[0].id + "'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
-	      updateLinker();
-	    }
-	  });
-	
-	  // handle dropdown changes
-	  $organization_select.on('click', 'a', function () {
-	    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
-	    var data = {
-	      folderId: $(this).attr('data-folderid')
-	    };
-	    Helpers.triggerOnWindow("dropdown.selectionChange", data);
-	  });
-	
-	  // handle upload form button
-	  $(document.body).on('click', '#upload-form-button', upload_form);
-	
+	  populateOrgDropdown();
+	  populateFromUrl();
 	  setupEventHandlers();
-	  populateWithUrl();
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 147 */
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -11780,7 +11832,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 148 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -13064,7 +13116,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 149 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13410,59 +13462,252 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 150 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.make_progress_bar = make_progress_bar;
 	exports.get_progress_bar_by_id = get_progress_bar_by_id;
-	var Handlebars = __webpack_require__(4);
-	var HandlebarsHelpers = __webpack_require__(3);
-	var template;
-	
-	function register_progress_bar() {
-	    template = HandlebarsHelpers.compileTemplate('#progress-bar-template');
-	    if (template) {
-	        Handlebars.registerPartial('progressBar', template);
-	    }
-	}
-	register_progress_bar();
+	var progressBarTemplate = __webpack_require__(153);
 	
 	var progress_bars_by_id = {};
 	
 	/* Creates a new "progress bar," which renders as such and exposes a simple API for setting progress */
 	function make_progress_bar(id) {
-	    if (!template) {
-	        register_progress_bar();
+	  var initial = progressBarTemplate({ 'progress': 0, 'id': id });
+	  var $container = $("<div>").html(initial);
+	  var obj = {
+	    setProgress: function setProgress(progress) {
+	      $container.empty();
+	      var template = progressBarTemplate({
+	        'progress': progress,
+	        'id': id
+	      });
+	      $container.html(template);
+	    },
+	    appendTo: function appendTo($el) {
+	      $container.appendTo($el);
 	    }
-	    var $container = $("<div>").html(template({ 'progress': 0, 'id': id }));
-	
-	    var obj = {
-	        setProgress: function setProgress(progress) {
-	            $container.empty();
-	            $container.html(template({ 'progress': progress, 'id': id }));
-	        },
-	
-	        appendTo: function appendTo($el) {
-	            $container.appendTo($el);
-	        }
-	    };
-	
-	    progress_bars_by_id[id] = obj;
-	    return obj;
+	  };
+	  progress_bars_by_id[id] = obj;
+	  return obj;
 	}
 	
 	function get_progress_bar_by_id(id) {
-	    return progress_bars_by_id[id];
+	  return progress_bars_by_id[id];
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 151 */
+/* 153 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    var helper;
+	
+	  return "id=\""
+	    + container.escapeExpression(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"id","hash":{},"data":data}) : helper)))
+	    + "\"";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+	
+	  return "<div position=\"relative\" style=\"width: 100%; height: 0\">\n  <div "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.id : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + " class=\"progress\" style=\"width: 100%; height: 0.3em; position: absolute; margin-bottom: 0\">\n      <div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\""
+	    + alias4(((helper = (helper = helpers.progress || (depth0 != null ? depth0.progress : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"progress","hash":{},"data":data}) : helper)))
+	    + "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"background-color: #2D76EE; width: "
+	    + alias4(((helper = (helper = helpers.progress || (depth0 != null ? depth0.progress : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"progress","hash":{},"data":data}) : helper)))
+	    + "%\">\n          <span class=\"sr-only\">"
+	    + alias4(((helper = (helper = helpers.progress || (depth0 != null ? depth0.progress : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"progress","hash":{},"data":data}) : helper)))
+	    + "% Complete</span>\n      </div>\n  </div>\n</div>\n";
+	},"useData":true});
+
+/***/ },
+/* 154 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    return "  <span class=\"ui-private\"></span>\n  ";
+	},"3":function(container,depth0,helpers,partials,data) {
+	    var helper;
+	
+	  return "\n  <span class=\"links-remaining\">"
+	    + container.escapeExpression(((helper = (helper = helpers.links_remaining || (depth0 != null ? depth0.links_remaining : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"links_remaining","hash":{},"data":data}) : helper)))
+	    + "</span>\n";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, helper, alias1=depth0 != null ? depth0 : {};
+	
+	  return container.escapeExpression(((helper = (helper = helpers.path || (depth0 != null ? depth0.path : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"path","hash":{},"data":data}) : helper)))
+	    + "\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0["private"] : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.links_remaining : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"useData":true});
+
+/***/ },
+/* 155 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {}, alias2=container.lambda, alias3=container.escapeExpression;
+	
+	  return ((stack1 = __default(__webpack_require__(156)).call(alias1,((stack1 = (data && data.previous)) && stack1.registrar),"!=",(depth0 != null ? depth0.registrar : depth0),{"name":"compare","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "  <li>\n    <a href=\"#\" data-orgid=\""
+	    + alias3(alias2((depth0 != null ? depth0.id : depth0), depth0))
+	    + "\" data-folderid=\""
+	    + alias3(alias2(((stack1 = (depth0 != null ? depth0.shared_folder : depth0)) != null ? stack1.id : stack1), depth0))
+	    + "\">\n      "
+	    + alias3(alias2((depth0 != null ? depth0.name : depth0), depth0))
+	    + " "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.default_to_private : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "<span class='links-unlimited'>unlimited</span>\n    </a>\n  </li>\n";
+	},"2":function(container,depth0,helpers,partials,data) {
+	    return "    <li class=\"dropdown-header\">"
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.registrar : depth0), depth0))
+	    + "</li>\n";
+	},"4":function(container,depth0,helpers,partials,data) {
+	    return "<span class=\"ui-private\">(Private)</span> ";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return ((stack1 = __default(__webpack_require__(157)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
+	    + alias2(alias1((depth0 != null ? depth0.user_folder : depth0), depth0))
+	    + "\">\n    Personal Links <span class=\"links-remaining\">"
+	    + alias2(alias1((depth0 != null ? depth0.links_remaining : depth0), depth0))
+	    + "</span>\n  </a>\n</li>\n";
+	},"useData":true});
+
+/***/ },
+/* 156 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var _typeof3 = __webpack_require__(9);
+	
+	var _typeof4 = _interopRequireDefault(_typeof3);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	// http://doginthehat.com.au/2012/02/comparison-block-helper-for-handlebars-templates/#comment-44
+	// Usage:
+	//
+	// {{#compare Database.Tables.Count ">" 5}}
+	// There are more than 5 tables
+	// {{/compare}}
+	//
+	// {{#compare "Test" "Test"}}
+	// Default comparison of "==="
+	// {{/compare}}
+	//
+	module.exports = function (lvalue, operator, rvalue, options) {
+	  var operators = void 0,
+	      result = void 0;
+	  if (arguments.length < 3) {
+	    throw new Error("Handlerbars Helper 'compare' needs 2 parameters");
+	  }
+	  if (options === undefined) {
+	    options = rvalue;
+	    rvalue = operator;
+	    operator = "===";
+	  }
+	  operators = {
+	    '==': function _(l, r) {
+	      return l == r;
+	    },
+	    '===': function _(l, r) {
+	      return l === r;
+	    },
+	    '!=': function _(l, r) {
+	      return l != r;
+	    },
+	    '!==': function _(l, r) {
+	      return l !== r;
+	    },
+	    '<': function _(l, r) {
+	      return l < r;
+	    },
+	    '>': function _(l, r) {
+	      return l > r;
+	    },
+	    '<=': function _(l, r) {
+	      return l <= r;
+	    },
+	    '>=': function _(l, r) {
+	      return l >= r;
+	    },
+	    'typeof': function _typeof(l, r) {
+	      return (typeof l === "undefined" ? "undefined" : (0, _typeof4.default)(l)) == r;
+	    }
+	  };
+	  if (!operators[operator]) {
+	    throw new Error("Handlerbars Helper 'compare' doesn't know the operator " + operator);
+	  }
+	  result = operators[operator](lvalue, rvalue);
+	  if (result) {
+	    return options.fn(this);
+	  } else {
+	    return options.inverse(this);
+	  }
+	};
+
+/***/ },
+/* 157 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var Handlebars = __webpack_require__(4);
+	
+	module.exports = function (context, options) {
+	  var data = void 0;
+	  if (options.data) {
+	    data = Handlebars.createFrame(options.data);
+	  }
+	  var rendered = "";
+	  context.forEach(function (item, index, array) {
+	    data.previous = array[index - 1];
+	    rendered = rendered + options.fn(item, { data: data });
+	  });
+	  return rendered;
+	};
+
+/***/ },
+/* 158 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    return "  <p class=\"message\">We’re unable to create your Perma Link.</p>\n";
+	},"3":function(container,depth0,helpers,partials,data) {
+	    var helper;
+	
+	  return "  <p>You can <button id=\"upload-form-button\">upload your own archive</button> or <a href=\""
+	    + container.escapeExpression(((helper = (helper = helpers.contact_url || (depth0 != null ? depth0.contact_url : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"contact_url","hash":{},"data":data}) : helper)))
+	    + "\">contact us about this error.</a></p>\n";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, helper, alias1=depth0 != null ? depth0 : {};
+	
+	  return "<p class=\"message-large\">"
+	    + container.escapeExpression(((helper = (helper = helpers.message || (depth0 != null ? depth0.message : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"message","hash":{},"data":data}) : helper)))
+	    + "</p>\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.show_generic : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.offer_upload : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"useData":true});
+
+/***/ },
+/* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -13471,7 +13716,7 @@ webpackJsonp([1],[
 	    value: true
 	});
 	
-	var _typeof2 = __webpack_require__(10);
+	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
@@ -13480,14 +13725,16 @@ webpackJsonp([1],[
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var Papa = __webpack_require__(152);
-	var Spinner = __webpack_require__(147);
+	var Papa = __webpack_require__(160);
+	var Spinner = __webpack_require__(149);
 	
-	var APIModule = __webpack_require__(79);
+	var APIModule = __webpack_require__(78);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
-	var ProgressBarHelper = __webpack_require__(150);
-	var HandlebarsHelpers = __webpack_require__(3);
+	var ProgressBarHelper = __webpack_require__(152);
+	
+	var batchHistoryTemplate = __webpack_require__(161);
+	var batchLinksTemplate = __webpack_require__(163);
 	
 	var target_folder = void 0;
 	var spinner = new Spinner({ lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50 });
@@ -13505,8 +13752,7 @@ webpackJsonp([1],[
 	    $start_button = void 0;
 	
 	function render_batch(links_in_batch, folder_path) {
-	    $spinner.hide();
-	    $spinner.empty();
+	    spinner.stop();
 	    $batch_details.empty();
 	    var all_completed = true;
 	    links_in_batch.forEach(function (link) {
@@ -13526,7 +13772,7 @@ webpackJsonp([1],[
 	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
 	        }
 	    });
-	    var template = HandlebarsHelpers.renderTemplate('#batch-links', { "links": links_in_batch, "folder": folder_path });
+	    var template = batchLinksTemplate({ "links": links_in_batch, "folder": folder_path });
 	    $batch_details.append(template);
 	    if (all_completed) {
 	        var export_data = links_in_batch.map(function (link) {
@@ -13567,7 +13813,8 @@ webpackJsonp([1],[
 	            if (all_completed) {
 	                clearInterval(interval);
 	            }
-	        }).catch(function () {
+	        }).catch(function (error) {
+	            console.log(error);
 	            clearInterval(interval);
 	            $modal.modal("hide");
 	        });
@@ -13592,9 +13839,10 @@ webpackJsonp([1],[
 	    }).then(function (batch_object) {
 	        var batch_id = batch_object.id;
 	        show_batch(batch_object.id);
-	        var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": [batch_object] });
+	        var template = batchHistoryTemplate({ "link_batches": [batch_object] });
 	        $batch_history.prepend(template);
-	    }).catch(function () {
+	    }).catch(function (e) {
+	        console.log(e);
 	        $modal.modal("hide");
 	    });
 	};
@@ -13624,9 +13872,10 @@ webpackJsonp([1],[
 	        APIModule.request("GET", "/archives/batches/", {
 	            "limit": 15
 	        }).then(function (data) {
-	            var template = HandlebarsHelpers.renderTemplate('#link-batch-history-template', { "link_batches": data.objects });
+	            var template = batchHistoryTemplate({ "link_batches": data.objects });
 	            $batch_history.append(template);
-	        }).catch(function () {
+	        }).catch(function (e) {
+	            console.log(e);
 	            $batch_history.append('<p>(unavailable)</p>');
 	        });
 	    }
@@ -13639,8 +13888,7 @@ webpackJsonp([1],[
 	        $input.show();
 	        $input_area.val("");
 	        $batch_details_wrapper.hide();
-	        $spinner.empty();
-	        $spinner.show();
+	        spinner.stop();
 	    });
 	
 	    $batch_target_path.change(function () {
@@ -13677,7 +13925,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 152 */
+/* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -13689,17 +13937,109 @@ webpackJsonp([1],[
 	!function(a,b){ true?!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (b), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)):"object"==typeof module&&"undefined"!=typeof exports?module.exports=b():a.Papa=b()}(this,function(){"use strict";function a(a,b){b=b||{};var c=b.dynamicTyping||!1;if(r(c)&&(b.dynamicTypingFunction=c,c={}),b.dynamicTyping=c,b.worker&&z.WORKERS_SUPPORTED){var h=k();return h.userStep=b.step,h.userChunk=b.chunk,h.userComplete=b.complete,h.userError=b.error,b.step=r(b.step),b.chunk=r(b.chunk),b.complete=r(b.complete),b.error=r(b.error),delete b.worker,void h.postMessage({input:a,config:b,workerId:h.id})}var i=null;return"string"==typeof a?i=b.download?new d(b):new f(b):a.readable===!0&&r(a.read)&&r(a.on)?i=new g(b):(t.File&&a instanceof File||a instanceof Object)&&(i=new e(b)),i.stream(a)}function b(a,b){function c(){"object"==typeof b&&("string"==typeof b.delimiter&&1===b.delimiter.length&&z.BAD_DELIMITERS.indexOf(b.delimiter)===-1&&(j=b.delimiter),("boolean"==typeof b.quotes||b.quotes instanceof Array)&&(h=b.quotes),"string"==typeof b.newline&&(k=b.newline),"string"==typeof b.quoteChar&&(l=b.quoteChar),"boolean"==typeof b.header&&(i=b.header))}function d(a){if("object"!=typeof a)return[];var b=[];for(var c in a)b.push(c);return b}function e(a,b){var c="";"string"==typeof a&&(a=JSON.parse(a)),"string"==typeof b&&(b=JSON.parse(b));var d=a instanceof Array&&a.length>0,e=!(b[0]instanceof Array);if(d&&i){for(var g=0;g<a.length;g++)g>0&&(c+=j),c+=f(a[g],g);b.length>0&&(c+=k)}for(var h=0;h<b.length;h++){for(var l=d?a.length:b[h].length,m=0;m<l;m++){m>0&&(c+=j);var n=d&&e?a[m]:m;c+=f(b[h][n],m)}h<b.length-1&&(c+=k)}return c}function f(a,b){if("undefined"==typeof a||null===a)return"";a=a.toString().replace(m,l+l);var c="boolean"==typeof h&&h||h instanceof Array&&h[b]||g(a,z.BAD_DELIMITERS)||a.indexOf(j)>-1||" "===a.charAt(0)||" "===a.charAt(a.length-1);return c?l+a+l:a}function g(a,b){for(var c=0;c<b.length;c++)if(a.indexOf(b[c])>-1)return!0;return!1}var h=!1,i=!0,j=",",k="\r\n",l='"';c();var m=new RegExp(l,"g");if("string"==typeof a&&(a=JSON.parse(a)),a instanceof Array){if(!a.length||a[0]instanceof Array)return e(null,a);if("object"==typeof a[0])return e(d(a[0]),a)}else if("object"==typeof a)return"string"==typeof a.data&&(a.data=JSON.parse(a.data)),a.data instanceof Array&&(a.fields||(a.fields=a.meta&&a.meta.fields),a.fields||(a.fields=a.data[0]instanceof Array?a.fields:d(a.data[0])),a.data[0]instanceof Array||"object"==typeof a.data[0]||(a.data=[a.data])),e(a.fields||[],a.data||[]);throw"exception: Unable to serialize unrecognized input"}function c(a){function b(a){var b=p(a);b.chunkSize=parseInt(b.chunkSize),a.step||a.chunk||(b.chunkSize=null),this._handle=new h(b),this._handle.streamer=this,this._config=b}this._handle=null,this._paused=!1,this._finished=!1,this._input=null,this._baseIndex=0,this._partialLine="",this._rowCount=0,this._start=0,this._nextChunk=null,this.isFirstChunk=!0,this._completeResults={data:[],errors:[],meta:{}},b.call(this,a),this.parseChunk=function(a){if(this.isFirstChunk&&r(this._config.beforeFirstChunk)){var b=this._config.beforeFirstChunk(a);void 0!==b&&(a=b)}this.isFirstChunk=!1;var c=this._partialLine+a;this._partialLine="";var d=this._handle.parse(c,this._baseIndex,!this._finished);if(!this._handle.paused()&&!this._handle.aborted()){var e=d.meta.cursor;this._finished||(this._partialLine=c.substring(e-this._baseIndex),this._baseIndex=e),d&&d.data&&(this._rowCount+=d.data.length);var f=this._finished||this._config.preview&&this._rowCount>=this._config.preview;if(v)t.postMessage({results:d,workerId:z.WORKER_ID,finished:f});else if(r(this._config.chunk)){if(this._config.chunk(d,this._handle),this._paused)return;d=void 0,this._completeResults=void 0}return this._config.step||this._config.chunk||(this._completeResults.data=this._completeResults.data.concat(d.data),this._completeResults.errors=this._completeResults.errors.concat(d.errors),this._completeResults.meta=d.meta),!f||!r(this._config.complete)||d&&d.meta.aborted||this._config.complete(this._completeResults,this._input),f||d&&d.meta.paused||this._nextChunk(),d}},this._sendError=function(a){r(this._config.error)?this._config.error(a):v&&this._config.error&&t.postMessage({workerId:z.WORKER_ID,error:a,finished:!1})}}function d(a){function b(a){var b=a.getResponseHeader("Content-Range");return null===b?-1:parseInt(b.substr(b.lastIndexOf("/")+1))}a=a||{},a.chunkSize||(a.chunkSize=z.RemoteChunkSize),c.call(this,a);var d;u?this._nextChunk=function(){this._readChunk(),this._chunkLoaded()}:this._nextChunk=function(){this._readChunk()},this.stream=function(a){this._input=a,this._nextChunk()},this._readChunk=function(){if(this._finished)return void this._chunkLoaded();if(d=new XMLHttpRequest,this._config.withCredentials&&(d.withCredentials=this._config.withCredentials),u||(d.onload=q(this._chunkLoaded,this),d.onerror=q(this._chunkError,this)),d.open("GET",this._input,!u),this._config.downloadRequestHeaders){var a=this._config.downloadRequestHeaders;for(var b in a)d.setRequestHeader(b,a[b])}if(this._config.chunkSize){var c=this._start+this._config.chunkSize-1;d.setRequestHeader("Range","bytes="+this._start+"-"+c),d.setRequestHeader("If-None-Match","webkit-no-cache")}try{d.send()}catch(a){this._chunkError(a.message)}u&&0===d.status?this._chunkError():this._start+=this._config.chunkSize},this._chunkLoaded=function(){if(4==d.readyState){if(d.status<200||d.status>=400)return void this._chunkError();this._finished=!this._config.chunkSize||this._start>b(d),this.parseChunk(d.responseText)}},this._chunkError=function(a){var b=d.statusText||a;this._sendError(b)}}function e(a){a=a||{},a.chunkSize||(a.chunkSize=z.LocalChunkSize),c.call(this,a);var b,d,e="undefined"!=typeof FileReader;this.stream=function(a){this._input=a,d=a.slice||a.webkitSlice||a.mozSlice,e?(b=new FileReader,b.onload=q(this._chunkLoaded,this),b.onerror=q(this._chunkError,this)):b=new FileReaderSync,this._nextChunk()},this._nextChunk=function(){this._finished||this._config.preview&&!(this._rowCount<this._config.preview)||this._readChunk()},this._readChunk=function(){var a=this._input;if(this._config.chunkSize){var c=Math.min(this._start+this._config.chunkSize,this._input.size);a=d.call(a,this._start,c)}var f=b.readAsText(a,this._config.encoding);e||this._chunkLoaded({target:{result:f}})},this._chunkLoaded=function(a){this._start+=this._config.chunkSize,this._finished=!this._config.chunkSize||this._start>=this._input.size,this.parseChunk(a.target.result)},this._chunkError=function(){this._sendError(b.error.message)}}function f(a){a=a||{},c.call(this,a);var b,d;this.stream=function(a){return b=a,d=a,this._nextChunk()},this._nextChunk=function(){if(!this._finished){var a=this._config.chunkSize,b=a?d.substr(0,a):d;return d=a?d.substr(a):"",this._finished=!d,this.parseChunk(b)}}}function g(a){a=a||{},c.call(this,a);var b=[],d=!0;this.stream=function(a){this._input=a,this._input.on("data",this._streamData),this._input.on("end",this._streamEnd),this._input.on("error",this._streamError)},this._nextChunk=function(){b.length?this.parseChunk(b.shift()):d=!0},this._streamData=q(function(a){try{b.push("string"==typeof a?a:a.toString(this._config.encoding)),d&&(d=!1,this.parseChunk(b.shift()))}catch(a){this._streamError(a)}},this),this._streamError=q(function(a){this._streamCleanUp(),this._sendError(a.message)},this),this._streamEnd=q(function(){this._streamCleanUp(),this._finished=!0,this._streamData("")},this),this._streamCleanUp=q(function(){this._input.removeListener("data",this._streamData),this._input.removeListener("end",this._streamEnd),this._input.removeListener("error",this._streamError)},this)}function h(a){function b(){if(x&&o&&(l("Delimiter","UndetectableDelimiter","Unable to auto-detect delimiting character; defaulted to '"+z.DefaultDelimiter+"'"),o=!1),a.skipEmptyLines)for(var b=0;b<x.data.length;b++)1===x.data[b].length&&""===x.data[b][0]&&x.data.splice(b--,1);return c()&&d(),g()}function c(){return a.header&&0===w.length}function d(){if(x){for(var a=0;c()&&a<x.data.length;a++)for(var b=0;b<x.data[a].length;b++)w.push(x.data[a][b]);x.data.splice(0,1)}}function e(b){return a.dynamicTypingFunction&&void 0===a.dynamicTyping[b]&&(a.dynamicTyping[b]=a.dynamicTypingFunction(b)),(a.dynamicTyping[b]||a.dynamicTyping)===!0}function f(a,b){return e(a)?"true"===b||"TRUE"===b||"false"!==b&&"FALSE"!==b&&k(b):b}function g(){if(!x||!a.header&&!a.dynamicTyping)return x;for(var b=0;b<x.data.length;b++){for(var c=a.header?{}:[],d=0;d<x.data[b].length;d++){var e=d,g=x.data[b][d];a.header&&(e=d>=w.length?"__parsed_extra":w[d]),g=f(e,g),"__parsed_extra"===e?(c[e]=c[e]||[],c[e].push(g)):c[e]=g}x.data[b]=c,a.header&&(d>w.length?l("FieldMismatch","TooManyFields","Too many fields: expected "+w.length+" fields but parsed "+d,b):d<w.length&&l("FieldMismatch","TooFewFields","Too few fields: expected "+w.length+" fields but parsed "+d,b))}return a.header&&x.meta&&(x.meta.fields=w),x}function h(b,c,d){for(var e,f,g,h=[",","\t","|",";",z.RECORD_SEP,z.UNIT_SEP],j=0;j<h.length;j++){var k=h[j],l=0,m=0,n=0;g=void 0;for(var o=new i({delimiter:k,newline:c,preview:10}).parse(b),p=0;p<o.data.length;p++)if(d&&1===o.data[p].length&&0===o.data[p][0].length)n++;else{var q=o.data[p].length;m+=q,"undefined"!=typeof g?q>1&&(l+=Math.abs(q-g),g=q):g=q}o.data.length>0&&(m/=o.data.length-n),("undefined"==typeof f||l<f)&&m>1.99&&(f=l,e=k)}return a.delimiter=e,{successful:!!e,bestDelimiter:e}}function j(a){a=a.substr(0,1048576);var b=a.split("\r"),c=a.split("\n"),d=c.length>1&&c[0].length<b[0].length;if(1===b.length||d)return"\n";for(var e=0,f=0;f<b.length;f++)"\n"===b[f][0]&&e++;return e>=b.length/2?"\r\n":"\r"}function k(a){var b=q.test(a);return b?parseFloat(a):a}function l(a,b,c,d){x.errors.push({type:a,code:b,message:c,row:d})}var m,n,o,q=/^\s*-?(\d*\.?\d+|\d+\.?\d*)(e[-+]?\d+)?\s*$/i,s=this,t=0,u=!1,v=!1,w=[],x={data:[],errors:[],meta:{}};if(r(a.step)){var y=a.step;a.step=function(d){if(x=d,c())b();else{if(b(),0===x.data.length)return;t+=d.data.length,a.preview&&t>a.preview?n.abort():y(x,s)}}}this.parse=function(c,d,e){if(a.newline||(a.newline=j(c)),o=!1,a.delimiter)r(a.delimiter)&&(a.delimiter=a.delimiter(c),x.meta.delimiter=a.delimiter);else{var f=h(c,a.newline,a.skipEmptyLines);f.successful?a.delimiter=f.bestDelimiter:(o=!0,a.delimiter=z.DefaultDelimiter),x.meta.delimiter=a.delimiter}var g=p(a);return a.preview&&a.header&&g.preview++,m=c,n=new i(g),x=n.parse(m,d,e),b(),u?{meta:{paused:!0}}:x||{meta:{paused:!1}}},this.paused=function(){return u},this.pause=function(){u=!0,n.abort(),m=m.substr(n.getCharIndex())},this.resume=function(){u=!1,s.streamer.parseChunk(m)},this.aborted=function(){return v},this.abort=function(){v=!0,n.abort(),x.meta.aborted=!0,r(a.complete)&&a.complete(x),m=""}}function i(a){a=a||{};var b=a.delimiter,c=a.newline,d=a.comments,e=a.step,f=a.preview,g=a.fastMode;if(void 0===a.quoteChar)var h='"';else var h=a.quoteChar;if(("string"!=typeof b||z.BAD_DELIMITERS.indexOf(b)>-1)&&(b=","),d===b)throw"Comment character same as delimiter";d===!0?d="#":("string"!=typeof d||z.BAD_DELIMITERS.indexOf(d)>-1)&&(d=!1),"\n"!=c&&"\r"!=c&&"\r\n"!=c&&(c="\n");var i=0,j=!1;this.parse=function(a,k,l){function m(a){x.push(a),A=i}function n(b){return l?p():("undefined"==typeof b&&(b=a.substr(i)),z.push(b),i=s,m(z),w&&q(),p())}function o(b){i=b,m(z),z=[],E=a.indexOf(c,i)}function p(a){return{data:x,errors:y,meta:{delimiter:b,linebreak:c,aborted:j,truncated:!!a,cursor:A+(k||0)}}}function q(){e(p()),x=[],y=[]}if("string"!=typeof a)throw"Input must be a string";var s=a.length,t=b.length,u=c.length,v=d.length,w=r(e);i=0;var x=[],y=[],z=[],A=0;if(!a)return p();if(g||g!==!1&&a.indexOf(h)===-1){for(var B=a.split(c),C=0;C<B.length;C++){var z=B[C];if(i+=z.length,C!==B.length-1)i+=c.length;else if(l)return p();if(!d||z.substr(0,v)!==d){if(w){if(x=[],m(z.split(b)),q(),j)return p()}else m(z.split(b));if(f&&C>=f)return x=x.slice(0,f),p(!0)}}return p()}for(var D=a.indexOf(b,i),E=a.indexOf(c,i),F=new RegExp(h+h,"g");;)if(a[i]!==h)if(d&&0===z.length&&a.substr(i,v)===d){if(E===-1)return p();i=E+u,E=a.indexOf(c,i),D=a.indexOf(b,i)}else if(D!==-1&&(D<E||E===-1))z.push(a.substring(i,D)),i=D+t,D=a.indexOf(b,i);else{if(E===-1)break;if(z.push(a.substring(i,E)),o(E+u),w&&(q(),j))return p();if(f&&x.length>=f)return p(!0)}else{var G=i;for(i++;;){var G=a.indexOf(h,G+1);if(G===-1)return l||y.push({type:"Quotes",code:"MissingQuotes",message:"Quoted field unterminated",row:x.length,index:i}),n();if(G===s-1){var H=a.substring(i,G).replace(F,h);return n(H)}if(a[G+1]!==h){if(a[G+1]===b){z.push(a.substring(i,G).replace(F,h)),i=G+1+t,D=a.indexOf(b,i),E=a.indexOf(c,i);break}if(a.substr(G+1,u)===c){if(z.push(a.substring(i,G).replace(F,h)),o(G+1+u),D=a.indexOf(b,i),w&&(q(),j))return p();if(f&&x.length>=f)return p(!0);break}y.push({type:"Quotes",code:"InvalidQuotes",message:"Trailing quote on quoted field is malformed",row:x.length,index:i}),G++}else G++}}return n()},this.abort=function(){j=!0},this.getCharIndex=function(){return i}}function j(){var a=document.getElementsByTagName("script");return a.length?a[a.length-1].src:""}function k(){if(!z.WORKERS_SUPPORTED)return!1;if(!w&&null===z.SCRIPT_PATH)throw new Error("Script path cannot be determined automatically when Papa Parse is loaded asynchronously. You need to set Papa.SCRIPT_PATH manually.");var a=z.SCRIPT_PATH||s;a+=(a.indexOf("?")!==-1?"&":"?")+"papaworker";var b=new t.Worker(a);return b.onmessage=l,b.id=y++,x[b.id]=b,b}function l(a){var b=a.data,c=x[b.workerId],d=!1;if(b.error)c.userError(b.error,b.file);else if(b.results&&b.results.data){var e=function(){d=!0,m(b.workerId,{data:[],errors:[],meta:{aborted:!0}})},f={abort:e,pause:n,resume:n};if(r(c.userStep)){for(var g=0;g<b.results.data.length&&(c.userStep({data:[b.results.data[g]],errors:b.results.errors,meta:b.results.meta},f),!d);g++);delete b.results}else r(c.userChunk)&&(c.userChunk(b.results,f,b.file),delete b.results)}b.finished&&!d&&m(b.workerId,b.results)}function m(a,b){var c=x[a];r(c.userComplete)&&c.userComplete(b),c.terminate(),delete x[a]}function n(){throw"Not implemented."}function o(a){var b=a.data;if("undefined"==typeof z.WORKER_ID&&b&&(z.WORKER_ID=b.workerId),"string"==typeof b.input)t.postMessage({workerId:z.WORKER_ID,results:z.parse(b.input,b.config),finished:!0});else if(t.File&&b.input instanceof File||b.input instanceof Object){var c=z.parse(b.input,b.config);c&&t.postMessage({workerId:z.WORKER_ID,results:c,finished:!0})}}function p(a){if("object"!=typeof a)return a;var b=a instanceof Array?[]:{};for(var c in a)b[c]=p(a[c]);return b}function q(a,b){return function(){a.apply(b,arguments)}}function r(a){return"function"==typeof a}var s,t=function(){return"undefined"!=typeof self?self:"undefined"!=typeof window?window:"undefined"!=typeof t?t:{}}(),u=!t.document&&!!t.postMessage,v=u&&/(\?|&)papaworker(=|&|$)/.test(t.location.search),w=!1,x={},y=0,z={};if(z.parse=a,z.unparse=b,z.RECORD_SEP=String.fromCharCode(30),z.UNIT_SEP=String.fromCharCode(31),z.BYTE_ORDER_MARK="\ufeff",z.BAD_DELIMITERS=["\r","\n",'"',z.BYTE_ORDER_MARK],z.WORKERS_SUPPORTED=!u&&!!t.Worker,z.SCRIPT_PATH=null,z.LocalChunkSize=10485760,z.RemoteChunkSize=5242880,z.DefaultDelimiter=",",z.Parser=i,z.ParserHandle=h,z.NetworkStreamer=d,z.FileStreamer=e,z.StringStreamer=f,z.ReadableStreamStreamer=g,t.jQuery){var A=t.jQuery;A.fn.parse=function(a){function b(){if(0===f.length)return void(r(a.complete)&&a.complete());var b=f[0];if(r(a.before)){var e=a.before(b.file,b.inputElem);if("object"==typeof e){if("abort"===e.action)return void c("AbortError",b.file,b.inputElem,e.reason);if("skip"===e.action)return void d();"object"==typeof e.config&&(b.instanceConfig=A.extend(b.instanceConfig,e.config))}else if("skip"===e)return void d()}var g=b.instanceConfig.complete;b.instanceConfig.complete=function(a){r(g)&&g(a,b.file,b.inputElem),d()},z.parse(b.file,b.instanceConfig)}function c(b,c,d,e){r(a.error)&&a.error({name:b},c,d,e)}function d(){f.splice(0,1),b()}var e=a.config||{},f=[];return this.each(function(a){var b="INPUT"===A(this).prop("tagName").toUpperCase()&&"file"===A(this).attr("type").toLowerCase()&&t.FileReader;if(!b||!this.files||0===this.files.length)return!0;for(var c=0;c<this.files.length;c++)f.push({file:this.files[c],inputElem:this,instanceConfig:A.extend({},e)})}),b(),this}}return v?t.onmessage=o:z.WORKERS_SUPPORTED&&(s=j(),document.body?document.addEventListener("DOMContentLoaded",function(){w=!0},!0):w=!0),d.prototype=Object.create(c.prototype),d.prototype.constructor=d,e.prototype=Object.create(c.prototype),e.prototype.constructor=e,f.prototype=Object.create(f.prototype),f.prototype.constructor=f,g.prototype=Object.create(c.prototype),g.prototype.constructor=g,z});
 
 /***/ },
-/* 153 */,
-/* 154 */,
-/* 155 */,
-/* 156 */,
-/* 157 */,
-/* 158 */,
-/* 159 */,
-/* 160 */,
-/* 161 */,
-/* 162 */,
-/* 163 */,
+/* 161 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return "  <li class=\"item-subtitle\">\n    <a href=\"#\" data-batch="
+	    + alias2(alias1((depth0 != null ? depth0.id : depth0), depth0))
+	    + " data-folder=\""
+	    + alias2(alias1(((stack1 = (depth0 != null ? depth0.target_folder : depth0)) != null ? stack1.id : stack1), depth0))
+	    + "\"><span class=\"sr-only\">Batch created </span>"
+	    + alias2(__default(__webpack_require__(162)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.started_on : depth0),{"name":"human_timestamp","hash":{},"data":data}))
+	    + "</a>\n  </li>\n";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.link_batches : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"useData":true});
+
+/***/ },
+/* 162 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var Handlebars = __webpack_require__(4);
+	
+	function human_timestamp(datetime) {
+	    return new Date(datetime).toLocaleString("en-us", {
+	        year: "numeric",
+	        month: "long",
+	        day: "numeric",
+	        hour: "numeric",
+	        minute: "2-digit"
+	    });
+	}
+	
+	module.exports = function (datetime) {
+	    return Handlebars.escapeExpression(human_timestamp(datetime));
+	};
+
+/***/ },
+/* 163 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {};
+	
+	  return "  <div class=\"item-container "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isError : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\">\n    <div class=\"row\">\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isError : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data})) != null ? stack1 : "")
+	    + "    </div>\n  </div>\n";
+	},"2":function(container,depth0,helpers,partials,data) {
+	    return " _isFailed";
+	},"4":function(container,depth0,helpers,partials,data) {
+	    var alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return "        <div class=\"link-desc col col-sm-6 col-md-60\">\n          <div class=\"failed_header\">"
+	    + alias2(alias1((depth0 != null ? depth0.error_message : depth0), depth0))
+	    + "</div>\n          <div class=\"item-title\">We’re unable to create your Perma Link.</div>\n          <div class=\"item-date\">submitted: "
+	    + alias2(alias1((depth0 != null ? depth0.submitted_url : depth0), depth0))
+	    + "</div>\n        </div>\n";
+	},"6":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return "        <div class=\"link-desc col col-sm-6 col-md-60\">\n          <div class=\"item-title\">"
+	    + alias2(alias1((depth0 != null ? depth0.title : depth0), depth0))
+	    + "</div>\n          <div class=\"item-subtitle\">"
+	    + alias2(alias1((depth0 != null ? depth0.submitted_url : depth0), depth0))
+	    + "</div>\n        </div>\n        <div class=\"link-progress col col-sm-6 col-md-40 align-right item-permalink\">\n"
+	    + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.program(9, data, 0),"data":data})) != null ? stack1 : "")
+	    + "        </div>\n";
+	},"7":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = container.invokePartial(__webpack_require__(153),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	},"9":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"10":function(container,depth0,helpers,partials,data) {
+	    var alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return "            <a class=\"perma no-drag\" href=\"//"
+	    + alias2(alias1((depth0 != null ? depth0.local_url : depth0), depth0))
+	    + "\" target=\"_blank\">"
+	    + alias2(alias1((depth0 != null ? depth0.local_url : depth0), depth0))
+	    + "</a>\n          ";
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return "<p>The Perma Links will be added to <span id=\"batch-saved-path\">"
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.folder : depth0), depth0))
+	    + "</span></p>\n"
+	    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"usePartial":true,"useData":true});
+
+/***/ },
 /* 164 */,
 /* 165 */,
 /* 166 */,
@@ -13853,7 +14193,18 @@ webpackJsonp([1],[
 /* 314 */,
 /* 315 */,
 /* 316 */,
-/* 317 */
+/* 317 */,
+/* 318 */,
+/* 319 */,
+/* 320 */,
+/* 321 */,
+/* 322 */,
+/* 323 */,
+/* 324 */,
+/* 325 */,
+/* 326 */,
+/* 327 */,
+/* 328 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.2.2 IsArray(argument)

@@ -61,7 +61,6 @@ describe("Test folder-tree.module.js", function() {
       beforeEach(function(){
         spyOn(Helpers, "triggerOnWindow");
         window.current_user = {id:1};
-        spyOn(CreateLinkModule, "updateLinker");
         spyOn(Helpers.jsonLocalStorage, "setItem");
       });
       afterEach(function(){
@@ -76,11 +75,6 @@ describe("Test folder-tree.module.js", function() {
         var orgId = 2;
         FolderTreeModule.ls.setCurrent(orgId);
         expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderIds":undefined,"orgId":orgId}});
-      });
-      it("triggers a call to updateLinker", function(){
-        var orgId = 2;
-        FolderTreeModule.ls.setCurrent(orgId);
-        expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("CreateLinkModule.updateLinker");
       });
     });
   });

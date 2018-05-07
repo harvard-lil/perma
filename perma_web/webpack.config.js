@@ -76,6 +76,18 @@ module.exports = {
         }
       },
 
+      // handlebars template
+      {
+        test: /\.handlebars$/,
+        loader: 'handlebars-loader',
+        query: {
+          runtime: 'handlebars/dist/handlebars.min.js',
+          helperDirs: [
+            __dirname + "/static/js/hbs/helpers",
+          ]
+        }
+      },
+
       // inline css
       {
         test: /\.css$/,

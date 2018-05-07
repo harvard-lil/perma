@@ -1741,6 +1741,26 @@
         }
       }
     },
+    "handlebars-loader": {
+      "version": "1.7.0",
+      "from": "handlebars-loader@latest",
+      "resolved": "https://registry.npmjs.org/handlebars-loader/-/handlebars-loader-1.7.0.tgz",
+      "dev": true,
+      "dependencies": {
+        "async": {
+          "version": "0.2.10",
+          "from": "async@>=0.2.10 <0.3.0",
+          "resolved": "https://registry.npmjs.org/async/-/async-0.2.10.tgz",
+          "dev": true
+        },
+        "loader-utils": {
+          "version": "1.0.4",
+          "from": "loader-utils@>=1.0.0 <1.1.0",
+          "resolved": "https://registry.npmjs.org/loader-utils/-/loader-utils-1.0.4.tgz",
+          "dev": true
+        }
+      }
+    },
     "har-validator": {
       "version": "2.0.6",
       "from": "har-validator@>=2.0.6 <2.1.0",

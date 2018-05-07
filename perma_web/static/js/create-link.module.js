@@ -1,103 +1,180 @@
-var Spinner = require('spin.js');
+let Spinner = require('spin.js');
 require('jquery-form');  // add jquery support for ajaxSubmit/ajaxForm
 require('bootstrap-js/modal');  // add .modal to jquery
 
-var Helpers = require('./helpers/general.helpers.js');
-var DOMHelpers = require('./helpers/dom.helpers.js');
-var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
-var APIModule = require('./helpers/api.module.js');
-var FolderTreeModule = require('./folder-tree.module.js');
-var ProgressBarHelper = require('./helpers/progress-bar.helper.js');
+let Helpers = require('./helpers/general.helpers.js');
+let DOMHelpers = require('./helpers/dom.helpers.js');
+let APIModule = require('./helpers/api.module.js');
+let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
-var newGUID = null;
-var refreshIntervalIds = [];
-var spinner;
-var organizations = {};
+// templates
+let selectedFolderTemplate = require("./hbs/selected-folder-template.handlebars");
+let orgListTemplate = require("./hbs/org-list-template.handlebars");
+let errorTemplate = require("./hbs/error-template.handlebars");
+
+let currentFolder;
+let currentFolderPrivate;
+// links_remaining is available from the global scope, set by the Django template
+let newGUID = null;
+let organizations = {};
+let progress_bar;
+let spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'});
+let uploadFormSpinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
+
+// elements in the DOM, retrieved during init()
+let $browserToolsMessage, $createButton, $createForm, $closeBrowserTools, $createErrors,
+    $errorContainer, $linksRemaining, $linksRemainingMessage, $organizationDropdown,
+    $organizationDropdownButton, $organizationSelectForm, $uploadValidationError,
+    $uploadForm, $uploadFormUrl, $uploadModal, $url;
 
 
-// Get parameter by name
-// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-function getParameterByName (name) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-    results = regex.exec(location.search);
-  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
+//
+// PERMA LINK CREATION HELPERS
+//
 
-function linkIt (data) {
-  // Success message from API. We should have a GUID now (but the
-  // archive is still be generated)
-  // Clear any error messages out
-  DOMHelpers.removeElement('.error-row');
-  newGUID = data.guid;
-  refreshIntervalIds.push(setInterval(check_status, 2000));
-}
-
-function linkNot (jqXHR) {
-  if (typeof jqXHR == 'undefined') {
-    var message = "Capture Failed";
+function toggleInProgress() {
+  if ($createButton.hasClass('_isWorking')) {
+    // we're done
+    updateButtonPrivacy();
+    $createButton.prop('disabled', false).removeClass('_isWorking');
+    spinner.stop();
+    $url.prop('disabled', false);
+    $organizationDropdownButton.prop('disabled', false);
+    $linksRemainingMessage.removeClass('_isWorking');
   } else {
-    // The API told us something went wrong.
-    var message = APIModule.getErrorMessage(jqXHR);
+    // we're getting started
+    $createButton.html('<div id="capture-status">Creating your Perma Link</div>');
+    $createButton.prop('disabled', true).addClass('_isWorking');
+    spinner.spin($createButton[0]);
+    $url.prop('disabled', true);
+    $organizationDropdownButton.prop('disabled', true);
+    $linksRemainingMessage.addClass('_isWorking');
+  }
+}
+
+function linkSucceeded (data) {
+  // we should have a GUID, and the capture job should be underway
+  newGUID = data.guid;
+
+  // clear any error messages from previous failed attempts
+  $errorContainer.addClass("_hide");
+  $errorContainer.empty();
+
+  // monitor capture job status
+  let check_capture_status = function () {
+    let request = APIModule.request("GET", `/user/capture_jobs/${newGUID}`)
+    request.then(function(data) {
+      switch(data.status){
+        case "pending":
+          break
+        case "in_progress":
+          if (!progress_bar){
+            progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
+            progress_bar.appendTo($createButton);
+          }
+          progress_bar.setProgress(data.step_count/5*100);
+          break;
+        default:
+          // Capture is done (one way or another)
+          clearInterval(interval);
+          progress_bar = null;
+          if (data.status == "completed") {
+            // if we succeeded, forward to the new archive
+            window.location.href = "/" + newGUID;
+          } else {
+            // else show failure message and reset form.
+            linkFailed();
+          }
+      }
+    }).catch(function(){
+      clearInterval(interval);
+      progress_bar = null;
+      // TODO: more error handling here
+    });
+  }
+  check_capture_status ();
+  let interval = setInterval(check_capture_status, 2000);
+}
+
+function linkFailed (jqXHR) {
+  // can be called after ajax failure or as a standalone function
+  let message;
+  if (typeof jqXHR == 'undefined') {
+    message = "Capture Failed";
+  } else {
+    message = APIModule.getErrorMessage(jqXHR);
   }
 
-  var upload_allowed = true;
-  var show_generic = true;
+  // special handling of certain errors
+  let offer_upload = true;
+  let show_generic = true;
   if (message.indexOf("limit") > -1) {
-    $('.links-remaining').text('0');
-    upload_allowed = false;
+    updateLinksRemaining(0);
+    offer_upload = false;
   }
   if (message.indexOf("subscription") > -1) {
-    upload_allowed = false;
+    offer_upload = false;
     show_generic = false;
-
+  }
+  if (message.indexOf("Error 0") > -1) {
+    message = "Perma.cc Temporarily Unavailable";
+    offer_upload = false;
   }
 
-  var templateArgs = {
+  // display error message
+  let template = errorTemplate({
     message: message,
-    upload_allowed: upload_allowed,
+    offer_upload: offer_upload,
     contact_url: contact_url,
     show_generic: show_generic,
-  };
+  });
+  $errorContainer.html(template).removeClass("_hide");
 
-  changeTemplate('#error-template', templateArgs, '#error-container');
-
-  $('.create-errors').addClass('_active');
-  $('#error-container').hide().fadeIn(0);
-  $('#error-container').removeClass('_hide');
-
-  toggleCreateAvailable();
+  // reset form
+  toggleInProgress();
 }
 
-/* Handle an upload - start */
-function uploadNot (jqXHR) {
+//
+// UPLOAD HELPERS
+//
+
+function displayUploadModal() {
+  $uploadValidationError.text('');
+  $uploadFormUrl.val($url.val());
+  $uploadModal.modal('show');
+}
+
+function successfulUpload (data) {
+  $uploadModal.modal('hide');
+  window.location.href = '/' + data.guid;
+}
+
+function failedUpload (jqXHR) {
   // Display an error message in our upload modal
+  // TODO: refactor this when addressing form validation accessibility
+
+  $('.js-warning').remove();
+  $('.has-error').removeClass('has-error');
 
   // special handling if user becomes unexpectedly logged out
   if(jqXHR.status == 401){
     APIModule.showError(jqXHR);
     return;
   }
-  var reasons = [],
-    response;
 
+  let response;
+  let reasons = [];
   try {
     response = JSON.parse(jqXHR.responseText);
   } catch (e) {
     reasons = [jqXHR.responseText];
   }
-
-  DOMHelpers.hideElement('.spinner');
-
-  $('.js-warning').remove();
-  $('.has-error').removeClass('has-error');
-
   if (response) {
     // If error message comes in as {file:"message",url:"message"},
     // show appropriate error message next to each field.
-    for (var key in response) {
+    for (let key in response) {
       if (response.hasOwnProperty(key)) {
-        var input = $('#' + key);
+        let input = $('#' + key);
         if (input.length) {
           input.after('<span class="help-block js-warning">' + response[key] + '</span>');
           input.closest('div').addClass('has-error');
@@ -107,314 +184,198 @@ function uploadNot (jqXHR) {
       }
     }
   }
-
-  $('#upload-error').text('Upload failed. ' + reasons.join(". "));
+  $uploadValidationError.text('Upload failed. ' + reasons.join(". "));
   DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
   DOMHelpers.toggleBtnDisable('.cancel', false);
 }
 
-function uploadIt (data) {
-  // If a user wants to upload their own screen capture, we display
-  // a modal and the form in that modal is handled here
-  $('#archive-upload').modal('hide');
+//
+// HELPERS FOR RESPONDING TO OTHER USER INTERACTIONS
+//
 
-  window.location.href = '/' + data.guid;
-}
-
-function upload_form () {
-  $('#upload-error').text('');
-  $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
-  $('#archive-upload').modal('show');
-  return false;
-}
-
-/* Handle the the main action (enter url, hit the button) button - start */
-
-function toggleCreateAvailable() {
-  // Get our spinner going and display a "we're working" message
-  var $addlink = $('#addlink');
-  if ($addlink.hasClass('_isWorking')) {
-    $addlink.html('Create Perma Link').prop('disabled', false).removeClass('_isWorking');
-    spinner.stop();
-    $('#rawUrl, #organization_select_form button').prop('disabled', false);
-    $('#links-remaining-message').removeClass('_isWorking');
-  } else {
-    $addlink.html('<div id="capture-status">Creating your Perma Link</div>').prop('disabled', true).addClass('_isWorking');
-    // spinner opts -- see http://spin.js.org/
-    spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'});
-    spinner.spin($addlink[0]);
-    $('#rawUrl, #organization_select_form button').prop('disabled', true);
-    $('#links-remaining-message').addClass('_isWorking');
-  }
-}
-
-/* The plan is to set a timer to periodically check if the thumbnail
- exists. Once it does, we append it to the page and clear the
- thumbnail. The reason we're keeping a list of interval IDs rather
- than just one is as a hacky solution to the problem of a user
- creating a Perma link for some URL and then immediately clicking
- the button again for the same URL. Since all these requests are
- done with AJAX, that results in two different interval IDs getting
- created. Both requests will end up completing but the old interval
- ID will be overwritten and never cleared, causing a bunch of copies
- of the screenshot to get appended to the page. We thus just append
- them to the list and then clear the whole list once the request
- succeeds. */
-
-function check_status () {
-
-  // Check our status service to see if we have archiving jobs pending
-  var request = APIModule.request("GET", "/user/capture_jobs/" + newGUID + "/");
-  request.done(function(data) {
-    // While status is pending or in progress, update progress display
-    if (data.status == "pending") {
-      // todo -- could display data.queue_position here
-
-    } else if (data.status == "in_progress") {
-
-      // add progress bar if doesn't exist
-      var progress_bar = ProgressBarHelper.get_progress_bar_by_id('capture-progress-bar');
-      if (!progress_bar){
-        var progress_bar = ProgressBarHelper.make_progress_bar('capture-progress-bar');
-        progress_bar.appendTo($('#addlink'));
-      }
-
-      // update progress
-      var progress = data.step_count/5*100;
-      progress_bar.setProgress(progress);
-
-    } else {
-
-      // Capture is done (one way or another) -- clear out our pending jobs
-      $.each(refreshIntervalIds, function(ndx, id) {
-        clearInterval(id);
-      });
-
-      // If we succeeded, forward to the new archive
-      if (data.status == "completed") {
-        window.location.href = "/" + newGUID;
-      } else {
-        // Else show failure message and reset form.
-        linkNot();
-      }
-    }
-  });
-}
-
-/* Our polling function for the thumbnail completion - end */
-export function populateWithUrl () {
-  var url = Helpers.getWindowLocationSearch().split("url=")[1];
-  if (url) {
-    url = decodeURIComponent(url);
-    DOMHelpers.setInputValue("#rawUrl", url);
-    return url;
-  }
-}
-
-// This handles the dropdown menu for selecting a folder, which only appears for
-// org users, registrar users, and admins, and alters related UI elements depending
-// on what has been selected.
-export function updateLinker () {
-  var currentOrg = FolderTreeModule.getSavedOrg();
-  var organizationsExist = Object.keys(organizations).length;
-
-  // if user has organizations available but hasn't picked one yet, require them to pick
-  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
-    $('#addlink').prop('disabled', true);
-    return;
-  }
-
-  // disable button if user is out of links
-  if (!currentOrg && links_remaining < 1) {
-    $('#addlink').prop('disabled', true);
-  } else {
-    $('#addlink').prop('disabled', false);
-  }
-
-  // UI indications that links saved to current org will default to private
-  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-    $('#addlink').text("Create Private Perma Link");
-    $('#linker').addClass('_isPrivate');
-    // add the little eye icon to the dropdown
-    $('#organization_select_form')
-      .find('.dropdown-toggle > span')
-      .addClass('ui-private');
-  } else {
-    $('#addlink').text("Create Perma Link");
-    $('#linker').removeClass('_isPrivate')
-    $('#organization_select_form')
-      .find('.dropdown-toggle > span')
-      .removeClass('ui-private');
-  }
-
-  // suggest switching folder if user has orgs and is running out of personal links
-  var already_warned = Helpers.getCookie("suppress_link_warning");
-  if (already_warned != "true" &&
-      !currentOrg &&
-      organizationsExist &&
-      links_remaining == 3){
-    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
-    Helpers.informUser(message, 'danger');
-    Helpers.setCookie("suppress_link_warning", "true", 120);
-  }
-}
-
-function handleSelectionChange (data) {
-  updateLinker();
-
-  if (data && data.path) {
-    updateAffiliationPath(data.orgId, data.path);
-  }
-}
-
-function updateAffiliationPath (currentOrg, path) {
-
-  var stringPath = path.join(" &gt; ");
-  stringPath += "<span></span>";
-
-  $('#organization_select_form')
-    .find('.dropdown-toggle')
-    .html(stringPath);
-
-  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-    $('#organization_select_form')
-      .find('.dropdown-toggle > span')
-      .addClass('ui-private');
-  }
-
-  if (!currentOrg || currentOrg === "None") {
-    $('#organization_select_form')
-      .find('.dropdown-toggle > span')
-      .addClass('links-remaining')
-      .text(links_remaining);
-  }
-}
-
+// Exported for access from JS tests
 export function updateLinksRemaining (links_num) {
   links_remaining = links_num;
   DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
+function updateButtonPrivacy(){
+  if (currentFolderPrivate) {
+    $createButton.text("Create Private Perma Link");
+    $createForm.addClass('_isPrivate');
+  } else {
+    $createButton.text("Create Perma Link");
+    $createForm.removeClass('_isPrivate')
+  }
+}
+
+// Exported for access from JS tests
+export function handleSelectionChange (data) {
+  let currentOrg = data.orgId;
+  let path = data.path;
+  let outOfLinks = !currentOrg && links_remaining < 1;
+
+  // update top-level variables
+  currentFolder = data.folderId;
+  currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
+
+  // update the dropdown (no-op if dropdown isn't displayed)
+  let template = selectedFolderTemplate({
+    "path": path.join(" > "),
+    "private": currentFolderPrivate,
+    "links_remaining": (!currentOrg || currentOrg === "None") ? links_remaining : null
+  });
+  $organizationDropdownButton.html(template);
+
+  // update the create button
+  updateButtonPrivacy();
+  if (outOfLinks) {
+    $createButton.prop('disabled', true);
+  } else {
+    $createButton.prop('disabled', false);
+  }
+
+  // suggest switching folder if user has orgs and is running out of personal links
+  let already_warned = Helpers.getCookie("suppress_link_warning");
+  if (already_warned != "true" &&
+      !currentOrg &&
+      Object.keys(organizations).length &&
+      links_remaining == 3){
+    let message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    Helpers.informUser(message, 'danger');
+    Helpers.setCookie("suppress_link_warning", "true", 120);
+  }
+}
+
+//
+// PAGE LOAD HELPERS
+//
+
+// Exported for access from JS tests
+export function populateFromUrl () {
+  let url = Helpers.getWindowLocationSearch().split("url=")[1];
+  if (url) {
+    $url.val(decodeURIComponent(url));
+  }
+}
+
+function populateOrgDropdown(){
+  APIModule.request("GET", "/organizations/", {
+    limit: 300,
+    order_by:'registrar,name'
+  }).then(function(data) {
+    // populate the top-level "organizations" var
+    data.objects.map(org => {organizations[org.id] = org});
+    if (Object.keys(organizations).length){
+      let template = orgListTemplate({
+        "orgs": data.objects,
+        "user_folder": current_user.top_level_folders[0].id,
+        "links_remaining": links_remaining
+      });
+      $organizationDropdown.append(template);
+    }
+  });
+}
+
+//
+// EVENT HANDLERS
+//
 
 function setupEventHandlers () {
-  $(window)
-    .on('FolderTreeModule.selectionChange', function(evt, data){
-      if (typeof data !== 'object') data = JSON.parse(data);
-      handleSelectionChange(data);
-    })
-    .on('CreateLinkModule.updateLinker', function(){
-      updateLinker();
-    })
-    .on('FolderTreeModule.updateLinksRemaining', function(evt, data){
-      updateLinksRemaining(data)
-    });
 
-  // When a user uploads their own capture
-  $(document).on('submit', '#archive_upload_form', function() {
-    DOMHelpers.toggleBtnDisable('#uploadPermalink', true);
-    DOMHelpers.toggleBtnDisable('.cancel', true);
-    var extraUploadData = {},
-      selectedFolder = FolderTreeModule.getSavedFolder();
-    if(selectedFolder)
-      extraUploadData.folder = selectedFolder;
-    spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
-    spinner.spin(this);
-    $(this).ajaxSubmit({
-                         url: api_path + "/archives/",
-                         data: extraUploadData,
-                         success: uploadIt,
-                         error: uploadNot
-                       });
-    return false;
+  // listen for folder selection changes
+  $(window).on('FolderTreeModule.selectionChange', function(evt, data){
+    if (typeof data !== 'object') {
+       data = JSON.parse(data);
+    }
+    handleSelectionChange(data);
   });
 
-  // Toggle users dropdown
-  $('#dashboard-users')
-    .click(function(){ $('.users-secondary').toggle(); });
+  // listen for updated link counts, after links have been moved
+  $(window).on('FolderTreeModule.updateLinksRemaining', function(evt, data){
+    updateLinksRemaining(data)
+  });
 
-  // When a new url is entered into our form
-  $('#linker').submit(function() {
-    var $this = $(this);
-    var linker_data = {
-      url: $this.find("input[name=url]").val(),
+  // announce dropdown changes
+  $organizationDropdown.on('click', 'a', function(e){
+    e.preventDefault();
+    Helpers.triggerOnWindow("dropdown.selectionChange", {
+      folderId: $(this).data('folderid'),
+      orgId: $(this).data('orgid')
+    });
+  });
+
+  // create a normal Perma Link
+  $createForm.submit(function(e) {
+    e.preventDefault();
+    let formData = {
+      url: $url.val(),
       human: true
     };
-    var selectedFolder = FolderTreeModule.getSavedFolder();
-
-    if(selectedFolder)
-      linker_data.folder = selectedFolder;
-
-    // Start our spinner and disable our input field with just a tiny delay
-    window.setTimeout(toggleCreateAvailable, 150);
-
-    APIModule.request("POST", "/archives/", linker_data, {error: linkNot}).done(linkIt);
-
-    return false;
+    if (currentFolder) {
+      formData.folder = currentFolder;
+    }
+    toggleInProgress();
+    APIModule.request("POST", "/archives/", formData, {error: linkFailed}).done(linkSucceeded);
   });
-}
 
-/* templateContainer: DOM selector, where the newly rendered template will live */
-function changeTemplate(template, args, templateContainer) {
-  var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args)
-  DOMHelpers.changeHTML(templateContainer, renderedTemplate);
-}
+  // display the upload-modal
+  // the button is only present in the DOM after errors,
+  // so the event handler must be set on the document
+  $(document.body).on('click', '#upload-form-button', function(e){
+    e.preventDefault();
+    displayUploadModal();
+  });
 
-export function init () {
-  // Dismiss browser tools message
-  $('.close-browser-tools').click(function(){
-    $('#browser-tools-message').hide();
+  // create a Perma Link from an uploaded file
+  $uploadForm.submit(function(e) {
+    e.preventDefault();
+    DOMHelpers.toggleBtnDisable('#uploadPermalink', true);
+    DOMHelpers.toggleBtnDisable('.cancel', true);
+    let extraUploadData = {};
+    if (currentFolder) {
+      extraUploadData.folder = currentFolder;
+    }
+    uploadFormSpinner.spin(this);
+    $(this).ajaxSubmit({
+      url: api_path + "/archives/",
+      data: extraUploadData,
+      success: successfulUpload,
+      error: failedUpload
+    });
+  });
+
+  // dismiss browser tools message
+  $closeBrowserTools.click(function(){
+    $browserToolsMessage.hide();
     Helpers.setCookie("suppress_reminder", "true", 120);
   });
 
-  var $organization_select = $("#organization_select");
+}
 
-  // populate organization dropdown
-  APIModule.request("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
-    .done(function(data) {
+//
+// PUBLIC METHODS
+//
 
-      var sorted = [];
-      Object.keys(data.objects).sort(function(a,b){
-        return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
-      }).forEach(function(key){
-        sorted.push(data.objects[key]);
-      });
-      data.objects = sorted;
+export function init () {
+  $browserToolsMessage = $('#browser-tools-message');
+  $createButton = $('#addlink');
+  $createForm = $('#linker');
+  $closeBrowserTools = $('.close-browser-tools');
+  $createErrors = $('.create-errors');
+  $errorContainer = $('#error-container');
+  $linksRemaining = $('.links-remaining');
+  $linksRemainingMessage = $('#links-remaining-message');
+  $organizationDropdown = $('#organization_select');
+  $organizationDropdownButton = $('#dropdownMenu1');
+  $organizationSelectForm = $('#organization_select_form');
+  $uploadValidationError = $('#upload-error');
+  $uploadForm = $('#archive_upload_form');
+  $uploadFormUrl = $('#archive_upload_form input[name="url"]');
+  $uploadModal = $('#archive-upload');
+  $url = $('#rawUrl');
 
-      if (data.objects.length > 0) {
-        var optgroup = data.objects[0].registrar;
-        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-        data.objects.map(function (organization) {
-          organizations[organization.id] = organization;
-
-          if(organization.registrar !== optgroup) {
-            optgroup = organization.registrar;
-            $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-          }
-          var opt_text = organization.name;
-          if (organization.default_to_private) {
-            opt_text += ' <span class="ui-private">(Private)</span>';
-          }
-          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-folderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
-        });
-
-        $organization_select.append("<li class='personal-links'><a href='#' data-folderid='"+current_user.top_level_folders[0].id+"'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
-        updateLinker();
-      }
-    });
-
-  // handle dropdown changes
-  $organization_select.on('click', 'a', function(){
-    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
-    var data = {
-      folderId: $(this).attr('data-folderid')
-    };
-    Helpers.triggerOnWindow("dropdown.selectionChange", data);
-  });
-
-  // handle upload form button
-  $(document.body).on('click', '#upload-form-button', upload_form);
-
+  populateOrgDropdown();
+  populateFromUrl();
   setupEventHandlers();
-  populateWithUrl();
-
 }
