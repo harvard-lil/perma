@@ -193,8 +193,10 @@ textarea {
   outline-width: 5px !important;
 }
 
+select:focus,
+option:focus,
 input:focus,
-*:hover {
+*:hover,  {
   outline: none !important;
 }
 
@@ -1548,10 +1550,9 @@ button {
 
 // Modals
 
-$modalWidth: 600px;
-
-body.modal-open {
-  margin-right: 0;
+#after-modals[aria-hidden="true"] {
+  overflow: hidden;
+  max-height: 100vh;
 }
 
 .modal-backdrop.in {
@@ -1559,26 +1560,7 @@ body.modal-open {
   background-color: white;
 }
 
-.modal {
-  display: none;
-  z-index: 9999;
-}
-
-.modal-dialog {
-  @include respond-mobile {
-    padding: 0;
-    @include fill-screen;
-  }
-  @include respond-tablet {
-    position: relative;
-    left: 50%;
-    right: auto;
-    margin-left: $modalWidth * -.5;
-  }
-}
-
 .modal-content {
-  width: auto;
   padding: $double;
   margin-top: 0;
   margin-left: 0;
@@ -1587,18 +1569,29 @@ body.modal-open {
   border: none;
   box-shadow: none;
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
   @include respond-tablet {
     @include style-card(black);
-    width: $modalWidth;
-    padding: $grid * 4 $grid * 4 $double;
+    padding: $double $grid * 4 0px;
     height: auto;
   }
   form {
     margin-top: $double;
     overflow: visible;
     @include respond-tablet {
-      margin-top: $grid * 3;
+      margin-top: 0;
+    }
+  }
+  .form-buttons {
+    margin-left: -$double;
+    padding-left: 0;
+    margin-right: -$double;
+    padding-right: 0;
+    @include respond-tablet {
+      margin-left: -$grid * 4;
+      padding-left: 0;
+      margin-right: -$grid * 4;
+      padding-right: 0;
     }
   }
   .form-group {
@@ -1657,13 +1650,12 @@ body.modal-open {
 .modal-header {
   overflow: visible;
   .close {
-    @include hide-text;
-    position: absolute;
-    top: 0;
-    right: -$grid * 5;
-    width: $grid * 5;
-    height: $grid * 5;
-    background-color: gray;
+    z-index: 104100;
+    width: auto;
+    opacity: 0.3;
+    &:focus, &.close:hover {
+      outline: 2px dotted black !important;
+    }
   }
   .modal-title, .modal-description {
     font-family: $font-hed-alt;
@@ -2416,32 +2408,6 @@ figcaption + .img-responsive {
   margin: $double 0 $grid * 4;
 }
 
-.close {
-  line-height: 1;
-  color: $color-white;
-  opacity: 1;
-  filter: none;
-  text-shadow: none;
-  font-weight: 200;
-  font-size: 22px;
-  color: $color-black;
-  width: auto;
-  position: absolute;
-  right: 16px;
-  top: 22px;
-  &:hover {
-    color: $color-blue;
-    opacity: 1;
-    filter: none;
-  }
-  @include respond-tablet {
-    font-size: 28px;
-    position: relative;
-    right: auto;
-    top: auto;
-  }
-}
-
 .close-browser-tools {
   font-size: 22px;
   font-weight: normal;
@@ -2558,6 +2524,41 @@ figcaption + .img-responsive {
 .create-private-link {
   @include respond-tablet {
     padding-bottom: $grid * 3;
+  }
+}
+
+.label-affil {
+  width: 100%;
+  float: left;
+  text-align: left;
+  border-color: transparent;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  font-size: 18px;
+  font-weight: 200;
+  padding-top: $half;
+  padding-bottom: $half;
+
+  @include respond-desktop {
+    padding-top: $grid;
+    padding-bottom: $grid;
+    font-size: 20px;
+    font-weight: 200;
+  }
+
+  &:before {
+    content: '';
+    width: 19px;
+    height: 18px;
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    background-image: url('../img/ui/perma-ui-affil.svg');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 19px 18px;
+    z-index: 10;
+    margin-right: $half;
   }
 }
 
@@ -2726,56 +2727,13 @@ figcaption + .img-responsive {
         background-color:$color-trans-darkgray;
       }
     }
-    .label-affil,
     .dropdown-affil {
       float: left;
-      // width: 50%;
       text-align: left;
-    }
-    .label-affil {
-      border-color: transparent;
-      &:before {
-        content: '';
-        width: 19px;
-        height: 18px;
-        display: inline-block;
-        position: relative;
-        top: 1px;
-        background-image: url('../img/ui/perma-ui-affil.svg');
-        background-repeat: no-repeat;
-        background-position: 0 0;
-        background-size: 19px 18px;
-        z-index: 10;
-        margin-right: $half;
-      }
-    }
-    .dropdown-affil {
       margin-top: $grid;
-    }
-    .label-affil {
-      font-size: 18px;
-      font-weight: 200;
-      @include respond-desktop {
-        font-size: 20px;
-        font-weight: 200;
-      }
-    }
-    .label-affil {
-      padding-top: $half;
-      padding-bottom: $half;
-      border-top-width: 1px;
-      border-bottom-width: 1px;
-      @include respond-desktop {
-        padding-top: $grid;
-        padding-bottom: $grid;
-      }
-    }
-    .label-affil {
       width: 100%;
     }
-    .dropdown-affil {
-      width: 100%;
-    }
+
     @include respond-tablet {
       @include link-dropdown-widths(656px, $grid * 41);
       .dropdown-affil {
@@ -3148,69 +3106,44 @@ button#addlink,
 
 /////////////////////////////////////////
 
-// Batch modals
-
-$batchModalWidth: 900px;
+// Batch modal
 
 #batch-modal {
+  .modal-content {
+    min-height: 150px;
+  }
+  textarea {
+      height: 20em;
+  }
+  .spinner {
+    position: relative;
+    height: 50px;
+    width: 50px;
+    margin: 8px 0 0 0;
+  }
+}
 
-    .modal-dialog {
-        @include respond-tablet {
-            margin-left: $batchModalWidth * -.5;
-        }
-    }
+#batch-create-input {
+  margin-top: 20px;
+}
 
-    .modal-content {
-        overflow: hidden;
-          @include respond-tablet {
-              width: $batchModalWidth;
-          }
-    }
-
-    textarea {
-        height: 20em;
-    }
-
-    .spinner {
-      position: relative;
-      height: 50px;
-      width: 50px;
-      margin: 6px 0 -15px 0;
-    }
-
+#batch-target {
+  font-size: 16px;
+  font-weight: normal;
+  @include ui-shared-icon;
 }
 
 #batch-details-wrapper {
-  display: none;
+  margin-top: $double;
+  .form-group {
+    background: white;
+    border: none;
+    padding-top: 8px;
+  }
 }
 
-#start-batch {
-    &._isWorking {
-        font-size: 13px;
-        background-color: transparent !important;
-        text-align: center;
-        padding-bottom: 0px;
-        padding-top: 32px;
-        color: $color-blue;
-        border-color: transparent !important;
-        opacity: 1;
-        .spinner {
-            left: 50%;
-            top: 10px;
-        }
-        &:hover, &:focus {
-            color: $color-blue !important;
-        }
-        cursor: not-allowed;
-    }
-}
-
-#export-csv {
-    display: none;
-}
-
-#batch-saved-path {
-    font-weight: bold;
+#batch-details {
+  margin-bottom: $grid;
 }
 
 
@@ -3928,7 +3861,6 @@ footer {
 
   &.scrolling {
     overflow-y: scroll;
-    overflow-x: hidden;
     @include bottom-shadow;
   }
   &.scrolled {
@@ -3937,7 +3869,9 @@ footer {
 }
 
 .col-links {
-
+  &.scrolling {
+    overflow-x: hidden;
+  }
   &.recent-links {
     width: 100%;
     padding-top: $grid * 3;
@@ -4079,7 +4013,6 @@ ol.result-list {
   }
   &._isFailed {
     background-color: $color-trans-whispergray;
-    border-top: none;
   }
   p.warning {
     margin-top: $half;

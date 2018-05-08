@@ -6,6 +6,7 @@ let Helpers = require('./helpers/general.helpers.js');
 let DOMHelpers = require('./helpers/dom.helpers.js');
 let APIModule = require('./helpers/api.module.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
+let Modals = require('./modals.module.js');
 
 // templates
 let selectedFolderTemplate = require("./hbs/selected-folder-template.handlebars");
@@ -153,6 +154,7 @@ function failedUpload (jqXHR) {
   // Display an error message in our upload modal
   // TODO: refactor this when addressing form validation accessibility
 
+  uploadFormSpinner.stop();
   $('.js-warning').remove();
   $('.has-error').removeClass('has-error');
 
@@ -184,7 +186,7 @@ function failedUpload (jqXHR) {
       }
     }
   }
-  $uploadValidationError.text('Upload failed. ' + reasons.join(". "));
+  $uploadValidationError.html('<p class="field-error">Upload failed. ' + reasons.join(". ") + '</p>');
   DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
   DOMHelpers.toggleBtnDisable('.cancel', false);
 }
@@ -325,6 +327,7 @@ function setupEventHandlers () {
   $(document.body).on('click', '#upload-form-button', function(e){
     e.preventDefault();
     displayUploadModal();
+    Modals.returnFocusTo(this);
   });
 
   // create a Perma Link from an uploaded file

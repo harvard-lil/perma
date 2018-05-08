@@ -1,4 +1,8 @@
-<p>The Perma Links will be added to <span id="batch-saved-path">{{ folder }}</span></p>
+<div class="form-group">
+  <label id="batch-target" for="batch-target-path" class="label-affil">These Perma Links were added to (movable batches coming soon!)</label>
+  <select disabled class="form-control"><option>{{ folder }}</option></select>
+</div>
+<div class="form-group">
 {{#each links}}
   <div class="item-container {{#if isError}} _isFailed{{/if}}">
     <div class="row">
@@ -24,3 +28,4 @@
     </div>
   </div>
 {{/each}}
+</div>
