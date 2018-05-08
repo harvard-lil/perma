@@ -187,6 +187,7 @@ function setup_handlers() {
     $batch_history.delegate('#all-batches', 'click', function(e) {
         e.preventDefault();
         populate_link_batch_list(null);
+        $batch_history.focus();
     });
  };
 
