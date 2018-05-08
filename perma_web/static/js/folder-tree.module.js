@@ -348,16 +348,17 @@ function domTreeInit () {
         if(!data.node.state.opened || data.node==lastSelectedFolder)
           data.instance.toggle_node(data.node);
       }
-
       let lastSelectedNode = data.node;
       setSavedFolder(lastSelectedNode);
 
     // handle open/close folder icon
-    }).on('open_node.jstree', function (e, data) {
+    }).on('after_open.jstree', function (e, data) {
+      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-open-alt");
 
-    }).on('close_node.jstree', function (e, data) {
+    }).on('after_close.jstree', function (e, data) {
+      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-close-alt");
 
@@ -371,13 +372,6 @@ function domTreeInit () {
     // track currently hovered node in the hoveredNode variable:
     .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
     .on('dehover_node.jstree', (e, data) => hoveredNode = null);
-
-    // scroll inner div if too tall (keeps heading on top)
-    let headingHeight = $('.col-folders .panel-heading').height();
-    let viewportFraction = 0.9 * DOMHelpers.viewportHeight()
-    DOMHelpers.addCSS('.col-folders', 'max-height', viewportFraction);
-    // account for heading and appx. scrollbar height
-    DOMHelpers.addCSS('#folder-tree', 'height', viewportFraction - headingHeight - 10);
 
   folderTree = $.jstree.reference('#folder-tree');
 }
@@ -415,6 +409,9 @@ function setupEventHandlers () {
       data = JSON.parse(data);
       moveLink(data.folderId, data.linkId);
     });
+
+  // scroll helper
+  DOMHelpers.markIfScrolled('.col-folders');
 
   // set body class during drag'n'drop
   $(document).on('dnd_start.vakata', function (e, data) {

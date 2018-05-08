@@ -93,19 +93,23 @@
   <div class="row">
     <div class="col-md-3 col-folders">
       {% if ENABLE_BATCH_LINKS %}
-      <div class="panel-heading">
-          Link Batches
-      </div>
-      <div>
-        <ul id="batch-history" class="item-container">
-        </ul>
+      <div id="batch-list-container" class="_hide">
+        <div id="batch-list-toggle">
+          <a role="button" class="dropdown" data-toggle="collapse" href="#batch-history" aria-expanded="false" aria-controls="batch-history">
+            <h3>Link Batches</h3>
+          </a>
+        </div>
+        <div id="batch-history" class="collapse">
+        </div>
       </div>
       {% endif %}
       <div class="panel-heading">
         Folders
-        <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
-        <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
-        <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+        <span class="buttons">
+          <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+          <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+          <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+        </span>
       </div>
       <div id="folder-tree"></div>
     </div>

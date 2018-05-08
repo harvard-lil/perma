@@ -7,7 +7,7 @@ var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
 // templates
 let headerTemplate = require("./hbs/link-list-header.handlebars");
-let linkTemplate = require("./hbs/created-link-items-template.handlebars");
+let linkTemplate = require("./hbs/link.handlebars");
 
 let dragStartPosition = null;
 let lastRowToggleTime = 0;

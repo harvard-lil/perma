@@ -2669,7 +2669,7 @@ figcaption + .img-responsive {
       font-weight: normal;
       color: $color-blue;
       text-decoration: underline;
-      &:hover {
+      &:hover, &:focus {
         color: $color-hover;
         text-decoration: none;
       }
@@ -3262,6 +3262,51 @@ $batchModalWidth: 900px;
   }
 }
 
+#batch-list-toggle {
+  position: relative;
+  h3 {
+    border-top: 2px solid #2D76EE;
+    padding-top: $grid;
+    margin-bottom: $double;
+    color: #2D76EE;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    font-size: 21px;
+    &:after {
+      @include ui-chev-down;
+      position: absolute;
+      top: $double;
+      right: $grid;
+    }
+  }
+  a:focus {
+    outline: none !important;
+    h3:after {
+      outline-style: solid !important;
+      outline-color: rgba(0,0,0,0.07) !important;
+      outline-offset: 1px !important;
+      outline-width: 5px !important;
+    }
+  }
+  a[aria-expanded="true"] h3 {
+    &:after {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+#all-batches {
+  display: block;
+  padding-left: 32px;
+  margin-top: -24px;
+  color: $color-blue-a;
+  text-decoration: underline;
+  &:hover, &:focus {
+    color: $color-hover;
+    text-decoration: none;
+  }
+}
+
 // button that triggers dropdown
 .nav > li > .dropdown-toggle {
   &.navbar-link {
@@ -3783,6 +3828,7 @@ footer {
   > .panel-heading {
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
+    margin-bottom: $double;
     color: #2D76EE;
     font-family: $font-hed-alt;
     font-weight: 700;
@@ -3796,35 +3842,32 @@ footer {
       @extend .style-standard-hover;
     }
   }
-  #batch-history, #folder-tree {
+ #folder-tree {
     font-family: $font-hed-alt;
     padding: $grid $grid 0 0;
-    margin-top: $double;
     border-top: 1px solid $color-trans-lightgray;
-  }
-  #folder-tree {
-    overflow: auto;
-    .jstree-clicked, .jstree-clicked.jstree-hovered {
+
+    & .jstree-clicked, .jstree-clicked.jstree-hovered {
       border: 1px solid $color-blue;
       color: $color-white;
       background-color: $color-blue;
       box-shadow: none;
       padding-right: 6px;
     }
-    .jstree-hovered {
+    & .jstree-hovered {
       background-color: $color-highlight;
       box-shadow: none;
       color: $color-black;
     }
   }
-  .jstree-container-ul {
+  & .jstree-container-ul {
     margin-left: -6px;
     padding-bottom: 2ex;
   }
   li {
     margin-left: 1em;
   }
-  .jstree-rename-input {
+  & .jstree-rename-input {
     position: relative;
     top: -1px;
     width: 100% !important;
@@ -3835,13 +3878,6 @@ footer {
     }
     margin-top: 0px;
     padding-left: 5px !important;
-  }
-  #batch-history {
-    margin-bottom: $grid * 3;
-    li {
-        font-size: 14px;
-        padding: $half 0;
-    }
   }
 }
 
@@ -3855,6 +3891,14 @@ footer {
   }
 }
 
+#batch-history {
+  margin-bottom: $grid * 3;
+  li {
+      font-size: 14px;
+      padding: $half 0;
+  }
+}
+
 #link-list-header .organization {
   @include ui-shared-icon;
   &:before {
@@ -3863,7 +3907,7 @@ footer {
 }
 
 
-.col-links {
+.col-links, .col-folders {
   border-left: none;
   position: relative;
   padding-bottom: $grid * 3;
@@ -3874,7 +3918,6 @@ footer {
     height: 75vh !important;
   }
 
-
   &.scrolling {
     overflow-y: scroll;
     overflow-x: hidden;
@@ -3883,6 +3926,9 @@ footer {
   &.scrolled {
     @include top-bottom-shadow;
   }
+}
+
+.col-links {
 
   &.recent-links {
     width: 100%;

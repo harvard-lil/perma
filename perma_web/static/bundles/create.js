@@ -513,7 +513,7 @@ webpackJsonp([1],[
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.f = __webpack_require__(52);
+	exports.f = __webpack_require__(342);
 
 /***/ },
 /* 60 */
@@ -539,28 +539,28 @@ webpackJsonp([1],[
 	// ECMAScript 6 symbols shim
 	var global         = __webpack_require__(19)
 	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(27)
+	  , DESCRIPTORS    = __webpack_require__(339)
 	  , $export        = __webpack_require__(18)
 	  , redefine       = __webpack_require__(32)
 	  , META           = __webpack_require__(63).KEY
 	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(47)
+	  , shared         = __webpack_require__(333)
 	  , setToStringTag = __webpack_require__(51)
 	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(52)
+	  , wks            = __webpack_require__(342)
 	  , wksExt         = __webpack_require__(59)
 	  , wksDefine      = __webpack_require__(64)
 	  , keyOf          = __webpack_require__(65)
 	  , enumKeys       = __webpack_require__(66)
 	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(24)
+	  , anObject       = __webpack_require__(337)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(341)
 	  , createDesc     = __webpack_require__(31)
 	  , _create        = __webpack_require__(36)
 	  , gOPNExt        = __webpack_require__(70)
 	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(23)
+	  , $DP            = __webpack_require__(336)
 	  , $keys          = __webpack_require__(38)
 	  , gOPD           = $GOPD.f
 	  , dP             = $DP.f
@@ -763,7 +763,7 @@ webpackJsonp([1],[
 	});
 	
 	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(335)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 	// 19.4.3.5 Symbol.prototype[@@toStringTag]
 	setToStringTag($Symbol, 'Symbol');
 	// 20.2.1.9 Math[@@toStringTag]
@@ -778,7 +778,7 @@ webpackJsonp([1],[
 	var META     = __webpack_require__(48)('meta')
 	  , isObject = __webpack_require__(25)
 	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(23).f
+	  , setDesc  = __webpack_require__(336).f
 	  , id       = 0;
 	var isExtensible = Object.isExtensible || function(){
 	  return true;
@@ -837,7 +837,7 @@ webpackJsonp([1],[
 	  , core           = __webpack_require__(8)
 	  , LIBRARY        = __webpack_require__(17)
 	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(23).f;
+	  , defineProperty = __webpack_require__(336).f;
 	module.exports = function(name){
 	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
 	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
@@ -892,7 +892,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 69 */
-[329, 42],
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.2.2 IsArray(argument)
+	var cof = __webpack_require__(42);
+	module.exports = Array.isArray || function isArray(arg){
+	  return cof(arg) == 'Array';
+	};
+
+/***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -936,12 +944,12 @@ webpackJsonp([1],[
 	var pIE            = __webpack_require__(68)
 	  , createDesc     = __webpack_require__(31)
 	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
+	  , toPrimitive    = __webpack_require__(341)
 	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
+	  , IE8_DOM_DEFINE = __webpack_require__(338)
 	  , gOPD           = Object.getOwnPropertyDescriptor;
 	
-	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
+	exports.f = __webpack_require__(339) ? gOPD : function getOwnPropertyDescriptor(O, P){
 	  O = toIObject(O);
 	  P = toPrimitive(P, true);
 	  if(IE8_DOM_DEFINE)try {
@@ -2353,14 +2361,15 @@ webpackJsonp([1],[
 	      // but we only toggle to closed if you click again on the folder that was already selected.
 	      if (!data.node.state.opened || data.node == lastSelectedFolder) data.instance.toggle_node(data.node);
 	    }
-	
 	    var lastSelectedNode = data.node;
 	    setSavedFolder(lastSelectedNode);
 	
 	    // handle open/close folder icon
-	  }).on('open_node.jstree', function (e, data) {
+	  }).on('after_open.jstree', function (e, data) {
+	    DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-open-alt");
-	  }).on('close_node.jstree', function (e, data) {
+	  }).on('after_close.jstree', function (e, data) {
+	    DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-close-alt");
 	  }).on('load_node.jstree', function (e, data) {
 	    // when a new node is loaded, see if it should be selected based on a user's previous visit.
@@ -2374,13 +2383,6 @@ webpackJsonp([1],[
 	  }).on('dehover_node.jstree', function (e, data) {
 	    return hoveredNode = null;
 	  });
-	
-	  // scroll inner div if too tall (keeps heading on top)
-	  var headingHeight = $('.col-folders .panel-heading').height();
-	  var viewportFraction = 0.9 * DOMHelpers.viewportHeight();
-	  DOMHelpers.addCSS('.col-folders', 'max-height', viewportFraction);
-	  // account for heading and appx. scrollbar height
-	  DOMHelpers.addCSS('#folder-tree', 'height', viewportFraction - headingHeight - 10);
 	
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
 	}
@@ -2416,6 +2418,9 @@ webpackJsonp([1],[
 	    data = JSON.parse(data);
 	    moveLink(data.folderId, data.linkId);
 	  });
+	
+	  // scroll helper
+	  DOMHelpers.markIfScrolled('.col-folders');
 	
 	  // set body class during drag'n'drop
 	  $(document).on('dnd_start.vakata', function (e, data) {
@@ -10727,23 +10732,23 @@ webpackJsonp([1],[
 /* 110 */
 8,
 /* 111 */
-[335, 112, 120, 116],
+[348, 112, 120, 116],
 /* 112 */
-[336, 113, 115, 119, 116],
+[349, 113, 115, 119, 116],
 /* 113 */
-[337, 114],
+[350, 114],
 /* 114 */
 25,
 /* 115 */
-[338, 116, 117, 118],
+[351, 116, 117, 118],
 /* 116 */
-[339, 117],
+[352, 117],
 /* 117 */
 28,
 /* 118 */
-[340, 114, 109],
+[353, 114, 109],
 /* 119 */
-[341, 114],
+[354, 114],
 /* 120 */
 31,
 /* 121 */
@@ -10788,7 +10793,7 @@ webpackJsonp([1],[
 /* 123 */
 48,
 /* 124 */
-[334, 125],
+[347, 125],
 /* 125 */
 21,
 /* 126 */
@@ -10841,15 +10846,15 @@ webpackJsonp([1],[
 
 /***/ },
 /* 127 */
-[331, 128],
+[344, 128],
 /* 128 */
 42,
 /* 129 */
-[330, 130],
+[343, 130],
 /* 130 */
 15,
 /* 131 */
-[332, 132],
+[345, 132],
 /* 132 */
 14,
 /* 133 */
@@ -10887,9 +10892,9 @@ webpackJsonp([1],[
 /* 135 */
 [329, 128],
 /* 136 */
-[342, 137, 123, 109],
+[355, 137, 123, 109],
 /* 137 */
-[333, 109],
+[346, 109],
 /* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -13753,6 +13758,7 @@ webpackJsonp([1],[
 	var Spinner = __webpack_require__(150);
 	
 	var APIModule = __webpack_require__(78);
+	var DOMHelpers = __webpack_require__(2);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
 	var ProgressBarHelper = __webpack_require__(153);
@@ -13767,6 +13773,7 @@ webpackJsonp([1],[
 	var $batch_details = void 0,
 	    $batch_details_wrapper = void 0,
 	    $batch_history = void 0,
+	    $batch_list_container = void 0,
 	    $batch_target_path = void 0,
 	    $export_csv = void 0,
 	    $input = void 0,
@@ -13861,10 +13868,8 @@ webpackJsonp([1],[
 	            return s.trim();
 	        })
 	    }).then(function (batch_object) {
-	        var batch_id = batch_object.id;
 	        show_batch(batch_object.id);
-	        var template = batchHistoryTemplate({ "link_batches": [batch_object] });
-	        $batch_history.prepend(template);
+	        populate_link_batch_list();
 	    }).catch(function (e) {
 	        console.log(e);
 	        $modal.modal("hide");
@@ -13892,15 +13897,21 @@ webpackJsonp([1],[
 	};
 	
 	function populate_link_batch_list() {
+	    var limit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 7;
+	
 	    if (settings.ENABLE_BATCH_LINKS) {
-	        APIModule.request("GET", "/archives/batches/", {
-	            "limit": 15
+	        APIModule.request('GET', '/archives/batches/', {
+	            'limit': limit
 	        }).then(function (data) {
-	            var template = batchHistoryTemplate({ "link_batches": data.objects });
-	            $batch_history.append(template);
+	            if (data.objects.length > 0) {
+	                var template = batchHistoryTemplate({ 'link_batches': data.objects, 'next': data.meta.next });
+	                $batch_history.html(template);
+	                $batch_list_container.removeClass('_hide');
+	                DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+	            }
 	        }).catch(function (e) {
 	            console.log(e);
-	            $batch_history.append('<p>(unavailable)</p>');
+	            $batch_history.html('<p>(unavailable)</p>');
 	        });
 	    }
 	}
@@ -13922,10 +13933,21 @@ webpackJsonp([1],[
 	
 	    $start_button.click(start_batch);
 	
-	    $batch_history.delegate('a', 'click', function (e) {
+	    $batch_list_container.on('shown.bs.collapse', function () {
+	        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+	    }).on('hidden.bs.collapse', function () {
+	        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+	    });
+	
+	    $batch_history.delegate('a[data-batch]', 'click', function (e) {
 	        e.preventDefault();
 	        $input.hide();
 	        show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
+	    });
+	
+	    $batch_history.delegate('#all-batches', 'click', function (e) {
+	        e.preventDefault();
+	        populate_link_batch_list(null);
 	    });
 	};
 	
@@ -13934,6 +13956,7 @@ webpackJsonp([1],[
 	        $batch_details = $('#batch-details');
 	        $batch_details_wrapper = $('#batch-details-wrapper');
 	        $batch_history = $("#batch-history");
+	        $batch_list_container = $('#batch-list-container');
 	        $batch_target_path = $('#batch-target-path');
 	        $export_csv = $('#export-csv');
 	        $input = $('#batch-create-input');
@@ -13967,19 +13990,25 @@ webpackJsonp([1],[
 	var Handlebars = __webpack_require__(4);
 	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	    var alias1=container.lambda, alias2=container.escapeExpression;
 	
 	  return "  <li class=\"item-subtitle\">\n    <a href=\"#\" data-batch="
 	    + alias2(alias1((depth0 != null ? depth0.id : depth0), depth0))
 	    + " data-folder=\""
-	    + alias2(alias1(((stack1 = (depth0 != null ? depth0.target_folder : depth0)) != null ? stack1.id : stack1), depth0))
+	    + alias2(alias1((depth0 != null ? depth0.target_folder : depth0), depth0))
 	    + "\"><span class=\"sr-only\">Batch created </span>"
 	    + alias2(__default(__webpack_require__(163)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.started_on : depth0),{"name":"human_timestamp","hash":{},"data":data}))
 	    + "</a>\n  </li>\n";
+	},"3":function(container,depth0,helpers,partials,data) {
+	    return "<a href=\"#\" id=\"all-batches\">all batches</a>";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1;
+	    var stack1, alias1=depth0 != null ? depth0 : {};
 	
-	  return ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.link_batches : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	  return "<ul class=\"item-container\">\n"
+	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.link_batches : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "</ul>\n"
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.next : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n\n";
 	},"useData":true});
 
 /***/ },

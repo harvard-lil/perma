@@ -2,19 +2,20 @@ let Papa = require('papaparse');
 let Spinner = require('spin.js');
 
 let APIModule = require('./helpers/api.module.js');
+var DOMHelpers = require('./helpers/dom.helpers.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
-let batchHistoryTemplate = require("./hbs/link-batch-history-template.handlebars");
+let batchHistoryTemplate = require("./hbs/link-batch-history.handlebars");
 let batchLinksTemplate = require("./hbs/batch-links.handlebars");
 
 let target_folder;
 let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50});
 
 // elements in the DOM, retrieved during init()
-let $batch_details, $batch_details_wrapper, $batch_history, $batch_target_path,
-    $export_csv, $input, $input_area, $modal, $spinner, $start_button;
+let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
+    $batch_target_path, $export_csv, $input, $input_area, $modal, $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
@@ -103,10 +104,8 @@ function start_batch() {
         "target_folder": target_folder,
         "urls": $input_area.val().split("\n").map(s => {return s.trim()})
     }).then(function(batch_object) {
-        let batch_id = batch_object.id;
         show_batch(batch_object.id);
-        let template = batchHistoryTemplate({"link_batches": [batch_object]});
-        $batch_history.prepend(template);
+        populate_link_batch_list();
     }).catch(function(e){
         console.log(e);
         $modal.modal("hide");
@@ -133,16 +132,20 @@ function set_folder_from_dropdown(new_folder_id) {
     target_folder = new_folder_id;
 };
 
-function populate_link_batch_list() {
+function populate_link_batch_list(limit=7) {
     if (settings.ENABLE_BATCH_LINKS) {
-        APIModule.request("GET", "/archives/batches/", {
-            "limit": 15
+        APIModule.request('GET', '/archives/batches/', {
+            'limit': limit
         }).then(function(data) {
-            let template = batchHistoryTemplate({"link_batches": data.objects});
-            $batch_history.append(template);
+            if (data.objects.length > 0) {
+                let template = batchHistoryTemplate({'link_batches': data.objects, 'next': data.meta.next});
+                $batch_history.html(template);
+                $batch_list_container.removeClass('_hide');
+                DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+            }
         }).catch(function(e){
             console.log(e);
-            $batch_history.append('<p>(unavailable)</p>')
+            $batch_history.html('<p>(unavailable)</p>')
         });
     }
 }
@@ -168,10 +171,22 @@ function setup_handlers() {
 
     $start_button.click(start_batch);
 
-    $batch_history.delegate('a', 'click', function(e) {
+    $batch_list_container
+        .on('shown.bs.collapse', function(){
+            DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);})
+        .on('hidden.bs.collapse', function(){
+            DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+        });
+
+    $batch_history.delegate('a[data-batch]', 'click', function(e) {
         e.preventDefault();
         $input.hide();
         show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
+    });
+
+    $batch_history.delegate('#all-batches', 'click', function(e) {
+        e.preventDefault();
+        populate_link_batch_list(null);
     });
  };
 
@@ -181,6 +196,7 @@ export function init() {
         $batch_details = $('#batch-details');
         $batch_details_wrapper = $('#batch-details-wrapper');
         $batch_history = $("#batch-history");
+        $batch_list_container = $('#batch-list-container');
         $batch_target_path = $('#batch-target-path');
         $export_csv = $('#export-csv');
         $input = $('#batch-create-input');
