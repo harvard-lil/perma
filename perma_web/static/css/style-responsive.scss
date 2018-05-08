@@ -2628,6 +2628,19 @@ figcaption + .img-responsive {
       }
     }
   }
+  #create-batch-links {
+    width: 100%;
+    font-size: 16px;
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      &:hover, &:focus {
+        color: $color-hover;
+        text-decoration: none;
+      }
+    }
+  }
   &._isPrivate {
 
     input.form-priority-input {
@@ -2661,20 +2674,15 @@ figcaption + .img-responsive {
         }
       }
     }
-  }
-  #create-batch-links {
-    width: 100%;
-    font-size: 16px;
-    a {
-      font-weight: normal;
-      color: $color-blue;
-      text-decoration: underline;
+    #create-batch-links a {
+      color: $color-orange-a;
       &:hover, &:focus {
-        color: $color-hover;
-        text-decoration: none;
+        color: $color-orange;
       }
     }
   }
+
+
   #links-remaining-message,
   #browser-tools-message,
   #organization_select_form {

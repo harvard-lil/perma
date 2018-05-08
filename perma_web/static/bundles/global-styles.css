@@ -10781,6 +10781,23 @@ figcaption + .img-responsive {
   color: #2D76EE !important;
 }
 
+#linker #create-batch-links {
+  width: 100%;
+  font-size: 16px;
+}
+
+#linker #create-batch-links a {
+  font-weight: normal;
+  color: #2D76EE;
+  text-decoration: underline;
+}
+
+#linker #create-batch-links a:hover,
+#linker #create-batch-links a:focus {
+  color: #0092FF;
+  text-decoration: none;
+}
+
 @media only screen and (min-width: 768px) {
   #linker._isPrivate input.form-priority-input {
     width: 400px;
@@ -10818,21 +10835,13 @@ figcaption + .img-responsive {
   background-color: white;
 }
 
-#linker #create-batch-links {
-  width: 100%;
-  font-size: 16px;
+#linker._isPrivate #create-batch-links a {
+  color: #C65300;
 }
 
-#linker #create-batch-links a {
-  font-weight: normal;
-  color: #2D76EE;
-  text-decoration: underline;
-}
-
-#linker #create-batch-links a:hover,
-#linker #create-batch-links a:focus {
-  color: #0092FF;
-  text-decoration: none;
+#linker._isPrivate #create-batch-links a:hover,
+#linker._isPrivate #create-batch-links a:focus {
+  color: #DD671A;
 }
 
 #linker #links-remaining-message,
