@@ -1959,7 +1959,7 @@ webpackJsonp([1],[
 	                value: childNode.data.folder_id,
 	                text: childNode.text.trim(),
 	                selected: childNode.data.folder_id == current_folder_id
-	            }).prepend(new Array(depth).join('&nbsp;&nbsp;') + '- '));
+	            }).prepend(new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')));
 	
 	            // recurse
 	            if (childNode.children && childNode.children.length) {

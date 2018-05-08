@@ -17,7 +17,7 @@ export function makeFolderSelector($folder_selector, current_folder_id) {
                     text: childNode.text.trim(),
                     selected: childNode.data.folder_id == current_folder_id
                 }).prepend(
-                    new Array(depth).join('&nbsp;&nbsp;') + '- '
+                    new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')
                 )
             );
 
