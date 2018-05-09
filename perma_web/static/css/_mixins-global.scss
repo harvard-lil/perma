@@ -182,6 +182,23 @@ $width-max-respond: $width-wide;      // 1200px;
   right: 0;
 }
 
+@mixin ui-shared-icon {
+  &:before {
+    content: '';
+    width: 19px;
+    height: 18px;
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    font-size: 16px;
+    font-weight: 200;
+    background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
+    background-size: 19px 18px;
+    z-index: 10;
+    margin-right: 5px;
+
+  }
+}
 @mixin ui-chev-down {
   content: '';
   height: 9px;

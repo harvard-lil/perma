@@ -1,25 +1,37 @@
 <!-- Display Batch modal -->
-<div  class="modal" id="batch-modal" tabindex="-1" role="dialog"  aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-new">
+<div class="modal" id="batch-modal" tabindex="-1" role="dialog" aria-labelled-by="batch-modal-title">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">Batch Link Creation</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h3 id="batch-modal-title" class="modal-title">Batch Link Creation</h3>
       </div>
-      <div class="spinner"></div>
+      <div class="spinner _hide"></div>
       <div class="modal-body">
-          <div id="batch-create-input">
-              <p>The Perma Links will be added to
-                  <select id="batch-target-path" class="form-control"></select>
-              </p>
-              <textarea placeholder="Paste your URLs here (one URL per line)"></textarea>
-              <a href="#" class="btn cancel" data-dismiss="modal">Cancel</a>
-              <a href="#" id="start-batch" class="btn">Create Links</a>
+
+        <div id="batch-create-input">
+          <div class="form-group">
+            <label id="batch-target" for="batch-target-path" class="label-affil">These Perma Links will be affiliated with</label>
+            <select id="batch-target-path" class="form-control"></select>
           </div>
-          <div id="batch-details-wrapper">
-            <div id="batch-details"></div>
+          <div class="form-group">
+            <textarea aria-label="Paste your URLs here (one URL per line)" placeholder="Paste your URLs here (one URL per line)"></textarea>
+          </div>
+          <div class="form-buttons">
+            <button id="start-batch" class="btn">Create Links</button>
+            <button class="btn cancel" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+
+        <div id="batch-details-wrapper" class="_hide">
+          <div id="batch-details"></div>
+          <div class="form-buttons">
             <button class="btn cancel" data-dismiss="modal">Exit</button>
-            <a href="#" id="export-csv" class="btn" target="_blank">Export list as CSV</a>
+            <a href="#" id="export-csv" class="btn _hide" target="_blank">Export list as CSV</a>
           </div>
+        </div>
       </div>
     </div>
   </div>

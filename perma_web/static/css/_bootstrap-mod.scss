@@ -139,6 +139,11 @@ fieldset[disabled] .btn {
 .modal {
   z-index: 104000;  //1040;
   overflow-y: hidden;  //scroll;
+  overflow-x: hidden;  //scroll;
+}
+
+.modal-body {
+  padding: 0 15px 0; //15px
 }
 
 .modal-header {

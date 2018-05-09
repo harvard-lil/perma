@@ -6,15 +6,20 @@ var APIModule = require('./helpers/api.module.js');
 var FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 
 // templates
-let linkTemplate = require("./hbs/created-link-items-template.handlebars");
+let headerTemplate = require("./hbs/link-list-header.handlebars");
+let linkTemplate = require("./hbs/link.handlebars");
 
-let linkTable = null;
 let dragStartPosition = null;
 let lastRowToggleTime = 0;
 let selectedFolderID = null;
 
+// elements in the DOM, retrieved during init()
+let $linkListHeader, $linkTable;
+
 export function init () {
-  linkTable = $('.item-rows');
+  $linkTable = $('.item-rows');
+  $linkListHeader = $('#link-list-header');
+
   setupEventHandlers();
   setupLinksTableEventHandlers();
 }
@@ -25,8 +30,14 @@ function setupEventHandlers () {
       if (typeof data !== 'object') data = JSON.parse(data);
       selectedFolderID = data.folderId;
       showFolderContents(data.folderId);
+      let template = headerTemplate({
+        "organization": data.orgId,
+        "path": data.path.join(" > ")
+      });
+      $linkListHeader.html(template);
     });
-    // search form
+
+  // search form
   $('.search-query-form').on('submit', function (e) {
     e.preventDefault();
     let query = DOMHelpers.getValue('.search-query');
@@ -44,7 +55,7 @@ function getLinkIDForFormElement (element) {
 }
 
 function setupLinksTableEventHandlers () {
-  linkTable
+  $linkTable
     .on('click', 'a.clear-search', function (e) {
       e.preventDefault();
       showFolderContents(selectedFolderID);
@@ -102,8 +113,8 @@ function initShowFolderDOM (query) {
   showLoadingMessage = true;
   setTimeout(function(){
     if(showLoadingMessage) {
-      DOMHelpers.emptyElement(linkTable);
-      DOMHelpers.changeHTML(linkTable, '<div class="alert-info">Loading folder contents...</div>');
+      DOMHelpers.emptyElement($linkTable);
+      DOMHelpers.changeHTML($linkTable, '<div class="alert-info">Loading folder contents...</div>');
     }
   }, 500);
 }
@@ -136,10 +147,10 @@ function showFolderContents (folderID, query) {
           // append HTML
           if(requestData.offset === 0) {
             // first run -- initialize folder
-            DOMHelpers.emptyElement(linkTable);
+            DOMHelpers.emptyElement($linkTable);
           } else {
             // subsequent run -- appending to folder
-            let linksLoadingMore = linkTable.find('.links-loading-more');
+            let linksLoadingMore = $linkTable.find('.links-loading-more');
             DOMHelpers.removeElement(linksLoadingMore);
             if(!links.length)
               return;
@@ -153,10 +164,10 @@ function showFolderContents (folderID, query) {
         // Set a waypoint event to trigger when the last link comes into view.
         if(links.length === requestCount){
           requestData.offset += requestCount;
-          linkTable.find('.item-container:last').waypoint(function(direction) {
+          $linkTable.find('.item-container:last').waypoint(function(direction) {
             if (direction == 'down'){
               this.destroy();  // cancel waypoint
-              linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+              $linkTable.append('<div class="links-loading-more">Loading more ...</div>');
               getNextContents();
             }
           }, {
@@ -171,7 +182,7 @@ function showFolderContents (folderID, query) {
 
 function displayLinks(links, query) {
   let template = linkTemplate({links: links, query: query});
-  linkTable.append(template);
+  $linkTable.append(template);
   $('.toggle-details, .item-row._isDraggable').click(function(e){
     e.stopPropagation();
     toggleLinkDetails(e);

@@ -1,8 +1,11 @@
 <!-- Upload file modal -->
 <div  class="modal" id="archive-upload" tabindex="-1" role="dialog"  aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-new">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
         <h3 class="modal-title">Upload a file to Perma.cc</h3>
       </div>
 
@@ -42,11 +45,13 @@
               <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
               <input id="file" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
             </div>
-            <button type="submit" id="uploadPermalink" class="btn btn-primary btn-large">Create a Perma Link</button>
-            <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+            <div class="form-buttons">
+              <button type="submit" id="uploadPermalink" class="btn btn-primary btn-large">Create a Perma Link</button>
+              <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+            </div>
           {% endif %}
           {% csrf_token %}
-          <p id="upload-error" class="field-error"></p>
+          <div id="upload-error" ></div>
         </form>
       </div>
     </div>
@@ -57,9 +62,11 @@
 <!-- Upload complete modal -->
 <div id="archive-upload-confirm" class="modal _hide fade center">
   <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
     <h3 class="modal-title">Upload a file to Perma.cc</h3>
     <p class="modal-description">This will create a new Perma Link.</p>
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">close window</button>
   </div>
   <div class="modal-body">
     <div class="center">

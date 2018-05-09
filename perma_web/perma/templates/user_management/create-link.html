@@ -32,16 +32,18 @@
                  data-html="true"
                  data-trigger="manual"
                  />
-          <button disabled="disabled"
-                  class="btn btn-large btn-info _active-when-valid"
-                  id="addlink"
-                  type="submit">
-              Create Perma Link
-          </button>
+          <div class="wrapper">
+            <button disabled="disabled"
+                    class="btn btn-large btn-info _active-when-valid"
+                    id="addlink"
+                    type="submit">
+                Create Perma Link
+            </button>
 
-          {% if ENABLE_BATCH_LINKS %}
-          <p id="create-batch-links">or <a data-toggle="modal" href="#batch-modal">create multiple links</a></p>
-          {% endif %}
+            {% if ENABLE_BATCH_LINKS %}
+            <p id="create-batch-links">or <a data-toggle="modal" href="#batch-modal">create multiple links</a></p>
+            {% endif %}
+          </div>
 
           {% if request.user.has_limit %}
             <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs_perma_link_creation' %}#preservation-limits">Learn more about accounts</a>.</p>
@@ -91,19 +93,23 @@
   <div class="row">
     <div class="col-md-3 col-folders">
       {% if ENABLE_BATCH_LINKS %}
-      <div class="panel-heading">
-          Link Batches
-      </div>
-      <div>
-        <ul id="batch-history" class="item-container">
-        </ul>
+      <div id="batch-list-container" class="_hide">
+        <div id="batch-list-toggle">
+          <a role="button" class="dropdown" data-toggle="collapse" href="#batch-history" aria-expanded="false" aria-controls="batch-history">
+            <h3>Link Batch History</h3>
+          </a>
+        </div>
+        <div id="batch-history" class="collapse">
+        </div>
       </div>
       {% endif %}
       <div class="panel-heading">
         Folders
-        <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
-        <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
-        <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+        <span class="buttons">
+          <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+          <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+          <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+        </span>
       </div>
       <div id="folder-tree"></div>
     </div>
@@ -112,11 +118,11 @@
       <div class="container link-headers">
         <div class="row">
           <div class="col-xs-12">
-            <h3 class="link-header body-ah">Your Perma Links</h3>
+            <h3 id="link-list-header" class="body-ah">Your Perma Links</h3>
           </div>
         </div>
       </div>
-      {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
+      {% include "user_management/includes/search_form.html" with search_placeholder="Search" %}
       <div class="container item-rows"></div>
     </div>
   </div>

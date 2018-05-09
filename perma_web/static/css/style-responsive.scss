@@ -193,8 +193,10 @@ textarea {
   outline-width: 5px !important;
 }
 
+select:focus,
+option:focus,
 input:focus,
-*:hover {
+*:hover,  {
   outline: none !important;
 }
 
@@ -1548,10 +1550,9 @@ button {
 
 // Modals
 
-$modalWidth: 600px;
-
-body.modal-open {
-  margin-right: 0;
+#after-modals[aria-hidden="true"] {
+  overflow: hidden;
+  max-height: 100vh;
 }
 
 .modal-backdrop.in {
@@ -1559,26 +1560,7 @@ body.modal-open {
   background-color: white;
 }
 
-.modal {
-  display: none;
-  z-index: 9999;
-}
-
-.modal-dialog {
-  @include respond-mobile {
-    padding: 0;
-    @include fill-screen;
-  }
-  @include respond-tablet {
-    position: relative;
-    left: 50%;
-    right: auto;
-    margin-left: $modalWidth * -.5;
-  }
-}
-
 .modal-content {
-  width: auto;
   padding: $double;
   margin-top: 0;
   margin-left: 0;
@@ -1587,18 +1569,29 @@ body.modal-open {
   border: none;
   box-shadow: none;
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
   @include respond-tablet {
     @include style-card(black);
-    width: $modalWidth;
-    padding: $grid * 4 $grid * 4 $double;
+    padding: $double $grid * 4 0px;
     height: auto;
   }
   form {
     margin-top: $double;
     overflow: visible;
     @include respond-tablet {
-      margin-top: $grid * 3;
+      margin-top: 0;
+    }
+  }
+  .form-buttons {
+    margin-left: -$double;
+    padding-left: 0;
+    margin-right: -$double;
+    padding-right: 0;
+    @include respond-tablet {
+      margin-left: -$grid * 4;
+      padding-left: 0;
+      margin-right: -$grid * 4;
+      padding-right: 0;
     }
   }
   .form-group {
@@ -1657,13 +1650,12 @@ body.modal-open {
 .modal-header {
   overflow: visible;
   .close {
-    @include hide-text;
-    position: absolute;
-    top: 0;
-    right: -$grid * 5;
-    width: $grid * 5;
-    height: $grid * 5;
-    background-color: gray;
+    z-index: 104100;
+    width: auto;
+    opacity: 0.3;
+    &:focus, &.close:hover {
+      outline: 2px dotted black !important;
+    }
   }
   .modal-title, .modal-description {
     font-family: $font-hed-alt;
@@ -2416,32 +2408,6 @@ figcaption + .img-responsive {
   margin: $double 0 $grid * 4;
 }
 
-.close {
-  line-height: 1;
-  color: $color-white;
-  opacity: 1;
-  filter: none;
-  text-shadow: none;
-  font-weight: 200;
-  font-size: 22px;
-  color: $color-black;
-  width: auto;
-  position: absolute;
-  right: 16px;
-  top: 22px;
-  &:hover {
-    color: $color-blue;
-    opacity: 1;
-    filter: none;
-  }
-  @include respond-tablet {
-    font-size: 28px;
-    position: relative;
-    right: auto;
-    top: auto;
-  }
-}
-
 .close-browser-tools {
   font-size: 22px;
   font-weight: normal;
@@ -2561,6 +2527,41 @@ figcaption + .img-responsive {
   }
 }
 
+.label-affil {
+  width: 100%;
+  float: left;
+  text-align: left;
+  border-color: transparent;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  font-size: 18px;
+  font-weight: 200;
+  padding-top: $half;
+  padding-bottom: $half;
+
+  @include respond-desktop {
+    padding-top: $grid;
+    padding-bottom: $grid;
+    font-size: 20px;
+    font-weight: 200;
+  }
+
+  &:before {
+    content: '';
+    width: 19px;
+    height: 18px;
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    background-image: url('../img/ui/perma-ui-affil.svg');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 19px 18px;
+    z-index: 10;
+    margin-right: $half;
+  }
+}
+
 #linker {
   .form-priority-fieldset {
     padding: $grid * 3 $double;
@@ -2592,9 +2593,11 @@ figcaption + .img-responsive {
       width: $grid * 111;
     }
   }
-  .form-priority-fieldset .btn {
+  .wrapper {
+    position: relative;
     width: 100%;
     margin-top: $double;
+    text-align: center;
     @include respond-tablet {
       margin-top: 0;
       float: right;
@@ -2603,6 +2606,11 @@ figcaption + .img-responsive {
     @include respond-desktop {
       width: $grid * 25;
     }
+  }
+  .form-priority-fieldset .btn {
+    width: 100%;
+    margin-top: 2px;
+    margin-bottom: $grid;
     &._isWorking {
       font-size: 13px;
       background-color: transparent !important;
@@ -2621,6 +2629,19 @@ figcaption + .img-responsive {
       }
     }
   }
+  #create-batch-links {
+    width: 100%;
+    font-size: 16px;
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      &:hover, &:focus {
+        color: $color-hover;
+        text-decoration: none;
+      }
+    }
+  }
   &._isPrivate {
 
     input.form-priority-input {
@@ -2634,11 +2655,13 @@ figcaption + .img-responsive {
         width: $grid * 106;
       }
     }
-    .form-priority-fieldset .btn {
-      background-color: $color-orange;
+    .wrapper {
       @include respond-tablet {
         width: $grid * 30;
       }
+    }
+    .form-priority-fieldset .btn {
+      background-color: $color-orange;
     }
     #organization_select_form {
       .selector {
@@ -2652,7 +2675,15 @@ figcaption + .img-responsive {
         }
       }
     }
+    #create-batch-links a {
+      color: $color-orange-a;
+      &:hover, &:focus {
+        color: $color-orange;
+      }
+    }
   }
+
+
   #links-remaining-message,
   #browser-tools-message,
   #organization_select_form {
@@ -2696,56 +2727,13 @@ figcaption + .img-responsive {
         background-color:$color-trans-darkgray;
       }
     }
-    .label-affil,
     .dropdown-affil {
       float: left;
-      // width: 50%;
       text-align: left;
-    }
-    .label-affil {
-      border-color: transparent;
-      &:before {
-        content: '';
-        width: 19px;
-        height: 18px;
-        display: inline-block;
-        position: relative;
-        top: 1px;
-        background-image: url('../img/ui/perma-ui-affil.svg');
-        background-repeat: no-repeat;
-        background-position: 0 0;
-        background-size: 19px 18px;
-        z-index: 10;
-        margin-right: $half;
-      }
-    }
-    .dropdown-affil {
       margin-top: $grid;
-    }
-    .label-affil {
-      font-size: 18px;
-      font-weight: 200;
-      @include respond-desktop {
-        font-size: 20px;
-        font-weight: 200;
-      }
-    }
-    .label-affil {
-      padding-top: $half;
-      padding-bottom: $half;
-      border-top-width: 1px;
-      border-bottom-width: 1px;
-      @include respond-desktop {
-        padding-top: $grid;
-        padding-bottom: $grid;
-      }
-    }
-    .label-affil {
       width: 100%;
     }
-    .dropdown-affil {
-      width: 100%;
-    }
+
     @include respond-tablet {
       @include link-dropdown-widths(656px, $grid * 41);
       .dropdown-affil {
@@ -2766,39 +2754,6 @@ figcaption + .img-responsive {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
   }
-  #create-batch-links {
-    clear: both;
-    text-align: right;
-    float: left;
-    width: 100%;
-    max-width: none;
-  }
-  #create-batch-links {
-    font-family: $font-hed-alt;
-    font-size: 16px;
-    font-weight: 200;
-    @include respond-desktop {
-      font-size: 18px;
-      font-weight: 200;
-    }
-  }
-  #create-batch-links {
-    margin-top: 0;
-    margin-bottom: -$grid;
-    font-family: $font-hed-alt;
-  }
-  #create-batch-links {
-    a {
-      font-weight: normal;
-      color: $color-blue;
-      text-decoration: underline;
-      &:hover {
-        color: $color-hover;
-        text-decoration: none;
-      }
-    }
-  }
-
 }
 
 .manage-links {
@@ -3151,69 +3106,44 @@ button#addlink,
 
 /////////////////////////////////////////
 
-// Batch modals
-
-$batchModalWidth: 900px;
+// Batch modal
 
 #batch-modal {
+  .modal-content {
+    min-height: 150px;
+  }
+  textarea {
+      height: 20em;
+  }
+  .spinner {
+    position: relative;
+    height: 50px;
+    width: 50px;
+    margin: 8px 0 0 0;
+  }
+}
 
-    .modal-dialog {
-        @include respond-tablet {
-            margin-left: $batchModalWidth * -.5;
-        }
-    }
+#batch-create-input {
+  margin-top: 20px;
+}
 
-    .modal-content {
-        overflow: hidden;
-          @include respond-tablet {
-              width: $batchModalWidth;
-          }
-    }
-
-    textarea {
-        height: 20em;
-    }
-
-    .spinner {
-      position: relative;
-      height: 50px;
-      width: 50px;
-      margin: 6px 0 -15px 0;
-    }
-
+#batch-target {
+  font-size: 16px;
+  font-weight: normal;
+  @include ui-shared-icon;
 }
 
 #batch-details-wrapper {
-  display: none;
+  margin-top: $double;
+  .form-group {
+    background: white;
+    border: none;
+    padding-top: 8px;
+  }
 }
 
-#start-batch {
-    &._isWorking {
-        font-size: 13px;
-        background-color: transparent !important;
-        text-align: center;
-        padding-bottom: 0px;
-        padding-top: 32px;
-        color: $color-blue;
-        border-color: transparent !important;
-        opacity: 1;
-        .spinner {
-            left: 50%;
-            top: 10px;
-        }
-        &:hover, &:focus {
-            color: $color-blue !important;
-        }
-        cursor: not-allowed;
-    }
-}
-
-#export-csv {
-    display: none;
-}
-
-#batch-saved-path {
-    font-weight: bold;
+#batch-details {
+  margin-bottom: $grid;
 }
 
 
@@ -3270,6 +3200,51 @@ $batchModalWidth: 900px;
       font-weight: 700;
       padding-right: 0;
     }
+  }
+}
+
+#batch-list-toggle {
+  position: relative;
+  h3 {
+    border-top: 2px solid #2D76EE;
+    padding-top: $grid;
+    margin-bottom: $double;
+    color: #2D76EE;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    font-size: 21px;
+    &:after {
+      @include ui-chev-down;
+      position: absolute;
+      top: $double;
+      right: $grid;
+    }
+  }
+  a:focus {
+    outline: none !important;
+    h3:after {
+      outline-style: solid !important;
+      outline-color: rgba(0,0,0,0.07) !important;
+      outline-offset: 1px !important;
+      outline-width: 5px !important;
+    }
+  }
+  a[aria-expanded="true"] h3 {
+    &:after {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+#all-batches {
+  display: block;
+  padding-left: 32px;
+  margin-top: -24px;
+  color: $color-blue-a;
+  text-decoration: underline;
+  &:hover, &:focus {
+    color: $color-hover;
+    text-decoration: none;
   }
 }
 
@@ -3794,6 +3769,7 @@ footer {
   > .panel-heading {
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
+    margin-bottom: $double;
     color: #2D76EE;
     font-family: $font-hed-alt;
     font-weight: 700;
@@ -3807,35 +3783,32 @@ footer {
       @extend .style-standard-hover;
     }
   }
-  #batch-history, #folder-tree {
+ #folder-tree {
     font-family: $font-hed-alt;
     padding: $grid $grid 0 0;
-    margin-top: $double;
     border-top: 1px solid $color-trans-lightgray;
-  }
-  #folder-tree {
-    overflow: auto;
-    .jstree-clicked, .jstree-clicked.jstree-hovered {
+
+    & .jstree-clicked, .jstree-clicked.jstree-hovered {
       border: 1px solid $color-blue;
       color: $color-white;
       background-color: $color-blue;
       box-shadow: none;
       padding-right: 6px;
     }
-    .jstree-hovered {
+    & .jstree-hovered {
       background-color: $color-highlight;
       box-shadow: none;
       color: $color-black;
     }
   }
-  .jstree-container-ul {
+  & .jstree-container-ul {
     margin-left: -6px;
     padding-bottom: 2ex;
   }
   li {
     margin-left: 1em;
   }
-  .jstree-rename-input {
+  & .jstree-rename-input {
     position: relative;
     top: -1px;
     width: 100% !important;
@@ -3846,13 +3819,6 @@ footer {
     }
     margin-top: 0px;
     padding-left: 5px !important;
-  }
-  #batch-history {
-    margin-bottom: $grid * 3;
-    li {
-        font-size: 14px;
-        padding: $half 0;
-    }
   }
 }
 
@@ -3866,7 +3832,23 @@ footer {
   }
 }
 
-.col-links {
+#batch-history {
+  margin-bottom: $grid * 3;
+  li {
+      font-size: 14px;
+      padding: $half 0;
+  }
+}
+
+#link-list-header .organization {
+  @include ui-shared-icon;
+  &:before {
+    top: 1px;
+  }
+}
+
+
+.col-links, .col-folders {
   border-left: none;
   position: relative;
   padding-bottom: $grid * 3;
@@ -3877,16 +3859,19 @@ footer {
     height: 75vh !important;
   }
 
-
   &.scrolling {
     overflow-y: scroll;
-    overflow-x: hidden;
     @include bottom-shadow;
   }
   &.scrolled {
     @include top-bottom-shadow;
   }
+}
 
+.col-links {
+  &.scrolling {
+    overflow-x: hidden;
+  }
   &.recent-links {
     width: 100%;
     padding-top: $grid * 3;
@@ -3958,12 +3943,6 @@ footer {
 }
 
 .item-container._isExpandable {
-  &:hover {
-    border-top-color: $color-blue;
-    .item-title-display {
-      color: $color-blue;
-    }
-  }
   &._active {
     @include style-card(black);
     margin: 0 -$grid $double -$grid;
@@ -4034,7 +4013,6 @@ ol.result-list {
   }
   &._isFailed {
     background-color: $color-trans-whispergray;
-    border-top: none;
   }
   p.warning {
     margin-top: $half;
@@ -4106,18 +4084,7 @@ ol.result-list {
   font-size: 16px;
   font-weight: 200;
   color: $color-blue;
-  &:before {
-    content: '';
-    width: 19px;
-    height: 18px;
-    display: inline-block;
-    position: relative;
-    top: 3px;
-    background: url('../img/ui/perma-ui-affil.svg') no-repeat 0 0;
-    background-size: 19px 18px;
-    z-index: 10;
-    margin-right: 5px;
-  }
+  @include ui-shared-icon;
   a:hover, a:focus {
     text-decoration: underline;
     @extend .style-standard-hover;
