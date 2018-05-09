@@ -25,7 +25,7 @@
 
     {% block meta %}{% endblock %}
     <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-    {% render_bundle 'global-styles' 'css' %}
+    {% render_bundle 'global' 'css' %}
 
     <!--Python variables for use in Javascript -->
     {% include 'js_config.html' %}
