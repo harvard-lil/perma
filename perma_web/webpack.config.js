@@ -8,19 +8,21 @@ module.exports = {
   context: __dirname,
 
   entry: {
-    'single-link': ['./static/js/single-link.module'],
-    'single-link-styles':'./static/css/style-responsive-archive.scss',
+    'single-link': [
+      './static/js/single-link.module.js',
+      './static/css/style-responsive-archive.scss'
+    ],
 
-    'global': './static/js/global',
-    'global-styles': [
+    'global': [
+      './static/js/global.js',
       './static/css/style-responsive.scss',
       './static/vendors/font-awesome/font-awesome.min.css',
     ],
 
     // each of these entry points will also include global.js, so should be listed in CommonsChunkPlugin below
+    'create': './static/js/create',
     'single-link-permissions': './static/js/single-link-permissions.module',
     'map': './static/js/map',
-    'create': './static/js/create',
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
     'search': './static/js/search.module',
@@ -51,7 +53,7 @@ module.exports = {
      */
     new webpack.optimize.CommonsChunkPlugin({
       name: "global",
-      chunks: ["global", "create", "single-link-permissions", "map", "create", "link-delete-confirm", "developer-docs", "search", "stats", "admin-stats"],
+      chunks: ["global", "create", "single-link-permissions", "map", "link-delete-confirm", "developer-docs", "search", "stats", "admin-stats"],
       minChunks: Infinity,
     }),
 

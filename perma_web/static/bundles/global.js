@@ -97,7 +97,7 @@
 /******/ 			script.charset = 'utf-8';
 /******/ 			script.async = true;
 /******/
-/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"0":"admin-stats","1":"create","2":"developer-docs","5":"link-delete-confirm","6":"map","7":"search","9":"single-link-permissions","11":"stats"}[chunkId]||chunkId) + ".js";
+/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"0":"admin-stats","1":"create","2":"developer-docs","4":"link-delete-confirm","5":"map","6":"search","8":"single-link-permissions","9":"stats"}[chunkId]||chunkId) + ".js";
 /******/ 			head.appendChild(script);
 /******/ 		}
 /******/ 	};
@@ -142,65 +142,10 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	var FastClick = __webpack_require__(166);
-	
-	var ErrorHandler = __webpack_require__(79);
-	var Helpers = __webpack_require__(92);
-	__webpack_require__(167); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
-	
-	
-	__webpack_require__(168); // make menus work
-	__webpack_require__(169); // make menu toggle for small screen work
-	__webpack_require__(170); // make carousels work
-	
-	// We used to use modernizr but have currently dropped it.
-	// If we want to include it again this is where to put it --
-	//    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
-	// https://www.npmjs.com/package/modernizr-webpack-plugin
-	
-	// initialize fastclick
-	FastClick.attach(document.body);
-	
-	// initialize airbrake
-	ErrorHandler.init();
-	
-	// set up jquery to properly set CSRF header on AJAX post
-	// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
-	$.ajaxSetup({
-	  crossdomain: false, // obviates need for sameOrigin test
-	  beforeSend: function beforeSend(xhr, settings) {
-	    if (!Helpers.csrfSafeMethod(settings.type)) {
-	      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
-	    }
-	  }
-	});
-	
-	/*** event handlers ***/
-	
-	// Add class to active text inputs
-	$('.text-input').focus(function () {
-	  $(this).addClass('text-input-active');
-	}).blur(function () {
-	  $(this).removeClass('text-input-active');
-	});
-	
-	// Select the input text when the user clicks the element
-	$('.select-on-click').click(function () {
-	  $(this).select();
-	});
-	
-	// clear popup alerts with a click
-	$(document).on('click', '.popup-alert', function () {
-	  $(this).remove();
-	});
-	
-	// put focus on first form input element when a form is revealed by bootstrap UI
-	$('.collapse').on('shown.bs.collapse', function () {
-	  $(this).find('input[type="text"]').focus();
-	});
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+	__webpack_require__(166);
+	__webpack_require__(172);
+	module.exports = __webpack_require__(208);
+
 
 /***/ },
 /* 1 */
@@ -10825,7 +10770,7 @@
 
 /***/ },
 /* 20 */
-[335, 21],
+[337, 21],
 /* 21 */
 /***/ function(module, exports) {
 
@@ -10836,11 +10781,11 @@
 
 /***/ },
 /* 22 */
-[336, 23, 31, 27],
+[338, 23, 31, 27],
 /* 23 */
-[337, 24, 26, 30, 27],
+[339, 24, 26, 30, 27],
 /* 24 */
-[338, 25],
+[340, 25],
 /* 25 */
 /***/ function(module, exports) {
 
@@ -10850,9 +10795,9 @@
 
 /***/ },
 /* 26 */
-[339, 27, 28, 29],
+[341, 27, 28, 29],
 /* 27 */
-[340, 28],
+[342, 28],
 /* 28 */
 /***/ function(module, exports) {
 
@@ -10866,9 +10811,9 @@
 
 /***/ },
 /* 29 */
-[341, 25, 19],
+[343, 25, 19],
 /* 30 */
-[342, 25],
+[344, 25],
 /* 31 */
 /***/ function(module, exports) {
 
@@ -11032,7 +10977,7 @@
 
 /***/ },
 /* 41 */
-[332, 42],
+[334, 42],
 /* 42 */
 /***/ function(module, exports) {
 
@@ -11070,7 +11015,7 @@
 
 /***/ },
 /* 44 */
-[333, 14],
+[335, 14],
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11094,7 +11039,7 @@
 
 /***/ },
 /* 47 */
-[334, 19],
+[336, 19],
 /* 48 */
 /***/ function(module, exports) {
 
@@ -11133,7 +11078,7 @@
 
 /***/ },
 /* 52 */
-[343, 47, 48, 19],
+[345, 47, 48, 19],
 /* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11153,7 +11098,7 @@
 
 /***/ },
 /* 54 */
-[331, 15],
+[333, 15],
 /* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -12548,7 +12493,62 @@
 /* 138 */,
 /* 139 */,
 /* 140 */,
-/* 141 */,
+/* 141 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+	
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+	
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
 /* 142 */,
 /* 143 */,
 /* 144 */,
@@ -12574,6 +12574,70 @@
 /* 164 */,
 /* 165 */,
 /* 166 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function($) {'use strict';
+	
+	var FastClick = __webpack_require__(167);
+	
+	var ErrorHandler = __webpack_require__(79);
+	var Helpers = __webpack_require__(92);
+	__webpack_require__(168); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
+	
+	
+	__webpack_require__(169); // make menus work
+	__webpack_require__(170); // make menu toggle for small screen work
+	__webpack_require__(171); // make carousels work
+	
+	// We used to use modernizr but have currently dropped it.
+	// If we want to include it again this is where to put it --
+	//    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
+	// https://www.npmjs.com/package/modernizr-webpack-plugin
+	
+	// initialize fastclick
+	FastClick.attach(document.body);
+	
+	// initialize airbrake
+	ErrorHandler.init();
+	
+	// set up jquery to properly set CSRF header on AJAX post
+	// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+	$.ajaxSetup({
+	  crossdomain: false, // obviates need for sameOrigin test
+	  beforeSend: function beforeSend(xhr, settings) {
+	    if (!Helpers.csrfSafeMethod(settings.type)) {
+	      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
+	    }
+	  }
+	});
+	
+	/*** event handlers ***/
+	
+	// Add class to active text inputs
+	$('.text-input').focus(function () {
+	  $(this).addClass('text-input-active');
+	}).blur(function () {
+	  $(this).removeClass('text-input-active');
+	});
+	
+	// Select the input text when the user clicks the element
+	$('.select-on-click').click(function () {
+	  $(this).select();
+	});
+	
+	// clear popup alerts with a click
+	$(document).on('click', '.popup-alert', function () {
+	  $(this).remove();
+	});
+	
+	// put focus on first form input element when a form is revealed by bootstrap UI
+	$('.collapse').on('shown.bs.collapse', function () {
+	  $(this).find('input[type="text"]').focus();
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ },
+/* 167 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;;(function () {
@@ -13420,7 +13484,7 @@
 
 
 /***/ },
-/* 167 */
+/* 168 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -13459,7 +13523,7 @@
 	})();
 
 /***/ },
-/* 168 */
+/* 169 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13631,7 +13695,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 169 */
+/* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13850,7 +13914,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 170 */
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -14094,8 +14158,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 171 */,
-/* 172 */,
+/* 172 */
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
 /* 173 */,
 /* 174 */,
 /* 175 */,
@@ -14131,7 +14199,8 @@
 /* 205 */,
 /* 206 */,
 /* 207 */,
-/* 208 */,
+/* 208 */
+172,
 /* 209 */,
 /* 210 */,
 /* 211 */,
@@ -14254,7 +14323,9 @@
 /* 328 */,
 /* 329 */,
 /* 330 */,
-/* 331 */
+/* 331 */,
+/* 332 */,
+/* 333 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.13 ToObject(argument)
@@ -14264,7 +14335,7 @@
 	};
 
 /***/ },
-/* 332 */
+/* 334 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// fallback for non-array-like ES3 and non-enumerable old V8 strings
@@ -14274,7 +14345,7 @@
 	};
 
 /***/ },
-/* 333 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.15 ToLength
@@ -14285,7 +14356,7 @@
 	};
 
 /***/ },
-/* 334 */
+/* 336 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	var global = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14296,7 +14367,7 @@
 	};
 
 /***/ },
-/* 335 */
+/* 337 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// optional / simple context binding
@@ -14321,7 +14392,7 @@
 	};
 
 /***/ },
-/* 336 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	var dP         = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14334,7 +14405,7 @@
 	};
 
 /***/ },
-/* 337 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__, __webpack_module_template_argument_3__) {
 
 	var anObject       = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14355,7 +14426,7 @@
 	};
 
 /***/ },
-/* 338 */
+/* 340 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	var isObject = __webpack_require__(__webpack_module_template_argument_0__);
@@ -14365,7 +14436,7 @@
 	};
 
 /***/ },
-/* 339 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	module.exports = !__webpack_require__(__webpack_module_template_argument_0__) && !__webpack_require__(__webpack_module_template_argument_1__)(function(){
@@ -14373,7 +14444,7 @@
 	});
 
 /***/ },
-/* 340 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// Thank's IE8 for his funny defineProperty
@@ -14382,7 +14453,7 @@
 	});
 
 /***/ },
-/* 341 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__) {
 
 	var isObject = __webpack_require__(__webpack_module_template_argument_0__)
@@ -14394,7 +14465,7 @@
 	};
 
 /***/ },
-/* 342 */
+/* 344 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	// 7.1.1 ToPrimitive(input [, PreferredType])
@@ -14411,7 +14482,7 @@
 	};
 
 /***/ },
-/* 343 */
+/* 345 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
 
 	var store      = __webpack_require__(__webpack_module_template_argument_0__)('wks')
