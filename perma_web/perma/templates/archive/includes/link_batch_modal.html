@@ -8,7 +8,8 @@
         </button>
         <h3 id="batch-modal-title" class="modal-title">Batch Link Creation</h3>
       </div>
-      <div class="spinner _hide"></div>
+      <div class="spinner _hide">
+      <span class="sr-only" id="loading" tabindex="-1">Loading</span></div>
       <div class="modal-body">
 
         <div id="batch-create-input">
@@ -26,7 +27,8 @@
         </div>
 
         <div id="batch-details-wrapper" class="_hide">
-          <div id="batch-details"></div>
+          <div id="batch-progress-report" tabindex="-1" class="sr-only" role="log" aria-atomic="false"></div>
+          <div id="batch-details" aria-describedby="batch-progress-report"></div>
           <div class="form-buttons">
             <button class="btn cancel" data-dismiss="modal">Exit</button>
             <a href="#" id="export-csv" class="btn _hide" target="_blank">Export list as CSV</a>

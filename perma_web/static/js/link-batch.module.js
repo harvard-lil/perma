@@ -16,34 +16,42 @@ let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 
 
 // elements in the DOM, retrieved during init()
 let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
-    $batch_target_path, $export_csv, $input, $input_area, $modal, $modal_close,
-    $spinner, $start_button;
+    $batch_progress_report, $batch_target_path, $create_batch, $export_csv,
+    $input, $input_area, $loading, $modal, $modal_close, $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
-    spinner.stop();
-    $spinner.addClass("_hide");
-    $batch_details.empty();
     let all_completed = true;
+    let batch_progress = []
+    let errors = 0;
     links_in_batch.forEach(function(link) {
-        link.progress = (link.step_count / 5) * 100;
+        link.progress = (link.step_count / 6) * 100;
         link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
         switch(link.status){
             case "pending":
             case "in_progress":
                 link.isProcessing = true;
                 all_completed = false;
+                batch_progress.push(link.progress);
                 break;
             case "completed":
                 link.isComplete = true;
+                batch_progress.push(link.progress);
                 break;
             default:
                 link.isError = true;
                 link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
+                errors += 1;
         }
     });
+    let percent_complete = Math.round(batch_progress.reduce((a, b) => a + b, 0) / (batch_progress.length * 100) * 100)
+    let message = `Batch ${percent_complete}% complete`;
+    if (errors > 0){
+        message += `, ${errors} errors.`
+    }
+    $batch_progress_report.html(message);
     let template = batchLinksTemplate({"links": links_in_batch, "folder": folder_path});
-    $batch_details.append(template);
+    $batch_details.html(template);
     if (all_completed) {
         let export_data = links_in_batch.map(function(link) {
             let to_export = {
@@ -77,14 +85,27 @@ function show_batch(batch_id) {
         spinner.spin($spinner[0]);
         $spinner.removeClass("_hide");
     }
+    let first_time = true;
     let retrieve_and_render = function() {
         APIModule.request(
             'GET', `/archives/batches/${batch_id}`
         ).then(function(batch_data) {
+            if (first_time) {
+                first_time = false;
+                $batch_progress_report.focus();
+                spinner.stop();
+                $spinner.addClass("_hide");
+                $batch_details.attr("aria-hidden", "true");
+                // prevents tabbing to elements that are getting swapped out
+                $batch_details.find('*').each(function(){$(this).attr('tabIndex', '-1')});
+            }
             let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
             let all_completed = render_batch(batch_data.capture_jobs, folder_path);
             if (all_completed) {
                 clearInterval(interval);
+                $batch_details.attr("aria-hidden", "false");
+                // undo our special focus handling
+                $batch_details.find('*').each(function(){$(this).removeAttr('tabIndex')});
             }
         }).catch(function(error){
             console.log(error);
@@ -106,6 +127,7 @@ function start_batch() {
     $input.hide();
     spinner.spin($spinner[0]);
     $spinner.removeClass("_hide");
+    $loading.focus();
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder,
         "urls": $input_area.val().split("\n").map(s => {return s.trim()})
@@ -173,6 +195,8 @@ function setup_handlers() {
         $batch_details_wrapper.addClass("_hide");
         spinner.stop();
         $spinner.addClass("_hide");
+        $export_csv.addClass("_hide");
+        $batch_progress_report.empty();
        });
 
     $batch_target_path.change(function() {
@@ -188,6 +212,10 @@ function setup_handlers() {
         .on('hidden.bs.collapse', function(){
             DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
         });
+
+    $create_batch.click(function() {
+        Modals.returnFocusTo(this);
+    });
 
     $batch_history.delegate('a[data-batch]', 'click', function(e) {
         e.preventDefault();
@@ -210,10 +238,13 @@ export function init() {
         $batch_details_wrapper = $('#batch-details-wrapper');
         $batch_history = $("#batch-history");
         $batch_list_container = $('#batch-list-container');
+        $batch_progress_report = $('#batch-progress-report');
         $batch_target_path = $('#batch-target-path');
+        $create_batch = $('#create-batch');
         $export_csv = $('#export-csv');
         $input = $('#batch-create-input');
         $input_area = $('#batch-create-input textarea');
+        $loading = $('#loading');
         $modal = $("#batch-modal");
         $modal_close = $("#batch-modal .close");
         $spinner = $('.spinner');
