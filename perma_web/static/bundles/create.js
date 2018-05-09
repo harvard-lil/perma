@@ -13915,7 +13915,7 @@ webpackJsonp([1],[
 	        "target_folder": target_folder,
 	        "urls": $input_area.val().split("\n").map(function (s) {
 	            return s.trim();
-	        })
+	        }).filter(Boolean)
 	    }).then(function (batch_object) {
 	        $modal_close.show();
 	        show_batch(batch_object.id);

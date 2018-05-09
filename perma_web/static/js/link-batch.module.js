@@ -108,7 +108,7 @@ function start_batch() {
     $spinner.removeClass("_hide");
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder,
-        "urls": $input_area.val().split("\n").map(s => {return s.trim()})
+        "urls": $input_area.val().split("\n").map(s => {return s.trim()}).filter(Boolean)
     }).then(function(batch_object) {
         $modal_close.show();
         show_batch(batch_object.id);
