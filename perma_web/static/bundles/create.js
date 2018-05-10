@@ -13814,39 +13814,52 @@ webpackJsonp([1],[
 	    $batch_details_wrapper = void 0,
 	    $batch_history = void 0,
 	    $batch_list_container = void 0,
+	    $batch_progress_report = void 0,
 	    $batch_target_path = void 0,
+	    $create_batch = void 0,
 	    $export_csv = void 0,
 	    $input = void 0,
 	    $input_area = void 0,
+	    $loading = void 0,
 	    $modal = void 0,
 	    $modal_close = void 0,
 	    $spinner = void 0,
 	    $start_button = void 0;
 	
 	function render_batch(links_in_batch, folder_path) {
-	    spinner.stop();
-	    $spinner.addClass("_hide");
-	    $batch_details.empty();
 	    var all_completed = true;
+	    var batch_progress = [];
+	    var errors = 0;
 	    links_in_batch.forEach(function (link) {
-	        link.progress = link.step_count / 5 * 100;
+	        link.progress = link.step_count / 6 * 100;
 	        link.local_url = link.guid ? window.host + '/' + link.guid : null;
 	        switch (link.status) {
 	            case "pending":
 	            case "in_progress":
 	                link.isProcessing = true;
 	                all_completed = false;
+	                batch_progress.push(link.progress);
 	                break;
 	            case "completed":
 	                link.isComplete = true;
+	                batch_progress.push(link.progress);
 	                break;
 	            default:
 	                link.isError = true;
 	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
+	                errors += 1;
 	        }
 	    });
+	    var percent_complete = Math.round(batch_progress.reduce(function (a, b) {
+	        return a + b;
+	    }, 0) / (batch_progress.length * 100) * 100);
+	    var message = 'Batch ' + percent_complete + '% complete';
+	    if (errors > 0) {
+	        message += ', ' + errors + ' errors.';
+	    }
+	    $batch_progress_report.html(message);
 	    var template = batchLinksTemplate({ "links": links_in_batch, "folder": folder_path });
-	    $batch_details.append(template);
+	    $batch_details.html(template);
 	    if (all_completed) {
 	        var export_data = links_in_batch.map(function (link) {
 	            var to_export = {
@@ -13880,12 +13893,29 @@ webpackJsonp([1],[
 	        spinner.spin($spinner[0]);
 	        $spinner.removeClass("_hide");
 	    }
+	    var first_time = true;
 	    var retrieve_and_render = function retrieve_and_render() {
 	        APIModule.request('GET', '/archives/batches/' + batch_id).then(function (batch_data) {
+	            if (first_time) {
+	                first_time = false;
+	                $batch_progress_report.focus();
+	                spinner.stop();
+	                $spinner.addClass("_hide");
+	                $batch_details.attr("aria-hidden", "true");
+	                // prevents tabbing to elements that are getting swapped out
+	                $batch_details.find('*').each(function () {
+	                    $(this).attr('tabIndex', '-1');
+	                });
+	            }
 	            var folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
 	            var all_completed = render_batch(batch_data.capture_jobs, folder_path);
 	            if (all_completed) {
 	                clearInterval(interval);
+	                $batch_details.attr("aria-hidden", "false");
+	                // undo our special focus handling
+	                $batch_details.find('*').each(function () {
+	                    $(this).removeAttr('tabIndex');
+	                });
 	            }
 	        }).catch(function (error) {
 	            console.log(error);
@@ -13907,6 +13937,7 @@ webpackJsonp([1],[
 	    $input.hide();
 	    spinner.spin($spinner[0]);
 	    $spinner.removeClass("_hide");
+	    $loading.focus();
 	    APIModule.request('POST', '/archives/batches/', {
 	        "target_folder": target_folder,
 	        "urls": $input_area.val().split("\n").map(function (s) {
@@ -13974,6 +14005,8 @@ webpackJsonp([1],[
 	        $batch_details_wrapper.addClass("_hide");
 	        spinner.stop();
 	        $spinner.addClass("_hide");
+	        $export_csv.addClass("_hide");
+	        $batch_progress_report.empty();
 	    });
 	
 	    $batch_target_path.change(function () {
@@ -13987,6 +14020,10 @@ webpackJsonp([1],[
 	        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
 	    }).on('hidden.bs.collapse', function () {
 	        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+	    });
+	
+	    $create_batch.click(function () {
+	        Modals.returnFocusTo(this);
 	    });
 	
 	    $batch_history.delegate('a[data-batch]', 'click', function (e) {
@@ -14009,10 +14046,13 @@ webpackJsonp([1],[
 	        $batch_details_wrapper = $('#batch-details-wrapper');
 	        $batch_history = $("#batch-history");
 	        $batch_list_container = $('#batch-list-container');
+	        $batch_progress_report = $('#batch-progress-report');
 	        $batch_target_path = $('#batch-target-path');
+	        $create_batch = $('#create-batch');
 	        $export_csv = $('#export-csv');
 	        $input = $('#batch-create-input');
 	        $input_area = $('#batch-create-input textarea');
+	        $loading = $('#loading');
 	        $modal = $("#batch-modal");
 	        $modal_close = $("#batch-modal .close");
 	        $spinner = $('.spinner');
@@ -14139,7 +14179,7 @@ webpackJsonp([1],[
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
 	    var stack1;
 	
-	  return "<div class=\"form-group\">\n  <label id=\"batch-target\" for=\"batch-target-path\" class=\"label-affil\">These Perma Links were added to (movable batches coming soon!)</label>\n  <select disabled class=\"form-control\"><option>"
+	  return "<div class=\"form-group\">\n  <label id=\"batch-target\" for=\"batch-target-path\" class=\"label-affil\">These Perma Links were added to (movable batches coming soon!)</label>\n  <select id=\"batch-folder\" class=\"form-control\"><option>"
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.folder : depth0), depth0))
 	    + "</option></select>\n</div>\n<div class=\"form-group\">\n"
 	    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
