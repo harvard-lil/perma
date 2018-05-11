@@ -11,7 +11,7 @@ from .utils import PermaTestCase
 def create_capture_job(user, human=True):
     link = Link(created_by=user, submitted_url="http://example.com")
     link.save()
-    capture_job = CaptureJob(link=link, human=human, status='pending')
+    capture_job = CaptureJob(created_by=user, link=link, human=human, status='pending')
     capture_job.save()
     return capture_job
 

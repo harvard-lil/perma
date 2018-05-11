@@ -1275,6 +1275,7 @@ class CaptureJob(models.Model):
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
+    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='capture_jobs')
     link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs')
 
     # reporting
@@ -1302,7 +1303,7 @@ class CaptureJob(models.Model):
             # get all pending jobs, in reverse priority order
             pending_jobs = CaptureJob.objects.filter(status='pending', human=self.human).order_by('-order').select_related('link')
             # narrow down to just the jobs that come *after* the most recent job submitted by this user
-            pending_jobs = list(itertools.takewhile(lambda x: x.link.created_by_id != self.link.created_by_id, pending_jobs))
+            pending_jobs = list(itertools.takewhile(lambda x: x.created_by_id != self.created_by_id, pending_jobs))
             # flip the list of jobs back around to the order they'll be processed in
             pending_jobs = list(reversed(pending_jobs))
 

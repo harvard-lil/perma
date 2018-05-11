@@ -18,6 +18,9 @@ from rest_framework.views import exception_handler
 
 from perma.models import Folder
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class TastypiePagination(LimitOffsetPagination):
     """
@@ -212,17 +215,22 @@ def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
             response = view(request, *args, **kwargs)
         except Exception as exception:
             response = exception_handler(exception, {})
-        # todo: add appropriate error data if failure
-        if response:
-            responses.append({
-                'status_code': response.status_code,
-                'status_text': response.status_text,
-                'data': response.data
-            })
-        else:
-            responses.append({
-                'status_code': 500,
-                'status_text': 'Internal Server Error',
-                'data': {}
-            })
+            if not response:
+                logger.exception("Internal Server Error")
+                class SpoofResponse(object):
+                    pass
+                response = SpoofResponse()
+                response.status_code = 500
+                response.status_text = 'Internal Server Error',
+                response.data = {
+                    'path': call['path'],
+                    'verb': call['verb'],
+                    'data': call['data']
+                }
+        responses.append({
+            'status_code': response.status_code,
+            'status_text': response.status_text,
+            'data': response.data
+        })
+
     return responses
