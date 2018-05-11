@@ -48,6 +48,7 @@ tqdm                                # progress bar in dev fab tasks
 pyquery                             # extract data from HTML in capture task
 warcio                              # helps us write metadata and inspect our WARCs
 cryptography                        # pyopenssl and requests only require 1.8.1; we need 1.9+ to install on stretch
+sqlparse                            # for data migrations
 
 # api
 # perma-payments
