@@ -582,7 +582,13 @@ class LinkBatchesListView(BaseView):
                     'verb': 'GET'
                 }]
                 response = dispatch_multiple_requests(request.user, call_for_fresh_serializer_data)
-                return Response(response[0]['data'], status=status.HTTP_201_CREATED)
+                data = response[0]['data'].copy()
+
+                # include remaining links in response
+                links_remaining = request.user.get_links_remaining()
+                data['links_remaining'] = links_remaining
+
+                return Response(data, status=status.HTTP_201_CREATED)
             raise ValidationError(serializer.errors)
         raise PermissionDenied()
 

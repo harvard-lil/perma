@@ -11382,8 +11382,13 @@ webpackJsonp([1],[
 	    handleSelectionChange(data);
 	  });
 	
-	  // listen for updated link counts, after links have been moved
+	  // listen for updated link counts after links have been moved
 	  $(window).on('FolderTreeModule.updateLinksRemaining', function (evt, data) {
+	    updateLinksRemaining(data);
+	  });
+	
+	  // listen for updated link counts after batches have been created
+	  $(window).on('BatchLinkModule.batchCreated', function (evt, data) {
 	    updateLinksRemaining(data);
 	  });
 	
@@ -13945,11 +13950,11 @@ webpackJsonp([1],[
 	        "urls": $input_area.val().split("\n").map(function (s) {
 	            return s.trim();
 	        }).filter(Boolean)
-	    }).then(function (batch_object) {
+	    }).then(function (data) {
 	        $modal_close.show();
-	        show_batch(batch_object.id);
+	        show_batch(data.id);
 	        populate_link_batch_list();
-	        $(window).trigger("BatchLinkModule.batchCreated");
+	        $(window).trigger("BatchLinkModule.batchCreated", data.links_remaining);
 	    }).catch(function (e) {
 	        console.log(e);
 	        $modal_close.show();

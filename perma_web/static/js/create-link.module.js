@@ -293,9 +293,14 @@ function setupEventHandlers () {
     handleSelectionChange(data);
   });
 
-  // listen for updated link counts, after links have been moved
+  // listen for updated link counts after links have been moved
   $(window).on('FolderTreeModule.updateLinksRemaining', function(evt, data){
-    updateLinksRemaining(data)
+    updateLinksRemaining(data);
+  });
+
+  // listen for updated link counts after batches have been created
+  $(window).on('BatchLinkModule.batchCreated', function(evt, data){
+    updateLinksRemaining(data);
   });
 
   // announce dropdown changes

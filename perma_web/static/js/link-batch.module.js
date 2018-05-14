@@ -131,11 +131,11 @@ function start_batch() {
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder,
         "urls": $input_area.val().split("\n").map(s => {return s.trim()}).filter(Boolean)
-    }).then(function(batch_object) {
+    }).then(function(data) {
         $modal_close.show();
-        show_batch(batch_object.id);
+        show_batch(data.id);
         populate_link_batch_list();
-        $(window).trigger("BatchLinkModule.batchCreated");
+        $(window).trigger("BatchLinkModule.batchCreated", data.links_remaining);
     }).catch(function(e){
         console.log(e);
         $modal_close.show();
