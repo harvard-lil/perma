@@ -13,6 +13,7 @@ let batchLinksTemplate = require("./hbs/batch-links.handlebars");
 
 let target_folder;
 let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50});
+let interval;
 
 // elements in the DOM, retrieved during init()
 let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
@@ -79,7 +80,6 @@ function render_batch(links_in_batch, folder_path) {
 };
 
 function show_batch(batch_id) {
-    $batch_details.empty();
     $batch_details_wrapper.removeClass("_hide");
     if (!$spinner[0].childElementCount) {
         spinner.spin($spinner[0]);
@@ -114,7 +114,7 @@ function show_batch(batch_id) {
         });
     }
     retrieve_and_render();
-    let interval = setInterval(retrieve_and_render, 2000);
+    interval = setInterval(retrieve_and_render, 2000);
 }
 
 export function show_modal_with_batch(batch_id) {
@@ -194,11 +194,15 @@ function setup_handlers() {
         $input.show();
         $input_area.val("");
         $batch_details_wrapper.addClass("_hide");
+        $batch_details.empty();
         spinner.stop();
         $spinner.addClass("_hide");
         $export_csv.addClass("_hide");
         $batch_progress_report.empty();
-       });
+       })
+      .on('hide.bs.modal', function(){
+        clearInterval(interval);
+      });
 
     $batch_target_path.change(function() {
         let new_folder_id = $(this).val();

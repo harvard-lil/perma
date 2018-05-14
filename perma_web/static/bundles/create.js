@@ -13815,6 +13815,7 @@ webpackJsonp([1],[
 	
 	var target_folder = void 0;
 	var spinner = new Spinner({ lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50 });
+	var interval = void 0;
 	
 	// elements in the DOM, retrieved during init()
 	var $batch_details = void 0,
@@ -13894,7 +13895,6 @@ webpackJsonp([1],[
 	};
 	
 	function show_batch(batch_id) {
-	    $batch_details.empty();
 	    $batch_details_wrapper.removeClass("_hide");
 	    if (!$spinner[0].childElementCount) {
 	        spinner.spin($spinner[0]);
@@ -13931,7 +13931,7 @@ webpackJsonp([1],[
 	        });
 	    };
 	    retrieve_and_render();
-	    var interval = setInterval(retrieve_and_render, 2000);
+	    interval = setInterval(retrieve_and_render, 2000);
 	}
 	
 	function show_modal_with_batch(batch_id) {
@@ -14011,10 +14011,13 @@ webpackJsonp([1],[
 	        $input.show();
 	        $input_area.val("");
 	        $batch_details_wrapper.addClass("_hide");
+	        $batch_details.empty();
 	        spinner.stop();
 	        $spinner.addClass("_hide");
 	        $export_csv.addClass("_hide");
 	        $batch_progress_report.empty();
+	    }).on('hide.bs.modal', function () {
+	        clearInterval(interval);
 	    });
 	
 	    $batch_target_path.change(function () {
