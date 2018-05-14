@@ -1777,8 +1777,10 @@ webpackJsonp([1],[
 	    }
 	  } else if (jqXHR.status == 401) {
 	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+	  } else if (jqXHR.status) {
+	    message = "Error " + jqXHR.status;
 	  } else {
-	    message = 'Error ' + jqXHR.status;
+	    message = "We're sorry, we've encountered an error processing your request.";
 	  }
 	
 	  return message;
@@ -13805,6 +13807,7 @@ webpackJsonp([1],[
 	
 	var APIModule = __webpack_require__(78);
 	var DOMHelpers = __webpack_require__(2);
+	var ErrorHandler = __webpack_require__(79);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
 	var Modals = __webpack_require__(155);
@@ -13830,7 +13833,6 @@ webpackJsonp([1],[
 	    $input_area = void 0,
 	    $loading = void 0,
 	    $modal = void 0,
-	    $modal_close = void 0,
 	    $spinner = void 0,
 	    $start_button = void 0;
 	
@@ -13894,6 +13896,13 @@ webpackJsonp([1],[
 	    return all_completed;
 	};
 	
+	function handle_error(error) {
+	    ErrorHandler.airbrake.notify(error);
+	    clearInterval(interval);
+	    APIModule.showError(error);
+	    $modal.modal("hide");
+	}
+	
 	function show_batch(batch_id) {
 	    $batch_details_wrapper.removeClass("_hide");
 	    if (!$spinner[0].childElementCount) {
@@ -13925,9 +13934,7 @@ webpackJsonp([1],[
 	                });
 	            }
 	        }).catch(function (error) {
-	            console.log(error);
-	            clearInterval(interval);
-	            $modal.modal("hide");
+	            handle_error(error);
 	        });
 	    };
 	    retrieve_and_render();
@@ -13940,7 +13947,6 @@ webpackJsonp([1],[
 	}
 	
 	function start_batch() {
-	    $modal_close.hide();
 	    $input.hide();
 	    spinner.spin($spinner[0]);
 	    $spinner.removeClass("_hide");
@@ -13951,16 +13957,11 @@ webpackJsonp([1],[
 	            return s.trim();
 	        }).filter(Boolean)
 	    }).then(function (data) {
-	        $modal_close.show();
 	        show_batch(data.id);
 	        populate_link_batch_list();
 	        $(window).trigger("BatchLinkModule.batchCreated", data.links_remaining);
-	    }).catch(function (e) {
-	        console.log(e);
-	        $modal_close.show();
-	        $modal.modal("hide");
-	        // we should flash the error here,
-	        // instead of just closing the modal
+	    }).catch(function (error) {
+	        handle_error(error);
 	    });
 	};
 	
@@ -14065,7 +14066,6 @@ webpackJsonp([1],[
 	        $input_area = $('#batch-create-input textarea');
 	        $loading = $('#loading');
 	        $modal = $("#batch-modal");
-	        $modal_close = $("#batch-modal .close");
 	        $spinner = $('.spinner');
 	        $start_button = $('#start-batch');
 	
