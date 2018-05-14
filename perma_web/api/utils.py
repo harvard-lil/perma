@@ -178,10 +178,13 @@ def reverse_api_view_relative(viewname, *args, **kwargs):
         return reverse(viewname, *args, **kwargs)
 
 
-def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
+def dispatch_multiple_requests(request, call_list, custom_request_attributes=None):
     """
     Makes a series of internal api "calls" on behalf of a user,
     all within a single http request/response cycle.
+
+    The first argument should be the Django request object from the initiating
+    api call.
 
     The call_list should be series of dictionaries specifying:
         "path", the api route to "call" (e.g. /v1/folders/22/archives/)
@@ -207,12 +210,13 @@ def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
     for call in call_list:
         try:
             view, args, kwargs = resolve(call['path'])
-            request = getattr(factory, call['verb'].lower())(call['path'], data=call.get('data', {}))
-            request.user = user
+            new_request = getattr(factory, call['verb'].lower())(call['path'], data=call.get('data', {}))
+            new_request.user = request.user
+            new_request.META['HTTP_HOST'] = request._get_raw_host()
             if custom_request_attributes:
                 for attribute, value in custom_request_attributes.iteritems():
-                    setattr(request, attribute, value)
-            response = view(request, *args, **kwargs)
+                    setattr(new_request, attribute, value)
+            response = view(new_request, *args, **kwargs)
         except Exception as exception:
             response = exception_handler(exception, {})
             if not response:
@@ -232,5 +236,4 @@ def dispatch_multiple_requests(user, call_list, custom_request_attributes=None):
             'status_text': response.status_text,
             'data': response.data
         })
-
     return responses

@@ -569,7 +569,7 @@ class LinkBatchesListView(BaseView):
                         }
                     } for url in request.data.get('urls', [])
                 ]
-                dispatch_multiple_requests(request.user, call_list, {"batch": batch_id})
+                dispatch_multiple_requests(request, call_list, {"batch": batch_id})
                 # TODO: how can we communicate these errors to the user?
                 # if dispatch_multiple_requests returns to "responses"
                 # internal_server_errors = [
@@ -581,7 +581,7 @@ class LinkBatchesListView(BaseView):
                     'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
                     'verb': 'GET'
                 }]
-                response = dispatch_multiple_requests(request.user, call_for_fresh_serializer_data)
+                response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
                 data = response[0]['data'].copy()
                 data['links_remaining'] = request.user.get_links_remaining()
                 return Response(data, status=status.HTTP_201_CREATED)
