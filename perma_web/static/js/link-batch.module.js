@@ -3,6 +3,7 @@ let Spinner = require('spin.js');
 
 let APIModule = require('./helpers/api.module.js');
 var DOMHelpers = require('./helpers/dom.helpers.js');
+var ErrorHandler = require('./error-handler.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let Modals = require('./modals.module.js');
@@ -13,11 +14,12 @@ let batchLinksTemplate = require("./hbs/batch-links.handlebars");
 
 let target_folder;
 let spinner = new Spinner({lines: 15, length: 10, width: 2, radius: 9, corners: 0, color: '#222222', trail: 50});
+let interval;
 
 // elements in the DOM, retrieved during init()
 let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
     $batch_progress_report, $batch_target_path, $create_batch, $export_csv,
-    $input, $input_area, $loading, $modal, $modal_close, $spinner, $start_button;
+    $input, $input_area, $loading, $modal, $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
@@ -78,8 +80,14 @@ function render_batch(links_in_batch, folder_path) {
     return all_completed;
 };
 
+function handle_error(error){
+    ErrorHandler.airbrake.notify(error);
+    clearInterval(interval);
+    APIModule.showError(error);
+    $modal.modal("hide");
+}
+
 function show_batch(batch_id) {
-    $batch_details.empty();
     $batch_details_wrapper.removeClass("_hide");
     if (!$spinner[0].childElementCount) {
         spinner.spin($spinner[0]);
@@ -108,13 +116,11 @@ function show_batch(batch_id) {
                 $batch_details.find('*').each(function(){$(this).removeAttr('tabIndex')});
             }
         }).catch(function(error){
-            console.log(error);
-            clearInterval(interval);
-            $modal.modal("hide");
+            handle_error(error);
         });
     }
     retrieve_and_render();
-    let interval = setInterval(retrieve_and_render, 2000);
+    interval = setInterval(retrieve_and_render, 2000);
 }
 
 export function show_modal_with_batch(batch_id) {
@@ -123,7 +129,6 @@ export function show_modal_with_batch(batch_id) {
 }
 
 function start_batch() {
-    $modal_close.hide();
     $input.hide();
     spinner.spin($spinner[0]);
     $spinner.removeClass("_hide");
@@ -131,16 +136,12 @@ function start_batch() {
     APIModule.request('POST', '/archives/batches/', {
         "target_folder": target_folder,
         "urls": $input_area.val().split("\n").map(s => {return s.trim()}).filter(Boolean)
-    }).then(function(batch_object) {
-        $modal_close.show();
-        show_batch(batch_object.id);
+    }).then(function(data) {
+        show_batch(data.id);
         populate_link_batch_list();
-    }).catch(function(e){
-        console.log(e);
-        $modal_close.show();
-        $modal.modal("hide");
-        // we should flash the error here,
-        // instead of just closing the modal
+        $(window).trigger("BatchLinkModule.batchCreated", data.links_remaining);
+    }).catch(function(error){
+        handle_error(error);
     });
 };
 
@@ -193,11 +194,15 @@ function setup_handlers() {
         $input.show();
         $input_area.val("");
         $batch_details_wrapper.addClass("_hide");
+        $batch_details.empty();
         spinner.stop();
         $spinner.addClass("_hide");
         $export_csv.addClass("_hide");
         $batch_progress_report.empty();
-       });
+       })
+      .on('hide.bs.modal', function(){
+        clearInterval(interval);
+      });
 
     $batch_target_path.change(function() {
         let new_folder_id = $(this).val();
@@ -246,7 +251,6 @@ export function init() {
         $input_area = $('#batch-create-input textarea');
         $loading = $('#loading');
         $modal = $("#batch-modal");
-        $modal_close = $("#batch-modal .close");
         $spinner = $('.spinner');
         $start_button = $('#start-batch');
 

@@ -883,8 +883,10 @@ webpackJsonp([8],{
 	    }
 	  } else if (jqXHR.status == 401) {
 	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+	  } else if (jqXHR.status) {
+	    message = "Error " + jqXHR.status;
 	  } else {
-	    message = 'Error ' + jqXHR.status;
+	    message = "We're sorry, we've encountered an error processing your request.";
 	  }
 	
 	  return message;

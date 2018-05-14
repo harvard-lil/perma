@@ -35,6 +35,9 @@ function setupEventHandlers () {
         "path": data.path.join(" > ")
       });
       $linkListHeader.html(template);
+    })
+    .on("BatchLinkModule.batchCreated", function(){
+      showFolderContents(selectedFolderID);
     });
 
   // search form
