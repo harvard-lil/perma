@@ -343,7 +343,8 @@ class AuthenticatedLinkListView(BaseView):
         data = request.data
         capture_job = CaptureJob(
             human=request.data.get('human', False),
-            submitted_url=request.data.get('url', '')
+            submitted_url=request.data.get('url', ''),
+            created_by=request.user
         )
         if settings.ENABLE_BATCH_LINKS:
             # Batch is set directly on the request object by the LinkBatch api,
@@ -569,7 +570,11 @@ class LinkBatchesListView(BaseView):
                     } for url in request.data.get('urls', [])
                 ]
                 dispatch_multiple_requests(request.user, call_list, {"batch": batch_id})
-
+                # TODO: how can we communicate these errors to the user?
+                # if dispatch_multiple_requests returns to "responses"
+                # internal_server_errors = [
+                #     response['data']['data']['url'] for response in responses if response['status_code'] == 500
+                # ]
                 # Get an up-to-date version of this LinkBatch's data,
                 # formatted by the LinkBatch serializer
                 call_for_fresh_serializer_data = [{
