@@ -3,7 +3,12 @@ from settings_common import *
 import os
 
 DEBUG = True
+HOST = 'perma.test:8000'
 WARC_HOST = 'perma-archives.test:8000'
+
+# Hosts/domain names that are valid for this site; required if DEBUG is False
+# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = ['perma.test', 'perma-archives.test']
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
@@ -22,16 +27,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'secret'
 
-# Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['*']
-
 # Google Analytics
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
-
-# The host we want to display (used when DEBUG=False)
-HOST = 'perma.test:8000'
 
 CELERY_RESULT_BACKEND = 'amqp'
 
