@@ -135,6 +135,7 @@ function start_batch() {
         $modal_close.show();
         show_batch(batch_object.id);
         populate_link_batch_list();
+        $(window).trigger("BatchLinkModule.batchCreated");
     }).catch(function(e){
         console.log(e);
         $modal_close.show();

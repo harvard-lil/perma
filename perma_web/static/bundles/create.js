@@ -212,6 +212,8 @@ webpackJsonp([1],[
 	      "path": data.path.join(" > ")
 	    });
 	    $linkListHeader.html(template);
+	  }).on("BatchLinkModule.batchCreated", function () {
+	    showFolderContents(selectedFolderID);
 	  });
 	
 	  // search form
@@ -13947,6 +13949,7 @@ webpackJsonp([1],[
 	        $modal_close.show();
 	        show_batch(batch_object.id);
 	        populate_link_batch_list();
+	        $(window).trigger("BatchLinkModule.batchCreated");
 	    }).catch(function (e) {
 	        console.log(e);
 	        $modal_close.show();
