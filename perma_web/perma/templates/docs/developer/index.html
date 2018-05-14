@@ -45,45 +45,6 @@ Welcome to the Perma.cc developer guide.
       <p class="body-text">If you'd prefer to get a smaller result set, specify the number of returned items using the limit parameter. In this example, we'll see just one item returned.</p>
       <pre>curl https://api.{{ request.get_host }}/v1/public/archives/?limit=1</pre>
 
-      <h3 id="jsonp" class="body-bh">JSONP</h3>
-      <p class="body-text">When building applications in JavaScript you often have to be mindful of the browser's <a href="http://en.wikipedia.org/wiki/Same-origin_policy">same origin policy</a>. JSONP is a technique that is commonly used to communicate when a same origin policy is in place. Perma.cc API offers full supports for JSONP, just add a callback argument to your query string.</p>
-      <pre>curl https://api.{{ request.get_host }}/v1/public/archives/?api_key=your-api-key&callback=name-of-your-callback</pre>
-      <p class="body-text">Your response wrapped in your callback</p>
-    <pre class="prettyprint">name-of-your-callback(
-  {
-      "meta": {
-          "limit": 1,
-          "next": "/v1/public/archives/?limit=1&offset=1",
-          "offset": 0,
-          "previous": null,
-          "total_count": 2
-      },
-      "objects": [
-          {
-              "assets": [
-                  {
-                      "base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ",
-                      "favicon": null,
-                      "image_capture": "cap.png",
-                      "pdf_capture": null,
-                      "warc_capture": "archive.warc.gz"
-                  }
-              ],
-              "creation_timestamp": "2015-01-21T17:39:44Z",
-              "is_private": true,
-              "expiration_date": "2017-01-21T17:39:44Z",
-              "guid": "Y6JJ-TDUJ",
-              "title": "Example.com. yo.",
-              "url": "http://example.com",
-              "organization": {
-                  "id": 1,
-                  "name": "Test Journal"
-              }
-          }
-      ]
-  }
-)</pre>
-
       <h3 id="examples-in-curl" class="body-bh">Examples in cURL</h3>
       <p class="body-text">Our API documentation is example based, and our examples show you how to interact with the API using the <a href="http://en.wikipedia.org/wiki/CURL">cURL command line utility</a>. A friendly tip - you can add the -v option to help debug your HTTP interactions.</p>
       <pre>curl https://api.{{ request.get_host }}/v1/public/archives/?limit=1 -v</pre>
