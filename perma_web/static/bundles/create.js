@@ -14190,9 +14190,9 @@ webpackJsonp([1],[
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
 	    var stack1;
 	
-	  return "<div class=\"form-group\">\n  <label id=\"batch-target\" for=\"batch-target-path\" class=\"label-affil\">These Perma Links were added to (movable batches coming soon!)</label>\n  <select id=\"batch-folder\" class=\"form-control\"><option>"
+	  return "<div class=\"form-group\">\n  <p>These Perma Links were added to "
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.folder : depth0), depth0))
-	    + "</option></select>\n</div>\n<div class=\"form-group\">\n"
+	    + " (movable batches coming soon!)</p>\n</div>\n<div class=\"form-group\">\n"
 	    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "</div>\n";
 	},"usePartial":true,"useData":true});
