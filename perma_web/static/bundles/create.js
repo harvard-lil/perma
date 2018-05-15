@@ -13828,6 +13828,7 @@ webpackJsonp([1],[
 	    $batch_details_wrapper = void 0,
 	    $batch_history = void 0,
 	    $batch_list_container = void 0,
+	    $batch_modal_title = void 0,
 	    $batch_progress_report = void 0,
 	    $batch_target_path = void 0,
 	    $create_batch = void 0,
@@ -13908,6 +13909,7 @@ webpackJsonp([1],[
 	
 	function show_batch(batch_id) {
 	    $batch_details_wrapper.removeClass("_hide");
+	    $batch_modal_title.text("Link Batch Details");
 	    if (!$spinner[0].childElementCount) {
 	        spinner.spin($spinner[0]);
 	        $spinner.removeClass("_hide");
@@ -14073,6 +14075,7 @@ webpackJsonp([1],[
 	        $batch_details_wrapper = $('#batch-details-wrapper');
 	        $batch_history = $("#batch-history");
 	        $batch_list_container = $('#batch-list-container');
+	        $batch_modal_title = $("#batch-modal-title");
 	        $batch_progress_report = $('#batch-progress-report');
 	        $batch_target_path = $('#batch-target-path');
 	        $create_batch = $('#create-batch');
