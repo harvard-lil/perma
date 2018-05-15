@@ -19,8 +19,8 @@ let interval;
 
 // elements in the DOM, retrieved during init()
 let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
-    $batch_progress_report, $batch_target_path, $create_batch, $export_csv,
-    $input, $input_area, $loading, $modal, $spinner, $start_button;
+    $batch_modal_title, $batch_progress_report, $batch_target_path, $create_batch,
+    $export_csv, $input, $input_area, $loading, $modal, $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
@@ -90,6 +90,7 @@ function handle_error(error){
 
 function show_batch(batch_id) {
     $batch_details_wrapper.removeClass("_hide");
+    $batch_modal_title.text("Link Batch Details");
     if (!$spinner[0].childElementCount) {
         spinner.spin($spinner[0]);
         $spinner.removeClass("_hide");
@@ -256,6 +257,7 @@ export function init() {
         $batch_details_wrapper = $('#batch-details-wrapper');
         $batch_history = $("#batch-history");
         $batch_list_container = $('#batch-list-container');
+        $batch_modal_title = $("#batch-modal-title");
         $batch_progress_report = $('#batch-progress-report');
         $batch_target_path = $('#batch-target-path');
         $create_batch = $('#create-batch');
