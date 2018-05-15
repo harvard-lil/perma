@@ -1940,7 +1940,7 @@ webpackJsonp([1],[
 /* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
+	/* WEBPACK VAR INJECTION */(function($) {"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -1950,6 +1950,7 @@ webpackJsonp([1],[
 	
 	function makeFolderSelector($folder_selector, current_folder_id) {
 	    $folder_selector.empty();
+	    $folder_selector.append("<option disabled selected value> Please select a folder </option>");
 	
 	    // recursively populate select ...
 	    function addChildren(node, depth) {
@@ -1962,7 +1963,8 @@ webpackJsonp([1],[
 	            $folder_selector.append($("<option/>", {
 	                value: childNode.data.folder_id,
 	                text: childNode.text.trim(),
-	                selected: childNode.data.folder_id == current_folder_id
+	                selected: childNode.data.folder_id == current_folder_id,
+	                "data-orgid": childNode.data.organization_id
 	            }).prepend(new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')));
 	
 	            // recurse
@@ -13810,6 +13812,7 @@ webpackJsonp([1],[
 	var ErrorHandler = __webpack_require__(79);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
+	var Helpers = __webpack_require__(92);
 	var Modals = __webpack_require__(155);
 	var ProgressBarHelper = __webpack_require__(153);
 	
@@ -13967,6 +13970,7 @@ webpackJsonp([1],[
 	
 	function refresh_target_path_dropdown() {
 	    FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
+	    $start_button.prop('disabled', !Boolean(target_folder));
 	};
 	
 	function set_folder_from_trigger(evt, data) {
@@ -14006,7 +14010,23 @@ webpackJsonp([1],[
 	}
 	
 	function setup_handlers() {
+	    // listen for folder changes from other UI components
 	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
+	
+	    // update all UI components when folder changed using the modal's dropdown
+	    $batch_target_path.change(function () {
+	        var new_folder_id = $(this).val();
+	        if (new_folder_id) {
+	            $start_button.prop('disabled', false);
+	            set_folder_from_dropdown(new_folder_id);
+	            Helpers.triggerOnWindow("dropdown.selectionChange", {
+	                folderId: $(this).val(),
+	                orgId: $(this).data('orgid')
+	            });
+	        } else {
+	            $start_button.prop('disabled', true);
+	        }
+	    });
 	
 	    $modal.on('shown.bs.modal', refresh_target_path_dropdown).on('hidden.bs.modal', function () {
 	        $input.show();
@@ -14019,11 +14039,6 @@ webpackJsonp([1],[
 	        $batch_progress_report.empty();
 	    }).on('hide.bs.modal', function () {
 	        clearInterval(interval);
-	    });
-	
-	    $batch_target_path.change(function () {
-	        var new_folder_id = $(this).val();
-	        set_folder_from_dropdown(new_folder_id);
 	    });
 	
 	    $start_button.click(start_batch);

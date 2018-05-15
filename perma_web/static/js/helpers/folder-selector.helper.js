@@ -2,6 +2,7 @@ var FolderTreeModule = require('../folder-tree.module.js');
 
 export function makeFolderSelector($folder_selector, current_folder_id) {
     $folder_selector.empty();
+    $folder_selector.append("<option disabled selected value> Please select a folder </option>");
 
     // recursively populate select ...
     function addChildren(node, depth) {
@@ -15,7 +16,8 @@ export function makeFolderSelector($folder_selector, current_folder_id) {
                 $("<option/>", {
                     value: childNode.data.folder_id,
                     text: childNode.text.trim(),
-                    selected: childNode.data.folder_id == current_folder_id
+                    selected: childNode.data.folder_id == current_folder_id,
+                    "data-orgid": childNode.data.organization_id
                 }).prepend(
                     new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')
                 )
