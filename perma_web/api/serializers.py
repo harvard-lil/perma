@@ -107,16 +107,20 @@ class OrganizationSerializer(BaseSerializer):
 class CaptureJobSerializer(BaseSerializer):
     guid = serializers.PrimaryKeyRelatedField(source='link', read_only=True)
     title = serializers.SerializerMethodField()
+    user_deleted = serializers.SerializerMethodField()
 
     class Meta:
         model = CaptureJob
-        fields = ('guid', 'status', 'message', 'submitted_url', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title')
+        fields = ('guid', 'status', 'message', 'submitted_url', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title', 'user_deleted')
 
     def get_title(self, capture_job):
         if capture_job.link is None:
             return ""
         else:
             return capture_job.link.submitted_title
+
+    def get_user_deleted(self, capture_job):
+        return capture_job.link and capture_job.link.user_deleted
 
 ### CAPTURE ###
 
@@ -168,7 +172,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
     organization = OrganizationSerializer(read_only=True)
 
     class Meta(LinkSerializer.Meta):
-        fields = LinkSerializer.Meta.fields + ('notes', 'created_by', 'is_private', 'private_reason', 'archive_timestamp', 'organization')
+        fields = LinkSerializer.Meta.fields + ('notes', 'created_by', 'is_private', 'private_reason', 'user_deleted', 'archive_timestamp', 'organization')
         allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
 
     def get_warc_download_url(self, link):
