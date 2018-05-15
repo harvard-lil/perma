@@ -14148,6 +14148,8 @@ webpackJsonp([1],[
 	
 	  return "  <div class=\"item-container "
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isError : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + " "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.user_deleted : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "\">\n    <div class=\"row\">\n"
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isError : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data})) != null ? stack1 : "")
 	    + "    </div>\n  </div>\n";
@@ -14162,24 +14164,28 @@ webpackJsonp([1],[
 	    + alias2(alias1((depth0 != null ? depth0.submitted_url : depth0), depth0))
 	    + "</div>\n        </div>\n";
 	},"6":function(container,depth0,helpers,partials,data) {
-	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	    var stack1, alias1=depth0 != null ? depth0 : {}, alias2=container.lambda, alias3=container.escapeExpression;
 	
-	  return "        <div class=\"link-desc col col-sm-6 col-md-60\">\n          <div class=\"item-title\">"
-	    + alias2(alias1((depth0 != null ? depth0.title : depth0), depth0))
+	  return "        <div class=\"link-desc col col-sm-6 col-md-60\">\n          "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.user_deleted : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n          <div class=\"item-title\">"
+	    + alias3(alias2((depth0 != null ? depth0.title : depth0), depth0))
 	    + "</div>\n          <div class=\"item-subtitle\">"
-	    + alias2(alias1((depth0 != null ? depth0.submitted_url : depth0), depth0))
+	    + alias3(alias2((depth0 != null ? depth0.submitted_url : depth0), depth0))
 	    + "</div>\n        </div>\n        <div class=\"link-progress col col-sm-6 col-md-40 align-right item-permalink\">\n"
-	    + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.program(9, data, 0),"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data})) != null ? stack1 : "")
 	    + "        </div>\n";
 	},"7":function(container,depth0,helpers,partials,data) {
-	    var stack1;
-	
-	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	    return "<div class=\"failed_header\">Deleted</div>";
 	},"9":function(container,depth0,helpers,partials,data) {
 	    var stack1;
 	
-	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
-	},"10":function(container,depth0,helpers,partials,data) {
+	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	},"11":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"12":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.lambda, alias2=container.escapeExpression;
 	
 	  return "            <a class=\"perma no-drag\" href=\"//"
