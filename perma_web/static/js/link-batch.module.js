@@ -6,6 +6,7 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var ErrorHandler = require('./error-handler.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
+let Helpers = require('./helpers/general.helpers.js');
 let Modals = require('./modals.module.js');
 let ProgressBarHelper = require('./helpers/progress-bar.helper.js');
 
@@ -147,6 +148,7 @@ function start_batch() {
 
 function refresh_target_path_dropdown() {
     FolderSelectorHelper.makeFolderSelector($batch_target_path, target_folder);
+    $start_button.prop('disabled', !Boolean(target_folder));
 };
 
 function set_folder_from_trigger (evt, data) {
@@ -184,9 +186,25 @@ function populate_link_batch_list(limit=7) {
 }
 
 function setup_handlers() {
+    // listen for folder changes from other UI components
     $(window)
         .on('FolderTreeModule.selectionChange', set_folder_from_trigger)
         .on('dropdown.selectionChange', set_folder_from_trigger);
+
+    // update all UI components when folder changed using the modal's dropdown
+    $batch_target_path.change(function() {
+        let new_folder_id = $(this).val();
+        if (new_folder_id) {
+            $start_button.prop('disabled', false);
+            set_folder_from_dropdown(new_folder_id);
+            Helpers.triggerOnWindow("dropdown.selectionChange", {
+              folderId: $(this).val(),
+              orgId: $(this).data('orgid')
+            });
+        } else {
+            $start_button.prop('disabled', true);
+        }
+    });
 
     $modal
       .on('shown.bs.modal', refresh_target_path_dropdown)
@@ -203,11 +221,6 @@ function setup_handlers() {
       .on('hide.bs.modal', function(){
         clearInterval(interval);
       });
-
-    $batch_target_path.change(function() {
-        let new_folder_id = $(this).val();
-        set_folder_from_dropdown(new_folder_id);
-    });
 
     $start_button.click(start_batch);
 
