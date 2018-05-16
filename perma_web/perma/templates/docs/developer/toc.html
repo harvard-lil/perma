@@ -17,21 +17,26 @@
         {% if section == 'public-archives' %}
         <ul>
           <li class="reading-toc-section"><a href="#get-all-public-archives">Get all public archives</a></li>
-          <li class="reading-toc-section"><a href="#get-one-archive">Get a single archive's details</a></li>
-          <li class="reading-toc-section"><a href="#download-one-archive">Download a single archive</a></li>
+          <li class="reading-toc-section"><a href="#get-one-archive">Get a single public archive's details</a></li>
+          <li class="reading-toc-section"><a href="#download-one-archive">Download a single public archive</a></li>
         </ul>
         {% endif %}
       </li>
       <li>
-        <h3 class="reading-toc-chapter{% if section == 'users' %} _active" aria-current="location" aria-expanded="true"{% else %}" aria-expanded="false"{% endif %}><a href="#developer-users">Users</a></h3>
+        <h3 class="reading-toc-chapter{% if section == 'users' %} _active" aria-current="location" aria-expanded="true"{% else %}" aria-expanded="false"{% endif %}><a href="#developer-users">User</a></h3>
         {% if section == 'users' %}
           <ul>
-            <li class="reading-toc-section"><a href="#get-user-account-details">Get a user's account details</a></li>
-            <li class="reading-toc-section"><a href="#get-user-archives">Get a user's archives</a></li>
-            <li class="reading-toc-section"><a href="#get-user-folders">Get a user's folders</a></li>
-            <li class="reading-toc-section"><a href="#get-user-orgs">Get a user's organizations</a></li>
-            <li class="reading-toc-section"><a href="#get-user-shared-folders">Get a user's shared folders inside an organization</a></li>
-            <li class="reading-toc-section"><a href="#get-user-capture-jobs">Get a user's ongoing capture jobs</a></li>
+            <li class="reading-toc-section"><a href="#get-user-account-details">Get your account details</a></li>
+          </ul>
+        {% endif %}
+      </li>
+      <li>
+        <h3 class="reading-toc-chapter{% if section == 'organizations' %} _active" aria-current="location" aria-expanded="true"{% else %}" aria-expanded="false"{% endif %}><a href="#developer-organizations">Organizations</a></h3>
+        {% if section == 'organizations' %}
+          <ul>
+            <li class="reading-toc-section"><a href="#get-user-orgs">Get your organizations</a></li>
+            <li class="reading-toc-section"><a href="#get-one-organization">Get an organization's details</a></li>
+            <li class="reading-toc-section"><a href="#">Thing</a></li>
           </ul>
         {% endif %}
       </li>
@@ -42,11 +47,11 @@
             <li class="reading-toc-section"><a href="#create-an-archive">Create an archive</a></li>
             <li class="reading-toc-section"><a href="#view-details-of-one-archive">View the details of one archive</a></li>
             <li class="reading-toc-section"><a href="#download-one-archive-auth">Download a single archive</a></li>
-            <li class="reading-toc-section"><a href="#view-all-archives-of-one-user">View all archives associated with one user</a></li>
-            <li class="reading-toc-section"><a href="#move-to-dark-archive">Place an archive in the dark archive</a></li>
+            <li class="reading-toc-section"><a href="#move-to-dark-archive">Make an archive private</a></li>
             <li class="reading-toc-section"><a href="#edit-title-and-notes">Edit the title and notes fields of an archive</a></li>
             <li class="reading-toc-section"><a href="#move-archive">Move an archive</a></li>
             <li class="reading-toc-section"><a href="#delete-archive">Delete an archive</a></li>
+            <li class="reading-toc-section"><a href="#view-all-archives-of-one-user">View all archives</a></li>
           </ul>
         {% endif %}
       </li>
@@ -56,9 +61,21 @@
           <ul>
             <li class="reading-toc-section"><a href="#create-folder">Create a folder</a></li>
             <li class="reading-toc-section"><a href="#view-folder-details">View a folder's details</a></li>
+            <li class="reading-toc-section"><a href="#view-folder-subfolders">View a folder's subfolders</a></li>
+            <li class="reading-toc-section"><a href="#view-folder-archives">View a folder's archives</a></li>
             <li class="reading-toc-section"><a href="#rename-folder">Rename a folder</a></li>
             <li class="reading-toc-section"><a href="#move-folder">Move a folder</a></li>
             <li class="reading-toc-section"><a href="#delete-folder">Delete a folder</a></li>
+            <li class="reading-toc-section"><a href="#view-top-level-folders">View top-level folders</a></li>
+          </ul>
+        {% endif %}
+      </li>
+      <li>
+        <h3 class="reading-toc-chapter{% if section == 'capturejobs' %} _active" aria-current="location" aria-expanded="true"{% else %}" aria-expanded="false"{% endif %}><a href="#developer-capturejobs">Capture Jobs</a></h3>
+        {% if section == 'capturejobs' %}
+          <ul>
+            <li class="reading-toc-section"><a href="#get-user-capture-jobs">Get your ongoing capture jobs</a></li>
+            <li class="reading-toc-section"><a href="#get-archive-status">Get a single archive's capture status</a></li>
           </ul>
         {% endif %}
       </li>
