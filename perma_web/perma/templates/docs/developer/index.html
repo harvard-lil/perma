@@ -150,6 +150,7 @@ curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com
       <p class="body-text">The response includes detailed information about the newly created archive, including the globally unique ID (GUID) of the archive:</p>
       <pre class="prettyprint">{"guid":"85LS-BXV7","creation_timestamp":"2018-05-16T16:11:19.516152Z","url":"http://example.com","title":"This is an example site","description":null,"warc_size":null,"warc_download_url":"{{ base_url }}/archives/85LS-BXV7/download","captures":[{"role":"primary","status":"success","url":"http://example.com","record_type":"response","content_type":"text/html","user_upload":false,"playback_url":"//{{ WARC_HOST }}/warc/85LS-BXV7/http://example.com"},{"role":"screenshot","status":"success","url":"file:///85LS-BXV7/cap.png","record_type":"resource","content_type":"image/png","user_upload":false,"playback_url":"//{{ WARC_HOST }}/warc/85LS-BXV7/id_/file:///85LS-BXV7/cap.png"}],"queue_time":null,"capture_time":null,"notes":"","created_by":{"id":3,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":false,"private_reason":null,"user_deleted":false,"archive_timestamp":"2018-05-17T16:11:19.516152Z","organization":null}</pre>
       <p class="body-text">Note that finalized details about an archive may not be available immediately: fields will update until the archiving process is complete. Use the Capture Job API and additional Archives API endpoints to get up-to-date details about a GUID.</p>
+      <p class="body-text">To create many archives at once, use the Archives API endpoints for <a href="#batches">Batches</a></p>
 
       <h3 id="view-details-of-one-archive" class="body-bh">View the details of one archive</h3>
       <p class="body-text">Use GET to retrieve details about an archive owned by you or by one of your organizations. More details are available via this authenticated Archives endpoint than are available from the non-authenticated Public Archives endpoint.</p>
@@ -197,6 +198,19 @@ curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com
       <p class="body-text">Response:</p>
       <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/archives/?api_key=your-api-key&limit=1&offset=1","offset":0,"previous":null,"total_count":147},"objects":[{"guid":"F9BV-XLHU","creation_timestamp":"2018-05-05T23:03:41Z","url":"http://example.com","title":"example.com","description":"","warc_size":null,"warc_download_url":"{{ base_url }}/archives/F9BV-XLHU/download","captures":[{"role":"primary","status":"success","url":"file:///F9BV-XLHU/upload.png","record_type":"resource","content_type":"image/png","user_upload":true,"playback_url":"//{{ WARC_HOST }}/warc/F9BV-XLHU/id_/file:///F9BV-XLHU/upload.png"}],"queue_time":null,"capture_time":null,"notes":"","created_by":{"id":1,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":true,"private_reason":"user","user_deleted":false,"archive_timestamp":"2018-05-06T23:03:41Z","organization":{"id":3,"name":"A Third Journal","registrar":"Test Library","default_to_private":true,"shared_folder":{"id":31,"name":"A Third Journal","parent":null,"has_children":true,"organization":3}}}]}</pre>
       <p class="body-text">To restrict the results to a single folder, use the Folders API endpoint.</p>
+
+      <h3 id="batches" class="body-bh">Work with batches of archives</h3>
+      <p class="body-text">You can request the creation of multiple archives at once by creating a batch.</p>
+      <p class="body-text">Use HTTP POST, and include a list of URLs and a target folder ID (mandatory) as JSON-encoded data.</p>
+      <pre>curl -H 'Content-Type: application/json' -X POST -d '{"urls": ["http://example.com", "http://example.com/page", "http://example.com/another-page"], "target_folder": 24}' {{ base_url }}/archives/batches?api_key=your-api-key</pre>
+      <p class="body-text">The response includes an ID number for the batch (268 in the example below) and a list of "Capture Jobs", one per submitted URL.</p>
+      <pre class="prettyprint">{"id":268,"started_on":"2018-05-16T17:46:14Z","created_by":3,"capture_jobs":[{"guid":"F42B-NZ6G","status":"pending","message":null,"submitted_url":"http://example.com","attempt":1,"step_count":0.0,"step_description":"","capture_start_time":"2018-05-16T17:46:14Z","capture_end_time":"2018-05-16T17:46:18Z","queue_position":0,"title":"Example Domain","user_deleted":false},{"guid":"48YX-LMW5","status":"completed","message":null,"submitted_url":"http://example.com/page","attempt":1,"step_count":6.0,"step_description":"Saving web archive file","capture_start_time":"2018-05-16T17:46:18Z","capture_end_time":"2018-05-16T17:46:21Z","queue_position":0,"title":"Example Domain","user_deleted":false},{"guid":"CH84-WDL3","status":"completed","message":null,"submitted_url":"http://example.com/another-page","attempt":1,"step_count":6.0,"step_description":"Saving web archive file","capture_start_time":"2018-05-16T17:46:21Z","capture_end_time":"2018-05-16T17:46:24Z","queue_position":0,"title":"Example Domain","user_deleted":false}],"target_folder":24,"links_remaining":45}</pre>
+      <p class="body-text">Capture Jobs report details about attempts to create archives. Review the list of Capture Jobs to find the GUIDS of successfully created archives and find validation error messages for any URLs that failed.</p>
+      <p class="body-text">Note that finalized details about a batch are not available immediately: fields will update until the archiving process is complete.</p>
+      <p class="body-text">Use GET to retrieve up-to-date details about a batch.</p>
+      <pre>curl {{ base_url }}/archives/batches/268?api_key=your-api-key</pre>
+      <p class="body-text">Use GET to retrieve a list of all your batches.</p>
+      <pre>curl {{ base_url }}/archives/batches?api_key=your-api-key</pre>
     </div>
   </div>
 </div>
@@ -281,6 +295,10 @@ curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com
       <h3 id="get-archive-status" class="body-bh">Get a single archive's capture status</h3>
       <p class="body-text">View capture status for a particular archive by GUID.</p>
       <pre>curl -v {{ base_url }}/capture_jobs/ABCD-1234/?api_key=your-api-key</pre>
+
+      <h3 id="get-batch-status" class="body-bh">Get the capture status of all archives in a batch</h3>
+      <p class="body-text">Use GET to retrieve up-to-date details about a batch.</p>
+      <pre>curl {{ base_url }}/archives/batches/268?api_key=your-api-key</pre>
 
     </div>
   </div>
