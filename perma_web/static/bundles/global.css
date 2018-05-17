@@ -12621,7 +12621,8 @@ ol.result-list .admin-actions {
   border-color: #222;
 }
 
-.item-container._isFailed {
+.item-container._isFailed,
+.item-container._isPending {
   background-color: rgba(100, 100, 100, 0.07);
 }
 

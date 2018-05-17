@@ -9,7 +9,7 @@
 
 
 {{#each links}}
-  <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}{{#if is_failed }} _isFailed{{/if}}">
+  <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}{{#if is_failed }} _isFailed{{/if}}{{#if is_pending }} _isPending{{/if}}">
     <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
       <div class="row">
         <div class="col col-sm-6 col-md-60 item-title-col">
@@ -27,6 +27,7 @@
              title="Hide Link Details for Link {{ guid }}">
           </button>
 
+          {{#if is_pending }}<div class="failed_header">Capture In Progress</div>{{/if}}
           {{#if is_failed }}<div class="failed_header">Capture Failed</div>{{/if}}
           {{#if is_private }}
           <div class="item-private">
