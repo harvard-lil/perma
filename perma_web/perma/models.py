@@ -21,6 +21,7 @@ from time import mktime
 from wsgiref.handlers import format_date_time
 
 from mptt.managers import TreeManager
+from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
@@ -1387,7 +1388,12 @@ class CaptureJob(models.Model):
         """
         self.status = status
         self.capture_end_time = timezone.now()
-        self.save(update_fields=['status', 'capture_end_time'])
+        self.save(update_fields=['status', 'capture_end_time', 'message'])
+
+    def mark_failed(self, message):
+        """ Mark job as failed, and record message in format for front-end display. """
+        self.message = json.dumps({api_settings.NON_FIELD_ERRORS_KEY: [message]})
+        self.mark_completed('failed')
 
     def accessible_to(self, user):
         return self.link.accessible_to(user)
