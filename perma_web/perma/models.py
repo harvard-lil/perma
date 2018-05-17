@@ -36,6 +36,7 @@ from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q, Max, Count
+from django.db.models.functions import Now
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -1351,13 +1352,21 @@ class CaptureJob(models.Model):
                     time.sleep(cls.TEST_PAUSE_TIME)
 
                 # update the returned job to be in_progress instead of pending, so it won't be returned again
-                next_job.status = 'in_progress'
-                next_job.capture_start_time = timezone.now()
-                update_count = CaptureJob.objects.filter(status='pending', pk=next_job.pk).update(status=next_job.status, capture_start_time=next_job.capture_start_time)
+                # set time using database time, so timeout comparisons will be consistent across worker servers
+                update_count = CaptureJob.objects.filter(
+                    status='pending',
+                    pk=next_job.pk
+                ).update(
+                    status='in_progress',
+                    capture_start_time=Now()
+                )
 
                 # if no rows were updated, another worker claimed this job already -- try again
                 if not update_count and not cls.TEST_ALLOW_RACE:
                     continue
+
+                # load up-to-date time from database
+                next_job.refresh_from_db()
 
             return next_job
 
