@@ -800,6 +800,19 @@ def save_favicons(link, successful_favicon_urls):
         ).save()
         print "Saved favicons %s" % successful_favicon_urls
 
+def clean_up_failed_captures():
+    """
+        Clean up any existing jobs that are marked in_progress but must have timed out by now, based on our hard timeout
+        setting.
+    """
+    # use database time with a custom where clause to ensure consistent time across workers
+    for capture_job in CaptureJob.objects.filter(status='in_progress').select_related('link').extra(
+            where=["capture_start_time < now() - INTERVAL %s second" % settings.CELERYD_TASK_TIME_LIMIT]
+    ):
+        capture_job.mark_failed("Timed out.")
+        capture_job.link.captures.filter(status='pending').update(status='failed')
+        capture_job.link.tags.add('hard-timeout-failure')
+
 ### CONTEXT MANAGERS
 
 @contextmanager
@@ -830,6 +843,9 @@ def run_next_capture():
     """
         Grab and run the next CaptureJob. This will keep calling itself until there are no jobs left.
     """
+    clean_up_failed_captures()
+
+    # get job to work on
     capture_job = CaptureJob.get_next_job(reserve=True)
     if not capture_job:
         return  # no jobs waiting
@@ -1114,7 +1130,7 @@ def run_next_capture():
         finally:
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
-                capture_job.mark_completed('failed')
+                capture_job.mark_failed('Failed during capture.')
     run_task(run_next_capture.s())
 
 
