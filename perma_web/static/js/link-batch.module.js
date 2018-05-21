@@ -43,7 +43,7 @@ function render_batch(links_in_batch, folder_path) {
                 break;
             default:
                 link.isError = true;
-                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
+                link.error_message = APIModule.stringFromNestedObject(JSON.parse(link.message)) || "Error processing request";
                 errors += 1;
         }
     });

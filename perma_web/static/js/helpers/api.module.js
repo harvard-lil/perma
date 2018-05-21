@@ -29,32 +29,41 @@ export function getErrorMessage (jqXHR) {
 
   if (jqXHR.status == 400 && jqXHR.responseText) {
     try {
-      message = stripDataStructure(JSON.parse(jqXHR.responseText));
+      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
     } catch (SyntaxError) {
+      // bad json in responseText
       ErrorHandler.airbrake.notify(SyntaxError);
     }
   } else if (jqXHR.status == 401) {
     message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
   } else if (jqXHR.status) {
     message = "Error " + jqXHR.status;
-  } else {
+  }
+
+  if (!message) {
     message = "We're sorry, we've encountered an error processing your request."
   }
 
   return message;
 }
 
-export function stripDataStructure (object){
-  let parsedResponse = object;
-  while(typeof parsedResponse == 'object') {
-    for (let key in parsedResponse) {
-      if (parsedResponse.hasOwnProperty(key)) {
-        parsedResponse = parsedResponse[key];
-        break;
+// Get the first string value from a nested object.
+// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
+// Return null if no string is found.
+export function stringFromNestedObject (object) {
+  if (object) {
+    if (typeof object === "object") {
+      let keys = Object.keys(object);
+      for(let i=0;i<keys.length;i++){
+        let result = stringFromNestedObject(object[keys[i]]);
+        if (result)
+          return result;
       }
+    } else if(typeof object === "string") {
+      return object;
     }
   }
-  return parsedResponse;
+  return null;
 }
 
 // display error results from API

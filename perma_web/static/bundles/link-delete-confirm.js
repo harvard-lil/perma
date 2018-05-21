@@ -606,6 +606,10 @@ webpackJsonp([4],[
 	  value: true
 	});
 	
+	var _keys = __webpack_require__(79);
+	
+	var _keys2 = _interopRequireDefault(_keys);
+	
 	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
@@ -616,13 +620,13 @@ webpackJsonp([4],[
 	
 	exports.request = request;
 	exports.getErrorMessage = getErrorMessage;
-	exports.stripDataStructure = stripDataStructure;
+	exports.stringFromNestedObject = stringFromNestedObject;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(79);
-	var Helpers = __webpack_require__(92);
+	var ErrorHandler = __webpack_require__(83);
+	var Helpers = __webpack_require__(96);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -651,32 +655,40 @@ webpackJsonp([4],[
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
 	    try {
-	      message = stripDataStructure(JSON.parse(jqXHR.responseText));
+	      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
 	    } catch (SyntaxError) {
+	      // bad json in responseText
 	      ErrorHandler.airbrake.notify(SyntaxError);
 	    }
 	  } else if (jqXHR.status == 401) {
 	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
 	  } else if (jqXHR.status) {
 	    message = "Error " + jqXHR.status;
-	  } else {
+	  }
+	
+	  if (!message) {
 	    message = "We're sorry, we've encountered an error processing your request.";
 	  }
 	
 	  return message;
 	}
 	
-	function stripDataStructure(object) {
-	  var parsedResponse = object;
-	  while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
-	    for (var key in parsedResponse) {
-	      if (parsedResponse.hasOwnProperty(key)) {
-	        parsedResponse = parsedResponse[key];
-	        break;
+	// Get the first string value from a nested object.
+	// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
+	// Return null if no string is found.
+	function stringFromNestedObject(object) {
+	  if (object) {
+	    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
+	      var keys = (0, _keys2.default)(object);
+	      for (var i = 0; i < keys.length; i++) {
+	        var result = stringFromNestedObject(object[keys[i]]);
+	        if (result) return result;
 	      }
+	    } else if (typeof object === "string") {
+	      return object;
 	    }
 	  }
-	  return parsedResponse;
+	  return null;
 	}
 	
 	// display error results from API
