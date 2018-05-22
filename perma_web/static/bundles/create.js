@@ -1726,6 +1726,10 @@ webpackJsonp([1],[
 	  value: true
 	});
 	
+	var _keys = __webpack_require__(79);
+	
+	var _keys2 = _interopRequireDefault(_keys);
+	
 	var _typeof2 = __webpack_require__(9);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
@@ -1736,13 +1740,13 @@ webpackJsonp([1],[
 	
 	exports.request = request;
 	exports.getErrorMessage = getErrorMessage;
-	exports.stripDataStructure = stripDataStructure;
+	exports.stringFromNestedObject = stringFromNestedObject;
 	exports.showError = showError;
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var ErrorHandler = __webpack_require__(79);
-	var Helpers = __webpack_require__(92);
+	var ErrorHandler = __webpack_require__(83);
+	var Helpers = __webpack_require__(96);
 	
 	function request(method, url, data, requestArgs) {
 	  // set up arguments for API request
@@ -1771,32 +1775,40 @@ webpackJsonp([1],[
 	
 	  if (jqXHR.status == 400 && jqXHR.responseText) {
 	    try {
-	      message = stripDataStructure(JSON.parse(jqXHR.responseText));
+	      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
 	    } catch (SyntaxError) {
+	      // bad json in responseText
 	      ErrorHandler.airbrake.notify(SyntaxError);
 	    }
 	  } else if (jqXHR.status == 401) {
 	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
 	  } else if (jqXHR.status) {
 	    message = "Error " + jqXHR.status;
-	  } else {
+	  }
+	
+	  if (!message) {
 	    message = "We're sorry, we've encountered an error processing your request.";
 	  }
 	
 	  return message;
 	}
 	
-	function stripDataStructure(object) {
-	  var parsedResponse = object;
-	  while ((typeof parsedResponse === 'undefined' ? 'undefined' : (0, _typeof3.default)(parsedResponse)) == 'object') {
-	    for (var key in parsedResponse) {
-	      if (parsedResponse.hasOwnProperty(key)) {
-	        parsedResponse = parsedResponse[key];
-	        break;
+	// Get the first string value from a nested object.
+	// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
+	// Return null if no string is found.
+	function stringFromNestedObject(object) {
+	  if (object) {
+	    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
+	      var keys = (0, _keys2.default)(object);
+	      for (var i = 0; i < keys.length; i++) {
+	        var result = stringFromNestedObject(object[keys[i]]);
+	        if (result) return result;
 	      }
+	    } else if (typeof object === "string") {
+	      return object;
 	    }
 	  }
-	  return parsedResponse;
+	  return null;
 	}
 	
 	// display error results from API
@@ -2006,9 +2018,9 @@ webpackJsonp([1],[
 	__webpack_require__(139);
 	
 	var APIModule = __webpack_require__(78);
-	var Helpers = __webpack_require__(92);
+	var Helpers = __webpack_require__(96);
 	var DOMHelpers = __webpack_require__(2);
-	var ErrorHandler = __webpack_require__(79);
+	var ErrorHandler = __webpack_require__(83);
 	
 	var localStorageKey = Helpers.variables.localStorageKey;
 	var allowedEventsCount = 0;
@@ -11070,7 +11082,7 @@ webpackJsonp([1],[
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
-	var _keys = __webpack_require__(93);
+	var _keys = __webpack_require__(79);
 	
 	var _keys2 = _interopRequireDefault(_keys);
 	
@@ -11085,7 +11097,7 @@ webpackJsonp([1],[
 	__webpack_require__(151); // add jquery support for ajaxSubmit/ajaxForm
 	__webpack_require__(152); // add .modal to jquery
 	
-	var Helpers = __webpack_require__(92);
+	var Helpers = __webpack_require__(96);
 	var DOMHelpers = __webpack_require__(2);
 	var APIModule = __webpack_require__(78);
 	var ProgressBarHelper = __webpack_require__(153);
@@ -13809,10 +13821,10 @@ webpackJsonp([1],[
 	
 	var APIModule = __webpack_require__(78);
 	var DOMHelpers = __webpack_require__(2);
-	var ErrorHandler = __webpack_require__(79);
+	var ErrorHandler = __webpack_require__(83);
 	var FolderTreeModule = __webpack_require__(104);
 	var FolderSelectorHelper = __webpack_require__(103);
-	var Helpers = __webpack_require__(92);
+	var Helpers = __webpack_require__(96);
 	var Modals = __webpack_require__(155);
 	var ProgressBarHelper = __webpack_require__(153);
 	
@@ -13860,7 +13872,7 @@ webpackJsonp([1],[
 	                break;
 	            default:
 	                link.isError = true;
-	                link.error_message = APIModule.stripDataStructure(JSON.parse(link.message));
+	                link.error_message = APIModule.stringFromNestedObject(JSON.parse(link.message)) || "Error processing request";
 	                errors += 1;
 	        }
 	    });
