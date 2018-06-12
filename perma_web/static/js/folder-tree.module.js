@@ -111,7 +111,13 @@ function getNodeByFolderID (folderId) {
 }
 
 function handleSelectionChange (e, data) {
-  ls.setCurrent(parseInt(data.orgId),[parseInt(data.folderId)]);
+  let folderList;
+  if (Array.isArray(data.folderId)) {
+    folderList = data.folderId.map(x => parseInt(x));
+  } else {
+    folderList = [parseInt(data.folderId)]
+  }
+  ls.setCurrent(parseInt(data.orgId),folderList);
   folderTree.close_all();
   folderTree.deselect_all();
   selectSavedFolder();
@@ -367,6 +373,8 @@ function domTreeInit () {
       // (without this, doesn't select saved folders on load.)
       selectSavedFolder();
 
+    }).on('ready.jstree', function (e, data) {
+      Helpers.triggerOnWindow("folderTree.ready");
     })
 
     // track currently hovered node in the hoveredNode variable:
@@ -404,6 +412,11 @@ function setupEventHandlers () {
   $(window)
     .on('dropdown.selectionChange', function(e, data){
       handleSelectionChange(e, data);
+    })
+    .on('batchLink.reloadTreeForFolder', function(e, data) {
+      handleSelectionChange(e, data);
+      folderTree.destroy();
+      domTreeInit();
     })
     .on('LinksListModule.moveLink', function(evt, data) {
       data = JSON.parse(data);
