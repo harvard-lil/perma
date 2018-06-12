@@ -1679,18 +1679,32 @@ webpackJsonp([1],[
 	  if (Date.now() < Date.parse(link.archive_timestamp)) {
 	    link.delete_available = true;
 	  }
+	  // mark the capture as pending if either the primary or the screenshot capture are pending
 	  // mark the capture as failed if both the primary and the screenshot capture failed.
-	  // (ignore if the favicon capture failed)
+	  // (ignore the favicon capture)
 	  var primary_failed = false;
 	  var screenshot_failed = false;
+	  var primary_pending = false;
+	  var screenshot_pending = false;
 	  link.captures.forEach(function (c) {
-	    if (c.role == "primary" && c.status == "failed") {
-	      primary_failed = true;
+	    if (c.role == "primary") {
+	      if (c.status == "pending") {
+	        primary_pending = true;
+	      } else if (c.status == "failed") {
+	        primary_failed = true;
+	      }
 	    }
-	    if (c.role == "screenshot" && c.status == "failed") {
-	      screenshot_failed = true;
+	    if (c.role == "screenshot") {
+	      if (c.status == "pending") {
+	        screenshot_pending = true;
+	      } else if (c.status == "failed") {
+	        screenshot_failed = true;
+	      }
 	    }
 	  });
+	  if (primary_pending || screenshot_pending) {
+	    link.is_pending = true;
+	  };
 	  if (primary_failed && screenshot_failed) {
 	    link.is_failed = true;
 	  };
@@ -10978,6 +10992,7 @@ webpackJsonp([1],[
 	  return "  <div class=\"item-container _isExpandable"
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_private : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_failed : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_pending : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "\">\n    <div class=\"row item-row row-no-bleed _isDraggable\" data-link_id=\""
 	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
 	    + "\">\n      <div class=\"row\">\n        <div class=\"col col-sm-6 col-md-60 item-title-col\">\n          <!-- expand arrow -->\n          <button\n             aria-label=\"Show Details for Link "
@@ -10989,9 +11004,11 @@ webpackJsonp([1],[
 	    + "\"\n             class=\"toggle-details collapse-details\"\n             title=\"Hide Link Details for Link "
 	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
 	    + "\">\n          </button>\n\n          "
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_failed : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_pending : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "\n          "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_failed : depth0),{"name":"if","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "\n"
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_private : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.is_private : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "\n          <div class=\"item-title\">\n            <span>"
 	    + alias3(alias2((depth0 != null ? depth0.title : depth0), depth0))
 	    + "</span>\n          </div>\n          <div class=\"item-subtitle\">\n            <a href=\""
@@ -10999,7 +11016,7 @@ webpackJsonp([1],[
 	    + "\" target=\"_blank\" class=\"item-link-original no-drag\">\n              "
 	    + alias3(__default(__webpack_require__(148)).call(alias1,(depth0 != null ? depth0.url : depth0),200,{"name":"truncatechars","hash":{},"data":data}))
 	    + "\n            </a>\n          </div>\n        </div>\n        <div class=\"col col-sm-6 col-md-40 align-right item-permalink\">\n          "
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.delete_available : depth0),{"name":"if","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.delete_available : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "\n          <a class=\"perma no-drag\" href=\"http://"
 	    + alias3(alias2((depth0 != null ? depth0.local_url : depth0), depth0))
 	    + "\" target=\"_blank\">"
@@ -11007,7 +11024,7 @@ webpackJsonp([1],[
 	    + "</a>\n        </div>\n      </div>\n      <div class=\"row item-secondary\">\n        <div class=\"col col-sm-5 pull-right sm-align-right\">\n          <span class=\"item-date\"><span class=\"label\">Created </span>"
 	    + alias3(alias2((depth0 != null ? depth0.creation_timestamp_formatted : depth0), depth0))
 	    + "</span>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"row item-details\" "
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.search_query_in_notes : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.search_query_in_notes : depth0),{"name":"if","hash":{},"fn":container.program(20, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + ">\n      <div class=\"col-sm-7\">\n\n        <div class=\"form-group\">\n          <label for=\"link-title-"
 	    + alias3(alias2((depth0 != null ? depth0.guid : depth0), depth0))
 	    + "\">Display title</label>\n          <span class=\"title-save-status\"></span>\n          <input type=\"text\" class=\"link-title\" name=\"input\" id=\"link-title-"
@@ -11038,23 +11055,27 @@ webpackJsonp([1],[
 	},"8":function(container,depth0,helpers,partials,data) {
 	    return " _isFailed";
 	},"10":function(container,depth0,helpers,partials,data) {
-	    return "<div class=\"failed_header\">Capture Failed</div>";
+	    return " _isPending";
 	},"12":function(container,depth0,helpers,partials,data) {
-	    return "          <div class=\"item-private\">\n            <span class=\"ui-private\">[private] </span>\n            <span class=\"private-hint\">Private record</span>\n          </div>";
+	    return "<div class=\"failed_header\">Capture In Progress</div>";
 	},"14":function(container,depth0,helpers,partials,data) {
+	    return "<div class=\"failed_header\">Capture Failed</div>";
+	},"16":function(container,depth0,helpers,partials,data) {
+	    return "          <div class=\"item-private\">\n            <span class=\"ui-private\">[private] </span>\n            <span class=\"private-hint\">Private record</span>\n          </div>";
+	},"18":function(container,depth0,helpers,partials,data) {
 	    return "<a class=\"delete no-drag\" href=\"/manage/delete-link/"
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.guid : depth0), depth0))
 	    + "\">Delete</a>";
-	},"16":function(container,depth0,helpers,partials,data) {
+	},"20":function(container,depth0,helpers,partials,data) {
 	    return "style=\"display:block\"";
-	},"18":function(container,depth0,helpers,partials,data) {
+	},"22":function(container,depth0,helpers,partials,data) {
 	    return "  <div class=\"row item-row row-no-bleed\">\n    <div class=\"row\">\n      <div class=\"col col-xs-12\">\n        <div class=\"item-title\">\n          <p class=\"item-notification\">This is an empty folder</p>\n        </div>\n      </div>\n    </div>\n  </div>\n";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
 	    var stack1, alias1=depth0 != null ? depth0 : {};
 	
 	  return ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.query : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data})) != null ? stack1 : "")
 	    + "\n\n"
-	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(18, data, 0),"data":data})) != null ? stack1 : "");
+	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(22, data, 0),"data":data})) != null ? stack1 : "");
 	},"useData":true});
 
 /***/ },

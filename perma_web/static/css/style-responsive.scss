@@ -4011,7 +4011,7 @@ ol.result-list {
       border-color: $color-black;
     }
   }
-  &._isFailed {
+  &._isFailed, &._isPending {
     background-color: $color-trans-whispergray;
   }
   p.warning {
