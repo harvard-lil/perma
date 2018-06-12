@@ -2127,7 +2127,15 @@ webpackJsonp([1],[
 	}
 	
 	function handleSelectionChange(e, data) {
-	  ls.setCurrent(parseInt(data.orgId), [parseInt(data.folderId)]);
+	  var folderList = void 0;
+	  if (Array.isArray(data.folderId)) {
+	    folderList = data.folderId.map(function (x) {
+	      return parseInt(x);
+	    });
+	  } else {
+	    folderList = [parseInt(data.folderId)];
+	  }
+	  ls.setCurrent(parseInt(data.orgId), folderList);
 	  folderTree.close_all();
 	  folderTree.deselect_all();
 	  selectSavedFolder();
@@ -2387,6 +2395,8 @@ webpackJsonp([1],[
 	    // when a new node is loaded, see if it should be selected based on a user's previous visit.
 	    // (without this, doesn't select saved folders on load.)
 	    selectSavedFolder();
+	  }).on('ready.jstree', function (e, data) {
+	    Helpers.triggerOnWindow("folderTree.ready");
 	  })
 	
 	  // track currently hovered node in the hoveredNode variable:
@@ -2426,6 +2436,10 @@ webpackJsonp([1],[
 	function setupEventHandlers() {
 	  $(window).on('dropdown.selectionChange', function (e, data) {
 	    handleSelectionChange(e, data);
+	  }).on('batchLink.reloadTreeForFolder', function (e, data) {
+	    handleSelectionChange(e, data);
+	    folderTree.destroy();
+	    domTreeInit();
 	  }).on('LinksListModule.moveLink', function (evt, data) {
 	    data = JSON.parse(data);
 	    moveLink(data.folderId, data.linkId);
@@ -13940,7 +13954,7 @@ webpackJsonp([1],[
 	                    $(this).attr('tabIndex', '-1');
 	                });
 	            }
-	            var folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
+	            var folder_path = FolderTreeModule.getPathForId(batch_data.target_folder.id).join(" > ");
 	            var all_completed = render_batch(batch_data.capture_jobs, folder_path);
 	            if (all_completed) {
 	                clearInterval(interval);
@@ -14068,10 +14082,22 @@ webpackJsonp([1],[
 	    });
 	
 	    $batch_history.delegate('a[data-batch]', 'click', function (e) {
+	        var _this = this;
+	
 	        e.preventDefault();
-	        $input.hide();
-	        show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
-	        Modals.returnFocusTo(this);
+	        var batch = this.dataset.batch;
+	        var folderPath = this.dataset.folderpath;
+	        var org = parseInt(this.dataset.org);
+	        Helpers.triggerOnWindow('batchLink.reloadTreeForFolder', {
+	            folderId: folderPath.split('-'),
+	            orgId: org
+	        });
+	        $(window).bind("folderTree.ready.batchToggle", function () {
+	            $input.hide();
+	            show_modal_with_batch(batch);
+	            Modals.returnFocusTo(_this);
+	            $(window).unbind("folderTree.ready.batchToggle");
+	        });
 	    });
 	
 	    $batch_history.delegate('#all-batches', 'click', function (e) {
@@ -14124,12 +14150,14 @@ webpackJsonp([1],[
 	var Handlebars = __webpack_require__(4);
 	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    var alias1=container.lambda, alias2=container.escapeExpression;
+	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
 	
 	  return "  <li class=\"item-subtitle\">\n    <a href=\"#\" data-batch="
 	    + alias2(alias1((depth0 != null ? depth0.id : depth0), depth0))
-	    + " data-folder=\""
-	    + alias2(alias1((depth0 != null ? depth0.target_folder : depth0), depth0))
+	    + " data-folderpath=\""
+	    + alias2(alias1(((stack1 = (depth0 != null ? depth0.target_folder : depth0)) != null ? stack1.path : stack1), depth0))
+	    + "\" data-org=\""
+	    + alias2(alias1(((stack1 = (depth0 != null ? depth0.target_folder : depth0)) != null ? stack1.organization : stack1), depth0))
 	    + "\"><span class=\"sr-only\">Batch created </span>"
 	    + alias2(__default(__webpack_require__(164)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.started_on : depth0),{"name":"human_timestamp","hash":{},"data":data}))
 	    + "</a>\n  </li>\n";

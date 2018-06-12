@@ -109,7 +109,7 @@ function show_batch(batch_id) {
                 // prevents tabbing to elements that are getting swapped out
                 $batch_details.find('*').each(function(){$(this).attr('tabIndex', '-1')});
             }
-            let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder).join(" > ");
+            let folder_path = FolderTreeModule.getPathForId(batch_data.target_folder.id).join(" > ");
             let all_completed = render_batch(batch_data.capture_jobs, folder_path);
             if (all_completed) {
                 clearInterval(interval);
@@ -238,9 +238,19 @@ function setup_handlers() {
 
     $batch_history.delegate('a[data-batch]', 'click', function(e) {
         e.preventDefault();
-        $input.hide();
-        show_modal_with_batch(this.dataset.batch, parseInt(this.dataset.folder));
-        Modals.returnFocusTo(this);
+        let batch = this.dataset.batch;
+        let folderPath= this.dataset.folderpath;
+        let org = parseInt(this.dataset.org);
+        Helpers.triggerOnWindow('batchLink.reloadTreeForFolder', {
+          folderId: folderPath.split('-'),
+          orgId: org
+        });
+        $(window).bind("folderTree.ready.batchToggle", () => {
+          $input.hide();
+          show_modal_with_batch(batch);
+          Modals.returnFocusTo(this);
+          $(window).unbind("folderTree.ready.batchToggle");
+        });
     });
 
     $batch_history.delegate('#all-batches', 'click', function(e) {

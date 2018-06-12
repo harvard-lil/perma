@@ -17,7 +17,7 @@ from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBa
 from .utils import TastypiePagination, load_parent, raise_general_validation_error, \
     raise_invalid_capture_job, dispatch_multiple_requests, reverse_api_view_relative
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
-    LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer
+    LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer, DetailedLinkBatchSerializer
 
 
 ### BASE VIEW ###
@@ -72,23 +72,25 @@ class BaseView(APIView):
 
     ### basic views ###
 
-    def simple_list(self, request, queryset):
+    def simple_list(self, request, queryset, serializer_class=None):
         """
             Paginate and return a list of objects from given queryset.
         """
         queryset = self.filter_queryset(queryset)
         paginator = TastypiePagination()
         items = paginator.paginate_queryset(queryset, request)
-        serializer = self.serializer_class(items, many=True, context={"request": request})
+        serializer_class = serializer_class if serializer_class else self.serializer_class
+        serializer = serializer_class(items, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
-    def simple_get(self, request, pk=None, obj=None):
+    def simple_get(self, request, pk=None, obj=None, serializer_class=None):
         """
             Return single serialized object based on either primary key or object already loaded.
         """
         if not obj:
             obj = self.get_object_for_user_by_pk(request.user, pk)
-        serializer = self.serializer_class(obj, context={"request": request})
+        serializer_class = serializer_class if serializer_class else self.serializer_class
+        serializer = serializer_class(obj, context={"request": request})
         return Response(serializer.data)
 
     def simple_create(self, data, save_kwargs={}):
@@ -546,7 +548,7 @@ class LinkBatchesListView(BaseView):
     def get(self, request, format=None):
         """ List link batches for user. """
         queryset = LinkBatch.objects.filter(created_by=request.user).order_by('-started_on')
-        return self.simple_list(request, queryset)
+        return self.simple_list(request, queryset, serializer_class=DetailedLinkBatchSerializer)
 
     def post(self, request, format=None):
         """ Create link batch. """
@@ -591,7 +593,7 @@ class LinkBatchesListView(BaseView):
 
 # /batches/:id
 class LinkBatchesDetailView(BaseView):
-    serializer_class = LinkBatchSerializer
+    serializer_class = DetailedLinkBatchSerializer
 
     def get(self, request, pk, format=None):
         """ Single link batch details. """

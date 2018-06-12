@@ -52,15 +52,19 @@ class LinkUserSerializer(BaseSerializer):
 
 class FolderSerializer(BaseSerializer):
     has_children = serializers.SerializerMethodField()
+    path = serializers.SerializerMethodField()
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'parent', 'has_children', 'organization')
+        fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization')
         extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
     def get_has_children(self, folder):
         return not folder.is_leaf_node()
+
+    def get_path(self, folder):
+        return '-'.join([str(f.id) for f in folder.get_ancestors(include_self=True)])
 
     def validate_name(self, name):
         if self.instance:
@@ -274,6 +278,15 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 
 class LinkBatchSerializer(BaseSerializer):
     capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = LinkBatch
+        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'target_folder')
+
+
+class DetailedLinkBatchSerializer(BaseSerializer):
+    capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+    target_folder = FolderSerializer(read_only=True)
 
     class Meta:
         model = LinkBatch
