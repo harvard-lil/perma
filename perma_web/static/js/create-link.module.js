@@ -42,6 +42,7 @@ function toggleInProgress() {
     $url.prop('disabled', false);
     $organizationDropdownButton.prop('disabled', false);
     $linksRemainingMessage.removeClass('_isWorking');
+    Helpers.triggerOnWindow('createLink.toggleProgress');
   } else {
     // we're getting started
     $createButton.html('<div id="capture-status">Creating your Perma Link</div>');
@@ -50,6 +51,7 @@ function toggleInProgress() {
     $url.prop('disabled', true);
     $organizationDropdownButton.prop('disabled', true);
     $linksRemainingMessage.addClass('_isWorking');
+    Helpers.triggerOnWindow('createLink.toggleProgress');
   }
 }
 

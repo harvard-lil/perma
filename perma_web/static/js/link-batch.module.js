@@ -20,7 +20,8 @@ let interval;
 // elements in the DOM, retrieved during init()
 let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container,
     $batch_modal_title, $batch_progress_report, $batch_target_path, $create_batch,
-    $export_csv, $input, $input_area, $loading, $modal, $spinner, $start_button;
+    $create_batch_wrapper, $export_csv, $input, $input_area, $loading, $modal,
+    $spinner, $start_button;
 
 
 function render_batch(links_in_batch, folder_path) {
@@ -190,7 +191,8 @@ function setup_handlers() {
     // listen for folder changes from other UI components
     $(window)
         .on('FolderTreeModule.selectionChange', set_folder_from_trigger)
-        .on('dropdown.selectionChange', set_folder_from_trigger);
+        .on('dropdown.selectionChange', set_folder_from_trigger)
+        .on('createLink.toggleProgress', () => { $create_batch_wrapper.toggle() });
 
     // update all UI components when folder changed using the modal's dropdown
     $batch_target_path.change(function() {
@@ -271,6 +273,7 @@ export function init() {
         $batch_progress_report = $('#batch-progress-report');
         $batch_target_path = $('#batch-target-path');
         $create_batch = $('#create-batch');
+        $create_batch_wrapper = $('#create-batch-links');
         $export_csv = $('#export-csv');
         $input = $('#batch-create-input');
         $input_area = $('#batch-create-input textarea');

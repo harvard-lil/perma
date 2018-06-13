@@ -11183,6 +11183,7 @@ webpackJsonp([1],[
 	    $url.prop('disabled', false);
 	    $organizationDropdownButton.prop('disabled', false);
 	    $linksRemainingMessage.removeClass('_isWorking');
+	    Helpers.triggerOnWindow('createLink.toggleProgress');
 	  } else {
 	    // we're getting started
 	    $createButton.html('<div id="capture-status">Creating your Perma Link</div>');
@@ -11191,6 +11192,7 @@ webpackJsonp([1],[
 	    $url.prop('disabled', true);
 	    $organizationDropdownButton.prop('disabled', true);
 	    $linksRemainingMessage.addClass('_isWorking');
+	    Helpers.triggerOnWindow('createLink.toggleProgress');
 	  }
 	}
 	
@@ -13879,6 +13881,7 @@ webpackJsonp([1],[
 	    $batch_progress_report = void 0,
 	    $batch_target_path = void 0,
 	    $create_batch = void 0,
+	    $create_batch_wrapper = void 0,
 	    $export_csv = void 0,
 	    $input = void 0,
 	    $input_area = void 0,
@@ -14060,7 +14063,9 @@ webpackJsonp([1],[
 	
 	function setup_handlers() {
 	    // listen for folder changes from other UI components
-	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger);
+	    $(window).on('FolderTreeModule.selectionChange', set_folder_from_trigger).on('dropdown.selectionChange', set_folder_from_trigger).on('createLink.toggleProgress', function () {
+	        $create_batch_wrapper.toggle();
+	    });
 	
 	    // update all UI components when folder changed using the modal's dropdown
 	    $batch_target_path.change(function () {
@@ -14138,6 +14143,7 @@ webpackJsonp([1],[
 	        $batch_progress_report = $('#batch-progress-report');
 	        $batch_target_path = $('#batch-target-path');
 	        $create_batch = $('#create-batch');
+	        $create_batch_wrapper = $('#create-batch-links');
 	        $export_csv = $('#export-csv');
 	        $input = $('#batch-create-input');
 	        $input_area = $('#batch-create-input textarea');
