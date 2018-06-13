@@ -13899,6 +13899,11 @@ webpackJsonp([1],[
 	        link.local_url = link.guid ? window.host + '/' + link.guid : null;
 	        switch (link.status) {
 	            case "pending":
+	                link.isPending = true;
+	                link.waitTime = Math.round(link.queue_position * 9 / 6); // queue position times average capture time divided by celery workers
+	                all_completed = false;
+	                batch_progress.push(link.progress);
+	                break;
 	            case "in_progress":
 	                link.isProcessing = true;
 	                all_completed = false;
@@ -14258,19 +14263,27 @@ webpackJsonp([1],[
 	    + "</div>\n          <div class=\"item-subtitle\">"
 	    + alias3(alias2((depth0 != null ? depth0.submitted_url : depth0), depth0))
 	    + "</div>\n        </div>\n        <div class=\"link-progress col col-sm-6 col-md-40 align-right item-permalink\">\n"
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isPending : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data})) != null ? stack1 : "")
 	    + "        </div>\n";
 	},"7":function(container,depth0,helpers,partials,data) {
 	    return "<div class=\"failed_header\">Deleted</div>";
 	},"9":function(container,depth0,helpers,partials,data) {
-	    var stack1;
-	
-	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	    return "            <span>Queued: begins in "
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.waitTime : depth0), depth0))
+	    + " seconds </span>\n";
 	},"11":function(container,depth0,helpers,partials,data) {
 	    var stack1;
 	
-	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data})) != null ? stack1 : "");
 	},"12":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	},"14":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"15":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.lambda, alias2=container.escapeExpression;
 	
 	  return "            <a class=\"perma no-drag\" href=\"//"

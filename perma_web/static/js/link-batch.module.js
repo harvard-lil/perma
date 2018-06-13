@@ -33,6 +33,11 @@ function render_batch(links_in_batch, folder_path) {
         link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
         switch(link.status){
             case "pending":
+                link.isPending = true;
+                link.waitTime = Math.round(link.queue_position * 9 / 6); // queue position times average capture time divided by celery workers
+                all_completed = false;
+                batch_progress.push(link.progress);
+                break;
             case "in_progress":
                 link.isProcessing = true;
                 all_completed = false;
