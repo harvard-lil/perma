@@ -214,6 +214,8 @@ webpackJsonp([1],[
 	    $linkListHeader.html(template);
 	  }).on("BatchLinkModule.batchCreated", function () {
 	    showFolderContents(selectedFolderID);
+	  }).on("BatchLinkModule.refreshLinkList", function () {
+	    showFolderContents(selectedFolderID);
 	  });
 	
 	  // search form
@@ -14098,6 +14100,7 @@ webpackJsonp([1],[
 	        $batch_progress_report.empty();
 	    }).on('hide.bs.modal', function () {
 	        clearInterval(interval);
+	        $(window).trigger("BatchLinkModule.refreshLinkList");
 	    });
 	
 	    $start_button.click(start_batch);

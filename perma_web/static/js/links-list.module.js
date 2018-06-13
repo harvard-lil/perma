@@ -38,6 +38,9 @@ function setupEventHandlers () {
     })
     .on("BatchLinkModule.batchCreated", function(){
       showFolderContents(selectedFolderID);
+    })
+    .on("BatchLinkModule.refreshLinkList", function(){
+      showFolderContents(selectedFolderID);
     });
 
   // search form

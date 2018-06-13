@@ -228,6 +228,7 @@ function setup_handlers() {
        })
       .on('hide.bs.modal', function(){
         clearInterval(interval);
+        $(window).trigger("BatchLinkModule.refreshLinkList");
       });
 
     $start_button.click(start_batch);
