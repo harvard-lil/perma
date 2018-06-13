@@ -13976,7 +13976,7 @@ webpackJsonp([1],[
 	        APIModule.request('GET', '/archives/batches/' + batch_id).then(function (batch_data) {
 	            if (first_time) {
 	                first_time = false;
-	                $batch_progress_report.focus();
+	                $modal.focus();
 	                spinner.stop();
 	                $spinner.addClass("_hide");
 	                $batch_details.attr("aria-hidden", "true");

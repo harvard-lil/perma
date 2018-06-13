@@ -108,7 +108,7 @@ function show_batch(batch_id) {
         ).then(function(batch_data) {
             if (first_time) {
                 first_time = false;
-                $batch_progress_report.focus();
+                $modal.focus();
                 spinner.stop();
                 $spinner.addClass("_hide");
                 $batch_details.attr("aria-hidden", "true");

@@ -11374,6 +11374,11 @@ button#addlink,
   margin-right: 5px;
 }
 
+#batch-progress-report {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
 #batch-details-wrapper {
   margin-top: 16px;
 }
@@ -11382,6 +11387,10 @@ button#addlink,
   background: white;
   border: none;
   padding-top: 8px;
+}
+
+#batch-details-wrapper p:first {
+  margin-bottom: -8px;
 }
 
 #batch-details {
