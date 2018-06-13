@@ -434,7 +434,7 @@ p {
 // Global Flags
 
 ._hide {
-  display: none;
+  display: none !important;
 }
 
 ._hideMobile {
