@@ -25,16 +25,22 @@ let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_containe
 
 
 function render_batch(links_in_batch, folder_path) {
+    const average_capture_time = 9;
+    const celery_workers = 6;
+    const steps = 6;
+
     let all_completed = true;
-    let batch_progress = []
+    let batch_progress = [];
+    let estimated_queue_time = 0;
     let errors = 0;
     links_in_batch.forEach(function(link) {
-        link.progress = (link.step_count / 6) * 100;
+        link.progress = (link.step_count / steps) * 100;
         link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
         switch(link.status){
             case "pending":
                 link.isPending = true;
-                link.waitTime = Math.round(link.queue_position * 9 / 6); // queue position times average capture time divided by celery workers
+                link.waitTime = Math.round(link.queue_position * average_capture_time / celery_workers);
+                estimated_queue_time += link.waitTime;
                 all_completed = false;
                 batch_progress.push(link.progress);
                 break;
@@ -54,9 +60,18 @@ function render_batch(links_in_batch, folder_path) {
         }
     });
     let percent_complete = Math.round(batch_progress.reduce((a, b) => a + b, 0) / (batch_progress.length * 100) * 100)
-    let message = `Batch ${percent_complete}% complete`;
+    let estimated_batch_time = Math.round(links_in_batch.length * average_capture_time * (100 - percent_complete) / 100 + estimated_queue_time);
+    let message = `Batch ${percent_complete}% complete.`;
     if (errors > 0){
-        message += `, ${errors} errors.`
+        message += ` ${errors} error${errors > 1 ? 's' : ''}.`;
+    }
+    if (estimated_batch_time > 0) {
+        if (estimated_batch_time > 60){
+            let mins = Math.round(estimated_batch_time / 60);
+            message += ` Done in about ${mins} minute${mins > 1 ? 's' : ''}.`;
+        } else {
+            message += ` Done in about ${estimated_batch_time} second${estimated_batch_time > 1 ? 's' : ''}.`;
+        }
     }
     $batch_progress_report.html(message);
     let template = batchLinksTemplate({"links": links_in_batch, "folder": folder_path});
