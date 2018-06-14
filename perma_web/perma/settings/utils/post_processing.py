@@ -2,7 +2,6 @@
 # here we do stuff that should be checked or fixed after ALL settings from any source are loaded
 # this is called by __init__.py
 
-import os
 from celery.schedules import crontab
 
 def post_process_settings(settings):
@@ -49,10 +48,3 @@ def post_process_settings(settings):
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
                                            **settings.get('CELERYBEAT_SCHEDULE', {}))
-
-    # set up application version for use in templates
-    try:
-        with open(os.path.join(settings['STATIC_ROOT'], 'version.txt'), 'r') as f:
-            settings['PERMA_VERSION'] = f.read().strip()
-    except IOError:
-        settings['PERMA_VERSION'] = False
