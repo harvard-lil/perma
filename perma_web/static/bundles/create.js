@@ -214,6 +214,8 @@ webpackJsonp([1],[
 	    $linkListHeader.html(template);
 	  }).on("BatchLinkModule.batchCreated", function () {
 	    showFolderContents(selectedFolderID);
+	  }).on("BatchLinkModule.refreshLinkList", function () {
+	    showFolderContents(selectedFolderID);
 	  });
 	
 	  // search form
@@ -13890,14 +13892,29 @@ webpackJsonp([1],[
 	    $start_button = void 0;
 	
 	function render_batch(links_in_batch, folder_path) {
+	    var average_capture_time = average; //global var set by template
+	    var celery_workers = workers; //global var set by template
+	    var steps = 6;
+	
 	    var all_completed = true;
 	    var batch_progress = [];
 	    var errors = 0;
 	    links_in_batch.forEach(function (link) {
-	        link.progress = link.step_count / 6 * 100;
+	        link.progress = link.step_count / steps * 100;
 	        link.local_url = link.guid ? window.host + '/' + link.guid : null;
 	        switch (link.status) {
 	            case "pending":
+	                link.isPending = true;
+	                // divide into batches; each batch takes average_capture_time to complete
+	                var waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
+	                if (waitMinutes >= 1) {
+	                    link.beginsIn = 'about ' + waitMinutes + ' minute' + (waitMinutes > 1 ? 's' : '') + '.';
+	                } else {
+	                    link.beginsIn = 'less than 1 minute.';
+	                }
+	                all_completed = false;
+	                batch_progress.push(link.progress);
+	                break;
 	            case "in_progress":
 	                link.isProcessing = true;
 	                all_completed = false;
@@ -13916,9 +13933,9 @@ webpackJsonp([1],[
 	    var percent_complete = Math.round(batch_progress.reduce(function (a, b) {
 	        return a + b;
 	    }, 0) / (batch_progress.length * 100) * 100);
-	    var message = 'Batch ' + percent_complete + '% complete';
+	    var message = 'Batch ' + percent_complete + '% complete.';
 	    if (errors > 0) {
-	        message += ', ' + errors + ' errors.';
+	        message += ' <span>' + errors + ' error' + (errors > 1 ? 's' : '') + '.</span>';
 	    }
 	    $batch_progress_report.html(message);
 	    var template = batchLinksTemplate({ "links": links_in_batch, "folder": folder_path });
@@ -13949,7 +13966,7 @@ webpackJsonp([1],[
 	        APIModule.request('GET', '/archives/batches/' + batch_id).then(function (batch_data) {
 	            if (first_time) {
 	                first_time = false;
-	                $batch_progress_report.focus();
+	                $modal.focus();
 	                spinner.stop();
 	                $spinner.addClass("_hide");
 	                $batch_details.attr("aria-hidden", "true");
@@ -14073,6 +14090,7 @@ webpackJsonp([1],[
 	        $batch_progress_report.empty();
 	    }).on('hide.bs.modal', function () {
 	        clearInterval(interval);
+	        $(window).trigger("BatchLinkModule.refreshLinkList");
 	    });
 	
 	    $start_button.click(start_batch);
@@ -14226,19 +14244,27 @@ webpackJsonp([1],[
 	    + "</div>\n          <div class=\"item-subtitle\">"
 	    + alias3(alias2((depth0 != null ? depth0.submitted_url : depth0), depth0))
 	    + "</div>\n        </div>\n        <div class=\"link-progress col col-sm-6 col-md-40 align-right item-permalink\">\n"
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.isPending : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data})) != null ? stack1 : "")
 	    + "        </div>\n";
 	},"7":function(container,depth0,helpers,partials,data) {
 	    return "<div class=\"failed_header\">Deleted</div>";
 	},"9":function(container,depth0,helpers,partials,data) {
-	    var stack1;
-	
-	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	    return "            <span>Queued: begins in "
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.beginsIn : depth0), depth0))
+	    + "</span>\n";
 	},"11":function(container,depth0,helpers,partials,data) {
 	    var stack1;
 	
-	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isProcessing : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data})) != null ? stack1 : "");
 	},"12":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = container.invokePartial(__webpack_require__(154),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? depth0.progress : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+	},"14":function(container,depth0,helpers,partials,data) {
+	    var stack1;
+	
+	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.isComplete : depth0),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"15":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.lambda, alias2=container.escapeExpression;
 	
 	  return "            <a class=\"perma no-drag\" href=\"//"
@@ -14251,7 +14277,7 @@ webpackJsonp([1],[
 	
 	  return "<div class=\"form-group\">\n  <p>These Perma Links were added to "
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.folder : depth0), depth0))
-	    + " (movable batches coming soon!)</p>\n</div>\n<div class=\"form-group\">\n"
+	    + "</p>\n</div>\n<div class=\"form-group\">\n"
 	    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.links : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "</div>\n";
 	},"usePartial":true,"useData":true});

@@ -1,7 +1,7 @@
 {{! NB: Tabindexes on these elements and their children are overridden via js}}
 <div class="form-group">
   {{!--<label id="batch-target" for="batch-target-path" class="label-affil">These Perma Links were added to (movable batches coming soon!)</label><select id="batch-folder" class="form-control"><option>{{ folder }}</option></select>--}}
-  <p>These Perma Links were added to {{ folder }} (movable batches coming soon!)</p>
+  <p>These Perma Links were added to {{ folder }}</p>
 </div>
 <div class="form-group">
 {{#each links}}
@@ -20,7 +20,9 @@
           <div class="item-subtitle">{{ submitted_url }}</div>
         </div>
         <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
-          {{#if isProcessing}}
+          {{#if isPending}}
+            <span>Queued: begins in {{ beginsIn }}</span>
+          {{else if isProcessing}}
             {{> progress-bar progress=progress }}
           {{else if isComplete}}
             <a class="perma no-drag" href="//{{local_url}}" target="_blank">{{local_url}}</a>

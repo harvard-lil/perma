@@ -24,14 +24,29 @@ let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_containe
 
 
 function render_batch(links_in_batch, folder_path) {
+    const average_capture_time = average; //global var set by template
+    const celery_workers = workers; //global var set by template
+    const steps = 6;
+
     let all_completed = true;
-    let batch_progress = []
+    let batch_progress = [];
     let errors = 0;
     links_in_batch.forEach(function(link) {
-        link.progress = (link.step_count / 6) * 100;
+        link.progress = (link.step_count / steps) * 100;
         link.local_url = link.guid ? `${window.host}/${link.guid}` : null;
         switch(link.status){
             case "pending":
+                link.isPending = true;
+                // divide into batches; each batch takes average_capture_time to complete
+                let waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
+                if (waitMinutes >= 1){
+                    link.beginsIn = `about ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''}.`;
+                } else {
+                    link.beginsIn = `less than 1 minute.`;
+                }
+                all_completed = false;
+                batch_progress.push(link.progress);
+                break;
             case "in_progress":
                 link.isProcessing = true;
                 all_completed = false;
@@ -48,9 +63,9 @@ function render_batch(links_in_batch, folder_path) {
         }
     });
     let percent_complete = Math.round(batch_progress.reduce((a, b) => a + b, 0) / (batch_progress.length * 100) * 100)
-    let message = `Batch ${percent_complete}% complete`;
+    let message = `Batch ${percent_complete}% complete.`;
     if (errors > 0){
-        message += `, ${errors} errors.`
+        message += ` <span>${errors} error${errors > 1 ? 's' : ''}.</span>`;
     }
     $batch_progress_report.html(message);
     let template = batchLinksTemplate({"links": links_in_batch, "folder": folder_path});
@@ -83,7 +98,7 @@ function show_batch(batch_id) {
         ).then(function(batch_data) {
             if (first_time) {
                 first_time = false;
-                $batch_progress_report.focus();
+                $modal.focus();
                 spinner.stop();
                 $spinner.addClass("_hide");
                 $batch_details.attr("aria-hidden", "true");
@@ -203,6 +218,7 @@ function setup_handlers() {
        })
       .on('hide.bs.modal', function(){
         clearInterval(interval);
+        $(window).trigger("BatchLinkModule.refreshLinkList");
       });
 
     $start_button.click(start_batch);

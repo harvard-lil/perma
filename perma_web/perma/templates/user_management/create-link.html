@@ -138,7 +138,9 @@
     var contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
         current_user = {{ request.user.as_json|safe }},
-        host = "{{ request.get_host }}";
+        host = "{{ request.get_host }}",
+        workers = {{ workers }},
+        average = {{ average }};
   </script>
 
   {% render_bundle 'create' 'js' %}
