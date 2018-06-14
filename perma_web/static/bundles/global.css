@@ -11379,6 +11379,10 @@ button#addlink,
   margin-bottom: 0;
 }
 
+#batch-progress-report span {
+  font-weight: bold;
+}
+
 #batch-details-wrapper {
   margin-top: 16px;
 }

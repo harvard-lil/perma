@@ -21,7 +21,7 @@
         </div>
         <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
           {{#if isPending}}
-            <span>Queued: begins in {{ waitTime }} seconds </span>
+            <span>Queued: begins in {{ beginsIn }}</span>
           {{else if isProcessing}}
             {{> progress-bar progress=progress }}
           {{else if isComplete}}
