@@ -1,4 +1,3 @@
-let Papa = require('papaparse');
 let Spinner = require('spin.js');
 
 let APIModule = require('./helpers/api.module.js');
@@ -57,26 +56,6 @@ function render_batch(links_in_batch, folder_path) {
     let template = batchLinksTemplate({"links": links_in_batch, "folder": folder_path});
     $batch_details.html(template);
     if (all_completed) {
-        let export_data = links_in_batch.map(function(link) {
-            let to_export = {
-                "url": link.submitted_url
-            };
-            if (link.status === "completed") {
-                to_export["status"] = "success"
-                to_export["error_message"] = ""
-                to_export["title"] = link.title;
-                to_export["perma_link"] = `${window.location.protocol}//${link.local_url}`;
-            } else {
-                to_export["status"] = "error"
-                to_export["error_message"] = link.error_message
-                to_export["title"] = ""
-                to_export["perma_link"] = ""
-            }
-            return to_export;
-        });
-        let csv = Papa.unparse(export_data);
-        $export_csv.attr("href", "data:text/csv;charset=utf-8," + encodeURI(csv));
-        $export_csv.attr("download", "perma.csv");
         $export_csv.removeClass("_hide");
     }
     return all_completed;
@@ -92,6 +71,7 @@ function handle_error(error){
 function show_batch(batch_id) {
     $batch_details_wrapper.removeClass("_hide");
     $batch_modal_title.text("Link Batch Details");
+    $export_csv.attr("href", `/api/v1/archives/batches/${batch_id}/export`);
     if (!$spinner[0].childElementCount) {
         spinner.spin($spinner[0]);
         $spinner.removeClass("_hide");

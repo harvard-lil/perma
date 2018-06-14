@@ -1,7 +1,8 @@
+import csv
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from mptt.exceptions import InvalidMove
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -599,3 +600,31 @@ class LinkBatchesDetailView(BaseView):
         """ Single link batch details. """
         return self.simple_get(request, pk)
 
+
+# /batches/:id/export
+class LinkBatchesDetailExportView(BaseView):
+    serializer_class = DetailedLinkBatchSerializer
+
+    def get(self, request, pk, format=None):
+        """ Single link batch details. """
+        api_response = self.simple_get(request, pk)
+        formatted_data = [{
+            'url': job['submitted_url'],
+            'status': "success",
+            'error_message': "",
+            'title': job['title'],
+            'perma_link': "{}://{}/{}".format(request.scheme, request.get_host(), job['guid'])
+        } if job['status'] == "completed" else {
+            'url': job['submitted_url'],
+            'status': "error",
+            'error_message': job['message'],
+            'title': "",
+            "perma_link": ""
+        }
+        for job in api_response.data['capture_jobs']]
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
+        writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+        writer.writeheader()
+        writer.writerows(formatted_data)
+        return response
