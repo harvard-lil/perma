@@ -43,6 +43,8 @@ def create_link(request):
         ctf_len = len(capture_time_fields)
         capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
         average = capture_times[int(ctf_len*.5)].total_seconds()
+    else:
+        average = 1
 
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
