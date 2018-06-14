@@ -25,8 +25,8 @@ let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_containe
 
 
 function render_batch(links_in_batch, folder_path) {
-    const average_capture_time = 9;
-    const celery_workers = 6;
+    const average_capture_time = average; //global var set by template
+    const celery_workers = workers; //global var set by template
     const steps = 6;
 
     let all_completed = true;
@@ -38,7 +38,8 @@ function render_batch(links_in_batch, folder_path) {
         switch(link.status){
             case "pending":
                 link.isPending = true;
-                let waitMinutes = Math.round(link.queue_position * average_capture_time / celery_workers / 60);
+                // divide into batches; each batch takes average_capture_time to complete
+                let waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
                 if (waitMinutes >= 1){
                     link.beginsIn = `about ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''}.`;
                 } else {

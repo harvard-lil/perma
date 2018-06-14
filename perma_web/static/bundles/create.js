@@ -13893,8 +13893,8 @@ webpackJsonp([1],[
 	    $start_button = void 0;
 	
 	function render_batch(links_in_batch, folder_path) {
-	    var average_capture_time = 9;
-	    var celery_workers = 6;
+	    var average_capture_time = average; //global var set by template
+	    var celery_workers = workers; //global var set by template
 	    var steps = 6;
 	
 	    var all_completed = true;
@@ -13906,7 +13906,8 @@ webpackJsonp([1],[
 	        switch (link.status) {
 	            case "pending":
 	                link.isPending = true;
-	                var waitMinutes = Math.round(link.queue_position * average_capture_time / celery_workers / 60);
+	                // divide into batches; each batch takes average_capture_time to complete
+	                var waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
 	                if (waitMinutes >= 1) {
 	                    link.beginsIn = 'about ' + waitMinutes + ' minute' + (waitMinutes > 1 ? 's' : '') + '.';
 	                } else {
