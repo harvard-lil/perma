@@ -5,7 +5,7 @@ webpackJsonp([5],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var Datamap = __webpack_require__(214);
+	var Datamap = __webpack_require__(213);
 	
 	// show world map
 	var partnerMap = new Datamap({
@@ -46,7 +46,7 @@ webpackJsonp([5],{
 
 /***/ },
 
-/***/ 214:
+/***/ 213:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {(function() {
@@ -12696,8 +12696,8 @@ webpackJsonp([5],{
 	
 	  // Expose library
 	  if (true) {
-	    d3 = __webpack_require__(215);
-	    topojson = __webpack_require__(216);
+	    d3 = __webpack_require__(214);
+	    topojson = __webpack_require__(215);
 	    module.exports = Datamap;
 	  }
 	  else if ( typeof define === "function" && define.amd ) {
@@ -12729,7 +12729,7 @@ webpackJsonp([5],{
 
 /***/ },
 
-/***/ 215:
+/***/ 214:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -22289,7 +22289,7 @@ webpackJsonp([5],{
 
 /***/ },
 
-/***/ 216:
+/***/ 215:
 /***/ function(module, exports, __webpack_require__) {
 
 	(function (global, factory) {

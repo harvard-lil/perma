@@ -60,6 +60,8 @@ urlpatterns = [
         url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view(), name='link_batches'),
         # /archives/batches/:id
         url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/?$', views.LinkBatchesDetailView.as_view(), name='link_batch'),
+        # /archives/batches/:id/export
+        url(legacy_user_prefix + r'archives/batches/(?P<pk>[0-9]+)/export/?$', views.LinkBatchesDetailExportView.as_view(), name='link_batch_export'),
         # /archives/:guid
         url(legacy_user_prefix + r'archives/%s/?$' % guid_pattern, views.AuthenticatedLinkDetailView.as_view(), name='archives'),
         # /archives/:guid/download
