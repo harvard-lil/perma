@@ -568,7 +568,8 @@ class LinkBatchesListView(BaseView):
                         'verb': 'POST',
                         'data': {
                             'url': url,
-                            'folder': request.data['target_folder']
+                            'folder': request.data['target_folder'],
+                            'human': request.data.get('human', False)
                         }
                     } for url in request.data.get('urls', [])
                 ]

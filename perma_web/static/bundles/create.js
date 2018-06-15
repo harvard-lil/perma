@@ -14007,7 +14007,8 @@ webpackJsonp([1],[
 	        "target_folder": target_folder,
 	        "urls": $input_area.val().split("\n").map(function (s) {
 	            return s.trim();
-	        }).filter(Boolean)
+	        }).filter(Boolean),
+	        "human": true
 	    }).then(function (data) {
 	        show_batch(data.id);
 	        populate_link_batch_list();
