@@ -165,7 +165,9 @@ class LinkSerializer(BaseSerializer):
             return None
 
     def get_warc_download_url(self, link):
-        return reverse_api_view('public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        if link.warc_size:
+            return reverse_api_view('public_archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        return None
 
 
 class AuthenticatedLinkSerializer(LinkSerializer):
@@ -180,8 +182,9 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
 
     def get_warc_download_url(self, link):
-        return reverse_api_view('archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
-
+        if link.warc_size:
+            return reverse_api_view('archives_download', kwargs={'guid': link.guid}, request=self.context['request'])
+        return None
 
     def validate_url(self, url):
         # Clean up the user submitted url
