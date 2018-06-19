@@ -627,5 +627,5 @@ class LinkBatchesDetailExportView(BaseView):
         response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
         writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
         writer.writeheader()
-        writer.writerows(formatted_data)
+        writer.writerows([{k: v.encode('utf-8') for k,v in row.items()} for row in formatted_data])
         return response
