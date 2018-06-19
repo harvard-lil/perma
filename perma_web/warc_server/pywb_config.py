@@ -170,7 +170,7 @@ class PermaRoute(archivalrouter.Route):
                 # This will filter out links that have user_deleted=True
                 link = Link.objects.get(guid=guid)
             except Link.DoesNotExist:
-                raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
+                raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp if wbrequest.wb_url else None)
 
             if not wbrequest.wb_url:
                 # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
