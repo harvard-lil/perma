@@ -36,6 +36,6 @@ RUN npm install \
 
 # pip
 COPY requirements.txt /perma/perma_web
-RUN pip install -U pip \
+RUN pip install -U "pip>=9,<10" \
     &&  pip install -r requirements.txt --src /usr/local/src \
     && rm requirements.txt
