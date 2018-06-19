@@ -192,6 +192,7 @@ class CaptureJobAdmin(admin.ModelAdmin):
 
 class LinkBatchAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_by', 'started_on', 'target_folder']
+    raw_id_fields = ['created_by', 'target_folder']
 
     inlines = [
       new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
