@@ -190,6 +190,12 @@ def single_permalink(request, guid):
 
     response = render(request, 'archive/single-link.html', context)
 
+    # Adjust status code
+    if link.user_deleted:
+        response.status_code = 410
+    elif not context['can_view'] and link.is_private:
+        response.status_code = 403
+
     # Add memento headers
     response['Memento-Datetime'] = link.memento_formatted_date
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
