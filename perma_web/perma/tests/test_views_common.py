@@ -45,9 +45,9 @@ class CommonViewsTestCase(PermaTestCase):
             self.assert_can_view_capture('3SLN-JHX9')
 
     def test_dark_archive(self):
-        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}})
+        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
         self.assertIn("This record is private and cannot be displayed.", response.content)
-
+ 
         # check that top bar is displayed to logged-in users
         for user in self.users:
             self.log_in_user(user)
@@ -71,7 +71,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertNotIn("Perma.cc can\'t display this file type on mobile", response.content)
 
     def test_deleted(self):
-        response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}})
+        response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410)
         self.assertIn("This record has been deleted.", response.content)
 
     def test_misformatted_nonexistent_links_404(self):
