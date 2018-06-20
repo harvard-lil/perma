@@ -235,7 +235,8 @@ def manage_registrar(request):
     registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
         last_active_registrar=Max('users__last_login'),
-        last_active_org_user=Max('organizations__users__last_login'),
+        last_active_org_user=Max('organizations__users__last_login')
+    ).annotate(
         # Greatest on MySQL returns NULL if any fields are NULL:
         # use of Coalesce here is a workaround
         # https://docs.djangoproject.com/en/2.0/ref/models/database-functions/
