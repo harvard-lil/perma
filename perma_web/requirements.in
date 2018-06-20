@@ -68,7 +68,7 @@ pywb
 # alternate storages
 django-storages
 boto3                               # required for django-storages to use s3 backend
-boto                                # required for kombu when using SQS
+#boto                                # required for kombu when using SQS
 
 # testing
 hypothesis==3.31.2               # run tests with lots of generated input
