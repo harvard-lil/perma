@@ -20,6 +20,8 @@ from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
+from ..wrapi import get_wr_iframe_prefix, init_replay
+
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -170,6 +172,8 @@ def single_permalink(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
+    wr_user, wr_cookie = init_replay(request, link)
+
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
@@ -185,6 +189,11 @@ def single_permalink(request, guid):
         'max_size': max_size,
         'link_url': settings.HOST + '/' + link.guid,
         'protocol': protocol(),
+
+        'wr_host': settings.WR_CONTENT_HOST,
+        'wr_prefix': get_wr_iframe_prefix(wr_user, link.guid),
+        'wr_url': capture.url,
+        'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
     }
 
     response = render(request, 'archive/single-link.html', context)
@@ -194,6 +203,13 @@ def single_permalink(request, guid):
         response.status_code = 410
     elif not context['can_view'] and link.is_private:
         response.status_code = 403
+
+    else:
+        # TODO: WR should request cookie instead
+        response.set_cookie('__wr_sesh', wr_cookie,
+                            httponly=True,
+                            secure=settings.SESSION_COOKIE_SECURE,
+                            path='/')
 
     # Add memento headers
     response['Memento-Datetime'] = link.memento_formatted_date

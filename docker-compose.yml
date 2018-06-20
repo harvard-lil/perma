@@ -26,7 +26,7 @@ services:
     build: ./perma_web
     image: perma3:0.6
     tty: true
-    command: bash
+    command: fab run
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,
@@ -58,3 +58,9 @@ volumes:
   db3_data:
   rabbitmq_home:
   # redis_data:
+
+networks:
+  default:
+    external:
+      name: webrecorder_default
+ 
