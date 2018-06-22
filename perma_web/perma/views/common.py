@@ -15,7 +15,7 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
+from ..utils import (if_anonymous, redirect_to_download,
     parse_user_agent, protocol, stream_warc_if_permissible)
 from ..email import send_admin_email, send_user_email_copy_admins
 
@@ -94,9 +94,9 @@ def stats(request):
     return render(request, 'stats.html')
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
-@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
-@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
+#@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+#@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
+#@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
 def single_permalink(request, guid):
     """
     Given a Perma ID, serve it up.
@@ -211,7 +211,7 @@ def rate_limit(request, exception):
 
 
 @csrf_exempt
-@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+#@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def contact(request):
     """
     Our contact form page
