@@ -89,7 +89,7 @@ class AlphaNumericValidator(object):
                 if char in string.digits:
                     contains_number = True
             if not contains_letter:
-                if char in string.letters:
+                if char in string.ascii_letters:
                     contains_letter = True
             if contains_number and contains_letter:
                 break
