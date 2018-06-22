@@ -6,9 +6,7 @@ import random
 import threading
 import re
 from urllib.parse import urljoin
-import traceback
 import requests
-import string
 import sys
 from datetime import datetime
 
@@ -73,28 +71,6 @@ def _write_attr(self, name, value, empty_attr):
     real_write_attr(self, name, value, empty_attr)
 HTMLRewriterMixin._write_attr = _write_attr
 
-# Partially patch python 2.7 so that colons are accepted as valid cookie keys
-# when creating cookie objects.
-# Thanks to http://pythonfiddle.com/cookie-accepting-a-colon-as-a-key/
-# Should be unnecessary when running python 3
-def new_set(self, key, val, coded_val,
-            LegalChars=Cookie._LegalChars + ":",
-            idmap=Cookie._idmap,
-            translate=string.translate):
-    '''Verbatim from https://github.com/python/cpython/blob/2.7/Lib/Cookie.py#L451'''
-
-    # First we verify that the key isn't a reserved word
-    # Second we make sure it only contains legal characters
-    if key.lower() in self._reserved:
-        raise Cookie.CookieError("Attempt to set a reserved key: %s" % key)
-    if "" != translate(key, idmap, LegalChars):
-        raise Cookie.CookieError("Illegal key value: %s" % key)
-
-    # It's a good key, so save it.
-    self.key                 = key
-    self.value               = val
-    self.coded_value         = coded_val
-Cookie.Morsel.set = new_set
 
 def get_archive_path():
     # Get root storage location for warcs, based on default_storage.
