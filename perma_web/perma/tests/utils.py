@@ -2,7 +2,7 @@ import json
 import shutil
 
 import os
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.test import TransactionTestCase
@@ -62,8 +62,8 @@ class PermaTestCase(TransactionTestCase):
             self.log_in_user(user)
         url = reverse(view_name, *reverse_args, **reverse_kwargs)
         if query_params:
-            url += '?' + urlencode(query_params)
-        resp = getattr(self.client, method.lower())(url, *request_args, **request_kwargs)
+            url += b'?' + urlencode(query_params)
+        resp = getattr(self.client, method.lower())(bytes(url), *request_args, **request_kwargs)
         if require_status_code:
             self.assertEqual(resp.status_code, require_status_code)
         return resp

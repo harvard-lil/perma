@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import socket
 import os
 # import subprocess
@@ -7,7 +5,7 @@ import unittest
 import re
 import datetime
 import sys
-from urlparse import urlparse
+from urllib.parse import urlparse
 import requests
 from pyvirtualdisplay import Display
 from selenium import webdriver

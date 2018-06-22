@@ -5,10 +5,10 @@ import dateutil.parser
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import StreamingHttpResponse
-import StringIO
+from io import StringIO
 from surt import surt
 import json
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from mock import patch
 
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
@@ -109,7 +109,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     @patch('api.views.stream_warc', autospec=True)
     def test_public_download(self, stream):
-        stream.return_value = StreamingHttpResponse(StringIO.StringIO("warc placeholder"))
+        stream.return_value = StreamingHttpResponse(StringIO("warc placeholder"))
         resp = self.api_client.get(self.public_link_download_url)
         self.assertHttpOK(resp)
         self.assertEqual(stream.call_count, 1)
@@ -129,7 +129,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     @patch('perma.utils.stream_warc', autospec=True)
     def test_private_download(self, stream):
-        stream.return_value = StreamingHttpResponse(StringIO.StringIO("warc placeholder"))
+        stream.return_value = StreamingHttpResponse(StringIO("warc placeholder"))
         self.api_client.force_authenticate(user=self.regular_user)
         resp = self.api_client.get(
             self.logged_in_private_link_download_url,
@@ -230,7 +230,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(link.private_reason, "policy")
 
     def test_should_dark_archive_when_disallowed_in_xrobots_simple(self):
-        headers = urllib.quote(json.dumps([("x-robots-tag", "noarchive")]))
+        headers = urllib.parse.quote(json.dumps([("x-robots-tag", "noarchive")]))
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html?response_headers=" + headers},
                                    user=self.org_user)
@@ -240,7 +240,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(link.private_reason, "policy")
 
     def test_should_dark_archive_when_disallowed_in_xrobots_perma(self):
-        headers = urllib.quote(json.dumps([("x-robots-tag", "perma: noarchive")]))
+        headers = urllib.parse.quote(json.dumps([("x-robots-tag", "perma: noarchive")]))
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html?response_headers=" + headers},
                                    user=self.org_user)
@@ -250,7 +250,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(link.private_reason, "policy")
 
     def test_should_dark_archive_when_disallowed_in_xrobots_multi(self):
-        headers = urllib.quote(json.dumps([
+        headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "perma: noarchive"),
             ("x-robots-tag", "noindex"),
@@ -264,7 +264,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(link.private_reason, "policy")
 
     def test_should_dark_archive_when_disallowed_in_xrobots_malformed(self):
-        headers = urllib.quote(json.dumps([
+        headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "google: perma: noarchive"),
             ("x-robots-tag", "noindex"),
@@ -278,7 +278,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(link.private_reason, "policy")
 
     def test_should_not_dark_archive_when_allowed_in_xrobots(self):
-        headers = urllib.quote(json.dumps([
+        headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "perma: noindex"),
             ("x-robots-tag", "noindex"),
@@ -291,7 +291,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertFalse(link.is_private)
 
     def test_should_not_dark_archive_when_allowed_in_xrobots_complex(self):
-        headers = urllib.quote(json.dumps([
+        headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "perma: noindex"),
             ("x-robots-tag", "google: noarchive"),

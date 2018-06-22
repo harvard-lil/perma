@@ -118,7 +118,7 @@ def test_sauce(server_url=None, test_flags=''):
     if server_url:
         shell_envs['SERVER_URL'] = server_url
     else:
-        print "\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n"
+        print("\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n")
 
     with shell_env(**shell_envs):
         test("functional_tests "+test_flags)
@@ -185,7 +185,7 @@ def screenshots(base_url='http://perma.test:8000'):
     base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
 
     def screenshot(upper_left_selector, lower_right_selector, output_path, upper_left_offset=(0,0), lower_right_offset=(0,0)):
-        print "Capturing %s" % output_path
+        print("Capturing %s" % output_path)
 
         upper_left_el = browser.find_element_by_css_selector(upper_left_selector)
         lower_right_el = browser.find_element_by_css_selector(lower_right_selector)
@@ -318,7 +318,7 @@ def test_internet_archive():
 
         all_results[link.guid] = guid_results
 
-    print all_results
+    print(all_results)
 
 @task
 def upload_all_to_internet_archive():
@@ -352,13 +352,13 @@ def regenerate_urlkeys(urlkey_prefix='file'):
 
     for i, cdxline in enumerate(target_cdxlines):
         if not (i%1000):
-            print "%s records done -- next is %s." % (i, cdxline.link_id)
+            print("%s records done -- next is %s." % (i, cdxline.link_id))
         new_surt = surt(cdxline.parsed['url'])
         if new_surt != cdxline.urlkey:
             try:
                 cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
             except UnicodeDecodeError:
-                print "Skipping unicode for %s" % cdxline.link_id
+                print("Skipping unicode for %s" % cdxline.link_id)
                 continue
             cdxline.urlkey = new_surt
             cdxline.save()
@@ -366,16 +366,16 @@ def regenerate_urlkeys(urlkey_prefix='file'):
 @task
 def rebuild_folder_trees():
     from perma.models import Organization, LinkUser, Folder
-    print "Checking for broken folder trees ..."
+    print("Checking for broken folder trees ...")
 
     for o in Organization.objects.all():
         if set(o.folders.all()) != set(o.shared_folder.get_descendants(include_self=True)):
-            print "Tree corruption found for org: %s" % o
+            print("Tree corruption found for org: %s" % o)
             Folder._tree_manager.partial_rebuild(o.shared_folder.tree_id)
 
     for u in LinkUser.objects.all():
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
-            print "Tree corruption found for user: %s" % u
+            print("Tree corruption found for user: %s" % u)
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
 
 
@@ -393,7 +393,7 @@ def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
     # monkey patch the pywb application to raise all exceptions instead of catching them
     def handle_exception(self, env, exc, print_trace):
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        raise exc_type, exc_value, exc_traceback
+        raise (exc_type, exc_value, exc_traceback)
     application.handle_exception = types.MethodType(handle_exception, application)
 
     # either check links by guid, one per line in the supplied file ...
@@ -426,15 +426,15 @@ def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
                 continue
             raise
         except Exception as e:
-            print "%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.message
+            print("%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.message)
             traceback.print_exc()
             continue
 
         if 'Link' not in replay_response.headers:
-            print "%s\t%s\tWARNING\t%s" % (capture.link_id, capture.link.creation_timestamp, "Link header not found")
+            print("%s\t%s\tWARNING\t%s" % (capture.link_id, capture.link.creation_timestamp, "Link header not found"))
             continue
 
-        print "%s\t%s\tOK" % (capture.link_id, capture.link.creation_timestamp)
+        print("%s\t%s\tOK" % (capture.link_id, capture.link.creation_timestamp))
 
 @task
 def read_playback_tests(*filepaths):
@@ -468,8 +468,8 @@ def read_playback_tests(*filepaths):
     err_count = 0
     for err_type, sub_errs in errs.iteritems():
         err_count += len(sub_errs)
-        print "%s: %s" % (err_type, len(sub_errs))
-    print "Total:", err_count
+        print("%s: %s" % (err_type, len(sub_errs)))
+    print("Total:", err_count)
 
 @task
 def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", email="stats", year=""):
@@ -571,7 +571,7 @@ def fix_ia_metadata():
                                      secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY)
         except Exception as e:
             result = str(e)
-        print "%s\t%s" % (link['guid'], result)
+        print("%s\t%s" % (link['guid'], result))
 
 
 @task
@@ -590,7 +590,7 @@ def check_s3_hashes():
     remote_paths = {}
 
     if not os.path.exists(local_cache_path):
-        print "Building local state ..."
+        print("Building local state ...")
         local_warc_path = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
         remove_char_count = len(settings.MEDIA_ROOT+1)
         with open(local_cache_path, 'w') as tmp_file:
@@ -598,10 +598,10 @@ def check_s3_hashes():
                 for f in files:
                     tmp_file.write(os.path.join(root, f)[remove_char_count:]+"\n")
     else:
-        print "Using cached local state from %s" % local_cache_path
+        print("Using cached local state from %s" % local_cache_path)
 
     if not os.path.exists(remote_cache_path):
-        print "Building remote state ..."
+        print("Building remote state ...")
         remove_char_count = len(settings.SECONDARY_MEDIA_ROOT)
         with open(remote_cache_path, 'w') as tmp_file:
             for f in tqdm(default_storage.secondary_storage.bucket.list('generated/warcs/')):
@@ -610,17 +610,17 @@ def check_s3_hashes():
                 tmp_file.write("%s\t%s\n" % (key, val))
                 remote_paths[key] = val
     else:
-        print "Using cached remote state from %s" % remote_cache_path
+        print("Using cached remote state from %s" % remote_cache_path)
         for line in open(remote_cache_path):
             key, val = line[:-1].split("\t")
             remote_paths[key] = val
 
-    print "Comparing local and remote ..."
+    print("Comparing local and remote ...")
     blocksize = 2 ** 20
     for local_path in tqdm(open(local_cache_path)):
         local_path = local_path[:-1]
         if local_path not in remote_paths:
-            print "Missing from remote:", local_path
+            print("Missing from remote:", local_path)
             continue
         m = hashlib.md5()
         with open(os.path.join(settings.MEDIA_ROOT, local_path), "rb") as f:
@@ -630,7 +630,7 @@ def check_s3_hashes():
                     break
                 m.update(buf)
         if m.hexdigest() != remote_paths[local_path]:
-            print "Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path])
+            print("Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path]))
 
 
 @task

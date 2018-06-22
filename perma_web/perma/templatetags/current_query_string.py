@@ -1,4 +1,4 @@
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from django import template
 
 register = template.Library()
@@ -22,4 +22,4 @@ def current_query_string(context, **kwargs):
                     query_params_bytes[k] = [i.encode('utf-8') for i in v]
                 except TypeError:
                     query_params_bytes[k] = v
-    return urllib.urlencode(query_params_bytes, doseq=True)
+    return urllib.parse.urlencode(query_params_bytes, doseq=True)

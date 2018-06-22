@@ -46,13 +46,13 @@ class OrgMembershipWidget(SelectMultipleWithSingleWidget):
 ### REGISTRAR FORMS ###
 
 class RegistrarForm(ModelForm):
-    class Meta:
+    class Meta(object):
         model = Registrar
         fields = ['name', 'email', 'website']
 
 
 class LibraryRegistrarForm(ModelForm):
-    class Meta:
+    class Meta(object):
         model = Registrar
         fields = ['name', 'email', 'website', 'address']  #, 'logo', 'show_partner_status']
 
@@ -82,14 +82,14 @@ class OrganizationWithRegistrarForm(ModelForm):
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.approved().order_by('name'), empty_label=None)
 
-    class Meta:
+    class Meta(object):
         model = Organization
         fields = ['name', 'registrar']
 
 
 class OrganizationForm(ModelForm):
 
-    class Meta:
+    class Meta(object):
         model = Organization
         fields = ['name']
 
@@ -99,7 +99,7 @@ class UserForm(forms.ModelForm):
     """
     User add/edit form.
     """
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email"]
 
@@ -126,7 +126,7 @@ class UserFormWithRegistrar(UserForm):
             query = query.filter(pk=current_user.registrar_id)
         self.fields['registrar'].queryset = query
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
 
@@ -138,7 +138,7 @@ class CreateUserFormWithCourt(UserForm):
 
     requested_account_note = forms.CharField(required=True)
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "requested_account_note"]
 
@@ -156,7 +156,7 @@ class CreateUserFormWithFirm(UserForm):
 
     requested_account_note = forms.CharField(required=True)
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "requested_account_note"]
 
@@ -175,7 +175,7 @@ class CreateUserFormWithUniversity(UserForm):
 
     requested_account_note = forms.CharField(required=True)
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "requested_account_note"]
 
@@ -201,7 +201,7 @@ class UserFormWithOrganization(UserForm):
             query = query.filter(users=current_user.pk)
         self.fields['organizations'].queryset = query
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "organizations"]
 
@@ -213,7 +213,7 @@ class UserAddRegistrarForm(UserFormWithRegistrar):
     User form that just lets you change the registrar.
     """
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ("registrar",)
 
@@ -249,7 +249,7 @@ class UserAddAdminForm(forms.ModelForm):
     """
         Form that just upgrades user to staff on submit.
     """
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = []
 

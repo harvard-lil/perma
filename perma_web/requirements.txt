@@ -53,8 +53,6 @@ fabric3==1.13.1.post1
 fakeredis==0.7.0
 first==2.0.1              # via pip-tools
 flake8==2.5.4
-funcsigs==1.0.2           # via mock
-futures==3.1.1            # via s3transfer
 gevent==1.0.2
 greenlet==0.4.12          # via gevent
 gunicorn==19.3.0

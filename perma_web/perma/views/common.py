@@ -1,8 +1,6 @@
-import logging
-
-from ratelimit.decorators import ratelimit
+#from ratelimit.decorators import ratelimit
 from datetime import timedelta
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.contrib.auth.views import redirect_to_login
 from django.forms import widgets
@@ -21,6 +19,7 @@ from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     parse_user_agent, protocol, stream_warc_if_permissible)
 from ..email import send_admin_email, send_user_email_copy_admins
 
+import logging
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -63,7 +62,7 @@ def about(request):
     """
 
     partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
-    halfway_point = len(partners)/2
+    halfway_point = int(len(partners)/2)
 
     # sending two sets of arrays so that we can separate them
     # into two columns alphabetically, the right way

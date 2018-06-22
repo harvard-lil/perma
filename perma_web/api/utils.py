@@ -58,13 +58,13 @@ def log_api_call(func):
     """
     @wraps(func)
     def func_wrapper(self, request, *args, **kwargs):
-        print func.__name__, "called with", request, request.data, args, kwargs
+        print(func.__name__, "called with", request, request.data, args, kwargs)
         try:
             result = func(self, request, *args, **kwargs)
         except Exception as e:
-            print "returning exception:", e
+            print("returning exception:", e)
             raise
-        print "returning to user", request.user, result.status_code, result.data
+        print("returning to user", request.user, result.status_code, result.data)
         return result
     return func_wrapper
 
@@ -152,7 +152,7 @@ def get_mime_type(file_name):
 
 def url_is_invalid_unicode(url_string):
     """ Check for unicode control characters in URL """
-    for x in unicode(url_string):
+    for x in str(url_string):
         if unicodedata.category(x)[0] == "C":
             return True
     return False
@@ -214,7 +214,7 @@ def dispatch_multiple_requests(request, call_list, custom_request_attributes=Non
             new_request.user = request.user
             new_request.META['HTTP_HOST'] = request._get_raw_host()
             if custom_request_attributes:
-                for attribute, value in custom_request_attributes.iteritems():
+                for attribute, value in custom_request_attributes.items():
                     setattr(new_request, attribute, value)
             response = view(new_request, *args, **kwargs)
         except Exception as exception:

@@ -9,8 +9,8 @@ import logging
 import random
 import re
 import socket
-from urllib import urlencode
-from urlparse import urlparse
+from urllib.parse import urlencode
+from urllib.parse import urlparse
 import simple_history
 import requests
 import itertools
@@ -131,7 +131,7 @@ class DeletableModel(models.Model):
     user_deleted = models.BooleanField(default=False, verbose_name="Deleted by user")
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
 
-    class Meta:
+    class Meta(object):
         abstract = True
 
     def safe_delete(self):
@@ -194,7 +194,7 @@ class Registrar(models.Model):
     history = HistoricalRecords()
     tags = TaggableManager(blank=True)
 
-    class Meta:
+    class Meta(object):
         ordering = ['name']
 
     def __unicode__(self):
@@ -454,7 +454,7 @@ class LinkUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'User'
 
     def save(self, *args, **kwargs):
@@ -739,7 +739,7 @@ class Folder(MPTTModel):
             else:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None)
 
-    class MPTTMeta:
+    class MPTTMeta(object):
         order_insertion_by = ['name']
 
     def is_empty(self):

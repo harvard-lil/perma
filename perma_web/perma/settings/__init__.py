@@ -4,7 +4,7 @@
 # If it doesn't exist we assume this is a vanilla development environment and import .deployments.settings_dev.
 try:
     from .settings import *
-except ImportError, e:
+except ImportError as e:
     if e.message=='No module named settings':
         from .deployments.settings_dev import *
     else:

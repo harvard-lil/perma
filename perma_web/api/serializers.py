@@ -31,7 +31,7 @@ class LinkUserSerializer(BaseSerializer):
     short_name = serializers.ReadOnlyField(source='get_short_name')
     top_level_folders = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(object):
         model = LinkUser
         fields = ('id', 'first_name', 'last_name', 'full_name', 'short_name', 'top_level_folders')
 
@@ -54,7 +54,7 @@ class FolderSerializer(BaseSerializer):
     has_children = serializers.SerializerMethodField()
     path = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(object):
         model = Folder
         fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization')
         extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
@@ -101,7 +101,7 @@ class OrganizationSerializer(BaseSerializer):
     registrar = serializers.StringRelatedField()
     shared_folder = FolderSerializer()
 
-    class Meta:
+    class Meta(object):
         model = Organization
         fields = ('id', 'name', 'registrar', 'default_to_private', 'shared_folder')
 
@@ -113,7 +113,7 @@ class CaptureJobSerializer(BaseSerializer):
     title = serializers.SerializerMethodField()
     user_deleted = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(object):
         model = CaptureJob
         fields = ('guid', 'status', 'message', 'submitted_url', 'attempt', 'step_count', 'step_description', 'capture_start_time', 'capture_end_time', 'queue_position', 'title', 'user_deleted')
 
@@ -129,7 +129,7 @@ class CaptureJobSerializer(BaseSerializer):
 ### CAPTURE ###
 
 class CaptureSerializer(BaseSerializer):
-    class Meta:
+    class Meta(object):
         model = Capture
         fields = ('role', 'status', 'url', 'record_type', 'content_type', 'user_upload', 'playback_url')
 
@@ -146,7 +146,7 @@ class LinkSerializer(BaseSerializer):
     capture_time = serializers.SerializerMethodField()
     warc_download_url = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(object):
         model = Link
         fields = ('guid', 'creation_timestamp', 'url', 'title', 'description', 'warc_size', 'warc_download_url', 'captures', 'queue_time', 'capture_time')
 

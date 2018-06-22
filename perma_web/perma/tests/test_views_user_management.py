@@ -474,7 +474,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             # create user
             email += '1'
             self.submit_form('user_management_' + view_name + '_add_user',
-                           data=dict(base_user.items() + form_extras.items() + [['a-email', email]]),
+                           data=dict(list(base_user.items()) + list(form_extras.items()) + [['a-email', email]]),
                            success_url=reverse('user_management_manage_' + view_name),
                            success_query=LinkUser.objects.filter(email=email))
             new_user = LinkUser.objects.get(email=email)

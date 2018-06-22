@@ -257,7 +257,7 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
     min_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='gte')   # ?min_date=
     max_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='lte')   # ?max_date=
     url = django_filters.CharFilter(name="submitted_url", lookup_expr='icontains')              # ?url=
-    class Meta:
+    class Meta(object):
         model = Link
         fields = ['url', 'date', 'min_date', 'max_date']
 

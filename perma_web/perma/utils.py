@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from functools import wraps
+from functools import wraps, reduce
 import hashlib
 from hanzo import warctools
 import itertools
@@ -20,7 +20,7 @@ import tempdir
 import tempfile
 import time
 from ua_parser import user_agent_parser
-from urlparse import urlparse
+from urllib.parse import urlparse
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 

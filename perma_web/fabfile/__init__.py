@@ -6,7 +6,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 try:
     django.setup()
 except Exception as e:
-    print "WARNING: Can't configure Django. %s" % e
+    print("WARNING: Can't configure Django. %s" % e)
 
 # import sub-tasks
 from . import dev, deploy, heroku  # noqa

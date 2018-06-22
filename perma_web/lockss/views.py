@@ -1,4 +1,4 @@
-from urlparse import urljoin
+from urllib.parse import urljoin
 from wsgiref.util import FileWrapper
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta

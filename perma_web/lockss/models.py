@@ -10,7 +10,7 @@ class Mirror(models.Model):
     content_url = models.URLField(max_length=255, help_text="E.g. https://mirror.example.edu:8080/")
     enabled = models.BooleanField(default=True)
 
-    class Meta:
+    class Meta(object):
         ordering = ['name']
 
     def __unicode__(self):

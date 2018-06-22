@@ -35,10 +35,10 @@ class EmailTestCase(PermaTestCase):
             Returns data in the expected format.
         '''
         r_list = registrar_users_plus_stats()
-        self.assertEqual(type(r_list), list)
+        self.assertIsInstance(r_list, list)
         self.assertGreater(len(r_list), 0)
         for user in r_list:
-            self.assertEqual(type(user), dict)
+            self.assertIsInstance(user, dict)
             expected_keys = [ 'email',
                               'first_name',
                               'last_name',
@@ -51,27 +51,27 @@ class EmailTestCase(PermaTestCase):
                               'year_links' ]
             self.assertEqual(sorted(user.keys()), expected_keys)
             for key in ['email', 'first_name', 'last_name', 'registrar_email', 'registrar_name']:
-                self.assertEqual(type(user[key]), unicode)
+                self.assertIsInstance(user[key], str)
                 self.assertTrue(user[key])
             perma_user = LinkUser.objects.get(email=user['email'])
             self.assertTrue(perma_user.registrar)
             self.assertTrue(perma_user.is_active)
             self.assertTrue(perma_user.is_confirmed)
-            self.assertEqual(type(user['total_links']), long)
-            self.assertEqual(type(user['year_links']), int)
-            self.assertEqual(type(user['registrar_id']), long)
+            self.assertIsInstance(user['total_links'], int)
+            self.assertIsInstance(user['year_links'], int)
+            self.assertIsInstance(user['registrar_id'], int)
             self.assertIsInstance(user['most_active_org'], (Organization, type(None)))
-            self.assertEqual(type(user['registrar_users']), QuerySet)
+            self.assertIsInstance(user['registrar_users'], QuerySet)
             self.assertGreaterEqual(len(user['registrar_users']), 1)
             for user in user['registrar_users']:
-                self.assertEqual(type(user), LinkUser)
+                self.assertIsInstance(user, LinkUser)
 
     def test_registrar_users_plus_stats_specific_registrars(self):
         '''
             Returns data in the expected format.
         '''
         r_list = registrar_users_plus_stats(registrars=Registrar.objects.filter(email='library@university.edu'))
-        self.assertEqual(type(r_list), list)
+        self.assertIsInstance(r_list, list)
         self.assertEqual(len(r_list), 1)
         self.assertEqual(r_list[0]['registrar_email'], 'library@university.edu')
 
@@ -80,15 +80,15 @@ class EmailTestCase(PermaTestCase):
             Returns data in the expected format for Campaign Monitor.
         '''
         r_list = registrar_users_plus_stats(destination="cm")
-        self.assertEqual(type(r_list), list)
+        self.assertIsInstance(r_list, list)
         self.assertGreater(len(r_list), 0)
         for user in r_list:
-            self.assertEqual(type(user), dict)
-            self.assertEqual(sorted(user.keys()), ['CustomFields','EmailAddress','Name' ])
+            self.assertIsInstance(user, dict)
+            self.assertEqual(sorted(user.keys()), ['CustomFields', 'EmailAddress', 'Name'])
             for key in ['Name', 'EmailAddress']:
-                self.assertEqual(type(user[key]), unicode)
+                self.assertIsInstance(user[key], str)
                 self.assertTrue(user[key])
-            self.assertEqual(type(user['CustomFields']), list)
+            self.assertIsInstance(user['CustomFields'], list)
             self.assertEqual(len(user['CustomFields']), 7)
             custom_field_list = [ 'MostActiveOrg',
                                   'RegistrarId',
@@ -98,10 +98,10 @@ class EmailTestCase(PermaTestCase):
                                   'YearLinks',
                                   'TotalLinks' ]
             for custom_field in user['CustomFields']:
-                self.assertEqual(type(custom_field), dict)
+                self.assertIsInstance(custom_field, dict)
                 self.assertEqual(sorted(custom_field.keys()), ['Key', 'Value'])
                 self.assertIn(custom_field['Key'], custom_field_list)
-                self.assertEqual(type(custom_field['Value']), unicode)
+                self.assertIsInstance(custom_field['Value'], str)
                 self.assertTrue(custom_field['Value'])
             perma_user = LinkUser.objects.get(email=user['EmailAddress'])
             self.assertTrue(perma_user.registrar)
@@ -116,7 +116,7 @@ class EmailTestCase(PermaTestCase):
         '''
         MockList().active.return_value = Mock(NumberOfPages=0, Results=[])
         results = users_to_unsubscribe('1', [])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 0)
 
     @patch('perma.email.List', autospec=True)
@@ -131,16 +131,16 @@ class EmailTestCase(PermaTestCase):
                                                PageNumber=1,
                                                Results=[s1, s2] )
         results = users_to_unsubscribe('1', [])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 2)
         for subscriber in results:
-            self.assertEqual(type(subscriber), str)
+            self.assertIsInstance(subscriber, str)
             self.assertIn('@', subscriber)
         results = users_to_unsubscribe('1', ['subscriber@example.com'])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 2)
         results = users_to_unsubscribe('1', ['subscriber1@example.com'])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 1)
 
     @patch('perma.email.List', autospec=True)
@@ -158,18 +158,14 @@ class EmailTestCase(PermaTestCase):
 
         MockList().active.side_effect = random_subscribers
         results = users_to_unsubscribe('1', [])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 6)
         for subscriber in results:
-            self.assertEqual(type(subscriber), str)
+            self.assertIsInstance(subscriber, str)
             self.assertIn('@', subscriber)
         results = users_to_unsubscribe('1', ['sdhjfkhsdjhfs@example.com'])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 6)
         results = users_to_unsubscribe('1', ['known@example.com'])
-        self.assertEqual(type(results), list)
+        self.assertIsInstance(results, list)
         self.assertEqual(len(results), 3)
-
-
-
-

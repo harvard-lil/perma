@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 from django.core.files.base import File
 
-from perma.templatetags.repeat import repeat
+from perma.templatetags.repeat import repeat as perma_repeat
 from perma.templatetags.carousel import set_carousel_partners
 from perma.models import Registrar
 
 from .utils import PermaTestCase
 
-from StringIO import StringIO
+from io import StringIO, BytesIO
 from PIL import Image
 
 class TemplateTagsTestCase(PermaTestCase):
 
     def test_repeat(self):
-        self.assertEqual(repeat('', 0), '')
-        self.assertEqual(repeat('hodor', 0), '')
-        self.assertEqual(repeat('hodor', 1), 'hodor')
-        self.assertEqual(repeat('hodor', 5), 'hodorhodorhodorhodorhodor')
+        self.assertEqual(perma_repeat('', 0), '')
+        self.assertEqual(perma_repeat('hodor', 0), '')
+        self.assertEqual(perma_repeat('hodor', 1), 'hodor')
+        self.assertEqual(perma_repeat('hodor', 5), 'hodorhodorhodorhodorhodor')
 
     # Technique for spoofing logos; see http://stackoverflow.com/a/32563657
     @staticmethod
     def get_image_file(size, name='logo', ext='png', color=(256, 0, 0)):
-        file_obj = StringIO()
+        file_obj = BytesIO()
         image = Image.new("RGBA", size=size, color=color)
         image.save(file_obj, ext)
         file_obj.seek(0)

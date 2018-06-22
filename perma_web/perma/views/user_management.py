@@ -181,7 +181,7 @@ def stats(request, stat_type=None):
     elif stat_type == "job_queue":
         job_queues = CaptureJob.objects.filter(status='pending').order_by('order', 'pk').select_related('link', 'link__created_by')
         job_queues = dict(itertools.groupby(job_queues, lambda x: 'human' if x.human else 'robot'))
-        for queue_key, queue in job_queues.iteritems():
+        for queue_key, queue in job_queues.items():
             job_queues[queue_key] = [{'email':email, 'count':len(list(jobs))} for email, jobs in itertools.groupby(queue, lambda x: x.link.created_by.email)]
         out = {
             'job_queues': job_queues,

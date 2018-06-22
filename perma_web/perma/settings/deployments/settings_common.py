@@ -1,10 +1,9 @@
 # Core settings used by all deployments.
-
 import os, sys
 
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
-this_module = unicode(
+this_module = str(
     sys.executable if hasattr(sys, "frozen") else __file__,
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))

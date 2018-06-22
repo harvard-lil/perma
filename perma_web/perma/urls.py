@@ -153,7 +153,7 @@ if settings.DEBUG:
 
 # views that only load when running our tests:
 if settings.TESTING:
-    import tests.views
+    from .tests import views as test_views
     urlpatterns += [
-        url(r'tests/client_ip$', tests.views.client_ip)
+        url(r'tests/client_ip$', test_views.client_ip)
     ]

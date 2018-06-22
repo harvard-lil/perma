@@ -4,7 +4,7 @@
 from django.conf import settings
 
 from pywb.framework.wsgi_wrappers import init_app
-from pywb_config import (PermaCDXServer,
+from .pywb_config import (PermaCDXServer,
                          PermaHandler,
                          create_perma_wb_router,
                          get_archive_path)

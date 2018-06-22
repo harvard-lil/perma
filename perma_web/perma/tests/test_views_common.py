@@ -9,7 +9,7 @@ from perma.models import Registrar, Link
 from .utils import PermaTestCase
 
 from bs4 import BeautifulSoup
-from urllib import urlencode
+from urllib.parse import urlencode
 
 @override_settings(CONTACT_REGISTRARS=True)
 class CommonViewsTestCase(PermaTestCase):
@@ -29,7 +29,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_public_views(self):
         # test static template views
         for urlpattern in urlpatterns:
-            if urlpattern.callback.func_name == 'DirectTemplateView':
+            if urlpattern.callback.__name__ == 'DirectTemplateView':
                 self.get(urlpattern.name)
 
     # Record page
@@ -46,8 +46,8 @@ class CommonViewsTestCase(PermaTestCase):
 
     def test_dark_archive(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
-        self.assertIn("This record is private and cannot be displayed.", response.content)
- 
+        self.assertIn(b"This record is private and cannot be displayed.", response.content)
+
         # check that top bar is displayed to logged-in users
         for user in self.users:
             self.log_in_user(user)

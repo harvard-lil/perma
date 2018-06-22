@@ -1,25 +1,23 @@
-from __future__ import absolute_import # to avoid importing local .celery instead of celery package
-
 import tempfile
 import traceback
-from cStringIO import StringIO
+from io import BytesIO
 from collections import OrderedDict
 from contextlib import contextmanager
 from pyquery import PyQuery
 
-from httplib import HTTPResponse, CannotSendRequest
-from urllib2 import URLError
+from http.client import HTTPResponse, CannotSendRequest
+from urllib.error import URLError
 
 import os
 import os.path
 import threading
-import Queue as queue
+import queue as queue
 import time
 from datetime import datetime, timedelta
-import urlparse
+import urllib.parse
 import re
 import json
-import robotparser
+import urllib.robotparser
 import errno
 import tempdir
 from socket import error as socket_error
@@ -85,7 +83,7 @@ def safe_save_fields(instance, **kwargs):
     """
     for key, val in kwargs.items():
         setattr(instance, key, val)
-    instance.save(update_fields=kwargs.keys())
+    instance.save(update_fields=list(kwargs.keys()))
 
 def get_url(url, thread_list, proxy_address, requested_urls):
     """
@@ -171,7 +169,7 @@ def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
 
     display = None
-    print "Using browser: %s" % settings.CAPTURE_BROWSER
+    print("Using browser: %s" % settings.CAPTURE_BROWSER)
 
     # PhantomJS
     if settings.CAPTURE_BROWSER == 'PhantomJS':
@@ -366,7 +364,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
                 break
             except ValueError:
                 # switching to frame failed for some reason (does this still apply?)
-                print "run_in_frames_recursive caught exception switching to iframe:"
+                print("run_in_frames_recursive caught exception switching to iframe:")
                 traceback.print_exc()
 
             # return to current frame
@@ -376,7 +374,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
                     browser.switch_to.frame(frame)
             except NoSuchFrameException:
                 # frame hierarchy changed; frame_path is invalid
-                print "frame hierarchy changed while running run_in_frames_recursive"
+                print("frame hierarchy changed while running run_in_frames_recursive")
                 break
 
 
@@ -430,7 +428,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
 
 def inc_progress(capture_job, inc, description):
     capture_job.inc_progress(inc, description)
-    print "%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description)
+    print("%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description))
 
 def capture_current_size(thread_list, recorded):
     """
@@ -441,16 +439,16 @@ def capture_current_size(thread_list, recorded):
 
 def make_absolute_urls(base_url, urls):
     """collect resource urls, converted to absolute urls relative to current browser frame"""
-    return [urlparse.urljoin(base_url, url) for url in urls if url]
+    return [urllib.parse.urljoin(base_url, url) for url in urls if url]
 
 def parse_response(response_text):
     """
         Given an HTTP response line and headers, as a string,
         return a requests.Response object.
     """
-    class FakeSocket():
+    class FakeSocket(object):
         def __init__(self, response_str):
-            self._file = StringIO(response_str)
+            self._file = BytesIO(response_str)
 
         def makefile(self, *args, **kwargs):
             return self._file
@@ -558,27 +556,28 @@ def meta_tag_analysis_failed(link):
     """What to do if analysis of a link's meta tags fails"""
     if settings.PRIVATE_LINKS_ON_FAILURE:
         safe_save_fields(link, is_private=True, private_reason='failure')
-    print "Meta tag retrieval failure."
+    print("Meta tag retrieval failure.")
     link.tags.add('meta-tag-retrieval-failure')
 
 # robots.txt
 
 def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls):
-    robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
+    robots_txt_location = urllib.parse.urljoin(content_url, '/robots.txt')
     robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls)
     if e or not robots_txt_response or not robots_txt_response.ok:
-        print "Couldn't reach robots.txt"
+        print("Couldn't reach robots.txt")
         return
-    print "Robots.txt fetched."
+    print("Robots.txt fetched.")
 
     # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
-    if 'Perma' in robots_txt_response.content:
+    content = str(robots_txt_response.content, 'utf-8')
+    if 'Perma' in content:
         # We found Perma specifically mentioned
-        rp = robotparser.RobotFileParser()
-        rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
-        if not rp.can_fetch('Perma', target_url):
+        rp = urllib.robotparser.RobotFileParser()
+        rp.parse([line.strip() for line in content.split('\n')])
+        if not rp.can_fetch('Perma', str(target_url, 'utf-8')):
             safe_save_fields(link, is_private=True, private_reason='policy')
-            print "Robots.txt disallows Perma."
+            print("Robots.txt disallows Perma.")
 
 # favicons
 
@@ -589,7 +588,7 @@ def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, 
         if favicon:
             successful_favicon_urls.append(favicon)
     if not successful_favicon_urls:
-        print "Couldn't get any favicons"
+        print("Couldn't get any favicons")
 
 def favicon_get_urls(dom_tree, content_url):
     """
@@ -607,10 +606,10 @@ def favicon_get_urls(dom_tree, content_url):
     return urls
 
 def favicon_fetch(url, thread_list, proxy_address, requested_urls):
-    print "Fetching favicon from %s ..." % url
+    print("Fetching favicon from %s ..." % url)
     response, e = get_url(url, thread_list, proxy_address, requested_urls)
     if e or not response or not response.ok:
-        print "Favicon failed:", e, response
+        print("Favicon failed:", e, response)
         return
     # apply mime type whitelist
     mime_type = response.headers.get('content-type', '').split(';')[0]
@@ -628,7 +627,7 @@ def get_media_tags(dom_trees):
             print("Fetching audio/video objects")
             new_urls += get_audio_video_urls(dom_tree)
             new_urls += get_object_urls(dom_tree)
-        urls |= set(make_absolute_urls(base_url, new_urls))
+        urls |= set(make_absolute_urls(bytes(base_url, 'utf-8'), new_urls))
     return urls
 
 def get_srcset_image_urls(dom_tree):
@@ -669,7 +668,7 @@ def get_object_urls(dom_tree):
             url = url.strip()
             if url:
                 if codebase_url:
-                    url = urlparse.urljoin(codebase_url, url)
+                    url = urllib.parse.urljoin(codebase_url, url)
                 urls.append(url)
     return urls
 
@@ -694,7 +693,7 @@ def get_screenshot(link, browser):
 
         return browser.get_screenshot_as_png()
     else:
-        print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
+        print("Not taking screenshot! %s" % ("Page size is %s." % (page_size,)))
         safe_save_fields(link.screenshot_capture, status='failed')
 
 def get_page_size(browser):
@@ -740,7 +739,7 @@ def process_metadata(metadata, link):
         meta_tag = metadata['meta_tags'].get('robots')
     if meta_tag and 'noarchive' in meta_tag.lower():
         safe_save_fields(link, is_private=True, private_reason='policy')
-        print "Meta found, darchiving"
+        print("Meta found, darchiving")
 
     ## Page Description ##
     description_meta_tag = metadata['meta_tags'].get('description')
@@ -798,7 +797,7 @@ def save_favicons(link, successful_favicon_urls):
             url=successful_favicon_urls[0][0],
             content_type=successful_favicon_urls[0][1].lower()
         ).save()
-        print "Saved favicons %s" % successful_favicon_urls
+        print("Saved favicons %s" % successful_favicon_urls)
 
 def clean_up_failed_captures():
     """
@@ -822,7 +821,7 @@ def warn_on_exception(message="Exception in block:", exception_type=Exception):
     except SoftTimeLimitExceeded:
         raise
     except exception_type as e:
-        print message, e
+        print(message, e)
 
 @contextmanager
 def browser_running(browser, onfailure=None):
@@ -932,7 +931,7 @@ def run_next_capture():
         # connect warcprox to an open port
         warcprox_port = 27500
         recorded_url_queue = queue.Queue()
-        for i in xrange(500):
+        for i in range(500):
             try:
                 proxy = WarcProxy(
                     server_address=("127.0.0.1", warcprox_port),
@@ -955,7 +954,7 @@ def run_next_capture():
         warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
         warcprox_thread.start()
 
-        print "WarcProx opened."
+        print("WarcProx opened.")
         # END WARCPROX SETUP
 
         browser, display = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, proxy.ca.ca_file)
@@ -1002,7 +1001,7 @@ def run_next_capture():
                 inc_progress(capture_job, wait_time/RESOURCE_LOAD_TIMEOUT, "Fetching target URL")
                 time.sleep(1)
 
-        print "Fetching robots.txt ..."
+        print("Fetching robots.txt ...")
         add_thread(thread_list, robots_txt_thread, args=(
             link,
             target_url,
@@ -1015,7 +1014,7 @@ def run_next_capture():
         inc_progress(capture_job, 1, "Checking x-robots-tag directives.")
         if xrobots_blacklists_perma(robots_directives):
             safe_save_fields(link, is_private=True, private_reason='policy')
-            print "x-robots-tag found, darchiving"
+            print("x-robots-tag found, darchiving")
 
         if have_html:
 
@@ -1028,7 +1027,7 @@ def run_next_capture():
 
             # get favicon urls (saved as favicon_capture_url later)
             with browser_running(browser):
-                print "Fetching favicons ..."
+                print("Fetching favicons ...")
                 add_thread(thread_list, favicon_thread, args=(
                     successful_favicon_urls,
                     dom_tree,
@@ -1077,11 +1076,11 @@ def run_next_capture():
         with browser_running(browser):
             while unfinished_proxied_pairs and browser_still_running(browser):
 
-                print "Waiting for %s pending requests" % len(unfinished_proxied_pairs)
+                print("Waiting for %s pending requests" % len(unfinished_proxied_pairs))
                 # give up after AFTER_LOAD_TIMEOUT seconds
                 wait_time = time.time() - load_time
                 if wait_time > AFTER_LOAD_TIMEOUT:
-                    print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
+                    print("Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT)
                     break
 
                 # Show progress to user
@@ -1104,7 +1103,7 @@ def run_next_capture():
     except SoftTimeLimitExceeded:
         capture_job.link.tags.add('timeout-failure')
     except:
-        print "Exception while capturing job %s:" % capture_job.link_id
+        print("Exception while capturing job %s:" % capture_job.link_id)
         traceback.print_exc()
     finally:
         try:
@@ -1120,12 +1119,13 @@ def run_next_capture():
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
                 save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls)
-                print "%s capture succeeded." % link.guid
+                print("%s capture succeeded." % link.guid)
             else:
-                print "%s capture failed." % link.guid
+                print("%s capture failed." % link.guid)
+
 
         except:
-            print "Exception while tearing down/saving capture job %s:" % capture_job.link_id
+            print("Exception while tearing down/saving capture job %s:" % capture_job.link_id)
             traceback.print_exc()
         finally:
             capture_job.link.captures.filter(status='pending').update(status='failed')
@@ -1266,11 +1266,11 @@ def upload_to_internet_archive(self, link_guid):
             return
 
     except Link.DoesNotExist:
-        print "Link %s does not exist" % link_guid
+        print("Link %s does not exist" % link_guid)
         return
 
     if not link.can_upload_to_internet_archive():
-        print "Link %s Not eligible for upload." % link_guid
+        print("Link %s Not eligible for upload." % link_guid)
         return
 
     metadata = {

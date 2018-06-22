@@ -1,11 +1,12 @@
-import Cookie
-import StringIO
+import http.cookies
+import io
 from collections import defaultdict
 import os
 import random
 import threading
 import re
-from urlparse import urljoin
+from urllib.parse import urljoin
+import traceback
 import requests
 import string
 import sys
@@ -208,7 +209,7 @@ class PermaRoute(archivalrouter.Route):
                 cached_cdx[line.urlkey].append(str(line.raw))
 
             # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
-            for urlkey, lines in cached_cdx.iteritems():
+            for urlkey, lines in cached_cdx.items():
                 if len(lines) > 1:
                     lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
                     if lines_without_redirects:
@@ -223,7 +224,7 @@ class PermaRoute(archivalrouter.Route):
         if cached_cdx.get('is_private'):
             # if user is allowed to access this private link, they will have a cookie like GUID=<token>,
             # which can be validated with link.validate_access_token()
-            cookie = Cookie.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
+            cookie = http.cookies.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
             if not cookie:
                 raise CustomTemplateException(status='400 Bad Request',
                                               template_path='archive/missing-cookie.html',
@@ -389,7 +390,7 @@ class PermaTemplateView(object):
             status=status,
             content_type=content_type)
         template_result = loader.render_to_string(self.filename, template_context, request=self.fake_request)
-        return WbResponse.text_response(unicode(template_result), status=status, content_type=content_type)
+        return WbResponse.text_response(str(template_result), status=status, content_type=content_type)
 
 
 class PermaCapturesView(PermaTemplateView):
@@ -498,7 +499,7 @@ class CachedLoader(BlockLoader):
         thread_local_data.wbrequest.mirror_name = mirror_name
 
         # turn string contents of url into file-like object
-        afile = StringIO.StringIO(file_contents)
+        afile = io.StringIO(file_contents)
 
         # --- from here down is taken from super() ---
         if offset > 0:

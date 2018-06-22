@@ -1,5 +1,5 @@
 # alternate storage backends
-import cStringIO as StringIO
+import io as StringIO
 import os
 
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
