@@ -476,8 +476,12 @@ def parse_response(response_text):
     # Since parsed response headers aren't archived, this convenience is
     # fine. However, it's worth keeping track of the situation.
     robots_directives = []
-    for directive in response.msg.getallmatchingheaders('x-robots-tag'):
-        robots_directives.append(directive.split(": ", 1)[1].replace("\n", "").replace("\r", ""))
+    # https://bugs.python.org/issue5053
+    # https://bugs.python.org/issue13425
+    directives = response.msg.get_all('x-robots-tag')
+    if directives:
+        for directive in directives:
+            robots_directives.append(directive.replace("\n", "").replace("\r", ""))
     headers['x-robots-tag'] = ";".join(robots_directives)
 
     requests_response.headers = headers
