@@ -267,9 +267,8 @@ class Registrar(models.Model):
     def prorated_first_month_cost(self, now):
         days_in_month = calendar.monthrange(now.year, now.month)[1]
         days_until_end_of_month = days_in_month - now.day
-        # Decimal to force accurate division; add one day, to charge for today
-        return (self.monthly_rate * ((Decimal(days_until_end_of_month) + 1) / days_in_month)).quantize(Decimal('.01'))
-
+        # add one day, to charge for today
+        return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
 
     def get_subscription_info(self, now):
         timestamp = to_timestamp(now)
