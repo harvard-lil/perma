@@ -443,7 +443,8 @@ def preserve_perma_warc(guid, timestamp, destination):
     Context manager for opening a perma warc, ready to receive warc records.
     Safely closes and saves the file to storage when context is exited.
     """
-    out = tempfile.TemporaryFile()
+    # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
+    out = tempfile.TemporaryFile('ab+')
     write_perma_warc_header(out, guid, timestamp)
     try:
         yield out
