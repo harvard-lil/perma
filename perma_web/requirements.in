@@ -8,16 +8,15 @@
 # Package:                          # Used for:
 
 Django
-MySQL-python
+mysqlclient
 celery
 requests[security]
-wsgiref
 django-ratelimit
 smhasher
 pytz
 django-mptt
 Werkzeug
-Fabric
+Fabric3
 pexpect
 selenium==2.47.3                    # pin after IOErrors on deployment; unpin and upgrade after assessment, testing
 jsmin

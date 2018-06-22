@@ -1,4 +1,4 @@
-FROM python:2-stretch
+FROM python:3.5.4-jessie
 ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web

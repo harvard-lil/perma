@@ -18,12 +18,12 @@ services:
       # If the volume contains a database (a subdirectory named mysql)
       # when you start the container, it will be left untouched and unaffected
       # by config environment variables like $MYSQL_ROOT_PASSWORD.
-      - db_data:/var/lib/mysql:delegated
+      - db3_data:/var/lib/mysql:delegated
       # BIND MOUNTS
       - ./services/mysql/conf.d:/etc/mysql/conf.d
   web:
     build: ./perma_web
-    image: perma:0.3
+    image: perma3:0.1
     tty: true
     command: bash
     volumes:
@@ -54,6 +54,6 @@ services:
 
 volumes:
   node_modules:
-  db_data:
+  db3_data:
   rabbitmq_home:
   # redis_data:
