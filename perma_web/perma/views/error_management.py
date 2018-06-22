@@ -1,3 +1,4 @@
+import collections
 import json
 
 from django.views.decorators.csrf import csrf_exempt
@@ -25,13 +26,14 @@ def resolve(request):
 @csrf_exempt
 def post_new(request):
     try:
-        body = json.loads(request.body)
-        e = body["errors"][0]
-        context = body["context"]
-    except:
-        e = {}
-        context = {}
-
+        body = json.loads(str(request.body,'utf-8'))
+    except ValueError:
+        body = ''
+    e = {}
+    context = {}
+    if isinstance(body, collections.Mapping):
+        e = body.get("errors", [{}])[0]
+        context = body.get("context", {})
     error = UncaughtError(
         user_agent=context.get("userAgent"),
         current_url=context.get("url", request.META.get('HTTP_REFERER')),

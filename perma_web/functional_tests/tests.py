@@ -57,6 +57,7 @@ else:
     # build_name += subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()  # pretty label for local jobs: datetime-git_branch
 
 
+
 # (2) Configure Sauce vs. local PhantomJS browsers:
 
 if USE_SAUCE:
@@ -399,7 +400,7 @@ class FunctionalTest(BaseTestCase):
             current_url = self.driver.current_url
             self.assertEquals(self.server_url + '/manage/create/?folder=' + folder_id, current_url)
             folder_from_storage = self.driver.execute_script("var ls = JSON.parse(localStorage.perma_selection); return ls[Object.keys(ls)[0]].folderIds[0]")
-            self.assertEquals(folder_id, unicode(folder_from_storage))
+            self.assertEquals(folder_id, str(folder_from_storage))
 
 
             # Timemap

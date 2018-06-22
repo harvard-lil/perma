@@ -140,7 +140,7 @@ mime_type_lookup = {
     },
     'application/pdf': {
         'new_extension': 'pdf',
-        'valid_file': lambda f: '%PDF-' in f.read(10),
+        'valid_file': lambda f: b'%PDF-' in f.read(10),
     }
 }
 

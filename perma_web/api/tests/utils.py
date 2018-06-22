@@ -375,7 +375,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     ### assert methods copied from Tastypie ###
 
     def deserialize(self, resp):
-        return json.loads(resp.content)
+        return json.loads(str(resp.content, 'utf-8'))
 
     def assertValidJSONResponse(self, resp):
         # Modified from tastypie to allow 201's as well

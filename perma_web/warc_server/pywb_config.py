@@ -408,7 +408,7 @@ class PermaCDXSource(CDXSource):
         # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
         if query.params.get('lines'):
-            return query.params['lines']
+            return [bytes(i, 'utf-8') for i in query.params['lines']]
 
         filters = {
             'urlkey': query.key,
@@ -418,7 +418,7 @@ class PermaCDXSource(CDXSource):
         if query.params.get('guid'):
             filters['link_id'] = query.params['guid']
 
-        return [str(i) for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
+        return [bytes(i, 'utf-8') for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
 
 
 class CachedLoader(BlockLoader):
@@ -516,7 +516,7 @@ def create_perma_wb_router(config={}):
 
     # insert a custom route that knows how to play back based on GUID
     wb_handler = create_wb_handler(QueryHandler.init_from_config(PermaCDXSource()),
-                                   dict(archive_paths=[get_archive_path()],
+                                   dict(archive_paths=[str(get_archive_path(), 'utf-8')],
                                         wb_handler_class=PermaGUIDHandler,
                                         buffer_response=True,
                                         # head_insert_html=os.path.join(os.path.dirname(__file__), 'head_insert.html'),

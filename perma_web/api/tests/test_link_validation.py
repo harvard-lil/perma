@@ -97,7 +97,7 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
     #########
 
     def test_should_reject_invalid_file_format(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html'), 'rb') as test_file:
             self.rejected_post(self.list_url,
                                format='multipart',
                                user=self.org_user,
@@ -106,7 +106,7 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
 
     @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
     def test_should_reject_large_file(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
             self.rejected_post(self.list_url,
                                format='multipart',
                                user=self.org_user,

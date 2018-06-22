@@ -391,7 +391,7 @@ def stringify_data(data):
     """
     Takes any json-serializable data. Converts to a bytestring, suitable for passing to an encryption function.
     """
-    return json.dumps(data, cls=DjangoJSONEncoder, encoding='utf-8')
+    return bytes(json.dumps(data, cls=DjangoJSONEncoder), 'utf-8')
 
 
 @sensitive_variables()
@@ -399,7 +399,7 @@ def unstringify_data(data):
     """
     Reverses stringify_data. Takes a bytestring, returns deserialized json.
     """
-    return json.loads(data, 'utf-8')
+    return json.loads(str(data, 'utf-8'))
 
 
 @sensitive_variables()
@@ -463,7 +463,7 @@ def write_perma_warc_header(out_file, guid, timestamp):
     warcinfo_fields = [
         b'operator: Perma.cc',
         b'format: WARC File Format 1.0',
-        b'Perma-GUID: %s' % guid,
+        bytes('Perma-GUID: {}'.format(guid), 'utf-8')
     ]
     data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
     warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
@@ -515,17 +515,17 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
     Constructs a single WARC resource record from an asset (screenshot, uploaded file, etc.)
     and writes to out_file.
     """
-    warc_date = warctools.warc.warc_datetime_str(timezone.now()).replace('+00:00Z', 'Z')
+    warc_date = warctools.warc.warc_datetime_str(timezone.now()).replace(b'+00:00Z', b'Z')
     headers = [
         (warctools.WarcRecord.TYPE, warctools.WarcRecord.RESOURCE),
         (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
         (warctools.WarcRecord.DATE, warc_date),
-        (warctools.WarcRecord.URL, url),
-        (warctools.WarcRecord.BLOCK_DIGEST, b'sha1:%s' % hashlib.sha1(data).hexdigest())
+        (warctools.WarcRecord.URL, bytes(url, 'utf-8')),
+        (warctools.WarcRecord.BLOCK_DIGEST, bytes('sha1:{}'.format(hashlib.sha1(data).hexdigest()), 'utf-8'))
     ]
     if extra_headers:
         headers.extend(extra_headers)
-    record = warctools.WarcRecord(headers=headers, content=(content_type, data))
+    record = warctools.WarcRecord(headers=headers, content=(bytes(content_type, 'utf-8'), data))
     record.write_to(out_file, gzip=True)
 
 def get_warc_stream(link):

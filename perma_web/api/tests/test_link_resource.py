@@ -347,7 +347,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #########################
 
     def test_should_create_archive_from_pdf_file(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
@@ -358,7 +358,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_create_archive_from_jpg_file(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
@@ -369,12 +369,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_reject_invalid_file(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html'), 'rb') as test_file:
             obj = self.rejected_post(self.list_url,
                                      format='multipart',
                                      data=dict(self.post_data.copy(), file=test_file),
                                      user=self.org_user)
-            self.assertIn('Invalid file', obj.content)
+            self.assertIn(b'Invalid file', obj.content)
 
     ############
     # Updating #
@@ -391,7 +391,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         result = self.rejected_patch(self.unrelated_link_detail_url,
                                      user=self.unrelated_link.created_by,
                                      data={'url':'foo'})
-        self.assertIn("Only updates on these fields are allowed", result.content)
+        self.assertIn(b"Only updates on these fields are allowed", result.content)
 
     ##################
     # Private/public #

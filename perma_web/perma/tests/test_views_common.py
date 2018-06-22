@@ -36,7 +36,7 @@ class CommonViewsTestCase(PermaTestCase):
 
     def assert_can_view_capture(self, guid):
         response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
-        self.assertIn("<iframe ", response.content)
+        self.assertIn(b"<iframe ", response.content)
 
     def test_regular_archive(self):
         self.assert_can_view_capture('3SLN-JHX9')
@@ -52,7 +52,7 @@ class CommonViewsTestCase(PermaTestCase):
         for user in self.users:
             self.log_in_user(user)
             response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
-            self.assertIn("This record is private.", response.content)
+            self.assertIn(b"This record is private.", response.content)
 
     def test_redirect_to_download(self):
         # Give user option to download to view pdf if on mobile
@@ -61,18 +61,19 @@ class CommonViewsTestCase(PermaTestCase):
 
         client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
         response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
-        self.assertIn("Perma.cc can\'t display this file type on mobile", response.content)
+        self.assertIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+
         # Make sure that we're including the archived capture url
-        self.assertIn(file_url, response.content)
+        self.assertIn(bytes(file_url, 'utf-8'), response.content)
 
         # If not on mobile, display link as normal
         client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
         response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
-        self.assertNotIn("Perma.cc can\'t display this file type on mobile", response.content)
+        self.assertNotIn(b"Perma.cc can\'t display this file type on mobile", response.content)
 
     def test_deleted(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410)
-        self.assertIn("This record has been deleted.", response.content)
+        self.assertIn(b"This record has been deleted.", response.content)
 
     def test_misformatted_nonexistent_links_404(self):
         response = self.client.get(reverse('single_permalink', kwargs={'guid': 'JJ99--JJJJ'}))

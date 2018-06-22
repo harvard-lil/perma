@@ -95,7 +95,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_create_to_inaccessible_folder(self):
         inaccessible_folder = self.admin_user.root_folder
         response = self.rejected_post(self.list_url, expected_status_code=400, user=self.regular_user, data=dict(self.post_data, folder=inaccessible_folder.pk))
-        self.assertIn("Folder not found.", response.content)
+        self.assertIn(b"Folder not found.", response.content)
 
     def test_should_reject_create_from_logged_out_user(self):
         self.rejected_post(self.list_url, data=self.post_data)
@@ -111,7 +111,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
                       folder=self.firm_folder.pk)
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
-        self.assertIn("subscription", response.content)
+        self.assertIn(b"subscription", response.content)
 
     # tests for permitted creations in test_link_resource, where the
     # to-be-captured url is actually being served up.
@@ -157,7 +157,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.link.archive_timestamp = timezone.now() + timedelta(1)
         self.link.save()
         old_primary_capture = self.link.primary_capture
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
             data=test_file.read()
             file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
             self.successful_patch(self.link_url,
@@ -168,7 +168,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(Capture.objects.filter(link_id=self.link.pk, role='primary').exclude(pk=old_primary_capture.pk).exists())
 
     def test_should_reject_patch_with_file_for_out_of_window_link(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
             data=test_file.read()
             file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
             self.rejected_patch(self.link_url,

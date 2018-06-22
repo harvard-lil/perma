@@ -146,7 +146,7 @@ _orig_update_payload_digest = ProxyingRecorder._update_payload_digest
 def _update_payload_digest(self, hunk):
     if self.payload_digest is None:
         if not hasattr(self, 'headers'):
-            self.headers = ""
+            self.headers = b""
         self.headers += hunk
         self.headers = re.sub(br'(\r?\n\r?\n).*', r'\1', self.headers)  # remove any part of hunk that came after headers
     return _orig_update_payload_digest(self, hunk)
@@ -575,7 +575,7 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address,
         # We found Perma specifically mentioned
         rp = urllib.robotparser.RobotFileParser()
         rp.parse([line.strip() for line in content.split('\n')])
-        if not rp.can_fetch('Perma', str(target_url, 'utf-8')):
+        if not rp.can_fetch('Perma', target_url):
             safe_save_fields(link, is_private=True, private_reason='policy')
             print("Robots.txt disallows Perma.")
 
@@ -627,7 +627,7 @@ def get_media_tags(dom_trees):
             print("Fetching audio/video objects")
             new_urls += get_audio_video_urls(dom_tree)
             new_urls += get_object_urls(dom_tree)
-        urls |= set(make_absolute_urls(bytes(base_url, 'utf-8'), new_urls))
+        urls |= set(make_absolute_urls(base_url, new_urls))
     return urls
 
 def get_srcset_image_urls(dom_tree):
@@ -975,7 +975,7 @@ def run_next_capture():
                             # at successfully identifying the content-type of the target_url
                             # (in unusual circumstances, can be incorrect)
                             break
-                        if response.url.endswith('/favicon.ico') and response.url != target_url:
+                        if response.url.endswith(b'/favicon.ico') and response.url != target_url:
                             continue
                         if not hasattr(response, 'parsed_response'):
                             response.parsed_response = parse_response(response.response_recorder.headers)
@@ -983,7 +983,7 @@ def run_next_capture():
                             continue
 
                         have_content = True
-                        content_url = response.url
+                        content_url = str(response.url, 'utf-8')
                         content_type = response.parsed_response.headers.get('content-type').lower()
                         robots_directives = response.parsed_response.headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')

@@ -81,7 +81,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 4 registrars", count)
-        self.assertEqual(response.count('needs approval'), 1)
+        self.assertEqual(response.count(b'needs approval'), 1)
 
         # get just approved registrars
         response = self.get('user_management_manage_registrar',
@@ -90,7 +90,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 3 registrars", count)
-        self.assertEqual(response.count('needs approval'), 0)
+        self.assertEqual(response.count(b'needs approval'), 0)
 
         # get just pending registrars
         response = self.get('user_management_manage_registrar',
@@ -99,7 +99,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 registrar", count)
-        self.assertEqual(response.count('needs approval'), 1)
+        self.assertEqual(response.count(b'needs approval'), 1)
 
     def test_registrar_user_list_filters(self):
         # test assumptions: five users
@@ -111,12 +111,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 5 users", count)
-        self.assertEqual(response.count('deactivated account'), 1)
-        self.assertEqual(response.count('User must activate account'), 1)
+        self.assertEqual(response.count(b'deactivated account'), 1)
+        self.assertEqual(response.count(b'User must activate account'), 1)
         # registrar name appears by each user, and once in the filter dropdown
-        self.assertEqual(response.count('Test Library'), 2)
-        self.assertEqual(response.count('Another Library'), 4)
-        self.assertEqual(response.count('Test Firm'), 2)
+        self.assertEqual(response.count(b'Test Library'), 2)
+        self.assertEqual(response.count(b'Another Library'), 4)
+        self.assertEqual(response.count(b'Test Firm'), 2)
 
         # filter by registrar
         response = self.get('user_management_manage_registrar_user',
@@ -146,24 +146,24 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 3 users", count)
-        self.assertEqual(response.count('deactivated account'), 0)
-        self.assertEqual(response.count('User must activate account'), 0)
+        self.assertEqual(response.count(b'deactivated account'), 0)
+        self.assertEqual(response.count(b'User must activate account'), 0)
         response = self.get('user_management_manage_registrar_user',
                              user=self.admin_user,
                              request_kwargs={'data':{'status': 'deactivated'}}).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 user", count)
-        self.assertEqual(response.count('deactivated account'), 1)
-        self.assertEqual(response.count('User must activate account'), 0)
+        self.assertEqual(response.count(b'deactivated account'), 1)
+        self.assertEqual(response.count(b'User must activate account'), 0)
         response = self.get('user_management_manage_registrar_user',
                              user=self.admin_user,
                              request_kwargs={'data':{'status': 'unactivated'}}).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 user", count)
-        self.assertEqual(response.count('deactivated account'), 0)
-        self.assertEqual(response.count('User must activate account'), 1)
+        self.assertEqual(response.count(b'deactivated account'), 0)
+        self.assertEqual(response.count(b'User must activate account'), 1)
 
     def test_admin_can_create_registrar(self):
         self.submit_form(
@@ -230,8 +230,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 6 organizations", count)
         # registrar name appears by each org, once in the filter dropdown, once in the "add an org" markup
-        self.assertEqual(response.count('Test Library'), 3 + 2)
-        self.assertEqual(response.count('Test Firm'), 2 + 2)
+        self.assertEqual(response.count(b'Test Library'), 3 + 2)
+        self.assertEqual(response.count(b'Test Firm'), 2 + 2)
         # 'Another Library' needs special handling because the fixture's org is
         # named 'Another Library's journal'. The "string" search finds the instance
         # by the org and the instance in the filter dropdown, but not the <option> in the "add an org" markup
@@ -264,11 +264,11 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 7 users", count)
         # registrar name appears by each user, and once in the filter dropdown
-        self.assertEqual(response.count('Test Journal'), 3 + 1)
-        self.assertEqual(response.count('Another Journal'), 1 + 1)
-        self.assertEqual(response.count("A Third Journal"), 3 + 1)
-        self.assertEqual(response.count("Another Library's Journal"), 3 + 1)
-        self.assertEqual(response.count("Some Case"), 1 + 1)
+        self.assertEqual(response.count(b'Test Journal'), 3 + 1)
+        self.assertEqual(response.count(b'Another Journal'), 1 + 1)
+        self.assertEqual(response.count(b"A Third Journal"), 3 + 1)
+        self.assertEqual(response.count(b"Another Library's Journal"), 3 + 1)
+        self.assertEqual(response.count(b"Some Case"), 1 + 1)
 
         # filter by org
         response = self.get('user_management_manage_organization_user',
@@ -422,9 +422,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 5 users", count)
-        self.assertEqual(response.count('Interested in a court account'), 1)
-        self.assertEqual(response.count('Interested in a journal account'), 1)
-        self.assertEqual(response.count('Interested in a faculty account'), 1)
+        self.assertEqual(response.count(b'Interested in a court account'), 1)
+        self.assertEqual(response.count(b'Interested in a journal account'), 1)
+        self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # filter by requested_account_type ("upgrade")
         response = self.get('user_management_manage_user',
@@ -433,27 +433,27 @@ class UserManagementViewsTestCase(PermaTestCase):
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 user", count)
-        self.assertEqual(response.count('Interested in a court account'), 1)
-        self.assertEqual(response.count('Interested in a journal account'), 0)
-        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        self.assertEqual(response.count(b'Interested in a court account'), 1)
+        self.assertEqual(response.count(b'Interested in a journal account'), 0)
+        self.assertEqual(response.count(b'Interested in a faculty account'), 0)
         response = self.get('user_management_manage_user',
                              user=self.admin_user,
                              request_kwargs={'data':{'upgrade': 'journal'}}).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 user", count)
-        self.assertEqual(response.count('Interested in a court account'), 0)
-        self.assertEqual(response.count('Interested in a journal account'), 1)
-        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        self.assertEqual(response.count(b'Interested in a court account'), 0)
+        self.assertEqual(response.count(b'Interested in a journal account'), 1)
+        self.assertEqual(response.count(b'Interested in a faculty account'), 0)
         response = self.get('user_management_manage_user',
                              user=self.admin_user,
                              request_kwargs={'data':{'upgrade': 'faculty'}}).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 user", count)
-        self.assertEqual(response.count('Interested in a court account'), 0)
-        self.assertEqual(response.count('Interested in a journal account'), 0)
-        self.assertEqual(response.count('Interested in a faculty account'), 1)
+        self.assertEqual(response.count(b'Interested in a court account'), 0)
+        self.assertEqual(response.count(b'Interested in a journal account'), 0)
+        self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # status filter tested in test_registrar_user_list_filters
 
@@ -609,7 +609,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk},
                          query_params={'email': self.admin_user.email})
-        self.assertIn("is an admin user", resp.content)
+        self.assertIn(b"is an admin user", resp.content)
         self.assertFalse(self.admin_user.organizations.exists())
 
     def test_cannot_add_registrar_user_to_org(self):
@@ -617,7 +617,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_organization_user_add_user',
                                 data={'a-organizations': self.organization.pk},
                                 query_params={'email': self.registrar_user.email})
-        self.assertIn("is already a registrar user", resp.content)
+        self.assertIn(b"is already a registrar user", resp.content)
         self.assertFalse(self.registrar_user.organizations.exists())
 
     ### VOLUNTARILY LEAVING ORGANIZATIONS ###
@@ -770,7 +770,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                            'a-last_name': 'Last',
                                            'a-email': address},
                                      query_params={'email': address}).content
-        self.assertIn("{} is already a registrar user for your registrar.".format(address), response)
+        self.assertIn(bytes("{} is already a registrar user for your registrar.".format(address), 'utf-8'), response)
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_user)
@@ -816,7 +816,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_registrar_user_add_user',
                                 data={'a-registrar': self.registrar.pk},
                                 query_params={'email': self.unrelated_organization_user.email})
-        self.assertIn("belongs to organizations that are not controlled by your registrar", resp.content)
+        self.assertIn(b"belongs to organizations that are not controlled by your registrar", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_organization_user.pk, registrar=self.registrar).exists())
 
     def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
@@ -832,7 +832,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
                          query_params={'email': self.admin_user.email})
-        self.assertIn("is an admin user", resp.content)
+        self.assertIn(b"is an admin user", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, registrar=self.registrar).exists())
 
     def test_cannot_add_registrar_user_to_registrar(self):
@@ -840,7 +840,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_registrar_user_add_user',
                                 data={'a-registrar': self.registrar.pk},
                                 query_params={'email': self.unrelated_registrar_user.email})
-        self.assertIn("is already a member of another registrar", resp.content)
+        self.assertIn(b"is already a member of another registrar", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_user.pk, registrar=self.registrar).exists())
 
     ### REMOVING USERS FROM REGISTRARS ###
@@ -927,14 +927,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Toggle as an org user
         response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_org_user@example.com').content
-        self.assertIn("Your Perma Links are currently <strong>Public</strong> by default.", response)
+        self.assertIn(b"Your Perma Links are currently <strong>Public</strong> by default.", response)
         self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                           user='test_org_user@example.com',
                           data={},
                           success_url=reverse('user_management_settings_affiliations'))
         response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_org_user@example.com').content
-        self.assertIn("Your Perma Links are currently <strong>Private</strong> by default.", response)
+        self.assertIn(b"Your Perma Links are currently <strong>Private</strong> by default.", response)
 
         # Toggle as a registrar user
         self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
@@ -943,7 +943,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                   success_url=reverse('user_management_manage_organization'))
         response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_registrar_user@example.com').content
-        self.assertIn("Your Perma Links are currently <strong>Public</strong> by default.", response)
+        self.assertIn(b"Your Perma Links are currently <strong>Public</strong> by default.", response)
 
         # Toggle as a staff user
         self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
@@ -952,7 +952,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                   success_url=reverse('user_management_manage_organization'))
         response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_admin_user@example.com').content
-        self.assertIn("Your Perma Links are currently <strong>Private</strong> by default.", response)
+        self.assertIn(b"Your Perma Links are currently <strong>Private</strong> by default.", response)
 
         # As staff, try to access non-existent org
         self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[99999]},
@@ -989,10 +989,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertIn('Purchase a subscription', r.content)
-        self.assertIn('<form class="upgrade-form', r.content)
-        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(str(sentinel.prepped), r.content)
+        self.assertIn(b'Purchase a subscription', r.content)
+        self.assertIn(b'<form class="upgrade-form', r.content)
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
         get_subscription.assert_called_once_with(u.registrar)
 
 
@@ -1007,13 +1007,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertIn('Rate', r.content)
-        self.assertIn('Next payment', r.content)
-        self.assertIn(subscription['status'].lower(), r.content)
-        self.assertIn('Update Payment Information', r.content)
-        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(str(sentinel.prepped), r.content)
-        self.assertIn('Cancel Subscription', r.content)
+        self.assertIn(b'Rate', r.content)
+        self.assertIn(b'Next payment', r.content)
+        self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
+        self.assertIn(b'Update Payment Information', r.content)
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(b'Cancel Subscription', r.content)
         get_subscription.assert_called_once_with(u.registrar)
 
 
@@ -1026,7 +1026,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertIn('problem with your credit card', r.content)
+        self.assertIn(b'problem with your credit card', r.content)
         get_subscription.assert_called_once_with(u.registrar)
 
 
@@ -1039,8 +1039,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertNotIn('<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn('received the request to cancel', r.content)
+        self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(b'received the request to cancel', r.content)
         get_subscription.assert_called_once_with(u.registrar)
 
 
@@ -1052,8 +1052,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertNotIn('<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn('subscription information is currently unavailable', r.content)
+        self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(b'subscription information is currently unavailable', r.content)
         get_subscription.assert_called_once_with(u.registrar)
 
 
@@ -1074,9 +1074,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription_cancel',
                       user=u)
 
-        self.assertIn('<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(str(sentinel.prepped), r.content)
-        self.assertIn('Are you sure you want to cancel', r.content)
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(b'Are you sure you want to cancel', r.content)
 
 
     # Tools
@@ -1084,7 +1084,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_api_key(self):
         response = self.get('user_management_settings_tools',
                              user='test_user@example.com').content
-        self.assertNotIn('id="id_api_key"', response)
+        self.assertNotIn(b'id="id_api_key"', response)
         self.submit_form('api_key_create',
                           user='test_user@example.com',
                           data={},
@@ -1143,8 +1143,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         # As a pending registrar user
         response = self.get('user_management_settings_affiliations',
                              user='test_requested_registrar_account@example.com').content
-        self.assertIn('Pending Registrar', response)
-        self.assertIn('Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.', response)
+        self.assertIn(b'Pending Registrar', response)
+        self.assertIn(b'Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.', response)
         soup = BeautifulSoup(response, 'html.parser')
         registrars = soup.select('.sponsor-name')
         self.assertEqual(len(registrars), 1)

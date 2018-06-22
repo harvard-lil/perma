@@ -197,7 +197,7 @@ class Registrar(models.Model):
     class Meta(object):
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def link_count_in_time_period(self, start_time=None, end_time=None):
@@ -361,7 +361,7 @@ class Organization(DeletableModel):
             self.shared_folder.name = self.name
             self.shared_folder.save()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def create_shared_folder(self):
@@ -472,8 +472,7 @@ class LinkUser(AbstractBaseUser):
         """ Use either First or Last or first half of email address as user's short name. """
         return self.first_name or self.last_name or self.email.split('@')[0]
 
-    # In Python 3: def __str__(self):
-    def __unicode__(self):
+    def __str__(self):
         return self.email
 
     def save_new_confirmation_code(self):
@@ -648,7 +647,7 @@ class ApiKey(models.Model):
     key = models.CharField(max_length=128, blank=True, default='', db_index=True)
     created = models.DateTimeField(default=timezone.now)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%s for %s" % (self.key, self.user)
 
     def save(self, *args, **kwargs):
@@ -670,7 +669,7 @@ simple_history.register(LinkUser)
 # by monkeypatching Django's AnonymousUser object.
 # See https://code.djangoproject.com/ticket/20313
 for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private', 'is_supported_by_registrar']:
-    setattr(django.contrib.auth.models.AnonymousUser, func_name, getattr(LinkUser, func_name).__func__)
+    setattr(django.contrib.auth.models.AnonymousUser, func_name, getattr(LinkUser, func_name))
 for prop_name in ['is_organization_user']:
     setattr(django.contrib.auth.models.AnonymousUser, prop_name, getattr(LinkUser, prop_name))
 
@@ -744,7 +743,7 @@ class Folder(MPTTModel):
     def is_empty(self):
         return not self.children.exists() and not self.links.exists()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def contained_links(self):
@@ -852,7 +851,7 @@ class Link(DeletableModel):
     @cached_property
     def ascii_safe_url(self):
         """ Encoded URL as string rather than unicode. """
-        return requests.utils.requote_uri(self.submitted_url.encode('utf-8'))
+        return requests.utils.requote_uri(self.submitted_url)
 
     @cached_property
     def url_details(self):
@@ -957,7 +956,7 @@ class Link(DeletableModel):
             if initial_folder:
                 self.folders.add(initial_folder)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.guid
 
     @classmethod
@@ -1199,7 +1198,7 @@ class Capture(models.Model):
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.role, self.status)
 
     def replay(self):
@@ -1288,7 +1287,7 @@ class CaptureJob(models.Model):
     TEST_PAUSE_TIME = 0
     TEST_ALLOW_RACE = False
 
-    def __unicode__(self):
+    def __str__(self):
         return u"CaptureJob %s: %s" % (self.pk, self.link_id)
 
     def save(self, *args, **kwargs):
@@ -1462,7 +1461,7 @@ class CDXLineManager(models.Manager):
             next(cdx_io) # first line is a header so skip it
             lines = []
             for line in cdx_io:
-                lines.append(CDXLine(raw=line, link_id=link.guid, is_unlisted=link.is_unlisted, is_private=link.is_private))
+                lines.append(CDXLine(raw=str(line, 'utf-8'), link_id=link.guid, is_unlisted=link.is_unlisted, is_private=link.is_private))
             # Delete any existing rows to reduce the likelihood of a race condition,
             # if someone hits the link before the capture process has written the CDXLine db.
             CDXLine.objects.filter(link_id=link.guid).delete()
@@ -1486,7 +1485,7 @@ class CDXLine(models.Model):
 
     @cached_property
     def parsed(self):
-        return CDXObject(self.raw)
+        return CDXObject(bytes(self.raw, 'utf-8'))
 
     def __set_defaults(self):
         if not self.urlkey:
