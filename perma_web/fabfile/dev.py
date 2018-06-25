@@ -47,9 +47,9 @@ def run_django(port="0.0.0.0:8000"):
             #  (1) we have to have watchdog installed for pywb, which causes runserver_plus to attempt to use it as the reloader, which depends on inotify, but
             #  (2) we are using a Vagrant NFS mount, which does not support inotify
             # see https://github.com/django-extensions/django-extensions/pull/1041
-            local("python manage.py runserver_plus %s --threaded --reloader-type stat" % port)
+            local("pipenv run python manage.py runserver_plus %s --threaded --reloader-type stat" % port)
         except ImportError:
-            local("python manage.py runserver %s" % port)
+            local("pipenv run python manage.py runserver %s" % port)
     finally:
         for proc in proc_list:
             os.kill(proc.pid, signal.SIGKILL)
@@ -59,7 +59,7 @@ def run_ssl(port="0.0.0.0:8000"):
     """
         Run django test server with SSL.
     """
-    local("python manage.py runsslserver %s" % port)
+    local("pipenv run python manage.py runsslserver %s" % port)
 
 _default_tests = "perma api functional_tests lockss"
 
@@ -82,7 +82,7 @@ def test_python(apps=_default_tests, travis=False):
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
     if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
-        local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
+        local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage pipenv run python manage.py collectstatic --noinput")
 
     # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
     tmp = tempfile.mkdtemp()
@@ -152,9 +152,9 @@ def init_db():
     """
         Run syncdb, apply migrations, and import fixtures for new dev database.
     """
-    local("python manage.py migrate")
-    local("python manage.py migrate --database=perma-cdxline")
-    local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
+    local("pipenv run python manage.py migrate")
+    local("pipenv run python manage.py migrate --database=perma-cdxline")
+    local("pipenv run python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
 @task
 def reset_hard_db(host='localhost'):

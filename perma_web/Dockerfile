@@ -1,7 +1,12 @@
 FROM debian:stretch-20180426
-ENV PYTHONUNBUFFERED=1 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_SRC=/usr/local/src \
+    PIPENV_HIDE_EMOJIS=true \
+    PIPENV_NOSPIN=true
 RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web
 
@@ -57,13 +62,24 @@ RUN npm install \
 #    && pip install -r requirements.txt \
 #    && rm requirements.txt
 
-# make python3 the system python
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1 \
-    && update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-COPY requirements.txt /perma/perma_web
+# make python3 the system python... creepy
+#RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1 \
+#    && update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+#COPY requirements.txt /perma/perma_web
+#RUN pip3 install -U "pip>=9,<10" \
+#    && pip install -r requirements.txt --src /usr/local/src \
+#    && rm requirements.txt
+
+# python requirements via pipenv.
+# to access the virtualenv, invoke python like this: `pipenv run python`
+COPY Pipfile /perma/perma_web
+COPY Pipfile.lock /perma/perma_web
 RUN pip3 install -U "pip>=9,<10" \
-    && pip install -r requirements.txt --src /usr/local/src \
-    && rm requirements.txt
+    && pip install pipenv \
+    && pipenv --python 3.5 --site-packages install --system \
+    && rm Pipfile \
+    && rm Pipfile.lock
+
 
 # dev personalizations / try installing packages without rebuilding everything
 RUN apt-get install -y nano

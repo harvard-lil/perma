@@ -23,7 +23,7 @@ services:
       - ./services/mysql/conf.d:/etc/mysql/conf.d
   web:
     build: ./perma_web
-    image: perma3-stretch:0.1
+    image: perma3-stretch-env:0.1
     tty: true
     command: bash
     volumes:

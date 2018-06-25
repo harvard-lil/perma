@@ -2,4 +2,8 @@
 # these will get added onto the end of requirements.txt by heroku-buildpack-perma
 
 dj_database_url==0.3.0
-#rollbar==0.9.14
+
+gevent==1.0.2
+greenlet==0.4.12          # via gevent
+gunicorn==19.3.0
+newrelic==2.66.0.49

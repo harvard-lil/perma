@@ -32,11 +32,9 @@ before_install:
   - cd perma_web
 
 install:
-  # faster installs, per https://github.com/nickstenning/travis-pip-cache
-  - pip install -U pip wheel
-
   # python reqs
-  - pip install -r requirements.txt
+  - pip install pipenv
+  - pipenv install
   - pip install coveralls
 
   # node reqs

@@ -1,0 +1,111 @@
+[[source]]
+verify_ssl = true
+url = "https://pypi.org/simple"
+name = "pypi"
+
+[packages]
+
+#not needed?
+#pyScss = "==1.3.4"
+#jsmin = "==2.0.9"
+#pexpect = "==3.1"
+#smhasher = "==0.150.1"
+#python-dateutil = "*"               # calculate link expiration date
+
+
+# general
+celery = "==3.1.25"                 # task queue
+
+Django = "==1.11.13"
+django-ratelimit = "==1.1.0"
+"Fabric3" = "==1.13.1.post1"        # task automation
+netaddr = "==0.7.12"                       # to check archive IPs against banned ranges
+pytz = "==2018.3"                          # timezone helper
+requests = {version = "==2.18.4", extras = ["security"]}
+tqdm = "==4.11.2"                          # progress bar in dev fab tasks
+Werkzeug = "==0.11.1"
+
+# databases
+mysqlclient = "==1.3.12"
+django-redis = "==4.4.3"                  # use redis as django's cache backend
+redis = "==2.10.5"                         # Needed to bind with Redis.
+sqlparse = "==0.2.4"                      # for data migrations
+
+
+# models
+django-model-utils = "==2.6.1"            # soft deletion and other nice things
+django-mptt = "==0.8.7"                   # trees (like our folder tree)
+django-simple-history = "==1.9.0"         # track changes to certain models
+django-taggit = "==0.22.2"                 # add tags to model instances
+
+
+# templates
+django-settings-context-processor = "==0.2" # make settings available in templates
+
+
+# assets
+django-webpack-loader = "==0.5.0"         # frontend assets building
+Pillow = "==3.3.2"                        # Used by the Django admin for ImageField display
+whitenoise = "==3.2.2"                    # serve static assets
+
+
+# thumbnails (carousel? anything else?)
+sorl-thumbnail = "==12.3"
+Wand = "==0.4.4"
+
+
+# capture/playback related stuff
+certauth = "==1.1.3"                         # pinned for warcprox
+LinkHeader = "==0.4.3"                    # memento headers for single-link pages
+pyquery = "==1.2.17"                       # extract data from HTML in capture task
+PyVirtualDisplay = "==0.1.5"              # for capturing with non-headless browsers
+pywb = "==0.33.2"                   # playback engine
+selenium = "==2.47.3"               # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
+tempdir = "==0.6"                       # create temp dirs to be deleted at end of function -- handy for archive creation
+ua-parser = "==0.7.1"                     # user agent parsing to detect Safari browser for playbacks
+warcio = "==1.3.3"                        # helps us write metadata and inspect our WARCs
+warcprox = {git = "git://github.com/internetarchive/warcprox.git", ref = "f79e74482339f8c06880b28e889be694b30d4575", editable = true} # unreleased 1/4/16 version
+
+
+# alternate storages
+django-storages = "==1.5.2"
+"boto3" = "==1.4.4"                       # required for django-storages to use s3 backend
+
+
+# api
+djangorestframework = "==3.6.2"           # toolkit for building apis
+django-filter = "==1.0.2"                  # searching
+
+
+# link preservation
+internetarchive = "==1.0.10"               # upload warcs to internet archive
+
+
+# perma payments
+PyNaCl = "==1.1.2"                    # encryption. why pinned?
+
+
+# integration with campaign monitor
+createsend-python = {git = "git://github.com/rebeccacremona/createsend-python.git", ref = "7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b", editable = true}
+
+
+# testing
+"beautifulsoup4" = "==4.5.1"              # parses html of responses
+coverage = "==4.3.4"                      # record code coverage
+django-admin-smoke-tests = "==0.3.0"      # basic tests for the Django admin
+django-sslserver = "==0.14"              # For testing SSL locally (does this even work?)
+fakeredis = "==0.7.0"                     # simulate redis backend for tests
+"flake8" = "==2.5.4"                      # code linting
+hypothesis = "==3.31.2"                    # run tests with lots of generated input
+mock = "==2.0.0"                          # safe monkey patching
+pytest-cov = "==2.5.1"                    # integrate coverage w/ pytest
+pytest-django = "==3.1.2"                 # tools for django in pytest
+pytest-xdist = "==1.15.0"                  # run tests in parallel
+pytest = "==3.0.7"                        # test runner
+sauceclient = "==1.0.0"                   # run functional tests in many browsers online
+
+
+[requires]
+python_version = "3.5"
+
+[dev-packages]
