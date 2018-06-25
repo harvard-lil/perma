@@ -34,7 +34,7 @@ before_install:
 install:
   # python reqs
   - pip install pipenv
-  - pipenv install
+  - pipenv install --deploy
   - pip install coveralls
 
   # node reqs
