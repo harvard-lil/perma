@@ -104,6 +104,12 @@ pytest-xdist = "==1.15.0"                  # run tests in parallel
 pytest = "==3.0.7"                        # test runner
 sauceclient = "==1.0.0"                   # run functional tests in many browsers online
 
+# heroku
+dj_database_url = "==0.3.0"
+gevent = "==1.0.2"
+greenlet= "==0.4.12"          # via gevent
+gunicorn = "==19.3.0"
+newrelic = "==2.66.0.49"
 
 [requires]
 python_version = "3.5"
