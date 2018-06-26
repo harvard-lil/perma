@@ -117,7 +117,7 @@ class LinkUserAdmin(UserAdmin):
     form = LinkUserChangeForm
     add_form = LinkUserAddForm
     fieldsets = (
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'notes')}),
         (None, {'fields': ('password',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'monthly_link_limit')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),

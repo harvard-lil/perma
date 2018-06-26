@@ -446,6 +446,7 @@ class LinkUser(AbstractBaseUser):
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
     monthly_link_limit = models.IntegerField(default=settings.MONTHLY_CREATE_LIMIT)
+    notes = models.TextField(blank=True)
 
     objects = LinkUserManager()
     tracker = FieldTracker()
