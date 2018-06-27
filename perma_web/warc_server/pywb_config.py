@@ -384,6 +384,32 @@ class PermaCapturesView(PermaTemplateView):
         return response
 
 
+# monkeypatch archivalrouter.ArchivalRouter to fix encoding problem:
+_ensure_rel_uri_set = archivalrouter.ArchivalRouter.ensure_rel_uri_set
+@staticmethod
+def ensure_rel_uri_set(env):
+    """ Return the full requested path, including the query string
+    """
+    if 'REL_REQUEST_URI' in env:
+        return env['REL_REQUEST_URI']
+
+    if not env.get('SCRIPT_NAME') and env.get('REQUEST_URI'):
+        env['REL_REQUEST_URI'] = env['REQUEST_URI']
+        return env['REL_REQUEST_URI']
+
+    # ** begin perma changes **
+    path = str(bytes(env.get('PATH_INFO', ''),'iso-8859-1'), 'utf-8')
+    url = archivalrouter.quote(path, safe='/~!$&\'()*+,;=:@')
+    # ** end perma changes **
+    query = env.get('QUERY_STRING')
+    if query:
+        url += '?' + query
+
+    env['REL_REQUEST_URI'] = url
+    return url
+archivalrouter.ArchivalRouter.ensure_rel_uri_set = ensure_rel_uri_set
+
+
 class PermaRouter(archivalrouter.ArchivalRouter):
     def __call__(self, env):
         """
