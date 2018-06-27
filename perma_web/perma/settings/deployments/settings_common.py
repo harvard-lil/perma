@@ -143,6 +143,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
+    'ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -174,6 +175,7 @@ INSTALLED_APPS = (
     'lockss',
 
     # third party apps
+    'ratelimit',
     'mptt',
     'sorl.thumbnail',
     'settings_context_processor',

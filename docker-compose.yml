@@ -5,6 +5,7 @@ services:
     image: rabbitmq:3.7.2
     volumes:
       - rabbitmq_home:/var/lib/rabbitmq:delegated
+  # TO USE REDIS: add the caches setting found in settings_prod to your settings.py
   # redis:
   #   image: redis:4.0.6
   #   volumes:

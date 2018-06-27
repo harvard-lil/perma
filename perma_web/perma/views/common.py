@@ -1,4 +1,4 @@
-#from ratelimit.decorators import ratelimit
+from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -15,7 +15,7 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import (if_anonymous, redirect_to_download,
+from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     parse_user_agent, protocol, stream_warc_if_permissible)
 from ..email import send_admin_email, send_user_email_copy_admins
 
@@ -211,7 +211,7 @@ def rate_limit(request, exception):
 
 
 @csrf_exempt
-#@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def contact(request):
     """
     Our contact form page
