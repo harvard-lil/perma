@@ -15,9 +15,6 @@ addons:
     paths:
       - perma_web/failed_test_files
 
-
-
-
 cache:
   pip: true
   directories:
@@ -56,8 +53,8 @@ before_script:
   - date
 
 script:
-  - fab dev.test_python:travis=True
-  - fab dev.test_js
+  - pipenv run fab dev.test_python:travis=True
+  - pipenv run fab dev.test_js
 
 after_failure:
   - date

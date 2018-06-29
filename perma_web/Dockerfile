@@ -76,7 +76,7 @@ COPY Pipfile /perma/perma_web
 COPY Pipfile.lock /perma/perma_web
 RUN pip3 install -U "pip>=9,<10" \
     && pip install pipenv \
-    && pipenv --python 3.5 --site-packages install --system \
+    && pipenv --python 3.5 install --ignore-pipfile\
     && rm Pipfile \
     && rm Pipfile.lock
 
