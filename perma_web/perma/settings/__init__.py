@@ -5,7 +5,7 @@
 try:
     from .settings import *
 except ImportError as e:
-    if e.message=='No module named settings':
+    if e.msg=="No module named 'perma.settings.settings'":
         from .deployments.settings_dev import *
     else:
         raise
