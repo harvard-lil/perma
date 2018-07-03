@@ -94,9 +94,9 @@ def stats(request):
     return render(request, 'stats.html')
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
-#@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-#@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
-#@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
 def single_permalink(request, guid):
     """
     Given a Perma ID, serve it up.

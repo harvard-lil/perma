@@ -9,7 +9,7 @@ from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
-#from ratelimit.decorators import ratelimit
+from ratelimit.decorators import ratelimit
 
 from django.views.generic import UpdateView
 from django.conf import settings
@@ -45,7 +45,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -1128,7 +1128,7 @@ def logout(request):
     return render(request, "registration/logout.html")
 
 
-#@ratelimit(rate=settings.LOGIN_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.LOGIN_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 @sensitive_post_parameters()
 @never_cache
 def limited_login(request, template_name='registration/login.html',
@@ -1244,7 +1244,7 @@ def set_safari_cookie(request):
     return response
 
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def libraries(request):
     """
     Info for libraries, allow them to request accounts
@@ -1309,7 +1309,7 @@ def libraries(request):
     return render(request, "registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form})
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up(request):
     """
     Register a new user
@@ -1326,7 +1326,7 @@ def sign_up(request):
     return render(request, "registration/sign-up.html", {'form': form})
 
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_courts(request):
     """
     Register a new court user
@@ -1366,7 +1366,7 @@ def sign_up_courts(request):
     return render(request, "registration/sign-up-courts.html", {'form': form})
 
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_faculty(request):
     """
     Register a new user
@@ -1387,7 +1387,7 @@ def sign_up_faculty(request):
 
     return render(request, "registration/sign-up-faculty.html", {'form': form})
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_firm(request):
     """
     Register a new law firm user
@@ -1427,7 +1427,7 @@ def sign_up_firm(request):
     return render(request, "registration/sign-up-firms.html", {'form': form})
 
 
-#@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_journals(request):
     """
     Register a new user
