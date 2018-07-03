@@ -421,6 +421,8 @@ WARC_ROUTE = '/warc'
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
 THUMBNAIL_FORMAT = 'PNG'
 THUMBNAIL_COLORSPACE = None
+# Temporarily work around for https://github.com/jazzband/sorl-thumbnail/issues/476
+TEMPLATE_DEBUG = False
 
 # Relative to MEDIA_ROOT
 THUMBNAIL_STORAGE_PATH = 'thumbnails'

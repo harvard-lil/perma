@@ -26,7 +26,9 @@ RUN apt-get update \
     && apt-get install -y xvfb \
     && apt-get install -y libffi-dev \
     && apt-get install -y libjpeg62-turbo-dev \
-    && apt-get install -y libfontconfig1
+    && apt-get install -y libfontconfig1 \
+    && apt-get install -y imagemagick \
+    && apt-get install -y libmagickwand-dev
 
 # Install commonly used web fonts for better screen shots.
 RUN echo "deb http://httpredir.debian.org/debian stretch main contrib" > /etc/apt/sources.list \
