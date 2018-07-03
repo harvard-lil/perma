@@ -1,7 +1,4 @@
 **
 !Dockerfile
-!Pipfile
 !Pipfile.lock
-!requirements.txt
-!package.json
 !npm-shrinkwrap.json

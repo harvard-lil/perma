@@ -5,17 +5,8 @@ name = "pypi"
 
 [packages]
 
-#not needed?
-#pyScss = "==1.3.4"
-#jsmin = "==2.0.9"
-#pexpect = "==3.1"
-#smhasher = "==0.150.1"
-#python-dateutil = "*"                      # calculate link expiration date
-
-
 # general
 celery = "==3.1.25"                         # task queue
-
 Django = "==1.11.13"
 django-ratelimit = "==1.1.0"
 "Fabric3" = "==1.13.1.post1"                # task automation
@@ -24,6 +15,7 @@ pytz = "==2018.3"                           # timezone helper
 requests = {version = "==2.18.4", extras = ["security"]}
 tqdm = "==4.11.2"                           # progress bar in dev fab tasks
 Werkzeug = "==0.11.1"
+
 
 # databases
 mysqlclient = "==1.3.12"

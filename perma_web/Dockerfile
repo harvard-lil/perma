@@ -50,10 +50,10 @@ RUN wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 \
 # apt-get update: no need to re-run at this layer
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -y nodejs
-COPY package.json /perma/perma_web
+
+# npm
 COPY npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
-    && rm package.json \
     && rm npm-shrinkwrap.json
 
 # Make a python3 virtualenv and install requirements there.
@@ -74,14 +74,11 @@ RUN npm install \
 
 # python requirements via pipenv.
 # to access the virtualenv, invoke python like this: `pipenv run python`
-COPY Pipfile /perma/perma_web
 COPY Pipfile.lock /perma/perma_web
 RUN pip3 install -U "pip>=9,<10" \
     && pip install pipenv \
     && pipenv --python 3.5 install --ignore-pipfile\
-    && rm Pipfile \
     && rm Pipfile.lock
-
 
 # dev personalizations / try installing packages without rebuilding everything
 RUN apt-get install -y nano
