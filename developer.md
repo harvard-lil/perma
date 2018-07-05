@@ -9,18 +9,18 @@ See the [installation documentation](./install.md) to get up and running.
 Common tasks and commands
 -------------------------
 
-These commands assume you have configured your shell with the aliases defined in
+These commands assume you have configured your shell with the alias defined in
 the [shortcuts](./install.md#shortcuts) section of the installation docs, and that
 Perma's Docker containers are up and running in the background:
 -  run `docker-compose up -d` to start the containers
 -  run `docker-compose down` to stop them when you are finished.
 
 (If you are not running Perma inside Docker, most of the below the commands
-should still work: substitute `fab` for `dfab`, `pipenv` for `dpipenv`, etc.)
+should still work: just skip the `d`!)
 
 ### Run Perma
 
-`dfab run`
+`d fab run`
 
 That's it! You should now be able to load Perma in your browser at
 `http://perma.test:8000/`. It will take a few seconds for the first page
@@ -36,7 +36,7 @@ Press `CONTROL-C` to stop the server.
 
 ### Run all the tests
 
-`dfab test`
+`d fab test`
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
@@ -47,9 +47,9 @@ Python tests are run via pytest. Pytest supports several ways to
 [select and run tests](https://docs.pytest.org/en/latest/usage.html#specifying-tests-selecting-tests),
 including a super-convenient keyword-matching option:
 
-`dpytest -k "name_of_a_test_that_failed"`
+`d pytest -k "name_of_a_test_that_failed"`
 
-`dpytest -k "a_specific_test_module"`
+`d pytest -k "a_specific_test_module"`
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
@@ -76,11 +76,11 @@ in `docker-compose.yaml`. This is not yet managed programmatically.
 
 ### Migrate the database
 
-`dmanage.py makemigrations`
+`d ./manage.py makemigrations`
 
-`dmanage.py migrate`
+`d ./manage.py migrate`
 
-`dmanage.py migrate --database=perma-cdxline`
+`d ./manage.py migrate --database=perma-cdxline`
 
 For more information on migrations, see [Schema and data migrations](#schema-and-data-migrations)
 
@@ -93,11 +93,12 @@ For more information on migrations, see [Schema and data migrations](#schema-and
 
 ### Run arbitrary commands
 
-Sometimes, you may want to run arbitrary commands inside your container,
-such as `which python`, `ps aux`, `cat /usr/local/somefile.txt`, etc.
+You can run `d bash` to get a bash terminal in your container. Your python
+environment will be activated and you will be logged in as root.
 
-You can run `dssh` to get a bash terminal in your container. You will be logged
-in as root.
+You can also prefix arbitrary commands with `d`:
+-  `d which python` (output: the virtualenv's python)
+-  `d ls` (output: /perma/perma_web)
 
 
 ## Git and GitHub

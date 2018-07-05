@@ -43,11 +43,7 @@ Docker commands can be lengthy. To cut down on keystrokes, we recommend
 adding the following to your `.bash_profile`.
 
 ```
-alias dfab="docker-compose exec web pipenv run fab"
-alias dmanage.py="docker-compose exec web pipenv run python manage.py"
-alias dpytest="docker-compose exec web pipenv run pytest"
-alias dpipenv="docker-compose exec web pipenv"
-alias dssh="docker-compose exec web bash"
+alias d="docker-compose exec web pipenv run"
 ```
 
 
