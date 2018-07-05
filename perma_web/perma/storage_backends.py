@@ -25,7 +25,7 @@ class StaticStorage(CompressedManifestStaticFilesStorage):
 
 ### Media files config
 
-class BaseMediaStorage(object):
+class BaseMediaStorage:
     """
         This mixin provides some helper functions for working with files
         in both local disk and remote storage.

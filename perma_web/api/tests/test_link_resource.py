@@ -8,7 +8,7 @@ from django.http import StreamingHttpResponse
 from io import StringIO
 from surt import surt
 import json
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 from mock import patch
 
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR

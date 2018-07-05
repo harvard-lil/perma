@@ -57,19 +57,19 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 
 ### HELPERS ###
 
-class RequireOrgOrRegOrAdminUser(object):
+class RequireOrgOrRegOrAdminUser:
     """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
-class RequireRegOrAdminUser(object):
+class RequireRegOrAdminUser:
     """ Mixin for class-based views that requires user to be a registrar user or admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
-class RequireAdminUser(object):
+class RequireAdminUser:
     """ Mixin for class-based views that requires user to be an admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_staff))
     def dispatch(self, request, *args, **kwargs):

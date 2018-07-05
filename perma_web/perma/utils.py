@@ -76,7 +76,7 @@ def user_passes_test_or_403(test_func):
 
 ### password helper ###
 
-class AlphaNumericValidator(object):
+class AlphaNumericValidator:
     """
     Adapted from https://djangosnippets.org/snippets/2551/
     """

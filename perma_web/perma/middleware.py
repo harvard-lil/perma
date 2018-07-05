@@ -1,7 +1,7 @@
 from django.http import Http404
 
 
-class AdminAuthMiddleware(object):
+class AdminAuthMiddleware:
     def process_request(self, request):
         """
             Don't make Django admin visible unless user is already logged into dashboard and is an admin.

@@ -295,7 +295,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         if check_results:
             fresh_data = self.deserialize(self.api_client.get(url, **get_kwargs))
 
-            for attr in list(kwargs['data'].keys()):
+            for attr in kwargs['data'].keys():
                 try:
                     # Make sure the data actually changed
                     self.assertNotEqual(fresh_data[attr], old_data[attr])

@@ -85,7 +85,7 @@ class LinkUserAddForm(UserCreationForm):
     username = None
     # email = forms.EmailField(label="Email", max_length=254)
 
-    class Meta(object):
+    class Meta:
         model = LinkUser
         fields = ("email",)
 

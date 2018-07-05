@@ -446,7 +446,7 @@ def parse_response(response_text):
         Given an HTTP response line and headers, as a string,
         return a requests.Response object.
     """
-    class FakeSocket(object):
+    class FakeSocket:
         def __init__(self, response_str):
             self._file = BytesIO(response_str)
 

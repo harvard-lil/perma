@@ -131,7 +131,7 @@ class DeletableModel(models.Model):
     user_deleted = models.BooleanField(default=False, verbose_name="Deleted by user")
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
 
-    class Meta(object):
+    class Meta:
         abstract = True
 
     def safe_delete(self):
@@ -194,7 +194,7 @@ class Registrar(models.Model):
     history = HistoricalRecords()
     tags = TaggableManager(blank=True)
 
-    class Meta(object):
+    class Meta:
         ordering = ['name']
 
     def __str__(self):
@@ -453,7 +453,7 @@ class LinkUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    class Meta(object):
+    class Meta:
         verbose_name = 'User'
 
     def save(self, *args, **kwargs):
@@ -737,7 +737,7 @@ class Folder(MPTTModel):
             else:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None)
 
-    class MPTTMeta(object):
+    class MPTTMeta:
         order_insertion_by = ['name']
 
     def is_empty(self):

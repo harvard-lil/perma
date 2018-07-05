@@ -221,7 +221,7 @@ def dispatch_multiple_requests(request, call_list, custom_request_attributes=Non
             response = exception_handler(exception, {})
             if not response:
                 logger.exception("Internal Server Error")
-                class SpoofResponse(object):
+                class SpoofResponse:
                     pass
                 response = SpoofResponse()
                 response.status_code = 500
