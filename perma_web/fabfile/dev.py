@@ -1,8 +1,8 @@
 import os
 import shutil
 import subprocess
-import sys
 import signal
+import sys
 import tempfile
 
 from django.conf import settings
@@ -366,14 +366,12 @@ def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
     """
     from perma.models import Capture
     import traceback
-    import sys
     import types
     from warc_server.app import application
 
     # monkey patch the pywb application to raise all exceptions instead of catching them
     def handle_exception(self, env, exc, print_trace):
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        raise (exc_type, exc_value, exc_traceback)
+        raise exc
     application.handle_exception = types.MethodType(handle_exception, application)
 
     # either check links by guid, one per line in the supplied file ...
@@ -401,12 +399,12 @@ def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
         try:
             replay_response = capture.link.replay_url(capture.url, wsgi_application=application)
         except RuntimeError as e:
-            if 'does not support redirect to external targets' in e.message:
+            if 'does not support redirect to external targets' in e.args:
                 # skip these for now -- relative redirects will be fixed in Werkzeug 0.12
                 continue
             raise
         except Exception as e:
-            print("%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.message)
+            print("%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.args)
             traceback.print_exc()
             continue
 
