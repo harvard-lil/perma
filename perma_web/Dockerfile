@@ -26,6 +26,15 @@ RUN apt-get update \
     && apt-get install -y nano
 
 
+# Install commonly used web fonts for better screen shots.
+RUN echo "deb http://httpredir.debian.org/debian stretch main contrib" > /etc/apt/sources.list \
+    && echo "deb http://security.debian.org/ stretch/updates main contrib" >> /etc/apt/sources.list \
+    && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+    && apt-get update \
+    && apt-get install -y ttf-mscorefonts-installer
+RUN apt-get install -y fonts-roboto
+
+
 # npm
 COPY package.json /perma/perma_web
 COPY npm-shrinkwrap.json /perma/perma_web
