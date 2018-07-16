@@ -30,6 +30,7 @@ from django.apps import apps
 
 from pywb.framework.wsgi_wrappers import WSGIApp
 from pywb.rewrite.header_rewriter import HeaderRewriter
+from pywb.rewrite.html_rewriter import HTMLRewriterMixin
 from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
@@ -58,6 +59,32 @@ oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
 GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
 WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
 thread_local_data = threading.local()
+
+
+# monkey patch the html rewriter to handle unicode in html attributes
+real_write_attr= HTMLRewriterMixin._write_attr
+def _write_attr(self, name, value, empty_attr):
+    # python2-only handling of unicode html attrs
+    if isinstance(name, str):
+        name = name.decode('utf-8')
+    if isinstance(value, str):
+        value = value.decode('utf-8')
+
+    # if empty_attr is set, just write 'attr'!
+    if empty_attr:
+        attr = ' ' + name
+    # write with value, if set
+    elif value:
+        attr = ' ' + name + '="' + value.replace('"', '&quot;') + '"'
+    # otherwise, 'attr=""' is more common, so use that form
+    else:
+        attr = ' ' + name + '=""'
+
+    # blech. surely this can't be the correct solution...
+    # but latin-1 is explicitly expected....
+    # https://github.com/webrecorder/pywb/blob/master/pywb/rewrite/content_rewriter.py#L300
+    self.out.write(attr.encode('latin-1', 'ignore'))
+HTMLRewriterMixin._write_attr = _write_attr
 
 # Partially patch python 2.7 so that colons are accepted as valid cookie keys
 # when creating cookie objects.
