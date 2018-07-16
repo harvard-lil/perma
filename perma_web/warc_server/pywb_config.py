@@ -66,24 +66,10 @@ real_write_attr= HTMLRewriterMixin._write_attr
 def _write_attr(self, name, value, empty_attr):
     # python2-only handling of unicode html attrs
     if isinstance(name, str):
-        name = name.decode('utf-8')
+        name = name.decode('latin-1')
     if isinstance(value, str):
-        value = value.decode('utf-8')
-
-    # if empty_attr is set, just write 'attr'!
-    if empty_attr:
-        attr = ' ' + name
-    # write with value, if set
-    elif value:
-        attr = ' ' + name + '="' + value.replace('"', '&quot;') + '"'
-    # otherwise, 'attr=""' is more common, so use that form
-    else:
-        attr = ' ' + name + '=""'
-
-    # blech. surely this can't be the correct solution...
-    # but latin-1 is explicitly expected....
-    # https://github.com/webrecorder/pywb/blob/master/pywb/rewrite/content_rewriter.py#L300
-    self.out.write(attr.encode('latin-1', 'ignore'))
+        value = value.decode('latin-1')
+    real_write_attr(self, name, value, empty_attr)
 HTMLRewriterMixin._write_attr = _write_attr
 
 # Partially patch python 2.7 so that colons are accepted as valid cookie keys
