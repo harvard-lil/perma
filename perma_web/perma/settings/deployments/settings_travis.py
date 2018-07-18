@@ -22,4 +22,4 @@ WARC_HOST = 'perma-archives.org'
 ALLOWED_HOSTS = ['perma.cc', 'perma-archives.org']
 
 # Where we store our generated assets (phantomjs images)
-MEDIA_ROOT = '/tmp/perma/assets'
+MEDIA_ROOT = '/tmp/perma/assets/'
