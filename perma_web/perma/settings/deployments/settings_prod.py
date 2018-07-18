@@ -8,7 +8,7 @@ DEBUG = False
 # DEBUG_PROPAGATE_EXCEPTIONS = True
 
 # The base location, on disk, where we want to store our generated assets
-MEDIA_ROOT = '/perma/assets/generated'
+MEDIA_ROOT = '/perma/assets/generated/'
 
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing

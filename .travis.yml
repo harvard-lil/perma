@@ -58,7 +58,7 @@ before_script:
   - date
 
 script:
-  - fab dev.test_python
+  - fab dev.test_python:travis=True
   - fab dev.test_js
 
 after_failure:
