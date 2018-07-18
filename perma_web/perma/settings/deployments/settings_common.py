@@ -529,3 +529,6 @@ FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR
 # If using geocoding
 # Via https://console.developers.google.com/apis/api/geocoding_backend/overview
 GEOCODING_KEY = None
+
+# override django-storages default
+AWS_DEFAULT_ACL = 'private'
