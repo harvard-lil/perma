@@ -1,4 +1,4 @@
-from ..__init__ import *
+from .settings_dev import *
 
 #########
 # Setup #
@@ -8,12 +8,6 @@ FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
 
-# Uncomment to enable Nose as your test runner
-# from settings_dev import INSTALLED_APPS
-# import logging
-# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-# INSTALLED_APPS += ("django_nose",)
-# logging.getLogger('subdomains.middleware').setLevel(logging.ERROR)
 
 #############
 # Overrides #
@@ -23,6 +17,7 @@ RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inlin
 
 SUBDOMAIN_URLCONFS = {}
 
+DEBUG = False
 TESTING = True
 
 

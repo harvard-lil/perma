@@ -64,15 +64,15 @@ def run_ssl(port="0.0.0.0:8000"):
 _default_tests = "perma api functional_tests lockss"
 
 @task
-def test(apps=_default_tests, pytest=True):
+def test(apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
     reset_failed_test_files_folder()
-    test_python(apps, pytest)
+    test_python(apps)
     if apps == _default_tests:
         test_js()
 
 @task
-def test_python(apps=_default_tests, pytest=True):
+def test_python(apps=_default_tests, travis=False):
     """ Run Python tests. """
 
     # .pyc files can contain filepaths; this permits easy switching
@@ -88,12 +88,12 @@ def test_python(apps=_default_tests, pytest=True):
     tmp = tempfile.mkdtemp()
     try:
         shell_envs = {
-            'DJANGO__MEDIA_ROOT': tmp
+            'DJANGO__MEDIA_ROOT': os.path.join(tmp, '') #join ensures path ends in /
         }
         with shell_env(**shell_envs):
-            # all arguments to Fabric tasks are interpretted as strings
-            if pytest == 'False':
-                local("coverage run manage.py test --settings perma.settings.deployments.settings_testing %s" % (apps))
+            # NB: all arguments to Fabric tasks are interpreted as strings
+            if travis == 'True':
+                local("pytest %s --ds=perma.settings --cov --cov-report= " % (apps))
             else:
                 local("pytest %s --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
     finally:
