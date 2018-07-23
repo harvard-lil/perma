@@ -18,7 +18,6 @@ from django.test import TransactionTestCase, SimpleTestCase
 from django.utils.functional import cached_property
 from rest_framework.test import APIClient
 
-from perma import models
 import perma.tasks
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
