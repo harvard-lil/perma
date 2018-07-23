@@ -485,7 +485,7 @@ CELERY_ROUTES = {
 
 
 ENABLE_AV_CAPTURE = False
-
+RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
 
 WEBPACK_LOADER = {
     'DEFAULT': {
