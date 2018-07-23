@@ -68,11 +68,11 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            user=self.org_user,
                            data={'url': 'https://www.ntanet.org/some-article.pdf\x00'})
 
+    @override_settings(RESOURCE_LOAD_TIMEOUT=0.25) # only wait 1/4 second before giving up
     def test_should_reject_unresolvable_domain_url(self):
-        with self.header_timeout(0.25):  # only wait 1/4 second before giving up
-            self.rejected_post(self.list_url,
-                               user=self.org_user,
-                               data={'url': 'http://this-is-not-a-functioning-url.com'})
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': 'http://this-is-not-a-functioning-url.com'})
 
     def test_should_reject_unloadable_url(self):
         self.rejected_post(self.list_url,

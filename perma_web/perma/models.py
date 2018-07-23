@@ -814,9 +814,6 @@ class LinkQuerySet(QuerySet):
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
-
-HEADER_CHECK_TIMEOUT = 10  # keeping this setting out here allows tests to override it for speed
-
 class Link(DeletableModel):
     """
     This is the core of the Perma link.
@@ -876,7 +873,7 @@ class Link(DeletableModel):
                 self.ascii_safe_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
-                timeout=HEADER_CHECK_TIMEOUT,
+                timeout=settings.RESOURCE_LOAD_TIMEOUT,
                 stream=True  # we're only looking at the headers
             ).headers
         except (requests.ConnectionError, requests.Timeout):

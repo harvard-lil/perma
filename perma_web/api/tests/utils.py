@@ -18,7 +18,6 @@ from django.test import TransactionTestCase, SimpleTestCase
 from django.utils.functional import cached_property
 from rest_framework.test import APIClient
 
-from perma import models
 import perma.tasks
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
@@ -230,15 +229,6 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     @cached_property
     def server_url(self):
         return "http://" + self.server_domain + ":" + str(self.server_port)
-
-    @contextmanager
-    def header_timeout(self, timeout):
-        prev_t = models.HEADER_CHECK_TIMEOUT
-        try:
-            models.HEADER_CHECK_TIMEOUT = timeout
-            yield
-        finally:
-            models.HEADER_CHECK_TIMEOUT = prev_t
 
     def detail_url(self, obj):
         return "{0}/{1}".format(self.list_url, obj.pk)
