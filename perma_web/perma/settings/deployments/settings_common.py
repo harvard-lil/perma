@@ -318,6 +318,9 @@ LOGGING = {
 }
 LOG_PLAYBACK_404 = False
 
+# URLS we should not allow to play back
+REFUSE_PLAYBACK = []
+
 # IP ranges we won't archive.
 # Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
 BANNED_IP_RANGES = [

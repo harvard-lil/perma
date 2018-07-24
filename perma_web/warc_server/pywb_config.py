@@ -233,6 +233,10 @@ class PermaRoute(archivalrouter.Route):
             if not Link(pk=guid).validate_access_token(cookie.value, 3600):
                 raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
 
+        # check blacklist
+        if any(url in wbrequest.wb_url.url for url in settings.REFUSE_PLAYBACK):
+            raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
+
         # check whether archive contains the requested URL
         try:
             urlkey = surt(wbrequest.wb_url.url)
