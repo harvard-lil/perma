@@ -318,7 +318,7 @@ LOGGING = {
 }
 LOG_PLAYBACK_404 = False
 
-# URLS we should not allow to plackback
+# URLS we should not allow to play back
 REFUSE_PLAYBACK = []
 
 # IP ranges we won't archive.
