@@ -47,7 +47,6 @@ Wand = "==0.4.4"
 
 
 # capture/playback related stuff
-certauth = "==1.1.3"                        # pinned for warcprox
 LinkHeader = "==0.4.3"                      # memento headers for single-link pages
 pyquery = "==1.2.17"                        # extract data from HTML in capture task
 PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless browsers
@@ -56,7 +55,7 @@ selenium = "==2.47.3"                       # drive headless browsers. pinned af
 tempdir = "==0.6"                           # create temp dirs to be deleted at end of function -- handy for archive creation
 ua-parser = "==0.7.1"                       # user agent parsing to detect Safari browser for playbacks
 warcio = "==1.3.3"                          # helps us write metadata and inspect our WARCs
-warcprox = {git = "git://github.com/internetarchive/warcprox.git", ref = "f79e74482339f8c06880b28e889be694b30d4575", editable = true} # unreleased 1/4/16 version
+warcprox = "==2.4b2"
 
 
 # alternate storages
