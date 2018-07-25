@@ -29,7 +29,7 @@ from django.apps import apps
 
 from pywb.framework.wsgi_wrappers import WSGIApp
 from pywb.rewrite.header_rewriter import HeaderRewriter
-from pywb.rewrite.html_rewriter import HTMLRewriterMixin
+# from pywb.rewrite.html_rewriter import HTMLRewriterMixin
 from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
@@ -61,15 +61,15 @@ thread_local_data = threading.local()
 
 
 # monkey patch the html rewriter to handle unicode in html attributes
-real_write_attr= HTMLRewriterMixin._write_attr
-def _write_attr(self, name, value, empty_attr):
-    # python2-only handling of unicode html attrs
-    if isinstance(name, str):
-        name = name.decode('latin-1')
-    if isinstance(value, str):
-        value = value.decode('latin-1')
-    real_write_attr(self, name, value, empty_attr)
-HTMLRewriterMixin._write_attr = _write_attr
+# real_write_attr= HTMLRewriterMixin._write_attr
+# def _write_attr(self, name, value, empty_attr):
+#     # python2-only handling of unicode html attrs
+#     if isinstance(name, str):
+#         name = name.decode('latin-1')
+#     if isinstance(value, str):
+#         value = value.decode('latin-1')
+#     real_write_attr(self, name, value, empty_attr)
+# HTMLRewriterMixin._write_attr = _write_attr
 
 
 def get_archive_path():
