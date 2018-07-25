@@ -1,17 +1,15 @@
 import tempfile
 import traceback
-from io import BytesIO
 from collections import OrderedDict
 from contextlib import contextmanager
 from pyquery import PyQuery
 
-from http.client import HTTPResponse, CannotSendRequest
+from http.client import CannotSendRequest
 from urllib.error import URLError
 
 import os
 import os.path
 import threading
-import queue as queue
 import time
 from datetime import datetime, timedelta
 import urllib.parse
