@@ -306,7 +306,7 @@ LOGGING = {
             'propagate': False,
         },
         'warcprox': {
-            'level': 'WARNING'
+            'level': 'CRITICAL'
         },
         'requests' : {
             'level': 'WARNING'
