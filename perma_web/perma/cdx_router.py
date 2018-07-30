@@ -1,4 +1,4 @@
-class CDXRouter(object):
+class CDXRouter:
     """
     A router to control all database operations on cdx models.
     """

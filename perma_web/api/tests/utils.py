@@ -4,12 +4,12 @@ import os
 import errno
 import tempfile
 import shutil
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from http.server import HTTPServer
+from http.server import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
-import urlparse
+import urllib.parse
 import json
 
 from django.test.utils import override_settings
@@ -54,7 +54,7 @@ class TestHTTPServer(HTTPServer):
 class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
     """Subclass SimpleHTTPRequestHandler to permit the sending of custom headers"""
     def end_headers(self):
-        response_headers = urlparse.parse_qs(urlparse.urlparse(self.path).query).get('response_headers')
+        response_headers = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get('response_headers')
         if response_headers:
             headers = json.loads(response_headers[0])
             for header, value in headers:
@@ -72,13 +72,13 @@ def log_api_call(func):
         return func
     @wraps(func)
     def func_wrapper(self, *args, **kwargs):
-        print func.__name__, "called as user", self.handler._force_user, "with", args, kwargs
+        print(func.__name__, "called as user", self.handler._force_user, "with", args, kwargs)
         try:
             result = func(self, *args, **kwargs)
         except Exception as e:
-            print "returning exception:", e
+            print("returning exception:", e)
             raise
-        print "returning:", result
+        print("returning:", result)
         return result
     return func_wrapper
 
@@ -174,7 +174,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         for source_file in cls.serve_files:
 
             # handle single strings
-            if isinstance(source_file, basestring):
+            if isinstance(source_file, str):
                 target_url = os.path.basename(source_file)
 
             # handle tuple like (source_file, target_url)
@@ -375,7 +375,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     ### assert methods copied from Tastypie ###
 
     def deserialize(self, resp):
-        return json.loads(resp.content)
+        return json.loads(str(resp.content, 'utf-8'))
 
     def assertValidJSONResponse(self, resp):
         # Modified from tastypie to allow 201's as well

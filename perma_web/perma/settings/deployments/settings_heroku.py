@@ -76,11 +76,13 @@ PHANTOMJS_LOG = 'phantomjs.log' # this will just get thrown away
 # caching
 CACHES['default']['LOCATION'] = os.environ.get('REDISCLOUD_URL')
 
-# # thumbnail redis server
-# THUMBNAIL_REDIS_DB = _parsed_redis_url['db']
-# THUMBNAIL_REDIS_PASSWORD = _parsed_redis_url['password']
-# THUMBNAIL_REDIS_HOST = _parsed_redis_url['host']
-# THUMBNAIL_REDIS_PORT = _parsed_redis_url['port']
+# thumbnail redis server
+# override defaults https://sorl-thumbnail.readthedocs.io/en/latest/reference/settings.html#thumbnail-redis-host
+from urllib.parse import urlparse
+_parsed_redis_url = urlparse(os.environ.get('REDISCLOUD_URL'))
+THUMBNAIL_REDIS_PASSWORD = _parsed_redis_url.password
+THUMBNAIL_REDIS_HOST = _parsed_redis_url.hostname
+THUMBNAIL_REDIS_PORT = _parsed_redis_url.port
 
 
 ### OVERRIDE THESE WITH ENV VARS ###

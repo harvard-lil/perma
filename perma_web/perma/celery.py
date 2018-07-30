@@ -1,8 +1,6 @@
 # via http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
 # this file has to be called celery.py so it will be found by the celery command
 
-from __future__ import absolute_import
-
 import os
 
 from celery import Celery

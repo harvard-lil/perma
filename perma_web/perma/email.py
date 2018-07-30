@@ -163,11 +163,11 @@ def format_for_cm_registrar_users(users):
         formatted['Name'] = format_name(user)
         formatted['EmailAddress'] = user["email"]
         formatted['CustomFields'] = [
-            {"Key": "RegistrarId", "Value":  unicode(user["registrar_id"])},
+            {"Key": "RegistrarId", "Value":  str(user["registrar_id"])},
             {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
             {"Key": "RegistrarName", "Value": user["registrar_name"]},
-            {"Key": "TotalLinks", "Value": unicode(user["total_links"])},
-            {"Key": "YearLinks", "Value": unicode(user["year_links"])},
+            {"Key": "TotalLinks", "Value": str(user["total_links"])},
+            {"Key": "YearLinks", "Value": str(user["year_links"])},
             {"Key": "MostActiveOrg", "Value": most_active_org_text},
             {"Key": "RegistrarUsers", "Value": format_registrar_users(user['registrar_users'])}
         ]

@@ -4,18 +4,17 @@
 from django.conf import settings
 
 from pywb.framework.wsgi_wrappers import init_app
-from pywb_config import (PermaCDXServer,
+from .pywb_config import (PermaCDXServer,
                          PermaHandler,
                          create_perma_wb_router,
                          get_archive_path)
-
 
 application = init_app(create_perma_wb_router,
                        load_yaml=False,
                        config={
                            'port': 8000,
                            'collections': {'': 'PermaCDXSource'},
-                           'archive_paths': get_archive_path(),
+                           'archive_paths': str(get_archive_path(), 'utf-8'),
                            'server_cls': PermaCDXServer,
                            'wb_handler_class': PermaHandler,
                            'enable_memento': True,

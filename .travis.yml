@@ -1,6 +1,6 @@
 language: python
 python:
-  - "2.7"
+  - "3.5"
 env: CFLAGS="-O0"
 
 dist: precise
@@ -14,9 +14,6 @@ addons:
   artifacts:
     paths:
       - perma_web/failed_test_files
-
-
-
 
 cache:
   pip: true
@@ -32,11 +29,9 @@ before_install:
   - cd perma_web
 
 install:
-  # faster installs, per https://github.com/nickstenning/travis-pip-cache
-  - pip install -U pip wheel
-
   # python reqs
-  - pip install -r requirements.txt
+  - pip install pipenv
+  - pipenv install --deploy
   - pip install coveralls
 
   # node reqs
@@ -58,8 +53,8 @@ before_script:
   - date
 
 script:
-  - fab dev.test_python:travis=True
-  - fab dev.test_js
+  - pipenv run fab dev.test_python:travis=True
+  - pipenv run fab dev.test_js
 
 after_failure:
   - date

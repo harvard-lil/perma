@@ -1,25 +1,21 @@
-from __future__ import absolute_import # to avoid importing local .celery instead of celery package
-
 import tempfile
 import traceback
-from cStringIO import StringIO
 from collections import OrderedDict
 from contextlib import contextmanager
 from pyquery import PyQuery
 
-from httplib import HTTPResponse, CannotSendRequest
-from urllib2 import URLError
+from http.client import CannotSendRequest
+from urllib.error import URLError
 
 import os
 import os.path
 import threading
-import Queue as queue
 import time
 from datetime import datetime, timedelta
-import urlparse
+import urllib.parse
 import re
 import json
-import robotparser
+import urllib.robotparser
 import errno
 import tempdir
 from socket import error as socket_error
@@ -32,8 +28,8 @@ from selenium.webdriver.common.proxy import ProxyType, Proxy
 from pyvirtualdisplay import Display
 import warcprox
 from warcprox.controller import WarcproxController
-from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
-from warcprox.warcwriter import WarcWriter, WarcWriterThread
+from warcprox.warcproxy import WarcProxyHandler
+from warcprox.mitmproxy import ProxyingRecordingHTTPResponse
 import requests
 from requests.structures import CaseInsensitiveDict
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -85,7 +81,7 @@ def safe_save_fields(instance, **kwargs):
     """
     for key, val in kwargs.items():
         setattr(instance, key, val)
-    instance.save(update_fields=kwargs.keys())
+    instance.save(update_fields=list(kwargs.keys()))
 
 def get_url(url, thread_list, proxy_address, requested_urls):
     """
@@ -144,20 +140,15 @@ class HaltCaptureException(Exception):
 # WARCPROX HELPERS
 
 # monkeypatch ProxyingRecorder to grab headers of proxied response
-_orig_update_payload_digest = ProxyingRecorder._update_payload_digest
-def _update_payload_digest(self, hunk):
-    if self.payload_digest is None:
-        if not hasattr(self, 'headers'):
-            self.headers = ""
-        self.headers += hunk
-        self.headers = re.sub(br'(\r?\n\r?\n).*', r'\1', self.headers)  # remove any part of hunk that came after headers
-    return _orig_update_payload_digest(self, hunk)
-ProxyingRecorder._update_payload_digest = _update_payload_digest
+_orig_begin = ProxyingRecordingHTTPResponse.begin
+def begin(self, extra_response_headers={}):
+    _orig_begin(self, extra_response_headers={})
+    self.recorder.headers = self.msg
+ProxyingRecordingHTTPResponse.begin = begin
 
-# monkeypatch WarcProxy so request threads are daemons, and don't stop
-# the parent python process from quitting normally
-_orig_threading_mixin = warcprox.warcprox.socketserver.ThreadingMixIn
-_orig_threading_mixin.daemon_threads = True
+# get a copy of warcprox's proxy function, which we can use to
+# monkey-patch the function freshly on each call of run_next_capture
+_real_proxy_request = WarcProxyHandler._proxy_request
 
 
 # BROWSER HELPERS
@@ -171,7 +162,7 @@ def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
 
     display = None
-    print "Using browser: %s" % settings.CAPTURE_BROWSER
+    print("Using browser: %s" % settings.CAPTURE_BROWSER)
 
     # PhantomJS
     if settings.CAPTURE_BROWSER == 'PhantomJS':
@@ -366,7 +357,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
                 break
             except ValueError:
                 # switching to frame failed for some reason (does this still apply?)
-                print "run_in_frames_recursive caught exception switching to iframe:"
+                print("run_in_frames_recursive caught exception switching to iframe:")
                 traceback.print_exc()
 
             # return to current frame
@@ -376,7 +367,7 @@ def run_in_frames_recursive(browser, func, output_collector, frame_path=None):
                     browser.switch_to.frame(frame)
             except NoSuchFrameException:
                 # frame hierarchy changed; frame_path is invalid
-                print "frame hierarchy changed while running run_in_frames_recursive"
+                print("frame hierarchy changed while running run_in_frames_recursive")
                 break
 
 
@@ -430,7 +421,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
 
 def inc_progress(capture_job, inc, description):
     capture_job.inc_progress(inc, description)
-    print "%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description)
+    print("%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description))
 
 def capture_current_size(thread_list, recorded):
     """
@@ -441,27 +432,13 @@ def capture_current_size(thread_list, recorded):
 
 def make_absolute_urls(base_url, urls):
     """collect resource urls, converted to absolute urls relative to current browser frame"""
-    return [urlparse.urljoin(base_url, url) for url in urls if url]
+    return [urllib.parse.urljoin(base_url, url) for url in urls if url]
 
-def parse_response(response_text):
+def parse_headers(msg):
     """
-        Given an HTTP response line and headers, as a string,
-        return a requests.Response object.
+    Given an http.client.HTTPMessage, returns a parsed dict
     """
-    class FakeSocket():
-        def __init__(self, response_str):
-            self._file = StringIO(response_str)
-
-        def makefile(self, *args, **kwargs):
-            return self._file
-
-    source = FakeSocket(response_text)
-    response = HTTPResponse(source)
-    response.begin()
-    requests_response = requests.Response()
-    requests_response.status_code = response.status
-
-    headers = CaseInsensitiveDict(response.getheaders())
+    headers = CaseInsensitiveDict(msg.items())
     # Reset headers['x-robots-tag'], so that we can handle the
     # possibilility that multiple x-robots directives might be included
     # https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
@@ -478,13 +455,14 @@ def parse_response(response_text):
     # Since parsed response headers aren't archived, this convenience is
     # fine. However, it's worth keeping track of the situation.
     robots_directives = []
-    for directive in response.msg.getallmatchingheaders('x-robots-tag'):
-        robots_directives.append(directive.split(": ", 1)[1].replace("\n", "").replace("\r", ""))
+    # https://bugs.python.org/issue5053
+    # https://bugs.python.org/issue13425
+    directives = msg.get_all('x-robots-tag')
+    if directives:
+        for directive in directives:
+            robots_directives.append(directive.replace("\n", "").replace("\r", ""))
     headers['x-robots-tag'] = ";".join(robots_directives)
-
-    requests_response.headers = headers
-
-    return requests_response
+    return headers
 
 
 ### CAPTURE COMPONENTS ###
@@ -558,27 +536,28 @@ def meta_tag_analysis_failed(link):
     """What to do if analysis of a link's meta tags fails"""
     if settings.PRIVATE_LINKS_ON_FAILURE:
         safe_save_fields(link, is_private=True, private_reason='failure')
-    print "Meta tag retrieval failure."
+    print("Meta tag retrieval failure.")
     link.tags.add('meta-tag-retrieval-failure')
 
 # robots.txt
 
 def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls):
-    robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
+    robots_txt_location = urllib.parse.urljoin(content_url, '/robots.txt')
     robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls)
     if e or not robots_txt_response or not robots_txt_response.ok:
-        print "Couldn't reach robots.txt"
+        print("Couldn't reach robots.txt")
         return
-    print "Robots.txt fetched."
+    print("Robots.txt fetched.")
 
     # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
-    if 'Perma' in robots_txt_response.content:
+    content = str(robots_txt_response.content, 'utf-8')
+    if 'Perma' in content:
         # We found Perma specifically mentioned
-        rp = robotparser.RobotFileParser()
-        rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
+        rp = urllib.robotparser.RobotFileParser()
+        rp.parse([line.strip() for line in content.split('\n')])
         if not rp.can_fetch('Perma', target_url):
             safe_save_fields(link, is_private=True, private_reason='policy')
-            print "Robots.txt disallows Perma."
+            print("Robots.txt disallows Perma.")
 
 # favicons
 
@@ -589,7 +568,7 @@ def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, 
         if favicon:
             successful_favicon_urls.append(favicon)
     if not successful_favicon_urls:
-        print "Couldn't get any favicons"
+        print("Couldn't get any favicons")
 
 def favicon_get_urls(dom_tree, content_url):
     """
@@ -607,10 +586,10 @@ def favicon_get_urls(dom_tree, content_url):
     return urls
 
 def favicon_fetch(url, thread_list, proxy_address, requested_urls):
-    print "Fetching favicon from %s ..." % url
+    print("Fetching favicon from %s ..." % url)
     response, e = get_url(url, thread_list, proxy_address, requested_urls)
     if e or not response or not response.ok:
-        print "Favicon failed:", e, response
+        print("Favicon failed:", e, response)
         return
     # apply mime type whitelist
     mime_type = response.headers.get('content-type', '').split(';')[0]
@@ -669,7 +648,7 @@ def get_object_urls(dom_tree):
             url = url.strip()
             if url:
                 if codebase_url:
-                    url = urlparse.urljoin(codebase_url, url)
+                    url = urllib.parse.urljoin(codebase_url, url)
                 urls.append(url)
     return urls
 
@@ -694,7 +673,7 @@ def get_screenshot(link, browser):
 
         return browser.get_screenshot_as_png()
     else:
-        print "Not taking screenshot! %s" % ("Page size is %s." % (page_size,))
+        print("Not taking screenshot! %s" % ("Page size is %s." % (page_size,)))
         safe_save_fields(link.screenshot_capture, status='failed')
 
 def get_page_size(browser):
@@ -729,9 +708,12 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
     if display:
         display.stop()  # shut down virtual display
     if warcprox_controller:
-        warcprox_controller.stop.set()  # send signal to shut down warc thread
+        warcprox_controller.stop.set() # send signals to shut down warc threads
+        warcprox_controller.proxy.pool.shutdown() # blocking
+        warcprox_controller.warc_writer_processor.pool.shutdown() # blocking
     if warcprox_thread:
-        warcprox_thread.join()  # wait until warcprox thread is done writing out warc
+        warcprox_thread.join()  # wait until warcprox thread is done
+
 
 def process_metadata(metadata, link):
     ## Privacy Related ##
@@ -740,7 +722,7 @@ def process_metadata(metadata, link):
         meta_tag = metadata['meta_tags'].get('robots')
     if meta_tag and 'noarchive' in meta_tag.lower():
         safe_save_fields(link, is_private=True, private_reason='policy')
-        print "Meta found, darchiving"
+        print("Meta found, darchiving")
 
     ## Page Description ##
     description_meta_tag = metadata['meta_tags'].get('description')
@@ -751,10 +733,13 @@ def process_metadata(metadata, link):
     safe_save_fields(link, submitted_title=metadata['title'])
 
 
-def save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls):
+def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, successful_favicon_urls):
     # save a single warc, comprising all recorded recorded content and the screenshot
-    recorded_warc_path = os.path.join(warc_writer.directory,
-                                      warc_writer._f_finalname)
+    recorded_warc_path = os.path.join(
+        os.getcwd(),
+        warcprox_controller.options.directory,
+        "{}.warc.gz".format(warcprox_controller.options.warc_filename)
+    )
     with open(recorded_warc_path, 'rb') as recorded_warc_records, \
          preserve_perma_warc(link.guid, link.creation_timestamp, link.warc_storage_file()) as perma_warc:
         # screenshot first, per Perma custom
@@ -798,7 +783,7 @@ def save_favicons(link, successful_favicon_urls):
             url=successful_favicon_urls[0][0],
             content_type=successful_favicon_urls[0][1].lower()
         ).save()
-        print "Saved favicons %s" % successful_favicon_urls
+        print("Saved favicons %s" % successful_favicon_urls)
 
 def clean_up_failed_captures():
     """
@@ -822,7 +807,7 @@ def warn_on_exception(message="Exception in block:", exception_type=Exception):
     except SoftTimeLimitExceeded:
         raise
     except exception_type as e:
-        print message, e
+        print(message, e)
 
 @contextmanager
 def browser_running(browser, onfailure=None):
@@ -887,7 +872,7 @@ def run_next_capture():
         # BEGIN WARCPROX SETUP
 
         # Create a request handler class that tracks requests and responses
-        # via in-scope, shared mutable containers. (Define inside capture function
+        # via in-scope, shared mutable containers. (Patch inside capture function
         # so the containers are initialized empty for every new capture.)
         proxied_responses = {
           "any": False,
@@ -896,49 +881,62 @@ def run_next_capture():
         }
         proxied_pairs = []
         tracker_lock = threading.Lock()
-        class TrackingRequestHandler(WarcProxyHandler):
-            def _proxy_request(self):
 
-                # make sure we don't capture anything in a banned IP range
-                if not url_in_allowed_ip_range(self.url):
-                    return
+        def _proxy_request(self):
 
-                # skip request if downloaded size exceeds MAX_ARCHIVE_FILE_SIZE.
-                if proxied_responses["limit_reached"]:
-                    return
-                elif capture_current_size(thread_list, proxied_responses["size"]) > settings.MAX_ARCHIVE_FILE_SIZE:
-                    proxied_responses["limit_reached"] = True
-                    print("size limit reached")
-                    return
+            # make sure we don't capture anything in a banned IP range
+            if not url_in_allowed_ip_range(self.url):
+                return
 
-                with tracker_lock:
-                    proxied_pair = [self.url, None]
-                    requested_urls.add(proxied_pair[0])
-                    proxied_pairs.append(proxied_pair)
-                try:
-                    response = WarcProxyHandler._proxy_request(self)
-                except Exception as e:
-                    # If warcprox can't handle a request/response for some reason,
-                    # remove the proxied pair so that it doesn't keep trying and
-                    # the capture process can proceed
-                    proxied_pairs.remove(proxied_pair)
-                    print("WarcProx exception: %s parsing response from %s" % (e.__class__.__name__, proxied_pair[0]))
-                    return  # swallow exception
-                with tracker_lock:
+            # skip request if downloaded size exceeds MAX_ARCHIVE_FILE_SIZE.
+            if proxied_responses["limit_reached"]:
+                return
+            elif capture_current_size(thread_list, proxied_responses["size"]) > settings.MAX_ARCHIVE_FILE_SIZE:
+                proxied_responses["limit_reached"] = True
+                print("size limit reached")
+                return
+
+            with tracker_lock:
+                proxied_pair = [self.url, None]
+                requested_urls.add(proxied_pair[0])
+                proxied_pairs.append(proxied_pair)
+            try:
+                response = _real_proxy_request(self)
+            except Exception as e:
+                # If warcprox can't handle a request/response for some reason,
+                # remove the proxied pair so that it doesn't keep trying and
+                # the capture process can proceed
+                proxied_pairs.remove(proxied_pair)
+                print("WarcProx exception: %s proxying %s" % (e.__class__.__name__, proxied_pair[0]))
+                return  # swallow exception
+            with tracker_lock:
+                if response:
                     proxied_responses["any"] = True
-                    proxied_responses["size"] += response.response_recorder.len
+                    if response.size:
+                        proxied_responses["size"] += response.size
                     proxied_pair[1] = response
+                else:
+                    # in some cases (502? others?) warcprox is not returning a response
+                    proxied_pairs.remove(proxied_pair)
+
+        WarcProxyHandler._proxy_request = _proxy_request
 
         # connect warcprox to an open port
         warcprox_port = 27500
-        recorded_url_queue = queue.Queue()
-        for i in xrange(500):
+        for i in range(500):
             try:
-                proxy = WarcProxy(
-                    server_address=("127.0.0.1", warcprox_port),
-                    recorded_url_q=recorded_url_queue,
-                    req_handler_class=TrackingRequestHandler
+                options = warcprox.Options(
+                    address="127.0.0.1",
+                    port=warcprox_port,
+                    max_threads=settings.MAX_PROXY_THREADS,
+                    writer_threads=1,
+                    gzip=True,
+                    stats_db_file="",
+                    dedup_db_file="",
+                    directory="./warcs", # default, included so we can retrieve from options object
+                    warc_filename=link.guid
                 )
+                warcprox_controller = WarcproxController(options)
                 break
             except socket_error as e:
                 if e.errno != errno.EADDRINUSE:
@@ -949,21 +947,17 @@ def run_next_capture():
         proxy_address = "127.0.0.1:%s" % warcprox_port
 
         # start warcprox in the background
-        warc_writer = WarcWriter(gzip=True, port=warcprox_port)
-        warc_writer_thread = WarcWriterThread(recorded_url_q=recorded_url_queue, warc_writer=warc_writer)
-        warcprox_controller = WarcproxController(proxy, warc_writer_thread)
         warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
         warcprox_thread.start()
-
-        print "WarcProx opened."
+        print("WarcProx opened.")
         # END WARCPROX SETUP
 
-        browser, display = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, proxy.ca.ca_file)
+        browser, display = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, warcprox_controller.proxy.ca.ca_file)
         browser.set_window_size(*BROWSER_SIZE)
 
         # fetch page in the background
         inc_progress(capture_job, 1, "Fetching target URL")
-        page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
+        page_load_thread = threading.Thread(target=browser.get, name="page_load", args=(target_url,))  # returns after onload
         page_load_thread.start()
 
         # before proceeding further, wait until warcprox records a response that isn't a forward
@@ -976,17 +970,17 @@ def run_next_capture():
                             # at successfully identifying the content-type of the target_url
                             # (in unusual circumstances, can be incorrect)
                             break
-                        if response.url.endswith('/favicon.ico') and response.url != target_url:
+                        if response.url.endswith(b'/favicon.ico') and response.url != target_url:
                             continue
-                        if not hasattr(response, 'parsed_response'):
-                            response.parsed_response = parse_response(response.response_recorder.headers)
-                        if response.parsed_response.is_redirect or response.parsed_response.status_code == 206:  # partial content
+                        if not hasattr(response, 'parsed_headers'):
+                            response.parsed_headers = parse_headers(response.response_recorder.headers)
+                        if response.status in [301, 302, 303, 307, 308, 206]:  # redirect or partial content
                             continue
 
                         have_content = True
-                        content_url = response.url
-                        content_type = response.parsed_response.headers.get('content-type').lower()
-                        robots_directives = response.parsed_response.headers.get('x-robots-tag')
+                        content_url = str(response.url, 'utf-8')
+                        content_type = response.content_type.lower()
+                        robots_directives = response.parsed_headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')
                         break
 
@@ -1002,7 +996,7 @@ def run_next_capture():
                 inc_progress(capture_job, wait_time/RESOURCE_LOAD_TIMEOUT, "Fetching target URL")
                 time.sleep(1)
 
-        print "Fetching robots.txt ..."
+        print("Fetching robots.txt ...")
         add_thread(thread_list, robots_txt_thread, args=(
             link,
             target_url,
@@ -1015,7 +1009,7 @@ def run_next_capture():
         inc_progress(capture_job, 1, "Checking x-robots-tag directives.")
         if xrobots_blacklists_perma(robots_directives):
             safe_save_fields(link, is_private=True, private_reason='policy')
-            print "x-robots-tag found, darchiving"
+            print("x-robots-tag found, darchiving")
 
         if have_html:
 
@@ -1028,7 +1022,7 @@ def run_next_capture():
 
             # get favicon urls (saved as favicon_capture_url later)
             with browser_running(browser):
-                print "Fetching favicons ..."
+                print("Fetching favicons ...")
                 add_thread(thread_list, favicon_thread, args=(
                     successful_favicon_urls,
                     dom_tree,
@@ -1077,11 +1071,11 @@ def run_next_capture():
         with browser_running(browser):
             while unfinished_proxied_pairs and browser_still_running(browser):
 
-                print "Waiting for %s pending requests" % len(unfinished_proxied_pairs)
+                print("Waiting for %s pending requests" % len(unfinished_proxied_pairs))
                 # give up after AFTER_LOAD_TIMEOUT seconds
                 wait_time = time.time() - load_time
                 if wait_time > AFTER_LOAD_TIMEOUT:
-                    print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
+                    print("Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT)
                     break
 
                 # Show progress to user
@@ -1104,7 +1098,7 @@ def run_next_capture():
     except SoftTimeLimitExceeded:
         capture_job.link.tags.add('timeout-failure')
     except:
-        print "Exception while capturing job %s:" % capture_job.link_id
+        print("Exception while capturing job %s:" % capture_job.link_id)
         traceback.print_exc()
     finally:
         try:
@@ -1119,13 +1113,14 @@ def run_next_capture():
 
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
-                save_warc(warc_writer, capture_job, link, content_type, screenshot, successful_favicon_urls)
-                print "%s capture succeeded." % link.guid
+                save_warc(warcprox_controller, capture_job, link, content_type, screenshot, successful_favicon_urls)
+                print("%s capture succeeded." % link.guid)
             else:
-                print "%s capture failed." % link.guid
+                print("%s capture failed." % link.guid)
+
 
         except:
-            print "Exception while tearing down/saving capture job %s:" % capture_job.link_id
+            print("Exception while tearing down/saving capture job %s:" % capture_job.link_id)
             traceback.print_exc()
         finally:
             capture_job.link.captures.filter(status='pending').update(status='failed')
@@ -1266,11 +1261,11 @@ def upload_to_internet_archive(self, link_guid):
             return
 
     except Link.DoesNotExist:
-        print "Link %s does not exist" % link_guid
+        print("Link %s does not exist" % link_guid)
         return
 
     if not link.can_upload_to_internet_archive():
-        print "Link %s Not eligible for upload." % link_guid
+        print("Link %s Not eligible for upload." % link_guid)
         return
 
     metadata = {

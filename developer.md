@@ -1,23 +1,119 @@
 Perma - developer notes
-=====
+========================
 
-This document does not cover installing Perma.cc. You should use the install doc for that.
+This document contains tips and tricks for working with Perma.
 
-There are a bunch of moving pieces in Perma.cc. This document provides some notes on common dances you might have to perform.
+See the [installation documentation](./install.md) to get up and running.
+
+
+Common tasks and commands
+-------------------------
+
+These commands assume you have configured your shell with the alias defined in
+the [shortcuts](./install.md#shortcuts) section of the installation docs, and that
+Perma's Docker containers are up and running in the background:
+-  run `docker-compose up -d` to start the containers
+-  run `docker-compose down` to stop them when you are finished.
+
+(If you are not running Perma inside Docker, most of the below the commands
+should still work: just skip the `d`!)
+
+### Run Perma
+
+`d fab run`
+
+That's it! You should now be able to load Perma in your browser at
+`http://perma.test:8000/`. It will take a few seconds for the first page
+to load, while we wait for Perma's CSS, JS and other assets to be compiled.
+
+To log in and explore Perma, try logging in as one of our
+[test users](https://github.com/harvard-lil/perma/blob/develop/perma_web/fixtures/users.json). All test users have a password of "pass".
+
+The server will automatically reload any time you made a change to the
+`perma_web` directory: just refresh the page to see your changes.
+
+Press `CONTROL-C` to stop the server.
+
+### Run all the tests
+
+`d fab test`
+
+See [Testing and Test Coverage](#testing-and-test-coverage) for more
+information about testing Perma.
+
+### Run a particular test (python only)
+
+Python tests are run via pytest. Pytest supports several ways to
+[select and run tests](https://docs.pytest.org/en/latest/usage.html#specifying-tests-selecting-tests),
+including a super-convenient keyword-matching option:
+
+`d pytest -k "name_of_a_test_that_failed"`
+
+`d pytest -k "a_specific_test_module"`
+
+See [Testing and Test Coverage](#testing-and-test-coverage) for more
+information about testing Perma.
+
+### Update the python dependencies
+
+Make your changes in `Pipfile`. Then run `update.sh`, a convenience
+script that will create a new `Pipfile.lock` and will rebuild the
+Docker image with the new dependencies installed.
+
+N.B. To ensure that other Perma developers are prompted to install
+you changes, please increment the image version number for "web"
+in `docker-compose.yaml`. This is not yet managed programmatically.
+
+### Update the node dependencies
+
+Make your changes in `packages.json`. Then run `update.sh`, a convenience
+script that will create a new `npm-shrinkwrap.json` and will rebuild the
+Docker image with the new dependencies installed.
+
+N.B. To ensure that other Perma developers are prompted to install
+you changes, please increment the image version number for "web"
+in `docker-compose.yaml`. This is not yet managed programmatically.
+
+### Migrate the database
+
+`d ./manage.py makemigrations`
+
+`d ./manage.py migrate`
+
+`d ./manage.py migrate --database=perma-cdxline`
+
+For more information on migrations, see [Schema and data migrations](#schema-and-data-migrations)
+
+### Reset the database
+
+1) `docker-compose down` to delete your existing containers.
+2) `docker volume rm perma_db3_data` to delete the database.
+3) `docker-compose up -d` to spin up new containers.
+4) `bash init.sh` to create a fresh database, pre-populated with test fixtures.
+
+### Run arbitrary commands
+
+You can run `d bash` to get a bash terminal in your container. Your python
+environment will be activated and you will be logged in as root.
+
+You can also prefix arbitrary commands with `d`:
+-  `d which python` (output: the virtualenv's python)
+-  `d ls` (output: /perma/perma_web)
 
 
 ## Git and GitHub
 
 We use git to track code changes and use [GitHub](https://github.com/harvard-lil/perma) to host the code publicly.
 
-The Master branch always contains production code (probably the thing currently running at [Perma.cc](http://perma.cc)) while the develop branch contains the group's working version. We follow this [Vincent Driessen's approach](http://nvie.com/posts/a-successful-git-branching-model/)
+The Master branch always contains production code (probably the thing currently running at [Perma.cc](http://perma.cc)) while the develop branch contains the group's working version. We follow [Vincent Driessen's approach](http://nvie.com/posts/a-successful-git-branching-model/).
 
-Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-model/) in your local development flow. Merge your code back into the develop branch and push to GitHub often. Small, quick commits avoid nightmare merge problems.
+Fork our repo, then make a feature branch on your fork. Issue a pull request to merge your feature branch into harvard-lil's develop branch when your code is ready.
 
+Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
 
 ## Optional developer packages
 
-You can install some handy developer packages with `pip install -r dev_requirements.txt`:
+You can install some handy developer packages with `d pip install -r dev_requirements.txt`:
 
 * `ipdb` is a nice drop-in replacement for `pdb`.
 * `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html).
@@ -28,32 +124,13 @@ You can install some handy developer packages with `pip install -r dev_requireme
 `django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
 if you run into something odd.
 
+
 ## Logs
 
-If you are using Vagrant, all of your logs will end up in /vagrant/services/logs. As a convenience, you can tail -f all of them with `fab logs`.
+All of your logs will end up in `./services/logs`. As a convenience, you can tail -f all of them with `d fab dev.logs`.
 
 
 ## Code style and techniques
-
-### Python requirements
-
-Top-level requirements should go in `requirements.in`, usually without a version specified.
-If you change that file, you should then regenerate the `requirements.txt` file with:
-
-    pip-compile
-
-This ensures that our sub-requirements are always pinned to fixed versions.
-
-To update a requirement to latest, run:
-
-    pip-compile -P package-name
-
-### Node requirements
-
-Node requirements can be added with:
-
-    npm install foo --save-dev
-    npm shrinkwrap --dev
 
 ### User roles and permissions tests
 
@@ -66,15 +143,31 @@ We have several types of users:
 
 Users that belong to organizations can belong to many, including organizations belonging to multiple registrars. Users who belong to a registrar may only belong to a single registrar. Users should not simultaneously belong to both organizations and to a registrar.
 
+
+### Javascript templates
+
+Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
+
+Our templates are pre-compiled by webpack. The source files are in `perma_web > static > js > hbs`
+
+
+### Sending email
+
+*All emails* should be sent using `perma.email.send_user_email` (for an email from us to a user) or
+`perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
+are configured so our MTA will actually transmit the email.
+
+On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+
 ### Asset pipeline
 
-Front-end assets are processed and packaged by webpack. Assets can be compiled with this command:
+Front-end assets are processed and packaged by Webpack. Assets can be compiled with this command:
 
-    ./node_modules/.bin/webpack --config webpack.config.js --watch
+    docker-compose exec web ./node_modules/.bin/webpack --config webpack.config.js --watch
 
-This is automatically run in the background by `fab run`, so there is usually no need to run it manually.
+This is automatically run in the background by `d fab run`, so there is usually no need to run it manually.
 
-Compiled bundles generated by webpack should be committed to the git repository along with the
+Compiled bundles generated by Webpack should be committed to the git repository along with the
 source code changes that produced them.
 
 ### Managing static files and user-generated files
@@ -116,15 +209,14 @@ Further reading:
 * [Django docs for default_storage](https://docs.djangoproject.com/en/dev/topics/files/)
 * [Django docs for serving static files](https://docs.djangoproject.com/en/dev/howto/static-files/)
 
-
-## Hosting fonts locally
+### Hosting fonts locally
 
 We like to host our fonts locally. If you're linking a font from Google fonts and the licensing allows, check out [fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
 
 
 ##  Schema and data migrations
 
-*** Before changing the schema or the data of your database, make a backup! ***
+*** Before changing the schema or the data of your production database, make a backup! ***
 
 If you make a change to the Django model (models get mapped directly to relational database tables), you'll need to create a [migration](https://docs.djangoproject.com/en/1.7/topics/migrations/). Migrations come in two flavors: schema migrations and data migrations.
 
@@ -135,7 +227,7 @@ Schema migrations are used when changing the model structure (adding, removing, 
 
 The most straight forward data migration might be the addition of a new model or the addition of a field to a model. When you perform a straight forward change to the model, your command might look like this
 
-    $ ./manage.py makemigrations
+    $ d ./manage.py makemigrations
 
 This will create a migration file for you on disk, something like,
 
@@ -143,12 +235,12 @@ This will create a migration file for you on disk, something like,
 
 Even though you've changed your models file and created a migration (just a python file on disk), your database remains unchanged. You'll need to apply the migration to update your database,
 
-    $ ./manage.py migrate
-    $ ./manage.py migrate --database=perma-cdxline
+    $ d manage.py migrate
+    $ d manage.py migrate --database=perma-cdxline
 
 Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
 
-    $ ./manage.py migrate --list
+    $ d manage.py migrate --list
 
 Data migrations follow the same flow, but add a step in the middle. See the [Django docs](https://docs.djangoproject.com/en/1.7/topics/migrations/#data-migrations) for details on how to perform a data migration.
 
@@ -161,16 +253,6 @@ You should commit your migrations to your repository and push to GitHub.
     $ git commit -m "Added migration"
 
 
-## Running with debug=False locally
-
-If you are running Perma locally for development using the default settings_dev.py, [DEBUG](https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-DEBUG) is set to true. This is in general a big help, because Django displays a detailed error page any time your code raises an exception. However, it makes it impossible to test your app's error handing, see your custom 404 or 500 pages, etc.
-
-To run with DEBUG=False locally, first stop the webserver, if it's running. Add ```DEBUG=False``` to settings.py or (to alter settings\_dev.py). Then, run ``` ./manage.py collectstatic```, which creates ```/vagrant/services/django/static_assets``` (necessary for the css and other static assets to be served properly). Then, run ```fab run``` as usual to start the web server.
-
-__NB__: With DEBUG=False, the server will not automatically restart each time you save changes.
-
-__NB__: If you make changes to static files, like css, while running with DEBUG=False, you must rerun  ``` ./manage.py collectstatic``` and restart the server to see your changes.
-
 ## Testing and Test Coverage
 
 Python unit tests live in `perma/tests`, `api/tests`, etc.
@@ -179,13 +261,11 @@ Functional tests live in `functional_tests/`.
 
 Javascript tests live in `spec/`.
 
-You can run all tests like this:
+See the [Common tasks and commands](#common-tasks-and-commands) for the
+common techniques for running the tests.
 
-    $ fab test
+The `d fab test` command also generates handy coverage information. You can access it by running `d coverage`.
 
-Or run just one kind of test with `fab dev.test_python` or `fab dev.test_js`.
-
-The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
 ### Linting with flake8
 
@@ -196,7 +276,7 @@ Flake8 settings are configured in `perma_web/.pep8`
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-push`:
 
     #!/bin/sh
-    /path/to/.virtualenvs/perma/bin/flake8 /path/to/perma/perma_web
+    d flake8 .
     exit $?
 
 Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-push`.
@@ -206,36 +286,27 @@ Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-push`.
 We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
 you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
 
-    $ fab test_sauce
+    $ d fab dev.test_sauce
 
-By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
+By default `d fab dev.test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
 up a tunnel first by running
 
-    $ fab dev.sauce_tunnel
+    $ d fab dev.sauce_tunnel
 
 in the background or in another terminal window.
 
-The Sauce tests live in services/sauce/run_tests.py. If you are developing new tests in that file, it may be more
-convenient to change to that directory and run `python run_tests.py`, rather than the full-blown parallel testing
-kicked off by `fab test_sauce`.
-
-
-## Sending email
-
-*All emails* should be sent using `perma.email.send_user_email` (for an email from us to a user) or
-`perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
-are configured so our MTA will actually transmit the email.
-
-On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+The Sauce tests live in `./services/sauce/run_tests.py`. If you are developing new tests in that file, it may be more
+convenient to change to that directory and run `d python run_tests.py`, rather than the full-blown parallel testing
+kicked off by `d fab dev.test_sauce`.
 
 
 ## Working with Celery
 
-Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. Just like cron might).
+Celery does two things in Perma.cc: it runs the capture tasks and it runs scheduled jobs (to gather things nightly like statistics, just like cron might).
 
-In development, it's usually easier to run everything synchronously, without the additional layer of complexity a Celery worker adds. To run synchronously, set `RUN_TASKS_ASYNC = False` in settings.py. `RUN_TASKS_ASYNC` must be true if you are specifically testing or setting up a new a Celery-Django interaction, and must be true when working with LinkBatches (otherwise subtle bugs may not surface).
+In development, it's sometimes easier to run everything synchronously, without the additional layer of complexity a Celery worker adds. To run synchronously, set `RUN_TASKS_ASYNC = False` in settings.py. `RUN_TASKS_ASYNC` must be true if you are specifically testing or setting up a new a Celery-Django interaction, and must be true when working with LinkBatches (otherwise subtle bugs may not surface).
 
-In your development environment (if you are not using Vagrant, where the celery service should be running by default), you probably want to start a dev version of Celery like this:
+In your development environment (if you are not using Docker, where the celery service should be running by default), you probably want to start a dev version of Celery like this:
 
     $ celery -A perma worker --loglevel=info -B
 
@@ -255,208 +326,24 @@ Find more about daemonizing Celery in the [in the Celery docs](http://docs.celer
 
 ## Working with Redis
 
-In our production environment we use Redis as a cache for our thumbnail data. If you're working on Perma you likely won't need it, but if you do want to simulate the production environment, reference Redis and Sorl settings the prod settings file.
-
-## Working with RabbitMQ
-
-RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and doles them out to Celery worker tasks as needed.
-
-If you've installed RabbitMQ through something like MacPorts (sudo port install), you can start RabbitMQ using something like,
-
-    $ sudo rabbitmq-server -detached
-
-If you don't want to run RabbitMQ as a daemon (like you might in prod), create a something like /etc/init.d/rabbitmq-server and place this in it,
-
-	#!/bin/sh
-	#
-	# rabbitmq-server RabbitMQ broker
-	#
-	# chkconfig: - 80 05
-	# description: Enable AMQP service provided by RabbitMQ
-	#
-
-	### BEGIN INIT INFO
-	# Provides:          rabbitmq-server
-	# Required-Start:    $remote_fs $network
-	# Required-Stop:     $remote_fs $network
-	# Description:       RabbitMQ broker
-	# Short-Description: Enable AMQP service provided by RabbitMQ broker
-	### END INIT INFO
-
-	# Source function library.
-	. /etc/init.d/functions
-
-	PATH=/sbin:/usr/sbin:/bin:/usr/bin
-	NAME=rabbitmq-server
-	DAEMON=/usr/sbin/${NAME}
-	CONTROL=/usr/sbin/rabbitmqctl
-	DESC=rabbitmq-server
-	USER=rabbitmq
-	ROTATE_SUFFIX=
-	INIT_LOG_DIR=/var/log/rabbitmq
-	PID_FILE=/var/run/rabbitmq/pid
-
-	START_PROG="daemon"
-	LOCK_FILE=/var/lock/subsys/$NAME
-
-	test -x $DAEMON || exit 0
-	test -x $CONTROL || exit 0
-
-	RETVAL=0
-	set -e
-
-	[ -f /etc/default/${NAME} ] && . /etc/default/${NAME}
-
-	ensure_pid_dir () {
-	    PID_DIR=`dirname ${PID_FILE}`
-	    if [ ! -d ${PID_DIR} ] ; then
-	        mkdir -p ${PID_DIR}
-	        chown -R ${USER}:${USER} ${PID_DIR}
-	        chmod 755 ${PID_DIR}
-	    fi
-	}
-
-	remove_pid () {
-	    rm -f ${PID_FILE}
-	    rmdir `dirname ${PID_FILE}` || :
-	}
-
-	start_rabbitmq () {
-	    status_rabbitmq quiet
-	    if [ $RETVAL = 0 ] ; then
-	        echo RabbitMQ is currently running
-	    else
-	        RETVAL=0
-	        ensure_pid_dir
-	        set +e
-	        RABBITMQ_PID_FILE=$PID_FILE $START_PROG $DAEMON \
-	            > "${INIT_LOG_DIR}/startup_log" \
-	            2> "${INIT_LOG_DIR}/startup_err" \
-	            0<&- &
-	        $CONTROL wait $PID_FILE >/dev/null 2>&1
-	        RETVAL=$?
-	        set -e
-	        case "$RETVAL" in
-	            0)
-	                echo SUCCESS
-	                if [ -n "$LOCK_FILE" ] ; then
-	                    touch $LOCK_FILE
-	                fi
-	                ;;
-	            *)
-	                remove_pid
-	                echo FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}
-	                RETVAL=1
-	                ;;
-	        esac
-	    fi
-	}
-
-	stop_rabbitmq () {
-	    status_rabbitmq quiet
-	    if [ $RETVAL = 0 ] ; then
-	        set +e
-	        $CONTROL stop ${PID_FILE} > ${INIT_LOG_DIR}/shutdown_log 2> ${INIT_LOG_DIR}/shutdown_err
-	        RETVAL=$?
-	        set -e
-	        if [ $RETVAL = 0 ] ; then
-	            remove_pid
-	            if [ -n "$LOCK_FILE" ] ; then
-	                rm -f $LOCK_FILE
-	            fi
-	        else
-	            echo FAILED - check ${INIT_LOG_DIR}/shutdown_log, _err
-	        fi
-	    else
-	        echo RabbitMQ is not running
-	        RETVAL=0
-	    fi
-	}
-
-	status_rabbitmq() {
-	    set +e
-	    if [ "$1" != "quiet" ] ; then
-	        $CONTROL status 2>&1
-	    else
-	        $CONTROL status > /dev/null 2>&1
-	    fi
-	    if [ $? != 0 ] ; then
-	        RETVAL=3
-	    fi
-	    set -e
-	}
-
-	rotate_logs_rabbitmq() {
-	    set +e
-	    $CONTROL rotate_logs ${ROTATE_SUFFIX}
-	    if [ $? != 0 ] ; then
-	        RETVAL=1
-	    fi
-	    set -e
-	}
-
-	restart_running_rabbitmq () {
-	    status_rabbitmq quiet
-	    if [ $RETVAL = 0 ] ; then
-	        restart_rabbitmq
-	    else
-	        echo RabbitMQ is not runnning
-	        RETVAL=0
-	    fi
-	}
-
-	restart_rabbitmq() {
-	    stop_rabbitmq
-	    start_rabbitmq
-	}
-
-	case "$1" in
-	    start)
-	        echo -n "Starting $DESC: "
-	        start_rabbitmq
-	        echo "$NAME."
-	        ;;
-	    stop)
-	        echo -n "Stopping $DESC: "
-	        stop_rabbitmq
-	        echo "$NAME."
-	        ;;
-	    status)
-	        status_rabbitmq
-	        ;;
-	    rotate-logs)
-	        echo -n "Rotating log files for $DESC: "
-	        rotate_logs_rabbitmq
-	        ;;
-	    force-reload|reload|restart)
-	        echo -n "Restarting $DESC: "
-	        restart_rabbitmq
-	        echo "$NAME."
-	        ;;
-	    try-restart)
-	        echo -n "Restarting $DESC: "
-	        restart_running_rabbitmq
-	        echo "$NAME."
-	        ;;
-	    *)
-	        echo "Usage: $0 {start|stop|status|rotate-logs|restart|condrestart|try-restart|reload|force-reload}" >&2
-	        RETVAL=1
-	        ;;
-	esac
-
-	exit $RETVAL
+In our production environment we use Redis as a cache for our thumbnail data and to
+speed up the playback of web archives. If you want to simulate the production
+environment:
+-  find the "redis" stanza of `docker-compose.yml`, currently commented out, and comment in it
+-  find the "volumes" stanza of `docker-compose.yml` and comment in `redis_data`
+-  add the caches setting found in `settings_prod.py` to your `settings.py`
 
 
-Now you can start and stop RabbitMQ as a service. Something like,
+## Running with DEBUG=False locally
 
-    $ sudo service rabbitmq-server stop; sudo service rabbitmq-server start;
+If you are running Perma locally for development using the default settings_dev.py, [DEBUG](https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-DEBUG) is set to true. This is in general a big help, because Django displays a detailed error page any time your code raises an exception. However, it makes it impossible to test your app's error handing, see your custom 404 or 500 pages, etc.
 
+To run with DEBUG=False locally, first stop the webserver, if it's running. Add ```DEBUG=False``` to settings.py or (to alter settings\_dev.py). Then, run ``` d ./manage.py collectstatic```, which creates ```./services/django/static_assets``` (necessary for the css and other static assets to be served properly). Then, run ```d fab run``` as usual to start the web server.
 
-## ImageMagick and Wand
+__NB__: With DEBUG=False, the server will not automatically restart each time you save changes.
 
-If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+__NB__: If you make changes to static files, like css, while running with DEBUG=False, you must rerun  ``` d manage.py collectstatic``` and restart the server to see your changes.
 
-	export MAGICK_HOME=/opt/local
 
 ## Internet Archive
 
@@ -479,11 +366,3 @@ In order to run these tasks, you will need to specify some keys in your settings
 - INTERNET_ARCHIVE_IDENTIFIER_PREFIX (In our case, our prefix is perma_cc_ so that our archives are accessible through a URL like this: https://archive.org/detail/perma_cc_GUID)
 - INTERNET_ARCHIVE_ACCESS_KEY [click here to retrieve](https://archive.org/account/s3.php)
 - INTERNET_ARCHIVE_SECRET_KEY [click here to retrieve](https://archive.org/account/s3.php)
-
-## Other bits
-
-Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
-
-Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
-
-Issue pull requests when you've got a commit ready.

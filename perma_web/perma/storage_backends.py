@@ -1,5 +1,5 @@
 # alternate storage backends
-import cStringIO as StringIO
+import io as StringIO
 import os
 
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
@@ -25,7 +25,7 @@ class StaticStorage(CompressedManifestStaticFilesStorage):
 
 ### Media files config
 
-class BaseMediaStorage(object):
+class BaseMediaStorage:
     """
         This mixin provides some helper functions for working with files
         in both local disk and remote storage.

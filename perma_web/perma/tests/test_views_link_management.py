@@ -28,19 +28,19 @@ class LinkManagementViewsTestCase(PermaTestCase):
     def test_reminder(self):
         response = self.get('create_link',
                              user = 'test_user@example.com').content
-        self.assertIn("browser-tools-message", response)
+        self.assertIn(b"browser-tools-message", response)
 
     def test_no_reminder_when_refered_from_bookmarklet(self):
         response = self.get('create_link',
                              user = 'test_user@example.com',
                              request_kwargs={'data':{'url':'some-url-here'}}).content
-        self.assertNotIn("browser-tools-message", response)
+        self.assertNotIn(b"browser-tools-message", response)
 
     def test_no_reminder_when_suppression_cookie_present(self):
         self.client.cookies.load({'suppress_reminder': 'true'})
         response = self.get('create_link',
                              user = 'test_user@example.com')
-        self.assertNotIn("browser-tools-message", response)
+        self.assertNotIn(b"browser-tools-message", response)
 
     ### user_delete_link function ###
 

@@ -1,187 +1,161 @@
 Installing Perma
-=====
+================
 
-## Initial Setup
+Perma is a Python application built on the [Django](https://www.djangoproject.com/)
+web framework.
 
-Perma is a Python application built on the [Django](https://www.djangoproject.com/) web framework.
+Perma has a lot of moving pieces. We recommend using [Docker](https://www.docker.com/what-docker) for local development. If you are new to Docker, it may take some
+time before you are comfortable with its vocabulary and commands, but it allows you
+to jump right into coding instead of spending a lot of time getting all the services
+running on your machine.
 
-To get up and running, read through the [Quick Start](#quick-start) or
-[Manual Install](#install) instructions, but first you'll need add the
-following domains to your hosts file:
+If you prefer to install Perma locally, see our [legacy installation instructions](#manual-installation-legacy).
+
+For advice about production deployments, [send us a note](mailto:info@perma.cc)!
+
+Be sure to check out [the developer documentation](./developer.md)
+for a list of command commands and other tips and tricks for working with Perma.
+
+
+Dependencies
+------------
+
+* [Git](http://git-scm.com/downloads)
+* [Docker](https://docs.docker.com/install/)
+
+
+Hosts
+-----
+
+Perma serves content at several hosts. To ensure that URLs resolve correctly,
+add the following domains to your computer's hosts file:
 
     127.0.0.1 perma.test api.perma.test perma-archives.test
 
 For additional information on modifying your hosts file,
 [try this help doc](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file).
 
-## Quick Start
 
-If you are running Perma locally for development, we recommend using
-our pre-built [Vagrant](http://docs.vagrantup.com/v2/getting-started/)
-virtual machine. This will take more disk space (~986MB), but will let
-you jump into coding instead of trying to get all the services running
-on your machine.
+Shortcuts
+---------
 
-First you'll need some dependencies:
+Docker commands can be lengthy. To cut down on keystrokes, we recommend
+adding the following to your `.bash_profile`.
 
-* [Git](http://git-scm.com/downloads)
-* [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
-* [Vagrant](http://www.vagrantup.com/downloads.html)
+```
+alias d="docker-compose exec web pipenv run"
+```
+
+
+Installation
+------------
 
 Then check out the code:
 
     $ git clone https://github.com/harvard-lil/perma.git
     $ cd perma
 
-Start up the vagrant virtual machine in the background:
+Start up the Docker containers in the background:
 
-    $ vagrant up
+    $ docker-compose up -d
 
-The first time this runs it will have to download the 986MB disk image.
+The first time this runs, it will build the 1.4GB Docker image, which
+may take several minutes. (After the first time, it should only take
+1-3 seconds.)
 
-Connect to the virtual machine:
+Finally, initialize the database:
 
-    $ vagrant ssh
-    ...
-    (perma)vagrant@perma:/vagrant/perma_web$
+    $ bash init.sh
 
-You are now logged into the VM. The prompt you see means you have the
-`(perma)` virtualenv activated, you are logged in as the user
-`vagrant`, you are using the `perma` VM, and you are in the
-`/vagrant/perma_web` folder.
+You should now have a working installation of Perma! See [common commands](./developer.md#common-tasks-and-commands) to explore what you can do, like [running
+the application](./developer.md#run-perma) and [running the tests](/developer.md#run-all-the-tests).
 
-`/vagrant` is a shared folder in the guest machine that maps to the
-`perma` repo you just checked out on your host machine, so any changes
-you make on your local computer will appear inside `/vagrant` and vice
-versa.
+When you are finished, spin down Docker containers by running:
 
-Now you're in the Django project folder and can develop like
-normal. Although the Python requirements are already installed in the image,
-you may have to update them if there have been subsequent changes:
+    $ docker-compose down
 
-    (perma)vagrant@perma:/vagrant/perma_web$ pip install -r requirements.txt
 
-The database has also been installed, but if you drop it and want to
-start over, run this, which will call `syncdb`, apply migrations, and
-load fixtures:
+Manual Installation (Legacy)
+----------------------------
 
-    (perma)vagrant@perma:/vagrant/perma_web$ fab dev.init_db
+If you want to set up a server from scratch instead of using Docker, this should
+get you started.
 
-You will also need the node requirements to compile frontend assets:
 
-    (perma)vagrant@perma:/vagrant/perma_web$ npm install
+### Python, Django, and other Python modules
 
-Then you can run the server:
+To run Perma, you will need [Python 3.5](https://www.python.org/downloads/release/python-350/) and the Python package manager [Pipenv](https://docs.pipenv.org/).
 
-    (perma)vagrant@perma:/vagrant/perma_web$ fab run
-    [localhost] local: python manage.py runserver 0.0.0.0:8000
-    ...
-    Starting development server at http://0.0.0.0:8000/
-    Quit the server with CONTROL-C.
+The [Hitchhiker's Guide](http://docs.python-guide.org/en/latest/starting/installation/)
+has instructions for installing python on most systems; take care to install python 3.5 rather than 3.6, 3.7, etc. You may prefer to use [pyenv](https://github.com/pyenv/pyenv),
+a fantastic tool allowing you to install and run multiple versions of python on
+the same computer.
 
-That's it! You should now be able to load Perma in your browser at `http://perma.test:8000/`. The celery workers should already be running, but if you need to stop or start them, try
+The required modules are found in `Pipfile` and `Pipfile.lock`. Install them using:
 
-    (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl stop celery
-    (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl start celery
+    $ pipenv --python 3.5 install --ignore-pipfile
 
-You can do the same thing for `celerybeat` and `celery_background`.
+During installation, you may find that your system lacks certain dependencies,
+resulting in error messages and a failed build. Install any system packages required,
+and run pipenv again, repeating until installation completes without errors.
 
-Finally, you can run the tests like this:
+Our Dockerfile contains a list of dependencies required on Debian Stretch.
 
-    (perma)vagrant@perma:/vagrant/perma_web$ fab test
+You may need to install MySQL first, in a manner appropriate for your platform.
 
-(You may have to answer "yes" to two questions about deleting the test database the first time you run the tests.)
-
-## Install
-
-If you want to set up a server from scratch instead of using our VM, here's how to do it.
-
-### Python, Django, and modules
-
-To develop Perma, install Python and the Python package manager, `pip`.
-
-The required modules are found in `requirements.txt`. Install them using `pip`:
-
-    $ pip install -r requirements.txt
-
-If you're running OS X Mountain Lion, you may need to add the MySQL
-binaries to your PATH:
+If you're running OS X, you may need to add the MySQL binaries to your PATH:
 
     $ export PATH=$PATH:/usr/local/mysql/bin
 
-If you're running Ubuntu or Linux distro you might need to install mysql_config using:
+If you're running Ubuntu or another Linux distro, you might need to install mysql_config using:
 
     $ apt-get install libmysqlclient-dev
 
 Sometimes LXML can be a little difficult to install. Using static dependencies can help (especially if you're using OS X).
 
-    $ STATIC_DEPS=true pip install lxml
+    $ STATIC_DEPS=true pipenv install lxml
 
-### Node and npm
-
-Frontend assets are compiled with webpack, which depends on Node and npm.
-
-First [install Node and npm](https://nodejs.org/en/download/).
-
-Then install the npm packages for perma:
-
-    $ npm install
 
 ### Database installation
 
-You'll need a Django friendly database. SQLite is not currently supported. We recommend MySQL.
+Perma requires two databases, one to keep track of the URLs in its archives
+(CDXLines) and one for everything else.
 
-If you want to use MySQL, something like the following can be used to create a new user and a new database:
+Something like the following can be used to create a new user and new databases:
 
-    mysql -u root -psomepasshere
+    $ mysql -u root -psomepasshere
     mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
     mysql> create database perma_cdxline character set utf8; grant all on perma_cdxline.* to perma@'localhost' identified by 'perma';
     mysql -u perma -p perma
     mysql> show databases;
 
-### Settings
 
-Perma settings are held in the settings module file. Copy the example and fill in as you see fit.
+### Create your tables
 
-    cd settings; cp ./settings.example.py ./settings.py
-
-Set a `SECRET_KEY` in `settings.py`.
-
-A lot of the settings you need won't change much, so we keep them in a module and load them in. You'll probably want settings_dev, so uncomment that line in `settings.py`:
-
-    # Choose one of these:
-    from settings_dev import *
-    # from settings_prod import *
-
-### Create your tables and fire up Django
-
-You should have the pieces in place. Let's apply migrations:
-
-    $ python manage.py migrate
-    $ python manage.py migrate --database=perma-cdxline
+    $ pipenv run python manage.py migrate
+    $ pipenv run python manage.py migrate --database=perma-cdxline
 
 For deployments, you should set an index on the urlkey field in the perma_cdxline table (this will make cdxline lookups faster):
 
-    mysql -u perma -pperma perma_cdxline
+    $ mysql -u perma -pperma perma_cdxline
     mysql> alter table perma_cdxline add key perma_cdxline_urlkey (urlkey(255));
 
-If you want to play with the admin views, load the user data fixtures:
+If you like, load the test data fixtures:
 
-    $ python manage.py loaddata fixtures/users.json fixtures/folders.json
+    $ pipenv run python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json
 
 The password for all test users is "pass".
 
+
 ### Celery and RabbitMQ
 
-Perma manages the indexing workload by passing off the indexing tasks to workers. Celery manages the messages and RabbitMQ acts as the broker.
+Perma passes off capture tasks to workers for improved performance.
+Celery manages the queue and RabbitMQ acts as the message broker.
 
-RabbitMQ can be installed on Ubuntu with:
+Celery and its dependencies are installed via Pipenv along with Perma's
+other python dependencies. You'll need to manually install [RabbitMQ](http://www.rabbitmq.com/).
 
-    $ sudo apt-get install rabbitmq-server
-
-You should have already installed the Celery requirements (they were in the requirements.txt). You'll need to install [RabbitMQ](http://www.rabbitmq.com/).
-
-Once you've installed RabbitMQ, start it:
+Once you've installed RabbitMQ, start it with something similar to:
 
     $ cd rabbitmq_server-3.1.3/sbin; ./rabbitmq-server start
 
@@ -192,6 +166,7 @@ You'll need to start Celery. If you're working in a development environment, do 
     $ celery -A perma worker --loglevel=info
 
 If you're setting up a production machine, be sure to [start Celery as a daemon](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
+
 
 ### PhantomJS
 
@@ -205,21 +180,42 @@ We use PhantomJS to generate our archives. [Install PhantomJS](http://phantomjs.
 
 ### ImageMagick and Wand
 
-We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnails from our PDFs and other images. Something like this should get you started on Redhat
+We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnails from our PDFs and other images. Something like this should get you started on Debian:
 
-    yum install ImageMagick-devel
+    apt-get install imagemagick
 
 If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac):
 
-	export MAGICK_HOME=/opt/local
+    export MAGICK_HOME=/opt/local
+
+
+### Node and npm
+
+Frontend assets are compiled with [Webpack](https://webpack.js.org/), which depends on Node and npm.
+
+First [install Node and npm](https://nodejs.org/en/download/).
+
+Then install the npm packages for perma:
+
+    $ npm install
+
+
+### Hosts
+
+[Configure your hosts](#hosts) as per above.
+
+
+### Settings
+
+Perma settings are held in the settings module file. See `perma_web > perma > settings > README.md` for more details.
 
 
 ### Run the server
 
-Toss in a WSGI config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
+Toss in a WSGI config and wire it to your webserver and you should be ready to roll.
 
-    $ python manage.py runserver
+Or, use Fabric to spin up Django's development server and launch Webpack (which will automatically regenerate assets on changes to existing js and scss files):
 
-### Developer notes
+    $ pipenv run fab run
 
-[The developer doc](https://github.com/harvard-lil/perma/blob/develop/developer.md) has lots of tips and tricks. Be sure to give it a look-see.
+With the development server running, Perma should be available at http://perma.test:8000

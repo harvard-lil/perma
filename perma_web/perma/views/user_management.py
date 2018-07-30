@@ -57,19 +57,19 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 
 ### HELPERS ###
 
-class RequireOrgOrRegOrAdminUser(object):
+class RequireOrgOrRegOrAdminUser:
     """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
-class RequireRegOrAdminUser(object):
+class RequireRegOrAdminUser:
     """ Mixin for class-based views that requires user to be a registrar user or admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
-class RequireAdminUser(object):
+class RequireAdminUser:
     """ Mixin for class-based views that requires user to be an admin. """
     @method_decorator(user_passes_test_or_403(lambda user: user.is_staff))
     def dispatch(self, request, *args, **kwargs):
@@ -181,7 +181,7 @@ def stats(request, stat_type=None):
     elif stat_type == "job_queue":
         job_queues = CaptureJob.objects.filter(status='pending').order_by('order', 'pk').select_related('link', 'link__created_by')
         job_queues = dict(itertools.groupby(job_queues, lambda x: 'human' if x.human else 'robot'))
-        for queue_key, queue in job_queues.iteritems():
+        for queue_key, queue in job_queues.items():
             job_queues[queue_key] = [{'email':email, 'count':len(list(jobs))} for email, jobs in itertools.groupby(queue, lambda x: x.link.created_by.email)]
         out = {
             'job_queues': job_queues,
@@ -235,7 +235,8 @@ def manage_registrar(request):
     registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
         last_active_registrar=Max('users__last_login'),
-        last_active_org_user=Max('organizations__users__last_login'),
+        last_active_org_user=Max('organizations__users__last_login')
+    ).annotate(
         # Greatest on MySQL returns NULL if any fields are NULL:
         # use of Coalesce here is a workaround
         # https://docs.djangoproject.com/en/2.0/ref/models/database-functions/

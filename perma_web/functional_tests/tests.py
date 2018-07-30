@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import socket
 import os
 # import subprocess
@@ -7,7 +5,7 @@ import unittest
 import re
 import datetime
 import sys
-from urlparse import urlparse
+from urllib.parse import urlparse
 import requests
 from pyvirtualdisplay import Display
 from selenium import webdriver
@@ -57,6 +55,7 @@ else:
     BaseTestCase = StaticLiveServerTestCase
     assert socket.gethostbyname(LOCAL_SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + LOCAL_SERVER_DOMAIN + "` to your hosts file before running this test."
     # build_name += subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()  # pretty label for local jobs: datetime-git_branch
+
 
 
 # (2) Configure Sauce vs. local PhantomJS browsers:
@@ -401,7 +400,7 @@ class FunctionalTest(BaseTestCase):
             current_url = self.driver.current_url
             self.assertEquals(self.server_url + '/manage/create/?folder=' + folder_id, current_url)
             folder_from_storage = self.driver.execute_script("var ls = JSON.parse(localStorage.perma_selection); return ls[Object.keys(ls)[0]].folderIds[0]")
-            self.assertEquals(folder_id, unicode(folder_from_storage))
+            self.assertEquals(folder_id, str(folder_from_storage))
 
 
             # Timemap

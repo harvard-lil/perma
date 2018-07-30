@@ -47,7 +47,7 @@ def stats_now(request):
     else:
         ny = pytz.timezone('America/New_York')
         ny_now = timezone.now().astimezone(ny)
-        offset_value = ny_now.utcoffset().seconds/60
+        offset_value = ny_now.utcoffset().seconds // 60
         midnight = ny_now.replace(hour=0, minute=0, second=0)
 
     todays_events = MinuteStats.objects.filter(creation_timestamp__gte=midnight)

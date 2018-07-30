@@ -28,7 +28,7 @@ from django.core.wsgi import get_wsgi_application
 from warc_server.app import application as warc_application
 
 # Pywb request rewriting for the /timegate route
-class PywbRedirectMiddleware(object):
+class PywbRedirectMiddleware:
     def __init__(self, pywb):
         self.pywb = pywb
 
@@ -54,7 +54,7 @@ application = DispatcherMiddleware(
 if perma.settings.TRUSTED_PROXIES:
     from netaddr import IPNetwork
     from werkzeug.wrappers import Response
-    class ForwardedForWhitelistMiddleware(object):
+    class ForwardedForWhitelistMiddleware:
 
         def __init__(self, app, whitelists):
             self.app = app

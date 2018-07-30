@@ -9,7 +9,7 @@ import os
 # export DJANGO__DATABASES__default__NAME=perma
 # export DJANGO__MIRRORS__0='http://127.0.0.1:8001'
 def import_environmental_settings(settings):
-    for key, value in os.environ.iteritems():
+    for key, value in os.environ.items():
         if key.startswith("DJANGO__"):
             try:
                 path = key.split('__')[1:]
@@ -47,4 +47,4 @@ def import_environmental_settings(settings):
                     pass
                 target[path[0]] = value
             except Exception as e:
-                print "WARNING: Can't import environmental setting %s: %s" % (key, e)
+                print("WARNING: Can't import environmental setting %s: %s" % (key, e))

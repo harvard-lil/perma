@@ -25,7 +25,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         vm_data = self.successful_get(self.detail_url, user=self.org_user)
         reg_data = self.successful_get(self.detail_url, user=self.regular_user)
 
-        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertEqual(list(vm_data.keys()), list(reg_data.keys()))
         self.assertNotEqual(vm_data, reg_data)
 
     # folders
@@ -34,7 +34,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         vm_data = self.successful_get(self.detail_url + 'folders/', user=self.org_user)
         reg_data = self.successful_get(self.detail_url + 'folders/', user=self.regular_user)
 
-        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertEqual(list(vm_data.keys()), list(reg_data.keys()))
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
 
     def test_should_allow_folder_detail(self):
@@ -51,7 +51,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         vm_data = self.successful_get(self.detail_url + 'archives/', user=self.org_user)
         reg_data = self.successful_get(self.detail_url + 'archives/', user=self.regular_user)
 
-        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertEqual(list(vm_data.keys()), list(reg_data.keys()))
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
 
     def test_should_allow_archive_detail(self):
@@ -69,7 +69,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         vm_data = self.successful_get(self.detail_url + 'organizations/', user=self.org_user)
         reg_data = self.successful_get(self.detail_url + 'organizations/', user=self.regular_user)
 
-        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertEqual(list(vm_data.keys()), list(reg_data.keys()))
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
 
     def test_should_allow_org_detail(self):
@@ -89,7 +89,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
         vm_data = self.successful_get(self.detail_url + 'capture_jobs/', user=self.org_user)
         reg_data = self.successful_get(self.detail_url + 'capture_jobs/', user=self.regular_user)
 
-        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertEqual(list(vm_data.keys()), list(reg_data.keys()))
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
 
     def test_should_allow_capture_job_detail(self):

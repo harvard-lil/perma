@@ -7,7 +7,7 @@ def new_class(name, *args, **kwargs):
 
 # via http://stackoverflow.com/questions/2120813/django-inlinemodeladmin-show-partially-an-inline-model-and-link-to-the-complete
 # this could be replaced by show_change_link in DJango 1.8
-class InlineEditLinkMixin(object):
+class InlineEditLinkMixin:
     edit_label = "Edit"
 
     def __init__(self, *args, **kwargs):

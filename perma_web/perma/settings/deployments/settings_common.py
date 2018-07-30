@@ -1,12 +1,9 @@
 # Core settings used by all deployments.
-
 import os, sys
 
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
-this_module = unicode(
-    sys.executable if hasattr(sys, "frozen") else __file__,
-    sys.getfilesystemencoding())
+this_module = sys.executable if hasattr(sys, "frozen") else __file__
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
@@ -309,7 +306,7 @@ LOGGING = {
             'propagate': False,
         },
         'warcprox': {
-            'level': 'WARNING'
+            'level': 'CRITICAL'
         },
         'requests' : {
             'level': 'WARNING'
@@ -424,6 +421,8 @@ WARC_ROUTE = '/warc'
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
 THUMBNAIL_FORMAT = 'PNG'
 THUMBNAIL_COLORSPACE = None
+# Temporarily work around for https://github.com/jazzband/sorl-thumbnail/issues/476
+TEMPLATE_DEBUG = False
 
 # Relative to MEDIA_ROOT
 THUMBNAIL_STORAGE_PATH = 'thumbnails'
@@ -489,6 +488,7 @@ CELERY_ROUTES = {
 
 ENABLE_AV_CAPTURE = False
 RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
+MAX_PROXY_THREADS = 100
 
 WEBPACK_LOADER = {
     'DEFAULT': {

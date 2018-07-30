@@ -625,7 +625,8 @@ class LinkBatchesDetailExportView(BaseView):
         for job in api_response.data['capture_jobs']]
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
-        writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
-        writer.writeheader()
-        writer.writerows([{k: v.encode('utf-8') for k,v in row.items()} for row in formatted_data])
+        if formatted_data:
+            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer.writeheader()
+            writer.writerows(formatted_data)
         return response

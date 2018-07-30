@@ -1,4 +1,5 @@
 import requests
+from importlib import reload
 
 from django.test import LiveServerTestCase
 

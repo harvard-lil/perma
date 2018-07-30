@@ -11,7 +11,7 @@ def get_subdomain(request):
     return request.subdomain
 
 
-class APISubdomainMiddleware(object):
+class APISubdomainMiddleware:
     def process_request(self, request):
         if get_subdomain(request) == settings.API_SUBDOMAIN:
             request.urlconf = 'api.urls'

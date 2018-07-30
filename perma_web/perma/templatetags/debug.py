@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from django import template
 
 register = template.Library()

@@ -7,7 +7,7 @@ def log_function_io(f):
     def wrapper(*args, **kwargs):
         global _log_function_io_depth
         def print_tabbed(s):
-            print '\n'.join(('\t'*_log_function_io_depth)+part for part in s.split('\n'))
+            print('\n'.join(('\t'*_log_function_io_depth)+part for part in s.split('\n')))
         print_tabbed("Calling %s:\n\targs: %s\n\tkwargs: %s" % (f.__name__, args, kwargs))
         _log_function_io_depth += 1
         try:

@@ -37,4 +37,4 @@ def configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
 
     heroku("config:set BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-multi.git")
 
-    print "Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,)
+    print("Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,))

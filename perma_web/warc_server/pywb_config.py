@@ -1,13 +1,12 @@
-import Cookie
-import StringIO
+import http.cookies
+import io
 from collections import defaultdict
 import os
 import random
 import threading
 import re
-from urlparse import urljoin
+from urllib.parse import urljoin
 import requests
-import string
 import sys
 from datetime import datetime
 
@@ -30,7 +29,7 @@ from django.apps import apps
 
 from pywb.framework.wsgi_wrappers import WSGIApp
 from pywb.rewrite.header_rewriter import HeaderRewriter
-from pywb.rewrite.html_rewriter import HTMLRewriterMixin
+# from pywb.rewrite.html_rewriter import HTMLRewriterMixin
 from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
@@ -62,38 +61,16 @@ thread_local_data = threading.local()
 
 
 # monkey patch the html rewriter to handle unicode in html attributes
-real_write_attr= HTMLRewriterMixin._write_attr
-def _write_attr(self, name, value, empty_attr):
-    # python2-only handling of unicode html attrs
-    if isinstance(name, str):
-        name = name.decode('latin-1')
-    if isinstance(value, str):
-        value = value.decode('latin-1')
-    real_write_attr(self, name, value, empty_attr)
-HTMLRewriterMixin._write_attr = _write_attr
+# real_write_attr= HTMLRewriterMixin._write_attr
+# def _write_attr(self, name, value, empty_attr):
+#     # python2-only handling of unicode html attrs
+#     if isinstance(name, str):
+#         name = name.decode('latin-1')
+#     if isinstance(value, str):
+#         value = value.decode('latin-1')
+#     real_write_attr(self, name, value, empty_attr)
+# HTMLRewriterMixin._write_attr = _write_attr
 
-# Partially patch python 2.7 so that colons are accepted as valid cookie keys
-# when creating cookie objects.
-# Thanks to http://pythonfiddle.com/cookie-accepting-a-colon-as-a-key/
-# Should be unnecessary when running python 3
-def new_set(self, key, val, coded_val,
-            LegalChars=Cookie._LegalChars + ":",
-            idmap=Cookie._idmap,
-            translate=string.translate):
-    '''Verbatim from https://github.com/python/cpython/blob/2.7/Lib/Cookie.py#L451'''
-
-    # First we verify that the key isn't a reserved word
-    # Second we make sure it only contains legal characters
-    if key.lower() in self._reserved:
-        raise Cookie.CookieError("Attempt to set a reserved key: %s" % key)
-    if "" != translate(key, idmap, LegalChars):
-        raise Cookie.CookieError("Illegal key value: %s" % key)
-
-    # It's a good key, so save it.
-    self.key                 = key
-    self.value               = val
-    self.coded_value         = coded_val
-Cookie.Morsel.set = new_set
 
 def get_archive_path():
     # Get root storage location for warcs, based on default_storage.
@@ -208,7 +185,7 @@ class PermaRoute(archivalrouter.Route):
                 cached_cdx[line.urlkey].append(str(line.raw))
 
             # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
-            for urlkey, lines in cached_cdx.iteritems():
+            for urlkey, lines in cached_cdx.items():
                 if len(lines) > 1:
                     lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
                     if lines_without_redirects:
@@ -223,7 +200,7 @@ class PermaRoute(archivalrouter.Route):
         if cached_cdx.get('is_private'):
             # if user is allowed to access this private link, they will have a cookie like GUID=<token>,
             # which can be validated with link.validate_access_token()
-            cookie = Cookie.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
+            cookie = http.cookies.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
             if not cookie:
                 raise CustomTemplateException(status='400 Bad Request',
                                               template_path='archive/missing-cookie.html',
@@ -374,7 +351,7 @@ class PermaMementoTimemapView(MementoTimemapView):
         return response
 
 
-class PermaTemplateView(object):
+class PermaTemplateView:
     """
         Class to render Django templates for Pywb views. Uses a fake request from the Django testing library
         to get Django to render a template without a real Django request object available.
@@ -389,7 +366,8 @@ class PermaTemplateView(object):
             status=status,
             content_type=content_type)
         template_result = loader.render_to_string(self.filename, template_context, request=self.fake_request)
-        return WbResponse.text_response(unicode(template_result), status=status, content_type=content_type)
+        # We have to cast the Django SafeText class to str because wsgiref can't handle subclasses
+        return WbResponse.text_response(str(template_result), status=status, content_type=content_type)
 
 
 class PermaCapturesView(PermaTemplateView):
@@ -404,6 +382,32 @@ class PermaCapturesView(PermaTemplateView):
         response.status_headers.headers.append(('Cache-Control',
                                                 'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
         return response
+
+
+# monkeypatch archivalrouter.ArchivalRouter to fix encoding problem:
+_ensure_rel_uri_set = archivalrouter.ArchivalRouter.ensure_rel_uri_set
+@staticmethod
+def ensure_rel_uri_set(env):
+    """ Return the full requested path, including the query string
+    """
+    if 'REL_REQUEST_URI' in env:
+        return env['REL_REQUEST_URI']
+
+    if not env.get('SCRIPT_NAME') and env.get('REQUEST_URI'):
+        env['REL_REQUEST_URI'] = env['REQUEST_URI']
+        return env['REL_REQUEST_URI']
+
+    # ** begin perma changes **
+    path = str(bytes(env.get('PATH_INFO', ''),'iso-8859-1'), 'utf-8')
+    url = archivalrouter.quote(path, safe='/~!$&\'()*+,;=:@')
+    # ** end perma changes **
+    query = env.get('QUERY_STRING')
+    if query:
+        url += '?' + query
+
+    env['REL_REQUEST_URI'] = url
+    return url
+archivalrouter.ArchivalRouter.ensure_rel_uri_set = ensure_rel_uri_set
 
 
 class PermaRouter(archivalrouter.ArchivalRouter):
@@ -431,7 +435,7 @@ class PermaCDXSource(CDXSource):
         # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
         if query.params.get('lines'):
-            return query.params['lines']
+            return [bytes(i, 'utf-8') for i in query.params['lines']]
 
         filters = {
             'urlkey': query.key,
@@ -441,7 +445,7 @@ class PermaCDXSource(CDXSource):
         if query.params.get('guid'):
             filters['link_id'] = query.params['guid']
 
-        return [str(i) for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
+        return [bytes(i, 'utf-8') for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
 
 
 class CachedLoader(BlockLoader):
@@ -498,7 +502,7 @@ class CachedLoader(BlockLoader):
         thread_local_data.wbrequest.mirror_name = mirror_name
 
         # turn string contents of url into file-like object
-        afile = StringIO.StringIO(file_contents)
+        afile = io.BytesIO(file_contents)
 
         # --- from here down is taken from super() ---
         if offset > 0:
@@ -539,7 +543,7 @@ def create_perma_wb_router(config={}):
 
     # insert a custom route that knows how to play back based on GUID
     wb_handler = create_wb_handler(QueryHandler.init_from_config(PermaCDXSource()),
-                                   dict(archive_paths=[get_archive_path()],
+                                   dict(archive_paths=[str(get_archive_path(), 'utf-8')],
                                         wb_handler_class=PermaGUIDHandler,
                                         buffer_response=True,
                                         # head_insert_html=os.path.join(os.path.dirname(__file__), 'head_insert.html'),

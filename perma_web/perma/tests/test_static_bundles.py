@@ -46,7 +46,7 @@ class StaticBundlesTestCase(unittest.TestCase):
                 continue
 
             # check for non-matching files
-            if open(test_file).read() != open(real_file).read():
+            if open(test_file, 'rb').read() != open(real_file, 'rb').read():
                 errors.append("File needs to be regenerated: %s" % real_file)
 
         # check for extra files

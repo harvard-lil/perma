@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# This is only used by dev and staging Heroku apps
+# This is only used by dev Heroku app
 
 source bin/utils
 
