@@ -1121,7 +1121,7 @@ class Link(DeletableModel):
     def safe_delete_warc(self):
         old_name = self.warc_storage_file()
         if default_storage.exists(old_name):
-            new_name = old_name.replace('.warc.gz', '_replaced.warc.gz')
+            new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % to_timestamp(timezone.now()))
             default_storage.store_file(default_storage.open(old_name), new_name)
             default_storage.delete(old_name)
 
