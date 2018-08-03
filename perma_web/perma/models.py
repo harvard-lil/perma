@@ -50,7 +50,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
-from .utils import (tz_datetime, protocol, to_timestamp,
+from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
     paid_through_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
@@ -226,7 +226,7 @@ class Registrar(models.Model):
                 settings.SUBSCRIPTION_STATUS_URL,
                 data={
                     'encrypted_data': prep_for_perma_payments({
-                        'timestamp': to_timestamp(datetime.utcnow()),
+                        'timestamp': datetime.utcnow().timestamp(),
                         'registrar':  self.pk
                     })
                 }
@@ -271,7 +271,7 @@ class Registrar(models.Model):
         return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
 
     def get_subscription_info(self, now):
-        timestamp = to_timestamp(now)
+        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         return {
@@ -1121,7 +1121,7 @@ class Link(DeletableModel):
     def safe_delete_warc(self):
         old_name = self.warc_storage_file()
         if default_storage.exists(old_name):
-            new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % to_timestamp(timezone.now()))
+            new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % timezone.now().timestamp())
             default_storage.store_file(default_storage.open(old_name), new_name)
             default_storage.delete(old_name)
 
