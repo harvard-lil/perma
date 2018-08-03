@@ -56,27 +56,11 @@ COPY npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
     && rm npm-shrinkwrap.json
 
-# Make a python3 virtualenv and install requirements there.
-# The venv must be manually activated before running docker commands.... terrible
-#RUN virtualenv -p /usr/bin/python3.5 /usr/local/share/.virtualenvs/perma \
-#    && . /usr/local/share/.virtualenvs/perma/bin/activate \
-#    && pip install -U "pip>=9,<10" \
-#    && pip install -r requirements.txt \
-#    && rm requirements.txt
-
-# make python3 the system python... creepy
-#RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1 \
-#    && update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-#COPY requirements.txt /perma/perma_web
-#RUN pip3 install -U "pip>=9,<10" \
-#    && pip install -r requirements.txt --src /usr/local/src \
-#    && rm requirements.txt
-
 # python requirements via pipenv.
 # to access the virtualenv, invoke python like this: `pipenv run python`
 COPY Pipfile.lock /perma/perma_web
-RUN pip3 install -U "pip>=9,<10" \
-    && pip install pipenv \
+RUN pip3 install -U \
+    && pip3 install pipenv \
     && pipenv --python 3.5 install --ignore-pipfile\
     && rm Pipfile.lock
 
