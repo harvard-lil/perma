@@ -59,8 +59,8 @@ RUN npm install \
 # python requirements via pipenv.
 # to access the virtualenv, invoke python like this: `pipenv run python`
 COPY Pipfile.lock /perma/perma_web
-RUN pip3 install -U \
-    && pip3 install pipenv \
+RUN pip3 install -U pip \
+    && pip install pipenv \
     && pipenv --python 3.5 install --ignore-pipfile\
     && rm Pipfile.lock
 
