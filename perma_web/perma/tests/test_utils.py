@@ -7,7 +7,7 @@ from hypothesis.extra.django import TestCase
 from hypothesis.strategies import characters, text, integers, booleans, datetimes, dates, decimals, uuids, binary, dictionaries
 from perma.utils import *
 
-from .utils import PermaTestCase, SentinelException
+from .utils import SentinelException
 
 # Fixtures
 
