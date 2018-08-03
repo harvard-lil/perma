@@ -53,6 +53,7 @@ npm-debug.log
 
 # pytest
 .cache
+.pytest_cache
 
 # Ignore files cached by Hypothesis...
 .hypothesis/

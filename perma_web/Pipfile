@@ -79,29 +79,27 @@ PyNaCl = "==1.1.2"                          # encryption. why pinned?
 # integration with campaign monitor
 createsend-python = {git = "git://github.com/rebeccacremona/createsend-python.git", ref = "7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b", editable = true}
 
-
-# testing
-"beautifulsoup4" = "==4.5.1"                # parses html of responses
-coverage = "==4.3.4"                        # record code coverage
-django-admin-smoke-tests = "==0.3.0"        # basic tests for the Django admin
-django-sslserver = "==0.14"                 # For testing SSL locally (does this even work?)
-fakeredis = "==0.7.0"                       # simulate redis backend for tests
-"flake8" = "==2.5.4"                        # code linting
-hypothesis = "==3.31.2"                     # run tests with lots of generated input
-mock = "==2.0.0"                            # safe monkey patching
-pytest-cov = "==2.5.1"                      # integrate coverage w/ pytest
-pytest-django = "==3.1.2"                   # tools for django in pytest
-pytest-xdist = "==1.15.0"                   # run tests in parallel
-pytest = "==3.0.7"                          # test runner
-sauceclient = "==1.0.0"                     # run functional tests in many browsers online
-
 # heroku
 dj_database_url = "==0.3.0"
 gevent = ">1.3"
 gunicorn = ">19.7"
 newrelic = "==2.66.0.49"
 
-[requires]
-python_version = "3.5"
 
 [dev-packages]
+"beautifulsoup4" = "*"                      # parses html of responses
+coverage = "*"                              # record code coverage
+django-admin-smoke-tests = "*"              # basic tests for the Django admin
+fakeredis = "*"                             # simulate redis backend for tests
+"flake8" = "==2.5.4"                        # code linting
+hypothesis = "*"                            # run tests with lots of generated input
+mock = "*"                                  # safe monkey patching
+pytest-cov = "*"                            # integrate coverage w/ pytest
+pytest-django = "*"                         # tools for django in pytest
+pytest-xdist = "*"                          # run tests in parallel
+pytest = "*"                                # test runner
+sauceclient = "*"                           # run functional tests in many browsers online
+
+
+[requires]
+python_version = "3.5"

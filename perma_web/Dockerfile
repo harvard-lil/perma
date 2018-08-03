@@ -61,7 +61,7 @@ RUN npm install \
 COPY Pipfile.lock /perma/perma_web
 RUN pip3 install -U pip \
     && pip install pipenv \
-    && pipenv --python 3.5 install --ignore-pipfile\
+    && pipenv --python 3.5 install --ignore-pipfile --dev \
     && rm Pipfile.lock
 
 # dev personalizations / try installing packages without rebuilding everything

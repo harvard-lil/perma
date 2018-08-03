@@ -3,8 +3,8 @@ from django.test.client import RequestFactory
 from mock import patch, sentinel
 
 from hypothesis import given
+from hypothesis.extra.django import TestCase
 from hypothesis.strategies import characters, text, integers, booleans, datetimes, dates, decimals, uuids, binary, dictionaries
-
 from perma.utils import *
 
 from .utils import PermaTestCase, SentinelException
@@ -36,7 +36,7 @@ def one_two_three_dict():
 
 # Tests
 
-class UtilsTestCase(PermaTestCase):
+class UtilsTestCase(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()

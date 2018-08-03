@@ -51,12 +51,6 @@ def run_django(port="0.0.0.0:8000"):
         for proc in proc_list:
             os.kill(proc.pid, signal.SIGKILL)
 
-@task
-def run_ssl(port="0.0.0.0:8000"):
-    """
-        Run django test server with SSL.
-    """
-    local("python manage.py runsslserver %s" % port)
 
 _default_tests = "perma api functional_tests lockss"
 
