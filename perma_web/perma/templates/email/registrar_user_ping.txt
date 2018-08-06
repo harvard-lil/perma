@@ -1,25 +1,18 @@
-TITLE: Perma.cc update for Registrars: action requested
+TITLE: Perma.cc update: new batch link creation feature!
 
 Dear {{ first_name }} {{ last_name }}:
 
-We're reaching out to you, our registrar-partner, with an important request and a few updates. You are receiving this email because you're currently identified as a Registrar User for {{ registrar_name }}.
+* We’d like to share news of an exciting new feature that is now available.  Over the past year, the Perma.cc development team has been working on a function that allows users to create more than one perma.cc link at a time.  This feature – Bulk Link Creation - is now available for all your users and could be especially helpful for those of you who support the law review editors.
 
-* First, a request: We need to confirm the contact info for your institution and its registrar users. Our records show that you have the following contact info:
+Read more about this new feature on our blog: https://blogs.harvard.edu/perma/2018/06/22/feature-update-batch-link-creation/ 
 
-    General contact email: {{ registrar_email }}{% for user in registrar_users %}
-    {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
-    
-If any of this information is wrong, please update the general contact email at http://perma.cc/manage/registrars/{{ registrar_id }}, and registrar user list at https://perma.cc/manage/registrar-users.
+And feel free to disseminate this Google document to your users, which you can make a copy of and customize: https://docs.google.com/document/d/1QhBhaJpI78l2T8Q16w5EiC_PnOwnoeCxaggmFmLdWRg/edit
 
-* Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
+* Additionally, below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
     Perma Links created (total): {{ total_links }}
     Perma Links created ({{ year }}): {{ year_links }}
     Your most active organization ({{ year }}): {{ most_active_org.name | default:"(no activity in your organizations)" }}
-
-* Third: In coming weeks, we'll be making a change so that user questions submitted through the Perma site are sent directly to you, their registrar user - hence the above confirmation of contact info. Our team will remain focused on improving Perma, will be cc'd on these emails and are available to assist with bugs or technical issues. For more on this change, see our blog post here: http://bit.ly/2kBtWo0
-
-* Lastly: Our team has prepared a series of guides for registrars and those they support, available both in PDF and on Google Docs, in case you'd like to adapt the text directly. Find guides for academic journals, faculty, and librarians/registrar users here: https://perma.cc/docs/libraries#user-resources. Please share these resources with those in your community!
 
 As always, we welcome your ideas and feedback, and thank you for supporting Perma.cc!
 
