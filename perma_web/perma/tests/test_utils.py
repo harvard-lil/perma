@@ -3,11 +3,11 @@ from django.test.client import RequestFactory
 from mock import patch, sentinel
 
 from hypothesis import given
+from hypothesis.extra.django import TestCase
 from hypothesis.strategies import characters, text, integers, booleans, datetimes, dates, decimals, uuids, binary, dictionaries
-
 from perma.utils import *
 
-from .utils import PermaTestCase, SentinelException
+from .utils import SentinelException
 
 # Fixtures
 
@@ -36,7 +36,7 @@ def one_two_three_dict():
 
 # Tests
 
-class UtilsTestCase(PermaTestCase):
+class UtilsTestCase(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -152,9 +152,9 @@ class UtilsTestCase(PermaTestCase):
 
     def test_is_valid_timestamp(self):
         max_age = 60
-        now = to_timestamp(datetime.utcnow())
-        still_valid = to_timestamp(datetime.utcnow() + timedelta(seconds=max_age))
-        invalid = to_timestamp(datetime.utcnow() + timedelta(seconds=max_age * 2))
+        now = datetime.utcnow().timestamp()
+        still_valid = (datetime.utcnow() + timedelta(seconds=max_age)).timestamp()
+        invalid = (datetime.utcnow() + timedelta(seconds=max_age * 2)).timestamp()
         self.assertTrue(is_valid_timestamp(now, max_age))
         self.assertTrue(is_valid_timestamp(still_valid, max_age))
         self.assertFalse(is_valid_timestamp(invalid, max_age))

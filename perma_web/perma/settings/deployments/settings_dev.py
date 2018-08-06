@@ -33,9 +33,6 @@ GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 CELERY_RESULT_BACKEND = 'amqp'
 
-# SSL (run test server with SSL using `fab run_ssl`)
-INSTALLED_APPS += ("sslserver",)
-
 ### optional dev packages ###
 
 # django-debug-toolbar

@@ -45,7 +45,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, to_timestamp, prep_for_perma_payments
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -1060,7 +1060,7 @@ def settings_subscription_cancel(request):
         'cancel_url': settings.CANCEL_URL,
         'data': prep_for_perma_payments({
             'registrar': request.user.registrar.pk,
-            'timestamp': to_timestamp(datetime.utcnow())
+            'timestamp': datetime.utcnow().timestamp()
         })
     }
     return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)

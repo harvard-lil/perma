@@ -18,7 +18,6 @@ import socket
 import string
 import tempdir
 import tempfile
-import time
 from ua_parser import user_agent_parser
 from urllib.parse import urlparse
 from warcio.warcwriter import BufferWARCWriter
@@ -250,14 +249,6 @@ def tz_datetime(*args, **kwargs):
     return timezone.make_aware(datetime(*args, **kwargs))
 
 
-def to_timestamp(dt):
-    """
-    Replicate python3 datetime.timestamp() method (https://docs.python.org/3.3/library/datetime.html#datetime.datetime.timestamp)
-    https://stackoverflow.com/a/30021134
-    """
-    return int((time.mktime(dt.timetuple())+ dt.microsecond/1e6))
-
-
 def first_day_of_next_month(now):
     # use first of month instead of today to avoid issues w/ variable length months
     first_of_month = now.replace(day=1)
@@ -383,7 +374,7 @@ def retrieve_fields(transmitted_data, fields):
 
 
 def is_valid_timestamp(stamp, max_age):
-    return stamp <= to_timestamp(datetime.utcnow() + timedelta(seconds=max_age))
+    return stamp <= (datetime.utcnow() + timedelta(seconds=max_age)).timestamp()
 
 
 @sensitive_variables()
