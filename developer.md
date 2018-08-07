@@ -273,13 +273,15 @@ All code must show zero warnings or errors when running `flake8 .` in `perma_web
 
 Flake8 settings are configured in `perma_web/.pep8`
 
-If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-push`:
+If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-commit` or `.git/hooks/pre-push`:
 
-    #!/bin/sh
-    d flake8 .
+    #!/usr/bin/env bash
+    docker-compose exec -T web pipenv run flake8 .
     exit $?
 
-Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-push`.
+Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-commit` or `chmod u+x .git/hooks/pre-push`.
+
+(You have to have started the containers with `docker-compose up -d` for this to work.)
 
 ### Sauce Browser Tests
 
