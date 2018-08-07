@@ -1,5 +1,6 @@
 import argparse
 import subprocess
+import sys
 
 """
 
@@ -9,18 +10,21 @@ derived from
 
 https://github.com/harvard-lil/perma/blob/v0.169/perma_web/fabfile/deploy.py
 
-Generally, run like this:
+Run something like this, from inside the repo, for which you must have
+commit privileges:
 
-    $ python release.py stage
+    $ python3 ./release.py stage
 
 or
 
-    $ python release.py prod
+    $ python3 ./release.py prod
 
 """
 
 
 def main():
+    if sys.version_info[0] < 3:
+        raise Exception("Python 3 or a more recent version is required.")
     parser = argparse.ArgumentParser()
     parser.add_argument('tier', choices=['stage', 'prod'])
     parser.add_argument('--tag')
