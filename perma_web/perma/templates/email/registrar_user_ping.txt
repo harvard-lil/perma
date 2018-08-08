@@ -2,9 +2,9 @@ TITLE: Perma.cc update: new batch link creation feature!
 
 * We'd like to share news of an exciting new feature that is now available. Over the past year, the Perma.cc development team has been working on a function that allows users to create more than one Perma Link at a time. This feature – Batch Link Creation - is now available for all your users, and could be especially helpful for those of you who support law journals.
 
-Read more about this new feature on our blog: https://blogs.harvard.edu/perma/2018/06/22/feature-update-batch-link-creation/ - and feel free to disseminate this Google document to your users, which you can make a copy of and customize: https://docs.google.com/document/d/1QhBhaJpI78l2T8Q16w5EiC_PnOwnoeCxaggmFmLdWRg/edit
+Read more about this new feature on our blog: https://blogs.harvard.edu/perma/2018/06/22/feature-update-batch-link-creation/ - and feel free to distribute this Google document to your users, which you can make a copy of and customize: https://docs.google.com/document/d/1QhBhaJpI78l2T8Q16w5EiC_PnOwnoeCxaggmFmLdWRg/edit
 
-* Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
+* Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your organization, please contact us.
 
     Perma Links created (total): {{ total_links }}
     Perma Links created ({{ year }}): {{ year_links }}
