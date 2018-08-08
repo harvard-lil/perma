@@ -10,6 +10,7 @@ import requests
 import sys
 from datetime import datetime
 
+from django.core.handlers.wsgi import get_path_info
 from django.db import close_old_connections
 from django.template import loader
 from django.test import RequestFactory
@@ -398,8 +399,7 @@ def ensure_rel_uri_set(env):
         return env['REL_REQUEST_URI']
 
     # ** begin perma changes **
-    path = str(bytes(env.get('PATH_INFO', ''),'iso-8859-1'), 'utf-8')
-    url = archivalrouter.quote(path, safe='/~!$&\'()*+,;=:@')
+    url = get_path_info(env)
     # ** end perma changes **
     query = env.get('QUERY_STRING')
     if query:
