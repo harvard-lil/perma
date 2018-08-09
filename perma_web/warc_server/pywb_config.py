@@ -294,6 +294,7 @@ class PermaHandler(WBHandler):
     def _init_replay_view(self, config):
         replay_view = super(PermaHandler, self)._init_replay_view(config)
         replay_view.response_class = PermaMementoResponse
+        replay_view.content_loader.record_loader.loader = CachedLoader()
         return replay_view
 
     def handle_request(self, wbrequest):
