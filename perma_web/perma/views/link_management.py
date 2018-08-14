@@ -28,9 +28,12 @@ def create_link(request):
             messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
     # count celery capture workers, by convention named w1, w2, etc.
-    inspector = celery_inspect()
-    active = inspector.active()
-    workers = len([key for key in active.keys() if key.split('@')[0][0] == 'w']) if active else 0
+    try:
+        inspector = celery_inspect()
+        active = inspector.active()
+        workers = len([key for key in active.keys() if key.split('@')[0][0] == 'w']) if active else 0
+    except TimeoutError:
+        workers = settings.FALLBACK_WORKER_COUNT
 
     # approximate 'average' capture time during last 24 hrs
     # based on manage/stats
