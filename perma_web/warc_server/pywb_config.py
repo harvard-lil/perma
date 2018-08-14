@@ -58,6 +58,7 @@ newstyle_guid_regex = r'[A-Z0-9]{1,4}(-[A-Z0-9]{4})+'  # post Nov. 2013
 oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
 GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
 WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+REDIRECT_MATCHER = re.compile(r' 30[1-7] ')
 thread_local_data = threading.local()
 
 
@@ -155,7 +156,6 @@ class PermaRoute(archivalrouter.Route):
         guid = matcher.group(1)
         cache_key = Link.get_cdx_cache_key(guid)
         cached_cdx = django_cache.get(cache_key)
-        redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
             try:
                 # This will filter out links that have user_deleted=True
@@ -188,7 +188,7 @@ class PermaRoute(archivalrouter.Route):
             # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
             for urlkey, lines in cached_cdx.items():
                 if len(lines) > 1:
-                    lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
+                    lines_without_redirects = [line for line in lines if not REDIRECT_MATCHER.search(line)]
                     if lines_without_redirects:
                         cached_cdx[urlkey] = lines_without_redirects
 
@@ -294,6 +294,19 @@ class PermaHandler(WBHandler):
     def _init_replay_view(self, config):
         replay_view = super(PermaHandler, self)._init_replay_view(config)
         replay_view.response_class = PermaMementoResponse
+        replay_view.content_loader.record_loader.loader = CachedLoader()
+
+        orig_render = replay_view.render_content
+        def filtering_render(wbrequest, cdx_lines, cdx_loader):
+            # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
+            cdxs = list(cdx_lines)
+            if cdxs:
+                lines_without_redirects = [line for line in cdxs if not REDIRECT_MATCHER.search(line.to_text())]
+                if lines_without_redirects:
+                    cdxs = lines_without_redirects
+            return orig_render(wbrequest, iter(cdxs), cdx_loader)
+        replay_view.render_content = filtering_render
+
         return replay_view
 
     def handle_request(self, wbrequest):
