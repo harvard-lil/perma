@@ -191,8 +191,9 @@ class CaptureJobAdmin(admin.ModelAdmin):
 
 
 class LinkBatchAdmin(admin.ModelAdmin):
-    list_display = ['id', 'created_by', 'started_on', 'target_folder']
+    list_display = ['id', 'created_by', 'started_on', 'target_folder', 'capture_job_count']
     raw_id_fields = ['created_by', 'target_folder']
+    readonly_fields = ['capture_job_count']
 
     inlines = [
       new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
@@ -200,6 +201,14 @@ class LinkBatchAdmin(admin.ModelAdmin):
                readonly_fields=['message', 'step_count', 'step_description', 'human'],
                can_delete=False)
     ]
+
+    def get_queryset(self, request):
+        return super(LinkBatchAdmin, self).get_queryset(request).annotate(
+            capture_job_count=Count('capture_jobs', distinct=True)
+        )
+
+    def capture_job_count(self, obj):
+        return obj.capture_job_count
 
 
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
