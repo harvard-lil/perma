@@ -178,7 +178,7 @@ class FolderAdmin(MPTTModelAdmin):
 class CaptureJobAdmin(admin.ModelAdmin):
     list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human']
     list_filter = ['status']
-    raw_id_fields = ['link']
+    raw_id_fields = ['link', 'created_by']
 
     def get_queryset(self, request):
         q = Q(link__isnull=True) | Q(link__user_deleted=False)
