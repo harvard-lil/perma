@@ -114,6 +114,7 @@ function show_batch(batch_id) {
                 $batch_details.find('*').each(function(){$(this).removeAttr('tabIndex')});
             }
         }).catch(function(error){
+            clearInterval(interval);
             handle_error(error);
         });
     }
