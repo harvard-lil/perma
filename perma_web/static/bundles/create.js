@@ -13986,6 +13986,7 @@ webpackJsonp([1],[
 	                });
 	            }
 	        }).catch(function (error) {
+	            clearInterval(interval);
 	            handle_error(error);
 	        });
 	    };
