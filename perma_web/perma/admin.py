@@ -176,7 +176,7 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human']
+    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'submitted_url']
     list_filter = ['status']
     raw_id_fields = ['link', 'created_by']
 
