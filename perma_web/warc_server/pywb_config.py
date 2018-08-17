@@ -15,6 +15,7 @@ from django.db import close_old_connections
 from django.template import loader
 from django.test import RequestFactory
 from surt import surt
+import types
 
 # configure Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
@@ -38,11 +39,12 @@ from pywb.framework.wbrequestresponse import WbResponse
 from pywb.framework.memento import MementoResponse, make_timemap, LINK_FORMAT
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
+from pywb.utils.statusandheaders import StatusAndHeaders
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
-from pywb.webapp.pywb_init import create_wb_handler
+from pywb.webapp.pywb_init import create_wb_handler, create_wb_router
+from pywb.webapp.rangecache import range_cache
 from pywb.webapp.views import MementoTimemapView
-from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException, WbException
 
 # Use lazy model imports because Django models aren't ready yet when this file is loaded by wsgi.py
@@ -146,6 +148,52 @@ def handle_exception(self, env, exc, print_trace):
     # special templates for exception types we define
     return real_handle_exception(self, env, exc, print_trace)
 WSGIApp.handle_exception = handle_exception
+
+
+def handle_range(self, wbrequest, key, wbresponse_func, url, start, end, use_206):
+    # adapt handle_range so it reads ranges directly from the response bytestring
+    # rather than creating cache files on disk:
+    # we cache warcs in redis, and these files can be huge and don't seem to be reliably cleaned up
+    # https://github.com/harvard-lil/perma/issues/2428
+    # original: https://github.com/webrecorder/pywb/blob/0.32.0/pywb/webapp/rangecache.py#L27
+
+    # begin Perma changes 1
+    wbrequest.custom_params['noredir'] = True
+    response = wbresponse_func()
+    joined = b"\n".join(response.body)
+    filelen =len(joined)
+    # end Perma changes 1
+
+    maxlen = filelen - start
+
+    if end:
+        maxlen = min(maxlen, end - start + 1)
+
+    def read_range():
+        with io.BytesIO(joined) as fh: # Perma changes 2: replaced real file w/ BytesIO
+            fh.seek(start)
+            fh = LimitReader.wrap_stream(fh, maxlen)
+            while True:
+                buf = fh.read()
+                if not buf:
+                    break
+
+                yield buf
+
+    # begin Perma changes 3
+    status_headers = StatusAndHeaders('200 OK', response.status_headers.headers)
+    # end Perma changes 3
+
+    if use_206:
+        StatusAndHeaders.add_range(status_headers, start,
+                                   maxlen,
+                                   filelen)
+
+    status_headers.replace_header('Content-Length', str(maxlen))
+
+    return status_headers, read_range()
+
+range_cache.handle_range = types.MethodType(handle_range, range_cache)
 
 
 # include guid in CDX requests
