@@ -176,7 +176,7 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'submitted_url']
+    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
     list_filter = ['status']
     raw_id_fields = ['link', 'created_by']
 
@@ -187,6 +187,11 @@ class CaptureJobAdmin(admin.ModelAdmin):
     def link_creation_timestamp(self, obj):
         if obj.link:
             return obj.link.creation_timestamp
+        return None
+
+    def link_taglist(self, obj):
+        if obj.link:
+            return u", ".join(o.name for o in obj.link.tags.all())
         return None
 
 
