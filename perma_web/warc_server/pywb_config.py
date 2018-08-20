@@ -422,6 +422,7 @@ class PermaTemplateView:
         self.fake_request = RequestFactory(HTTP_HOST=settings.WARC_HOST).get('/fake')
 
     def render_response(self, status='200 OK', content_type='text/html; charset=utf-8', **template_kwargs):
+        django.urls.set_urlconf('perma.urls')
         template_context = dict(
             template_kwargs,
             status=status,
