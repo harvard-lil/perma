@@ -9,11 +9,6 @@ from urllib.parse import urljoin
 import requests
 import sys
 from datetime import datetime
-
-from django.core.handlers.wsgi import get_path_info
-from django.db import close_old_connections
-from django.template import loader
-from django.test import RequestFactory
 from surt import surt
 import types
 
@@ -22,12 +17,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 import django
 django.setup()
 
+from django.apps import apps
 from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest
+from django.core.handlers.wsgi import get_path_info, WSGIRequest
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
 from django.core.cache import cache as django_cache
-from django.apps import apps
+from django.db import close_old_connections
+from django.template import loader
+from django.test import RequestFactory
+
 
 from pywb.framework.wsgi_wrappers import WSGIApp
 from pywb.rewrite.header_rewriter import HeaderRewriter
