@@ -1,5 +1,8 @@
 {% load render_bundle from webpack_loader %}<!DOCTYPE html>
 <html lang="en-us">
+  {# Template is used at perma-archives and at perma; links should point to perma #}
+  {% with base_url=request.scheme|add:"://"|add:HOST %}
+
   <head>
     <title>Perma.cc{% block title %}{% endblock %}</title>
 
@@ -49,7 +52,7 @@
                 <span class="icon-bar" aria-hidden="true"></span>
               </button>
               <div class="navbar-brand logo">
-                <a href="{% url 'landing' %}">Perma.cc<span class="sr-only">Home</span><img alt="infinity symbol logo" class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
+                <a href="{{ base_url }}{% url 'landing' %}">Perma.cc<span class="sr-only">Home</span><img alt="infinity symbol logo" class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
               </div>
             </div>
             {% include 'includes/upper_right_menu.html' %}
@@ -86,11 +89,11 @@
                 <p id="footer-skip-target" tabindex="-1" class="sr-only">Footer</p>
                 <nav aria-label="Learn More">
                   <ul id="footer-nav">
-                    <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
-                    <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
-                    <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
-                    <li class="footer-nav-item"><a href="{% url 'stats' %}">Stats</a></li>
-                    <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+                    <li class="footer-nav-item"><a href="{{ base_url }}{% url 'about' %}">About</a></li>
+                    <li class="footer-nav-item"><a href="{{ base_url }}{% url 'docs' %}">Guide</a></li>
+                    <li class="footer-nav-item"><a href="{{ base_url }}{% url 'dev_docs' %}">Developers</a></li>
+                    <li class="footer-nav-item"><a href="{{ base_url }}{% url 'stats' %}">Stats</a></li>
+                    <li class="footer-nav-item"><a href="{{ base_url }}{% url 'contact' %}">Contact</a></li>
                     <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
                     <li class="footer-nav-item"><a href="https://twitter.com/permacc">Twitter</a></li>
                     <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">GitHub</a></li>
@@ -101,10 +104,10 @@
               <div class="col col-lg-5">
                 <nav aria-label="Terms and Conditions">
                   <ul id="boilerplate">
-                    <li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
-                    <li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-                    <li class="boilerplate-item"><a href="{% url 'return_policy' %}">Return Policy</a></li>
-                    <li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+                    <li class="boilerplate-item"><a href="{{ base_url }}{% url 'terms_of_service' %}">Terms of Service</a></li>
+                    <li class="boilerplate-item"><a href="{{ base_url }}{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                    <li class="boilerplate-item"><a href="{{ base_url }}{% url 'return_policy' %}">Return Policy</a></li>
+                    <li class="boilerplate-item"><a href="{{ base_url }}{% url 'copyright_policy' %}">Copyright Policy</a></li>
                   </ul>
                 </nav>
               </div>
@@ -117,4 +120,6 @@
     {% block scripts %}{% endblock %}
     {% block templates %}{% endblock %}
   </body>
+
+  {% endwith %}
 </html>
