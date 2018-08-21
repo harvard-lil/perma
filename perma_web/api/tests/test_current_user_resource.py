@@ -1,8 +1,8 @@
-from .utils import ApiResourceTransactionTestCase
+from .utils import ApiResourceTestCase
 from perma.models import LinkUser
 
 
-class CurrentUserResourceTestCase(ApiResourceTransactionTestCase):
+class CurrentUserResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
                 'fixtures/api_keys.json',

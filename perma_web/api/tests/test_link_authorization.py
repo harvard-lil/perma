@@ -2,24 +2,24 @@ import os
 
 from django.core.urlresolvers import reverse
 
-from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
+from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
 from perma.models import Link, LinkUser, Folder, Capture, CDXLine
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 from mock import patch
 
-class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
+
+class LinkAuthorizationMixin():
 
     resource_url = '/archives'
-
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 
     def setUp(self):
-        super(LinkAuthorizationTestCase, self).setUp()
+        super(LinkAuthorizationMixin, self).setUp()
 
         self.admin_user = LinkUser.objects.get(pk=1)
         self.registrar_user = LinkUser.objects.get(pk=2)
@@ -44,9 +44,6 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.link_url = self.get_link_url(self.link)
         self.unrelated_link_url = self.get_link_url(self.unrelated_link)
 
-        self.post_data = {'url': self.server_url + "/test.html",
-                          'title': 'This is a test page'}
-
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
 
@@ -55,6 +52,9 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def get_link_url(self, link):
         return "{0}/{1}".format(self.list_url, link.pk)
+
+
+class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
 
     #######
     # GET #
@@ -87,36 +87,6 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_logged_out_users_getting_logged_in_detail(self):
         self.rejected_get(self.link_url)
-
-    ############
-    # Creating #
-    ############
-
-    def test_should_reject_create_to_inaccessible_folder(self):
-        inaccessible_folder = self.admin_user.root_folder
-        response = self.rejected_post(self.list_url, expected_status_code=400, user=self.regular_user, data=dict(self.post_data, folder=inaccessible_folder.pk))
-        self.assertIn(b"Folder not found.", response.content)
-
-    def test_should_reject_create_from_logged_out_user(self):
-        self.rejected_post(self.list_url, data=self.post_data)
-
-    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
-    def test_should_reject_create_if_folder_registrar_bad_standing(self, allowed):
-        allowed.return_value = False
-        response = self.rejected_post(
-            self.list_url,
-            expected_status_code=400,
-            user=self.firm_user,
-            data=dict(self.post_data,
-                      folder=self.firm_folder.pk)
-        )
-        allowed.assert_called_once_with(self.firm_folder.organization.registrar)
-        self.assertIn(b"subscription", response.content)
-
-    # tests for permitted creations in test_link_resource, where the
-    # to-be-captured url is actually being served up.
-    # this should be fixed.
-
 
     ###########
     # Editing #
@@ -256,6 +226,59 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.rejected_link_move(self.regular_user, self.unrelated_link, self.regular_user.root_folder,
                                 expected_status_code=403)
 
+
+
+    def test_should_reject_delete_for_out_of_window_link(self):
+        self.rejected_delete(self.link_url, user=self.org_user,
+                             expected_status_code=403)
+        self.successful_get(self.link_url, user=self.org_user)
+
+    def test_should_reject_delete_from_users_who_dont_own_link(self):
+        self.rejected_delete(self.unrelated_link_url, user=self.regular_user,
+                             expected_status_code=403)
+        self.rejected_delete(self.unrelated_link_url, user=self.registrar_user,
+                             expected_status_code=403)
+        self.rejected_delete(self.unrelated_link_url, user=self.related_org_user,
+                             expected_status_code=403)
+        self.successful_get(self.link_url, user=self.org_user)
+
+
+class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
+
+    def setUp(self):
+        super(LinkAuthorizationTransationTestCase, self).setUp()
+        self.post_data = {'url': self.server_url + "/test.html",
+                          'title': 'This is a test page'}
+
+    ############
+    # Creating #
+    ############
+
+    def test_should_reject_create_to_inaccessible_folder(self):
+        inaccessible_folder = self.admin_user.root_folder
+        response = self.rejected_post(self.list_url, expected_status_code=400, user=self.regular_user, data=dict(self.post_data, folder=inaccessible_folder.pk))
+        self.assertIn(b"Folder not found.", response.content)
+
+    def test_should_reject_create_from_logged_out_user(self):
+        self.rejected_post(self.list_url, data=self.post_data)
+
+    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
+    def test_should_reject_create_if_folder_registrar_bad_standing(self, allowed):
+        allowed.return_value = False
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.firm_user,
+            data=dict(self.post_data,
+                      folder=self.firm_folder.pk)
+        )
+        allowed.assert_called_once_with(self.firm_folder.organization.registrar)
+        self.assertIn(b"subscription", response.content)
+
+    # tests for permitted creations in test_link_resource, where the
+    # to-be-captured url is actually being served up.
+    # this should be fixed.
+
     ############
     # Deleting #
     ############
@@ -277,17 +300,3 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             self.assertEqual(len(new_captures), 0)
             self.assertEqual(len(new_cdxlines), 0)
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
-
-    def test_should_reject_delete_for_out_of_window_link(self):
-        self.rejected_delete(self.link_url, user=self.org_user,
-                             expected_status_code=403)
-        self.successful_get(self.link_url, user=self.org_user)
-
-    def test_should_reject_delete_from_users_who_dont_own_link(self):
-        self.rejected_delete(self.unrelated_link_url, user=self.regular_user,
-                             expected_status_code=403)
-        self.rejected_delete(self.unrelated_link_url, user=self.registrar_user,
-                             expected_status_code=403)
-        self.rejected_delete(self.unrelated_link_url, user=self.related_org_user,
-                             expected_status_code=403)
-        self.successful_get(self.link_url, user=self.org_user)

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
+from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
 from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
 
-class LinkValidationTestCase(ApiResourceTransactionTestCase):
+class LinkValidationMixin():
 
     resource_url = '/archives'
     rejected_status_code = 400  # Bad Request
@@ -16,11 +16,8 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 
-    serve_files = ['target_capture_files/test.html',
-                   'target_capture_files/test.jpg']
-
     def setUp(self):
-        super(LinkValidationTestCase, self).setUp()
+        super(LinkValidationMixin, self).setUp()
 
         self.admin_user = LinkUser.objects.get(pk=1)
         self.org_user = LinkUser.objects.get(pk=3)
@@ -29,6 +26,9 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
 
         self.unrelated_url = "{0}{1}/".format(self.list_url, self.unrelated_link.pk)
+
+
+class LinkValidationTestCase(LinkValidationMixin, ApiResourceTestCase):
 
     ########
     # URLs #
@@ -41,12 +41,6 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            data={'url': u})
-
-    @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
-    def test_should_reject_invalid_ip(self):
-        self.rejected_post(self.list_url,
-                           user=self.org_user,
-                           data={'url': self.server_url})
 
     def test_should_reject_malformed_url1(self):
         self.rejected_post(self.list_url,
@@ -80,17 +74,33 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            # http://stackoverflow.com/a/10456069/313561
                            data={'url': 'http://0.42.42.42/'})
 
-    @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
-    def test_should_reject_large_url(self):
-        self.rejected_post(self.list_url,
-                           user=self.org_user,
-                           data={'url': self.server_url + '/test.jpg'})
-
     def test_should_reject_invalid_folder_id(self):
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            data={'url': 'http://example.com',
                                  'folder': 'not-an-integer'})
+
+
+class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransactionTestCase):
+
+    serve_files = ['target_capture_files/test.html',
+                   'target_capture_files/test.jpg']
+
+    ########
+    # URLs #
+    ########
+
+    @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
+    def test_should_reject_invalid_ip(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': self.server_url})
+
+    @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
+    def test_should_reject_large_url(self):
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': self.server_url + '/test.jpg'})
 
     #########
     # Files #

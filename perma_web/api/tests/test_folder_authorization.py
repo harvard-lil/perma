@@ -1,8 +1,8 @@
-from .utils import ApiResourceTransactionTestCase
+from .utils import ApiResourceTestCase
 from perma.models import LinkUser, Folder
 
 
-class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
+class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     resource_url = '/folders'
 
