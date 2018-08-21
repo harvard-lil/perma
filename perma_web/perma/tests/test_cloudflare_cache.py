@@ -1,12 +1,12 @@
 import requests
 import os
+from unittest import TestCase
 
 from django.conf import settings
 
-from .utils import PermaTestCase
 
 
-class CloudflareCacheTestCase(PermaTestCase):
+class CloudflareCacheTestCase(TestCase):
     """
         Ensure that our local cache of Cloudflare IP addresses is up to date.
     """

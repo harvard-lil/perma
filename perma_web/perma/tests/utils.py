@@ -5,7 +5,7 @@ import os
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TestCase
 from django.core.urlresolvers import reverse
 
 from perma.models import LinkUser
@@ -23,7 +23,7 @@ def reset_failed_test_files_folder():
     os.mkdir(failed_test_files_path)
 
 
-class PermaTestCase(TransactionTestCase):
+class PermaTestCase(TestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
                 'fixtures/archive.json',
@@ -134,3 +134,4 @@ class PermaTestCase(TransactionTestCase):
             self.assertTrue(set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys))
 
         return resp
+

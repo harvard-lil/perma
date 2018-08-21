@@ -1,10 +1,10 @@
 from datetime import timedelta
 from multiprocessing.pool import ThreadPool
 
+from django.test import TransactionTestCase
+
 from perma.models import *
 from perma.tasks import clean_up_failed_captures
-
-from .utils import PermaTestCase
 
 # TODO:
 # - check retry behavior
@@ -17,7 +17,8 @@ def create_capture_job(user, human=True):
     capture_job.save()
     return capture_job
 
-class CaptureJobTestCase(PermaTestCase):
+
+class CaptureJobTestCase(TransactionTestCase):
 
     fixtures = [
         'fixtures/users.json',
