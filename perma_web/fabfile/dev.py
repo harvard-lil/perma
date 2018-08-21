@@ -52,7 +52,7 @@ def run_django(port="0.0.0.0:8000"):
             os.kill(proc.pid, signal.SIGKILL)
 
 
-_default_tests = "perma api functional_tests lockss"
+_default_tests = "functional_tests perma api lockss"
 
 @task
 def test(apps=_default_tests):
