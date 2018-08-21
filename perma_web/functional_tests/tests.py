@@ -325,7 +325,8 @@ class FunctionalTest(BaseTestCase):
                 get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
             except ElementNotVisibleException:
                 pass  # not in mobile view
-            repeat_while_exception(lambda: click_link("Log in"))
+            assert_text_displayed("Log in", "a")
+            self.driver.get(self.server_url + '/login')
             assert_text_displayed("Email address", 'label')
             get_id('id_username').send_keys('test_user@example.com')
             get_id('id_password').send_keys('pass')
