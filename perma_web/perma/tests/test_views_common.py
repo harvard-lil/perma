@@ -14,17 +14,18 @@ from urllib.parse import urlencode
 @override_settings(CONTACT_REGISTRARS=True)
 class CommonViewsTestCase(PermaTestCase):
 
-    def setUp(self):
-        self.users = ['test_user@example.com', 'test_org_user@example.com', 'multi_registrar_org_user@example.com', 'test_registrar_user@example.com', 'test_admin_user@example.com']
-        self.from_email = 'example@example.com'
-        self.custom_subject = 'Just some subject here'
-        self.message_text = 'Just some message here.'
-        self.refering_page = 'http://elsewhere.com'
-        self.our_address = settings.DEFAULT_FROM_EMAIL
-        self.subject_prefix = '[perma-contact] '
-        self.flag = "zzzz-zzzz"
-        self.flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(self.flag)
-        self.flag_subject = "Reporting Inappropriate Content"
+    @classmethod
+    def setUpTestData(cls):
+        cls.users = ['test_user@example.com', 'test_org_user@example.com', 'multi_registrar_org_user@example.com', 'test_registrar_user@example.com', 'test_admin_user@example.com']
+        cls.from_email = 'example@example.com'
+        cls.custom_subject = 'Just some subject here'
+        cls.message_text = 'Just some message here.'
+        cls.refering_page = 'http://elsewhere.com'
+        cls.our_address = settings.DEFAULT_FROM_EMAIL
+        cls.subject_prefix = '[perma-contact] '
+        cls.flag = "zzzz-zzzz"
+        cls.flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(cls.flag)
+        cls.flag_subject = "Reporting Inappropriate Content"
 
     def test_public_views(self):
         # test static template views

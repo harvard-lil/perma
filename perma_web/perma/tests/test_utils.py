@@ -38,8 +38,9 @@ def one_two_three_dict():
 
 class UtilsTestCase(TestCase):
 
-    def setUp(self):
-        self.factory = RequestFactory()
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = RequestFactory()
 
 
     def test_get_client_ip(self):

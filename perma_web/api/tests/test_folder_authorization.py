@@ -6,29 +6,23 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     resource_url = '/folders'
 
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/archive.json',
-                'fixtures/api_keys.json']
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin_user = LinkUser.objects.get(pk=1)
+        cls.registrar_user = LinkUser.objects.get(pk=2)
+        cls.org_user = LinkUser.objects.get(pk=3)
+        cls.regular_user = LinkUser.objects.get(pk=4)
 
-    def setUp(self):
-        super(FolderAuthorizationTestCase, self).setUp()
+        cls.empty_root_folder = Folder.objects.get(pk=22)
+        cls.nonempty_root_folder = Folder.objects.get(pk=25)
+        cls.regular_user_empty_child_folder = Folder.objects.get(pk=29)
+        cls.regular_user_nonempty_child_folder = Folder.objects.get(pk=30)
 
-        self.admin_user = LinkUser.objects.get(pk=1)
-        self.registrar_user = LinkUser.objects.get(pk=2)
-        self.org_user = LinkUser.objects.get(pk=3)
-        self.regular_user = LinkUser.objects.get(pk=4)
+        cls.third_journal_shared_folder = Folder.objects.get(pk=31)
 
-        self.empty_root_folder = Folder.objects.get(pk=22)
-        self.nonempty_root_folder = Folder.objects.get(pk=25)
-        self.regular_user_empty_child_folder = Folder.objects.get(pk=29)
-        self.regular_user_nonempty_child_folder = Folder.objects.get(pk=30)
-
-        self.third_journal_shared_folder = Folder.objects.get(pk=31)
-
-        self.test_journal_shared_folder = Folder.objects.get(pk=27)
-        self.test_journal_subfolder_with_link_a = Folder.objects.get(pk=34)
-        self.test_journal_subfolder_with_link_b = Folder.objects.get(pk=35)
+        cls.test_journal_shared_folder = Folder.objects.get(pk=27)
+        cls.test_journal_subfolder_with_link_a = Folder.objects.get(pk=34)
+        cls.test_journal_subfolder_with_link_b = Folder.objects.get(pk=35)
 
     # helpers
 
@@ -163,18 +157,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
     def test_should_allow_member_of_folders_org_to_move_to_new_parent(self):
         self.successful_folder_move(self.org_user, self.org_user.root_folder, self.test_journal_subfolder_with_link_b)
 
-    def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_folder_move(self.regular_user,
-                                  self.org_user.root_folder,
-                                  self.regular_user_empty_child_folder,
-                                  expected_status_code=403)
-
-    def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
-        self.rejected_folder_move(self.regular_user,
-                                  self.regular_user.root_folder,
-                                  self.test_journal_subfolder_with_link_b,
-                                  expected_status_code=403)
-
     def test_should_reject_move_of_folder_into_its_own_subfolder(self):
         # move A into B ...
         self.successful_patch(self.detail_url(self.test_journal_subfolder_with_link_a),
@@ -212,6 +194,20 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                             expected_status_code=400,
                             expected_data={"parent": ["This field may not be null."]})
 
+    # these need refreshing of certain in-memory cls-level fixtures
+    def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
+        self.test_journal_subfolder_with_link_b.refresh_from_db()
+        self.rejected_folder_move(self.regular_user,
+                                  self.regular_user.root_folder,
+                                  self.test_journal_subfolder_with_link_b,
+                                  expected_status_code=403)
+
+    def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
+        self.regular_user_empty_child_folder.refresh_from_db()
+        self.rejected_folder_move(self.regular_user,
+                                  self.org_user.root_folder,
+                                  self.regular_user_empty_child_folder,
+                                  expected_status_code=403)
 
     ############
     # Deleting #

@@ -4,17 +4,11 @@ from .utils import PermaTestCase
 
 class LinkCountCachingTestCase(PermaTestCase):
 
-    fixtures = [
-        'fixtures/users.json',
-        'fixtures/folders.json',
-    ]
-
-    def setUp(self):
-        super(LinkCountCachingTestCase, self).setUp()
-
-        self.regular_user = LinkUser.objects.get(pk=4)
-        self.org_user = LinkUser.objects.get(pk=3)
-        self.registrar_user = LinkUser.objects.get(pk=2)
+    @classmethod
+    def setUpTestData(cls):
+        cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.org_user = LinkUser.objects.get(pk=3)
+        cls.registrar_user = LinkUser.objects.get(pk=2)
 
     ### TESTS ###
 
