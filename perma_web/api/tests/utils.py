@@ -124,12 +124,12 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         except:
             pass
 
-    def tearDown(self):
-        # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
-        from django_redis import get_redis_connection
-        get_redis_connection("default").flushall()
+    # def tearDown(self):
+    #     # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
+    #     from django_redis import get_redis_connection
+    #     get_redis_connection("default").flushall()
 
-        return super(ApiResourceTestCaseMixin, self).tearDown()
+    #     return super(ApiResourceTestCaseMixin, self).tearDown()
 
     def get_credentials(self, user=None):
         user = user or self.user

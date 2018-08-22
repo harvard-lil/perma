@@ -25,12 +25,12 @@ def reset_failed_test_files_folder():
 
 class PermaTestCase(TestCase):
 
-    def tearDown(self):
-        # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
-        from django_redis import get_redis_connection
-        get_redis_connection("default").flushall()
+    # def tearDown(self):
+    #     # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
+    #     from django_redis import get_redis_connection
+    #     get_redis_connection("default").flushall()
 
-        return super(PermaTestCase, self).tearDown()
+    #     return super(PermaTestCase, self).tearDown()
 
     def log_in_user(self, user, password='pass'):
         self.client.logout()
