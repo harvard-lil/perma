@@ -1333,9 +1333,9 @@ def sign_up_courts(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithCourt(request.POST)
-        user_email = request.POST.get('email', None)
+        submitted_email = request.POST.get('email', None)
         try:
-            target_user = LinkUser.objects.get(email=user_email)
+            target_user = LinkUser.objects.get(email=submitted_email)
         except LinkUser.DoesNotExist:
             target_user = None
         if target_user:
@@ -1581,44 +1581,46 @@ def email_approved_registrar_user(request, user):
     )
 
 
-def email_court_request(request, court):
+def email_court_request(request, user):
     """
     Send email to Perma.cc admins when a court requests an account
     """
     try:
-        target_user = LinkUser.objects.get(email=court.email)
+        target_user = LinkUser.objects.get(email=user.email)
     except LinkUser.DoesNotExist:
         target_user = None
     send_admin_email(
         "Perma.cc new library court account information request",
-        court.email,
+        user.email,
         request,
         "email/admin/court_request.txt",
         {
-            "first_name": court.first_name,
-            "last_name": court.last_name,
-            "court_name": court.requested_account_note,
-            "has_account": target_user
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "court_name": user.requested_account_note,
+            "has_account": target_user,
+            "email": user.email
         }
     )
 
-def email_firm_request(request, firm):
+def email_firm_request(request, user):
     """
     Send email to Perma.cc admins when a firm requests an account
     """
     try:
-        target_user = LinkUser.objects.get(email=firm.email)
+        target_user = LinkUser.objects.get(email=user.email)
     except LinkUser.DoesNotExist:
         target_user = None
     send_admin_email(
         "Perma.cc new law firm account information request",
-        firm.email,
+        user.email,
         request,
         "email/admin/firm_request.txt",
         {
-            "first_name": firm.first_name,
-            "last_name": firm.last_name,
-            "firm_name": firm.requested_account_note,
-            "has_account": target_user
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "firm_name": user.requested_account_note,
+            "has_account": target_user,
+            "email": user.email
         }
     )
