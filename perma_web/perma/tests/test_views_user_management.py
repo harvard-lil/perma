@@ -45,28 +45,22 @@ def spoof_cancellation_requested_subscription():
 
 class UserManagementViewsTestCase(PermaTestCase):
 
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/archive.json',
-                ]
-
-    def setUp(self):
-        super(UserManagementViewsTestCase, self).setUp()
-
-        self.admin_user = LinkUser.objects.get(pk=1)
-        self.registrar_user = LinkUser.objects.get(pk=2)
-        self.regular_user = LinkUser.objects.get(pk=4)
-        self.registrar = self.registrar_user.registrar
-        self.pending_registrar = Registrar.objects.get(pk=2)
-        self.unrelated_registrar = Registrar.objects.get(pk=2)
-        self.unrelated_registrar_user = self.unrelated_registrar.users.first()
-        self.organization = Organization.objects.get(pk=1)
-        self.organization_user = self.organization.users.first()
-        self.another_organization = Organization.objects.get(pk=2)
-        self.unrelated_organization = self.unrelated_registrar.organizations.first()
-        self.unrelated_organization_user = self.unrelated_organization.users.first()
-        self.another_unrelated_organization_user = self.unrelated_organization.users.get(pk=11)
-        self.deletable_organization = Organization.objects.get(pk=3)
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin_user = LinkUser.objects.get(pk=1)
+        cls.registrar_user = LinkUser.objects.get(pk=2)
+        cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.registrar = cls.registrar_user.registrar
+        cls.pending_registrar = Registrar.objects.get(pk=2)
+        cls.unrelated_registrar = Registrar.objects.get(pk=2)
+        cls.unrelated_registrar_user = cls.unrelated_registrar.users.first()
+        cls.organization = Organization.objects.get(pk=1)
+        cls.organization_user = cls.organization.users.first()
+        cls.another_organization = Organization.objects.get(pk=2)
+        cls.unrelated_organization = cls.unrelated_registrar.organizations.first()
+        cls.unrelated_organization_user = cls.unrelated_organization.users.first()
+        cls.another_unrelated_organization_user = cls.unrelated_organization.users.get(pk=11)
+        cls.deletable_organization = Organization.objects.get(pk=3)
 
     ### Helpers ###
     def pk_from_email(self, email):
@@ -1083,25 +1077,25 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_api_key(self):
         response = self.get('user_management_settings_tools',
-                             user='test_user@example.com').content
+                             user='test_another_library_org_user@example.com').content
         self.assertNotIn(b'id="id_api_key"', response)
         self.submit_form('api_key_create',
-                          user='test_user@example.com',
+                          user='test_another_library_org_user@example.com',
                           data={},
                           success_url=reverse('user_management_settings_tools'))
         response = self.get('user_management_settings_tools',
-                             user='test_user@example.com').content
+                             user='test_another_library_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         key = soup.find('input', {'id': 'id_api_key'})
         val = key.get('value', '')
         self.assertTrue(val)
         # do it again, and make sure the key changes
         self.submit_form('api_key_create',
-                          user='test_user@example.com',
+                          user='test_another_library_org_user@example.com',
                           data={},
                           success_url=reverse('user_management_settings_tools'))
         response = self.get('user_management_settings_tools',
-                             user='test_user@example.com').content
+                             user='test_another_library_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         key = soup.find('input', {'id': 'id_api_key'})
         new_val = key.get('value', '')

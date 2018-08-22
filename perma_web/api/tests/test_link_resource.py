@@ -11,12 +11,11 @@ import json
 import urllib.parse
 from mock import patch
 
-from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
+from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from perma.models import Link, LinkUser, CDXLine, Folder
 
 
-# Use a TransactionTestCase here because archive capture is threaded
-class LinkResourceTestCase(ApiResourceTransactionTestCase):
+class LinkResourceTestMixin():
 
     resource_url = '/archives'
     fixtures = ['fixtures/users.json',
@@ -24,20 +23,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
 
-    serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [
-        ['target_capture_files/test.html', 'test page.html'],
-        ['target_capture_files/test.html', 'subdir/test.html'],
-
-        ['target_capture_files/test.wav', 'test2.wav'],
-        ['target_capture_files/test.mp4', 'test2.mp4'],
-        ['target_capture_files/test.swf', 'test2.swf'],
-        ['target_capture_files/test.swf', 'test3.swf'],
-    ]
-
     rejected_status_code = 400  # Bad Request
 
     def setUp(self):
-        super(LinkResourceTestCase, self).setUp()
+        super(LinkResourceTestMixin, self).setUp()
 
         self.org_user = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
@@ -81,12 +70,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'private_reason',
         ]
 
-        self.post_data = {
-            'url': self.server_url + "/test.html",
-            'title': 'This is a test page',
-            'description': 'This is a test description'
-        }
-
     def assertValidCapture(self, capture):
         """
             Make sure capture matches WARC contents.
@@ -96,6 +79,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(capture.content_type, "Capture is missing a content type.")
         self.assertEqual(capture.content_type.split(';',1)[0], replay_response.headers.get('content-type', '').split(';',1)[0])
         self.assertTrue(replay_response.data, "Capture data is missing.")
+
+class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
 
     #######
     # GET #
@@ -136,6 +121,141 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         )
         self.assertHttpOK(resp)
         self.assertEqual(stream.call_count, 1)
+
+    ############
+    # Updating #
+    ############
+
+    def test_patch_detail(self):
+        self.successful_patch(self.unrelated_link_detail_url,
+                              user=self.unrelated_link.created_by,
+                              data={'notes': 'These are new notes',
+                                    'title': 'This is a new title',
+                                    'description': 'This is a new description'})
+
+    def test_should_reject_updates_to_disallowed_fields(self):
+        result = self.rejected_patch(self.unrelated_link_detail_url,
+                                     user=self.unrelated_link.created_by,
+                                     data={'url':'foo'})
+        self.assertIn(b"Only updates on these fields are allowed", result.content)
+
+    ##################
+    # Private/public #
+    ##################
+
+    def test_dark_archive(self):
+        self.successful_patch(self.unrelated_link_detail_url,
+                              user=self.unrelated_link.created_by,
+                              data={'is_private': True, 'private_reason':'user'})
+
+    ##########
+    # Moving #
+    ##########
+
+    def test_moving(self):
+        folder = self.org_user.organizations.first().folders.first()
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
+
+        self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
+                            user=self.org_user)
+
+        # Make sure it's listed in the folder
+        obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)
+        data = self.successful_get(folder_url+"/archives", user=self.org_user)
+        self.assertIn(obj, data['objects'])
+
+    ############
+    # Ordering #
+    ############
+
+    def test_should_be_ordered_by_creation_timestamp_desc_by_default(self):
+        data = self.successful_get(self.logged_in_list_url, user=self.regular_user)
+        objs = data['objects']
+        for i, obj in enumerate(objs):
+            if i > 0:
+                self.assertGreaterEqual(dateutil.parser.parse(objs[i - 1]['creation_timestamp']),
+                                   dateutil.parser.parse(obj['creation_timestamp']))
+
+    #############
+    # Filtering #
+    #############
+
+    def test_should_allow_filtering_guid_by_query_string(self):
+        data = self.successful_get(self.logged_in_list_url, data={'q': '3SLN'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['guid'], '3SLN-JHX9')
+
+    def test_should_allow_filtering_url_by_query_string(self):
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0]['url'], 'http://metafilter.com')
+
+    def test_should_allow_filtering_title_by_query_string(self):
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+
+    def test_should_allow_filtering_notes_by_query_string(self):
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
+
+    def test_should_allow_filtering_url(self):
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+
+    def test_should_allow_filtering_by_date_and_query(self):
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
+
+    def test_should_allow_filtering_by_date_range_and_query(self):
+        data = self.successful_get(self.logged_in_list_url, data={
+            'url': 'metafilter',
+            'min_date':"2016-12-06T18:55:37Z",
+            'max_date':"2016-12-08T18:55:37Z",
+        }, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
+
+
+# Use a TransactionTestCase here because archive capture is threaded
+class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransactionTestCase):
+
+    serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [
+        ['target_capture_files/test.html', 'test page.html'],
+        ['target_capture_files/test.html', 'subdir/test.html'],
+
+        ['target_capture_files/test.wav', 'test2.wav'],
+        ['target_capture_files/test.mp4', 'test2.mp4'],
+        ['target_capture_files/test.swf', 'test2.swf'],
+        ['target_capture_files/test.swf', 'test3.swf'],
+    ]
+
+    def setUp(self):
+        super(LinkResourceTransactionTestCase, self).setUp()
+        self.post_data = {
+            'url': self.server_url + "/test.html",
+            'title': 'This is a test page',
+            'description': 'This is a test description'
+        }
 
     ########################
     # URL Archive Creation #
@@ -376,47 +496,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                      user=self.org_user)
             self.assertIn(b'Invalid file', obj.content)
 
-    ############
-    # Updating #
-    ############
-
-    def test_patch_detail(self):
-        self.successful_patch(self.unrelated_link_detail_url,
-                              user=self.unrelated_link.created_by,
-                              data={'notes': 'These are new notes',
-                                    'title': 'This is a new title',
-                                    'description': 'This is a new description'})
-
-    def test_should_reject_updates_to_disallowed_fields(self):
-        result = self.rejected_patch(self.unrelated_link_detail_url,
-                                     user=self.unrelated_link.created_by,
-                                     data={'url':'foo'})
-        self.assertIn(b"Only updates on these fields are allowed", result.content)
-
-    ##################
-    # Private/public #
-    ##################
-
-    def test_dark_archive(self):
-        self.successful_patch(self.unrelated_link_detail_url,
-                              user=self.unrelated_link.created_by,
-                              data={'is_private': True, 'private_reason':'user'})
-
-    ##########
-    # Moving #
-    ##########
-
-    def test_moving(self):
-        folder = self.org_user.organizations.first().folders.first()
-        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
-
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
-                            user=self.org_user)
-
-        # Make sure it's listed in the folder
-        obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)
-        data = self.successful_get(folder_url+"/archives", user=self.org_user)
-        self.assertIn(obj, data['objects'])
 
     ############
     # Deleting #
@@ -431,74 +510,3 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             new_link = Link.objects.get(guid=obj['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
             self.successful_delete(new_link_url, user=self.org_user)
-
-    ############
-    # Ordering #
-    ############
-
-    def test_should_be_ordered_by_creation_timestamp_desc_by_default(self):
-        data = self.successful_get(self.logged_in_list_url, user=self.regular_user)
-        objs = data['objects']
-        for i, obj in enumerate(objs):
-            if i > 0:
-                self.assertGreaterEqual(dateutil.parser.parse(objs[i - 1]['creation_timestamp']),
-                                   dateutil.parser.parse(obj['creation_timestamp']))
-
-    #############
-    # Filtering #
-    #############
-
-    def test_should_allow_filtering_guid_by_query_string(self):
-        data = self.successful_get(self.logged_in_list_url, data={'q': '3SLN'}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['guid'], '3SLN-JHX9')
-
-    def test_should_allow_filtering_url_by_query_string(self):
-        data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[0]['url'], 'http://metafilter.com')
-
-    def test_should_allow_filtering_title_by_query_string(self):
-        data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-
-    def test_should_allow_filtering_notes_by_query_string(self):
-        data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
-
-    def test_should_allow_filtering_url(self):
-        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter'}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 2)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-
-    def test_should_allow_filtering_by_date_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
-
-    def test_should_allow_filtering_by_date_range_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={
-            'url': 'metafilter',
-            'min_date':"2016-12-06T18:55:37Z",
-            'max_date':"2016-12-08T18:55:37Z",
-        }, user=self.regular_user)
-        objs = data['objects']
-
-        self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
-        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')

@@ -14,7 +14,7 @@ import json
 
 from django.test.utils import override_settings
 from django.conf import settings
-from django.test import TransactionTestCase, SimpleTestCase
+from django.test import TransactionTestCase, TestCase, SimpleTestCase
 from django.utils.functional import cached_property
 from rest_framework.test import APIClient
 
@@ -110,25 +110,10 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     # because the 500.html error template includes a {% url %} lookup that isn't included in api.urls.
     # There could be a better way to handle this.
     url_base = "/api/v1"
-
-    server_domain = "perma.test"
-    server_port = 8999
-    serve_files = []
     rejected_status_code = 401  # Unauthorized
 
     # reduce wait times for testing
     perma.tasks.ROBOTS_TXT_TIMEOUT = perma.tasks.AFTER_LOAD_TIMEOUT = 1
-
-    @classmethod
-    def setUpClass(cls):
-        super(ApiResourceTestCaseMixin, cls).setUpClass()
-        if len(cls.serve_files):
-            cls.start_server()
-
-    @classmethod
-    def tearDownClass(cls):
-        if getattr(cls, "_server_process", None):
-            cls.kill_server()
 
     def setUp(self):
         super(ApiResourceTestCaseMixin, self).setUp()
@@ -139,96 +124,18 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         except:
             pass
 
-    def tearDown(self):
-        # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
-        from django_redis import get_redis_connection
-        get_redis_connection("default").flushall()
+    # def tearDown(self):
+    #     # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
+    #     from django_redis import get_redis_connection
+    #     get_redis_connection("default").flushall()
 
-        return super(ApiResourceTestCaseMixin, self).tearDown()
+    #     return super(ApiResourceTestCaseMixin, self).tearDown()
 
     def get_credentials(self, user=None):
         user = user or self.user
         return "ApiKey %s" % user.api_key.key
 
-    @classmethod
-    def start_server(cls):
-        """
-            Set up a server with some known files to run captures against. Example:
 
-                with run_server_in_temp_folder([
-                        'test/assets/test.html',
-                        'test/assets/test.pdf',
-                        ['test/assets/test.html', 'some_other_url.html']):
-                    assert(requests.get("http://localhost/test.html") == contents_of_file("test.html"))
-                    assert(requests.get("http://localhost/some_other_url.html") == contents_of_file("test.html"))
-        """
-        assert socket.gethostbyname(cls.server_domain) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test."
-
-        # Run in temp dir.
-        # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
-        cwd = os.getcwd()
-        cls._server_tmp = tempfile.mkdtemp()
-        os.chdir(cls._server_tmp)
-
-        # Copy over files to current temp dir, stripping paths.
-        for source_file in cls.serve_files:
-
-            # handle single strings
-            if isinstance(source_file, str):
-                target_url = os.path.basename(source_file)
-
-            # handle tuple like (source_file, target_url)
-            else:
-                source_file, target_url = source_file
-
-            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
-
-        # start server
-        for i in range(100):
-            try:
-                cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
-                break
-            except socket.error:
-                cls.server_port += 1
-        else:
-            raise Exception("Cannot find an open port to host TestHTTPServer.")
-        cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
-        cls._server_process = Process(target=cls._httpd.serve_forever)
-        cls._server_process.start()
-
-        # once the server is started, we can return to our working dir
-        # and the server thread will continue to server from the tmp dir
-        os.chdir(cwd)
-
-        return cls._server_process
-
-    @classmethod
-    def kill_server(cls):
-        # If you don't close the server before terminating
-        # the thread the port isn't freed up.
-        cls._httpd.server_close()
-        cls._server_process.terminate()
-        shutil.rmtree(cls._server_tmp)
-
-    @contextmanager
-    def serve_file(self, src):
-        """
-            Serve file relative to TEST_ASSETS_DIR.
-        """
-        if not getattr(self.__class__, "_server_process", None):
-            self.__class__.start_server()
-        dst = os.path.join(self._server_tmp, os.path.basename(src))
-        if os.path.exists(dst):
-            raise Exception("%s already exists -- can't serve_file." % dst)
-        try:
-            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, src), dst)
-            yield
-        finally:
-            os.remove(dst)
-
-    @cached_property
-    def server_url(self):
-        return "http://" + self.server_domain + ":" + str(self.server_port)
 
     def detail_url(self, obj):
         return "{0}/{1}".format(self.list_url, obj.pk)
@@ -427,11 +334,104 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         self.assertEqual(sorted(data.keys()), sorted(expected))
 
 
-class ApiResourceTestCase(ApiResourceTestCaseMixin):
+class ApiResourceTestCase(ApiResourceTestCaseMixin, TestCase):
     pass
 
 class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCase):
     """
     For use with threaded tests like archive creation
     """
-    pass
+    server_domain = "perma.test"
+    server_port = 8999
+    serve_files = []
+
+    @classmethod
+    def setUpClass(cls):
+        super(ApiResourceTestCaseMixin, cls).setUpClass()
+        if len(cls.serve_files):
+            cls.start_server()
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, "_server_process", None):
+            cls.kill_server()
+
+    @classmethod
+    def start_server(cls):
+        """
+            Set up a server with some known files to run captures against. Example:
+
+                with run_server_in_temp_folder([
+                        'test/assets/test.html',
+                        'test/assets/test.pdf',
+                        ['test/assets/test.html', 'some_other_url.html']):
+                    assert(requests.get("http://localhost/test.html") == contents_of_file("test.html"))
+                    assert(requests.get("http://localhost/some_other_url.html") == contents_of_file("test.html"))
+        """
+        assert socket.gethostbyname(cls.server_domain) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test."
+
+        # Run in temp dir.
+        # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
+        cwd = os.getcwd()
+        cls._server_tmp = tempfile.mkdtemp()
+        os.chdir(cls._server_tmp)
+
+        # Copy over files to current temp dir, stripping paths.
+        for source_file in cls.serve_files:
+
+            # handle single strings
+            if isinstance(source_file, str):
+                target_url = os.path.basename(source_file)
+
+            # handle tuple like (source_file, target_url)
+            else:
+                source_file, target_url = source_file
+
+            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
+
+        # start server
+        for i in range(100):
+            try:
+                cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
+                break
+            except socket.error:
+                cls.server_port += 1
+        else:
+            raise Exception("Cannot find an open port to host TestHTTPServer.")
+        cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
+        cls._server_process = Process(target=cls._httpd.serve_forever)
+        cls._server_process.start()
+
+        # once the server is started, we can return to our working dir
+        # and the server thread will continue to server from the tmp dir
+        os.chdir(cwd)
+
+        return cls._server_process
+
+    @classmethod
+    def kill_server(cls):
+        # If you don't close the server before terminating
+        # the thread the port isn't freed up.
+        cls._httpd.server_close()
+        cls._server_process.terminate()
+        shutil.rmtree(cls._server_tmp)
+
+    @contextmanager
+    def serve_file(self, src):
+        """
+            Serve file relative to TEST_ASSETS_DIR.
+        """
+        if not getattr(self.__class__, "_server_process", None):
+            self.__class__.start_server()
+        dst = os.path.join(self._server_tmp, os.path.basename(src))
+        if os.path.exists(dst):
+            raise Exception("%s already exists -- can't serve_file." % dst)
+        try:
+            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, src), dst)
+            yield
+        finally:
+            os.remove(dst)
+
+    @cached_property
+    def server_url(self):
+        return "http://" + self.server_domain + ":" + str(self.server_port)

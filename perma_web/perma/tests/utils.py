@@ -5,7 +5,7 @@ import os
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TestCase
 from django.core.urlresolvers import reverse
 
 from perma.models import LinkUser
@@ -23,18 +23,14 @@ def reset_failed_test_files_folder():
     os.mkdir(failed_test_files_path)
 
 
-class PermaTestCase(TransactionTestCase):
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/archive.json',
-                'fixtures/mirrors.json']
+class PermaTestCase(TestCase):
 
-    def tearDown(self):
-        # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
-        from django_redis import get_redis_connection
-        get_redis_connection("default").flushall()
+    # def tearDown(self):
+    #     # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
+    #     from django_redis import get_redis_connection
+    #     get_redis_connection("default").flushall()
 
-        return super(PermaTestCase, self).tearDown()
+    #     return super(PermaTestCase, self).tearDown()
 
     def log_in_user(self, user, password='pass'):
         self.client.logout()
@@ -134,3 +130,4 @@ class PermaTestCase(TransactionTestCase):
             self.assertTrue(set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys))
 
         return resp
+

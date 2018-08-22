@@ -1,20 +1,15 @@
-from .utils import ApiResourceTransactionTestCase
+from .utils import ApiResourceTestCase
 from perma.models import LinkUser
 
 
-class CurrentUserResourceTestCase(ApiResourceTransactionTestCase):
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/api_keys.json',
-                'fixtures/archive.json']
+class CurrentUserResourceTestCase(ApiResourceTestCase):
 
-    def setUp(self):
-        super(CurrentUserResourceTestCase, self).setUp()
-        self.org_user = LinkUser.objects.get(pk=3)
-        self.regular_user = LinkUser.objects.get(pk=4)
-
-        self.detail_url = self.url_base+'/user/'
-        self.fields = [
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_user = LinkUser.objects.get(pk=3)
+        cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.detail_url = cls.url_base+'/user/'
+        cls.fields = [
             'id',
             'first_name',
             'last_name',

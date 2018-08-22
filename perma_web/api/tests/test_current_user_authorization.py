@@ -1,19 +1,15 @@
-from .utils import ApiResourceTransactionTestCase
+from .utils import ApiResourceTestCase
 from perma.tests.test_capture_job import create_capture_job
 from perma.models import LinkUser, Link
 
 
-class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/api_keys.json',
-                'fixtures/archive.json']
+class CurrentUserAuthorizationTestCase(ApiResourceTestCase):
 
-    def setUp(self):
-        super(CurrentUserAuthorizationTestCase, self).setUp()
-        self.org_user = LinkUser.objects.get(pk=3)
-        self.regular_user = LinkUser.objects.get(pk=4)
-        self.detail_url = self.url_base+'/user/'
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_user = LinkUser.objects.get(pk=3)
+        cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.detail_url = cls.url_base+'/user/'
 
     def test_should_allow_user_to_get_self(self):
         self.successful_get(self.detail_url, user=self.org_user)

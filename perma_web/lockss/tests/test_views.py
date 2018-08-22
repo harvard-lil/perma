@@ -1,7 +1,6 @@
 from django.test import Client
 from perma.tests.utils import PermaTestCase
 
-
 class LockssTestCase(PermaTestCase):
 
     def setUp(self):

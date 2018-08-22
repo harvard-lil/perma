@@ -1,21 +1,16 @@
-from .utils import ApiResourceTransactionTestCase
+from .utils import ApiResourceTestCase
 from perma.models import LinkUser, Folder
 
 
-class FolderResourceTestCase(ApiResourceTransactionTestCase):
+class FolderResourceTestCase(ApiResourceTestCase):
 
     resource_url = '/folders'
 
-    fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/api_keys.json']
-
-    def setUp(self):
-        super(FolderResourceTestCase, self).setUp()
-
-        self.org_user = LinkUser.objects.get(pk=3)
-        self.empty_child_folder = Folder.objects.get(pk=29)
-        self.nonempty_child_folder = Folder.objects.get(pk=30)
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_user = LinkUser.objects.get(pk=3)
+        cls.empty_child_folder = Folder.objects.get(pk=29)
+        cls.nonempty_child_folder = Folder.objects.get(pk=30)
 
     def nested_url(self, obj):
         return self.detail_url(obj) + "/folders"
