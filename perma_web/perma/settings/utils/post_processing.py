@@ -50,15 +50,13 @@ def post_process_settings(settings):
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
                                            **settings.get('CELERYBEAT_SCHEDULE', {}))
 
-    # Figure out number of celery workers; at the moment, this is slow,
-    # so we do it once on application start-up rather than at each load
-    # of the /manage/create page. The call to inspector.active() takes
-    # almost two seconds.
-
-    # count celery capture workers, by convention named w1, w2, etc.
+    # Count celery capture workers, by convention named w1, w2, etc.
+    # At the moment, this is slow, so we do it once on application
+    # start-up rather than at each load of the /manage/create page.
+    # The call to inspector.active() takes almost two seconds.
     try:
         inspector = celery_inspect()
         active = inspector.active()
         settings['WORKER_COUNT'] = len([key for key in active.keys() if key.split('@')[0][0] == 'w']) if active else 0
     except TimeoutError:
-        settings['WORKER_COUNT'] = settings.FALLBACK_WORKER_COUNT
+        pass
