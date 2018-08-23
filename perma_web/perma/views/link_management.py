@@ -1,6 +1,4 @@
-from celery.task.control import inspect as celery_inspect
 from datetime import timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
@@ -27,14 +25,6 @@ def create_link(request):
         if link:
             messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
-    # count celery capture workers, by convention named w1, w2, etc.
-    try:
-        inspector = celery_inspect()
-        active = inspector.active()
-        workers = len([key for key in active.keys() if key.split('@')[0][0] == 'w']) if active else 0
-    except TimeoutError:
-        workers = settings.FALLBACK_WORKER_COUNT
-
     # approximate 'average' capture time during last 24 hrs
     # based on manage/stats
     capture_time_fields = CaptureJob.objects.filter(
@@ -54,7 +44,7 @@ def create_link(request):
         'links_remaining': request.user.get_links_remaining(),
         'suppress_reminder': 'true' if 'url' in request.GET else request.COOKIES.get('suppress_reminder'),
         'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024,
-        'workers': workers,
+        'workers': settings.WORKER_COUNT,
         'average': average
     })
 
