@@ -146,75 +146,32 @@ class DeletableModel(models.Model):
 class GenericStringTaggedItem(CommonGenericTaggedItemBase, TaggedItemBase):
     object_id = models.CharField(max_length=50, db_index=True)
 
-### MODELS ###
 
-class RegistrarQuerySet(QuerySet):
-    def approved(self):
-        return self.filter(status="approved")
-
-class Registrar(models.Model):
+class CustomerModel(models.Model):
     """
-    This is a library, a court, a firm, or similar.
+        Abstract base class that lets a model upgrade to a paid account.
     """
-    name = models.CharField(max_length=400)
-    email = models.EmailField(max_length=254)
-    website = models.URLField(max_length=500)
-    date_created = models.DateTimeField(auto_now_add=True, null=True)
-    status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
+    class Meta:
+        abstract = True
 
-    show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
-    partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
-    logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
-    address = models.CharField(max_length=500, blank=True, null=True)
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
-
-    nonpaying = models.BooleanField(default=True, help_text="Whether this registrar qualifies for a free account.")
+    nonpaying = models.BooleanField(default=True, help_text="Whether this customer qualifies for a free account.")
     monthly_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
         default=Decimal('0.00'),
         help_text="Base rate for calculating subscription cost."
     )
-
-    link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
     cached_subscription_status = models.CharField(
         max_length=50,
         null=True,
         blank=True,
-        help_text="The last known status of registrar's paid subscription, from Perma Payments"
+        help_text="The last known status of customer's paid subscription, from Perma Payments"
     )
     cached_paid_through = models.DateTimeField(
         null=True,
         blank=True
     )
 
-    objects = RegistrarQuerySet.as_manager()
-    tracker = FieldTracker()
-    history = HistoricalRecords()
-    tags = TaggableManager(blank=True)
-
-    class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-    def link_count_in_time_period(self, start_time=None, end_time=None):
-        links = Link.objects.filter(organization__registrar=self)
-        return link_count_in_time_period(links, start_time, end_time)
-
-    def link_count_this_year(self):
-        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
-
-    def most_active_org_in_time_period(self, start_time=None, end_time=None):
-        return most_active_org_in_time_period(self.organizations, start_time, end_time)
-
-    def most_active_org_this_year(self):
-        return most_active_org_in_time_period(self.organizations, tz_datetime(timezone.now().year, 1, 1))
-
-    def active_registrar_users(self):
-        return self.users.filter(is_active=True)
 
     @sensitive_variables()
     def get_subscription(self):
@@ -270,6 +227,7 @@ class Registrar(models.Model):
         # add one day, to charge for today
         return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
 
+
     def get_subscription_info(self, now):
         timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
@@ -311,6 +269,59 @@ class Registrar(models.Model):
                 'paid_through': self.cached_paid_through
             }
         return subscription_is_active(subscription)
+
+
+### MODELS ###
+
+class RegistrarQuerySet(QuerySet):
+    def approved(self):
+        return self.filter(status="approved")
+
+class Registrar(CustomerModel):
+    """
+    This is a library, a court, a firm, or similar.
+    """
+    name = models.CharField(max_length=400)
+    email = models.EmailField(max_length=254)
+    website = models.URLField(max_length=500)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+    status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
+
+    show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
+    partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
+    logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
+    address = models.CharField(max_length=500, blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
+
+    objects = RegistrarQuerySet.as_manager()
+    tracker = FieldTracker()
+    history = HistoricalRecords()
+    tags = TaggableManager(blank=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def link_count_in_time_period(self, start_time=None, end_time=None):
+        links = Link.objects.filter(organization__registrar=self)
+        return link_count_in_time_period(links, start_time, end_time)
+
+    def link_count_this_year(self):
+        return self.link_count_in_time_period(tz_datetime(timezone.now().year, 1, 1))
+
+    def most_active_org_in_time_period(self, start_time=None, end_time=None):
+        return most_active_org_in_time_period(self.organizations, start_time, end_time)
+
+    def most_active_org_this_year(self):
+        return most_active_org_in_time_period(self.organizations, tz_datetime(timezone.now().year, 1, 1))
+
+    def active_registrar_users(self):
+        return self.users.filter(is_active=True)
 
 
 class OrganizationQuerySet(QuerySet):
