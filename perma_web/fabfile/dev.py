@@ -457,7 +457,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
     from datetime import datetime
     from django.http import HttpRequest
     from perma.models import Registrar
-    from perma.email import send_user_email, send_admin_email, registrar_users, registrar_users_plus_stats
+    from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
 
     logger = logging.getLogger(__name__)
 
@@ -515,8 +515,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
         result = "incomplete"
     else:
         result = "ok"
-    send_admin_email("Registrar Users Emailed",
-                     settings.DEFAULT_FROM_EMAIL,
+    send_self_email("Registrar Users Emailed",
                      HttpRequest(),
                      'email/admin/pinged_registrar_users.txt',
                      {"users": users, "result": result})
