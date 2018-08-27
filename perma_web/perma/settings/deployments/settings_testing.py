@@ -20,6 +20,10 @@ SUBDOMAIN_URLCONFS = {}
 DEBUG = False
 TESTING = True
 
+ADMINS = (
+    ("Admin's Name", 'admin@example.com'),
+)
+
 
 ###############
 # Speed Hacks #
