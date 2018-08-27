@@ -48,7 +48,7 @@ class TaskTestCase(TestCase):
         self.assertIn('40', response)
 
         # check that developers are warned about duplicates
-        mock_logger.error.assert_called_with("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
+        mock_logger.error.assert_called_with("Duplicate registrar users sent to Campaign Monitor. Check sync logic.")
 
         # check contents of sent email
         our_address = settings.DEFAULT_FROM_EMAIL
