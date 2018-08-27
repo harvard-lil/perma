@@ -501,6 +501,10 @@ WEBPACK_LOADER = {
     }
 }
 
+# set a default reply-to email address, the same as Django's DEFAULT_FROM_EMAIL
+# in production, must be different than the production DEFAULT_FROM_EMAIL
+DEFAULT_REPLYTO_EMAIL = 'webmaster@localhost'
+
 # Campaign Monitor (override if you want to actually interact with to
 # campaign monitor)
 CAMPAIGN_MONITOR_AUTH = {'api_key':'fake'}
