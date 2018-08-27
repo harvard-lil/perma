@@ -66,7 +66,8 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
 
 def send_self_email(title, request, template="email/default.txt", context={}, devs_only=True):
     """
-        Send a message to ourselves.By default, sends only to settings.ADMINS
+        Send a message to ourselves. By default, sends only to settings.ADMINS.
+        To contact the main Perma email address, set devs_only=False
     """
     if devs_only:
         EmailMessage(
