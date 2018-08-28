@@ -64,9 +64,15 @@ ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
 
 FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
     'get_subscription': [
-        'registrar',
+        'customer_pk',
+        'customer_type',
         'subscription',
     ]
+}
+
+CUSTOMER_TYPE_MAP = {
+    'LinkUser': 'Individual',
+    'Registrar': 'Registrar'
 }
 
 
@@ -172,6 +178,9 @@ class CustomerModel(models.Model):
         blank=True
     )
 
+    @cached_property
+    def customer_type(self):
+        return CUSTOMER_TYPE_MAP[type(self).__name__]
 
     @sensitive_variables()
     def get_subscription(self):
@@ -184,7 +193,8 @@ class CustomerModel(models.Model):
                 data={
                     'encrypted_data': prep_for_perma_payments({
                         'timestamp': datetime.utcnow().timestamp(),
-                        'registrar':  self.pk
+                        'customer_pk':  self.pk,
+                        'customer_type': self.customer_type
                     })
                 }
             )
@@ -196,7 +206,7 @@ class CustomerModel(models.Model):
 
         post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
 
-        if post_data['registrar'] != self.pk:
+        if post_data['customer_pk'] != self.pk or post_data['customer_type'] != self.customer_type:
             msg = "Unexpected response from Perma-Payments."
             logger.error(msg)
             raise InvalidTransmissionException(msg)
@@ -236,7 +246,8 @@ class CustomerModel(models.Model):
             'subscription': self.get_subscription(),
             'next_monthly_payment': next_month,
             'monthly_required_fields': {
-                'registrar': self.pk,
+                'customer_pk': self.pk,
+                'customer_type': self.customer_type,
                 'timestamp': timestamp,
                 'recurring_frequency': "monthly",
                 'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
@@ -244,7 +255,8 @@ class CustomerModel(models.Model):
                 'recurring_start_date': next_month.strftime("%Y-%m-%d")
             },
             'annual_required_fields': {
-                'registrar': self.pk,
+                'customer_pk': self.pk,
+                'customer_type': self.customer_type,
                 'timestamp': timestamp,
                 'recurring_frequency': "annually",
                 'amount': "{0:.2f}".format(self.annual_rate()),
@@ -252,7 +264,8 @@ class CustomerModel(models.Model):
                 'recurring_start_date': next_year.strftime("%Y-%m-%d")
             },
             'update_required_fields': {
-                'registrar': self.pk,
+                'customer_pk': self.pk,
+                'customer_type': self.customer_type,
                 'timestamp': timestamp,
             }
         }
@@ -428,7 +441,7 @@ class LinkUserManager(BaseUserManager):
         return user
 
 
-class LinkUser(AbstractBaseUser):
+class LinkUser(CustomerModel, AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -606,7 +619,7 @@ class LinkUser(AbstractBaseUser):
                self.is_organization_user
 
     def can_view_subscription(self):
-        return self.is_registrar_user() and not self.registrar.nonpaying
+        return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
 
     ### link permissions ###

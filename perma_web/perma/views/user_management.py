@@ -1027,9 +1027,12 @@ def settings_tools(request):
 @sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription(request):
-    registrar = request.user.registrar
+    if not request.user.nonpaying:
+        customer = request.user
+    else:
+        customer = request.user.registrar
     try:
-        subscription_info = registrar.get_subscription_info(datetime.utcnow())
+        subscription_info = customer.get_subscription_info(datetime.utcnow())
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
@@ -1055,11 +1058,18 @@ def settings_subscription(request):
 @sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription_cancel(request):
+    if request.user.registrar:
+        customer_pk = request.user.registrar.id
+        customer_type = request.user.registar.customer_type
+    else:
+        customer_pk = request.user.id
+        customer_type = request.user.customer_type
     context = {
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
         'data': prep_for_perma_payments({
-            'registrar': request.user.registrar.pk,
+            'customer_pk': customer_pk,
+            'customer_type': customer_type,
             'timestamp': datetime.utcnow().timestamp()
         })
     }

@@ -46,7 +46,11 @@
           </div>
 
           {% if request.user.has_limit %}
-            <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month.<br><a href="{% url 'contact' %}?upgrade=individual">Upgrade to unlimited Perma Links</a>.</p>
+            {% if request.user.nonpaying %}
+               <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month.<br><a href="{% url 'contact' %}?upgrade=individual">Upgrade to unlimited Perma Links</a>.</p>
+            {% else %}
+              <p id="links-remaining-message">Your <a href="{% url 'user_management_settings_subscription' %}">subscription</a> lets you make an unlimited number of Perma Links.</p>
+            {% endif %}
           {% else %}
             <div id="organization_select_form">
               <span class="label-affil">This Perma Link will be affiliated with</span>
