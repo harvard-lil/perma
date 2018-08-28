@@ -48,16 +48,14 @@ class TaskTestCase(TestCase):
         self.assertIn('40', response)
 
         # check that developers are warned about duplicates
-        mock_logger.error.assert_called_with("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
+        mock_logger.error.assert_called_with("Duplicate registrar users sent to Campaign Monitor. Check sync logic.")
 
         # check contents of sent email
-        our_address = settings.DEFAULT_FROM_EMAIL
-
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(message.subject, "Registrar Users Synced to Campaign Monitor")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [our_address])
+        self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(message.recipients(), [settings.ADMINS[0][1]])
         self.assertIn("10", message.body)
         self.assertIn("20", message.body)
         # 30 skipped on purpose: duplicates not in email, on purpose!

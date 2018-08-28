@@ -12,6 +12,7 @@ from .utils import tz_datetime
 
 logger = logging.getLogger(__name__)
 
+
 ###
 ### Send email
 ###
@@ -61,6 +62,30 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
     ).send(fail_silently=False)
+
+
+def send_self_email(title, request, template="email/default.txt", context={}, devs_only=True):
+    """
+        Send a message to ourselves. By default, sends only to settings.ADMINS.
+        To contact the main Perma email address, set devs_only=False
+    """
+    if devs_only:
+        EmailMessage(
+            title,
+            render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+            settings.DEFAULT_FROM_EMAIL,
+            [admin[1] for admin in settings.ADMINS]
+        ).send(fail_silently=False)
+    else:
+        # Use a special reply-to address to avoid Freshdesk's filters: a ticket will be opened.
+        EmailMessage(
+            title,
+            render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.DEFAULT_FROM_EMAIL],
+            headers={'Reply-To': settings.DEFAULT_REPLYTO_EMAIL}
+        ).send(fail_silently=False)
+
 
 def send_user_email_copy_admins(title, from_address, to_addresses, request, template="email/default.txt", context={}):
     """
