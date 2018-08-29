@@ -24,6 +24,11 @@
       <form method="post" action="">
         {% csrf_token %}
         {% include "includes/fieldset.html" %}
+          <div class="body-text"><div class="checkbox">
+            <label>
+              <input id="upgrade" name="upgrade" type="checkbox"> I'm interested in upgrading to a premium, unlimited account.
+            </label>
+          </div></div>
         <p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
         <button type="submit" class="btn">Create account</button>
       </form>
@@ -31,7 +36,9 @@
     <div class="col-sm-8 reading-body">
       <h2 class="body-ah">Perma.cc for individual users</h2>
       <p class="body-text">Anyone can create a free, individual Perma.cc account, which will allow you to create ten links per month. Just complete this form to get started.</p>
-      <p class="body-text">Please note that if you need more than ten links per month you should work with a journal or a library that uses Perma.cc. To learn more about how Perma.cc works, please review our <a href="{% url 'docs' %}">user guide</a>.
+      <p class="body-text">If you need more than ten links per month, you can upgrade to a paid premium account. Check the box to indicate your interest, and a Perma.cc team member will be in touch shortly.</p>
+      <p class="body-text">Many organizations qualify for free, unlimited service. To see if your organization qualifies, check out our <a href="{% url 'docs_accounts' %}">accounts page</a>.</p>
+      <p class="body-text">To learn more about how Perma.cc works, please review our <a href="{% url 'docs' %}">user guide</a>.</p>
     </div>
   </div>
 </div>

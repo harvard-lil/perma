@@ -313,6 +313,14 @@ def contact(request):
         subject = request.GET.get('subject', '')
         message = request.GET.get('message', '')
 
+        upgrade = request.GET.get('upgrade', '')
+        if upgrade:
+            subject = 'Upgrade to Unlimited Account'
+            if upgrade == 'organization':
+                message = "My organization is interested in a subscription to Perma.cc."
+            else:
+                message = "I am interested in upgrading to an unlimited Perma.cc account."
+
         flagged_archive_guid = request.GET.get('flag', '')
         if flagged_archive_guid:
             subject = 'Reporting Inappropriate Content'
@@ -329,7 +337,8 @@ def contact(request):
             )
         )
 
-        return render(request, 'contact.html', {'form': form})
+        return render(request, 'contact.html', {'form': form, 'upgrade': upgrade})
+
 
 def contact_thanks(request):
     """
