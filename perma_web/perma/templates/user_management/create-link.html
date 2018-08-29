@@ -45,11 +45,17 @@
             {% endif %}
           </div>
 
-          {% if request.user.has_limit %}
+          {% if request.user.is_individual %}
             {% if request.user.nonpaying %}
                <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month.<br><a href="{% url 'contact' %}?upgrade=individual">Upgrade to unlimited Perma Links</a>.</p>
+            {% elif request.user.subscription_status == 'active' %}
+              <p id="links-remaining-message">Your <a href="{% url 'user_management_settings_subscription' %}">premium subscription</a> includes the creation of an unlimited number of Perma Links.</p>
+            {% elif request.user.subscription_status == 'problem' %}
+              <p id="links-remaining-message">Your subscription to our premium service is on hold due to a <a href="{% url 'user_management_settings_subscription' %}">problem with your credit card</a>.
+              <br> You have <span class="links-remaining">{{links_remaining}}</span> remaining fee Perma Links this month. </p>
             {% else %}
-              <p id="links-remaining-message">Your <a href="{% url 'user_management_settings_subscription' %}">subscription</a> lets you make an unlimited number of Perma Links.</p>
+              <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining free Perma Links this month.
+              <br><a href="{% url 'user_management_settings_subscription' %}">Activate your premium subscription</a>.</p>
             {% endif %}
           {% else %}
             <div id="organization_select_form">
@@ -64,7 +70,7 @@
           {% endif %}
         </fieldset>
         {% if suppress_reminder != 'true' %}
-          <p id="browser-tools-message" class="limit-{% if request.user.has_limit %}true{% else %}false{% endif %}">
+          <p id="browser-tools-message" class="limit-{% if request.user.is_individual %}true{% else %}false{% endif %}">
             To make Perma links more quickly, try our <a href="{% url 'user_management_settings_tools' %}">browser tools</a>.
             <button type="button" class="close-browser-tools btn-link">
               <span aria-hidden="true">&times;</span>
@@ -140,7 +146,8 @@
 
   <script>
     var contact_url = "{% url 'contact' %}",
-        links_remaining = "{{links_remaining}}",
+        links_remaining = "{{ links_remaining }}",
+        link_creation_allowed = {{ link_creation_allowed | yesno:"true,false" }},
         current_user = {{ request.user.as_json|safe }},
         host = "{{ request.get_host }}",
         workers = {{ workers }},

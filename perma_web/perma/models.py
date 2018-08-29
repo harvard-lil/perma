@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 
 ### CONSTANTS
 ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
+PROBLEM_SUBSCRIPTION_STATUSES = ['On Hold']
 
 FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
     'get_subscription': [
@@ -115,6 +116,10 @@ def subscription_is_active(subscription):
             subscription['paid_through'] >= timezone.now()
         )
     )
+
+def subscription_has_problem(subscription):
+    return subscription and subscription['status'] in PROBLEM_SUBSCRIPTION_STATUSES
+
 
 # classes
 
@@ -226,17 +231,14 @@ class CustomerModel(models.Model):
             'paid_through': paid_through_date_from_post(post_data['subscription']['paid_through'])
         }
 
-
     def annual_rate(self):
         return self.monthly_rate * 12
-
 
     def prorated_first_month_cost(self, now):
         days_in_month = calendar.monthrange(now.year, now.month)[1]
         days_until_end_of_month = days_in_month - now.day
         # add one day, to charge for today
         return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
-
 
     def get_subscription_info(self, now):
         timestamp = now.timestamp()
@@ -270,10 +272,8 @@ class CustomerModel(models.Model):
             }
         }
 
-
-    def link_creation_allowed(self):
-        if self.nonpaying:
-            return True
+    @cached_property
+    def subscription_status(self):
         try:
             subscription = self.get_subscription()
         except PermaPaymentsCommunicationException:
@@ -281,7 +281,16 @@ class CustomerModel(models.Model):
                 'status': self.cached_subscription_status,
                 'paid_through': self.cached_paid_through
             }
-        return subscription_is_active(subscription)
+        if subscription_is_active(subscription):
+            return 'active'
+        if subscription_has_problem(subscription):
+            return 'problem'
+        return None
+
+    def link_creation_allowed(self):
+        if self.nonpaying:
+            return True
+        return self.subscription_status == 'active'
 
 
 ### MODELS ###
@@ -592,8 +601,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return True
         return False
 
-    def has_limit(self):
-        """ Does the user have a link creation limit? """
+    def is_individual(self):
+        """ Is the user a regular, individual user? """
         return bool(not self.is_staff and not self.is_registrar_user() and not self.is_organization_user)
 
     def is_registrar_user(self):
@@ -618,9 +627,20 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
 
+    ### subscriptions ###
+
     def can_view_subscription(self):
         return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
+    def link_creation_allowed(self):
+        """
+            Override default customer method to account for link limits
+        """
+        links_remaining = self.get_links_remaining()
+        peronal_links_allowed = links_remaining > 0
+        if self.nonpaying:
+            return peronal_links_allowed
+        return self.subscription_status == 'active' or peronal_links_allowed
 
     ### link permissions ###
 
