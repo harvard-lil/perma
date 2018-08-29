@@ -34,24 +34,36 @@ def paying_registrar():
     return r
 
 
-def spoof_pp_response_wrong_registrar(r):
+def spoof_pp_response_wrong_pk(r):
     d = {
-        "registrar": "not_the_id"
+        "customer_pk": "not_the_pk",
+        "customer_type": r.customer_type
     }
-    assert r.pk != d['registrar']
+    assert r.pk != d['customer_pk']
+    return d
+
+
+def spoof_pp_response_wrong_type(r):
+    d = {
+        "customer_pk": r.pk,
+        "customer_type": "not_the_type"
+    }
+    assert r.customer_type != d['customer_type']
     return d
 
 
 def spoof_pp_response_no_subscription(r):
     return {
-        "registrar": r.pk,
+        "customer_pk": r.pk,
+        "customer_type": r.customer_type,
         "subscription": None
     }
 
 
 def spoof_pp_response_subscription(r):
     return {
-        "registrar": r.pk,
+        "customer_pk": r.pk,
+        "customer_type": r.customer_type,
         "subscription": {
             "status": "Sentinel Status",
             "rate": "Sentinel Rate",
@@ -329,10 +341,21 @@ class ModelsTestCase(PermaTestCase):
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_raises_if_unexpected_registrar_id(self, post, process):
+    def test_get_subscription_raises_if_unexpected_registrar_pk(self, post, process):
         r = paying_registrar()
         post.return_value.status_code = 200
-        process.return_value = spoof_pp_response_wrong_registrar(r)
+        process.return_value = spoof_pp_response_wrong_pk(r)
+        with self.assertRaises(InvalidTransmissionException):
+            r.get_subscription()
+        self.assertEqual(post.call_count, 1)
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_raises_if_unexpected_registrar_type(self, post, process):
+        r = paying_registrar()
+        post.return_value.status_code = 200
+        process.return_value = spoof_pp_response_wrong_type(r)
         with self.assertRaises(InvalidTransmissionException):
             r.get_subscription()
         self.assertEqual(post.call_count, 1)
@@ -423,10 +446,12 @@ class ModelsTestCase(PermaTestCase):
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.subscription_has_problem', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_disallowed_if_subscription_inactive(self, get_subscription, is_active):
+    def test_link_creation_disallowed_if_subscription_inactive(self, get_subscription, has_problem, is_active):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = False
+        has_problem.return_value = True
         r = paying_registrar()
         self.assertFalse(r.link_creation_allowed())
         get_subscription.assert_called_once_with(r)

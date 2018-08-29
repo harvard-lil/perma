@@ -1060,7 +1060,7 @@ def settings_subscription(request):
 def settings_subscription_cancel(request):
     if request.user.registrar:
         customer_pk = request.user.registrar.id
-        customer_type = request.user.registar.customer_type
+        customer_type = request.user.registrar.customer_type
     else:
         customer_pk = request.user.id
         customer_type = request.user.customer_type
