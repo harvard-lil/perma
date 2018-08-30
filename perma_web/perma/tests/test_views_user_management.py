@@ -1868,6 +1868,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.from_email, our_address)
         self.assertEqual(message.recipients(), [user_email])
 
+
     def test_get_new_activation_code(self):
         self.submit_form('user_management_not_active',
                           user = 'unactivated_faculty_user@example.com',
