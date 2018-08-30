@@ -1321,6 +1321,7 @@ def sign_up(request):
             upgrade = request.POST.get('upgrade', None)
             if upgrade:
                 new_user.requested_account_type = 'premium'
+                email_premium_request(request, new_user)
                 messages.add_message(request, messages.INFO, "We will be in touch shortly with more information about upgrading to our premium, unlimited service.")
             email_new_user(request, new_user)
             return HttpResponseRedirect(reverse('register_email_instructions'))
@@ -1625,6 +1626,22 @@ def email_firm_request(request, user):
             "last_name": user.last_name,
             "firm_name": user.requested_account_note,
             "has_account": target_user,
+            "email": user.email
+        }
+    )
+
+def email_premium_request(request, user):
+    """
+    Send email to Perma.cc admins when a user requests a premium account
+    """
+    send_admin_email(
+        "Perma.cc premium account request",
+        user.email,
+        request,
+        "email/admin/premium_request.txt",
+        {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
             "email": user.email
         }
     )
