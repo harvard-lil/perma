@@ -368,9 +368,11 @@ class AuthenticatedLinkListView(BaseView):
 
         # Make sure a limited user has links left to create
         if not folder.organization:
-            links_remaining = request.user.get_links_remaining()
-            if links_remaining < 1:
-                raise_invalid_capture_job(capture_job, "You've already reached your limit.")
+            if not request.user.link_creation_allowed():
+                if request.user.nonpaying:
+                    raise_invalid_capture_job(capture_job, "You've already reached your limit.")
+                error = "Perma.cc cannot presently make additional Perma Links on your behalf. Visit your subscription settings page for more information."
+                raise_invalid_capture_job(capture_job, error)
         else:
             registrar = folder.organization.registrar
             if not registrar.link_creation_allowed():

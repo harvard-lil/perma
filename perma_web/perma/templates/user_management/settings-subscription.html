@@ -7,7 +7,8 @@
 {% with subscription=subscription_info.subscription %}
   {% if not subscription %}
     <h2 class="body-ah">Subscribe</h2>
-    <p class="page-dek">Purchase a subscription for {{ request.user.registrar.name }}</p>
+
+    <p class="page-dek">Purchase a subscription{% if request.user.registrar %} for {{ request.user.registrar.name }}{% endif %}</p>
 
     <div class="row">
 
@@ -29,17 +30,31 @@
 
     <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation.
 
-    <p class="page-dek">You will continue to be able to create Permalinks for {{ request.user.registrar.name }} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
+    {% if subscription.paid_through %}
+      <p class="page-dek">You will continue to be able to create unlimited Permalinks{% if request.user.registrar %} for {{ request.user.registrar.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
+    {% endif %}
 
   {% elif subscription.status == 'Canceled' %}
-    <h2 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h2>
+    <h2 class="body-ah">
+      {% if request.user.registrar %}
+        {{ request.user.registrar.name }}'s Subscription
+      {% else %}
+        Your Subscription
+      {% endif %}
+    </h2>
 
     <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
 
     <p class="page-dek">You will continue to be able to create Permalinks for {{ request.user.registrar.name }} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
 
   {% else %}
-    <h2 class="body-ah">{{ request.user.registrar.name }}'s Subscription</h2>
+    <h2 class="body-ah">
+      {% if request.user.registrar %}
+        {{ request.user.registrar.name }}'s Subscription
+      {% else %}
+        Your Subscription
+      {% endif %}
+    </h2>
 
     {% if subscription.status == 'On Hold' %}
       <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>

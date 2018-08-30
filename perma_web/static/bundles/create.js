@@ -11148,6 +11148,7 @@ webpackJsonp([1],[
 	var currentFolder = void 0;
 	var currentFolderPrivate = void 0;
 	// links_remaining is available from the global scope, set by the Django template
+	// link_creation_allowed is available from the global scope, set by the Django template
 	var newGUID = null;
 	var organizations = {};
 	var progress_bar = void 0;
@@ -11360,7 +11361,7 @@ webpackJsonp([1],[
 	function handleSelectionChange(data) {
 	  var currentOrg = data.orgId;
 	  var path = data.path;
-	  var outOfLinks = !currentOrg && links_remaining < 1;
+	  var outOfLinks = !currentOrg && !link_creation_allowed;
 	
 	  // update top-level variables
 	  currentFolder = data.folderId;

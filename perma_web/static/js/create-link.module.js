@@ -16,6 +16,7 @@ let errorTemplate = require("./hbs/error-template.handlebars");
 let currentFolder;
 let currentFolderPrivate;
 // links_remaining is available from the global scope, set by the Django template
+// link_creation_allowed is available from the global scope, set by the Django template
 let newGUID = null;
 let organizations = {};
 let progress_bar;
@@ -217,7 +218,7 @@ function updateButtonPrivacy(){
 export function handleSelectionChange (data) {
   let currentOrg = data.orgId;
   let path = data.path;
-  let outOfLinks = !currentOrg && links_remaining < 1;
+  let outOfLinks = !currentOrg && !link_creation_allowed;
 
   // update top-level variables
   currentFolder = data.folderId;

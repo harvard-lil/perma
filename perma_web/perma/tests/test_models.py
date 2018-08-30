@@ -16,42 +16,72 @@ from .utils import PermaTestCase
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
 
 def nonpaying_registrar():
-    r = Registrar()
-    r.save()
-    assert r.nonpaying
-    return r
-
+    registrar = Registrar()
+    registrar.save()
+    assert registrar.nonpaying
+    return registrar
 
 def paying_registrar():
-    r = Registrar(
+    registrar = Registrar(
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through="1970-01-21T00:00:00.000000Z",
         monthly_rate=Decimal(100.00)
     )
-    r.save()
-    assert not r.nonpaying
-    return r
+    registrar.save()
+    assert not registrar.nonpaying
+    return registrar
 
+def nonpaying_user():
+    user = LinkUser()
+    user.save()
+    assert user.nonpaying
+    return user
 
-def spoof_pp_response_wrong_registrar(r):
-    d = {
-        "registrar": "not_the_id"
+def paying_user():
+    user = LinkUser(
+        nonpaying=False,
+        cached_subscription_status="Sentinel Status",
+        cached_paid_through="1970-01-21T00:00:00.000000Z",
+        monthly_rate=Decimal(100.00)
+    )
+    user.save()
+    assert not user.nonpaying
+    return user
+
+def customers():
+    return [paying_registrar(), paying_user()]
+
+def noncustomers():
+    return [nonpaying_registrar(), nonpaying_user()]
+
+def spoof_pp_response_wrong_pk(customer):
+    data = {
+        "customer_pk": "not_the_pk",
+        "customer_type": customer.customer_type
     }
-    assert r.pk != d['registrar']
-    return d
+    assert customer.pk != data['customer_pk']
+    return data
 
+def spoof_pp_response_wrong_type(customer):
+    data = {
+        "customer_pk": customer.pk,
+        "customer_type": "not_the_type"
+    }
+    assert customer.customer_type != data['customer_type']
+    return data
 
-def spoof_pp_response_no_subscription(r):
+def spoof_pp_response_no_subscription(customer):
     return {
-        "registrar": r.pk,
+        "customer_pk": customer.pk,
+        "customer_type": customer.customer_type,
         "subscription": None
     }
 
-
-def spoof_pp_response_subscription(r):
+def spoof_pp_response_subscription(customer):
     return {
-        "registrar": r.pk,
+        "customer_pk": customer.pk,
+        "customer_type": customer.customer_type,
         "subscription": {
             "status": "Sentinel Status",
             "rate": "Sentinel Rate",
@@ -61,13 +91,11 @@ def spoof_pp_response_subscription(r):
         }
     }
 
-
 def active_cancelled_subscription():
     return {
         'status': "Canceled",
         'paid_through': timezone.now() + relativedelta(years=1)
     }
-
 
 def expired_cancelled_subscription():
     return {
@@ -299,94 +327,112 @@ class ModelsTestCase(PermaTestCase):
 
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_none_and_no_network_call_if_nonpaying(self, post):
-        r = nonpaying_registrar()
-        self.assertIsNone(r.get_subscription())
-        self.assertEqual(post.call_count, 0)
+        for noncustomer in noncustomers():
+            self.assertIsNone(noncustomer.get_subscription())
+            self.assertEqual(post.call_count, 0)
 
 
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_raises_on_non_200(self, post):
-        r = paying_registrar()
         post.return_value.ok = False
-        with self.assertRaises(PermaPaymentsCommunicationException):
-            r.get_subscription()
-        self.assertEqual(post.call_count, 1)
+        for customer in customers():
+            with self.assertRaises(PermaPaymentsCommunicationException):
+                customer.get_subscription()
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_verifies_transmission_valid(self, post, process):
-        r = paying_registrar()
         post.return_value.status_code = 200
         post.return_value.json.return_value = sentinel.json
-        # This will raise an exception further down in the function;
-        # we don't care at this point
-        with self.assertRaises(Exception):
-            r.get_subscription()
-        self.assertEqual(post.call_count, 1)
-        process.assert_called_once_with(sentinel.json, FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
+        for customer in customers():
+            # This will raise an exception further down in the function;
+            # we don't care at this point
+            with self.assertRaises(Exception):
+                customer.get_subscription()
+            self.assertEqual(post.call_count, 1)
+            process.assert_called_once_with(sentinel.json, FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
+            post.reset_mock()
+            process.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_raises_if_unexpected_registrar_id(self, post, process):
-        r = paying_registrar()
+    def test_get_subscription_raises_if_unexpected_customer_pk(self, post, process):
         post.return_value.status_code = 200
-        process.return_value = spoof_pp_response_wrong_registrar(r)
-        with self.assertRaises(InvalidTransmissionException):
-            r.get_subscription()
-        self.assertEqual(post.call_count, 1)
+        for customer in customers():
+            process.return_value = spoof_pp_response_wrong_pk(customer)
+            with self.assertRaises(InvalidTransmissionException):
+                customer.get_subscription()
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_raises_if_unexpected_registrar_type(self, post, process):
+        post.return_value.status_code = 200
+        for customer in customers():
+            process.return_value = spoof_pp_response_wrong_type(customer)
+            with self.assertRaises(InvalidTransmissionException):
+                customer.get_subscription()
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_no_subscription(self, post, process):
-        r = paying_registrar()
         post.return_value.status_code = 200
-        process.return_value = spoof_pp_response_no_subscription(r)
-        self.assertIsNone(r.get_subscription())
-        self.assertEqual(post.call_count, 1)
+        for customer in customers():
+            process.return_value = spoof_pp_response_no_subscription(customer)
+            self.assertIsNone(customer.get_subscription())
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_happy_path(self, post, process):
-        r = paying_registrar()
-        response = spoof_pp_response_subscription(r)
         post.return_value.status_code = 200
-        process.return_value = response
-        subscription = r.get_subscription()
-        self.assertEqual(r.cached_subscription_status, response['subscription']['status'])
-        self.assertEqual(subscription, {
-            'status': response['subscription']['status'],
-            'rate': response['subscription']['rate'],
-            'frequency': response['subscription']['frequency'],
-            'paid_through': paid_through_date_from_post('1970-01-21T00:00:00.000000Z')
-        })
-        self.assertEqual(post.call_count, 1)
+        for customer in customers():
+            response = spoof_pp_response_subscription(customer)
+            process.return_value = response
+            subscription = customer.get_subscription()
+            self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
+            self.assertEqual(subscription, {
+                'status': response['subscription']['status'],
+                'rate': response['subscription']['rate'],
+                'frequency': response['subscription']['frequency'],
+                'paid_through': paid_through_date_from_post('1970-01-21T00:00:00.000000Z')
+            })
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
 
 
     def test_annual_rate(self):
-        r = paying_registrar()
-        self.assertEqual(r.annual_rate() / 12, r.monthly_rate)
+        for customer in customers():
+            self.assertEqual(customer.annual_rate() / 12, customer.monthly_rate)
 
 
     def test_prorated_first_month_cost_full_month(self):
-        r = paying_registrar()
-        cost = r.prorated_first_month_cost(GENESIS)
-        self.assertEqual(r.monthly_rate, cost)
+        for customer in customers():
+            cost = customer.prorated_first_month_cost(GENESIS)
+            self.assertEqual(customer.monthly_rate, cost)
 
 
     def test_prorated_first_month_cost_last_day_of_month(self):
-        r = paying_registrar()
-        cost = r.prorated_first_month_cost(GENESIS.replace(day=31))
-        self.assertEqual((r.monthly_rate / 31).quantize(Decimal('.01')), cost)
+        for customer in customers():
+            cost = customer.prorated_first_month_cost(GENESIS.replace(day=31))
+            self.assertEqual((customer.monthly_rate / 31).quantize(Decimal('.01')), cost)
 
 
     def test_prorated_first_month_cost_mid_month(self):
-        r = paying_registrar()
-        cost = r.prorated_first_month_cost(GENESIS.replace(day=16))
-        self.assertEqual((r.monthly_rate / 31 * 16).quantize(Decimal('.01')), cost)
+        for customer in customers():
+            cost = customer.prorated_first_month_cost(GENESIS.replace(day=16))
+            self.assertEqual((customer.monthly_rate / 31 * 16).quantize(Decimal('.01')), cost)
 
 
     # Does this have to be tested? It's important, but.....
@@ -395,19 +441,51 @@ class ModelsTestCase(PermaTestCase):
 
 
     @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_always_allowed_if_nonpaying(self, get_subscription):
-        r = nonpaying_registrar()
-        self.assertTrue(r.link_creation_allowed())
+    def test_registrar_link_creation_always_allowed_if_nonpaying(self, get_subscription):
+        registrar = nonpaying_registrar()
+        self.assertTrue(registrar.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 0)
+
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_allowed_if_nonpaying_and_under_limit(self, get_subscription, get_links_remaining):
+        get_links_remaining.return_value = 1
+        user = nonpaying_user()
+        self.assertTrue(user.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 0)
+        self.assertEqual(get_links_remaining.call_count, 1)
+
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_denied_if_nonpaying_and_over_limit(self, get_subscription, get_links_remaining):
+        get_links_remaining.return_value = 0
+        user = nonpaying_user()
+        self.assertFalse(user.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 0)
+        self.assertEqual(get_links_remaining.call_count, 1)
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
+    def test_registrar_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
         get_subscription.side_effect = PermaPaymentsCommunicationException
-        r = paying_registrar()
-        r.link_creation_allowed()
-        get_subscription.assert_called_once_with(r)
+        customer = paying_registrar()
+        customer.link_creation_allowed()
+        get_subscription.assert_called_once_with(customer)
+        is_active.assert_called_once_with({
+            'status': 'Sentinel Status',
+            'paid_through': '1970-01-21T00:00:00.000000Z'
+        })
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
+        get_subscription.side_effect = PermaPaymentsCommunicationException
+        customer = paying_user()
+        customer.link_creation_allowed()
+        get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with({
             'status': 'Sentinel Status',
             'paid_through': '1970-01-21T00:00:00.000000Z'
@@ -415,32 +493,99 @@ class ModelsTestCase(PermaTestCase):
 
 
     @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_disallowed_if_no_subscription(self, get_subscription):
+    def test_registrar_link_creation_disallowed_if_no_subscription(self, get_subscription):
         get_subscription.return_value = None
         r = paying_registrar()
         self.assertFalse(r.link_creation_allowed())
         get_subscription.assert_called_once_with(r)
 
 
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, get_links_remaining):
+        get_subscription.return_value = None
+        get_links_remaining.return_value = 1
+        user = paying_user()
+        self.assertTrue(user.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 1)
+        self.assertEqual(get_links_remaining.call_count, 1)
+
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_denied_if_no_subscription_and_over_limit(self, get_subscription, get_links_remaining):
+        get_subscription.return_value = None
+        get_links_remaining.return_value = 0
+        user = paying_user()
+        self.assertFalse(user.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 1)
+        self.assertEqual(get_links_remaining.call_count, 1)
+
+
     @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.subscription_has_problem', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_disallowed_if_subscription_inactive(self, get_subscription, is_active):
+    def test_registrar_link_creation_disallowed_if_subscription_inactive(self, get_subscription, has_problem, is_active):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = False
-        r = paying_registrar()
-        self.assertFalse(r.link_creation_allowed())
-        get_subscription.assert_called_once_with(r)
+        has_problem.return_value = True
+        registrar = paying_registrar()
+        self.assertFalse(registrar.link_creation_allowed())
+        get_subscription.assert_called_once_with(registrar)
+        is_active.assert_called_once_with(sentinel.subscription)
+
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.subscription_has_problem', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_disallowed_if_subscription_inactive_and_over_limit(self, get_subscription, has_problem, is_active, get_links_remaining):
+        get_links_remaining.return_value = 0
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = False
+        has_problem.return_value = True
+        user = paying_user()
+        self.assertFalse(user.link_creation_allowed())
+        get_subscription.assert_called_once_with(user)
+        is_active.assert_called_once_with(sentinel.subscription)
+        self.assertEqual(get_links_remaining.call_count, 1)
+
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.subscription_has_problem', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_allowed_if_subscription_inactive_and_under_limit(self, get_subscription, has_problem, is_active, get_links_remaining):
+        get_links_remaining.return_value = 1
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = False
+        has_problem.return_value = True
+        user = paying_user()
+        self.assertTrue(user.link_creation_allowed())
+        get_subscription.assert_called_once_with(user)
+        is_active.assert_called_once_with(sentinel.subscription)
+        self.assertEqual(get_links_remaining.call_count, 1)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = True
+        customer = paying_registrar()
+        self.assertTrue(customer.link_creation_allowed())
+        get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = True
-        r = paying_registrar()
-        self.assertTrue(r.link_creation_allowed())
-        get_subscription.assert_called_once_with(r)
+        customer = paying_user()
+        self.assertTrue(customer.link_creation_allowed())
+        get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
 
 
