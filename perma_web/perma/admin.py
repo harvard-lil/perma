@@ -29,6 +29,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
     list_display = ['name', 'status', 'nonpaying', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
+    list_filter = ('nonpaying', 'cached_subscription_status')
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'nonpaying', 'monthly_rate', 'cached_subscription_status')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
@@ -128,9 +129,9 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'link_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'nonpaying', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
-    list_filter = ('is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'nonpaying', 'cached_subscription_status')
     ordering = None
     readonly_fields = ['date_joined']
     inlines = [
