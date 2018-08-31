@@ -52,7 +52,7 @@
               <p id="links-remaining-message">Your <a href="{% url 'user_management_settings_subscription' %}">premium subscription</a> includes the creation of an unlimited number of Perma Links.</p>
             {% elif request.user.subscription_status == 'problem' %}
               <p id="links-remaining-message">Your subscription to our premium service is on hold due to a <a href="{% url 'user_management_settings_subscription' %}">problem with your credit card</a>.
-              <br> You have <span class="links-remaining">{{links_remaining}}</span> remaining fee Perma Links this month. </p>
+              <br> You have <span class="links-remaining">{{links_remaining}}</span> remaining free Perma Links this month. </p>
             {% else %}
               <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining free Perma Links this month.
               <br><a href="{% url 'user_management_settings_subscription' %}">Activate your premium subscription</a>.</p>
