@@ -4,7 +4,7 @@
 {% block dashboardContent %}
 
     <h2 class="body-ah _hideMobile">Cancel Your Subscription</h2>
-    <p class="page-dek">Are you sure you want to cancel the subscription for {{ request.user.registrar.name }}?</p>
+    <p class="page-dek">Are you sure you want to cancel the subscription{% if request.user.registrar %} for {{ request.user.registrar.name }}{% endif %}?</p>
 
     <form method="post" action="{{ cancel_url }}">
       <input type="hidden" name="encrypted_data" value={{ data }}>
