@@ -11185,7 +11185,8 @@ webpackJsonp([1],[
 	    spinner.stop();
 	    $url.prop('disabled', false);
 	    $organizationDropdownButton.prop('disabled', false);
-	    $linksRemainingMessage.removeClass('_isWorking');
+	    // this looks kind of funny. do we gray it out for a reason?
+	    // $linksRemainingMessage.removeClass('_isWorking');
 	    Helpers.triggerOnWindow('createLink.toggleProgress');
 	  } else {
 	    // we're getting started
@@ -11194,7 +11195,8 @@ webpackJsonp([1],[
 	    spinner.spin($createButton[0]);
 	    $url.prop('disabled', true);
 	    $organizationDropdownButton.prop('disabled', true);
-	    $linksRemainingMessage.addClass('_isWorking');
+	    // this looks kind of funny. do we gray it out for a reason?
+	    // $linksRemainingMessage.addClass('_isWorking');
 	    Helpers.triggerOnWindow('createLink.toggleProgress');
 	  }
 	}
