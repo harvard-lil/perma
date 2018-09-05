@@ -11,7 +11,7 @@ Django = "==1.11.13"
 django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "==1.13.1.post1"                # task automation
 netaddr = "==0.7.12"                        # to check archive IPs against banned ranges
-pytz = "==2018.3"                           # timezone helper
+pytz = "*"                                  # timezone helper
 requests = {version = "==2.18.4", extras = ["security"]}
 tqdm = "*"                                  # progress bar in dev fab tasks
 Werkzeug = "==0.11.1"
