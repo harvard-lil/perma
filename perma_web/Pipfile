@@ -73,7 +73,7 @@ internetarchive = "==1.0.10"                # upload warcs to internet archive
 
 
 # perma payments
-PyNaCl = "==1.1.2"                          # encryption. why pinned?
+PyNaCl = "*"                                # encryption
 
 
 # integration with campaign monitor
