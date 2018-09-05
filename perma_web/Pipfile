@@ -48,7 +48,7 @@ Wand = "==0.4.4"
 
 # capture/playback related stuff
 LinkHeader = "==0.4.3"                      # memento headers for single-link pages
-pyquery = "==1.2.17"                        # extract data from HTML in capture task
+pyquery = "*"                               # extract data from HTML in capture task
 PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless browsers
 pywb = "==0.33.2"                           # playback engine
 selenium = "==2.47.3"                       # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
