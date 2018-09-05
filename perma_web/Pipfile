@@ -59,8 +59,8 @@ warcprox = "==2.4b2"
 
 
 # alternate storages
-django-storages = "==1.5.2"
-"boto3" = "==1.4.4"                         # required for django-storages to use s3 backend
+django-storages = "*"                       # custom storage backends for Django
+"boto3" = "*"                               # required for django-storages to use s3 backend
 
 
 # api

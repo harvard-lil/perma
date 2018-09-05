@@ -65,7 +65,7 @@ ADMINS = (
 )
 
 # these are relative to the S3 bucket
-MEDIA_ROOT = '/generated/'
+MEDIA_ROOT = 'generated/'
 
 # AWS storage settings
 AWS_QUERYSTRING_AUTH = False
