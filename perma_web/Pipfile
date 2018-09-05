@@ -53,7 +53,7 @@ PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless br
 pywb = "==0.33.2"                           # playback engine
 selenium = "==2.47.3"                       # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
 tempdir = "==0.6"                           # create temp dirs to be deleted at end of function -- handy for archive creation
-ua-parser = "==0.7.1"                       # user agent parsing to detect Safari browser for playbacks
+ua-parser = "*"                             # user agent parsing to detect mobile and Safari browsers during playbacks
 warcio = "==1.3.3"                          # helps us write metadata and inspect our WARCs
 warcprox = "==2.4b2"
 
