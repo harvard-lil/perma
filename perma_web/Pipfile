@@ -38,7 +38,7 @@ django-settings-context-processor = "==0.2"  # make settings available in templa
 # assets
 django-webpack-loader = "==0.5.0"           # frontend assets building
 Pillow = "==3.3.2"                          # Used by the Django admin for ImageField display
-whitenoise = "==3.2.2"                      # serve static assets
+whitenoise = "*"                            # serve static assets
 
 
 # thumbnails (carousel? anything else?)
