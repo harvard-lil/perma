@@ -8,7 +8,7 @@ name = "pypi"
 # general
 celery = "==3.1.25"                         # task queue
 Django = "==1.11.13"
-django-ratelimit = "==1.1.0"
+django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "==1.13.1.post1"                # task automation
 netaddr = "==0.7.12"                        # to check archive IPs against banned ranges
 pytz = "==2018.3"                           # timezone helper
@@ -21,18 +21,18 @@ Werkzeug = "==0.11.1"
 mysqlclient = "==1.3.12"
 django-redis = "==4.4.3"                    # use redis as django's cache backend
 redis = "==2.10.5"                          # Needed to bind with Redis.
-sqlparse = "==0.2.4"                        # for data migrations
+sqlparse = "*"                              # for data migrations
 
 
 # models
-django-model-utils = "==2.6.1"               # soft deletion and other nice things
-django-mptt = "==0.8.7"                      # trees (like our folder tree)
-django-simple-history = "==1.9.0"            # track changes to certain models
-django-taggit = "*"                          # add tags to model instances
+django-model-utils = "==2.6.1"              # soft deletion and other nice things
+django-mptt = "==0.8.7"                     # trees (like our folder tree)
+django-simple-history = "==1.9.0"           # track changes to certain models
+django-taggit = "*"                         # add tags to model instances
 
 
 # templates
-django-settings-context-processor = "==0.2"  # make settings available in templates
+django-settings-context-processor = "*"     # make settings available in templates
 
 
 # assets
@@ -52,7 +52,7 @@ pyquery = "*"                               # extract data from HTML in capture 
 PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless browsers
 pywb = "==0.33.2"                           # playback engine
 selenium = "==2.47.3"                       # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
-tempdir = "==0.6"                           # create temp dirs to be deleted at end of function -- handy for archive creation
+tempdir = "*"                               # create temp dirs to be deleted at end of function -- handy for archive creation
 ua-parser = "*"                             # user agent parsing to detect mobile and Safari browsers during playbacks
 warcio = "==1.3.3"                          # helps us write metadata and inspect our WARCs
 warcprox = "==2.4b2"
