@@ -913,6 +913,23 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))
 
+    def test_user_can_request_deletion_once(self):
+        deletion_url = reverse('user_management_delete_account')
+        self.assertNotIn('Requested account deletion', self.regular_user.notes)
+        response1 = self.get('user_management_settings_profile',
+                             user=self.regular_user).content
+        self.assertIn(bytes('<form method="post" action="{}"'.format(deletion_url), 'utf-8'), response1)
+        response2 = self.post('user_management_delete_account',
+                             user=self.regular_user,
+                             request_kwargs={"follow": True}).content
+        self.assertNotIn(bytes('<form method="post" action="{}"'.format(deletion_url), 'utf-8'), response2)
+        self.assertIn(b'Deletion Request Received', response2)
+        self.regular_user.refresh_from_db()
+        self.assertIn('Requested account deletion', self.regular_user.notes)
+        self.assertEqual(len(mail.outbox),1)
+        message = mail.outbox[0]
+        self.assertEqual(message.subject, 'Perma.cc account deletion request')
+
     def test_edit_org_privacy(self):
         '''
             Can an authorized user change the privacy setting of an org?
