@@ -288,6 +288,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn(self.message_text, message.body)
         self.assertIn("Referring Page: " + self.refering_page, message.body)
         self.assertIn("Affiliations: (none)", message.body)
+        self.assertIn("Logged in: false", message.body)
         self.assertEqual(message.subject, self.subject_prefix + self.custom_subject)
         self.assertEqual(message.from_email, self.our_address)
         self.assertEqual(message.recipients(), [self.our_address])
@@ -306,6 +307,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn(self.message_text, message.body)
         self.assertIn("Referring Page: ", message.body)
         self.assertIn("Affiliations: (none)", message.body)
+        self.assertIn("Logged in: false", message.body)
         self.assertEqual(message.subject, self.subject_prefix + 'New message from Perma contact form')
         self.assertEqual(message.from_email, self.our_address )
         self.assertEqual(message.recipients(), [self.our_address])
@@ -344,6 +346,7 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertEqual(len(mail.outbox), expected_emails)
             message = mail.outbox[expected_emails -1]
             self.assertIn(self.message_text, message.body)
+            self.assertIn("Logged in: true", message.body)
             self.assertEqual(message.from_email, self.our_address )
             self.assertEqual(message.to, [user.email for user in registrar_users])
             self.assertEqual(message.cc, [self.our_address, self.from_email] )
@@ -361,6 +364,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertIn("Affiliations: Another Library's Journal (Another Library), A Third Journal (Test Library)", message.body)
+        self.assertIn("Logged in: true", message.body)
 
     def test_contact_reg_user_affiliation_string(self):
         '''
@@ -373,6 +377,8 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertIn("Affiliations: Test Library (Registrar)", message.body)
+        self.assertIn("Logged in: true", message.body)
+
 
     def test_about_partner_list(self):
         '''

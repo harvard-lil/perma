@@ -10,6 +10,7 @@ Message from user
 ----
 Troubleshooting Info:
 User email: {{ from_address }}
+Logged in: {{ request.user.is_authenticated | yesno:"true,false" }}
 Affiliations: {{ affiliation_string | default:"(none)" }}
 Referring Page: {{ referer }}
 User agent: {{ request.META.HTTP_USER_AGENT | default:"(unknown)"}}
