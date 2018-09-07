@@ -34,7 +34,6 @@
     "jasmine-node": "^1.14.5",
     "jquery": "^3.3.1",
     "jquery-form": "^3.50.0",
-    "jquery-ui": "^1.12.1",
     "jstree": "^3.3.2",
     "karma": "^1.3.0",
     "karma-jasmine": "^1.0.2",

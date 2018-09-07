@@ -2196,12 +2196,6 @@
       "resolved": "https://registry.npmjs.org/jquery-form/-/jquery-form-3.50.0.tgz",
       "dev": true
     },
-    "jquery-ui": {
-      "version": "1.12.1",
-      "from": "jquery-ui@>=1.12.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/jquery-ui/-/jquery-ui-1.12.1.tgz",
-      "dev": true
-    },
     "js-base64": {
       "version": "2.1.9",
       "from": "js-base64@>=2.1.9 <3.0.0",

@@ -25,7 +25,6 @@ module.exports = {
     'map': './static/js/map',
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
-    'search': './static/js/search.module',
     'stats': './static/js/stats',
     'admin-stats': './static/js/admin-stats',
   },
@@ -53,7 +52,7 @@ module.exports = {
      */
     new webpack.optimize.CommonsChunkPlugin({
       name: "global",
-      chunks: ["global", "create", "single-link-permissions", "map", "link-delete-confirm", "developer-docs", "search", "stats", "admin-stats"],
+      chunks: ["global", "create", "single-link-permissions", "map", "link-delete-confirm", "developer-docs", "stats", "admin-stats"],
       minChunks: Infinity,
     }),
 
