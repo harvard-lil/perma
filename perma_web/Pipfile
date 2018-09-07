@@ -91,7 +91,7 @@ newrelic = "==2.66.0.49"
 coverage = "*"                              # record code coverage
 django-admin-smoke-tests = "*"              # basic tests for the Django admin
 fakeredis = "*"                             # simulate redis backend for tests
-"flake8" = "==2.5.4"                        # code linting
+"flake8" = "*"                              # code linting
 hypothesis = "*"                            # run tests with lots of generated input
 mock = "*"                                  # safe monkey patching
 pytest-cov = "*"                            # integrate coverage w/ pytest
