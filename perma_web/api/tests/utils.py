@@ -121,7 +121,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         self.api_client = LoggingAPIClient()
         try:
             self.list_url = "{0}{1}".format(self.url_base, self.resource_url)
-        except:
+        except:  # noqa
             pass
 
     # def tearDown(self):
