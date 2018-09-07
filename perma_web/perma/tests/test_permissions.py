@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.core.urlresolvers import reverse
 
-from perma.models import *
 from perma.urls import urlpatterns
 
 from .utils import PermaTestCase

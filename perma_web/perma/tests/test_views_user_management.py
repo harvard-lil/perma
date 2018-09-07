@@ -6,7 +6,7 @@ from django.urls import NoReverseMatch
 
 from mock import patch, sentinel
 
-from perma.models import *
+from perma.models import LinkUser, Organization, Registrar
 from perma.exceptions import PermaPaymentsCommunicationException
 
 from .utils import PermaTestCase
