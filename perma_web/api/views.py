@@ -611,20 +611,22 @@ class LinkBatchesDetailExportView(BaseView):
     def get(self, request, pk, format=None):
         """ Single link batch details. """
         api_response = self.simple_get(request, pk)
-        formatted_data = [{
-            'url': job['submitted_url'],
-            'status': "success",
-            'error_message': "",
-            'title': job['title'],
-            'perma_link': "{}://{}/{}".format(request.scheme, request.get_host(), job['guid'])
-        } if job['status'] == "completed" else {
-            'url': job['submitted_url'],
-            'status': "error",
-            'error_message': job['message'],
-            'title': "",
-            "perma_link": ""
-        }
-        for job in api_response.data['capture_jobs']]
+        formatted_data = [
+            {
+                'url': job['submitted_url'],
+                'status': "success",
+                'error_message': "",
+                'title': job['title'],
+                'perma_link': "{}://{}/{}".format(request.scheme, request.get_host(), job['guid'])
+            } if job['status'] == "completed" else {
+                'url': job['submitted_url'],
+                'status': "error",
+                'error_message': job['message'],
+                'title': "",
+                "perma_link": ""
+            }
+            for job in api_response.data['capture_jobs']
+        ]
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
         if formatted_data:

@@ -130,7 +130,7 @@ def stats(request, stat_type=None):
                 .annotate(count=Count('domain'))
                 .order_by('-count')
                 .values('domain', 'count'))
-       }
+        }
 
     elif stat_type == "random":
         # random

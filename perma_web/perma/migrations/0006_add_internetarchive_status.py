@@ -18,13 +18,13 @@ def reverse_update_upload_to_ia_field(apps, schema_editor):
     Link.objects.filter(internet_archive_upload_status='completed').update(uploaded_to_internet_archive=True)
     Link.objects.filter(
         Q(internet_archive_upload_status='deleted') | Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed') | Q(internet_archive_upload_status='failed_permanently')
-        ).update(uploaded_to_internet_archive=False)
+    ).update(uploaded_to_internet_archive=False)
 
     HistoricalLink = apps.get_model('perma', 'HistoricalLink')
     HistoricalLink.objects.filter(internet_archive_upload_status='completed').update(uploaded_to_internet_archive=True)
     HistoricalLink.objects.filter(
         Q(internet_archive_upload_status='deleted') | Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed') | Q(internet_archive_upload_status='failed_permanently')
-        ).update(uploaded_to_internet_archive=False)
+    ).update(uploaded_to_internet_archive=False)
 
 class Migration(migrations.Migration):
 
@@ -55,4 +55,4 @@ class Migration(migrations.Migration):
             name='uploaded_to_internet_archive',
         ),
 
-     ]
+    ]

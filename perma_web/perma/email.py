@@ -119,11 +119,12 @@ def registrar_users(registrars=None):
                                                   is_active = True,
                                                   is_confirmed = True)
         for user in registrar_users:
-            users.append({ "id": user.id,
-                           "first_name": user.first_name,
-                           "last_name": user.last_name,
-                           "email": user.email,
-                        })
+            users.append({
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            })
     return users
 
 
