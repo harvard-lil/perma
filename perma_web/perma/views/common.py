@@ -5,13 +5,16 @@ from urllib.parse import urlencode
 from django.contrib.auth.views import redirect_to_login
 from django.forms import widgets
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.conf import settings
 from django.utils import timezone
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
+
+from django.utils.six.moves.http_client import responses
+
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
@@ -385,3 +388,47 @@ def robots_txt(request):
             pass
     disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
+
+
+def archive_error(request):
+    """
+    Replay content not found error page
+    """
+
+    origin = request.META.get('HTTP_ORIGIN')
+
+    #TODO: validate origin?
+    #if origin:
+    #    pass
+
+    # handle cors options for error page redirect from cors
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+
+        response['Access-Control-Allow-Origin'] = origin
+
+        methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
+        if methods:
+            response['Access-Control-Allow-Methods'] = methods
+
+        headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
+        if headers:
+            response['Access-Control-Allow-Headers'] = headers
+
+        return response
+
+    status = request.GET.get('status')
+    status_line = '{0} {1}'.format(status, responses.get(int(status), ''))
+
+    response = render(request, 'archive/archive-error.html', {
+        'err_url': request.GET.get('url'),
+        'timestamp': request.GET.get('timestamp'),
+        'status': status_line,
+    }, status=status)
+
+    if origin:
+        response['Access-Control-Allow-Origin'] = origin
+
+    return response
+
+

@@ -153,8 +153,9 @@ def get_archive_path():
         archive_path = default_storage.url('')
         archive_path = archive_path.split('?', 1)[0]  # remove query params
 
+    return archive_path
     # must be ascii, for some reason, else you'll get
     # 'unicode' object has no attribute 'get'
-    return archive_path.encode('ascii', 'ignore')
+    #return archive_path.encode('ascii', 'ignore')
 
 

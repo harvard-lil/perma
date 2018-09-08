@@ -139,6 +139,9 @@ urlpatterns = [
     url(r'^manage/errors/resolve/?$', error_management.resolve, name='error_management_resolve'),
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
 
+    # archive replay errors
+    url(r'^archive-error', common.archive_error, name='archive_error'),
+
     url(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
     # Our Perma ID catchall
     url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
