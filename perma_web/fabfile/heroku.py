@@ -1,4 +1,4 @@
-from fabric.api import *
+from fabric.api import local, task
 
 from django.utils.crypto import get_random_string
 

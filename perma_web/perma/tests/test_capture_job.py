@@ -1,9 +1,13 @@
 from datetime import timedelta
+import json
 from multiprocessing.pool import ThreadPool
 
+from django.conf import settings
 from django.test import TransactionTestCase
+from django.utils import timezone
+from rest_framework.settings import api_settings
 
-from perma.models import *
+from perma.models import CaptureJob, Link, LinkUser
 from perma.tasks import clean_up_failed_captures
 
 # TODO:

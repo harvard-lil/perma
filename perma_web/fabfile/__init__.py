@@ -14,7 +14,7 @@ from .dev import run_django, test  # noqa
 
 # optionally import fab_targets
 try:
-    from .fab_targets import *
+    from .fab_targets import *  # noqa
 except ImportError as e:
     if e.msg != "No module named 'fabfile.fab_targets'":
         raise

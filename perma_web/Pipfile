@@ -8,37 +8,37 @@ name = "pypi"
 # general
 celery = "==3.1.25"                         # task queue
 Django = "==1.11.13"
-django-ratelimit = "==1.1.0"
+django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "==1.13.1.post1"                # task automation
-netaddr = "==0.7.12"                        # to check archive IPs against banned ranges
-pytz = "==2018.3"                           # timezone helper
+netaddr = "*"                               # to check archive IPs against banned ranges
+pytz = "*"                                  # timezone helper
 requests = {version = "==2.18.4", extras = ["security"]}
-tqdm = "==4.11.2"                           # progress bar in dev fab tasks
+tqdm = "*"                                  # progress bar in dev fab tasks
 Werkzeug = "==0.11.1"
 
 
 # databases
-mysqlclient = "==1.3.12"
+mysqlclient = "*"
 django-redis = "==4.4.3"                    # use redis as django's cache backend
 redis = "==2.10.5"                          # Needed to bind with Redis.
-sqlparse = "==0.2.4"                        # for data migrations
+sqlparse = "*"                              # for data migrations
 
 
 # models
-django-model-utils = "==2.6.1"               # soft deletion and other nice things
-django-mptt = "==0.8.7"                      # trees (like our folder tree)
-django-simple-history = "==1.9.0"            # track changes to certain models
-django-taggit = "==0.22.2"                   # add tags to model instances
+django-model-utils = "==2.6.1"              # soft deletion and other nice things
+django-mptt = "==0.8.7"                     # trees (like our folder tree)
+django-simple-history = "==1.9.0"           # track changes to certain models
+django-taggit = "*"                         # add tags to model instances
 
 
 # templates
-django-settings-context-processor = "==0.2"  # make settings available in templates
+django-settings-context-processor = "*"     # make settings available in templates
 
 
 # assets
-django-webpack-loader = "==0.5.0"           # frontend assets building
+django-webpack-loader = "*"                 # frontend assets building
 Pillow = "==3.3.2"                          # Used by the Django admin for ImageField display
-whitenoise = "==3.2.2"                      # serve static assets
+whitenoise = "*"                            # serve static assets
 
 
 # thumbnails (carousel? anything else?)
@@ -48,19 +48,19 @@ Wand = "==0.4.4"
 
 # capture/playback related stuff
 LinkHeader = "==0.4.3"                      # memento headers for single-link pages
-pyquery = "==1.2.17"                        # extract data from HTML in capture task
+pyquery = "*"                               # extract data from HTML in capture task
 PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless browsers
 pywb = "==0.33.2"                           # playback engine
 selenium = "==2.47.3"                       # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
-tempdir = "==0.6"                           # create temp dirs to be deleted at end of function -- handy for archive creation
-ua-parser = "==0.7.1"                       # user agent parsing to detect Safari browser for playbacks
+tempdir = "*"                               # create temp dirs to be deleted at end of function -- handy for archive creation
+ua-parser = "*"                             # user agent parsing to detect mobile and Safari browsers during playbacks
 warcio = "==1.3.3"                          # helps us write metadata and inspect our WARCs
 warcprox = "==2.4b2"
 
 
 # alternate storages
-django-storages = "==1.5.2"
-"boto3" = "==1.4.4"                         # required for django-storages to use s3 backend
+django-storages = "*"                       # custom storage backends for Django
+"boto3" = "*"                               # required for django-storages to use s3 backend
 
 
 # api
@@ -73,7 +73,7 @@ internetarchive = "==1.0.10"                # upload warcs to internet archive
 
 
 # perma payments
-PyNaCl = "==1.1.2"                          # encryption. why pinned?
+PyNaCl = "*"                                # encryption
 
 
 # integration with campaign monitor
@@ -91,7 +91,7 @@ newrelic = "==2.66.0.49"
 coverage = "*"                              # record code coverage
 django-admin-smoke-tests = "*"              # basic tests for the Django admin
 fakeredis = "*"                             # simulate redis backend for tests
-"flake8" = "==2.5.4"                        # code linting
+"flake8" = "*"                              # code linting
 hypothesis = "*"                            # run tests with lots of generated input
 mock = "*"                                  # safe monkey patching
 pytest-cov = "*"                            # integrate coverage w/ pytest

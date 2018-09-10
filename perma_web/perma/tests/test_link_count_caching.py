@@ -1,4 +1,4 @@
-from perma.models import *
+from perma.models import Link, LinkUser
 
 from .utils import PermaTestCase
 

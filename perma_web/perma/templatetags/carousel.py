@@ -29,7 +29,7 @@ def set_carousel_partners(context):
             continue
         try:
             proportion = float(partner.logo.width) / partner.logo.height
-        except:
+        except:  # noqa
             # Can't read width/height for this image for some reason -- probably messed up file. Just skip it.
             continue
 

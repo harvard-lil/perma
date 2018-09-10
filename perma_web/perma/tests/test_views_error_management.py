@@ -7,8 +7,8 @@ class ErrorManagementViewsTestCase(PermaTestCase):
             'userAgent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0",
             'url': 'http://perma.test:8000/static/js/global.setup.js',
         },
-        'errors': [
-            {'backtrace': [
+        'errors': [{
+            'backtrace': [
                 {
                     'column': 5,
                     'file': 'http://perma.test:8000/static/js/global.setup.js',
@@ -24,11 +24,11 @@ class ErrorManagementViewsTestCase(PermaTestCase):
                     'file': 'http://perma.test:8000/static/vendors/jquery/jquery.js',
                     'function': 'b.event.add/v.handle',
                     'line': 3
-                }],
-                'message': 'TypeError: document.thisdoesnotexist is not a function',
-                'type': 'TypeError'
-            }
-        ],
+                }
+            ],
+            'message': 'TypeError: document.thisdoesnotexist is not a function',
+            'type': 'TypeError'
+        }],
     }
 
     def test_post_new_with_user(self):

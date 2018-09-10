@@ -131,7 +131,7 @@ def handle_exception(self, env, exc, print_trace):
     if print_trace:
         try:
             extra = {'request':WSGIRequest(env)}
-        except:
+        except:  # noqa
             extra = {}
         # logger.error call based on django.core.handlers.exception.handle_uncaught_exception()
         logger.error(

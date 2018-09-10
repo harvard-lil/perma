@@ -875,9 +875,9 @@ def run_next_capture():
         # via in-scope, shared mutable containers. (Patch inside capture function
         # so the containers are initialized empty for every new capture.)
         proxied_responses = {
-          "any": False,
-          "size": 0,
-          "limit_reached": False
+            "any": False,
+            "size": 0,
+            "limit_reached": False
         }
         proxied_pairs = []
         tracker_lock = threading.Lock()
@@ -1097,7 +1097,7 @@ def run_next_capture():
         print("HaltCaptureException thrown")
     except SoftTimeLimitExceeded:
         capture_job.link.tags.add('timeout-failure')
-    except:
+    except:  # noqa
         print("Exception while capturing job %s:" % capture_job.link_id)
         traceback.print_exc()
     finally:
@@ -1119,7 +1119,7 @@ def run_next_capture():
                 print("%s capture failed." % link.guid)
 
 
-        except:
+        except:  # noqa
             print("Exception while tearing down/saving capture job %s:" % capture_job.link_id)
             traceback.print_exc()
         finally:

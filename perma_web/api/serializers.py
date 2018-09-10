@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError, ObjectDoesNotExist
 from django.core.validators import URLValidator
 from requests import TooManyRedirects
 from rest_framework import serializers
@@ -154,14 +154,14 @@ class LinkSerializer(BaseSerializer):
         try:
             delta = link.capture_job.capture_start_time - link.creation_timestamp
             return delta.seconds
-        except:
+        except (ObjectDoesNotExist, TypeError):
             return None
 
     def get_capture_time(self, link):
         try:
             delta = link.capture_job.capture_end_time - link.capture_job.capture_start_time
             return delta.seconds
-        except:
+        except (ObjectDoesNotExist, TypeError):
             return None
 
     def get_warc_download_url(self, link):

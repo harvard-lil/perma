@@ -469,8 +469,7 @@ def make_detailed_warcinfo(filename, guid, coll_title, coll_desc, rec_title, pag
 
     coll_metadata = {'type': 'collection',
                      'title': coll_title,
-                     'desc': coll_desc
-                    }
+                     'desc': coll_desc}
 
     rec_metadata = {'type': 'recording',
                     'title': rec_title,

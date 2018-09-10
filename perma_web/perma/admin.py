@@ -202,10 +202,10 @@ class LinkBatchAdmin(admin.ModelAdmin):
     readonly_fields = ['capture_job_count']
 
     inlines = [
-      new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
-               fields=['status', 'message', 'step_count', 'step_description', 'human'],
-               readonly_fields=['message', 'step_count', 'step_description', 'human'],
-               can_delete=False)
+        new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
+                  fields=['status', 'message', 'step_count', 'step_description', 'human'],
+                  readonly_fields=['message', 'step_count', 'step_description', 'human'],
+                  can_delete=False)
     ]
 
     def get_queryset(self, request):
