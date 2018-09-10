@@ -16,4 +16,20 @@
     <button type="submit" class="btn">Save changes</button>
   </form>
 
+  {% if "Requested account deletion" in request.user.notes %}
+    <h2 class="body-ah">Deletion Request Received</h2>
+    <p>We've received the request to delete your account. We're sorry to see you go!</p>
+    <p>Please note that it can take up to one full business day for us to process your request.</p>
+  {% else %}
+    <h2 class="body-ah">Request Account Deletion</h2>
+    <p>On request, a team member will delete your Perma.cc account. It may take up to one full business day for us to process your request. Please note that the deletion of your account will not affect the visibility of any Perma Links you have created.</p>
+    <p>If you have any questions, please <a href="{% url 'contact' %}?subject=Question%20About%20Account%20Deletion">contact us</a>.</p>
+    <form method="post" action="{% url 'user_management_delete_account' %}">
+      {% csrf_token %}
+      <button class="btn cancel" type="submit">
+        Please delete my account.
+      </button>
+    </form>
+  {% endif %}
+
 {% endblock %}

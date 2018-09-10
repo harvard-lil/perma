@@ -965,6 +965,18 @@ def settings_profile(request):
 
 
 @login_required
+def delete_account(request):
+    """
+    Generate or regenerate an API key for the user
+    """
+    if request.method == "POST":
+        request.user.notes = "Requested account deletion {}\n".format(timezone.now()) + request.user.notes
+        request.user.save()
+        email_deletion_request(request)
+    return HttpResponseRedirect(reverse('user_management_settings_profile'))
+
+
+@login_required
 def settings_password(request):
     """
     Settings change password ...
@@ -1653,5 +1665,21 @@ def email_premium_request(request, user):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "email": user.email
+        }
+    )
+
+def email_deletion_request(request):
+    """
+    Send email to Perma.cc admins when a user requests a premium account
+    """
+    send_admin_email(
+        "Perma.cc account deletion request",
+        request.user.email,
+        request,
+        "email/admin/deletion_request.txt",
+        {
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "email": request.user.email
         }
     )
