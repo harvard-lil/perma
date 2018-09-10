@@ -139,6 +139,9 @@ urlpatterns = [
     url(r'^manage/errors/resolve/?$', error_management.resolve, name='error_management_resolve'),
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
 
+    # set session
+    url(r'^_set_session', common.set_session, name='set_session'),
+
     # archive replay errors
     url(r'^archive-error', common.archive_error, name='archive_error'),
 

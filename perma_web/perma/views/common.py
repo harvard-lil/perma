@@ -207,18 +207,28 @@ def single_permalink(request, guid):
     elif not context['can_view'] and link.is_private:
         response.status_code = 403
 
-    else:
-        # TODO: WR should request cookie instead
-        response.set_cookie('__wr_sesh', wr_cookie,
-                            httponly=True,
-                            secure=settings.SESSION_COOKIE_SECURE,
-                            path='/')
-
     # Add memento headers
     response['Memento-Datetime'] = link.memento_formatted_date
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
     response['Link'] = link_memento_headers.format(link.ascii_safe_url, link.memento_formatted_date, link.memento, link.timegate, link.timemap)
 
+    return response
+
+def set_session(request):
+    # pre-flight request
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+
+    else:
+    # actual redirect
+        cookie = urlencode({'cookie': request.session.get('wr_cookie')})
+
+        url = settings.WR_CONTENT_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
+        response = HttpResponseRedirect(url)
+        response['Cache-Control'] = 'no-cache'
+
+    # set CORS headers (for both OPTIONS and actual redirect)
+    set_options_headers(request, response)
     return response
 
 
@@ -390,31 +400,50 @@ def robots_txt(request):
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
 
 
+def set_options_headers(request, response):
+    origin = request.META.get('HTTP_ORIGIN')
+    origin_host = settings.WARC_HOST
+    target_host = settings.HOST
+
+    # no origin, not using cors
+    if not origin:
+        return False
+
+    if origin_host:
+        expected_origin = request.scheme + '://' + origin_host
+
+        # ensure origin is the content host origin
+        if origin != expected_origin:
+            return False
+
+    host = request.META.get('HTTP_HOST')
+    # ensure host is the app host
+    if target_host and host != target_host:
+        return False
+
+    response['Access-Control-Allow-Origin'] = origin
+
+    methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
+    if methods:
+        response['Access-Control-Allow-Methods'] = methods
+
+    headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
+    if headers:
+        response['Access-Control-Allow-Headers'] = headers
+
+    response['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+
 def archive_error(request):
     """
     Replay content not found error page
     """
 
-    origin = request.META.get('HTTP_ORIGIN')
-
-    #TODO: validate origin?
-    #if origin:
-    #    pass
-
     # handle cors options for error page redirect from cors
     if request.method == 'OPTIONS':
         response = HttpResponse()
-
-        response['Access-Control-Allow-Origin'] = origin
-
-        methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
-        if methods:
-            response['Access-Control-Allow-Methods'] = methods
-
-        headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
-        if headers:
-            response['Access-Control-Allow-Headers'] = headers
-
+        set_options_headers(request, response)
         return response
 
     status = request.GET.get('status')
@@ -426,8 +455,11 @@ def archive_error(request):
         'status': status_line,
     }, status=status)
 
-    if origin:
-        response['Access-Control-Allow-Origin'] = origin
+
+    # even if not setting full headers (eg. if Origin is not set)
+    # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
+    if not set_options_headers(request, response):
+        response['Access-Control-Allow-Origin'] = settings.WR_CONTENT_HOST
 
     return response
 

@@ -23,6 +23,7 @@ def init_replay(request, link):
     # if not new session, check if collection exists, create otherwise
     if not is_new:
         res = requests.get(WR_API + '/collection/{coll}?user={user}'.format(user=wr_user, coll=coll),
+                           headers={'Host': settings.HOST},
                            cookies={'__wr_sesh': wr_cookie})
 
         is_new = (res.status_code == 404)
@@ -45,6 +46,7 @@ def create_new_collection(wr_user, wr_cookie, link):
            }
 
     res = requests.post(WR_API + '/collections?user={user}'.format(user=wr_user),
+                        headers={'Host': settings.HOST},
                         json=data, cookies={'__wr_sesh': wr_cookie})
 
     if res.status_code == 200:
@@ -63,6 +65,7 @@ def create_new_collection(wr_user, wr_cookie, link):
     data = {'warcs': {warc: get_archive_path() + warc}}
 
     res = requests.put(WR_API + '/collection/{coll}/warc?user={user}'.format(user=wr_user, coll=coll),
+                       headers={'Host': settings.HOST},
                        json=data, cookies={'__wr_sesh': wr_cookie})
 
     # ensure the one warc was added
@@ -78,6 +81,7 @@ def create_new_collection(wr_user, wr_cookie, link):
     text = ''.join(line.raw for line in lines).encode('utf-8')
 
     res = requests.put(WR_API + '/collection/{coll}/cdx?user={user}'.format(user=wr_user, coll=coll),
+                       headers={'Host': settings.HOST},
                        cookies={'__wr_sesh': wr_cookie}, data=text)
 
     # ensure all cdx lines have been added! (too strict?)
@@ -113,6 +117,7 @@ def init_wr_user(request):
         cookies = None
 
     res = requests.get(WR_API + '/auth/anon_user',
+                       headers={'Host': settings.HOST},
                        cookies=cookies)
 
     new_user = res.json()['anon_user']

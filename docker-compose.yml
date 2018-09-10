@@ -26,7 +26,7 @@ services:
     build: ./perma_web
     image: perma3:0.6
     tty: true
-    command: fab run
+    command: pipenv run fab run
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,
