@@ -453,6 +453,7 @@ def archive_error(request):
         'err_url': request.GET.get('url'),
         'timestamp': request.GET.get('timestamp'),
         'status': status_line,
+        'err_msg': request.GET.get('error'),
     }, status=status)
 
 
