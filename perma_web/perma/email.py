@@ -1,6 +1,4 @@
 import logging
-from createsend import Subscriber, List
-from collections import defaultdict
 
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
@@ -128,11 +126,10 @@ def registrar_users(registrars=None):
     return users
 
 
-def registrar_users_plus_stats(destination=None, registrars=None, year=None):
+def registrar_users_plus_stats(registrars=None, year=None):
     '''
         Returns all active registrar users plus assorted metadata as
-        a list of dicts. If destination=cm, info is formatted for
-        ingest by Campaign Monitor. By default, uses stats from current
+        a list of dicts. By default, uses stats from current
         calendar year.
     '''
     users = []
@@ -157,122 +154,5 @@ def registrar_users_plus_stats(destination=None, registrars=None, year=None):
                            "year_links": registrar.link_count_in_time_period(start_time, end_time),
                            "most_active_org": registrar.most_active_org_in_time_period(start_time, end_time),
                            "registrar_users": registrar_users })
-    if destination == 'cm':
-        return format_for_cm_registrar_users(users)
-    else:
-        return users
+    return users
 
-###
-### Interact with Campaign Monitor ###
-###
-
-def format_for_cm_registrar_users(users):
-    '''
-        Given a list of dictionaries describing active Perma
-        registrar users, returns the list, formatted for ingest
-        by Campaign Monitor.
-    '''
-    def format_name(user):
-        return u"{} {}".format(user["first_name"], user["last_name"])
-
-    def format_registrar_users(registrar_users):
-        string_list = [u"{} {} ({})".format(user.first_name, user.last_name, user.email) for user in registrar_users]
-        return u"<br> ".join(string_list)
-
-    formatted_users = []
-    for user in users:
-        if user["most_active_org"]:
-            most_active_org_text = user["most_active_org"].name
-        else:
-            most_active_org_text = u"(none)"
-        formatted = {}
-        formatted['Name'] = format_name(user)
-        formatted['EmailAddress'] = user["email"]
-        formatted['CustomFields'] = [
-            {"Key": "RegistrarId", "Value":  str(user["registrar_id"])},
-            {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
-            {"Key": "RegistrarName", "Value": user["registrar_name"]},
-            {"Key": "TotalLinks", "Value": str(user["total_links"])},
-            {"Key": "YearLinks", "Value": str(user["year_links"])},
-            {"Key": "MostActiveOrg", "Value": most_active_org_text},
-            {"Key": "RegistrarUsers", "Value": format_registrar_users(user['registrar_users'])}
-        ]
-        formatted_users.append(formatted)
-    return formatted_users
-
-def users_to_unsubscribe(cm_list_id, current_perma_user_emails):
-    '''
-        Returns a list of any email addresses marked as active in
-        a given Campaign Monitor subscriber list, but not appearing in
-        a passed-in iterable of currely active Perma user email addresses.
-    '''
-    page = 0
-    to_unsubscribe = []
-    current_users = set(current_perma_user_emails)
-    cm_list = List(settings.CAMPAIGN_MONITOR_AUTH, cm_list_id)
-    while True:
-        page += 1
-        result = cm_list.active(page=page, page_size=1000)
-        if result.NumberOfPages <= 0:
-            return []
-        for subscriber in result.Results:
-                if subscriber.EmailAddress not in current_users:
-                    to_unsubscribe.append(subscriber.EmailAddress)
-        if result.PageNumber == result.NumberOfPages:
-            return to_unsubscribe
-
-def add_and_update_cm_subscribers(list_id, subscribers):
-    '''
-       Adds new people to a Campaign Monitor list, and updates fields of
-       existing subscribers. (If a field is ommited, its value remains
-       unchanged.)
-    '''
-    logger.info("Adding new and updating existing.")
-    subscriber = Subscriber(settings.CAMPAIGN_MONITOR_AUTH)
-    import_result = subscriber.import_subscribers(list_id, subscribers, False)
-    logger.info("Added new and updated existing.")
-
-    report = {
-        "new_subscribers": import_result.TotalNewSubscribers,
-        "existing_subscribers": import_result.TotalExistingSubscribers,
-        "duplicates_in_import_list": import_result.DuplicateEmailsInSubmission,
-        "uniques_in_import_list": import_result.TotalUniqueEmailsSubmitted
-    }
-
-    if len(import_result.FailureDetails):
-        errors = defaultdict(list)
-        for error in import_result.FailureDetails:
-            errors["{} ({})".format(error.Message, error.Code)].append(error.EmailAddress)
-        report["errors"] = errors
-
-    return report
-
-def unsubscribe_cm_subscribers(list_id, emails):
-    '''
-       Unsubscribes all passed-in email addresses from a specified
-       Campaign Monitor list.
-    '''
-    logger.info("Begin unsubscribing people from list {}".format(list_id))
-    unsubscribed = []
-    for email in emails:
-        subscriber = Subscriber(settings.CAMPAIGN_MONITOR_AUTH, list_id, email)
-        subscriber.unsubscribe()
-        unsubscribed.append(email)
-    logger.info("Done unsubscribing people from list {}".format(list_id))
-    return unsubscribed
-
-def sync_cm_list(list_id, subscribers):
-    '''
-        Given a Campaign Monitor list id and a properly-formatted list
-        of subscribers, adds new subscribers, updates fields of existing
-        subscribers, and unsubscribes any users not present in the
-        passed-in list.
-    '''
-    logger.info("Begin syncing users to Campaign Monitor.")
-    reports = {}
-    reports['import'] = add_and_update_cm_subscribers(list_id, subscribers)
-    unsubscribers = users_to_unsubscribe(list_id, [subscriber['EmailAddress'] for subscriber in subscribers])
-    if unsubscribers:
-        reports['unsubscribe'] = unsubscribe_cm_subscribers(list_id, unsubscribers)
-    logger.info("Done syncing users to Campaign Monitor.")
-    return reports

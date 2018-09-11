@@ -76,9 +76,6 @@ internetarchive = "==1.0.10"                # upload warcs to internet archive
 PyNaCl = "*"                                # encryption
 
 
-# integration with campaign monitor
-createsend-python = {git = "git://github.com/rebeccacremona/createsend-python.git", ref = "7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b", editable = true}
-
 # heroku
 dj_database_url = "==0.3.0"
 gevent = ">1.3"

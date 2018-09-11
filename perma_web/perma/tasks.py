@@ -14,7 +14,6 @@ import time
 from datetime import datetime, timedelta
 import urllib.parse
 import re
-import json
 import urllib.robotparser
 import errno
 import tempdir
@@ -46,7 +45,7 @@ from django.db.models import Q
 from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob, UncaughtError
-from perma.email import sync_cm_list, send_self_email, registrar_users_plus_stats
+from perma.email import send_self_email
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset)
@@ -1432,25 +1431,6 @@ def upload_to_internet_archive(self, link_guid):
     except SoftTimeLimitExceeded as e:
         logger.exception("Upload to Internet Archive task failed because soft time limit was exceeded. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
-
-@shared_task()
-def cm_sync():
-    """
-       Sync our current list of registrar users plus some associated metadata
-       to Campaign Monitor.
-
-       Run daily at 3am by celerybeat
-    """
-
-    reports = sync_cm_list(settings.CAMPAIGN_MONITOR_REGISTRAR_LIST,
-                           registrar_users_plus_stats(destination='cm'))
-    if reports["import"]["duplicates_in_import_list"]:
-        logger.error("Duplicate registrar users sent to Campaign Monitor. Check sync logic.")
-    send_self_email("Registrar Users Synced to Campaign Monitor",
-                      HttpRequest(),
-                      'email/admin/sync_to_cm.txt',
-                      {"reports": reports})
-    return json.dumps(reports)
 
 
 @shared_task()
