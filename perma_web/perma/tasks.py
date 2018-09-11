@@ -970,7 +970,7 @@ def run_next_capture():
                 # put it back in the pool to reuse it later.
                 if not warcprox.mitmproxy.is_connection_dropped(self._remote_server_conn):
                     self._conn_pool._put_conn(self._remote_server_conn)
-            except:
+            except:  # noqa
                 self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                 self._remote_server_conn.sock.close()
                 raise
