@@ -18,6 +18,7 @@ import json
 import urllib.robotparser
 import errno
 import tempdir
+import socket
 from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -853,6 +854,7 @@ def run_next_capture():
         page_metadata = {}
         successful_favicon_urls = []
         requested_urls = set()  # all URLs we have requested -- used to avoid duplicate requests
+        stop = False
 
         # A default title is added in models.py, if an api user has not specified a title.
         # Make sure not to override it during the capture process.
@@ -881,6 +883,105 @@ def run_next_capture():
         }
         proxied_pairs = []
         tracker_lock = threading.Lock()
+
+        # Patch Warcprox's inner proxy function to be interruptible,
+        # to prevent thread leak and permit the partial capture of streamed content.
+        # See https://github.com/harvard-lil/perma/issues/2019
+        def stoppable_proxy_request(self, extra_response_headers={}):
+            '''
+            Sends the request to the remote server, then uses a ProxyingRecorder to
+            read the response and send it to the proxy client, while recording the
+            bytes in transit. Returns a tuple (request, response) where request is
+            the raw request bytes, and response is a ProxyingRecorder.
+            :param extra_response_headers: generated on warcprox._proxy_request.
+            It may contain extra HTTP headers such as ``Warcprox-Meta`` which
+            are written in the WARC record for this request.
+            '''
+            # Build request
+            req_str = '{} {} {}\r\n'.format(
+                    self.command, self.path, self.request_version)
+
+            # Swallow headers that don't make sense to forward on, i.e. most
+            # hop-by-hop headers. http://tools.ietf.org/html/rfc2616#section-13.5.
+            # self.headers is an email.message.Message, which is case-insensitive
+            # and doesn't throw KeyError in __delitem__
+            for key in (
+                    'Connection', 'Proxy-Connection', 'Keep-Alive',
+                    'Proxy-Authenticate', 'Proxy-Authorization', 'Upgrade'):
+                del self.headers[key]
+
+            self.headers['Via'] = warcprox.mitmproxy.via_header_value(
+                    self.headers.get('Via'),
+                    self.request_version.replace('HTTP/', ''))
+
+            # Add headers to the request
+            # XXX in at least python3.3 str(self.headers) uses \n not \r\n :(
+            req_str += '\r\n'.join(
+                    '{}: {}'.format(k,v) for (k,v) in self.headers.items())
+
+            req = req_str.encode('latin1') + b'\r\n\r\n'
+
+            # Append message body if present to the request
+            if 'Content-Length' in self.headers:
+                req += self.rfile.read(int(self.headers['Content-Length']))
+
+            prox_rec_res = None
+            try:
+                self.logger.debug('sending to remote server req=%r', req)
+
+                # Send it down the pipe!
+                self._remote_server_conn.sock.sendall(req)
+
+                prox_rec_res = ProxyingRecordingHTTPResponse(
+                        self._remote_server_conn.sock, proxy_client=self.connection,
+                        digest_algorithm=self.server.digest_algorithm,
+                        url=self.url, method=self.command,
+                        tmp_file_max_memory_size=self._tmp_file_max_memory_size)
+                prox_rec_res.begin(extra_response_headers=extra_response_headers)
+
+                buf = prox_rec_res.read(65536)
+                while buf != b'':
+                    buf = prox_rec_res.read(65536)
+                    if (self._max_resource_size and
+                            prox_rec_res.recorder.len > self._max_resource_size):
+                        prox_rec_res.truncated = b'length'
+                        self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
+                        self._remote_server_conn.sock.close()
+                        self.logger.info(
+                                'truncating response because max resource size %d '
+                                'bytes exceeded for URL %s',
+                                self._max_resource_size, self.url)
+                        break
+
+                    # begin Perma changes #
+                    if stop:
+                        prox_rec_res.truncated = b'length'
+                        self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
+                        self._remote_server_conn.sock.close()
+                        self.logger.info(
+                                'truncating response because stop signal received'
+                                'recording %s',
+                                self.url)
+                        break
+                    # end Perma changes #
+
+                self.log_request(prox_rec_res.status, prox_rec_res.recorder.len)
+                # Let's close off the remote end. If remote connection is fine,
+                # put it back in the pool to reuse it later.
+                if not warcprox.mitmproxy.is_connection_dropped(self._remote_server_conn):
+                    self._conn_pool._put_conn(self._remote_server_conn)
+            except:  # noqa
+                self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
+                self._remote_server_conn.sock.close()
+                raise
+            finally:
+                if prox_rec_res:
+                    prox_rec_res.close()
+
+            return req, prox_rec_res
+
+        warcprox.mitmproxy.MitmProxyHandler._proxy_request = stoppable_proxy_request
+
 
         def _proxy_request(self):
 
@@ -1075,6 +1176,7 @@ def run_next_capture():
                 # give up after AFTER_LOAD_TIMEOUT seconds
                 wait_time = time.time() - load_time
                 if wait_time > AFTER_LOAD_TIMEOUT:
+                    stop = True
                     print("Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT)
                     break
 
