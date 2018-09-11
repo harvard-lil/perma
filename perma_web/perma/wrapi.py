@@ -96,8 +96,20 @@ def create_new_collection(wr_user, wr_cookie, link):
 def clear_session(request):
     """ Clear stored WR session info, forcing a new WR session next time
     """
-    request.session.pop('wr_user', '')
-    request.session.pop('wr_cookie', '')
+    wr_user = request.session.pop('wr_user', '')
+    wr_cookie = request.session.pop('wr_cookie', '')
+
+    if not wr_user or not wr_cookie:
+        return
+
+    try:
+        res = requests.delete(WR_API + '/user/{user}'.format(user=wr_user),
+                              headers={'Host': settings.HOST},
+                              cookies={'__wr_sesh': wr_cookie})
+
+        print('WR User Deleted', res.json())
+    except:
+        print('WR User Not Deleted!')
 
 
 # ============================================================================
