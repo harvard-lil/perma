@@ -62,7 +62,7 @@ ROBOTS_TXT_TIMEOUT = 30 # seconds to wait before giving up on robots.txt
 ONLOAD_EVENT_TIMEOUT = 30 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
 AFTER_LOAD_TIMEOUT = 25 # seconds to allow page to keep loading additional resources after onLoad event fires
-SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
+SHUTDOWN_GRACE_PERIOD = settings.SHUTDOWN_GRACE_PERIOD # seconds to allow slow threads to finish before we complete the capture job
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 BROWSER_SIZE = [1024, 800]
 
@@ -715,19 +715,20 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
     if warcprox_thread:
         warcprox_thread.join()  # wait until warcprox thread is done
 
-    # try to wait for stray threads (usually MitmProxyHandler)
+    # wait for stray MitmProxyHandler threads
     shutdown_time = time.time()
     while True:
         if time.time() - shutdown_time > SHUTDOWN_GRACE_PERIOD:
             break
-        thread_count = threading.active_count()
-        print("\n{} active threads.".format(thread_count))
-        if thread_count <=2:  # main thread and innocuous "dummy thread"
+        threads = threading.enumerate()
+        print("{} active threads.".format(len(threads)))
+        if not any('MitmProxyHandler' in thread.name for thread in threads):
             break
+        print("Waiting for MitmProxyHandler")
         time.sleep(1)
 
     if warcprox.controller:
-        warcprox_controller.warc_writer_processor.pool.shutdown() # necessary? blocking
+        warcprox_controller.warc_writer_processor.pool.shutdown() # blocking
 
 
 def process_metadata(metadata, link):
