@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import urllib.parse
 import re
 import urllib.robotparser
+from urllib3.util import is_connection_dropped
 import errno
 import tempdir
 import socket
@@ -60,7 +61,8 @@ RESOURCE_LOAD_TIMEOUT = settings.RESOURCE_LOAD_TIMEOUT # seconds to wait for at 
 ROBOTS_TXT_TIMEOUT = 30 # seconds to wait before giving up on robots.txt
 ONLOAD_EVENT_TIMEOUT = 30 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
-AFTER_LOAD_TIMEOUT = 30 # seconds to allow page to keep loading additional resources after onLoad event fires
+AFTER_LOAD_TIMEOUT = 25 # seconds to allow page to keep loading additional resources after onLoad event fires
+SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 BROWSER_SIZE = [1024, 800]
 
@@ -709,10 +711,23 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
         display.stop()  # shut down virtual display
     if warcprox_controller:
         warcprox_controller.stop.set() # send signals to shut down warc threads
-        warcprox_controller.proxy.pool.shutdown() # blocking
-        warcprox_controller.warc_writer_processor.pool.shutdown() # blocking
+        warcprox_controller.proxy.pool.shutdown(wait=False) # non-blocking
     if warcprox_thread:
         warcprox_thread.join()  # wait until warcprox thread is done
+
+    # try to wait for stray threads (usually MitmProxyHandler)
+    shutdown_time = time.time()
+    while True:
+        if time.time() - shutdown_time > SHUTDOWN_GRACE_PERIOD:
+            break
+        thread_count = threading.active_count()
+        print("\n{} active threads.".format(thread_count))
+        if thread_count <=2:  # main thread and innocuous "dummy thread"
+            break
+        time.sleep(1)
+
+    if warcprox.controller:
+        warcprox_controller.warc_writer_processor.pool.shutdown() # necessary? blocking
 
 
 def process_metadata(metadata, link):
@@ -965,15 +980,19 @@ def run_next_capture():
                     # end Perma changes #
 
                 self.log_request(prox_rec_res.status, prox_rec_res.recorder.len)
-                # Let's close off the remote end. If remote connection is fine,
-                # put it back in the pool to reuse it later.
-                if not warcprox.mitmproxy.is_connection_dropped(self._remote_server_conn):
-                    self._conn_pool._put_conn(self._remote_server_conn)
             except:  # noqa
                 self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                 self._remote_server_conn.sock.close()
                 raise
             finally:
+                try:
+                    # Let's close off the remote end. If remote connection is fine,
+                    # put it back in the pool to reuse it later.
+                    if not is_connection_dropped(self._remote_server_conn):
+                        self._conn_pool._put_conn(self._remote_server_conn)
+                except ValueError:
+                    # the connection is already closed
+                    pass
                 if prox_rec_res:
                     prox_rec_res.close()
 
