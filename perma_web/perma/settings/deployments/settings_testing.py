@@ -87,4 +87,3 @@ CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'
 UPDATE_URL = '/update/'
 
-SHUTDOWN_GRACE_PERIOD = 0
