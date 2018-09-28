@@ -128,11 +128,11 @@ def init_wr_user(request):
     else:
         cookies = None
 
-    res = requests.get(WR_API + '/auth/anon_user',
-                       headers={'Host': settings.HOST},
-                       cookies=cookies)
+    res = requests.post(WR_API + '/auth/anon_user',
+                        headers={'Host': settings.HOST},
+                        cookies=cookies)
 
-    new_user = res.json()['anon_user']
+    new_user = res.json()['user']['username']
 
     if new_user != wr_user:
         request.session['wr_user'] = new_user
