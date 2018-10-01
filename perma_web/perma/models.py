@@ -1509,7 +1509,7 @@ class CDXLineManager(models.Manager):
             # Delete any existing rows to reduce the likelihood of a race condition,
             # if someone hits the link before the capture process has written the CDXLine db.
             CDXLine.objects.filter(link_id=link.guid).delete()
-            results = CDXLine.objects.bulk_create(lines)
+            results = CDXLine.objects.bulk_create(lines, batch_size=999)
         return results
 
 
