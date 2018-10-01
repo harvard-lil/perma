@@ -5,6 +5,7 @@ import dateutil.parser
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import StreamingHttpResponse
+from django.test.utils import override_settings
 from io import StringIO
 from surt import surt
 import json
@@ -327,7 +328,31 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                              data={'url': self.server_url.split("//")[1] + "/test.html"},
                              user=self.org_user)
 
-    def test_should_dark_archive_when_noarchive_in_html(self):
+    def test_should_dark_archive_when_perma_noarchive_in_html(self):
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/perma-noarchive.html"},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
+
+        # test favicon captured via favicon.ico well-known URL
+        self.assertIn("favicon.ico", link.favicon_capture.url)
+
+    def test_should_not_dark_archive_if_generic_noarchive_in_html(self):
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/noarchive.html"},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertFalse(link.is_private)
+
+        # test favicon captured via favicon.ico well-known URL
+        self.assertIn("favicon.ico", link.favicon_capture.url)
+
+    @override_settings(PRIVATE_LINKS_IF_GENERIC_NOARCHIVE=True)
+    def test_should_dark_archive_if_generic_noarchive_in_html_with_setting(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/noarchive.html"},
                                    user=self.org_user)
@@ -339,7 +364,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         # test favicon captured via favicon.ico well-known URL
         self.assertIn("favicon.ico", link.favicon_capture.url)
 
-    def test_should_dark_archive_when_disallowed_in_robots_txt(self):
+    def test_should_dark_archive_when_perma_disallowed_in_robots_txt(self):
         with self.serve_file('extra_capture_files/robots.txt'):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
@@ -349,7 +374,17 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
 
-    def test_should_dark_archive_when_disallowed_in_xrobots_simple(self):
+    def test_should_not_dark_archive_when_generic_disallowed_in_xrobots(self):
+        headers = urllib.parse.quote(json.dumps([("x-robots-tag", "noarchive")]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertFalse(link.is_private)
+
+    @override_settings(PRIVATE_LINKS_IF_GENERIC_NOARCHIVE=True)
+    def test_should_dark_archive_when_generic_disallowed_in_xrobots_with_setting(self):
         headers = urllib.parse.quote(json.dumps([("x-robots-tag", "noarchive")]))
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html?response_headers=" + headers},
@@ -359,7 +394,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
 
-    def test_should_dark_archive_when_disallowed_in_xrobots_perma(self):
+    def test_should_dark_archive_when_perma_disallowed_in_xrobots(self):
         headers = urllib.parse.quote(json.dumps([("x-robots-tag", "perma: noarchive")]))
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html?response_headers=" + headers},
@@ -369,7 +404,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
 
-    def test_should_dark_archive_when_disallowed_in_xrobots_multi(self):
+    def test_should_dark_archive_when_perma_disallowed_in_xrobots_multi(self):
         headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "perma: noarchive"),
@@ -383,7 +418,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
 
-    def test_should_dark_archive_when_disallowed_in_xrobots_malformed(self):
+    def test_should_dark_archive_when_perma_disallowed_in_xrobots_malformed(self):
         headers = urllib.parse.quote(json.dumps([
             ("x-robots-tag", "noindex"),
             ("x-robots-tag", "google: perma: noarchive"),
