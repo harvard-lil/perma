@@ -520,6 +520,7 @@ TAGGIT_CASE_INSENSITIVE = True
 # If technical problems prevent proper analysis of a capture,
 # should we default to private?
 PRIVATE_LINKS_ON_FAILURE = False
+PRIVATE_LINKS_IF_GENERIC_NOARCHIVE = True
 
 
 REST_FRAMEWORK = {

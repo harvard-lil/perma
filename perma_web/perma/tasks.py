@@ -489,7 +489,7 @@ def xrobots_blacklists_perma(robots_directives):
         for directive in robots_directives.split(";"):
             parsed = directive.lower().split(":")
             # respect tags that target all crawlers (no user-agent specified)
-            if len(parsed) == 1:
+            if settings.PRIVATE_LINKS_IF_GENERIC_NOARCHIVE and len(parsed) == 1:
                 if "noarchive" in parsed:
                     darchive = True
             # look for perma user-agent
@@ -734,7 +734,7 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
 def process_metadata(metadata, link):
     ## Privacy Related ##
     meta_tag = metadata['meta_tags'].get('perma')
-    if not meta_tag:
+    if settings.PRIVATE_LINKS_IF_GENERIC_NOARCHIVE and not meta_tag:
         meta_tag = metadata['meta_tags'].get('robots')
     if meta_tag and 'noarchive' in meta_tag.lower():
         safe_save_fields(link, is_private=True, private_reason='policy')
