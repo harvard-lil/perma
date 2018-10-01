@@ -524,15 +524,18 @@ def get_warc_stream(link):
 
     timestamp = link.creation_timestamp.strftime('%Y%m%d%H%M%S')
 
-    warcinfo = make_detailed_warcinfo( filename = filename,
-                 guid = link.guid,
-                 coll_title = 'Perma Archive, %s' % link.submitted_title,
-                 coll_desc = link.submitted_description,
-                 rec_title = 'Perma Archive of %s' % link.submitted_title,
-                 pages= [{'title': link.submitted_title,
-                          'url': link.submitted_url,
-                          'timestamp': timestamp}
-                        ])
+    warcinfo = make_detailed_warcinfo(
+        filename = filename,
+        guid = link.guid,
+        coll_title = 'Perma Archive, %s' % link.submitted_title,
+        coll_desc = link.submitted_description,
+        rec_title = 'Perma Archive of %s' % link.submitted_title,
+        pages= [{
+            'title': link.submitted_title,
+            'url': link.submitted_url,
+            'timestamp': timestamp
+        }]
+    )
 
     warc_stream = FileWrapper(default_storage.open(link.warc_storage_file()))
     warc_stream = itertools.chain([warcinfo], warc_stream)
