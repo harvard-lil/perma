@@ -340,7 +340,8 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         # test favicon captured via favicon.ico well-known URL
         self.assertIn("favicon.ico", link.favicon_capture.url)
 
-    def test_should_not_dark_archive_if_generic_noarchive_in_html(self):
+    @override_settings(PRIVATE_LINKS_IF_GENERIC_NOARCHIVE=False)
+    def test_should_not_dark_archive_if_generic_noarchive_in_html_with_setting(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/noarchive.html"},
                                    user=self.org_user)
@@ -374,7 +375,8 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
 
-    def test_should_not_dark_archive_when_generic_disallowed_in_xrobots(self):
+    @override_settings(PRIVATE_LINKS_IF_GENERIC_NOARCHIVE=False)
+    def test_should_not_dark_archive_when_generic_disallowed_in_xrobots_with_setting(self):
         headers = urllib.parse.quote(json.dumps([("x-robots-tag", "noarchive")]))
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html?response_headers=" + headers},
