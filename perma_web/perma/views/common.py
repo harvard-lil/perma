@@ -19,12 +19,10 @@ from django.utils.six.moves.http_client import responses
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
-    parse_user_agent, protocol, stream_warc_if_permissible)
+    parse_user_agent, protocol, stream_warc_if_permissible, set_options_headers)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
-from ..wrapi import get_wr_iframe_prefix, init_replay
-
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -44,6 +42,7 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
+
 def landing(request):
     """
     The landing page
@@ -60,6 +59,7 @@ def landing(request):
             'this_page': 'landing',
             'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
         })
+
 
 def about(request):
     """
@@ -81,6 +81,7 @@ def about(request):
         'partners_last_col': partners_last_col
     })
 
+
 def faq(request):
     """
     The faq page
@@ -92,11 +93,13 @@ def faq(request):
     return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
         'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
 
+
 def stats(request):
     """
     The global stats
     """
     return render(request, 'stats.html')
+
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -175,7 +178,7 @@ def single_permalink(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
-    wr_user, wr_cookie = init_replay(request, link)
+    wr_username = link.init_replay_for_user(request)
 
     context = {
         'link': link,
@@ -194,7 +197,7 @@ def single_permalink(request, guid):
         'protocol': protocol(),
 
         'wr_host': settings.WR_CONTENT_HOST,
-        'wr_prefix': get_wr_iframe_prefix(wr_user, link.guid),
+        'wr_prefix': link.wr_iframe_prefix(wr_username),
         'wr_url': capture.url,
         'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
     }
@@ -214,15 +217,22 @@ def single_permalink(request, guid):
 
     return response
 
-def set_session(request):
-    # pre-flight request
+
+def set_iframe_session_cookie(request):
+    """
+    The <iframe> used for Perma Link playback serves content from WebRecorder
+    and requires a WR session cookie. The cookie's value is set via a WR api
+    call during Perma's `link.init_replay_for_user` and is stored in Perma's
+    session data. If the iframe requests a resource without the cookie,
+    WR will redirect here. This route in turn redirects back to WR with the
+    session cookie as a GET param. WR sets the cookie in the browser, and then,
+    finally, redirects to the originally requested resource.
+    """
     if request.method == 'OPTIONS':
+        # no redirects required; subsequent requests from the browser get the cookie
         response = HttpResponse()
-
     else:
-    # actual redirect
-        cookie = urlencode({'cookie': request.session.get('wr_cookie')})
-
+        cookie = urlencode({'cookie': request.session.get('wr_session_cookie')})
         url = settings.WR_CONTENT_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
         response = HttpResponseRedirect(url)
         response['Cache-Control'] = 'no-cache'
@@ -398,41 +408,6 @@ def robots_txt(request):
             pass
     disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
-
-
-def set_options_headers(request, response):
-    origin = request.META.get('HTTP_ORIGIN')
-    origin_host = settings.WARC_HOST
-    target_host = settings.HOST
-
-    # no origin, not using cors
-    if not origin:
-        return False
-
-    if origin_host:
-        expected_origin = request.scheme + '://' + origin_host
-
-        # ensure origin is the content host origin
-        if origin != expected_origin:
-            return False
-
-    host = request.META.get('HTTP_HOST')
-    # ensure host is the app host
-    if target_host and host != target_host:
-        return False
-
-    response['Access-Control-Allow-Origin'] = origin
-
-    methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
-    if methods:
-        response['Access-Control-Allow-Methods'] = methods
-
-    headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
-    if headers:
-        response['Access-Control-Allow-Headers'] = headers
-
-    response['Access-Control-Allow-Credentials'] = 'true'
-    return response
 
 
 def archive_error(request):

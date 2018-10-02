@@ -44,10 +44,6 @@ if os.environ.get('DOCKERIZED'):
     DATABASES['perma-cdxline']['PASSWORD'] = 'password'
     DATABASES['perma-cdxline']['HOST'] = 'db'
 
-# TODO: move elsewhere?
-WR_INTERNAL_API_HOST = 'http://nginx'
-WR_CONTENT_HOST = 'http://localhost:8092'
-
 # https://docs.djangoproject.com/en/1.9/topics/db/multi-db/#using-routers
 DATABASE_ROUTERS = ['perma.cdx_router.CDXRouter']
 
@@ -414,10 +410,19 @@ INTERNET_ARCHIVE_SECRET_KEY = ''
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
 
-
+#
+# Pywb Playback
+#
 # If set, warc content must be served from this host.
 # On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
 WARC_HOST = None
+
+#
+# Webrecorder Playback
+#
+WR_INTERNAL_API_HOST = 'http://nginx'
+WR_API = WR_INTERNAL_API_HOST + '/api/v1'
+WR_CONTENT_HOST = 'http://localhost:8092' # how does this differ from WARC_HOST?
 
 # circumventing cloudflare's caching policy
 # using different route for timegate

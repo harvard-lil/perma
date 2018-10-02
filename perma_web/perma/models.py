@@ -49,12 +49,13 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebRecorderException
 from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
     paid_through_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset)
+    write_resource_record_from_asset,
+    get_wr_session, clear_wr_session, query_wr_api)
 
 
 logger = logging.getLogger(__name__)
@@ -949,7 +950,6 @@ class Link(DeletableModel):
     def memento_formatted_date(self):
         return format_date_time(mktime(self.creation_timestamp.timetuple()))
 
-
     def get_default_title(self):
         return self.url_details.netloc
 
@@ -1229,6 +1229,79 @@ class Link(DeletableModel):
 
     def accessible_to(self, user):
         return user.can_edit(self)
+
+    ###
+    ### Methods for playback via WebRecorder
+    ###
+
+    @cached_property
+    def wr_collection_slug(self):
+        return self.guid.lower()
+
+    def wr_iframe_prefix(self, wr_username):
+        return "{}/{}/{}/".format(settings.WR_CONTENT_HOST, wr_username, self.wr_collection_slug)
+
+    def init_replay_for_user(self, request):
+        wr_username, wr_session_cookie, is_new_session = get_wr_session(request)
+        if is_new_session or not self.uploaded_during_wr_session(wr_username, wr_session_cookie):
+            try:
+                self.upload_to_wr(wr_username, wr_session_cookie)
+            except WebRecorderException:
+                clear_wr_session(request)
+                raise
+        return wr_username
+
+    def uploaded_during_wr_session(self, wr_username, wr_session_cookie):
+        try:
+            res, _data = query_wr_api(
+                method='get',
+                path='/collection/{coll}?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
+                cookie=wr_session_cookie,
+                valid_if=lambda code, _data: code == 200 or code == 404
+            )
+        except WebRecorderException:
+            # Record the exception, but don't halt execution;
+            # we may be able to recover by attempting to upload the link
+            logger.exception('Unexpected response from GET /collection/{coll}?user={user}'.format(user=wr_username, coll=self.wr_collection_slug))
+            return False
+        return res.status_code == 200
+
+    def upload_to_wr(self, wr_username, wr_session_cookie):
+        """
+        Upload warc and cdxlines to WebRecorder to a temporary, per-user "collection" for playback
+        """
+
+        # Create the temporary collection
+        query_wr_api(
+            method='post',
+            path='/collections?user={user}'.format(user=wr_username),
+            json={'title': self.wr_collection_slug, 'external': True},
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200 or (code == 400 and data == {'error': 'duplicate_name'})
+        )
+
+        # Add the warc
+        # TODO: pass warc file to WR, rather than pass a path
+        # (this only works with local file storage)
+        # (get_archive_path in pywb_config.py is misleading: its not presently in use for retrieving warcs)
+        warc = self.warc_storage_file()
+        query_wr_api(
+            method='put',
+            path='/collection/{coll}/warc?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
+            json={'warcs': {warc: 'file://{}/{}'.format(default_storage.path(''), warc)}},
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200 and (data.get('success') and data.get('success') == 1)
+        )
+
+        # Add the cdxlines
+        lines = CDXLine.objects.filter(link_id=self.guid)
+        query_wr_api(
+            method='put',
+            path='/collection/{coll}/cdx?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
+            data=''.join(line.raw for line in lines).encode('utf-8'),
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200 and (data.get('success') and data.get('success') == lines.count())
+        )
 
 
 class Capture(models.Model):

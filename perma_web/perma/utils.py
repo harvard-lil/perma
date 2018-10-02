@@ -35,7 +35,7 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from .exceptions import InvalidTransmissionException
+from .exceptions import InvalidTransmissionException, WebRecorderException
 
 
 logger = logging.getLogger(__name__)
@@ -549,3 +549,129 @@ def stream_warc_if_permissible(link, user):
     if user.can_view(link):
         return stream_warc(link)
     return HttpResponseForbidden('Private archive.')
+
+
+#
+# WebRecorder Helpers
+#
+
+def get_wr_session(request):
+    """
+    Initializes WebRecorder session or retrieves existing session.
+    """
+    wr_username = request.session.get('wr_username')
+    wr_session_cookie = request.session.get('wr_session_cookie')
+    is_new_session = False
+
+    response, data = query_wr_api(
+        method='post',
+        path='/auth/anon_user',
+        cookie=wr_session_cookie,
+        valid_if=lambda code, data: code == 200
+    )
+
+    # If this is a new session, WR returns a new username and session cookie:
+    # Set/Update Perma's records.
+    new_username = data['user']['username']
+    new_cookie = response.cookies.get('__wr_sesh') # NB cookie only present in api response if session is new
+    if wr_username != new_username:
+        request.session['wr_username'] = new_username
+        wr_username = new_username
+        is_new_session = True
+    if new_cookie and wr_session_cookie != new_cookie:
+        request.session['wr_session_cookie'] = new_cookie
+        wr_session_cookie = new_cookie
+        is_new_session = True
+
+    return wr_username, wr_session_cookie, is_new_session
+
+
+def clear_wr_session(request):
+    """
+    Clear WebRecorder session info in Perma and in WR
+    """
+    wr_username = request.session.pop('wr_username', None)
+    wr_session_cookie = request.session.pop('wr_session_cookie', None)
+
+    if not wr_username or not wr_session_cookie:
+        return
+
+    try:
+        query_wr_api(
+            method='delete',
+            path='/user/{user}'.format(user=wr_username),
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200
+        )
+    except WebRecorderException:
+        # Record the exception, but don't halt execution: this should be non-fatal
+        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
+
+
+def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
+    # Make the request
+    try:
+        response = requests.request(
+            method,
+            settings.WR_API + path,
+            json=json,
+            data=data,
+            headers={'Host': settings.HOST},
+            cookies={'__wr_sesh': cookie}
+        )
+    except requests.exceptions.RequestException as e:
+        raise WebRecorderException() from e
+
+    # Validate the response
+    try:
+        data = safe_get_response_json(response)
+        assert valid_if(response.status_code, data)
+    except AssertionError:
+        raise WebRecorderException("{code}: {message}".format(
+            code=response.status_code,
+            message=str(data)
+        ))
+    return response, data
+
+
+def safe_get_response_json(response):
+    try:
+        data = response.json()
+    except ValueError:
+        data = {}
+    return data
+
+
+def set_options_headers(request, response):
+    origin = request.META.get('HTTP_ORIGIN')
+    origin_host = settings.WARC_HOST
+    target_host = settings.HOST
+
+    # no origin, not using cors
+    if not origin:
+        return False
+
+    if origin_host:
+        expected_origin = request.scheme + '://' + origin_host
+
+        # ensure origin is the content host origin
+        if origin != expected_origin:
+            return False
+
+    host = request.META.get('HTTP_HOST')
+    # ensure host is the app host
+    if target_host and host != target_host:
+        return False
+
+    response['Access-Control-Allow-Origin'] = origin
+
+    methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
+    if methods:
+        response['Access-Control-Allow-Methods'] = methods
+
+    headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
+    if headers:
+        response['Access-Control-Allow-Headers'] = headers
+
+    response['Access-Control-Allow-Credentials'] = 'true'
+    return response

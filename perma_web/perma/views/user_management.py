@@ -45,12 +45,9 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
-
-from perma.wrapi import clear_session
-
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
@@ -1149,9 +1146,7 @@ def get_sitewide_cookie_domain(request):
 
 def logout(request):
     if request.method == 'POST':
-        # clear WR session
-        clear_session(request)
-
+        clear_wr_session(request)
         return auth_views.logout(request, template_name='registration/logout_success.html')
     return render(request, "registration/logout.html")
 
@@ -1195,9 +1190,7 @@ def limited_login(request, template_name='registration/login.html',
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
-    # clear WR session
-    clear_session(request)
-
+    clear_wr_session(request)
     return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
 
 
