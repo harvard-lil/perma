@@ -8,15 +8,10 @@ DEBUG = True
 # HOSTS
 #
 HOST = 'perma.test:8000'
-WARC_HOST = 'perma-archives.test:8000'
+PLAYBACK_HOST = 'perma-archives.test:8000'
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['perma.test', 'perma-archives.test', 'api.perma.test']
-
-if ENABLE_WR_PLAYBACK:
-    HOST = 'localhost:8000'
-    WARC_HOST = 'localhost:8092'
-    ALLOWED_HOSTS = ['*']
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')

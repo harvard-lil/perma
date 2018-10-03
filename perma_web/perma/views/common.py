@@ -138,15 +138,15 @@ def single_permalink(request, guid):
         return stream_warc_if_permissible(link, request.user)
 
     # Special handling for private links on Safari:
-    # Safari won't let us set the auth cookie for the WARC_HOST domain inside the iframe, unless we've already set a
-    # cookie on that domain outside the iframe. So do a redirect to WARC_HOST to set a cookie and then come back.
+    # Safari won't let us set the auth cookie for the PLAYBACK_HOST domain inside the iframe, unless we've already set a
+    # cookie on that domain outside the iframe. So do a redirect to PLAYBACK_HOST to set a cookie and then come back.
     # safari=1 in the query string indicates that the redirect has already happened.
     # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
     if link.is_private and not request.GET.get('safari'):
         user_agent = parse_user_agent(raw_user_agent)
         if user_agent.get('family') == 'Safari':
             return redirect_to_login(request.build_absolute_uri(),
-                                     "//%s%s" % (settings.WARC_HOST, reverse('user_management_set_safari_cookie')))
+                                     "//%s%s" % (settings.PLAYBACK_HOST, reverse('user_management_set_safari_cookie')))
 
     # handle requested capture type
     if serve_type == 'image':
@@ -198,7 +198,7 @@ def single_permalink(request, guid):
     if settings.ENABLE_WR_PLAYBACK:
         wr_username = link.init_replay_for_user(request)
         context.update({
-            'wr_host': settings.WR_CONTENT_HOST,
+            'wr_host': settings.PLAYBACK_HOST,
             'wr_prefix': link.wr_iframe_prefix(wr_username),
             'wr_url': capture.url,
             'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
@@ -235,7 +235,7 @@ def set_iframe_session_cookie(request):
         response = HttpResponse()
     else:
         cookie = urlencode({'cookie': request.session.get('wr_session_cookie')})
-        url = settings.WR_CONTENT_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
+        url = protocol() + settings.PLAYBACK_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
         response = HttpResponseRedirect(url)
         response['Cache-Control'] = 'no-cache'
 
@@ -437,7 +437,7 @@ def archive_error(request):
     # even if not setting full headers (eg. if Origin is not set)
     # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
     if not set_options_headers(request, response):
-        response['Access-Control-Allow-Origin'] = settings.WR_CONTENT_HOST
+        response['Access-Control-Allow-Origin'] = settings.PLAYBACK_HOST
 
     return response
 

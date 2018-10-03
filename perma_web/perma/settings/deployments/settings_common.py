@@ -416,16 +416,16 @@ ENABLE_WR_PLAYBACK = False
 #
 # Pywb Playback
 #
-# If set, warc content must be served from this host.
-# On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
-WARC_HOST = None
+# If set, playbacks must be served from PLAYBACK_HOST.
+# On production, this is highly recommended to be different from HOST
+HOST = 'localhost'
+PLAYBACK_HOST = HOST
 
 #
 # Webrecorder Playback
 #
 WR_INTERNAL_API_HOST = 'http://nginx'
 WR_API = WR_INTERNAL_API_HOST + '/api/v1'
-WR_CONTENT_HOST = 'http://localhost:8092' # how does this differ from WARC_HOST?
 
 # circumventing cloudflare's caching policy
 # using different route for timegate
@@ -459,7 +459,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SECURE_SSL_REDIRECT',
     'DEBUG',
     'ENABLE_BATCH_LINKS',
-    'WARC_HOST',
+    'PLAYBACK_HOST',
     'HOST',
     'ENABLE_WR_PLAYBACK'
 )

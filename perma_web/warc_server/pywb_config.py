@@ -102,7 +102,7 @@ def raise_not_found(url, timestamp=None):
         raise CustomTemplateException(status='404 Not Found',
                                       template_path='archive/archive-error.html',
                                       template_kwargs={
-                                          'content_host': settings.WARC_HOST,
+                                          'content_host': settings.PLAYBACK_HOST,
                                           'err_url': url,
                                           'timestamp': timestamp,
                                       })
@@ -253,7 +253,7 @@ class PermaRoute(archivalrouter.Route):
                 raise CustomTemplateException(status='400 Bad Request',
                                               template_path='archive/missing-cookie.html',
                                               template_kwargs={
-                                                  'content_host': settings.WARC_HOST,
+                                                  'content_host': settings.PLAYBACK_HOST,
                                               })
             if not Link(pk=guid).validate_access_token(cookie.value, 3600):
                 raise_not_found(wbrequest.wb_url, timestamp=wbrequest.wb_url.timestamp)
@@ -419,7 +419,7 @@ class PermaTemplateView:
     """
     def __init__(self, filename):
         self.filename = filename
-        self.fake_request = RequestFactory(HTTP_HOST=settings.WARC_HOST).get('/fake')
+        self.fake_request = RequestFactory(HTTP_HOST=settings.PLAYBACK_HOST).get('/fake')
 
     def render_response(self, status='200 OK', content_type='text/html; charset=utf-8', **template_kwargs):
         django.urls.set_urlconf('perma.urls')
@@ -474,9 +474,9 @@ archivalrouter.ArchivalRouter.ensure_rel_uri_set = ensure_rel_uri_set
 class PermaRouter(archivalrouter.ArchivalRouter):
     def __call__(self, env):
         """
-            Before routing requests, make sure that host is equal to WARC_HOST.
+            Before routing requests, make sure that host is equal to PLAYBACK_HOST.
         """
-        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST:
+        if settings.PLAYBACK_HOST and env.get('HTTP_HOST') != settings.PLAYBACK_HOST:
             raise DisallowedHost("Playback request used invalid domain.")
         return super(PermaRouter, self).__call__(env)
 

@@ -644,7 +644,7 @@ def safe_get_response_json(response):
 
 def set_options_headers(request, response):
     origin = request.META.get('HTTP_ORIGIN')
-    origin_host = settings.WARC_HOST
+    origin_host = settings.PLAYBACK_HOST
     target_host = settings.HOST
 
     # no origin, not using cors

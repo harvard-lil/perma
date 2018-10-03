@@ -937,14 +937,14 @@ class Link(DeletableModel):
         """
         http://perma-archives.test:8000/warc/timegate/http://example.com
         """
-        return protocol() + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
+        return protocol() + settings.PLAYBACK_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
 
     @cached_property
     def timemap(self):
         """
         http://perma-archives.test:8000/warc/timemap/*/http://example.com
         """
-        return protocol() + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
+        return protocol() + settings.PLAYBACK_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
 
     @cached_property
     def memento_formatted_date(self):
@@ -1190,7 +1190,7 @@ class Link(DeletableModel):
         return client.get(full_url, follow_redirects=follow_redirects)
 
     def base_playback_url(self, host=None):
-        host = host or settings.WARC_HOST
+        host = host or settings.PLAYBACK_HOST
         return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
 
     def create_access_token(self):
@@ -1239,7 +1239,7 @@ class Link(DeletableModel):
         return self.guid.lower()
 
     def wr_iframe_prefix(self, wr_username):
-        return "{}/{}/{}/".format(settings.WR_CONTENT_HOST, wr_username, self.wr_collection_slug)
+        return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
 
     def init_replay_for_user(self, request):
         wr_username, wr_session_cookie, is_new_session = get_wr_session(request)
@@ -1365,7 +1365,7 @@ class Capture(models.Model):
         if not self.link.is_private:
             return self.playback_url()
         return mark_safe("//%s%s?%s" % (
-            settings.WARC_HOST,
+            settings.PLAYBACK_HOST,
             reverse('user_management_set_access_token_cookie'),
             urlencode({
                 'token': self.link.create_access_token(),

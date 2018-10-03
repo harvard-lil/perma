@@ -1256,7 +1256,7 @@ def set_access_token_cookie(request):
 def set_safari_cookie(request):
     """
         Special handling for Safari's third party cookie blocking: when showing a private link, user will be forwarded
-        to this view on WARC_HOST to have an arbitrary cookie set, so Safari will let us set an authorization cookie
+        to this view on PLAYBACK_HOST to have an arbitrary cookie set, so Safari will let us set an authorization cookie
         in the iframe. Once we set the cookie we forward back to the referrer.
     """
     redirect_url = request.GET.get('next')
