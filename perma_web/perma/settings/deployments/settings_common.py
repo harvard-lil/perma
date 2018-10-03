@@ -414,7 +414,7 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 ENABLE_WR_PLAYBACK = False
 
 #
-# Pywb Playback
+# Playback
 #
 # If set, playbacks must be served from PLAYBACK_HOST.
 # On production, this is highly recommended to be different from HOST
