@@ -178,8 +178,6 @@ def single_permalink(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
-    wr_username = link.init_replay_for_user(request)
-
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
@@ -195,12 +193,16 @@ def single_permalink(request, guid):
         'max_size': max_size,
         'link_url': settings.HOST + '/' + link.guid,
         'protocol': protocol(),
-
-        'wr_host': settings.WR_CONTENT_HOST,
-        'wr_prefix': link.wr_iframe_prefix(wr_username),
-        'wr_url': capture.url,
-        'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
     }
+
+    if settings.ENABLE_WR_PLAYBACK:
+        wr_username = link.init_replay_for_user(request)
+        context.update({
+            'wr_host': settings.WR_CONTENT_HOST,
+            'wr_prefix': link.wr_iframe_prefix(wr_username),
+            'wr_url': capture.url,
+            'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
+        })
 
     response = render(request, 'archive/single-link.html', context)
 

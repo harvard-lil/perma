@@ -22,18 +22,25 @@
   <div class="capture-wrapper">
     <div class="h_iframe">
       {% if capture.role == 'screenshot' %}
-        <!--<img src="{{ capture.playback_url_with_access_token }}" style="display:block; margin: 0 auto;" alt="screenshot">-->
-        <img src="{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
+        {% if ENABLE_WR_PLAYBACK %}
+          <img src="{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
+        {% else %}
+          <img src="{{ capture.playback_url_with_access_token }}" style="display:block; margin: 0 auto;" alt="screenshot">
+        {% endif %}
       {% else %}
-        <iframe class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
-        </iframe>
-        <script src="{{ wr_host }}/static/bundle/wb_frame.js"></script>
-        <script>
-        var cframe = new ContentFrame({"url": "{{ wr_url }}",
-                                       "prefix": "{{ wr_prefix }}",
-                                       "request_ts": "{{ wr_timestamp }}",
-                                       "iframe": ".archive-iframe"});
-        </script>
+        {% if ENABLE_WR_PLAYBACK %}
+          <iframe class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+          </iframe>
+          <script src="{{ wr_host }}/static/bundle/wb_frame.js"></script>
+          <script>
+          var cframe = new ContentFrame({"url": "{{ wr_url }}",
+                                         "prefix": "{{ wr_prefix }}",
+                                         "request_ts": "{{ wr_timestamp }}",
+                                         "iframe": ".archive-iframe"});
+          </script>
+        {% else %}
+          <iframe class="archive-iframe" src="{{ capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
+        {% endif %}
       {% endif %}
     </div>
   </div>

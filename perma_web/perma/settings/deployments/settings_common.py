@@ -410,6 +410,9 @@ INTERNET_ARCHIVE_SECRET_KEY = ''
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
 
+# Feature Flag: whether to use Webrecorder or Pywb for playback
+ENABLE_WR_PLAYBACK = False
+
 #
 # Pywb Playback
 #
@@ -457,7 +460,8 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'DEBUG',
     'ENABLE_BATCH_LINKS',
     'WARC_HOST',
-    'HOST'
+    'HOST',
+    'ENABLE_WR_PLAYBACK'
 )
 
 

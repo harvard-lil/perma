@@ -140,18 +140,21 @@ urlpatterns = [
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
     url(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
 
-    # pass webrecorder session cookie to iframe
-    url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
-
-    # archive replay errors
-    url(r'^archive-error/?$', common.archive_error, name='archive_error'),
-
     # Our Perma ID catchall
     url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
 
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
 ]
+
+if settings.ENABLE_WR_PLAYBACK:
+    urlpatterns = [
+        # pass webrecorder session cookie to iframe
+        url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
+        # display custom template when WR reports a replay error
+        url(r'^archive-error/?$', common.archive_error, name='archive_error')
+    ] + urlpatterns  # prepend so Perma ID catchall regex doesn't interfere
+
 
 # debug-only serving of media assets
 if settings.DEBUG:
