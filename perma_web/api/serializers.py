@@ -207,12 +207,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         # handle is_private and private_reason:
         if self.instance:
             if not user.is_staff:
-                # only staff can manually change private_reason
+                # only staff can manually change private_reason in all cases
                 data.pop('private_reason', None)
 
                 # if updating privacy, make sure user is allowed to change private status
                 if 'is_private' in data and self.instance.is_private != bool(data['is_private']):
-                    if self.instance.private_reason and self.instance.private_reason != 'user':
+                    if self.instance.private_reason and self.instance.private_reason not in ['user', 'old_policy']:
                         errors['is_private'] = 'Cannot change link privacy.'
                     else:
                         data['private_reason'] = 'user' if data['is_private'] else None
