@@ -672,7 +672,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def can_toggle_private(self, link):
         if not self.can_edit(link):
             return False
-        if link.is_private and not self.is_staff and link.private_reason != 'user':
+        if link.is_private and not self.is_staff and link.private_reason not in ['user', 'old_policy']:
             return False
         return True
 
@@ -877,7 +877,7 @@ class Link(DeletableModel):
     warc_size = models.IntegerField(blank=True, null=True)
 
     is_private = models.BooleanField(default=False)
-    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
+    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
     is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")

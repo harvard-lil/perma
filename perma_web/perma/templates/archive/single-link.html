@@ -189,7 +189,7 @@
         {% endcomment %}
       </div>
       <div class="tray-actions col-xs-12">
-        {% if link.warc_size %}  
+        {% if link.warc_size %}
           <a href="{% url 'single_permalink' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
         {% endif %}
         {% if not can_edit %}
@@ -204,7 +204,8 @@
             {% else %}
               <select name="private_reason">
                 <option value="user"> At user direction</option>
-                <option value="policy"> robots.txt or noarchive meta tag</option>
+                <option value="policy"> Perma-specific robots.txt or noarchive meta tag</option>
+                <option value="old_policy"> Generic robots.txt or noarchive meta tag (old policy)</option>
                 <option value="takedown"> At content owner's request</option>
               </select>
             {% endif %}
