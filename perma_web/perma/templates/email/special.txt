@@ -1,11 +1,13 @@
-Dear Perma.cc Registrars:
+Hello Perma.cc Registrar!
 
-We're writing to share news of an upcoming change to Perma that may affect you and some of the Perma users you support.
+We're excited to announce a change to the way Perma.cc handles our users' efforts to preserve web pages that have generic no-archive metatags.
 
-On Wednesday, November 15, we'll be upgrading Perma to require that all user passwords satisfy a minimum security threshold. If your current password meets this threshold, you won't need to do anything. If your current password does not meet this threshold, then you will be required to create a stronger password the next time you log in. This change will apply to all Perma users.
+In the past, when someone used Perma to preserve a webpage with a generic no-archive metatag (such as a New York Times or NPR article) the resulting Perma record was automatically, unalterably set to "Private." We've found that this practice was unnecessary and often a source of confusion and frustration for our users.
 
-Thanks again for your continued support and enthusiasm for Perma!
+Going forward, when someone uses Perma to preserve a page that contains a generic no-archive tag, that Perma record will not automatically be set to "Private." Instead, these records will be public by default, and users will have the option to manually make them private if they or their institutions wish. In addition, existing Perma records with generic no-archive metatags will remain private, but users can now make those records public.
 
-Sincerely,
+Perma.cc will continue to recognize any Perma-specific no-archive metatag or a Perma-specific robots.txt exclusion. Any Perma records of sites that use one of those techniques will be private.
 
-The Perma.cc Team
+We're enthusiastic about the way this change will provide even greater access to links and citations that have been protected through Perma. Check out the Perma.cc blog for our post on this and other recent news (https://blogs.harvard.edu/perma/), and let us know of any questions or concerns via https://perma.cc/contact or directly at info@perma.cc.
+
+- The Perma.cc Team
