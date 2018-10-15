@@ -2,9 +2,9 @@ Hello Perma.cc Registrar!
 
 We're excited to announce a change to the way Perma.cc handles our users' efforts to preserve web pages that have generic no-archive metatags.
 
-In the past, when someone used Perma to preserve a webpage with a generic no-archive metatag (such as a New York Times or NPR article) the resulting Perma record was automatically, unalterably set to “Private.” We’ve found that this practice was unnecessary and often a source of confusion and frustration for our users.
+In the past, when someone used Perma to preserve a webpage with a generic no-archive metatag (such as a New York Times or NPR article) the resulting Perma record was automatically, unalterably set to "Private." We've found that this practice was unnecessary and often a source of confusion and frustration for our users.
 
-Going forward, when someone uses Perma to preserve a page with a generic no-archive tag, that Perma record will not automatically be set to “Private.” Instead, these records will be public by default, and users will have the option to manually make them private if they or their institutions wish. In addition, existing Perma records with generic no-archive metatags will remain private, but users can now make those records public.
+Going forward, when someone uses Perma to preserve a page with a generic no-archive tag, that Perma record will not automatically be set to "Private." Instead, these records will be public by default, and users will have the option to manually make them private if they or their institutions wish. In addition, existing Perma records with generic no-archive metatags will remain private, but users can now make those records public.
 
 Perma.cc will continue to recognize any Perma-specific no-archive metatag or a Perma-specific robots.txt exclusion. Any Perma records of sites that use one of those techniques will be private.
 
