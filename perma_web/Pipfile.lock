@@ -714,7 +714,6 @@
                 "sha256:9c443e7324ba5b85070c4a818ade28bfabedf16ea10206da1132edaa6dda237e"
             ],
             "index": "pypi",
-            "markers": null,
             "version": "==2.18.4"
         },
         "requests-file": {
