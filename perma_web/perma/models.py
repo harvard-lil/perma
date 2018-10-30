@@ -1221,7 +1221,7 @@ class Link(DeletableModel):
 
     @classmethod
     def get_warc_cache_key(cls, warc_storage_file):
-        return "warc-"+re.sub('[^\w-]', '', warc_storage_file)
+        return "warc-"+re.sub(r'[^\w-]', '', warc_storage_file)
 
     def clear_cache(self):
         cache.delete(Link.get_cdx_cache_key(self.guid))
