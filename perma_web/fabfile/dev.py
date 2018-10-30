@@ -84,7 +84,7 @@ def test_python(apps=_default_tests, travis=False):
         with shell_env(**shell_envs):
             # NB: all arguments to Fabric tasks are interpreted as strings
             if travis == 'True':
-                local("pytest %s --no-migrations --ds=perma.settings --cov --cov-report= " % (apps))
+                local("pytest %s -Wignore --no-migrations --ds=perma.settings --cov --cov-report= " % (apps))
             else:
                 local("pytest %s --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
     finally:
