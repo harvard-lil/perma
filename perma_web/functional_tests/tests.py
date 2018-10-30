@@ -421,7 +421,7 @@ class FunctionalTest(BaseTestCase):
             assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
             # timegate redirects to a memento (timestamped) url
-            str_to_match = "%s%s/\d+/http://%s" % (self.server_url, WARC_ROUTE, url_to_capture)
+            str_to_match = r"%s%s/\d+/http://%s" % (self.server_url, WARC_ROUTE, url_to_capture)
             reg = re.compile(str_to_match)
             self.assertIsNotNone(reg.search(self.driver.current_url))
             # checking that we don't see /warc/timegate in url because of redirect
@@ -440,7 +440,7 @@ class FunctionalTest(BaseTestCase):
                     self.assertIsNotNone(reg.search(header))
 
                 if 'rel="memento"' in header:
-                    reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
+                    reg = re.compile(r'%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
                     self.assertIsNotNone(reg.search(header))
 
             info("Checking for unexpected javascript errors")
