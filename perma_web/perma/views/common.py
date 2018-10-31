@@ -43,7 +43,7 @@ def landing(request):
     """
     The landing page
     """
-    if request.user.is_authenticated() and request.get_host() not in request.META.get('HTTP_REFERER',''):
+    if request.user.is_authenticated and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
 
     else:
@@ -161,7 +161,7 @@ def single_permalink(request, guid):
     redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
 
     # If this record was just created by the current user, show them a new record message
-    new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
+    new_record = request.user.is_authenticated and link.created_by_id == request.user.id and not link.user_deleted \
                  and link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
     # Provide the max upload size, in case the upload form is used
@@ -218,7 +218,7 @@ def contact(request):
     """
     def affiliation_string():
         affiliation_string = ''
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.registrar:
                 affiliation_string = u"{} (Registrar)".format(request.user.registrar.name)
             else:

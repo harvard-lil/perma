@@ -1163,7 +1163,7 @@ def limited_login(request, template_name='registration/login.html',
     We wrap the default Django view to add some custom redirects for different user statuses.
     """
 
-    if request.method == "POST" and not request.user.is_authenticated():
+    if request.method == "POST" and not request.user.is_authenticated:
         username = request.POST.get('username')
         try:
             target_user = LinkUser.objects.get(email=username)
@@ -1177,7 +1177,7 @@ def limited_login(request, template_name='registration/login.html',
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
     # This can be removed in Django 1.10 and replaced with redirect_authenticated_user=True
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         redirect_to = request.POST.get(redirect_field_name, request.GET.get(redirect_field_name, ''))
         if not is_safe_url(url=redirect_to, host=request.get_host()):
             redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
@@ -1273,7 +1273,7 @@ def libraries(request):
     """
     if request.method == 'POST':
         registrar_form = LibraryRegistrarForm(request.POST, request.FILES, prefix ="b")
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             user_form = None
         else:
             user_form = UserForm(request.POST, prefix = "a")
@@ -1320,7 +1320,7 @@ def libraries(request):
     else:
         request_data = request.session.get('request_data','')
         user_form = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             user_form = UserForm(prefix="a")
             user_form.fields['email'].label = "Your email"
         if request_data:

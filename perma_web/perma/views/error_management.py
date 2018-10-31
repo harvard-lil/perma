@@ -39,7 +39,7 @@ def post_new(request):
         current_url=context.get("url", request.META.get('HTTP_REFERER')),
         message=e.get("message"),
         stack=json.dumps(e.get("backtrace")),
-        user=None if request.user.is_anonymous() else request.user)
+        user=None if request.user.is_anonymous else request.user)
     error.save()
     return HttpResponse(status=200)
 

@@ -616,13 +616,13 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     @cached_property
     def is_organization_user(self):
         """ Is the user a member of an org? """
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         return self.organizations.exists()
 
     def is_supported_by_registrar(self):
         """ Should the user's support requests be forwarded to their registrar?"""
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
@@ -656,7 +656,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def can_edit(self, link):
         """ Link is editable if it is in a folder accessible to this user. """
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         if self.is_staff:
             return True
