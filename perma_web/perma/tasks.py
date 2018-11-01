@@ -11,7 +11,7 @@ import os
 import os.path
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 import urllib.parse
 import re
 import urllib.robotparser
@@ -1459,8 +1459,9 @@ def send_js_errors():
     finds all uncaught JS errors recorded in the last week, sends a report if errors exist
     """
     errors = UncaughtError.objects.filter(
-        created_at__gte=datetime.now() - timedelta(days=7),
+        created_at__gte=timezone.now() - timedelta(days=7),
         resolved=False)
+
     if errors:
         formatted_errors = map(lambda err: err.format_for_reading(), errors)
         send_self_email("Uncaught Javascript errors",
