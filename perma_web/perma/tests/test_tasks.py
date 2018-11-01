@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.core import mail
 
 from django.test import TestCase, override_settings
@@ -36,7 +34,6 @@ class TaskTestCase(TestCase):
         err = UncaughtError.objects.create(
             message="oh no!",
             current_url="perma.cc/about",
-            created_at=datetime.now(),
             stack=unruly_stack_trace)
         err.save()
 
