@@ -133,7 +133,7 @@ off['NAME'] = 'AUTOESCAPE_OFF'
 off['OPTIONS']['autoescape'] = False
 TEMPLATES.append(off)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'api.middleware.APISubdomainMiddleware',

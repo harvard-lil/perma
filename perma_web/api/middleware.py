@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils.cache import patch_vary_headers
+from django.utils.deprecation import MiddlewareMixin
 
 
 def get_subdomain(request):
@@ -11,7 +12,7 @@ def get_subdomain(request):
     return request.subdomain
 
 
-class APISubdomainMiddleware:
+class APISubdomainMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if get_subdomain(request) == settings.API_SUBDOMAIN:
             request.urlconf = 'api.urls'
