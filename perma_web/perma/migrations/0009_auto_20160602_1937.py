@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='linkuser',
             name='pending_registrar',
-            field=models.ForeignKey(related_name='pending_users', blank=True, to='perma.Registrar', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pending_users', blank=True, to='perma.Registrar', null=True),
         ),
     ]

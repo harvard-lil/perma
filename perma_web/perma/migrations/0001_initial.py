@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
-                ('created_by', models.ForeignKey(related_name='folders_created', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='folders_created', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
             ],
             options={
                 'abstract': False,
@@ -195,7 +195,7 @@ class Migration(migrations.Migration):
                 ('is_unlisted', models.BooleanField(default=False)),
                 ('archive_timestamp', models.DateTimeField(help_text=b'Date after which this link is eligible to be copied by the mirror network.', null=True, blank=True)),
                 ('thumbnail_status', models.CharField(blank=True, max_length=10, null=True, choices=[(b'generating', b'generating'), (b'generated', b'generated'), (b'failed', b'failed')])),
-                ('created_by', models.ForeignKey(related_name='created_links', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_links', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
                 ('folders', models.ManyToManyField(related_name='links', to='perma.Folder', blank=True)),
             ],
             options={
@@ -270,24 +270,24 @@ class Migration(migrations.Migration):
                 ('custom_message', models.TextField()),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('resolved', models.BooleanField(default=False)),
-                ('resolved_by_user', models.ForeignKey(related_name='errors_resolved', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
-                ('user', models.ForeignKey(related_name='errors_triggered', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('resolved_by_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='errors_resolved', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='errors_triggered', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
             ],
         ),
         migrations.AddField(
             model_name='organization',
             name='registrar',
-            field=models.ForeignKey(related_name='organizations', to='perma.Registrar', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='organizations', to='perma.Registrar', null=True),
         ),
         migrations.AddField(
             model_name='organization',
             name='shared_folder',
-            field=models.OneToOneField(related_name='organization_', null=True, blank=True, to='perma.Folder'),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='organization_', null=True, blank=True, to='perma.Folder'),
         ),
         migrations.AddField(
             model_name='link',
             name='organization',
-            field=models.ForeignKey(related_name='links', blank=True, to='perma.Organization', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='links', blank=True, to='perma.Organization', null=True),
         ),
         migrations.AddField(
             model_name='historicalorganization',
@@ -317,22 +317,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='folder',
             name='organization',
-            field=models.ForeignKey(related_name='folders', blank=True, to='perma.Organization', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='folders', blank=True, to='perma.Organization', null=True),
         ),
         migrations.AddField(
             model_name='folder',
             name='owned_by',
-            field=models.ForeignKey(related_name='folders', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='folders', blank=True, to=settings.AUTH_USER_MODEL, null=True),
         ),
         migrations.AddField(
             model_name='folder',
             name='parent',
-            field=mptt.fields.TreeForeignKey(related_name='children', blank=True, to='perma.Folder', null=True),
+            field=mptt.fields.TreeForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='children', blank=True, to='perma.Folder', null=True),
         ),
         migrations.AddField(
             model_name='capture',
             name='link',
-            field=models.ForeignKey(related_name='captures', to='perma.Link'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='captures', to='perma.Link'),
         ),
         migrations.AddField(
             model_name='linkuser',
@@ -342,11 +342,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='linkuser',
             name='registrar',
-            field=models.ForeignKey(related_name='users', blank=True, to='perma.Registrar', help_text=b'If set, this user is a registrar user. This should not be set if org is set!', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='users', blank=True, to='perma.Registrar', help_text=b'If set, this user is a registrar user. This should not be set if org is set!', null=True),
         ),
         migrations.AddField(
             model_name='linkuser',
             name='root_folder',
-            field=models.OneToOneField(null=True, blank=True, to='perma.Folder'),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, null=True, blank=True, to='perma.Folder'),
         ),
     ]
