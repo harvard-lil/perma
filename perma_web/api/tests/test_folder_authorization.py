@@ -121,7 +121,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
         # Make sure move worked
         child_folder.refresh_from_db()
-        self.assertEquals(child_folder.parent_id, parent_folder.id)
+        self.assertEqual(child_folder.parent_id, parent_folder.id)
 
     def rejected_folder_move(self, user, parent_folder, child_folder, expected_status_code=401):
         original_parent_id = child_folder.parent_id
@@ -134,7 +134,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
         # Make sure move didn't work
         child_folder.refresh_from_db()
-        self.assertEquals(child_folder.parent_id, original_parent_id)
+        self.assertEqual(child_folder.parent_id, original_parent_id)
         self.assertNotEqual(child_folder.parent_id, parent_folder.id)
 
     def test_should_allow_move_to_new_folder_via_put(self):
@@ -149,7 +149,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                               data={"parent": parent_folder.pk},
                               user=child_folder.owned_by)
         child_folder.refresh_from_db()
-        self.assertEquals(child_folder.parent_id, parent_folder.pk)
+        self.assertEqual(child_folder.parent_id, parent_folder.pk)
 
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
         self.successful_folder_move(self.registrar_user, self.registrar_user.root_folder, self.test_journal_subfolder_with_link_b)
