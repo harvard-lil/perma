@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from . import views
 
+app_name='lockss'
 urlpatterns = [
     url(r'^search/?$', views.search, name='search'),
     url(r'^fetch/(?P<path>(?:[A-Za-z0-9]{2}/)+)(?P<guid>.+)\.warc\.gz$', views.fetch_warc, name='fetch_warc'),

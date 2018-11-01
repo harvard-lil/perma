@@ -6,7 +6,7 @@ from django.http import Http404, HttpResponse
 from mptt.exceptions import InvalidMove
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.filters import DjangoFilterBackend, SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -29,7 +29,7 @@ class BaseView(APIView):
 
     # configure filtering of list endpoints by query string
     filter_backends = (
-        DjangoFilterBackend,  # subclasses can be filtered by keyword if filter_class is set
+        django_filters.rest_framework.DjangoFilterBackend,  # subclasses can be filtered by keyword if filter_class is set
         SearchFilter,         # subclasses can be filtered by q= if search_fields is set
         OrderingFilter        # subclasses can be ordered by order_by= if ordering_fields is set
     )

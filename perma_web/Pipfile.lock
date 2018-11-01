@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b689425c9680578b52eaa8ec89f564e813a4f3ca0c092570ac011ccf69dd97bb"
+            "sha256": "1a2c8ea1e4a62211d49a039f7dade6fdd8d5e312a0ad026030c25af896cc12f0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -111,10 +111,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:831ef636c525860644f9e322b4f23b0d5c2f959fd635281e4f4ed6d892495063",
-                "sha256:848c1f2600ce9e7f86ee769b7de1bd615d0b6c7ac9f123bd5555d8c15f7002fb"
+                "sha256:5882c9ee83d0dc3d3ff078e1788f32af80b24ef7e8da3168e0498bc2f99c8715",
+                "sha256:843f22bcb1de17806b8a209ab2f24cd80b65ba8b73fd1a39d351ccd2e8a9229c"
             ],
-            "version": "==1.12.33"
+            "version": "==1.12.34"
         },
         "brotlipy": {
             "hashes": [
@@ -316,11 +316,11 @@
         },
         "django-simple-history": {
             "hashes": [
-                "sha256:2faca872d730068025fb19678048d6f3c2de52e0a141189df798a697e67c9886",
-                "sha256:d34c9e8e3c73e39ff3500b59ae836767fcbc43bc9c71333c55d7de273d4dc721"
+                "sha256:02259651c21e6f3e4b9d8ca1cb7a8079b233bdd420cde53a777d5fd124af2369",
+                "sha256:e83edaa0ef298bcd2d2193378e108dcc441d95e38c07edd9dfad2c39bf9d5e19"
             ],
             "index": "pypi",
-            "version": "==1.9.0"
+            "version": "==2.5.1"
         },
         "django-storages": {
             "hashes": [

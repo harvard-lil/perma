@@ -96,7 +96,7 @@ class CaptureJobTestCase(TransactionTestCase):
             should fail if race condition protection is disabled.
         """
         CaptureJob.TEST_ALLOW_RACE = True
-        self.assertRaisesRegexp(AssertionError, r'^Items in the', self.test_race_condition_prevented)
+        self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
         CaptureJob.TEST_ALLOW_RACE = False
 
     def test_hard_timeout(self):

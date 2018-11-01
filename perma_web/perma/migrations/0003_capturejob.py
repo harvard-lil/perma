@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-
+import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('step_description', models.CharField(max_length=255, null=True, blank=True)),
                 ('capture_start_time', models.DateTimeField(null=True, blank=True)),
                 ('capture_end_time', models.DateTimeField(null=True, blank=True)),
-                ('link', models.OneToOneField(related_name='capture_job', to='perma.Link')),
+                ('link', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='capture_job', to='perma.Link')),
             ],
         ),
     ]

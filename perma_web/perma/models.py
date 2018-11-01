@@ -373,7 +373,7 @@ class Organization(DeletableModel):
     This is generally a journal.
     """
     name = models.CharField(max_length=400)
-    registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
+    registrar = models.ForeignKey(Registrar, null=True, related_name="organizations", on_delete=models.CASCADE)
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="top_level_for_org")
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     default_to_private = models.BooleanField(default=False)
@@ -459,7 +459,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         error_messages={'unique': u"A user with that email address already exists.",}
     )
 
-    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!")
+    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
     pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users')
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
                                            help_text="If set, this user is an org user. This should not be set if registrar is set!<br><br>"
@@ -616,13 +616,13 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     @cached_property
     def is_organization_user(self):
         """ Is the user a member of an org? """
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         return self.organizations.exists()
 
     def is_supported_by_registrar(self):
         """ Should the user's support requests be forwarded to their registrar?"""
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
@@ -656,7 +656,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def can_edit(self, link):
         """ Link is editable if it is in a folder accessible to this user. """
-        if self.is_anonymous():
+        if self.is_anonymous:
             return False
         if self.is_staff:
             return True
@@ -687,7 +687,7 @@ class ApiKey(models.Model):
     """
         Based on tastypie.models: https://github.com/django-tastypie/django-tastypie/blob/master/tastypie/models.py#L35
     """
-    user = models.OneToOneField(LinkUser, related_name='api_key')
+    user = models.OneToOneField(LinkUser, related_name='api_key', on_delete=models.CASCADE)
     key = models.CharField(max_length=128, blank=True, default='', db_index=True)
     created = models.DateTimeField(default=timezone.now)
 
@@ -738,15 +738,15 @@ FolderManager = TreeManager.from_queryset(FolderQuerySet)
 
 class Folder(MPTTModel):
     name = models.CharField(max_length=255, null=False, blank=False)
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created', on_delete=models.CASCADE)
 
     # this may be null if this is the shared folder for a org
-    owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders',)
+    owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders', on_delete=models.CASCADE)
 
     # this will be set if this is inside a shared folder
-    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders')
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders', on_delete=models.CASCADE)
 
     # true if this is the apex shared folder (not subfolder) for a org
     is_shared_folder = models.BooleanField(default=False)
@@ -866,8 +866,8 @@ class Link(DeletableModel):
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     submitted_description = models.CharField(max_length=300, null=True, blank=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
-    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links', on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
     internet_archive_upload_status = models.CharField(max_length=20,
@@ -885,7 +885,7 @@ class Link(DeletableModel):
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
-    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.")
+    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
 
     objects = LinkManager()
     tracker = FieldTracker()
@@ -1232,7 +1232,7 @@ class Link(DeletableModel):
 
 
 class Capture(models.Model):
-    link = models.ForeignKey(Link, null=False, related_name='captures')
+    link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=(('primary','primary'),('screenshot','screenshot'),('favicon','favicon')))
     status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
     url = models.CharField(max_length=2100, blank=True, null=True)
@@ -1308,7 +1308,7 @@ class CaptureJob(models.Model):
             (1) sorting the capture queue fairly and
             (2) reporting status during a capture.
     """
-    link = models.OneToOneField(Link, related_name='capture_job', null=True, blank=True)
+    link = models.OneToOneField(Link, related_name='capture_job', null=True, blank=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=15,
                               default='invalid',
                               choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed'),('invalid', 'invalid')),
@@ -1317,8 +1317,8 @@ class CaptureJob(models.Model):
     human = models.BooleanField(default=False)
     order = models.FloatField(db_index=True)
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
-    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='capture_jobs')
-    link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs')
+    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='capture_jobs', on_delete=models.CASCADE)
+    link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs', on_delete=models.CASCADE)
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
@@ -1448,9 +1448,9 @@ class CaptureJob(models.Model):
         return self.link.accessible_to(user)
 
 class LinkBatch(models.Model):
-    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches')
+    created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches', on_delete=models.CASCADE)
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False, db_index=True)
-    target_folder = models.ForeignKey(Folder, blank=False, null=False)
+    target_folder = models.ForeignKey(Folder, blank=False, null=False, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = "link batches"
@@ -1548,11 +1548,11 @@ class UncaughtError(models.Model):
     user_agent = models.TextField(blank=True, null=True)
     stack = models.TextField(blank=True, null=True)
     message = models.TextField(blank=True, null=True)
-    user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered")
+    user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered", on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
     resolved = models.BooleanField(default=False)
-    resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved")
+    resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved", on_delete=models.CASCADE)
 
     # In Python 3: def __str__(self):
     def __unicode__(self):

@@ -27,7 +27,7 @@ sqlparse = "*"                              # for data migrations
 # models
 django-model-utils = "==2.6.1"              # soft deletion and other nice things
 django-mptt = "==0.8.7"                     # trees (like our folder tree)
-django-simple-history = "==1.9.0"           # track changes to certain models
+django-simple-history = "==2.5.1"           # track changes to certain models
 django-taggit = "*"                         # add tags to model instances
 
 

@@ -246,9 +246,6 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                             except ValueError:
                                 # content-length header wasn't an integer. Carry on.
                                 pass
-                except UnicodeError:
-                    # see https://github.com/harvard-lil/perma/issues/1841
-                    errors['url'] = "Unicode error while processing URL."
                 except DjangoValidationError:
                     errors['url'] = "Not a valid URL."
                 except TooManyRedirects:

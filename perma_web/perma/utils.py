@@ -193,7 +193,7 @@ def if_anonymous(decorator):
 
         def _view(request, *args, **kwargs):
 
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 return view(request, *args, **kwargs)  # view without @cache
             else:
                 return decorated_view(request, *args, **kwargs) # view with @cache

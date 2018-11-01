@@ -24,7 +24,7 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.shortcuts import get_object_or_404, resolve_url, render
+from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
 from django.contrib import messages
@@ -1146,7 +1146,7 @@ def get_sitewide_cookie_domain(request):
 
 def logout(request):
     if request.method == 'POST':
-        return auth_views.logout(request, template_name='registration/logout_success.html')
+        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)
     return render(request, "registration/logout.html")
 
 
@@ -1163,7 +1163,7 @@ def limited_login(request, template_name='registration/login.html',
     We wrap the default Django view to add some custom redirects for different user statuses.
     """
 
-    if request.method == "POST" and not request.user.is_authenticated():
+    if request.method == "POST" and not request.user.is_authenticated:
         username = request.POST.get('username')
         try:
             target_user = LinkUser.objects.get(email=username)
@@ -1176,20 +1176,13 @@ def limited_login(request, template_name='registration/login.html',
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    # This can be removed in Django 1.10 and replaced with redirect_authenticated_user=True
-    if request.user.is_authenticated():
-        redirect_to = request.POST.get(redirect_field_name, request.GET.get(redirect_field_name, ''))
-        if not is_safe_url(url=redirect_to, host=request.get_host()):
-            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-        return HttpResponseRedirect(redirect_to)
-
     # subclass authentication_form to add autofocus attribute to username field
     class LoginForm(authentication_form):
         def __init__(self, *args, **kwargs):
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
-    return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
+    return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
 
 def reset_password(request):
@@ -1216,7 +1209,7 @@ def reset_password(request):
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    return auth_views.password_reset(request, password_reset_form=OurPasswordResetForm)
+    return auth_views.PasswordResetView.as_view(form_class=OurPasswordResetForm)(request)
 
 
 def set_access_token_cookie(request):
@@ -1273,7 +1266,7 @@ def libraries(request):
     """
     if request.method == 'POST':
         registrar_form = LibraryRegistrarForm(request.POST, request.FILES, prefix ="b")
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             user_form = None
         else:
             user_form = UserForm(request.POST, prefix = "a")
@@ -1320,7 +1313,7 @@ def libraries(request):
     else:
         request_data = request.session.get('request_data','')
         user_form = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             user_form = UserForm(prefix="a")
             user_form.fields['email'].label = "Your email"
         if request_data:
