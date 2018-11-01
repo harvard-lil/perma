@@ -11,7 +11,7 @@ from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
-from .admin_utils import new_class, InlineEditLinkMixin
+from .admin_utils import new_class
 
 ### inlines ###
 
@@ -35,13 +35,15 @@ class RegistrarAdmin(SimpleHistoryAdmin):
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [
-        new_class("OrganizationInline", InlineEditLinkMixin, admin.TabularInline, model=Organization,
+        new_class("OrganizationInline", admin.TabularInline, model=Organization,
                   fields=['name',],
-                  can_delete=False),
-        new_class("RegistrarUserInline", InlineEditLinkMixin, admin.TabularInline, model=LinkUser,
+                  can_delete=False,
+                  show_change_link=True),
+        new_class("RegistrarUserInline", admin.TabularInline, model=LinkUser,
                   fk_name='registrar',
                   fields=['first_name', 'last_name', 'email'],
-                  can_delete=False),
+                  can_delete=False,
+                  show_change_link=True),
     ]
 
     # statistics
@@ -135,7 +137,7 @@ class LinkUserAdmin(UserAdmin):
     ordering = None
     readonly_fields = ['date_joined']
     inlines = [
-        new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
+        new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
     ]
     filter_horizontal = ['organizations']
 
