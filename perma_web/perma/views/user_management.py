@@ -24,7 +24,7 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.shortcuts import get_object_or_404, resolve_url, render
+from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
 from django.contrib import messages
@@ -1176,20 +1176,13 @@ def limited_login(request, template_name='registration/login.html',
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    # This can be removed in Django 1.10 and replaced with redirect_authenticated_user=True
-    if request.user.is_authenticated:
-        redirect_to = request.POST.get(redirect_field_name, request.GET.get(redirect_field_name, ''))
-        if not is_safe_url(url=redirect_to, host=request.get_host()):
-            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-        return HttpResponseRedirect(redirect_to)
-
     # subclass authentication_form to add autofocus attribute to username field
     class LoginForm(authentication_form):
         def __init__(self, *args, **kwargs):
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
-    return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
+    return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
 
 def reset_password(request):
