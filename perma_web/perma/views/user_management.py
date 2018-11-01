@@ -1146,7 +1146,7 @@ def get_sitewide_cookie_domain(request):
 
 def logout(request):
     if request.method == 'POST':
-        return auth_views.logout(request, template_name='registration/logout_success.html')
+        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)
     return render(request, "registration/logout.html")
 
 
@@ -1209,7 +1209,7 @@ def reset_password(request):
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    return auth_views.password_reset(request, password_reset_form=OurPasswordResetForm)
+    return auth_views.PasswordResetView.as_view(form_class=OurPasswordResetForm)(request)
 
 
 def set_access_token_cookie(request):
