@@ -11,7 +11,12 @@ from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
-from .admin_utils import new_class
+
+### helpers ###
+
+def new_class(name, *args, **kwargs):
+    return type(name, args, kwargs)
+
 
 ### inlines ###
 
