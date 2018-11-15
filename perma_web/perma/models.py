@@ -1,6 +1,6 @@
 import calendar
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import io
 import json
@@ -546,9 +546,36 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         return Organization.objects.none()
 
     def get_links_remaining(self):
+        """
+            Calculate how many personal links remain.
+        """
         today = timezone.now()
 
-        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
+        # Users without active paid subscriptions are handled
+        # with the same rules that are currently applied to new users
+        if not self.nonpaying and self.subscription_status != 'active':
+            self.link_limit = settings.DEFAULT_CREATE_LIMIT
+            self.link_limit_period = settings.DEFAULT_CREATE_LIMIT_PERIOD
+
+        if self.unlimited:
+            return float("inf")
+
+        if self.link_limit_period == 'once':
+            # TRIAL: all non-org links ever
+            link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
+        elif self.link_limit_period == 'monthly':
+            # MONTHLY RECURRING: links this calendar month
+            link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
+        elif self.link_limit_period == 'annually':
+            # ANNUAL RECURRING
+            # if you have a paid subscription, calculate via its expiry date
+            if self.cached_paid_through:
+                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - timedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+            # else, check the last calendar year
+            link_count = Link.objects.filter(creation_timestamp__range=(today - timedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+        else:
+            raise NotImplementedError("User's link_limit_period not yet handled.")
+
         return max(self.link_limit - link_count, 0)
 
     def create_root_folder(self):
@@ -642,14 +669,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         """
             Override default customer method to account for link limits
         """
-        links_remaining = self.get_links_remaining()
-        peronal_links_allowed = links_remaining > 0
-        if self.nonpaying:
-            return peronal_links_allowed
-        # no logic yet for handling paid customers with limits;
-        # all paid-up customers get unlimited links
-        assert self.unlimited
-        return self.subscription_status == 'active' or peronal_links_allowed
+        return self.get_links_remaining() > 0
 
     ### link permissions ###
 
