@@ -51,10 +51,13 @@ def paying_user():
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through="1970-01-21T00:00:00.000000Z",
-        monthly_rate=Decimal(100.00)
+        monthly_rate=Decimal(100.00),
+        unlimited=True
     )
     user.save()
+    assert user.unlimited
     assert not user.nonpaying
+
     return user
 
 def customers():
