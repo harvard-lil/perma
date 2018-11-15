@@ -32,11 +32,12 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'nonpaying', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
+    list_display = ['name', 'status', 'unlimited', 'nonpaying', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
-    list_filter = ('nonpaying', 'cached_subscription_status')
+    list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'nonpaying', 'monthly_rate', 'cached_subscription_status')}),
+        (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
+        ("Tier", {'fields': ('nonpaying', 'monthly_rate', 'cached_subscription_status', 'unlimited', 'link_limit', 'link_limit_period')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [
@@ -127,7 +128,8 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'notes')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'nonpaying', 'monthly_rate', 'cached_subscription_status','cached_paid_through','monthly_link_limit')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
+        ('Tier', {'fields': ('nonpaying', 'monthly_rate', 'cached_subscription_status', 'unlimited', 'link_limit', 'link_limit_period')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
@@ -136,9 +138,9 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'nonpaying', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'unlimited', 'nonpaying', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
-    list_filter = ('is_staff', 'is_active', 'nonpaying', 'cached_subscription_status')
+    list_filter = ('is_staff', 'is_active', 'unlimited', 'nonpaying', 'cached_subscription_status')
     ordering = None
     readonly_fields = ['date_joined']
     inlines = [
