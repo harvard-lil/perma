@@ -182,6 +182,9 @@ class CustomerModel(models.Model):
         null=True,
         blank=True
     )
+    unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
+    link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
+    link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
 
     @cached_property
     def customer_type(self):
@@ -288,6 +291,9 @@ class CustomerModel(models.Model):
         return None
 
     def link_creation_allowed(self):
+        # no logic yet for handling paid customers with limits;
+        # all paid-up customers get unlimited links
+        assert self.unlimited
         if self.nonpaying:
             return True
         return self.subscription_status == 'active'
@@ -345,6 +351,7 @@ class Registrar(CustomerModel):
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
 
+Registrar._meta.get_field('unlimited').default = True
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
@@ -477,7 +484,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
-    monthly_link_limit = models.IntegerField(default=settings.MONTHLY_CREATE_LIMIT)
     notes = models.TextField(blank=True)
 
     objects = LinkUserManager()
@@ -543,7 +549,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         today = timezone.now()
 
         link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-        return max(self.monthly_link_limit - link_count, 0)
+        return max(self.link_limit - link_count, 0)
 
     def create_root_folder(self):
         if self.root_folder:
@@ -640,6 +646,9 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         peronal_links_allowed = links_remaining > 0
         if self.nonpaying:
             return peronal_links_allowed
+        # no logic yet for handling paid customers with limits;
+        # all paid-up customers get unlimited links
+        assert self.unlimited
         return self.subscription_status == 'active' or peronal_links_allowed
 
     ### link permissions ###

@@ -218,7 +218,8 @@ AUTH_PASSWORD_VALIDATORS = [
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 # Monthly limit for regular users
-MONTHLY_CREATE_LIMIT = 10
+DEFAULT_CREATE_LIMIT = 10
+DEFAULT_CREATE_LIMIT_PERIOD = 'monthly'
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize
