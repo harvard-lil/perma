@@ -545,28 +545,18 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
         return Organization.objects.none()
 
-    def get_links_remaining(self):
-        """
-            Calculate how many personal links remain.
-        """
+    def links_remaining_in_period(self, period, limit):
         today = timezone.now()
-
-        # Users without active paid subscriptions are handled
-        # with the same rules that are currently applied to new users
-        if not self.nonpaying and self.subscription_status != 'active':
-            self.link_limit = settings.DEFAULT_CREATE_LIMIT
-            self.link_limit_period = settings.DEFAULT_CREATE_LIMIT_PERIOD
-
         if self.unlimited:
-            return float("inf")
-
-        if self.link_limit_period == 'once':
+            # UNLIMITED (paid or sponsored)
+            link_count = float("-inf")
+        elif period == 'once':
             # TRIAL: all non-org links ever
             link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
-        elif self.link_limit_period == 'monthly':
+        elif period == 'monthly':
             # MONTHLY RECURRING: links this calendar month
             link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-        elif self.link_limit_period == 'annually':
+        elif period == 'annually':
             # ANNUAL RECURRING
             # if you have a paid subscription, calculate via its expiry date
             if self.cached_paid_through:
@@ -575,8 +565,17 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             link_count = Link.objects.filter(creation_timestamp__range=(today - timedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
+        return max(limit - link_count, 0)
 
-        return max(self.link_limit - link_count, 0)
+    def get_links_remaining(self):
+        """
+            Calculate how many personal links remain.
+        """
+        # Special handling for users without active paid subscriptions:
+        # apply the same rules that are applied to new users
+        if not self.nonpaying and self.subscription_status != 'active':
+            return self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+        return self.links_remaining_in_period(self.link_limit_period, self.link_limit)
 
     def create_root_folder(self):
         if self.root_folder:

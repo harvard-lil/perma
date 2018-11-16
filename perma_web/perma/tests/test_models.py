@@ -511,26 +511,26 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(r)
 
 
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, get_links_remaining):
+    def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, links_remaining_in_period):
         get_subscription.return_value = None
-        get_links_remaining.return_value = 1
         user = paying_user()
+        links_remaining_in_period.return_value = user.link_limit - 1
         self.assertTrue(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        self.assertEqual(get_links_remaining.call_count, 1)
+        self.assertEqual(links_remaining_in_period.call_count, 1)
 
 
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_denied_if_no_subscription_and_over_limit(self, get_subscription, get_links_remaining):
+    def test_user_link_creation_denied_if_no_subscription_and_over_limit(self, get_subscription, links_remaining_in_period):
         get_subscription.return_value = None
-        get_links_remaining.return_value = 0
         user = paying_user()
+        links_remaining_in_period.return_value = 0
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        self.assertEqual(get_links_remaining.call_count, 1)
+        self.assertEqual(links_remaining_in_period.call_count, 1)
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
@@ -546,36 +546,36 @@ class ModelsTestCase(PermaTestCase):
         is_active.assert_called_once_with(sentinel.subscription)
 
 
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.subscription_has_problem', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_disallowed_if_subscription_inactive_and_over_limit(self, get_subscription, has_problem, is_active, get_links_remaining):
-        get_links_remaining.return_value = 0
+    def test_user_link_creation_disallowed_if_subscription_inactive_and_over_limit(self, get_subscription, has_problem, is_active, links_remaining_in_period):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = False
         has_problem.return_value = True
         user = paying_user()
+        links_remaining_in_period.return_value = 0
         self.assertFalse(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        self.assertEqual(get_links_remaining.call_count, 1)
+        self.assertEqual(links_remaining_in_period.call_count, 1)
 
 
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.subscription_has_problem', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_subscription_inactive_and_under_limit(self, get_subscription, has_problem, is_active, get_links_remaining):
-        get_links_remaining.return_value = 1
+    def test_user_link_creation_allowed_if_subscription_inactive_and_under_limit(self, get_subscription, has_problem, is_active, links_remaining_in_period):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = False
         has_problem.return_value = True
         user = paying_user()
+        links_remaining_in_period.return_value = user.link_limit + 1
         self.assertTrue(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        self.assertEqual(get_links_remaining.call_count, 1)
+        self.assertEqual(links_remaining_in_period.call_count, 1)
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
