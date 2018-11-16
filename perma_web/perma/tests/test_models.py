@@ -450,13 +450,22 @@ class ModelsTestCase(PermaTestCase):
     # def test_get_subscription_info(self, get_subscription):
     #     pass
 
+    def test_subscription_is_active_with_active_status(self):
+        for status in ACTIVE_SUBSCRIPTION_STATUSES:
+            self.assertTrue(subscription_is_active({
+                'status': status,
+                'paid_through': 'some datetime'
+            }))
 
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_always_allowed_if_nonpaying(self, get_subscription):
-        registrar = nonpaying_registrar()
-        self.assertTrue(registrar.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 0)
+    def test_subscription_is_active_with_paid_up_canceled(self):
+        self.assertTrue(subscription_is_active(active_cancelled_subscription()))
 
+    def test_subscription_is_active_with_expired_canceled(self):
+        self.assertFalse(subscription_is_active(expired_cancelled_subscription()))
+
+    #
+    # Link limit / subscription related tests for individual (non-sponsored) users
+    #
 
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
@@ -479,18 +488,6 @@ class ModelsTestCase(PermaTestCase):
 
 
     @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
-        get_subscription.side_effect = PermaPaymentsCommunicationException
-        customer = paying_registrar()
-        customer.link_creation_allowed()
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with({
-            'status': 'Sentinel Status',
-            'paid_through': '1970-01-21T00:00:00.000000Z'
-        })
-
-    @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
         get_subscription.side_effect = PermaPaymentsCommunicationException
@@ -502,15 +499,6 @@ class ModelsTestCase(PermaTestCase):
             'paid_through': '1970-01-21T00:00:00.000000Z'
         })
 
-
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_disallowed_if_no_subscription(self, get_subscription):
-        get_subscription.return_value = None
-        r = paying_registrar()
-        self.assertFalse(r.link_creation_allowed())
-        get_subscription.assert_called_once_with(r)
-
-
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, links_remaining_in_period):
@@ -521,7 +509,6 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(get_subscription.call_count, 1)
         self.assertEqual(links_remaining_in_period.call_count, 1)
 
-
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_denied_if_no_subscription_and_over_limit(self, get_subscription, links_remaining_in_period):
@@ -531,20 +518,6 @@ class ModelsTestCase(PermaTestCase):
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
         self.assertEqual(links_remaining_in_period.call_count, 1)
-
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.subscription_has_problem', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_disallowed_if_subscription_inactive(self, get_subscription, has_problem, is_active):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = False
-        has_problem.return_value = True
-        registrar = paying_registrar()
-        self.assertFalse(registrar.link_creation_allowed())
-        get_subscription.assert_called_once_with(registrar)
-        is_active.assert_called_once_with(sentinel.subscription)
-
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
@@ -561,7 +534,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.assert_called_once_with(sentinel.subscription)
         self.assertEqual(links_remaining_in_period.call_count, 1)
 
-
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.subscription_has_problem', autospec=True)
@@ -577,18 +549,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.assert_called_once_with(sentinel.subscription)
         self.assertEqual(links_remaining_in_period.call_count, 1)
 
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = True
-        customer = paying_registrar()
-        self.assertTrue(customer.link_creation_allowed())
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with(sentinel.subscription)
-
-
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
@@ -599,18 +559,53 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
 
+    #
+    # Link limit / subscription related tests for registrars
+    #
 
-    def test_subscription_is_active_with_active_status(self):
-        for status in ACTIVE_SUBSCRIPTION_STATUSES:
-            self.assertTrue(subscription_is_active({
-                'status': status,
-                'paid_through': 'some datetime'
-            }))
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_always_allowed_if_nonpaying(self, get_subscription):
+        registrar = nonpaying_registrar()
+        self.assertTrue(registrar.link_creation_allowed())
+        self.assertEqual(get_subscription.call_count, 0)
 
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
+        get_subscription.side_effect = PermaPaymentsCommunicationException
+        customer = paying_registrar()
+        customer.link_creation_allowed()
+        get_subscription.assert_called_once_with(customer)
+        is_active.assert_called_once_with({
+            'status': 'Sentinel Status',
+            'paid_through': '1970-01-21T00:00:00.000000Z'
+        })
 
-    def test_subscription_is_active_with_paid_up_canceled(self):
-        self.assertTrue(subscription_is_active(active_cancelled_subscription()))
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_disallowed_if_no_subscription(self, get_subscription):
+        get_subscription.return_value = None
+        r = paying_registrar()
+        self.assertFalse(r.link_creation_allowed())
+        get_subscription.assert_called_once_with(r)
 
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.subscription_has_problem', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_disallowed_if_subscription_inactive(self, get_subscription, has_problem, is_active):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = False
+        has_problem.return_value = True
+        registrar = paying_registrar()
+        self.assertFalse(registrar.link_creation_allowed())
+        get_subscription.assert_called_once_with(registrar)
+        is_active.assert_called_once_with(sentinel.subscription)
 
-    def test_subscription_is_active_with_expired_canceled(self):
-        self.assertFalse(subscription_is_active(expired_cancelled_subscription()))
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    def test_registrar_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = True
+        customer = paying_registrar()
+        self.assertTrue(customer.link_creation_allowed())
+        get_subscription.assert_called_once_with(customer)
+        is_active.assert_called_once_with(sentinel.subscription)
