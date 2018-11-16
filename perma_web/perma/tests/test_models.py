@@ -1,6 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+from django.conf import settings
 from django.utils import timezone
 
 from mock import patch, sentinel
@@ -51,13 +52,10 @@ def paying_user():
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through="1970-01-21T00:00:00.000000Z",
-        monthly_rate=Decimal(100.00),
-        unlimited=True
+        monthly_rate=Decimal(100.00)
     )
     user.save()
-    assert user.unlimited
     assert not user.nonpaying
-
     return user
 
 def customers():
@@ -65,6 +63,29 @@ def customers():
 
 def noncustomers():
     return [nonpaying_registrar(), nonpaying_user()]
+
+def user_with_links():
+    # a user with 6 links, made at intervals
+    user = LinkUser()
+    user.save()
+    now = timezone.now()
+    today = now.replace(day=5)
+    earlier_this_month = today.replace(day=1)
+    last_calendar_year = today - relativedelta(years=1)
+    within_the_last_year = now - relativedelta(months=6)
+    over_a_year_ago = today - relativedelta(years=1, days=2)
+    three_years_ago = today - relativedelta(years=3)
+    links = [
+        Link(creation_timestamp=today, guid="AAAA-AAAA", created_by=user),
+        Link(creation_timestamp=earlier_this_month, guid="BBBB-BBBB", created_by=user),
+        Link(creation_timestamp=last_calendar_year, guid="CCCC-CCCC", created_by=user),
+        Link(creation_timestamp=within_the_last_year, guid="DDDD-DDDDD", created_by=user),
+        Link(creation_timestamp=over_a_year_ago, guid="EEEE-EEEE", created_by=user),
+        Link(creation_timestamp=three_years_ago, guid="FFFF-FFFF", created_by=user),
+    ]
+    for link in links:
+        link.save()
+    return user
 
 def spoof_pp_response_wrong_pk(customer):
     data = {
@@ -467,6 +488,42 @@ class ModelsTestCase(PermaTestCase):
     # Link limit / subscription related tests for individual (non-sponsored) users
     #
 
+    def test_new_user_gets_default_link_limit(self):
+        u = LinkUser()
+        u.save()
+        self.assertEqual(u.link_limit, settings.DEFAULT_CREATE_LIMIT)
+        self.assertEqual(u.link_limit_period, settings.DEFAULT_CREATE_LIMIT_PERIOD)
+
+
+    def test_one_time_link_limit(self):
+        u = user_with_links()
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('once', 7), 1)
+        self.assertEqual(u.links_remaining_in_period('once', 6), 0)
+
+
+    def test_monthly_link_limit(self):
+        u = user_with_links()
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('monthly', 3), 1)
+        self.assertEqual(u.links_remaining_in_period('monthly', 2), 0)
+
+
+    def test_annual_link_limit(self):
+        u = user_with_links()
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
+        self.assertEqual(u.links_remaining_in_period('annually', 3), 0)
+
+
+    def test_unlimited_user_link_limit(self):
+        u = user_with_links()
+        u.unlimited = True
+        self.assertEqual(u.links_remaining_in_period('once', 1), float("inf"))
+        self.assertEqual(u.links_remaining_in_period('monthly', 1), float("inf"))
+        self.assertEqual(u.links_remaining_in_period('annually', 1), float("inf"))
+
+
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_nonpaying_and_under_limit(self, get_subscription, get_links_remaining):
@@ -499,15 +556,17 @@ class ModelsTestCase(PermaTestCase):
             'paid_through': '1970-01-21T00:00:00.000000Z'
         })
 
+
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, links_remaining_in_period):
         get_subscription.return_value = None
         user = paying_user()
-        links_remaining_in_period.return_value = user.link_limit - 1
+        links_remaining_in_period.return_value = 1
         self.assertTrue(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        self.assertEqual(links_remaining_in_period.call_count, 1)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
@@ -517,7 +576,8 @@ class ModelsTestCase(PermaTestCase):
         links_remaining_in_period.return_value = 0
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        self.assertEqual(links_remaining_in_period.call_count, 1)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
@@ -532,7 +592,8 @@ class ModelsTestCase(PermaTestCase):
         self.assertFalse(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        self.assertEqual(links_remaining_in_period.call_count, 1)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
@@ -547,17 +608,36 @@ class ModelsTestCase(PermaTestCase):
         self.assertTrue(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        self.assertEqual(links_remaining_in_period.call_count, 1)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
 
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
     @patch('perma.models.subscription_is_active', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
+    def test_user_link_creation_allowed_if_subscription_active_and_under_limit(self, get_subscription, is_active, links_remaining_in_period):
         get_subscription.return_value = sentinel.subscription
         is_active.return_value = True
+        links_remaining_in_period.return_value = 1
         customer = paying_user()
         self.assertTrue(customer.link_creation_allowed())
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
+        links_remaining_in_period.assert_called_once_with(customer, customer.link_limit_period, customer.link_limit)
+
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+    @patch('perma.models.subscription_is_active', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_user_link_creation_disallowed_if_subscription_active_and_under_limit(self, get_subscription, is_active, links_remaining_in_period):
+        get_subscription.return_value = sentinel.subscription
+        is_active.return_value = True
+        links_remaining_in_period.return_value = 0
+        customer = paying_user()
+        self.assertFalse(customer.link_creation_allowed())
+        get_subscription.assert_called_once_with(customer)
+        is_active.assert_called_once_with(sentinel.subscription)
+        links_remaining_in_period.assert_called_once_with(customer, customer.link_limit_period, customer.link_limit)
+
 
     #
     # Link limit / subscription related tests for registrars

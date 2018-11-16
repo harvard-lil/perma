@@ -1,6 +1,7 @@
 import calendar
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import hashlib
 import io
 import json
@@ -555,14 +556,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
         elif period == 'monthly':
             # MONTHLY RECURRING: links this calendar month
-            link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
+            link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
         elif period == 'annually':
             # ANNUAL RECURRING
             # if you have a paid subscription, calculate via its expiry date
             if self.cached_paid_through:
-                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - timedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
             # else, check the last calendar year
-            link_count = Link.objects.filter(creation_timestamp__range=(today - timedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+            link_count = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
         return max(limit - link_count, 0)
