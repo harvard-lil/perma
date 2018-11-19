@@ -522,6 +522,18 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(u.links_remaining_in_period('once', 1), float("inf"))
         self.assertEqual(u.links_remaining_in_period('monthly', 1), float("inf"))
         self.assertEqual(u.links_remaining_in_period('annually', 1), float("inf"))
+        u.unlimited = False
+        self.assertNotEqual(u.links_remaining_in_period('once', 1), float("inf"))
+        self.assertNotEqual(u.links_remaining_in_period('monthly', 1), float("inf"))
+        self.assertNotEqual(u.links_remaining_in_period('annually', 1), float("inf"))
+
+
+    def test_override_for_unlimited_user_link_limit(self):
+        u = user_with_links()
+        u.unlimited = True
+        self.assertNotEqual(u.links_remaining_in_period('once', 1, False), float("inf"))
+        self.assertNotEqual(u.links_remaining_in_period('monthly', 1, False), float("inf"))
+        self.assertNotEqual(u.links_remaining_in_period('annually', 1, False), float("inf"))
 
 
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
@@ -565,7 +577,7 @@ class ModelsTestCase(PermaTestCase):
         links_remaining_in_period.return_value = 1
         self.assertTrue(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
 
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
@@ -576,7 +588,7 @@ class ModelsTestCase(PermaTestCase):
         links_remaining_in_period.return_value = 0
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 1)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
 
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
@@ -592,7 +604,7 @@ class ModelsTestCase(PermaTestCase):
         self.assertFalse(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
 
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
@@ -608,7 +620,7 @@ class ModelsTestCase(PermaTestCase):
         self.assertTrue(user.link_creation_allowed())
         get_subscription.assert_called_once_with(user)
         is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
 
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)

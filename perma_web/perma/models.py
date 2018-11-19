@@ -546,9 +546,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
         return Organization.objects.none()
 
-    def links_remaining_in_period(self, period, limit):
+    def links_remaining_in_period(self, period, limit, unlimited=None):
         today = timezone.now()
-        if self.unlimited:
+
+        # default to self.unlimited; allow callers to explicitly override
+        if unlimited is None:
+            unlimited = self.unlimited
+
+        if unlimited:
             # UNLIMITED (paid or sponsored)
             link_count = float("-inf")
         elif period == 'once':
@@ -575,7 +580,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         # Special handling for users without active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.nonpaying and self.subscription_status != 'active':
-            return self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT)
+            return self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
         return self.links_remaining_in_period(self.link_limit_period, self.link_limit)
 
     def create_root_folder(self):
