@@ -539,7 +539,7 @@ class ModelsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_nonpaying_and_under_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = 1
+        get_links_remaining.return_value = (1, 'some period')
         user = nonpaying_user()
         self.assertTrue(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 0)
@@ -549,7 +549,7 @@ class ModelsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_denied_if_nonpaying_and_over_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = 0
+        get_links_remaining.return_value = (0, 'some period')
         user = nonpaying_user()
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 0)

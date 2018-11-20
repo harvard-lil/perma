@@ -576,12 +576,13 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def get_links_remaining(self):
         """
             Calculate how many personal links remain.
+            Returns a tuple: (links, applicable period)
         """
         # Special handling for users without active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.nonpaying and self.subscription_status != 'active':
-            return self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
-        return self.links_remaining_in_period(self.link_limit_period, self.link_limit)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
 
     def create_root_folder(self):
         if self.root_folder:
@@ -671,10 +672,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
     def link_creation_allowed(self):
-        """
-            Override default customer method to account for link limits
-        """
-        return self.get_links_remaining() > 0
+        return self.get_links_remaining()[0] > 0
 
     ### link permissions ###
 
