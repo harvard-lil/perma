@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 ### CONSTANTS
 ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
-PROBLEM_SUBSCRIPTION_STATUSES = ['On Hold']
+PROBLEM_SUBSCRIPTION_STATUSES = ['Hold']
 
 FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
     'get_subscription': [

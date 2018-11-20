@@ -27,7 +27,7 @@ def spoof_current_monthly_subscription():
 
 def spoof_on_hold_monthly_subscription():
     return {
-        "status": "On Hold",
+        "status": "Hold",
         "rate": "Sentinel Rate",
         "frequency": "monthly"
     }
