@@ -248,7 +248,7 @@ export function handleSelectionChange (data) {
       !currentOrg &&
       Object.keys(organizations).length &&
       links_remaining == 3){
-    let message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    let message = "Your personal links are almost used up! Switch folders to create Perma Links for your organizations."
     Helpers.informUser(message, 'danger');
     Helpers.setCookie("suppress_link_warning", "true", 120);
   }

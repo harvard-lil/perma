@@ -11142,7 +11142,7 @@ webpackJsonp([1],[
 	
 	// templates
 	var selectedFolderTemplate = __webpack_require__(156);
-	var orgListTemplate = __webpack_require__(157);
+	var orgListTemplate = __webpack_require__(158);
 	var errorTemplate = __webpack_require__(160);
 	
 	var currentFolder = void 0;
@@ -11388,7 +11388,7 @@ webpackJsonp([1],[
 	  // suggest switching folder if user has orgs and is running out of personal links
 	  var already_warned = Helpers.getCookie("suppress_link_warning");
 	  if (already_warned != "true" && !currentOrg && (0, _keys2.default)(organizations).length && links_remaining == 3) {
-	    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders.";
+	    var message = "Your personal links are almost used up! Switch folders to create Perma Links for your organizations.";
 	    Helpers.informUser(message, 'danger');
 	    Helpers.setCookie("suppress_link_warning", "true", 120);
 	  }
@@ -13668,17 +13668,21 @@ webpackJsonp([1],[
 	var Handlebars = __webpack_require__(4);
 	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    return "  <span class=\"ui-private\"></span>\n  ";
+	    return "  <span class=\"ui-private\"></span>\n";
 	},"3":function(container,depth0,helpers,partials,data) {
-	    var helper;
+	    var stack1;
 	
 	  return "\n  <span class=\"links-remaining\">"
-	    + container.escapeExpression(((helper = (helper = helpers.links_remaining || (depth0 != null ? depth0.links_remaining : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"links_remaining","hash":{},"data":data}) : helper)))
+	    + ((stack1 = __default(__webpack_require__(157)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data})) != null ? stack1 : "")
 	    + "</span>\n";
+	},"4":function(container,depth0,helpers,partials,data) {
+	    return "unlimited";
+	},"6":function(container,depth0,helpers,partials,data) {
+	    return container.escapeExpression(container.lambda((depth0 != null ? depth0.links_remaining : depth0), depth0));
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1, helper, alias1=depth0 != null ? depth0 : {};
+	    var stack1, alias1=depth0 != null ? depth0 : {};
 	
-	  return container.escapeExpression(((helper = (helper = helpers.path || (depth0 != null ? depth0.path : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"path","hash":{},"data":data}) : helper)))
+	  return container.escapeExpression(container.lambda((depth0 != null ? depth0.path : depth0), depth0))
 	    + "\n"
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0["private"] : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.links_remaining : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
@@ -13686,42 +13690,6 @@ webpackJsonp([1],[
 
 /***/ },
 /* 157 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Handlebars = __webpack_require__(4);
-	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
-	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    var stack1, alias1=depth0 != null ? depth0 : {}, alias2=container.lambda, alias3=container.escapeExpression;
-	
-	  return ((stack1 = __default(__webpack_require__(158)).call(alias1,((stack1 = (data && data.previous)) && stack1.registrar),"!=",(depth0 != null ? depth0.registrar : depth0),{"name":"compare","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-	    + "  <li>\n    <a href=\"#\" data-orgid=\""
-	    + alias3(alias2((depth0 != null ? depth0.id : depth0), depth0))
-	    + "\" data-folderid=\""
-	    + alias3(alias2(((stack1 = (depth0 != null ? depth0.shared_folder : depth0)) != null ? stack1.id : stack1), depth0))
-	    + "\">\n      "
-	    + alias3(alias2((depth0 != null ? depth0.name : depth0), depth0))
-	    + " "
-	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.default_to_private : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-	    + "<span class='links-unlimited'>unlimited</span>\n    </a>\n  </li>\n";
-	},"2":function(container,depth0,helpers,partials,data) {
-	    return "    <li class=\"dropdown-header\">"
-	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.registrar : depth0), depth0))
-	    + "</li>\n";
-	},"4":function(container,depth0,helpers,partials,data) {
-	    return "<span class=\"ui-private\">(Private)</span> ";
-	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
-	
-	  return ((stack1 = __default(__webpack_require__(159)).call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-	    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
-	    + alias2(alias1((depth0 != null ? depth0.user_folder : depth0), depth0))
-	    + "\">\n    Personal Links <span class=\"links-remaining\">"
-	    + alias2(alias1((depth0 != null ? depth0.links_remaining : depth0), depth0))
-	    + "</span>\n  </a>\n</li>\n";
-	},"useData":true});
-
-/***/ },
-/* 158 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -13793,6 +13761,46 @@ webpackJsonp([1],[
 	    return options.inverse(this);
 	  }
 	};
+
+/***/ },
+/* 158 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Handlebars = __webpack_require__(4);
+	function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj); }
+	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {}, alias2=container.lambda, alias3=container.escapeExpression;
+	
+	  return ((stack1 = __default(__webpack_require__(157)).call(alias1,((stack1 = (data && data.previous)) && stack1.registrar),"!=",(depth0 != null ? depth0.registrar : depth0),{"name":"compare","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "  <li>\n    <a href=\"#\" data-orgid=\""
+	    + alias3(alias2((depth0 != null ? depth0.id : depth0), depth0))
+	    + "\" data-folderid=\""
+	    + alias3(alias2(((stack1 = (depth0 != null ? depth0.shared_folder : depth0)) != null ? stack1.id : stack1), depth0))
+	    + "\">\n      "
+	    + alias3(alias2((depth0 != null ? depth0.name : depth0), depth0))
+	    + " "
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.default_to_private : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "<span class='links-unlimited'>unlimited</span>\n    </a>\n  </li>\n";
+	},"2":function(container,depth0,helpers,partials,data) {
+	    return "    <li class=\"dropdown-header\">"
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.registrar : depth0), depth0))
+	    + "</li>\n";
+	},"4":function(container,depth0,helpers,partials,data) {
+	    return "<span class=\"ui-private\">(Private)</span> ";
+	},"6":function(container,depth0,helpers,partials,data) {
+	    return "unlimited";
+	},"8":function(container,depth0,helpers,partials,data) {
+	    return container.escapeExpression(container.lambda((depth0 != null ? depth0.links_remaining : depth0), depth0));
+	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=depth0 != null ? depth0 : {};
+	
+	  return ((stack1 = __default(__webpack_require__(159)).call(alias1,(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
+	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.user_folder : depth0), depth0))
+	    + "\">\n    Personal Links <span class=\"links-remaining\">"
+	    + ((stack1 = __default(__webpack_require__(157)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(6, data, 0),"inverse":container.program(8, data, 0),"data":data})) != null ? stack1 : "")
+	    + "</span>\n  </a>\n</li>\n";
+	},"useData":true});
 
 /***/ },
 /* 159 */
