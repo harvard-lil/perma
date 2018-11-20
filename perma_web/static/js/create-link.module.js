@@ -27,7 +27,7 @@ let uploadFormSpinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, 
 let $browserToolsMessage, $createButton, $createForm, $closeBrowserTools, $createErrors,
     $errorContainer, $linksRemaining, $linksRemainingMessage, $organizationDropdown,
     $organizationDropdownButton, $organizationSelectForm, $uploadValidationError,
-    $uploadForm, $uploadFormUrl, $uploadModal, $url;
+    $uploadForm, $uploadFormUrl, $uploadModal, $url, $personalLinksBanner;
 
 
 //
@@ -242,6 +242,13 @@ export function handleSelectionChange (data) {
     $createButton.prop('disabled', false);
   }
 
+  // display personal subscription information if relevant
+  if (path[0] == "Personal Links") {
+    $personalLinksBanner.removeClass('hide')
+  } else {
+    $personalLinksBanner.addClass('hide')
+  }
+
   // suggest switching folder if user has orgs and is running out of personal links
   let already_warned = Helpers.getCookie("suppress_link_warning");
   if (already_warned != "true" &&
@@ -382,6 +389,7 @@ export function init () {
   $organizationDropdown = $('#organization_select');
   $organizationDropdownButton = $('#dropdownMenu1');
   $organizationSelectForm = $('#organization_select_form');
+  $personalLinksBanner = $('#personal-links-banner');
   $uploadValidationError = $('#upload-error');
   $uploadForm = $('#archive_upload_form');
   $uploadFormUrl = $('#archive_upload_form input[name="url"]');

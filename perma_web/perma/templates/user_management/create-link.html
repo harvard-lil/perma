@@ -54,12 +54,12 @@
                 {% if request.user.nonpaying %}
                   Your account has been upgraded to unlimited personal Perma Links.
                 {% else %}
-                  Your <a href="{% url 'user_management_settings_subscription' %}">subscription</a> includes the creation of unlimited {% if not request.user.is_individual %} personal{% endif %} Perma Links.
+                  Your <a href="{% url 'user_management_settings_subscription' %}">subscription</a> includes the creation of unlimited Perma Links.
                 {% endif %}
               {% else %}
-                  You have <span class="links-remaining">{{ links_remaining }}</span> remaining{% if not request.user.is_individual %} personal{% endif %} Perma Links{% if links_remaining_period == "monthly" %} this month{% elif links_remaining_period == "annually" %} this year{% endif %}.
+                  You have <span class="links-remaining">{{ links_remaining }}</span> remaining Perma Links{% if links_remaining_period == "monthly" %} this month{% elif links_remaining_period == "annually" %} this year{% endif %}.
                   {% if not request.user.nonpaying and not request.user.subscription_status == 'problem' %}
-                    <br><a href="{% url 'user_management_settings_subscription' %}">Upgrade for additional{% if not request.user.is_individual %} personal{% endif %} Perma Links</a>
+                    <br><a href="{% url 'user_management_settings_subscription' %}">Upgrade for additional Perma Links</a>
                   {% endif %}
               {% endif %}
             </p>
@@ -73,6 +73,13 @@
                 <ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
               </div>
             </div>
+            <p id="personal-links-banner">
+              {% if request.user.subscription_status == 'problem' %}
+                <a href="{% url 'user_management_settings_subscription' %}">Your account is on hold</a>.<br>
+              {% elif links_remaining != 'Infinity' and not request.user.nonpaying %}
+                get <a href="{% url 'user_management_settings_subscription' %}">more personal links</a>
+               {% endif %}
+            </p>
           {% endif %}
         </fieldset>
         {% if suppress_reminder != 'true' %}

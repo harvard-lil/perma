@@ -11171,7 +11171,8 @@ webpackJsonp([1],[
 	    $uploadForm = void 0,
 	    $uploadFormUrl = void 0,
 	    $uploadModal = void 0,
-	    $url = void 0;
+	    $url = void 0,
+	    $personalLinksBanner = void 0;
 	
 	//
 	// PERMA LINK CREATION HELPERS
@@ -11385,6 +11386,13 @@ webpackJsonp([1],[
 	    $createButton.prop('disabled', false);
 	  }
 	
+	  // display personal subscription information if relevant
+	  if (path[0] == "Personal Links") {
+	    $personalLinksBanner.removeClass('hide');
+	  } else {
+	    $personalLinksBanner.addClass('hide');
+	  }
+	
 	  // suggest switching folder if user has orgs and is running out of personal links
 	  var already_warned = Helpers.getCookie("suppress_link_warning");
 	  if (already_warned != "true" && !currentOrg && (0, _keys2.default)(organizations).length && links_remaining == 3) {
@@ -11523,6 +11531,7 @@ webpackJsonp([1],[
 	  $organizationDropdown = $('#organization_select');
 	  $organizationDropdownButton = $('#dropdownMenu1');
 	  $organizationSelectForm = $('#organization_select_form');
+	  $personalLinksBanner = $('#personal-links-banner');
 	  $uploadValidationError = $('#upload-error');
 	  $uploadForm = $('#archive_upload_form');
 	  $uploadFormUrl = $('#archive_upload_form input[name="url"]');
