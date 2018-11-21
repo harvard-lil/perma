@@ -1057,16 +1057,7 @@ def settings_subscription(request):
         'subscribe_url': settings.SUBSCRIBE_URL,
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         'update_url': settings.UPDATE_URL,
-        'accounts': [
-            {
-                'subscription_info': account,
-                # for subscribing
-                'encrypted_data_monthly': prep_for_perma_payments(account['monthly_required_fields']),
-                'encrypted_data_annual': prep_for_perma_payments(account['annual_required_fields']),
-                # for updating
-                'encrypted_data_update': prep_for_perma_payments(account['update_required_fields']),
-            } for account in accounts
-        ]
+        'accounts': accounts
     }
     return render(request, 'user_management/settings-subscription.html', context)
 

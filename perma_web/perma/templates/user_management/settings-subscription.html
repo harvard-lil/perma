@@ -5,13 +5,9 @@
 
 {% block dashboardContent %}
 {% for account in accounts %}
-  {% with subscription_info=account.subscription_info %}
-  {% with subscription=subscription_info.subscription %}
-  {% with customer=account.subscription_info.customer %}
+  {% with subscription=account.subscription %}
+  {% with customer=account.customer %}
   {% with customer_type=customer.customer_type %}
-  {% with encrypted_data_monthly=account.encrypted_data_monthly %}
-  {% with encrypted_data_annual=account.encrypted_data_annual %}
-  {% with encrypted_data_update=account.encrypted_data_update %}
 
     {% if not subscription %}
       <h2 class="body-ah">Subscribe</h2>
@@ -24,15 +20,17 @@
 
       <div class="row">
 
-        <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-          <button><span>Monthly</span><br>${{ subscription_info.monthly_required_fields.recurring_amount | intcomma }}/month<br><br>${{ subscription_info.monthly_required_fields.amount | intcomma }} this month (prorated)</button>
-          <input type="hidden" name="encrypted_data" value={{ encrypted_data_monthly }}>
-        </form>
+        {% for tier in account.tiers %}
+          <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
+            {% if tier.period == 'monthly' %}
+              <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per month{% endif %}</span><br>${{ tier.required_fields.recurring_amount | intcomma }}/month<br><br>${{ tier.required_fields.amount | intcomma }} this month (prorated)</button>
+            {% elif tier.period == 'annually'%}
+               <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per year{% endif %}</span><br>${{ tier.required_fields.amount | intcomma }}/year</button>
+            {% endif %}
+            <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
+          </form>
+        {% endfor %}
 
-        <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-            <button><span>Annually</span><br>${{ subscription_info.annual_required_fields.amount | intcomma }}/year</button>
-            <input type="hidden" name="encrypted_data" value={{ encrypted_data_annual }}>
-        </form>
       </div>
 
     {% elif subscription.status == 'Cancellation Requested' %}
@@ -81,12 +79,16 @@
           <dl class="dl-horizontal">
             {% if subscription.frequency == 'monthly' %}
               <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-              <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | date:"F jS, Y" }}</dd>
+              <dt>Next payment:</dt><dd>{{ account.next_monthly_payment | date:"F jS, Y" }}</dd>
             {% elif subscription.frequency == 'annually'%}
               <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
               <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
             {% endif %}
-            <dt>Links:</dt><dd>unlimited</dd>
+            {% if customer.unlimited %}
+              <dt>Links:</dt><dd>unlimited</dd>
+            {% else %}
+              <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
+            {% endif %}
           </dl>
         </div>
       </div>
@@ -94,7 +96,7 @@
       <div class="row subscription-buttons">
         <div class="col-xs-12 col-md-6">
           <form method="post" action="{{ update_url }}">
-            <input type="hidden" name="encrypted_data" value={{ encrypted_data_update }}>
+            <input type="hidden" name="encrypted_data" value={{ account.encrypted_data_for_update }}>
             <button class="btn btn-primary" type="submit">
               Update Payment Information
             </button>
@@ -116,10 +118,7 @@
   {% endwith %}
   {% endwith %}
   {% endwith %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
+
 {% endfor %}
 {% endblock %}
 

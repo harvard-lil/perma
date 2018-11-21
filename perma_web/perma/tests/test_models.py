@@ -35,7 +35,7 @@ def paying_registrar():
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through="1970-01-21T00:00:00.000000Z",
-        monthly_rate=Decimal(100.00)
+        base_rate=Decimal(100.00)
     )
     registrar.save()
     assert not registrar.nonpaying
@@ -52,7 +52,7 @@ def paying_user():
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through="1970-01-21T00:00:00.000000Z",
-        monthly_rate=Decimal(100.00)
+        base_rate=Decimal(100.00)
     )
     user.save()
     assert not user.nonpaying
@@ -446,25 +446,25 @@ class ModelsTestCase(PermaTestCase):
 
     def test_annual_rate(self):
         for customer in customers():
-            self.assertEqual(customer.annual_rate() / 12, customer.monthly_rate)
+            self.assertEqual(customer.annual_rate() / 12, customer.base_rate)
 
 
     def test_prorated_first_month_cost_full_month(self):
         for customer in customers():
             cost = customer.prorated_first_month_cost(GENESIS)
-            self.assertEqual(customer.monthly_rate, cost)
+            self.assertEqual(customer.base_rate, cost)
 
 
     def test_prorated_first_month_cost_last_day_of_month(self):
         for customer in customers():
             cost = customer.prorated_first_month_cost(GENESIS.replace(day=31))
-            self.assertEqual((customer.monthly_rate / 31).quantize(Decimal('.01')), cost)
+            self.assertEqual((customer.base_rate / 31).quantize(Decimal('.01')), cost)
 
 
     def test_prorated_first_month_cost_mid_month(self):
         for customer in customers():
             cost = customer.prorated_first_month_cost(GENESIS.replace(day=16))
-            self.assertEqual((customer.monthly_rate / 31 * 16).quantize(Decimal('.01')), cost)
+            self.assertEqual((customer.base_rate / 31 * 16).quantize(Decimal('.01')), cost)
 
 
     # Does this have to be tested? It's important, but.....

@@ -167,7 +167,7 @@ class CustomerModel(models.Model):
         abstract = True
 
     nonpaying = models.BooleanField(default=True, help_text="Whether this customer qualifies for a free account.")
-    monthly_rate =  models.DecimalField(
+    base_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
         default=Decimal('0.00'),
@@ -236,45 +236,65 @@ class CustomerModel(models.Model):
         }
 
     def annual_rate(self):
-        return self.monthly_rate * 12
+        return self.base_rate * 12
 
-    def prorated_first_month_cost(self, now):
+    def prorated_first_month_cost(self, now, monthly_rate=None):
+        if monthly_rate is None:
+            monthly_rate = self.base_rate
         days_in_month = calendar.monthrange(now.year, now.month)[1]
         days_until_end_of_month = days_in_month - now.day
         # add one day, to charge for today
-        return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
+        return (monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
 
     def get_subscription_info(self, now):
         timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
+
+        tiers = []
+
+        for tier in settings.TIERS[self.customer_type]:
+            rate = self.base_rate * Decimal(tier[2])
+            if tier[0] == 'monthly':
+                required_fields = {
+                    'customer_pk': self.pk,
+                    'customer_type': self.customer_type,
+                    'timestamp': timestamp,
+                    'recurring_frequency': "monthly",
+                    'amount': "{0:.2f}".format(self.prorated_first_month_cost(now, rate)),
+                    'recurring_amount': "{0:.2f}".format(rate),
+                    'recurring_start_date': next_month.strftime("%Y-%m-%d")
+                }
+            elif tier[0] == 'annually':
+                required_fields = {
+                    'customer_pk': self.pk,
+                    'customer_type': self.customer_type,
+                    'timestamp': timestamp,
+                    'recurring_frequency': "annually",
+                    'amount': "{0:.2f}".format(rate),
+                    'recurring_amount': "{0:.2f}".format(rate),
+                    'recurring_start_date': next_year.strftime("%Y-%m-%d")
+                }
+            else:
+                raise NotImplementedError('Paid "{}" tiers not yet supported'.format(tier[0]))
+            tiers.append({
+                'period': tier[0],
+                'limit': tier[1],
+                'rate': rate,
+                'required_fields': required_fields,
+                'encrypted_data': prep_for_perma_payments(required_fields)
+            })
+
         return {
             'customer': self,
             'subscription': self.get_subscription(),
             'next_monthly_payment': next_month,
-            'monthly_required_fields': {
+            'tiers': tiers,
+            'encrypted_data_for_update': prep_for_perma_payments({
                 'customer_pk': self.pk,
                 'customer_type': self.customer_type,
                 'timestamp': timestamp,
-                'recurring_frequency': "monthly",
-                'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
-                'recurring_amount': "{0:.2f}".format(self.monthly_rate),
-                'recurring_start_date': next_month.strftime("%Y-%m-%d")
-            },
-            'annual_required_fields': {
-                'customer_pk': self.pk,
-                'customer_type': self.customer_type,
-                'timestamp': timestamp,
-                'recurring_frequency': "annually",
-                'amount': "{0:.2f}".format(self.annual_rate()),
-                'recurring_amount': "{0:.2f}".format(self.annual_rate()),
-                'recurring_start_date': next_year.strftime("%Y-%m-%d")
-            },
-            'update_required_fields': {
-                'customer_pk': self.pk,
-                'customer_type': self.customer_type,
-                'timestamp': timestamp,
-            }
+            })
         }
 
     @cached_property

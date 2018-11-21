@@ -15,7 +15,7 @@
       "latitude": 42.377,
       "longitude": -71.1167,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -35,7 +35,7 @@
       "latitude": null,
       "longitude": null,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -55,7 +55,7 @@
       "latitude": 41.3163,
       "longitude": -72.9223,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -75,7 +75,7 @@
       "latitude": null,
       "longitude": null,
       "nonpaying": false,
-      "monthly_rate": "1.00",
+      "base_rate": "1.00",
       "link_count": 0
     }
   },
