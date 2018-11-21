@@ -1071,23 +1071,51 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_unauthorized_user_cannot_see_cancellation_page(self):
         u = LinkUser.objects.get(email='test_user@example.com')
         assert not u.can_view_subscription()
-        self.get('user_management_settings_subscription_cancel',
+        self.post('user_management_settings_subscription_cancel',
                   user=u,
                   require_status_code=403)
 
 
+    def test_authorized_user_cant_use_get_for_cancellation_page(self):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        assert u.can_view_subscription()
+        self.get('user_management_settings_subscription_cancel',
+                  user=u,
+                  require_status_code=405)
+
+
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
-    def test_authorized_user_cancellation_confirm_form(self, prepped):
+    def test_authorized_user_personal_cancellation_confirm_form(self, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         assert u.can_view_subscription()
         prepped.return_value = sentinel.prepped
 
-        r = self.get('user_management_settings_subscription_cancel',
-                      user=u)
+        r = self.post('user_management_settings_subscription_cancel',
+                      user=u,
+                      data={'account_type':'Individual'})
 
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
         self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
         self.assertIn(b'Are you sure you want to cancel', r.content)
+        self.assertNotIn(b'Test Firm', r.content)
+        self.assertIn(b'personal', r.content)
+
+
+    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    def test_authorized_user_institutional_cancellation_confirm_form(self, prepped):
+        u = LinkUser.objects.get(email='registrar_user@firm.com')
+        assert u.can_view_subscription()
+        prepped.return_value = sentinel.prepped
+
+        r = self.post('user_management_settings_subscription_cancel',
+                      user=u,
+                      data={'account_type':'Registrar'})
+
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(b'Are you sure you want to cancel', r.content)
+        self.assertIn(b'Test Firm', r.content)
+        self.assertNotIn(b'personal', r.content)
 
 
     # Tools
