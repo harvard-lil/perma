@@ -990,7 +990,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                   require_status_code=200)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_subscribe_form_if_no_standing_subscription(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
@@ -1007,7 +1007,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(u.registrar)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_update_cancel_and_subscription_info_present_if_standing_subscription(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
