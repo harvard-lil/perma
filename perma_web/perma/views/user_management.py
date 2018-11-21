@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
+from django.views.decorators.http import require_http_methods
 
 from ratelimit.decorators import ratelimit
 
@@ -1039,12 +1040,12 @@ def settings_tools(request):
 @sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription(request):
-    if not request.user.nonpaying:
-        customer = request.user
-    else:
-        customer = request.user.registrar
+    accounts = []
     try:
-        subscription_info = customer.get_subscription_info(datetime.utcnow())
+        if not request.user.nonpaying:
+            accounts.append(request.user.get_subscription_info(datetime.utcnow()))
+        if request.user.registrar:
+            accounts.append(request.user.registrar.get_subscription_info(datetime.utcnow()))
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
@@ -1053,35 +1054,40 @@ def settings_subscription(request):
 
     context = {
         'this_page': 'settings_subscription',
-        'subscription_info': subscription_info,
-        # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'encrypted_data_monthly': prep_for_perma_payments(subscription_info['monthly_required_fields']),
-        'encrypted_data_annual': prep_for_perma_payments(subscription_info['annual_required_fields']),
-        # for canceling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
-        # for updating
-        'encrypted_data_update': prep_for_perma_payments(subscription_info['update_required_fields']),
-        'update_url': settings.UPDATE_URL
+        'update_url': settings.UPDATE_URL,
+        'accounts': [
+            {
+                'subscription_info': account,
+                # for subscribing
+                'encrypted_data_monthly': prep_for_perma_payments(account['monthly_required_fields']),
+                'encrypted_data_annual': prep_for_perma_payments(account['annual_required_fields']),
+                # for updating
+                'encrypted_data_update': prep_for_perma_payments(account['update_required_fields']),
+            } for account in accounts
+        ]
     }
     return render(request, 'user_management/settings-subscription.html', context)
 
 
 @sensitive_variables()
+@require_http_methods(["POST"])
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription_cancel(request):
-    if request.user.registrar:
-        customer_pk = request.user.registrar.id
-        customer_type = request.user.registrar.customer_type
-    else:
-        customer_pk = request.user.id
-        customer_type = request.user.customer_type
+    account_type = request.POST.get('account_type', '')
+    if account_type == 'Registrar':
+        customer = request.user.registrar
+    elif account_type == 'Individual':
+        customer = request.user
     context = {
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
+        'customer': customer,
+        'customer_type': account_type,
         'data': prep_for_perma_payments({
-            'customer_pk': customer_pk,
-            'customer_type': customer_type,
+            'customer_pk': customer.id,
+            'customer_type': account_type,
             'timestamp': datetime.utcnow().timestamp()
         })
     }

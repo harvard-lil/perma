@@ -249,6 +249,7 @@ class CustomerModel(models.Model):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         return {
+            'customer': self,
             'subscription': self.get_subscription(),
             'next_monthly_payment': next_month,
             'monthly_required_fields': {
