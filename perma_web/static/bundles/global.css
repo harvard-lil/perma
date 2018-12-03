@@ -11115,6 +11115,11 @@ input {
   width: 100%;
 }
 
+.radio input,
+.radio label {
+  width: auto;
+}
+
 label {
   margin: 0;
   font-weight: 400;

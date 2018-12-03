@@ -218,19 +218,39 @@ AUTH_PASSWORD_VALIDATORS = [
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 # subscription packages
-# period, link limit, price (multiplier for customer's base rate)
 TIERS = {
     'Individual': [
-        ('monthly', 25, 1),
-        ('monthly', 100, 3.5),
-        ('monthly', 500, 15),
-        ('annually', 500, 30)
+        {
+            'period': 'monthly',
+            'link_limit': 25,
+            'rate_ratio': 1
+        },{
+            'period': 'monthly',
+            'link_limit': 100,
+            'rate_ratio': 3.5
+        },{
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 15
+        },{
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 13
+        }
     ],
     'Registrar': [
-        ('monthly', 'unlimited', 1),
-        ('annually', 'unlimited', 12),
+        {
+            'period': 'monthly',
+            'link_limit': 'unlimited',
+            'rate_ratio': 1
+        },{
+            'period': 'annually',
+            'link_limit': 'unlimited',
+            'rate_ratio': 12
+        }
     ]
 }
+
 
 # Monthly limit for regular users
 DEFAULT_CREATE_LIMIT = 10

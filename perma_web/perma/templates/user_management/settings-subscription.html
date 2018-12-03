@@ -19,18 +19,18 @@
       {% endif %}
 
       <div class="row">
-
         {% for tier in account.tiers %}
-          <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
-            {% if tier.period == 'monthly' %}
-              <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per month{% endif %}</span><br>${{ tier.required_fields.recurring_amount | intcomma }}/month<br><br>${{ tier.required_fields.amount | intcomma }} this month (prorated)</button>
-            {% elif tier.period == 'annually'%}
-               <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per year{% endif %}</span><br>${{ tier.required_fields.amount | intcomma }}/year</button>
-            {% endif %}
-            <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
-          </form>
+          {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
+            <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
+              {% if tier.period == 'monthly' %}
+                <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per month{% endif %}</span><br>${{ tier.required_fields.recurring_amount | intcomma }}/month<br><br>${{ tier.required_fields.amount | intcomma }} this month (prorated)</button>
+              {% elif tier.period == 'annually'%}
+                 <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per year{% endif %}</span><br>${{ tier.required_fields.amount | intcomma }}/year</button>
+              {% endif %}
+              <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
+            </form>
+          {% endif %}
         {% endfor %}
-
       </div>
 
     {% elif subscription.status == 'Cancellation Requested' %}
@@ -69,7 +69,7 @@
       {% if subscription.status == 'Hold' %}
         <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
 
-        <p class="page-dek">You can update payment information by clicking the button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
+        <p class="page-dek">You can update payment information by clicking the "Update Subscription" button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
       {% else %}
         <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
       {% endif %}
@@ -96,12 +96,23 @@
       <div class="row subscription-buttons">
         <div class="col-xs-12 col-md-6">
           <form method="post" action="{{ update_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="account_type" value={{ customer_type }}>
+            <button class="btn btn-primary" type="submit">
+              Update Subscription
+            </button>
+          </form>
+        </div>
+        {% comment %}
+        <div class="col-xs-12 col-md-6">
+          <form method="post" action="{{ update_url }}">
             <input type="hidden" name="encrypted_data" value={{ account.encrypted_data_for_update }}>
             <button class="btn btn-primary" type="submit">
               Update Payment Information
             </button>
           </form>
         </div>
+        {% endcomment %}
         <div class="col-xs-12 col-md-6">
           <form method="post" action="{{ cancel_confirm_url }}">
             {% csrf_token %}

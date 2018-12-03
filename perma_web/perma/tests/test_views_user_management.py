@@ -21,23 +21,26 @@ from bs4 import BeautifulSoup
 def spoof_current_monthly_subscription():
     return {
         "status": "Current",
-        "rate": "Sentinel Rate",
-        "frequency": "monthly"
+        "rate": "9999.99",
+        "frequency": "monthly",
+        "paid_through": "1970-01-21T00:00:00.000000Z"
     }
 
 def spoof_on_hold_monthly_subscription():
     return {
         "status": "Hold",
-        "rate": "Sentinel Rate",
-        "frequency": "monthly"
+        "rate": "7777.77",
+        "frequency": "monthly",
+        "paid_through": "1970-01-21T00:00:00.000000Z"
     }
 
 
 def spoof_cancellation_requested_subscription():
     return {
         "status": "Cancellation Requested",
-        "rate": "Sentinel Rate",
-        "frequency": "Sentinel Frequency"
+        "rate": "3333.33",
+        "frequency": "monthly",
+        "paid_through": "1970-01-21T00:00:00.000000Z"
     }
 
 
@@ -1021,9 +1024,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Rate', r.content)
         self.assertIn(b'Next payment', r.content)
         self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
-        self.assertIn(b'Update Payment Information', r.content)
-        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(b'Update Subscription', r.content)
+        # self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        # self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        # self.assertIn(b'Change Plan', r.content)
         self.assertIn(b'Cancel Subscription', r.content)
         get_subscription.assert_called_once_with(u.registrar)
 

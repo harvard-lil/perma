@@ -53,7 +53,7 @@ from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
-    paid_through_date_from_post,
+    pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset)
 
@@ -224,77 +224,124 @@ class CustomerModel(models.Model):
             return None
 
         # store the subscription status locally, for use if Perma Payments is unavailable
+        # and update local link limit to match Perma Payments' records
         self.cached_subscription_status = post_data['subscription']['status']
-        self.cached_paid_through = paid_through_date_from_post(post_data['subscription']['paid_through'])
-        self.save(update_fields=['cached_subscription_status', 'cached_paid_through'])
+        self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
+        if pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp']) <= timezone.now():
+            if post_data['subscription']['link_limit'] == 'unlimited':
+                self.unlimited = True
+            else:
+                self.unlimited = False
+                self.link_limit = int(post_data['subscription']['link_limit'])
+                self.link_limit_period = post_data['subscription']['frequency']
+        self.save(update_fields=['cached_subscription_status', 'cached_paid_through', 'unlimited', 'link_limit', 'link_limit_period'])
 
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
             'frequency': post_data['subscription']['frequency'],
-            'paid_through': paid_through_date_from_post(post_data['subscription']['paid_through'])
+            'paid_through': pp_date_from_post(post_data['subscription']['paid_through'])
         }
 
-    def annual_rate(self):
-        return self.base_rate * 12
+    def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
+        '''
+        Mutates the passed-in tier dictionary, adding time- and subscription-specific details.
+        '''
 
-    def prorated_first_month_cost(self, now, monthly_rate=None):
-        if monthly_rate is None:
-            monthly_rate = self.base_rate
-        days_in_month = calendar.monthrange(now.year, now.month)[1]
-        days_until_end_of_month = days_in_month - now.day
-        # add one day, to charge for today
-        return (monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
+        # Calculate when, after today, the customer will/should next be charged.
+        # Calculate what fraction of the current subscription period remains,
+        # to use when determining how much to charge them today.
+        if tier['period'] == 'monthly':
+            # monthly subscriptions are paid on the first of the next month
+            next_payment = next_month
+            days_in_month = calendar.monthrange(now.year, now.month)[1]
+            prorated_ratio = Decimal((next_payment - now).days / days_in_month)
+        elif tier['period'] == 'annually':
+            # annual subscriptions are paid on the anniversary of their creation
+            if current_subscription and subscription_is_active(current_subscription):
+                next_payment = pp_date_from_post(current_subscription['paid_through'])
+            else:
+                next_payment = next_year
+            prorated_ratio  = Decimal((next_payment - now).days / 365)  # ignore leap year
+        else:
+            raise NotImplementedError('Paid "{}" tiers not yet supported'.format(tier['frequency']))
+
+        # Customers without subscriptions may upgrade to any tier.
+        #
+        # Customers with existing subscriptions may upgrade/downgrade
+        # to another tier with the same link limit period/payment frequency.
+        #
+        # Upgrades are effective immediately. Today, customers should be
+        # charged the prorated cost of the difference between their current
+        # subscription tier and tier they are upgrading to.
+        #
+        # Downgrades are effective the next time their subscription renews.
+        # The current subscription period will not be affected: customers
+        # should not be charged today.
+        tier_rate = self.base_rate * Decimal(tier['rate_ratio'])
+        if not current_subscription:
+            tier_type = 'upgrade'
+            todays_charge = prorated_ratio * tier_rate
+        elif tier['period'] == current_subscription['frequency']:
+            current_rate = Decimal(current_subscription['rate'])
+            if tier_rate == current_rate:
+                tier_type = 'selected'
+                todays_charge = Decimal(0)
+            elif tier_rate < current_rate:
+                tier_type = 'downgrade'
+                todays_charge = Decimal(0)
+            else:
+                tier_type = 'upgrade'
+                todays_charge = prorated_ratio * (tier_rate - current_rate)
+        else:
+            tier_type = 'unavailable'
+            todays_charge = Decimal(0)
+        tier.update({
+            'type': tier_type,
+            'link_limit': str(tier['link_limit']),
+            'link_limit_effective_timestamp': now.timestamp() if tier_type == 'upgrade' else next_payment.timestamp(),
+            'todays_charge': todays_charge.quantize(Decimal('.01')),
+            'recurring_amount': "{0:.2f}".format(tier_rate),
+            'recurring_start_date': next_payment.strftime("%Y-%m-%d"),
+            'next_payment': next_payment
+        })
 
     def get_subscription_info(self, now):
         timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
+        subscription = self.get_subscription()
 
         tiers = []
 
         for tier in settings.TIERS[self.customer_type]:
-            rate = self.base_rate * Decimal(tier[2])
-            if tier[0] == 'monthly':
-                required_fields = {
-                    'customer_pk': self.pk,
-                    'customer_type': self.customer_type,
-                    'timestamp': timestamp,
-                    'recurring_frequency': "monthly",
-                    'amount': "{0:.2f}".format(self.prorated_first_month_cost(now, rate)),
-                    'recurring_amount': "{0:.2f}".format(rate),
-                    'recurring_start_date': next_month.strftime("%Y-%m-%d")
-                }
-            elif tier[0] == 'annually':
-                required_fields = {
-                    'customer_pk': self.pk,
-                    'customer_type': self.customer_type,
-                    'timestamp': timestamp,
-                    'recurring_frequency': "annually",
-                    'amount': "{0:.2f}".format(rate),
-                    'recurring_amount': "{0:.2f}".format(rate),
-                    'recurring_start_date': next_year.strftime("%Y-%m-%d")
-                }
-            else:
-                raise NotImplementedError('Paid "{}" tiers not yet supported'.format(tier[0]))
+            self.annotate_tier(tier, subscription, now, next_month, next_year)
+            required_fields = {
+                'customer_pk': self.pk,
+                'customer_type': self.customer_type,
+                'timestamp': timestamp,
+                'amount': tier['todays_charge'],
+                'recurring_amount': tier['recurring_amount'],
+                'recurring_frequency': tier['period'],
+                'recurring_start_date': tier['recurring_start_date'],
+                'link_limit': tier['link_limit'],
+                'link_limit_effective_timestamp': tier['link_limit_effective_timestamp']
+            }
             tiers.append({
-                'period': tier[0],
-                'limit': tier[1],
-                'rate': rate,
+                'type': tier['type'],
+                'period': tier['period'],
+                'limit': tier['link_limit'],
+                'rate': tier['recurring_amount'],
+                'next_payment': tier['next_payment'],
                 'required_fields': required_fields,
                 'encrypted_data': prep_for_perma_payments(required_fields)
             })
 
         return {
             'customer': self,
-            'subscription': self.get_subscription(),
+            'subscription': subscription,
             'next_monthly_payment': next_month,
-            'tiers': tiers,
-            'encrypted_data_for_update': prep_for_perma_payments({
-                'customer_pk': self.pk,
-                'customer_type': self.customer_type,
-                'timestamp': timestamp,
-            })
+            'tiers': tiers
         }
 
     @cached_property
