@@ -86,4 +86,4 @@ SUBSCRIBE_URL = '/subscribe/'
 CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'
 UPDATE_URL = '/update/'
-
+CHANGE_URL = '/change/'
