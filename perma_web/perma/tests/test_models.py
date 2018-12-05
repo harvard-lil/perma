@@ -450,7 +450,6 @@ class ModelsTestCase(PermaTestCase):
 
     def test_annotate_tier_monthly_no_subscription_first_of_month(self):
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
@@ -470,7 +469,6 @@ class ModelsTestCase(PermaTestCase):
 
     def test_annotate_tier_monthly_no_subscription_mid_month(self):
         now = GENESIS.replace(day=16)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
@@ -493,7 +491,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=31)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
@@ -568,7 +565,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -595,7 +591,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=16)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -622,7 +617,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=31)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -655,7 +649,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -682,7 +675,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=16)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -709,7 +701,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=31)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -735,7 +726,6 @@ class ModelsTestCase(PermaTestCase):
 
     def test_annotate_tier_annually_no_subscription(self):
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
@@ -760,7 +750,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -789,7 +778,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=30, month=12)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -825,7 +813,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -856,7 +843,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -885,7 +871,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=30, month=12)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
@@ -914,7 +899,6 @@ class ModelsTestCase(PermaTestCase):
         is_active.return_value = True
 
         now = GENESIS.replace(day=1)
-        timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
