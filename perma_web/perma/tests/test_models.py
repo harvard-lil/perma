@@ -965,6 +965,9 @@ class ModelsTestCase(PermaTestCase):
 
 
     def test_annual_link_limit(self):
+        '''
+        Why is this passing locally and failing on Travis?
+        '''
         u = user_with_links()
         self.assertFalse(u.unlimited)
         self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
