@@ -251,6 +251,10 @@ TIERS = {
     ]
 }
 
+# Converted to a decimal.Decimal for use; stored as a string
+# to avoid complicating environmental_settings.py
+DEFAULT_BASE_RATE = '10.00'
+DEFAULT_BASE_RATE_REGISTRAR = '50.00'
 
 # Monthly limit for regular users
 DEFAULT_CREATE_LIMIT = 10

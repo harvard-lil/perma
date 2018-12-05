@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 from django.conf import settings
 from django.urls import NoReverseMatch
+from django.utils import timezone
 
 from mock import patch, sentinel
 
@@ -14,16 +15,19 @@ from .utils import PermaTestCase
 from random import random
 import re
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 
 # Fixtures
+
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
 
 def spoof_current_monthly_subscription():
     return {
         "status": "Current",
         "rate": "9999.99",
         "frequency": "monthly",
-        "paid_through": "1970-01-21T00:00:00.000000Z"
+        "paid_through": GENESIS
     }
 
 def spoof_on_hold_monthly_subscription():
@@ -31,7 +35,7 @@ def spoof_on_hold_monthly_subscription():
         "status": "Hold",
         "rate": "7777.77",
         "frequency": "monthly",
-        "paid_through": "1970-01-21T00:00:00.000000Z"
+        "paid_through": GENESIS
     }
 
 
@@ -40,7 +44,7 @@ def spoof_cancellation_requested_subscription():
         "status": "Cancellation Requested",
         "rate": "3333.33",
         "frequency": "monthly",
-        "paid_through": "1970-01-21T00:00:00.000000Z"
+        "paid_through": GENESIS
     }
 
 
@@ -988,6 +992,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_authorized_user_can_see_subscription_page(self, get_subscription):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         assert u.can_view_subscription()
+        get_subscription.return_value = None
         self.get('user_management_settings_subscription',
                   user=u,
                   require_status_code=200)

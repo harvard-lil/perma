@@ -15,7 +15,7 @@ from perma.models import (
     most_active_org_in_time_period,
     subscription_is_active
 )
-from perma.utils import pp_date_from_post, tz_datetime
+from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month, today_next_year
 
 from .utils import PermaTestCase
 
@@ -446,25 +446,496 @@ class ModelsTestCase(PermaTestCase):
             post.reset_mock()
 
 
-    # def test_prorated_monthly_cost_full_month(self):
-    #     next_payment = "this day next month"
-    #     for customer in customers():
-    #         subscription = spoof_pp_response_subscription(customer)["subscription"]
-    #         rate = customer.base_rate * random.
-    #         cost = customer.todays_charge(GENESIS, 'monthly', rate, subscription, )
-    #         self.assertEqual(customer.base_rate, cost)
+    # check monthly tiers for customers with no subscriptions
+
+    def test_annotate_tier_monthly_no_subscription_first_of_month(self):
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = None
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'])
+            self.assertEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
 
 
-    # def test_prorated_monthly_cost_last_day_of_month(self):
-    #     for customer in customers():
-    #         cost = customer.prorated_monthly_cost(GENESIS.replace(day=31))
-    #         self.assertEqual((customer.base_rate / 31).quantize(Decimal('.01')), cost)
+    def test_annotate_tier_monthly_no_subscription_mid_month(self):
+        now = GENESIS.replace(day=16)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = None
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), (customer.base_rate * tier['rate_ratio'] / 31 * 16).quantize(Decimal('.01')))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
 
 
-    # def test_prorated_monthly_cost_mid_month(self):
-    #     for customer in customers():
-    #         cost = customer.prorated_monthly_cost(GENESIS.replace(day=16))
-    #         self.assertEqual((customer.base_rate / 31 * 16).quantize(Decimal('.01')), cost)
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_no_subscription_last_of_month(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=31)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = None
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), (customer.base_rate * tier['rate_ratio'] / 31).quantize(Decimal('.01')))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    # check upgrading/downgrading not allowed if you have a non-active subscription
+    # (for instance, on hold due to lapsed payments), whatever the tier
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_change_disallowed_with_inactive_monthly_subscription(self, is_active):
+        is_active.return_value = False
+
+        now = GENESIS.replace(day=31)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'monthly',
+            'paid_through': next_month
+        }
+
+        for customer in noncustomers():
+            for tier in settings.TIERS[customer.customer_type]:
+                customer.annotate_tier(tier, subscription, now, next_month, next_year)
+                self.assertEqual(tier['type'], 'unavailable')
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_change_disallowed_with_inactive_annual_subscription(self, is_active):
+        is_active.return_value = False
+
+        now = GENESIS.replace(day=31)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'annually',
+            'paid_through': next_year
+        }
+
+        for customer in noncustomers():
+            for tier in settings.TIERS[customer.customer_type]:
+                customer.annotate_tier(tier, subscription, now, next_month, next_year)
+                self.assertEqual(tier['type'], 'unavailable')
+
+
+
+    # check upgrade monthly tiers for customers with subscriptions
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_upgrade_first_of_month(self, is_active):
+        '''
+        Observe, if this change of recurring_amount DOES get picked up by CyberSource
+        in time for today's recurring charge, then the customer will be overcharged.
+        We would need to refund them tier['amount']. Let's hope Cybersource is
+        smart enough not to do that......
+        '''
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate']))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_upgrade_mid_month(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=16)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 31 * 16) - (Decimal(subscription['rate']) / 31 * 16)).quantize(Decimal('.01')))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_upgrade_last_of_month(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=31)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 31) - (Decimal(subscription['rate']) / 31 )).quantize(Decimal('.01')))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    # check downgrade monthly tiers for customers with subscriptions, amount and recurring not equal, amount == 0
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_downgrade_first_of_month(self, is_active):
+        '''
+        Observe, this does NOT affect the current month at all.... too late
+        to do without risking overcharging people.
+        '''
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_downgrade_mid_month(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=16)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_monthly_active_subscription_downgrade_last_of_month(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=31)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'monthly'
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'monthly',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_month)
+
+
+    # check annual tiers for customers with no subscriptions
+
+    def test_annotate_tier_annually_no_subscription(self):
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = None
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'])
+            self.assertEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], next_year)
+
+
+    # check upgrade annual tiers for customers with current subscriptions, amount and recurring not equal, amount correct
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_upgrade_same_day(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'annually',
+            'paid_through': next_year
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate']))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_upgrade_midyear(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=30, month=12)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'annually',
+            'paid_through': today_next_year(GENESIS.replace(day=1))
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 365 * 2) - (Decimal(subscription['rate']) / 365 * 2 )).quantize(Decimal('.01')))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_upgrade_on_anniversary(self, is_active):
+        '''
+        Observe, if this change of recurring_amount DOES NOT get picked up by CyberSource
+        in time for today's recurring charge, then the customer will not be charged
+        for this upgrade for a whole year LOL!
+        We'll need to manually charge them the difference between the tiers.
+        Why do I have this working the opposite way for months and years?
+        '''
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'annually',
+            'paid_through': now
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'upgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    # check downgrade annual tiers for customers with subscriptions
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_downgrade_same_day(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'annually',
+            'paid_through': next_year
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_downgrade_midyear(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=30, month=12)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'annually',
+            'paid_through': today_next_year(GENESIS.replace(day=1))
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_annually_active_subscription_downgrade_on_anniversary(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=1)
+        timestamp = now.timestamp()
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '9999.10',
+            'frequency': 'annually',
+            'paid_through': now
+
+        }
+        for customer in noncustomers():
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'downgrade')
+            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
+            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
+            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
+            self.assertEqual(tier['next_payment'], subscription['paid_through'])
 
 
     # Does this have to be tested? It's important, but.....
