@@ -103,16 +103,6 @@
             </button>
           </form>
         </div>
-        {% comment %}
-        <div class="col-xs-12 col-md-6">
-          <form method="post" action="{{ update_url }}">
-            <input type="hidden" name="encrypted_data" value={{ account.encrypted_data_for_update }}>
-            <button class="btn btn-primary" type="submit">
-              Update Payment Information
-            </button>
-          </form>
-        </div>
-        {% endcomment %}
         <div class="col-xs-12 col-md-6">
           <form method="post" action="{{ cancel_confirm_url }}">
             {% csrf_token %}

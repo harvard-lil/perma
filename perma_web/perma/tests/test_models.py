@@ -561,8 +561,7 @@ class ModelsTestCase(PermaTestCase):
         '''
         Observe, if this change of recurring_amount DOES get picked up by CyberSource
         in time for today's recurring charge, then the customer will be overcharged.
-        We would need to refund them tier['amount']. Let's hope Cybersource is
-        smart enough not to do that......
+        We would need to refund them tier['amount'].
         '''
         is_active.return_value = True
 

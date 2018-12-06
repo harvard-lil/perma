@@ -289,7 +289,7 @@ class CustomerModel(models.Model):
         if not current_subscription:
             tier_type = 'upgrade'
             todays_charge = prorated_ratio * tier_rate
-        elif not subscription_is_active(current_subscription) or tier['period'] != current_subscription['frequency']:
+        elif not current_subscription['status'] == 'Current' or tier['period'] != current_subscription['frequency']:
             tier_type = 'unavailable'
             todays_charge = Decimal(0)
         else:

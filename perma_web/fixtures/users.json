@@ -612,5 +612,30 @@
         5
       ]
     }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 19,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "test_nonpaying_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2013-06-26T00:00:00Z",
+      "first_name": "Nonpaying",
+      "last_name": "User",
+      "confirmation_code": "",
+      "root_folder": 54,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 10,
+      "organizations": [],
+      "nonpaying": true
+    }
   }
 ]

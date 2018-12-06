@@ -574,5 +574,23 @@
       "tree_id": 7,
       "level": 0
     }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 54,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 19,
+      "owned_by": 19,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 10,
+      "level": 0
+    }
   }
 ]

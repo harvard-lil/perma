@@ -24,7 +24,8 @@ from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
+
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
@@ -1095,6 +1096,8 @@ def settings_subscription_update(request):
     elif account_type == 'Individual':
         customer = request.user
     account = customer.get_subscription_info(timezone.now())
+    if not account['subscription']:
+        return HttpResponseForbidden()
     context = {
         'this_page': 'settings_subscription',
         'update_url': settings.UPDATE_URL,
