@@ -222,20 +222,16 @@ TIERS = {
     'Individual': [
         {
             'period': 'monthly',
-            'link_limit': 25,
+            'link_limit': 10,
             'rate_ratio': 1
         },{
             'period': 'monthly',
             'link_limit': 100,
-            'rate_ratio': 3.5
+            'rate_ratio': 2.5
         },{
             'period': 'monthly',
             'link_limit': 500,
-            'rate_ratio': 15
-        },{
-            'period': 'annually',
-            'link_limit': 500,
-            'rate_ratio': 13
+            'rate_ratio': 10
         }
     ],
     'Registrar': [
@@ -254,7 +250,7 @@ TIERS = {
 # Converted to a decimal.Decimal for use; stored as a string
 # to avoid complicating environmental_settings.py
 DEFAULT_BASE_RATE = '10.00'
-DEFAULT_BASE_RATE_REGISTRAR = '50.00'
+DEFAULT_BASE_RATE_REGISTRAR = '100.00'
 
 # Monthly limit for regular users
 DEFAULT_CREATE_LIMIT = 10

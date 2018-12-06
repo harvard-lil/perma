@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='registrar',
             name='base_rate',
-            field=models.DecimalField(decimal_places=2, default=Decimal('50.00'), help_text='Base rate for calculating subscription cost.', max_digits=19),
+            field=models.DecimalField(decimal_places=2, default=Decimal('100.00'), help_text='Base rate for calculating subscription cost.', max_digits=19),
         ),
         migrations.RunPython(handle_existing_users, migrations.RunPython.noop),
         migrations.RunPython(handle_existing_registrars, migrations.RunPython.noop)
