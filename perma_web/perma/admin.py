@@ -32,7 +32,7 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'unlimited', 'nonpaying', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
+    list_display = ['name', 'status', 'unlimited', 'nonpaying', 'base_rate', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
     list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
@@ -138,14 +138,14 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'unlimited', 'nonpaying', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'unlimited', 'nonpaying', 'base_rate', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active', 'unlimited', 'nonpaying', 'cached_subscription_status')
     ordering = None
     readonly_fields = ['date_joined']
-    inlines = [
-        new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
-    ]
+    # inlines = [
+    #     new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
+    # ]
     filter_horizontal = ['organizations']
 
 
