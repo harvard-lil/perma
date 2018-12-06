@@ -50,3 +50,21 @@ CACHES = {
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# subscription packages
+TIERS['Individual'] = [
+    {
+        'period': 'monthly',
+        'link_limit': 10,
+        'rate_ratio': 1
+    },{
+        'period': 'monthly',
+        'link_limit': 100,
+        'rate_ratio': 2.5
+    },{
+        'period': 'monthly',
+        'link_limit': 500,
+        'rate_ratio': 10
+    }
+]
+

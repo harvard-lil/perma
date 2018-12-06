@@ -232,6 +232,10 @@ TIERS = {
             'period': 'monthly',
             'link_limit': 500,
             'rate_ratio': 10
+        }, {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
         }
     ],
     'Registrar': [
