@@ -514,10 +514,7 @@ class ModelsTestCase(PermaTestCase):
     # check upgrading/downgrading not allowed if you have a non-active subscription
     # (for instance, on hold due to lapsed payments), whatever the tier
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_change_disallowed_with_inactive_monthly_subscription(self, is_active):
-        is_active.return_value = False
-
+    def test_annotate_tier_change_disallowed_with_inactive_monthly_subscription(self):
         now = GENESIS.replace(day=31)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
@@ -534,10 +531,7 @@ class ModelsTestCase(PermaTestCase):
                 self.assertEqual(tier['type'], 'unavailable')
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_change_disallowed_with_inactive_annual_subscription(self, is_active):
-        is_active.return_value = False
-
+    def test_annotate_tier_change_disallowed_with_inactive_annual_subscription(self):
         now = GENESIS.replace(day=31)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
@@ -556,20 +550,17 @@ class ModelsTestCase(PermaTestCase):
 
     # check upgrade monthly tiers for customers with subscriptions
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_upgrade_first_of_month(self, is_active):
+    def test_annotate_tier_monthly_active_subscription_upgrade_first_of_month(self):
         '''
         Observe, if this change of recurring_amount DOES get picked up by CyberSource
         in time for today's recurring charge, then the customer will be overcharged.
         We would need to refund them tier['amount'].
         '''
-        is_active.return_value = True
-
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'monthly'
         }
@@ -587,15 +578,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], next_month)
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_upgrade_mid_month(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_monthly_active_subscription_upgrade_mid_month(self):
         now = GENESIS.replace(day=16)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'monthly'
         }
@@ -613,15 +601,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], next_month)
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_upgrade_last_of_month(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_monthly_active_subscription_upgrade_last_of_month(self):
         now = GENESIS.replace(day=31)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'monthly'
         }
@@ -641,19 +626,16 @@ class ModelsTestCase(PermaTestCase):
 
     # check downgrade monthly tiers for customers with subscriptions, amount and recurring not equal, amount == 0
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_downgrade_first_of_month(self, is_active):
+    def test_annotate_tier_monthly_active_subscription_downgrade_first_of_month(self):
         '''
         Observe, this does NOT affect the current month at all.... too late
         to do without risking overcharging people.
         '''
-        is_active.return_value = True
-
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'monthly'
         }
@@ -671,15 +653,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], next_month)
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_downgrade_mid_month(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_monthly_active_subscription_downgrade_mid_month(self):
         now = GENESIS.replace(day=16)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'monthly'
         }
@@ -697,15 +676,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], next_month)
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_active_subscription_downgrade_last_of_month(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_monthly_active_subscription_downgrade_last_of_month(self):
         now = GENESIS.replace(day=31)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'monthly'
         }
@@ -746,15 +722,12 @@ class ModelsTestCase(PermaTestCase):
 
     # check upgrade annual tiers for customers with current subscriptions, amount and recurring not equal, amount correct
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_upgrade_same_day(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_annually_active_subscription_upgrade_same_day(self):
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
             'paid_through': next_year
@@ -774,15 +747,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], subscription['paid_through'])
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_upgrade_midyear(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_annually_active_subscription_upgrade_midyear(self):
         now = GENESIS.replace(day=30, month=12)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
             'paid_through': today_next_year(GENESIS.replace(day=1))
@@ -802,8 +772,7 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], subscription['paid_through'])
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_upgrade_on_anniversary(self, is_active):
+    def test_annotate_tier_annually_active_subscription_upgrade_on_anniversary(self):
         '''
         Observe, if this change of recurring_amount DOES NOT get picked up by CyberSource
         in time for today's recurring charge, then the customer will not be charged
@@ -811,13 +780,11 @@ class ModelsTestCase(PermaTestCase):
         We'll need to manually charge them the difference between the tiers.
         Why do I have this working the opposite way for months and years?
         '''
-        is_active.return_value = True
-
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
             'paid_through': now
@@ -839,15 +806,12 @@ class ModelsTestCase(PermaTestCase):
 
     # check downgrade annual tiers for customers with subscriptions
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_downgrade_same_day(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_annually_active_subscription_downgrade_same_day(self):
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
             'paid_through': next_year
@@ -867,15 +831,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], subscription['paid_through'])
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_downgrade_midyear(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_annually_active_subscription_downgrade_midyear(self):
         now = GENESIS.replace(day=30, month=12)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
             'paid_through': today_next_year(GENESIS.replace(day=1))
@@ -895,15 +856,12 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['next_payment'], subscription['paid_through'])
 
 
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_annually_active_subscription_downgrade_on_anniversary(self, is_active):
-        is_active.return_value = True
-
+    def test_annotate_tier_annually_active_subscription_downgrade_on_anniversary(self):
         now = GENESIS.replace(day=1)
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = {
-            'status': 'Sentinel Status',
+            'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
             'paid_through': now
