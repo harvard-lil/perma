@@ -258,7 +258,7 @@ DEFAULT_BASE_RATE_REGISTRAR = '50.00'
 
 # Monthly limit for regular users
 DEFAULT_CREATE_LIMIT = 10
-DEFAULT_CREATE_LIMIT_PERIOD = 'monthly'
+DEFAULT_CREATE_LIMIT_PERIOD = 'once'
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize

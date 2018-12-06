@@ -42,7 +42,9 @@ def paying_registrar():
     return registrar
 
 def nonpaying_user():
-    user = LinkUser()
+    user = LinkUser(
+        nonpaying=True
+    )
     user.save()
     assert user.nonpaying
     return user
@@ -445,6 +447,7 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(post.call_count, 1)
             post.reset_mock()
 
+    ### Annotating Tiers with Prices and Dates
 
     # check monthly tiers for customers with no subscriptions
 
@@ -549,7 +552,6 @@ class ModelsTestCase(PermaTestCase):
             for tier in settings.TIERS[customer.customer_type]:
                 customer.annotate_tier(tier, subscription, now, next_month, next_year)
                 self.assertEqual(tier['type'], 'unavailable')
-
 
 
     # check upgrade monthly tiers for customers with subscriptions

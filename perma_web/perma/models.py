@@ -166,7 +166,7 @@ class CustomerModel(models.Model):
     class Meta:
         abstract = True
 
-    nonpaying = models.BooleanField(default=True, help_text="Whether this customer qualifies for a free account.")
+    nonpaying = models.BooleanField(default=False, help_text="Whether this customer qualifies for a free account.")
     base_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
@@ -434,6 +434,7 @@ class Registrar(CustomerModel):
             return True
         return self.subscription_status == 'active'
 
+Registrar._meta.get_field('nonpaying').default = True
 Registrar._meta.get_field('unlimited').default = True
 Registrar._meta.get_field('base_rate').default = Decimal(settings.DEFAULT_BASE_RATE_REGISTRAR)
 

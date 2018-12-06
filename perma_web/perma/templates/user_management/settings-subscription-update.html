@@ -39,12 +39,12 @@
                     <input required type="radio" name="encrypted_data" value="{{ tier.encrypted_data }}">
                     {% if tier.period == 'monthly' %}</input>
                       {{ tier.limit }} Perma Links a month for
-                      ${{ tier.rate | intcomma }}/month<br>
-                      ${{ tier.required_fields.amount | intcomma }} this month (prorated)
+                      ${{ tier.rate | intcomma }}/month{% if tier.type == 'upgrade' %}<br>
+                      ${{ tier.required_fields.amount | intcomma }} this month (prorated){% endif %}
                     {% elif tier.period == 'annually'%}
                       {{ tier.limit }} Perma Links a year for
-                      ${{ tier.rate | intcomma }}/year<br>
-                      ${{ tier.required_fields.amount | intcomma }} this year (prorated)
+                      ${{ tier.rate | intcomma }}/year{% if tier.type == 'upgrade' %}<br>
+                      ${{ tier.required_fields.amount | intcomma }} this year (prorated){% endif %}
                     {% endif %}
                     {% if tier.type == 'downgrade' %}<br>(effective {{ tier.next_payment }}){% endif %}
                   </label>
