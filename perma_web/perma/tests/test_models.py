@@ -457,7 +457,7 @@ class ModelsTestCase(PermaTestCase):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -476,7 +476,7 @@ class ModelsTestCase(PermaTestCase):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -498,7 +498,7 @@ class ModelsTestCase(PermaTestCase):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -526,7 +526,7 @@ class ModelsTestCase(PermaTestCase):
             'paid_through': next_month
         }
 
-        for customer in noncustomers():
+        for customer in customers():
             for tier in settings.TIERS[customer.customer_type]:
                 customer.annotate_tier(tier, subscription, now, next_month, next_year)
                 self.assertEqual(tier['type'], 'unavailable')
@@ -543,7 +543,7 @@ class ModelsTestCase(PermaTestCase):
             'paid_through': next_year
         }
 
-        for customer in noncustomers():
+        for customer in customers():
             for tier in settings.TIERS[customer.customer_type]:
                 customer.annotate_tier(tier, subscription, now, next_month, next_year)
                 self.assertEqual(tier['type'], 'unavailable')
@@ -566,7 +566,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 0
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -590,7 +590,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 0
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -614,7 +614,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 0
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -644,7 +644,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 9999
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -668,7 +668,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 9999
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -692,7 +692,7 @@ class ModelsTestCase(PermaTestCase):
             'frequency': 'monthly',
             'link_limit': 9999
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'monthly',
                 'link_limit': 500,
@@ -713,7 +713,7 @@ class ModelsTestCase(PermaTestCase):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = None
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -741,7 +741,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 0
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -767,7 +767,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 0
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -800,7 +800,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 0
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -828,7 +828,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 9999
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -854,7 +854,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 9999
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
@@ -880,7 +880,7 @@ class ModelsTestCase(PermaTestCase):
             'link_limit': 9999
 
         }
-        for customer in noncustomers():
+        for customer in customers():
             tier = {
                 'period': 'annually',
                 'link_limit': 500,
