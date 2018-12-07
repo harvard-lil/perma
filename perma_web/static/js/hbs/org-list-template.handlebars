@@ -10,6 +10,6 @@
 {{/eachWithPrevious}}
 <li class="personal-links">
   <a href="#" data-folderid="{{ user_folder }}">
-    Personal Links <span class="links-remaining">{{ links_remaining }}</span>
+    Personal Links <span class="links-remaining">{{#compare links_remaining "==" 'Infinity' }}unlimited{{ else }}{{ links_remaining }}{{/compare}}</span>
   </a>
 </li>

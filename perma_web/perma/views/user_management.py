@@ -1,13 +1,14 @@
 import logging
 import itertools
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
+from django.views.decorators.http import require_http_methods
 
 from ratelimit.decorators import ratelimit
 
@@ -23,7 +24,8 @@ from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
+
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
@@ -1039,12 +1041,12 @@ def settings_tools(request):
 @sensitive_variables()
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription(request):
-    if not request.user.nonpaying:
-        customer = request.user
-    else:
-        customer = request.user.registrar
+    accounts = []
     try:
-        subscription_info = customer.get_subscription_info(datetime.utcnow())
+        if not request.user.nonpaying:
+            accounts.append(request.user.get_subscription_info(timezone.now()))
+        if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
+            accounts.append(request.user.registrar.get_subscription_info(timezone.now()))
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
@@ -1053,39 +1055,64 @@ def settings_subscription(request):
 
     context = {
         'this_page': 'settings_subscription',
-        'subscription_info': subscription_info,
-        # for subscribing
         'subscribe_url': settings.SUBSCRIBE_URL,
-        'encrypted_data_monthly': prep_for_perma_payments(subscription_info['monthly_required_fields']),
-        'encrypted_data_annual': prep_for_perma_payments(subscription_info['annual_required_fields']),
-        # for canceling
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
-        # for updating
-        'encrypted_data_update': prep_for_perma_payments(subscription_info['update_required_fields']),
-        'update_url': settings.UPDATE_URL
+        'update_url': reverse('user_management_settings_subscription_update'),
+        'accounts': accounts
     }
     return render(request, 'user_management/settings-subscription.html', context)
 
 
 @sensitive_variables()
+@require_http_methods(["POST"])
 @user_passes_test_or_403(lambda user: user.can_view_subscription())
 def settings_subscription_cancel(request):
-    if request.user.registrar:
-        customer_pk = request.user.registrar.id
-        customer_type = request.user.registrar.customer_type
-    else:
-        customer_pk = request.user.id
-        customer_type = request.user.customer_type
+    account_type = request.POST.get('account_type', '')
+    if account_type == 'Registrar':
+        customer = request.user.registrar
+    elif account_type == 'Individual':
+        customer = request.user
     context = {
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
+        'customer': customer,
+        'customer_type': account_type,
         'data': prep_for_perma_payments({
-            'customer_pk': customer_pk,
-            'customer_type': customer_type,
-            'timestamp': datetime.utcnow().timestamp()
+            'customer_pk': customer.id,
+            'customer_type': account_type,
+            'timestamp': timezone.now().timestamp()
         })
     }
     return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)
+
+
+@sensitive_variables()
+@require_http_methods(["POST"])
+@user_passes_test_or_403(lambda user: user.can_view_subscription())
+def settings_subscription_update(request):
+    account_type = request.POST.get('account_type', '')
+    if account_type == 'Registrar':
+        customer = request.user.registrar
+    elif account_type == 'Individual':
+        customer = request.user
+    account = customer.get_subscription_info(timezone.now())
+    if not account['subscription']:
+        return HttpResponseForbidden()
+    context = {
+        'this_page': 'settings_subscription',
+        'update_url': settings.UPDATE_URL,
+        'change_url': settings.CHANGE_URL,
+        'customer': customer,
+        'customer_type': account_type,
+        'account': account,
+        'can_change_tiers': any(tier['type'] != 'unavailable' for tier in account['tiers']),
+        'update_encrypted_data': prep_for_perma_payments({
+            'customer_pk': customer.id,
+            'customer_type': account_type,
+            'timestamp': timezone.now().timestamp()
+        })
+    }
+    return render(request, 'user_management/settings-subscription-update.html', context)
 
 
 @login_required

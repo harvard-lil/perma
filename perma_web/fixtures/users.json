@@ -15,7 +15,7 @@
       "latitude": 42.377,
       "longitude": -71.1167,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -35,7 +35,7 @@
       "latitude": null,
       "longitude": null,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -55,7 +55,7 @@
       "latitude": 41.3163,
       "longitude": -72.9223,
       "nonpaying": true,
-      "monthly_rate": "0.00",
+      "base_rate": "0.00",
       "link_count": 0
     }
   },
@@ -75,7 +75,7 @@
       "latitude": null,
       "longitude": null,
       "nonpaying": false,
-      "monthly_rate": "1.00",
+      "base_rate": "1.00",
       "link_count": 0
     }
   },
@@ -183,7 +183,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -207,7 +207,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -231,7 +231,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         1
       ]
@@ -257,7 +257,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -281,7 +281,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         1
       ]
@@ -307,7 +307,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         3
       ]
@@ -333,7 +333,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         3,
         4
@@ -360,7 +360,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -384,7 +384,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -408,7 +408,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         1,
         2,
@@ -437,7 +437,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         4
       ]
@@ -463,7 +463,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -487,7 +487,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -511,7 +511,7 @@
       "requested_account_type": "court",
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -535,7 +535,7 @@
       "requested_account_type": "journal",
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -559,7 +559,7 @@
       "requested_account_type": "faculty",
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -583,7 +583,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": []
     }
   },
@@ -607,10 +607,35 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "monthly_link_limit": 10,
+      "link_limit": 10,
       "organizations": [
         5
       ]
+    }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 19,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "test_nonpaying_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2013-06-26T00:00:00Z",
+      "first_name": "Nonpaying",
+      "last_name": "User",
+      "confirmation_code": "",
+      "root_folder": 54,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 10,
+      "organizations": [],
+      "nonpaying": true
     }
   }
 ]

@@ -4,99 +4,122 @@
 {% block title %} | Settings{% endblock %}
 
 {% block dashboardContent %}
-{% with subscription=subscription_info.subscription %}
-  {% if not subscription %}
-    <h2 class="body-ah">Subscribe</h2>
+{% for account in accounts %}
+  {% with subscription=account.subscription %}
+  {% with customer=account.customer %}
+  {% with customer_type=customer.customer_type %}
 
-    <p class="page-dek">Purchase a subscription{% if request.user.registrar %} for {{ request.user.registrar.name }}{% endif %}</p>
+    {% if not subscription %}
+      <h2 class="body-ah">Subscribe</h2>
 
-    <div class="row">
-
-      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-        <button><span>Monthly</span><br>${{ subscription_info.monthly_required_fields.recurring_amount | intcomma }}/month<br><br>${{ subscription_info.monthly_required_fields.amount | intcomma }} this month (prorated)</button>
-        <input type="hidden" name="encrypted_data" value={{ encrypted_data_monthly }}>
-      </form>
-
-      <form class="upgrade-form col-xs-12 col-md-6" method="post" action="{{ subscribe_url }}">
-          <button><span>Annually</span><br>${{ subscription_info.annual_required_fields.amount | intcomma }}/year</button>
-          <input type="hidden" name="encrypted_data" value={{ encrypted_data_annual }}>
-      </form>
-    </div>
-
-  {% elif subscription.status == 'Cancellation Requested' %}
-    <h2 class="body-ah _hideMobile">Cancellation Request Pending</h2>
-
-    <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
-
-    <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation.
-
-    {% if subscription.paid_through %}
-      <p class="page-dek">You will continue to be able to create unlimited Permalinks{% if request.user.registrar %} for {{ request.user.registrar.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
-    {% endif %}
-
-  {% elif subscription.status == 'Canceled' %}
-    <h2 class="body-ah">
-      {% if request.user.registrar %}
-        {{ request.user.registrar.name }}'s Subscription
+      {% if customer_type == 'Registrar' %}
+        <p class="page-dek">Purchase a subscription for {{ customer.name }}</p>
       {% else %}
-        Your Subscription
+        <p class="page-dek">Purchase a personal subscription</p>
       {% endif %}
-    </h2>
 
-    <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
-
-    <p class="page-dek">You will continue to be able to create Permalinks for {{ request.user.registrar.name }} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
-
-  {% else %}
-    <h2 class="body-ah">
-      {% if request.user.registrar %}
-        {{ request.user.registrar.name }}'s Subscription
-      {% else %}
-        Your Subscription
-      {% endif %}
-    </h2>
-
-    {% if subscription.status == 'On Hold' %}
-      <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
-
-      <p class="page-dek">You can update payment information by clicking the button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
-    {% else %}
-      <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
-    {% endif %}
-
-    <div class="row">
-      <div class="col-xs-12">
-        <dl class="dl-horizontal">
-          {% if subscription.frequency == 'monthly' %}
-            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-            <dt>Next payment:</dt><dd>{{ subscription_info.next_monthly_payment | date:"F jS, Y" }}</dd>
-          {% elif subscription.frequency == 'annually'%}
-            <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-            <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
+      <div class="row">
+        {% for tier in account.tiers %}
+          {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
+            <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
+              {% if tier.period == 'monthly' %}
+                <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per month{% endif %}</span><br>${{ tier.required_fields.recurring_amount | intcomma }}/month<br><br>${{ tier.required_fields.amount | intcomma }} this month (prorated)</button>
+              {% elif tier.period == 'annually'%}
+                 <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per year{% endif %}</span><br>${{ tier.required_fields.amount | intcomma }}/year</button>
+              {% endif %}
+              <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
+            </form>
           {% endif %}
-          <dt>Links:</dt><dd>unlimited</dd>
-        </dl>
+        {% endfor %}
       </div>
-    </div>
 
-    <div class="row subscription-buttons">
-      <div class="col-xs-12 col-md-6">
-        <form method="post" action="{{ update_url }}">
-          <input type="hidden" name="encrypted_data" value={{ encrypted_data_update }}>
-          <button class="btn btn-primary" type="submit">
-            Update Payment Information
-          </button>
-        </form>
+    {% elif subscription.status == 'Cancellation Requested' %}
+      <h2 class="body-ah _hideMobile">Cancellation Request Pending</h2>
+
+      <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
+
+      <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation.
+
+      {% if subscription.paid_through %}
+        <p class="page-dek">You will continue to be able to create Perma Links{% if customer_type == 'Registrar' %} for {{ customer.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
+      {% endif %}
+
+    {% elif subscription.status == 'Canceled' %}
+      <h2 class="body-ah">
+        {% if customer_type == 'Registrar' %}
+          {{ customer.name }}'s Subscription
+        {% else %}
+          Your {% if accounts|length > 1 %}Personal {% endif %}Subscription
+        {% endif %}
+      </h2>
+
+      <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
+
+      <p class="page-dek">You will continue to be able to create Perma Links{% if customer_type == 'Registrar' %} for {{ customer.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
+
+    {% else %}
+      <h2 class="body-ah">
+        {% if customer_type == 'Registrar' %}
+          {{ customer.name }}'s Subscription
+        {% else %}
+          Your {% if accounts|length > 1 %}Personal {% endif %}Subscription
+        {% endif %}
+      </h2>
+
+      {% if subscription.status == 'Hold' %}
+        <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
+
+        <p class="page-dek">You can update payment information by clicking the "Update Subscription" button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
+      {% else %}
+        <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
+      {% endif %}
+
+      <div class="row">
+        <div class="col-xs-12">
+          <dl class="dl-horizontal">
+            {% if subscription.frequency == 'monthly' %}
+              <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
+              <dt>Next payment:</dt><dd>{{ account.next_monthly_payment | date:"F jS, Y" }}</dd>
+            {% elif subscription.frequency == 'annually'%}
+              <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
+              <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
+            {% endif %}
+            {% if customer.unlimited %}
+              <dt>Links:</dt><dd>unlimited</dd>
+            {% else %}
+              <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
+            {% endif %}
+          </dl>
+        </div>
       </div>
-      <div class="col-xs-12 col-md-6">
-        <a href="{{ cancel_confirm_url }}" class="btn cancel" type="submit">
-          Cancel Subscription
-        </a>
+
+      <div class="row subscription-buttons">
+        <div class="col-xs-12 col-md-6">
+          <form method="post" action="{{ update_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="account_type" value={{ customer_type }}>
+            <button class="btn btn-primary" type="submit">
+              Update Subscription
+            </button>
+          </form>
+        </div>
+        <div class="col-xs-12 col-md-6">
+          <form method="post" action="{{ cancel_confirm_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="account_type" value={{ customer_type }}>
+            <button class="btn cancel" type="submit">
+              Cancel Subscription
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
 
-  {% endif %}
+    {% endif %}
 
-{% endwith %}
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+
+{% endfor %}
 {% endblock %}
 

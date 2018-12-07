@@ -46,17 +46,23 @@
           </div>
 
           {% if request.user.is_individual %}
-            {% if request.user.nonpaying %}
-               <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month.<br><a href="{% url 'contact' %}?upgrade=individual">Upgrade to unlimited Perma Links</a>.</p>
-            {% elif request.user.subscription_status == 'active' %}
-              <p id="links-remaining-message">Your <a href="{% url 'user_management_settings_subscription' %}">premium subscription</a> includes the creation of an unlimited number of Perma Links.</p>
-            {% elif request.user.subscription_status == 'problem' %}
-              <p id="links-remaining-message">Your subscription to our premium service is on hold due to a <a href="{% url 'user_management_settings_subscription' %}">problem with your credit card</a>.
-              <br> You have <span class="links-remaining">{{links_remaining}}</span> remaining free Perma Links this month. </p>
-            {% else %}
-              <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining free Perma Links this month.
-              <br><a href="{% url 'user_management_settings_subscription' %}">Activate your premium subscription</a>.</p>
-            {% endif %}
+            <p id="links-remaining-message">
+              {% if request.user.subscription_status == 'problem' %}
+                Your subscription is on hold due to a <a href="{% url 'user_management_settings_subscription' %}">problem with your credit card</a>.<br>
+              {% endif %}
+              {% if links_remaining == 'Infinity' %}
+                {% if request.user.nonpaying %}
+                  Your account has been upgraded to unlimited personal Perma Links.
+                {% else %}
+                  Your <a href="{% url 'user_management_settings_subscription' %}">subscription</a> includes the creation of unlimited Perma Links.
+                {% endif %}
+              {% else %}
+                  You have <span class="links-remaining">{{ links_remaining }}</span> remaining Perma Links{% if links_remaining_period == "monthly" %} this month{% elif links_remaining_period == "annually" %} this year{% endif %}.
+                  {% if not request.user.nonpaying and not request.user.subscription_status == 'problem' %}
+                    <br><a href="{% url 'user_management_settings_subscription' %}">Upgrade for additional Perma Links</a>
+                  {% endif %}
+              {% endif %}
+            </p>
           {% else %}
             <div id="organization_select_form">
               <span class="label-affil">This Perma Link will be affiliated with</span>
@@ -67,6 +73,13 @@
                 <ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
               </div>
             </div>
+            <p id="personal-links-banner">
+              {% if request.user.subscription_status == 'problem' %}
+                <a href="{% url 'user_management_settings_subscription' %}">Your account is on hold</a>.<br>
+              {% elif links_remaining != 'Infinity' and not request.user.nonpaying %}
+                get <a href="{% url 'user_management_settings_subscription' %}">more personal links</a>
+               {% endif %}
+            </p>
           {% endif %}
         </fieldset>
         {% if suppress_reminder != 'true' %}
@@ -146,7 +159,7 @@
 
   <script>
     var contact_url = "{% url 'contact' %}",
-        links_remaining = "{{ links_remaining }}",
+        links_remaining = Number({{ links_remaining }}),
         link_creation_allowed = {{ link_creation_allowed | yesno:"true,false" }},
         current_user = {{ request.user.as_json|safe }},
         host = "{{ request.get_host }}",

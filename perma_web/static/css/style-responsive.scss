@@ -2720,6 +2720,7 @@ figcaption + .img-responsive {
     }
   }
   #organization_select_form {
+    margin-top: $grid * 5;
     .selector-affil:disabled {
       color:$color-trans-darkgray;
 
@@ -2753,6 +2754,30 @@ figcaption + .img-responsive {
   .dropdown {
     border: 1px solid $color-trans-lightgray;
     border-radius: 2px;
+  }
+
+  #personal-links-banner {
+    margin-top: 8px;
+    margin-bottom: -16px;
+    padding-right: $grid;
+    text-align: right;
+    float: left;
+    width: 100%;
+    max-width: none;
+    font-family: $font-hed-alt;
+    font-size: 16px;
+    font-weight: 300;
+    a {
+      font-weight: normal;
+      color: $color-blue;
+      text-decoration: underline;
+      white-space: nowrap;
+      @extend .style-standard-hover;
+
+      &:hover, &:focus {
+        text-decoration: none;
+      }
+    }
   }
 }
 
@@ -2869,6 +2894,10 @@ input {
   display: block;
   font-family: $font-hed-alt;
   width: 100%;
+}
+
+.radio input, .radio label {
+  width: auto;
 }
 
 label {

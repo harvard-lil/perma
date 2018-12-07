@@ -217,8 +217,48 @@ AUTH_PASSWORD_VALIDATORS = [
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
+# subscription packages
+TIERS = {
+    'Individual': [
+        {
+            'period': 'monthly',
+            'link_limit': 10,
+            'rate_ratio': 1
+        },{
+            'period': 'monthly',
+            'link_limit': 100,
+            'rate_ratio': 2.5
+        },{
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }, {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+    ],
+    'Registrar': [
+        {
+            'period': 'monthly',
+            'link_limit': 'unlimited',
+            'rate_ratio': 1
+        },{
+            'period': 'annually',
+            'link_limit': 'unlimited',
+            'rate_ratio': 12
+        }
+    ]
+}
+
+# Converted to a decimal.Decimal for use; stored as a string
+# to avoid complicating environmental_settings.py
+DEFAULT_BASE_RATE = '10.00'
+DEFAULT_BASE_RATE_REGISTRAR = '100.00'
+
 # Monthly limit for regular users
-MONTHLY_CREATE_LIMIT = 10
+DEFAULT_CREATE_LIMIT = 10
+DEFAULT_CREATE_LIMIT_PERIOD = 'once'
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize

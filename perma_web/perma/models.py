@@ -1,6 +1,7 @@
 import calendar
 from decimal import Decimal
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import hashlib
 import io
 import json
@@ -52,7 +53,7 @@ from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
-    paid_through_date_from_post,
+    pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset)
 
@@ -61,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 ### CONSTANTS
 ACTIVE_SUBSCRIPTION_STATUSES = ['Current', 'Cancellation Requested']
-PROBLEM_SUBSCRIPTION_STATUSES = ['On Hold']
+PROBLEM_SUBSCRIPTION_STATUSES = ['Hold']
 
 FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
     'get_subscription': [
@@ -165,11 +166,11 @@ class CustomerModel(models.Model):
     class Meta:
         abstract = True
 
-    nonpaying = models.BooleanField(default=True, help_text="Whether this customer qualifies for a free account.")
-    monthly_rate =  models.DecimalField(
+    nonpaying = models.BooleanField(default=False, help_text="Whether this customer qualifies for a free account.")
+    base_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
-        default=Decimal('0.00'),
+        default=Decimal(settings.DEFAULT_BASE_RATE),
         help_text="Base rate for calculating subscription cost."
     )
     cached_subscription_status = models.CharField(
@@ -182,6 +183,9 @@ class CustomerModel(models.Model):
         null=True,
         blank=True
     )
+    unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
+    link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
+    link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
 
     @cached_property
     def customer_type(self):
@@ -220,56 +224,152 @@ class CustomerModel(models.Model):
             return None
 
         # store the subscription status locally, for use if Perma Payments is unavailable
+        # and update local link limit to match Perma Payments' records
         self.cached_subscription_status = post_data['subscription']['status']
-        self.cached_paid_through = paid_through_date_from_post(post_data['subscription']['paid_through'])
-        self.save(update_fields=['cached_subscription_status', 'cached_paid_through'])
+        self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
+        if pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp']) <= timezone.now():
+            if post_data['subscription']['link_limit'] == 'unlimited':
+                self.unlimited = True
+            else:
+                self.unlimited = False
+                self.link_limit = int(post_data['subscription']['link_limit'])
+                self.link_limit_period = post_data['subscription']['frequency']
+        self.save(update_fields=['cached_subscription_status', 'cached_paid_through', 'unlimited', 'link_limit', 'link_limit_period'])
 
         return {
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
             'frequency': post_data['subscription']['frequency'],
-            'paid_through': paid_through_date_from_post(post_data['subscription']['paid_through'])
+            'paid_through': pp_date_from_post(post_data['subscription']['paid_through']),
+            'link_limit': post_data['subscription']['link_limit']
         }
 
-    def annual_rate(self):
-        return self.monthly_rate * 12
+    def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
+        '''
+        Mutates the passed-in tier dictionary, adding time- and subscription-specific details.
+        '''
 
-    def prorated_first_month_cost(self, now):
-        days_in_month = calendar.monthrange(now.year, now.month)[1]
-        days_until_end_of_month = days_in_month - now.day
-        # add one day, to charge for today
-        return (self.monthly_rate * (days_until_end_of_month + 1) / days_in_month).quantize(Decimal('.01'))
+        # Calculate when, after today, the customer will/should next be charged.
+        # Calculate what fraction of the current subscription period remains,
+        # to use when determining how much to charge them today.
+        if tier['period'] == 'monthly':
+            # monthly subscriptions are paid on the first of the next month
+            next_payment = next_month
+            days_in_month = calendar.monthrange(now.year, now.month)[1]
+            prorated_ratio = Decimal((next_payment - now).days / days_in_month)
+        elif tier['period'] == 'annually':
+            # annual subscriptions are paid on the anniversary of their creation
+            if current_subscription:
+                # n.b. these values are nonsensical if the current subscription is not active.
+                # there is no good answer in that case.... so updating a non-active
+                # subscription is forbidden below. continuing to calculate the nonsensical values
+                # for these fields since.... that at least avoids type errors.
+                next_payment = current_subscription['paid_through']
+                prorated_ratio  = Decimal((next_payment - now).days / 365)  # ignore leap year
+            else:
+                next_payment = next_year
+                prorated_ratio  = Decimal(1)
+        else:
+            raise NotImplementedError('Paid "{}" tiers not yet supported'.format(tier['frequency']))
+
+        # Customers without subscriptions may upgrade to any tier.
+        #
+        # Customers with existing non-active subscriptions may not upgrade or downgrade.
+        #
+        # Customers with existing active subscriptions may upgrade/downgrade
+        # to another tier with the same link limit period/payment frequency.
+        #
+        # Upgrades are effective immediately. Today, customers should be
+        # charged the prorated cost of the difference between their current
+        # subscription tier and tier they are upgrading to.
+        #
+        # Downgrades are effective the next time their subscription renews.
+        # The current subscription period will not be affected: customers
+        # should not be charged today.
+        tier_rate = self.base_rate * Decimal(tier['rate_ratio'])
+        if not current_subscription:
+            tier_type = 'upgrade'
+            todays_charge = prorated_ratio * tier_rate
+        elif not current_subscription['status'] == 'Current' or tier['period'] != current_subscription['frequency']:
+            tier_type = 'unavailable'
+            todays_charge = Decimal(0)
+        else:
+            current_limit = float('Inf') if current_subscription['link_limit'] == 'unlimited' else float(current_subscription['link_limit'])
+            tier_limit = float('Inf') if tier['link_limit'] == 'unlimited' else float(tier['link_limit'])
+            current_rate = Decimal(current_subscription['rate'])
+            if tier_rate == current_rate and tier_limit == current_limit:
+                tier_type = 'selected'
+                todays_charge = Decimal(0)
+            elif tier_rate < current_rate:
+                if tier_limit >= current_limit:
+                    # This means the customer is overpaying, by today's standards.
+                    # We should not let this happen: solve by granting the user
+                    # more links for their money, via the Perma Payments admin,
+                    # when we lower our tier prices.
+                    logger.error("{} is being overcharged subsequent to new Perma subscription tiers.".format(str(self)))
+                    tier_type = 'unavailable'
+                    todays_charge = Decimal(0)
+                else:
+                    tier_type = 'downgrade'
+                    todays_charge = Decimal(0)
+            else:
+                if tier_limit <= current_limit:
+                    # This means the customer is underpaying, by today's standards.
+                    # We should not let them upgrade in the normal way.
+                    # If we don't want this to happen, we should work it out via
+                    # the Perma admin, the Perma Payments admin, and/or CyberSource Business Center
+                    tier_type = 'unavailable'
+                    todays_charge = Decimal(0)
+                else:
+                    tier_type = 'upgrade'
+                    todays_charge = prorated_ratio * (tier_rate - current_rate)
+
+        tier.update({
+            'type': tier_type,
+            'link_limit': str(tier['link_limit']),
+            'link_limit_effective_timestamp': now.timestamp() if tier_type == 'upgrade' else next_payment.timestamp(),
+            'todays_charge': "{0:.2f}".format(todays_charge.quantize(Decimal('.01'))),
+            'recurring_amount': "{0:.2f}".format(tier_rate),
+            'recurring_start_date': next_payment.strftime("%Y-%m-%d"),
+            'next_payment': next_payment
+        })
 
     def get_subscription_info(self, now):
         timestamp = now.timestamp()
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
-        return {
-            'subscription': self.get_subscription(),
-            'next_monthly_payment': next_month,
-            'monthly_required_fields': {
+        subscription = self.get_subscription()
+
+        tiers = []
+
+        for tier in settings.TIERS[self.customer_type]:
+            self.annotate_tier(tier, subscription, now, next_month, next_year)
+            required_fields = {
                 'customer_pk': self.pk,
                 'customer_type': self.customer_type,
                 'timestamp': timestamp,
-                'recurring_frequency': "monthly",
-                'amount': "{0:.2f}".format(self.prorated_first_month_cost(now)),
-                'recurring_amount': "{0:.2f}".format(self.monthly_rate),
-                'recurring_start_date': next_month.strftime("%Y-%m-%d")
-            },
-            'annual_required_fields': {
-                'customer_pk': self.pk,
-                'customer_type': self.customer_type,
-                'timestamp': timestamp,
-                'recurring_frequency': "annually",
-                'amount': "{0:.2f}".format(self.annual_rate()),
-                'recurring_amount': "{0:.2f}".format(self.annual_rate()),
-                'recurring_start_date': next_year.strftime("%Y-%m-%d")
-            },
-            'update_required_fields': {
-                'customer_pk': self.pk,
-                'customer_type': self.customer_type,
-                'timestamp': timestamp,
+                'amount': tier['todays_charge'],
+                'recurring_amount': tier['recurring_amount'],
+                'recurring_frequency': tier['period'],
+                'recurring_start_date': tier['recurring_start_date'],
+                'link_limit': tier['link_limit'],
+                'link_limit_effective_timestamp': tier['link_limit_effective_timestamp']
             }
+            tiers.append({
+                'type': tier['type'],
+                'period': tier['period'],
+                'limit': tier['link_limit'],
+                'rate': tier['recurring_amount'],
+                'next_payment': tier['next_payment'],
+                'required_fields': required_fields,
+                'encrypted_data': prep_for_perma_payments(required_fields)
+            })
+
+        return {
+            'customer': self,
+            'subscription': subscription,
+            'next_monthly_payment': next_month,
+            'tiers': tiers
         }
 
     @cached_property
@@ -288,9 +388,10 @@ class CustomerModel(models.Model):
         return None
 
     def link_creation_allowed(self):
-        if self.nonpaying:
-            return True
-        return self.subscription_status == 'active'
+        """
+        Must be implemented by children
+        """
+        raise NotImplementedError
 
 
 ### MODELS ###
@@ -344,6 +445,18 @@ class Registrar(CustomerModel):
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)
+
+    def link_creation_allowed(self):
+        # No logic yet for handling paid Registrar customers with limits:
+        # all paid-up Registrar customers get unlimited links.
+        assert self.unlimited
+        if self.nonpaying:
+            return True
+        return self.subscription_status == 'active'
+
+Registrar._meta.get_field('nonpaying').default = True
+Registrar._meta.get_field('unlimited').default = True
+Registrar._meta.get_field('base_rate').default = Decimal(settings.DEFAULT_BASE_RATE_REGISTRAR)
 
 
 class OrganizationQuerySet(QuerySet):
@@ -477,7 +590,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
-    monthly_link_limit = models.IntegerField(default=settings.MONTHLY_CREATE_LIMIT)
     notes = models.TextField(blank=True)
 
     objects = LinkUserManager()
@@ -538,12 +650,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return Organization.objects.all()
 
         return Organization.objects.none()
-
-    def get_links_remaining(self):
-        today = timezone.now()
-
-        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-        return max(self.monthly_link_limit - link_count, 0)
 
     def create_root_folder(self):
         if self.root_folder:
@@ -627,21 +733,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         return settings.CONTACT_REGISTRARS and \
                self.is_organization_user
 
-    ### subscriptions ###
-
-    def can_view_subscription(self):
-        return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
-
-    def link_creation_allowed(self):
-        """
-            Override default customer method to account for link limits
-        """
-        links_remaining = self.get_links_remaining()
-        peronal_links_allowed = links_remaining > 0
-        if self.nonpaying:
-            return peronal_links_allowed
-        return self.subscription_status == 'active' or peronal_links_allowed
-
     ### link permissions ###
 
     def can_view(self, link):
@@ -681,6 +772,57 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def can_edit_organization(self, organization):
         return self.organizations.filter(pk=organization.pk).exists()
+
+    ### subscriptions ###
+
+    def links_remaining_in_period(self, period, limit, unlimited=None):
+        today = timezone.now()
+
+        # default to the value of self.unlimited; allow callers to explicitly override
+        if unlimited is None:
+            unlimited = self.unlimited
+
+        if unlimited:
+            # UNLIMITED (paid or sponsored)
+            link_count = float("-inf")
+        elif period == 'once':
+            # TRIAL: all non-org links ever
+            link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
+        elif period == 'monthly':
+            # MONTHLY RECURRING: links this calendar month
+            link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
+        elif period == 'annually':
+            # ANNUAL RECURRING
+            # if you have a paid subscription, calculate via its expiry date
+            if self.cached_paid_through:
+                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+            # else, check the last calendar year
+            link_count = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+        else:
+            raise NotImplementedError("User's link_limit_period not yet handled.")
+        return max(limit - link_count, 0)
+
+    def get_links_remaining(self):
+        """
+            Calculate how many personal links remain.
+            Returns a tuple: (links, applicable period)
+        """
+        # Special handling for users without active paid subscriptions:
+        # apply the same rules that are applied to new users
+        if not self.nonpaying and self.subscription_status != 'active':
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
+
+    def link_creation_allowed(self):
+        return self.get_links_remaining()[0] > 0
+
+    def can_view_subscription(self):
+        """
+            Should the user be able to see the subscription page?
+            Special non-paying users should not see the option to upgrade their personal account.
+            Only authorized users should be able to see a paying registrar's subscription.
+        """
+        return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
 
 class ApiKey(models.Model):
