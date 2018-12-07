@@ -440,6 +440,7 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
             self.assertEqual(subscription, {
                 'status': response['subscription']['status'],
+                'link_limit': response['subscription']['link_limit'],
                 'rate': response['subscription']['rate'],
                 'frequency': response['subscription']['frequency'],
                 'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z')
@@ -562,7 +563,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '0.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 0
         }
         for customer in noncustomers():
             tier = {
@@ -585,7 +587,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '0.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 0
         }
         for customer in noncustomers():
             tier = {
@@ -608,7 +611,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '0.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 0
         }
         for customer in noncustomers():
             tier = {
@@ -637,7 +641,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '9999.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 9999
         }
         for customer in noncustomers():
             tier = {
@@ -660,7 +665,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '9999.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 9999
         }
         for customer in noncustomers():
             tier = {
@@ -683,7 +689,8 @@ class ModelsTestCase(PermaTestCase):
         subscription = {
             'status': 'Current',
             'rate': '9999.10',
-            'frequency': 'monthly'
+            'frequency': 'monthly',
+            'link_limit': 9999
         }
         for customer in noncustomers():
             tier = {
@@ -730,7 +737,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
-            'paid_through': next_year
+            'paid_through': next_year,
+            'link_limit': 0
 
         }
         for customer in noncustomers():
@@ -755,7 +763,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
-            'paid_through': today_next_year(GENESIS.replace(day=1))
+            'paid_through': today_next_year(GENESIS.replace(day=1)),
+            'link_limit': 0
 
         }
         for customer in noncustomers():
@@ -787,7 +796,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '0.10',
             'frequency': 'annually',
-            'paid_through': now
+            'paid_through': now,
+            'link_limit': 0
 
         }
         for customer in noncustomers():
@@ -814,7 +824,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
-            'paid_through': next_year
+            'paid_through': next_year,
+            'link_limit': 9999
 
         }
         for customer in noncustomers():
@@ -839,7 +850,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
-            'paid_through': today_next_year(GENESIS.replace(day=1))
+            'paid_through': today_next_year(GENESIS.replace(day=1)),
+            'link_limit': 9999
 
         }
         for customer in noncustomers():
@@ -864,7 +876,8 @@ class ModelsTestCase(PermaTestCase):
             'status': 'Current',
             'rate': '9999.10',
             'frequency': 'annually',
-            'paid_through': now
+            'paid_through': now,
+            'link_limit': 9999
 
         }
         for customer in noncustomers():
@@ -879,6 +892,50 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
             self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
             self.assertEqual(tier['next_payment'], subscription['paid_through'])
+
+
+    # check warnings
+
+    def test_annotate_tier_hides_more_expensive_option_from_grandfathered_customer(self):
+        now = GENESIS.replace(day=1)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        for customer in customers():
+            subscription = {
+                'status': 'Current',
+                'rate': str(customer.base_rate * 5),
+                'frequency': 'annually',
+                'paid_through': now,
+                'link_limit': 500
+            }
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 10
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'unavailable')
+
+
+    def test_annotate_tier_hides_similar_tier_from_higher_paying_customer(self):
+        now = GENESIS.replace(day=1)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        for customer in customers():
+            subscription = {
+                'status': 'Current',
+                'rate': str(customer.base_rate * 10),
+                'frequency': 'annually',
+                'paid_through': now,
+                'link_limit': 500
+            }
+            tier = {
+                'period': 'annually',
+                'link_limit': 500,
+                'rate_ratio': 5
+            }
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            self.assertEqual(tier['type'], 'unavailable')
 
 
     # Does this have to be tested? It's important, but.....

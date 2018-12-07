@@ -27,7 +27,8 @@ def spoof_current_monthly_subscription():
         "status": "Current",
         "rate": "10.00",
         "frequency": "monthly",
-        "paid_through": GENESIS
+        "paid_through": GENESIS,
+        "link_limit": 10
     }
 
 def spoof_on_hold_monthly_subscription():
@@ -35,7 +36,8 @@ def spoof_on_hold_monthly_subscription():
         "status": "Hold",
         "rate": "7777.77",
         "frequency": "monthly",
-        "paid_through": GENESIS
+        "paid_through": GENESIS,
+        "link_limit": 10
     }
 
 
@@ -44,7 +46,8 @@ def spoof_cancellation_requested_subscription():
         "status": "Cancellation Requested",
         "rate": "3333.33",
         "frequency": "monthly",
-        "paid_through": GENESIS
+        "paid_through": GENESIS,
+        "link_limit": 10
     }
 
 

@@ -240,7 +240,8 @@ class CustomerModel(models.Model):
             'status': post_data['subscription']['status'],
             'rate': post_data['subscription']['rate'],
             'frequency': post_data['subscription']['frequency'],
-            'paid_through': pp_date_from_post(post_data['subscription']['paid_through'])
+            'paid_through': pp_date_from_post(post_data['subscription']['paid_through']),
+            'link_limit': post_data['subscription']['link_limit']
         }
 
     def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
@@ -293,16 +294,35 @@ class CustomerModel(models.Model):
             tier_type = 'unavailable'
             todays_charge = Decimal(0)
         else:
+            current_limit = float('Inf') if current_subscription['link_limit'] == 'unlimited' else float(current_subscription['link_limit'])
+            tier_limit = float('Inf') if tier['link_limit'] == 'unlimited' else float(tier['link_limit'])
             current_rate = Decimal(current_subscription['rate'])
-            if tier_rate == current_rate:
+            if tier_rate == current_rate and tier_limit == current_limit:
                 tier_type = 'selected'
                 todays_charge = Decimal(0)
             elif tier_rate < current_rate:
-                tier_type = 'downgrade'
-                todays_charge = Decimal(0)
+                if tier_limit >= current_limit:
+                    # This means the customer is overpaying, by today's standards.
+                    # We should not let this happen: solve by granting the user
+                    # more links for their money, via the Perma Payments admin,
+                    # when we lower our tier prices.
+                    logger.error("{} is being overcharged subsequent to new Perma subscription tiers.".format(str(self)))
+                    tier_type = 'unavailable'
+                    todays_charge = Decimal(0)
+                else:
+                    tier_type = 'downgrade'
+                    todays_charge = Decimal(0)
             else:
-                tier_type = 'upgrade'
-                todays_charge = prorated_ratio * (tier_rate - current_rate)
+                if tier_limit <= current_limit:
+                    # This means the customer is underpaying, by today's standards.
+                    # We should not let them upgrade in the normal way.
+                    # If we don't want this to happen, we should work it out via
+                    # the Perma admin, the Perma Payments admin, and/or CyberSource Business Center
+                    tier_type = 'unavailable'
+                    todays_charge = Decimal(0)
+                else:
+                    tier_type = 'upgrade'
+                    todays_charge = prorated_ratio * (tier_rate - current_rate)
 
         tier.update({
             'type': tier_type,
