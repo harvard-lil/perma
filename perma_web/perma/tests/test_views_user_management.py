@@ -31,6 +31,20 @@ def spoof_current_monthly_subscription():
         "link_limit": 10
     }
 
+def spoof_current_monthly_subscription_with_scheduled_downgrade():
+    return {
+        "status": "Current",
+        "rate": "10.00",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": 10,
+        "pending_change": {
+            "rate": "1.00",
+            "link_limit": 1,
+            "effective": GENESIS.replace(year=9999)
+        }
+    }
+
 def spoof_on_hold_monthly_subscription():
     return {
         "status": "Hold",
@@ -1142,8 +1156,31 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, 'Update Credit Card Information')
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', 1)
         self.assertContains(r, 'Change Plan')
+        self.assertNotContains(r, 'Cancel Scheduled Downgrade')
         self.assertContains(r, '<input required type="radio" name="encrypted_data"', available_tiers)
         self.assertContains(r, str(sentinel.prepped), available_tiers + 1)
+        get_subscription.assert_called_once_with(u)
+
+
+    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_update_page_if_downgrade_scheduled(self, get_subscription, prepped, prepped_v):
+        u = LinkUser.objects.get(email='test_user@example.com')
+        subscription = spoof_current_monthly_subscription_with_scheduled_downgrade()
+        get_subscription.return_value = subscription
+        prepped.return_value = sentinel.prepped
+        prepped_v.return_value = sentinel.prepped
+
+        r = self.post('user_management_settings_subscription_update',
+                      user=u,
+                      data={'account_type':'Individual'})
+
+        self.assertContains(r, 'Update Credit Card Information')
+        self.assertContains(r, 'Cancel Scheduled Downgrade')
+        self.assertContains(r, '<input type="hidden" name="encrypted_data"', 2)
+        self.assertNotContains(r, '<input required type="radio" name="encrypted_data"')
+        self.assertContains(r, str(sentinel.prepped), 2)
         get_subscription.assert_called_once_with(u)
 
 

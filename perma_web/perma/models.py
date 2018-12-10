@@ -183,6 +183,13 @@ class CustomerModel(models.Model):
         null=True,
         blank=True
     )
+    cached_subscription_rate = models.DecimalField(
+        max_digits=19,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Local record of what the customer last paid."
+    )
     unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
     link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
     link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
@@ -224,24 +231,35 @@ class CustomerModel(models.Model):
             return None
 
         # store the subscription status locally, for use if Perma Payments is unavailable
-        # and update local link limit to match Perma Payments' records
+        # and update local link limit and rate to match Perma Payments' records
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
-        if pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp']) <= timezone.now():
+        pending_change = None
+        apply_changes_at = pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp'])
+        if apply_changes_at <= timezone.now():
+            self.link_limit_period = post_data['subscription']['frequency']
+            self.cached_subscription_rate = Decimal(post_data['subscription']['rate'])
             if post_data['subscription']['link_limit'] == 'unlimited':
                 self.unlimited = True
             else:
                 self.unlimited = False
                 self.link_limit = int(post_data['subscription']['link_limit'])
-                self.link_limit_period = post_data['subscription']['frequency']
-        self.save(update_fields=['cached_subscription_status', 'cached_paid_through', 'unlimited', 'link_limit', 'link_limit_period'])
+        else:
+            pending_change = {
+                'rate': post_data['subscription']['rate'],
+                'link_limit': post_data['subscription']['link_limit'],
+                'effective': apply_changes_at
+            }
+        self.save(update_fields=['cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
+        self.refresh_from_db()
 
         return {
-            'status': post_data['subscription']['status'],
-            'rate': post_data['subscription']['rate'],
-            'frequency': post_data['subscription']['frequency'],
-            'paid_through': pp_date_from_post(post_data['subscription']['paid_through']),
-            'link_limit': post_data['subscription']['link_limit']
+            'status': self.cached_subscription_status,
+            'frequency': self.link_limit_period,
+            'paid_through': self.cached_paid_through,
+            'rate': str(self.cached_subscription_rate),
+            'link_limit': 'unlimited' if self.unlimited else str(self.link_limit),
+            'pending_change': pending_change
         }
 
     def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
@@ -286,17 +304,25 @@ class CustomerModel(models.Model):
         # Downgrades are effective the next time their subscription renews.
         # The current subscription period will not be affected: customers
         # should not be charged today.
+        #
+        # If a customer has already scheduled a downgrade for the next
+        # subscription period, all tiers should be unavailable;
+        # the cancellation of scheduled downgrades is handled elsewhere.
         tier_rate = self.base_rate * Decimal(tier['rate_ratio'])
+
         if not current_subscription:
             tier_type = 'upgrade'
             todays_charge = prorated_ratio * tier_rate
-        elif not current_subscription['status'] == 'Current' or tier['period'] != current_subscription['frequency']:
+        elif not current_subscription['status'] == 'Current' \
+             or tier['period'] != current_subscription['frequency'] \
+             or current_subscription.get('pending_change'):
             tier_type = 'unavailable'
             todays_charge = Decimal(0)
         else:
             current_limit = float('Inf') if current_subscription['link_limit'] == 'unlimited' else float(current_subscription['link_limit'])
             tier_limit = float('Inf') if tier['link_limit'] == 'unlimited' else float(tier['link_limit'])
             current_rate = Decimal(current_subscription['rate'])
+
             if tier_rate == current_rate and tier_limit == current_limit:
                 tier_type = 'selected'
                 todays_charge = Decimal(0)
@@ -341,35 +367,59 @@ class CustomerModel(models.Model):
         subscription = self.get_subscription()
 
         tiers = []
-
-        for tier in settings.TIERS[self.customer_type]:
-            self.annotate_tier(tier, subscription, now, next_month, next_year)
+        if subscription and subscription.get('pending_change'):
+            # allow the user to effective cancel the pending change,
+            # reverting to / rescheduling whatever is on record as
+            # their "current" subscription, in Perma
             required_fields = {
                 'customer_pk': self.pk,
                 'customer_type': self.customer_type,
                 'timestamp': timestamp,
-                'amount': tier['todays_charge'],
-                'recurring_amount': tier['recurring_amount'],
-                'recurring_frequency': tier['period'],
-                'recurring_start_date': tier['recurring_start_date'],
-                'link_limit': tier['link_limit'],
-                'link_limit_effective_timestamp': tier['link_limit_effective_timestamp']
+                'amount': '0.00',
+                'recurring_amount': subscription['rate'],
+                'recurring_frequency': subscription['frequency'],
+                'recurring_start_date': subscription['paid_through'].strftime("%Y-%m-%d"),
+                'link_limit': subscription['link_limit'],
+                'link_limit_effective_timestamp': now.timestamp()
             }
             tiers.append({
-                'type': tier['type'],
-                'period': tier['period'],
-                'limit': tier['link_limit'],
-                'rate': tier['recurring_amount'],
-                'next_payment': tier['next_payment'],
+                'type': 'cancel_downgrade',
+                'period': subscription['frequency'],
+                'limit': subscription['link_limit'],
+                'rate': subscription['rate'],
+                'next_payment': subscription['paid_through'].strftime("%Y-%m-%d"),
                 'required_fields': required_fields,
                 'encrypted_data': prep_for_perma_payments(required_fields)
             })
+        else:
+            for tier in settings.TIERS[self.customer_type]:
+                self.annotate_tier(tier, subscription, now, next_month, next_year)
+                required_fields = {
+                    'customer_pk': self.pk,
+                    'customer_type': self.customer_type,
+                    'timestamp': timestamp,
+                    'amount': tier['todays_charge'],
+                    'recurring_amount': tier['recurring_amount'],
+                    'recurring_frequency': tier['period'],
+                    'recurring_start_date': tier['recurring_start_date'],
+                    'link_limit': tier['link_limit'],
+                    'link_limit_effective_timestamp': tier['link_limit_effective_timestamp']
+                }
+                tiers.append({
+                    'type': tier['type'],
+                    'period': tier['period'],
+                    'limit': tier['link_limit'],
+                    'rate': tier['recurring_amount'],
+                    'next_payment': tier['next_payment'],
+                    'required_fields': required_fields,
+                    'encrypted_data': prep_for_perma_payments(required_fields)
+                })
 
         return {
             'customer': self,
             'subscription': subscription,
             'tiers': tiers,
-            'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade'] for tier in tiers)
+            'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade', 'cancel_downgrade'] for tier in tiers)
         }
 
     @cached_property

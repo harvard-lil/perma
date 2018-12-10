@@ -37,7 +37,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
-        ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_status', 'unlimited', 'link_limit', 'link_limit_period')}),
+        ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [
