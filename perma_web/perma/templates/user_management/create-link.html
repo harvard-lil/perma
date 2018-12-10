@@ -73,7 +73,7 @@
                 <ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
               </div>
             </div>
-            <p id="personal-links-banner">
+            <p id="personal-links-banner" class="hide">
               {% if request.user.subscription_status == 'problem' %}
                 <a href="{% url 'user_management_settings_subscription' %}">Your account is on hold</a>.<br>
               {% elif links_remaining != 'Infinity' and not request.user.nonpaying %}
