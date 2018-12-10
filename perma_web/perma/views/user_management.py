@@ -1072,11 +1072,15 @@ def settings_subscription_cancel(request):
         customer = request.user.registrar
     elif account_type == 'Individual':
         customer = request.user
+    account = customer.get_subscription_info(timezone.now())
+    if not account['subscription']:
+        return HttpResponseForbidden()
     context = {
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
         'customer': customer,
         'customer_type': account_type,
+        'account': account,
         'data': prep_for_perma_payments({
             'customer_pk': customer.id,
             'customer_type': account_type,
