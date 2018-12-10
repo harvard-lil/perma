@@ -300,7 +300,7 @@ class CustomerModel(models.Model):
             if tier_rate == current_rate and tier_limit == current_limit:
                 tier_type = 'selected'
                 todays_charge = Decimal(0)
-            elif tier_rate < current_rate:
+            elif tier_rate <= current_rate:
                 if tier_limit >= current_limit:
                     # This means the customer is overpaying, by today's standards.
                     # We should not let this happen: solve by granting the user
