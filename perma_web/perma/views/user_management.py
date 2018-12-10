@@ -1105,7 +1105,7 @@ def settings_subscription_update(request):
         'customer': customer,
         'customer_type': account_type,
         'account': account,
-        'can_change_tiers': any(tier['type'] != 'unavailable' for tier in account['tiers']),
+        'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade'] for tier in account['tiers']),
         'update_encrypted_data': prep_for_perma_payments({
             'customer_pk': customer.id,
             'customer_type': account_type,
