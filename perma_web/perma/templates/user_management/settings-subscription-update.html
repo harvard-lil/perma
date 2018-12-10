@@ -6,9 +6,9 @@
 {% block dashboardContent %}
     <h2 class="body-ah">
       {% if customer_type == 'Registrar' %}
-        Update {{ customer.name }}'s Subscription
+        Modify {{ customer.name }}'s Subscription
       {% else %}
-        Update Your {% if customer.registrar %}Personal {% endif %}Subscription
+        Modify Your {% if customer.registrar %}Personal {% endif %}Subscription
       {% endif %}
     </h2>
 
