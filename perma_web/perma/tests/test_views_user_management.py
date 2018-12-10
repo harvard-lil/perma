@@ -1029,7 +1029,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Rate', r.content)
         self.assertIn(b'Next payment', r.content)
         self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
-        self.assertIn(b'Update Subscription', r.content)
+        self.assertIn(b'Modify Subscription', r.content)
         self.assertContains(r, '<input type="hidden" name="account_type"', 2)
         self.assertIn(b'Cancel Subscription', r.content)
         get_subscription.assert_called_once_with(u)
@@ -1254,7 +1254,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Rate', r.content)
         self.assertIn(b'Next payment', r.content)
         self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
-        self.assertIn(b'Update Subscription', r.content)
+        self.assertIn(b'Modify Subscription', r.content)
         self.assertContains(r, '<input type="hidden" name="account_type"', 2)
         self.assertIn(b'Cancel Subscription', r.content)
 
