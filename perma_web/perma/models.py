@@ -368,8 +368,8 @@ class CustomerModel(models.Model):
         return {
             'customer': self,
             'subscription': subscription,
-            'next_monthly_payment': next_month,
-            'tiers': tiers
+            'tiers': tiers,
+            'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade'] for tier in tiers)
         }
 
     @cached_property
