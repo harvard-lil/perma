@@ -39,6 +39,20 @@ def paying_registrar():
     )
     registrar.save()
     assert not registrar.nonpaying
+    assert registrar.unlimited
+    return registrar
+
+def paying_limited_registrar():
+    registrar = Registrar(
+        nonpaying=False,
+        cached_subscription_status="Sentinel Status",
+        cached_paid_through="1970-01-21T00:00:00.000000Z",
+        base_rate=Decimal(100.00),
+        unlimited=False
+    )
+    registrar.save()
+    assert not registrar.nonpaying
+    assert not registrar.unlimited
     return registrar
 
 def nonpaying_user():
@@ -126,6 +140,23 @@ def spoof_pp_response_subscription(customer):
 
         }
     }
+
+def spoof_pp_response_subscription_with_pending_change(customer):
+    response = {
+        "customer_pk": customer.pk,
+        "customer_type": customer.customer_type,
+        "subscription": {
+            "status": "Sentinel Status",
+            "rate": "9999.99",
+            "frequency": "Sentinel Frequency",
+            "paid_through": "9999-01-21T00:00:00.000000Z",
+            "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
+            "link_limit": "unlimited"
+
+        }
+    }
+    assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
+    return response
 
 def active_cancelled_subscription():
     return {

@@ -73,7 +73,7 @@
             {% elif subscription.frequency == 'annually'%}
               <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
             {% endif %}
-              <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
+              <dt>Paid Through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
             {% if customer.unlimited %}
               <dt>Links:</dt><dd>unlimited</dd>
             {% else %}

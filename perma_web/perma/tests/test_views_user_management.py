@@ -1027,7 +1027,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                       user=u)
 
         self.assertIn(b'Rate', r.content)
-        self.assertIn(b'Next payment', r.content)
+        self.assertIn(b'Paid Through', r.content)
         self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
         self.assertIn(b'Modify Subscription', r.content)
         self.assertContains(r, '<input type="hidden" name="account_type"', 2)
@@ -1092,9 +1092,12 @@ class UserManagementViewsTestCase(PermaTestCase):
 
 
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
-    def test_authorized_user_cancellation_confirm_form(self, prepped):
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_authorized_user_cancellation_confirm_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
         assert u.can_view_subscription()
+        subscription = spoof_current_monthly_subscription()
+        get_subscription.return_value = subscription
         prepped.return_value = sentinel.prepped
 
         r = self.post('user_management_settings_subscription_cancel',
@@ -1104,6 +1107,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
         self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
         self.assertIn(b'Are you sure you want to cancel', r.content)
+
+        get_subscription.assert_called_once_with(u)
 
 
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
@@ -1252,7 +1257,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, str(sentinel.prepped), individual_tier_count)
 
         self.assertIn(b'Rate', r.content)
-        self.assertIn(b'Next payment', r.content)
+        self.assertIn(b'Paid Through', r.content)
         self.assertIn(bytes(subscription['status'].lower(), 'utf-8'), r.content)
         self.assertIn(b'Modify Subscription', r.content)
         self.assertContains(r, '<input type="hidden" name="account_type"', 2)
@@ -1263,9 +1268,13 @@ class UserManagementViewsTestCase(PermaTestCase):
 
 
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
-    def test_allpaying_registrar_user_personal_cancellation_confirm_form(self, prepped):
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_allpaying_registrar_user_personal_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         assert u.can_view_subscription()
+        subscription = spoof_current_monthly_subscription()
+        get_subscription_u.return_value = subscription
         prepped.return_value = sentinel.prepped
 
         r = self.post('user_management_settings_subscription_cancel',
@@ -1278,11 +1287,17 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertNotIn(b'Test Firm', r.content)
         self.assertIn(b'personal', r.content)
 
+        get_subscription_u.assert_called_once_with(u)
+
 
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
-    def test_allpaying_registrar_user_institutional_cancellation_confirm_form(self, prepped):
+    @patch('perma.models.Registrar.get_subscription', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_allpaying_registrar_user_institutional_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         assert u.can_view_subscription()
+        subscription = spoof_current_monthly_subscription()
+        get_subscription_r.return_value = subscription
         prepped.return_value = sentinel.prepped
 
         r = self.post('user_management_settings_subscription_cancel',
@@ -1294,6 +1309,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Are you sure you want to cancel', r.content)
         self.assertIn(b'Test Firm', r.content)
         self.assertNotIn(b'Personal', r.content)
+
+        get_subscription_r.assert_called_once_with(u.registrar)
 
 
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
