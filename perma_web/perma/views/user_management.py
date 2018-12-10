@@ -1043,10 +1043,10 @@ def settings_tools(request):
 def settings_subscription(request):
     accounts = []
     try:
-        if not request.user.nonpaying:
-            accounts.append(request.user.get_subscription_info(timezone.now()))
         if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
             accounts.append(request.user.registrar.get_subscription_info(timezone.now()))
+        if not request.user.nonpaying:
+            accounts.append(request.user.get_subscription_info(timezone.now()))
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
