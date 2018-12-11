@@ -1043,10 +1043,10 @@ def settings_tools(request):
 def settings_subscription(request):
     accounts = []
     try:
-        if not request.user.nonpaying:
-            accounts.append(request.user.get_subscription_info(timezone.now()))
         if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
             accounts.append(request.user.registrar.get_subscription_info(timezone.now()))
+        if not request.user.nonpaying:
+            accounts.append(request.user.get_subscription_info(timezone.now()))
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_subscription',
@@ -1072,11 +1072,15 @@ def settings_subscription_cancel(request):
         customer = request.user.registrar
     elif account_type == 'Individual':
         customer = request.user
+    account = customer.get_subscription_info(timezone.now())
+    if not account['subscription']:
+        return HttpResponseForbidden()
     context = {
         'this_page': 'settings_subscription',
         'cancel_url': settings.CANCEL_URL,
         'customer': customer,
         'customer_type': account_type,
+        'account': account,
         'data': prep_for_perma_payments({
             'customer_pk': customer.id,
             'customer_type': account_type,
@@ -1105,7 +1109,6 @@ def settings_subscription_update(request):
         'customer': customer,
         'customer_type': account_type,
         'account': account,
-        'can_change_tiers': any(tier['type'] != 'unavailable' for tier in account['tiers']),
         'update_encrypted_data': prep_for_perma_payments({
             'customer_pk': customer.id,
             'customer_type': account_type,

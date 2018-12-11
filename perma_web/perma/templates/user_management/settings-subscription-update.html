@@ -6,57 +6,84 @@
 {% block dashboardContent %}
     <h2 class="body-ah">
       {% if customer_type == 'Registrar' %}
-        Update {{ customer.name }}'s Subscription
+        Modify {{ customer.name }}'s Subscription
       {% else %}
-        Update Your {% if customer.registrar %}Personal {% endif %}Subscription
+        Modify Your {% if customer.registrar %}Personal {% endif %}Subscription
       {% endif %}
     </h2>
 
-    {% if can_change_tiers %}
+    {% if account.can_change_tiers %}
       <h3 class="body-bh">Change Plan</h3>
 
       <dl>
         <dt>Current plan:</dt>
         <dd>{% if customer.unlimited %}unlimited{% else %}{{ customer.link_limit }}{% endif %} Perma Links
         {% if account.subscription.frequency == 'monthly' %}
-          a month for ${{ account.subscription.rate | intcomma }}/month
+          a month for ${{ account.subscription.rate | intcomma }}/month (paid)
         {% elif account.subscription.frequency == 'annually'%}
-          a year for ${{ account.subscription.rate | intcomma }}/year
+          a year for ${{ account.subscription.rate | intcomma }}/year (paid)
         {% endif %}
         </dd>
       </dl>
 
-      <form method="post" action="{{ change_url }}">
-        {% csrf_token %}
-        <input type="hidden" name="account_type" value={{ customer_type }}>
-        <fieldset>
-          <legend class="sr-only">Select a new plan</legend>
+      {% if account.subscription.pending_change %}
+        <dl>
+          <dt>Scheduled downgrade (effective {{ account.subscription.pending_change.effective | date:"F jS, Y" }}):</dt>
+          <dd>{{ account.subscription.pending_change.link_limit }} Perma Links
+          {% if account.subscription.frequency == 'monthly' %}
+            a month for ${{ account.subscription.pending_change.rate | intcomma }}/month
+          {% elif account.subscription.frequency == 'annually'%}
+            a year for ${{ account.subscription.pending_change.rate | intcomma }}/year
+          {% endif %}
+          </dd>
+        </dl>
+
+        <form method="post" action="{{ change_url }}">
+          <input type="hidden" name="account_type" value={{ customer_type }}>
           {% for tier in account.tiers %}
-            {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
-              <div class="form-group fg-100">
-                <div class="radio">
-                  <label>
-                    <input required type="radio" name="encrypted_data" value="{{ tier.encrypted_data }}">
-                    {% if tier.period == 'monthly' %}</input>
-                      {{ tier.limit }} Perma Links a month for
-                      ${{ tier.rate | intcomma }}/month{% if tier.type == 'upgrade' %}<br>
-                      ${{ tier.required_fields.amount | intcomma }} this month (prorated){% endif %}
-                    {% elif tier.period == 'annually'%}
-                      {{ tier.limit }} Perma Links a year for
-                      ${{ tier.rate | intcomma }}/year{% if tier.type == 'upgrade' %}<br>
-                      ${{ tier.required_fields.amount | intcomma }} this year (prorated){% endif %}
-                    {% endif %}
-                    {% if tier.type == 'downgrade' %}<br>(effective {{ tier.next_payment }}){% endif %}
-                  </label>
-                </div>
-              </div>
+            {% if tier.type == 'cancel_downgrade' %}
+              <input type="hidden" name="encrypted_data" value="{{ tier.encrypted_data }}">
             {% endif %}
           {% endfor %}
-        </fieldset>
-        <button class="btn btn-primary" type="submit">
-          Change Plan
-        </button>
-      </form>
+          <button class="btn btn-primary" type="submit">
+            Cancel Scheduled Downgrade
+          </button>
+        </form>
+
+      {% else %}
+
+        <form method="post" action="{{ change_url }}">
+          <input type="hidden" name="account_type" value={{ customer_type }}>
+          <fieldset>
+            <legend class="sr-only">Select a new plan</legend>
+            {% for tier in account.tiers %}
+              {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
+                <div class="form-group fg-100">
+                  <div class="radio">
+                    <label>
+                      <input required type="radio" name="encrypted_data" value="{{ tier.encrypted_data }}">
+                        {% if tier.period == 'monthly' %}</input>
+                          {{ tier.limit }} Perma Links a month for
+                          ${{ tier.rate | intcomma }}/month{% if tier.type == 'upgrade' %}<br>
+                          ${{ tier.required_fields.amount | intcomma }} this month (prorated){% endif %}
+                        {% elif tier.period == 'annually'%}
+                          {{ tier.limit }} Perma Links a year for
+                          ${{ tier.rate | intcomma }}/year{% if tier.type == 'upgrade' %}<br>
+                          ${{ tier.required_fields.amount | intcomma }} this year (prorated){% endif %}
+                        {% endif %}
+                        {% if tier.type == 'downgrade' %}<br>(effective {{ tier.next_payment | date:"F jS, Y" }}){% endif %}
+                    </label>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </fieldset>
+          <button class="btn btn-primary" type="submit">
+            Change Plan
+          </button>
+        </form>
+
+      {% endif %}
     {% endif %}
 
     <h3 class="body-bh">Update Credit Card Information</h3>

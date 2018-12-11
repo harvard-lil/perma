@@ -12,10 +12,11 @@
     </h2>
     <p class="page-dek">Are you sure you want to cancel
       {% if customer_type == 'Registrar' %}
-        the subscription for {{ customer.name }}?
+        the subscription for {{ customer.name }}
       {% else %}
-        your {% if customer.registrar %}personal {% endif %}subscription?
+        your {% if customer.registrar %}personal {% endif %}subscription
       {% endif %}
+      (effective {{ account.subscription.paid_through | date:"F jS, Y" }})?
     </p>
 
     <form method="post" action="{{ cancel_url }}">

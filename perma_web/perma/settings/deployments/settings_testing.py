@@ -87,3 +87,54 @@ CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'
 UPDATE_URL = '/update/'
 CHANGE_URL = '/change/'
+
+
+# lots of subscription packages, to be thorough
+TIERS = {
+    'Individual': [
+        {
+            'period': 'monthly',
+            'link_limit': 10,
+            'rate_ratio': 1
+        },{
+            'period': 'monthly',
+            'link_limit': 100,
+            'rate_ratio': 2.5
+        },{
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }, {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+    ],
+    'Registrar': [
+        {
+            'period': 'monthly',
+            'link_limit': 10,
+            'rate_ratio': 0.1
+        },{
+            'period': 'monthly',
+            'link_limit': 25,
+            'rate_ratio': 0.25
+        },{
+            'period': 'monthly',
+            'link_limit': 100,
+            'rate_ratio': 1
+        },{
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 5
+        },{
+            'period': 'monthly',
+            'link_limit': 'unlimited',
+            'rate_ratio': 10
+        },{
+            'period': 'annually',
+            'link_limit': 'unlimited',
+            'rate_ratio': 120
+        }
+    ]
+}

@@ -1,7 +1,9 @@
+from collections import defaultdict
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from django.conf import settings
+from django.test import override_settings
 from django.utils import timezone
 
 from mock import patch, sentinel
@@ -24,9 +26,15 @@ from .utils import PermaTestCase
 
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
 
+FAKE_TIERS = {
+    'Individual': [defaultdict(str) for i in range(3)],
+    'Registrar': [defaultdict(str) for i in range(3)]
+}
+
 def nonpaying_registrar():
     registrar = Registrar()
     registrar.save()
+    registrar.refresh_from_db()
     assert registrar.nonpaying
     return registrar
 
@@ -34,11 +42,28 @@ def paying_registrar():
     registrar = Registrar(
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
-        cached_paid_through="1970-01-21T00:00:00.000000Z",
+        cached_paid_through=GENESIS,
         base_rate=Decimal(100.00)
     )
     registrar.save()
+    registrar.refresh_from_db()
     assert not registrar.nonpaying
+    assert registrar.unlimited
+    return registrar
+
+def paying_limited_registrar():
+    registrar = Registrar(
+        nonpaying=False,
+        cached_subscription_status="Sentinel Status",
+        cached_paid_through=GENESIS,
+        cached_subscription_rate=Decimal(0.01),
+        base_rate=Decimal(100.00),
+        unlimited=False
+    )
+    registrar.save()
+    registrar.refresh_from_db()
+    assert not registrar.nonpaying
+    assert not registrar.unlimited
     return registrar
 
 def nonpaying_user():
@@ -46,6 +71,7 @@ def nonpaying_user():
         nonpaying=True
     )
     user.save()
+    user.refresh_from_db()
     assert user.nonpaying
     return user
 
@@ -53,10 +79,12 @@ def paying_user():
     user = LinkUser(
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
-        cached_paid_through="1970-01-21T00:00:00.000000Z",
+        cached_paid_through=GENESIS,
+        cached_subscription_rate=Decimal(0.01),
         base_rate=Decimal(100.00)
     )
     user.save()
+    user.refresh_from_db()
     assert not user.nonpaying
     return user
 
@@ -119,13 +147,30 @@ def spoof_pp_response_subscription(customer):
         "subscription": {
             "status": "Sentinel Status",
             "rate": "9999.99",
-            "frequency": "Sentinel Frequency",
+            "frequency": "sample",
             "paid_through": "1970-01-21T00:00:00.000000Z",
             "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
             "link_limit": "unlimited"
 
         }
     }
+
+def spoof_pp_response_subscription_with_pending_change(customer):
+    response = {
+        "customer_pk": customer.pk,
+        "customer_type": customer.customer_type,
+        "subscription": {
+            "status": "Sentinel Status",
+            "rate": "9999.99",
+            "frequency": "sample",
+            "paid_through": "9999-01-21T00:00:00.000000Z",
+            "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
+            "link_limit": "unlimited"
+
+        }
+    }
+    assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
+    return response
 
 def active_cancelled_subscription():
     return {
@@ -431,20 +476,50 @@ class ModelsTestCase(PermaTestCase):
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
     @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_happy_path(self, post, process):
+    def test_get_subscription_happy_path_no_change_pending(self, post, process):
         post.return_value.status_code = 200
-        for customer in customers():
+        for customer in [paying_limited_registrar(), paying_user()]:
             response = spoof_pp_response_subscription(customer)
             process.return_value = response
             subscription = customer.get_subscription()
+            customer.refresh_from_db()
             self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
             self.assertEqual(subscription, {
                 'status': response['subscription']['status'],
                 'link_limit': response['subscription']['link_limit'],
                 'rate': response['subscription']['rate'],
                 'frequency': response['subscription']['frequency'],
-                'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z')
+                'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
+                'pending_change': None
             })
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_happy_path_with_pending_change(self, post, process):
+        post.return_value.status_code = 200
+        for customer in [paying_limited_registrar(), paying_user()]:
+            response = spoof_pp_response_subscription_with_pending_change(customer)
+            process.return_value = response
+            subscription = customer.get_subscription()
+            customer.refresh_from_db()
+            self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
+            self.assertEqual(subscription, {
+                'status': response['subscription']['status'],
+                'link_limit': str(customer.link_limit),
+                'rate': str(customer.cached_subscription_rate),
+                'frequency': customer.link_limit_period,
+                'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+                'pending_change': {
+                    'rate': response['subscription']['rate'],
+                    'link_limit': response['subscription']['link_limit'],
+                    'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
+                }
+            })
+            self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
+            self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
             self.assertEqual(post.call_count, 1)
             post.reset_mock()
 
@@ -548,6 +623,26 @@ class ModelsTestCase(PermaTestCase):
                 customer.annotate_tier(tier, subscription, now, next_month, next_year)
                 self.assertEqual(tier['type'], 'unavailable')
 
+
+    @patch('perma.models.subscription_is_active', autospec=True)
+    def test_annotate_tier_change_disallowed_with_pending_downgrade(self, is_active):
+        is_active.return_value = True
+
+        now = GENESIS.replace(day=31)
+        next_month = first_day_of_next_month(now)
+        next_year = today_next_year(now)
+        subscription = {
+            'status': 'Sentinel Status',
+            'rate': '0.10',
+            'frequency': 'monthly',
+            'paid_through': next_year,
+            'pending_change': True
+        }
+
+        for customer in customers():
+            for tier in settings.TIERS[customer.customer_type]:
+                customer.annotate_tier(tier, subscription, now, next_month, next_year)
+                self.assertEqual(tier['type'], 'unavailable')
 
     # check upgrade monthly tiers for customers with subscriptions
 
@@ -938,9 +1033,56 @@ class ModelsTestCase(PermaTestCase):
             self.assertEqual(tier['type'], 'unavailable')
 
 
-    # Does this have to be tested? It's important, but.....
-    # def test_get_subscription_info(self, get_subscription):
-    #     pass
+    @override_settings(TIERS=FAKE_TIERS)
+    @patch('perma.models.LinkUser.annotate_tier', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_get_subscription_info_normal(self, get_subscription, annotate_tier):
+        now = GENESIS.replace(day=1)
+        customer = paying_user()
+        subscription = {
+            'status': 'Current',
+            'rate': str(customer.base_rate * 5),
+            'frequency': 'monthly',
+            'paid_through': now.replace(day=15),
+            'link_limit': 500
+        }
+        get_subscription.return_value = subscription
+        account = customer.get_subscription_info(now)
+        self.assertIn('customer', account)
+        self.assertEqual(subscription, account['subscription'])
+        self.assertIn('tiers', account)
+        self.assertEqual(annotate_tier.call_count, len(settings.TIERS[customer.customer_type]))
+        self.assertIn('can_change_tiers', account)
+
+    @patch('perma.models.LinkUser.annotate_tier', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    def test_get_subscription_info_downgrade_pending(self, get_subscription, annotate_tier):
+        now = GENESIS.replace(day=1)
+        customer = paying_user()
+        subscription = {
+            'status': 'Current',
+            'rate': str(customer.base_rate * 5),
+            'frequency': 'monthly',
+            'paid_through': now.replace(day=15),
+            'link_limit': 500,
+            'pending_change': {
+                'rate': str(customer.base_rate * 1),
+                'link_limit': 100,
+                'effective': now.replace(day=31)
+            }
+        }
+        get_subscription.return_value = subscription
+        account = customer.get_subscription_info(now)
+        self.assertIn('customer', account)
+        self.assertEqual(subscription, account['subscription'])
+        self.assertEqual(len(account['tiers']), 1)
+        self.assertEqual(account['tiers'][0]['limit'], subscription['link_limit'])
+        self.assertEqual(account['tiers'][0]['rate'], subscription['rate'])
+        self.assertEqual(account['tiers'][0]['required_fields']['amount'], '0.00')
+        self.assertEqual(account['tiers'][0]['required_fields']['link_limit_effective_timestamp'], now.timestamp())
+        self.assertEqual(annotate_tier.call_count, 0)
+        self.assertTrue(account['can_change_tiers'])
+
 
     def test_subscription_is_active_with_active_status(self):
         for status in ACTIVE_SUBSCRIPTION_STATUSES:
@@ -1039,7 +1181,7 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with({
             'status': 'Sentinel Status',
-            'paid_through': '1970-01-21T00:00:00.000000Z'
+            'paid_through': GENESIS
         })
 
 
@@ -1144,7 +1286,7 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with({
             'status': 'Sentinel Status',
-            'paid_through': '1970-01-21T00:00:00.000000Z'
+            'paid_through': GENESIS
         })
 
     @patch('perma.models.Registrar.get_subscription', autospec=True)

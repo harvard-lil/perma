@@ -9,8 +9,13 @@
   {% with customer=account.customer %}
   {% with customer_type=customer.customer_type %}
 
+    {% if customer_type == 'Registrar' %}
+        <h2 class="body-ah">Registrar Subscription &mdash; {{ customer.name }}</h2>
+    {% else %}
+        <h2 class="body-ah">Personal Subscription</h2>
+    {% endif %}
+
     {% if not subscription %}
-      <h2 class="body-ah">Subscribe</h2>
 
       {% if customer_type == 'Registrar' %}
         <p class="page-dek">Purchase a subscription for {{ customer.name }}</p>
@@ -34,7 +39,7 @@
       </div>
 
     {% elif subscription.status == 'Cancellation Requested' %}
-      <h2 class="body-ah _hideMobile">Cancellation Request Pending</h2>
+      <p class="page-dek"><span class="blue-text">Cancellation Request Pending</span></p>
 
       <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
 
@@ -45,53 +50,70 @@
       {% endif %}
 
     {% elif subscription.status == 'Canceled' %}
-      <h2 class="body-ah">
-        {% if customer_type == 'Registrar' %}
-          {{ customer.name }}'s Subscription
-        {% else %}
-          Your {% if accounts|length > 1 %}Personal {% endif %}Subscription
-        {% endif %}
-      </h2>
 
       <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
 
       <p class="page-dek">You will continue to be able to create Perma Links{% if customer_type == 'Registrar' %} for {{ customer.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
 
     {% else %}
-      <h2 class="body-ah">
-        {% if customer_type == 'Registrar' %}
-          {{ customer.name }}'s Subscription
-        {% else %}
-          Your {% if accounts|length > 1 %}Personal {% endif %}Subscription
-        {% endif %}
-      </h2>
 
       {% if subscription.status == 'Hold' %}
         <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
 
-        <p class="page-dek">You can update payment information by clicking the "Update Subscription" button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
+        <p class="page-dek">You can update payment information by clicking the "Modify Subscription" button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
       {% else %}
         <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
       {% endif %}
 
       <div class="row">
-        <div class="col-xs-12">
-          <dl class="dl-horizontal">
-            {% if subscription.frequency == 'monthly' %}
-              <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-              <dt>Next payment:</dt><dd>{{ account.next_monthly_payment | date:"F jS, Y" }}</dd>
-            {% elif subscription.frequency == 'annually'%}
-              <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-              <dt>Paid through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
-            {% endif %}
-            {% if customer.unlimited %}
-              <dt>Links:</dt><dd>unlimited</dd>
-            {% else %}
-              <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
-            {% endif %}
-          </dl>
-        </div>
-      </div>
+
+        {% if subscription.pending_change %}
+          <div class="col-xs-12">
+            <h3 class="body-ch">Through {{ subscription.paid_through | date:"F jS, Y" }}</h3>
+            <dl class="dl-horizontal">
+              {% if subscription.frequency == 'monthly' %}
+                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month (paid)</dd>
+              {% elif subscription.frequency == 'annually'%}
+                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year (paid)</dd>
+              {% endif %}
+              {% if customer.unlimited %}
+                <dt>Links:</dt><dd>unlimited</dd>
+              {% else %}
+                <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
+              {% endif %}
+            </dl>
+
+            <h3 class="body-ch">Beginning {{ subscription.pending_change.effective | date:"F jS, Y" }}</h3>
+            <dl class="dl-horizontal">
+              {% if subscription.frequency == 'monthly' %}
+                <dt>Rate:</dt><dd>${{ subscription.pending_change.rate | intcomma }}/month</dd>
+              {% elif subscription.frequency == 'annually'%}
+                <dt>Rate:</dt><dd>${{ subscription.pending_change.rate | intcomma }}/year</dd>
+              {% endif %}
+              {% if subscription.pending_change.link_limit == 'unlimited' %}
+                <dt>Links:</dt><dd>unlimited</dd>
+              {% else %}
+                <dt>Included Links:</dt><dd>{{ subscription.pending_change.link_limit }}</dd>
+              {% endif %}
+            </dl>
+          </div>
+        {% else %}
+          <div class="col-xs-12">
+            <dl class="dl-horizontal">
+              {% if subscription.frequency == 'monthly' %}
+                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
+              {% elif subscription.frequency == 'annually'%}
+                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
+              {% endif %}
+                <dt>Paid Through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
+              {% if customer.unlimited %}
+                <dt>Links:</dt><dd>unlimited</dd>
+              {% else %}
+                <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
+              {% endif %}
+            </dl>
+          </div>
+        {% endif %}
 
       <div class="row subscription-buttons">
         <div class="col-xs-12 col-md-6">
@@ -99,7 +121,7 @@
             {% csrf_token %}
             <input type="hidden" name="account_type" value={{ customer_type }}>
             <button class="btn btn-primary" type="submit">
-              Update Subscription
+              Modify Subscription
             </button>
           </form>
         </div>
