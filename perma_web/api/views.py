@@ -253,10 +253,10 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
     """
         Custom filter for searching links by query string.
     """
-    date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='date')      # ?date=
-    min_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='gte')   # ?min_date=
-    max_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='lte')   # ?max_date=
-    url = django_filters.CharFilter(name="submitted_url", lookup_expr='icontains')              # ?url=
+    date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='date')      # ?date=
+    min_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='gte')   # ?min_date=
+    max_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='lte')   # ?max_date=
+    url = django_filters.CharFilter(field_name="submitted_url", lookup_expr='icontains')              # ?url=
     class Meta:
         model = Link
         fields = ['url', 'date', 'min_date', 'max_date']

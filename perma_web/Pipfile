@@ -18,7 +18,7 @@ Werkzeug = "==0.11.1"
 
 
 # databases
-mysqlclient = "*"
+mysqlclient = "~=1.3.0"
 django-redis = "==4.4.3"                    # use redis as django's cache backend
 redis = "==2.10.5"                          # Needed to bind with Redis.
 sqlparse = "*"                              # for data migrations
@@ -65,7 +65,7 @@ django-storages = "*"                       # custom storage backends for Django
 
 # api
 djangorestframework = "==3.6.2"             # toolkit for building apis
-django-filter = "==1.0.2"                   # searching
+django-filter = "==1.1.0"                   # searching
 
 
 # link preservation
@@ -101,3 +101,6 @@ sauceclient = "*"                           # run functional tests in many brows
 
 [requires]
 python_version = "3.5"
+
+[pipenv]
+allow_prereleases = true
