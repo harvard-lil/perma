@@ -65,7 +65,7 @@ django-storages = "*"                       # custom storage backends for Django
 
 # api
 djangorestframework = "==3.6.2"             # toolkit for building apis
-django-filter = "==1.1.0"                   # searching
+django-filter = "*"                   # searching
 
 
 # link preservation
