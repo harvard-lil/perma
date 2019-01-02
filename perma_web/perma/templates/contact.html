@@ -11,10 +11,9 @@
   <div class="row">
     <div class="col-sm-12">
       {% if upgrade %}
-        <h1 class="page-title">Upgrade</h1>
-        <p class="page-dek">Premium Perma.cc accounts with unlimited service are available to individual users at a rate of $20 per month.</p>
-        <p class="page-dek">Organizations may qualify for free unlimited service or a discounted group rate. To find out if your organization qualifies, check out our <a href="{% url 'docs_accounts' %}">accounts page</a>.</p>
-        <p class="page-dek">To request an upgrade or more information, submit the form below, and a Perma.cc team member will be in touch shortly!</p>
+        <h1 class="page-title">Request Information For Organization</h1>
+        <p class="page-dek">Organizations may purchase unlimited Perma.cc service for their members at a discounted group rate. Certain organizations qualify for free unlimited service. To find out if your organization qualifies, check out our <a href="{% url 'docs_accounts' %}">accounts page</a>.</p>
+        <p class="page-dek">For more information, submit the form below, and a Perma.cc team member will be in touch shortly!</p>
       {% else %}
         <h1 class="page-title">Contact</h1>
         {% if request.user.is_supported_by_registrar %}
