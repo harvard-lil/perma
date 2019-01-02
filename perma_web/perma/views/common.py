@@ -222,7 +222,7 @@ def single_permalink(request, guid):
 
 def set_iframe_session_cookie(request):
     """
-    The <iframe> used for Perma Link playback serves content from WebRecorder
+    The <iframe> used for Perma Link playback serves content from Webrecorder
     and requires a WR session cookie. The cookie's value is set via a WR api
     call during Perma's `link.init_replay_for_user` and is stored in Perma's
     session data. If the iframe requests a resource without the cookie,

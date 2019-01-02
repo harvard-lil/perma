@@ -18,5 +18,5 @@ class InvalidTransmissionException(Exception):
 class PermaPaymentsCommunicationException(Exception):
     pass
 
-class WebRecorderException(Exception):
+class WebrecorderException(Exception):
     pass

@@ -35,7 +35,7 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from .exceptions import InvalidTransmissionException, WebRecorderException
+from .exceptions import InvalidTransmissionException, WebrecorderException
 
 
 logger = logging.getLogger(__name__)
@@ -464,7 +464,7 @@ def write_perma_warc_header(out_file, guid, timestamp):
 
 def make_detailed_warcinfo(filename, guid, coll_title, coll_desc, rec_title, pages):
     # #
-    # Thank you! Rhizome/WebRecorder.io/Ilya Kreymer
+    # Thank you! Rhizome/Webrecorder.io/Ilya Kreymer
     # #
 
     coll_metadata = {'type': 'collection',
@@ -552,12 +552,12 @@ def stream_warc_if_permissible(link, user):
 
 
 #
-# WebRecorder Helpers
+# Webrecorder Helpers
 #
 
 def get_wr_session(request):
     """
-    Initializes WebRecorder session or retrieves existing session.
+    Initializes Webrecorder session or retrieves existing session.
     """
     wr_username = request.session.get('wr_username')
     wr_session_cookie = request.session.get('wr_session_cookie')
@@ -588,7 +588,7 @@ def get_wr_session(request):
 
 def clear_wr_session(request):
     """
-    Clear WebRecorder session info in Perma and in WR
+    Clear Webrecorder session info in Perma and in WR
     """
     wr_username = request.session.pop('wr_username', None)
     wr_session_cookie = request.session.pop('wr_session_cookie', None)
@@ -603,7 +603,7 @@ def clear_wr_session(request):
             cookie=wr_session_cookie,
             valid_if=lambda code, data: code == 200
         )
-    except WebRecorderException:
+    except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
         logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
 
@@ -620,14 +620,14 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
             cookies={'__wr_sesh': cookie}
         )
     except requests.exceptions.RequestException as e:
-        raise WebRecorderException() from e
+        raise WebrecorderException() from e
 
     # Validate the response
     try:
         data = safe_get_response_json(response)
         assert valid_if(response.status_code, data)
     except AssertionError:
-        raise WebRecorderException("{code}: {message}".format(
+        raise WebrecorderException("{code}: {message}".format(
             code=response.status_code,
             message=str(data)
         ))

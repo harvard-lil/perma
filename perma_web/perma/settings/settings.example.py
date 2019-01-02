@@ -49,8 +49,8 @@ DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 # Likely set to localhost:8000 if you're working in a dev instance
 HOST = 'perma.cc'
 
-# If you are running an instance of WebRecorder and want Perma to
-# use WebRecorder to playback Perma Links, set this to the domain/port
+# If you are running an instance of Webrecorder and want Perma to
+# use Webrecorder to playback Perma Links, set this to the domain/port
 # WR is listening on
 PLAYBACK_HOST = 'perma-archives.com:8092'
 

@@ -49,7 +49,7 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebRecorderException
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebrecorderException
 from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
     paid_through_date_from_post,
@@ -1231,7 +1231,7 @@ class Link(DeletableModel):
         return user.can_edit(self)
 
     ###
-    ### Methods for playback via WebRecorder
+    ### Methods for playback via Webrecorder
     ###
 
     @cached_property
@@ -1246,7 +1246,7 @@ class Link(DeletableModel):
         if is_new_session or not self.uploaded_during_wr_session(wr_username, wr_session_cookie):
             try:
                 self.upload_to_wr(wr_username, wr_session_cookie)
-            except WebRecorderException:
+            except WebrecorderException:
                 clear_wr_session(request)
                 raise
         return wr_username
@@ -1259,7 +1259,7 @@ class Link(DeletableModel):
                 cookie=wr_session_cookie,
                 valid_if=lambda code, _data: code == 200 or code == 404
             )
-        except WebRecorderException:
+        except WebrecorderException:
             # Record the exception, but don't halt execution;
             # we may be able to recover by attempting to upload the link
             logger.exception('Unexpected response from GET /collection/{coll}?user={user}'.format(user=wr_username, coll=self.wr_collection_slug))
@@ -1268,7 +1268,7 @@ class Link(DeletableModel):
 
     def upload_to_wr(self, wr_username, wr_session_cookie):
         """
-        Upload warc and cdxlines to WebRecorder to a temporary, per-user "collection" for playback
+        Upload warc and cdxlines to Webrecorder to a temporary, per-user "collection" for playback
         """
 
         # Create the temporary collection
