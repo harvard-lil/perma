@@ -102,7 +102,7 @@ def user_with_links():
     today = now.replace(day=5)
     earlier_this_month = today.replace(day=1)
     last_calendar_year = today - relativedelta(years=1)
-    within_the_last_year = now - relativedelta(months=6)
+    within_the_last_year = today - relativedelta(months=6)
     over_a_year_ago = today - relativedelta(years=1, days=2)
     three_years_ago = today - relativedelta(years=3)
     links = [
@@ -1124,12 +1124,12 @@ class ModelsTestCase(PermaTestCase):
 
     def test_annual_link_limit(self):
         '''
-        Why is this passing locally and failing on Travis?
+        How was this ever passing with 4/3?
         '''
         u = user_with_links()
         self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
-        self.assertEqual(u.links_remaining_in_period('annually', 3), 0)
+        self.assertEqual(u.links_remaining_in_period('annually', 5), 1)
+        self.assertEqual(u.links_remaining_in_period('annually', 4), 0)
 
 
     def test_unlimited_user_link_limit(self):
