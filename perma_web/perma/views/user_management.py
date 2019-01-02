@@ -1363,11 +1363,6 @@ def sign_up(request):
         form = UserForm(request.POST)
         if form.is_valid():
             new_user = form.save()
-            upgrade = request.POST.get('upgrade', None)
-            if upgrade:
-                new_user.requested_account_type = 'premium'
-                email_premium_request(request, new_user)
-                messages.add_message(request, messages.INFO, "We will be in touch shortly with more information about upgrading to our premium, unlimited service.")
             email_new_user(request, new_user)
             return HttpResponseRedirect(reverse('register_email_instructions'))
     else:
