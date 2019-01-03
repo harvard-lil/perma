@@ -41,8 +41,8 @@
       <h3 class="body-bh">Network of registrars</h3>
       <p class="body-text">We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma for its local community of scholars and journals.</p>
 
-      <h3 class="body-bh">Free and easy to use</h3>
-      <p class="body-text">Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
+      <h3 class="body-bh">Free for academics</h3>
+      <p class="body-text">Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc. We now can offer registrar status to non-academic libraries via a paid subscription.</p>
       {% if not request.user.pending_registrar and not request.user.is_registrar_user %}
         <h3 class="body-bh">Join our library network</h3>
         <p class="body-text">If your library isn’t a member yet and would like to join, please fill out the form on this page to request a registrar account.</p>
