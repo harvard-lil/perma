@@ -642,10 +642,15 @@ def safe_get_response_json(response):
     return data
 
 
-def set_options_headers(request, response):
+def set_options_headers(request, response, always_set_allowed_origin=False):
     origin = request.META.get('HTTP_ORIGIN')
     origin_host = settings.PLAYBACK_HOST
     target_host = settings.HOST
+
+    # always set access-control-allow-origin if requested
+    if always_set_allowed_origin and origin_host:
+        expected_origin = request.scheme + '://' + origin_host
+        response['Access-Control-Allow-Origin'] = expected_origin
 
     # no origin, not using cors
     if not origin:

@@ -412,6 +412,7 @@ def robots_txt(request):
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
 
 
+@csrf_exempt
 def archive_error(request):
     """
     Replay content not found error page
@@ -436,8 +437,7 @@ def archive_error(request):
 
     # even if not setting full headers (eg. if Origin is not set)
     # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
-    if not set_options_headers(request, response):
-        response['Access-Control-Allow-Origin'] = settings.PLAYBACK_HOST
+    res = set_options_headers(request, response, always_set_allowed_origin=True)
 
     return response
 
