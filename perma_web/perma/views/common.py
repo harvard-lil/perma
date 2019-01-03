@@ -314,12 +314,12 @@ def contact(request):
         message = request.GET.get('message', '')
 
         upgrade = request.GET.get('upgrade', '')
-        if upgrade:
+        if upgrade == 'organization' :
             subject = 'Upgrade to Unlimited Account'
-            if upgrade == 'organization':
-                message = "My organization is interested in a subscription to Perma.cc."
-            else:
-                message = "I am interested in upgrading to an unlimited Perma.cc account."
+            message = "My organization is interested in a subscription to Perma.cc."
+        else:
+            # all other values of `upgrade` are disallowed
+            upgrade = None
 
         flagged_archive_guid = request.GET.get('flag', '')
         if flagged_archive_guid:

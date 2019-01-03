@@ -24,11 +24,6 @@
       <form method="post" action="">
         {% csrf_token %}
         {% include "includes/fieldset.html" %}
-          <div class="body-text"><div class="checkbox">
-            <label>
-              <input id="upgrade" name="upgrade" type="checkbox"> I'm interested in upgrading to a premium, unlimited account.
-            </label>
-          </div></div>
         <p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
         <button type="submit" class="btn">Create account</button>
       </form>
