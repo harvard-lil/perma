@@ -55,7 +55,7 @@ from .utils import (tz_datetime, protocol,
     paid_through_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset,
-    get_wr_session, clear_wr_session, query_wr_api)
+    get_wr_session, clear_wr_session, query_wr_api, get_wr_uploaded, set_wr_uploaded)
 
 
 logger = logging.getLogger(__name__)
@@ -1243,32 +1243,19 @@ class Link(DeletableModel):
 
     def init_replay_for_user(self, request):
         wr_username, wr_session_cookie, is_new_session = get_wr_session(request)
-        if is_new_session or not self.uploaded_during_wr_session(wr_username, wr_session_cookie):
+        if is_new_session or not get_wr_uploaded(request, self.wr_collection_slug):
             try:
                 self.upload_to_wr(wr_username, wr_session_cookie)
+                set_wr_uploaded(request, self.wr_collection_slug)
             except WebrecorderException:
                 clear_wr_session(request)
                 raise
         return wr_username
 
-    def uploaded_during_wr_session(self, wr_username, wr_session_cookie):
-        try:
-            res, _data = query_wr_api(
-                method='get',
-                path='/collection/{coll}?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
-                cookie=wr_session_cookie,
-                valid_if=lambda code, _data: code == 200 or code == 404
-            )
-        except WebrecorderException:
-            # Record the exception, but don't halt execution;
-            # we may be able to recover by attempting to upload the link
-            logger.exception('Unexpected response from GET /collection/{coll}?user={user}'.format(user=wr_username, coll=self.wr_collection_slug))
-            return False
-        return res.status_code == 200
-
     def upload_to_wr(self, wr_username, wr_session_cookie):
         """
-        Upload warc and cdxlines to Webrecorder to a temporary, per-user "collection" for playback
+        Upload warc to a temporary Webrecorder per-user collection for playback
+        (The collection is unique per user and per GUID)
         """
 
         # Create the temporary collection
@@ -1280,28 +1267,38 @@ class Link(DeletableModel):
             valid_if=lambda code, data: code == 200 or (code == 400 and data == {'error': 'duplicate_name'})
         )
 
-        # Add the warc
-        # TODO: pass warc file to WR, rather than pass a path
-        # (this only works with local file storage)
-        # (get_archive_path in pywb_config.py is misleading: its not presently in use for retrieving warcs)
-        warc = self.warc_storage_file()
-        query_wr_api(
-            method='put',
-            path='/collection/{coll}/warc?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
-            json={'warcs': {warc: 'file://{}/{}'.format(default_storage.path(''), warc)}},
-            cookie=wr_session_cookie,
-            valid_if=lambda code, data: code == 200 and (data.get('success') and data.get('success') == 1)
-        )
+        warc_path = self.warc_storage_file()
+        upload_data = None
+        start_time = time.time()
 
-        # Add the cdxlines
-        lines = CDXLine.objects.filter(link_id=self.guid)
-        query_wr_api(
-            method='put',
-            path='/collection/{coll}/cdx?user={user}'.format(user=wr_username, coll=self.wr_collection_slug),
-            data=''.join(line.raw for line in lines).encode('utf-8'),
-            cookie=wr_session_cookie,
-            valid_if=lambda code, data: code == 200 and (data.get('success') and data.get('success') == lines.count())
-        )
+        with default_storage.open(warc_path, 'rb') as warc_file:
+            _, upload_data = query_wr_api(
+                method='put',
+                path='/upload?force-coll={coll}&filename={coll}.warc.gz'.format(coll=self.wr_collection_slug),
+                data=warc_file,
+                cookie=wr_session_cookie,
+                valid_if=lambda code, data: code == 200 and data.get('upload_id')
+            )
+
+        # wait for WR to finish uploading the WARC
+        while True:
+            try:
+                query_wr_api(
+                    method='get',
+                    path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
+                    cookie=wr_session_cookie,
+                    valid_if=lambda code, data: code == 200 and data.get('done'))
+
+                # successfully uploaded if reached here
+                return
+
+            except WebrecorderException as e:
+                time.sleep(0.5)
+                # if all uploaded (size == total_size), but not yet done after
+                # timeout, likely something is wrong, so raise exception
+                if ((upload_data.get('total_size') == upload_data.get('size')) and
+                    (time.time() - start_time) > settings.WR_REPLAY_UPLOAD_TIMEOUT):
+                    raise
 
 
 class Capture(models.Model):

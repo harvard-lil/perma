@@ -593,6 +593,10 @@ def clear_wr_session(request):
     wr_username = request.session.pop('wr_username', None)
     wr_session_cookie = request.session.pop('wr_session_cookie', None)
 
+    for key in list(request.session.keys()):
+        if key.startswith('wr_uploaded:'):
+                request.session.pop(key, None)
+
     if not wr_username or not wr_session_cookie:
         return
 
@@ -606,6 +610,21 @@ def clear_wr_session(request):
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
         logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
+
+
+def set_wr_uploaded(request, link):
+    """
+    Mark a link id/collection slug as having been uploaded
+    """
+    request.session['wr_uploaded:' + link] = True
+
+
+def get_wr_uploaded(request, link):
+    """
+    Mark a link id/collection slug as having been uploaded
+    """
+    return request.session.get('wr_uploaded:' + link)
+
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):

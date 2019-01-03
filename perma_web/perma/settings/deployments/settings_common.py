@@ -424,8 +424,19 @@ PLAYBACK_HOST = HOST
 #
 # Webrecorder Playback
 #
-WR_INTERNAL_API_HOST = 'http://nginx'
-WR_API = WR_INTERNAL_API_HOST + '/api/v1'
+# Use 'http://nginx' if running on same docker instance
+WEBRECORDER_HOST = 'http://nginx'
+
+# Or, external webrecorder host if WR is on remote machine and/or
+# not running perma in Docker, eg:
+#WEBRECORDER_HOST = 'http://remote-webrecorder-host/
+
+WR_API = WEBRECORDER_HOST + '/api/v1'
+
+# Time (in seconds) to wait for upload to finalize
+# after data fully uploaded to Webreccorder
+# Or, assume error if upload not done after this many seconds
+WR_REPLAY_UPLOAD_TIMEOUT = 20
 
 # circumventing cloudflare's caching policy
 # using different route for timegate
