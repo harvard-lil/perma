@@ -463,10 +463,11 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
 
     logger.info("BEGIN: ping_all_users")
 
-    # load all current Perma users
-    users = LinkUser.objects.filter(is_confirmed=True, is_active=True)
+    # load desired Perma users
     if limit_to:
-        users = users.filter(id__in=limit_to.split(";"))
+        users = LinkUser.objects.filter(id__in=limit_to.split(";"))
+    else:
+        users = LinkUser.objects.filter(is_confirmed=True, is_active=True)
     if exclude:
         users = users.exclude(id__in=exclude.split(";"))
 
