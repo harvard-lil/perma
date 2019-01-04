@@ -100,14 +100,12 @@ def user_with_links():
     user.save()
     today = timezone.now()
     earlier_this_month = today.replace(day=1)
-    last_calendar_year = today - relativedelta(years=1)
     within_the_last_year = today - relativedelta(months=6)
     over_a_year_ago = today - relativedelta(years=1, days=2)
     three_years_ago = today - relativedelta(years=3)
     links = [
         Link(creation_timestamp=today, guid="AAAA-AAAA", created_by=user),
         Link(creation_timestamp=earlier_this_month, guid="BBBB-BBBB", created_by=user),
-        Link(creation_timestamp=last_calendar_year, guid="CCCC-CCCC", created_by=user),
         Link(creation_timestamp=within_the_last_year, guid="DDDD-DDDDD", created_by=user),
         Link(creation_timestamp=over_a_year_ago, guid="EEEE-EEEE", created_by=user),
         Link(creation_timestamp=three_years_ago, guid="FFFF-FFFF", created_by=user),
@@ -1110,8 +1108,8 @@ class ModelsTestCase(PermaTestCase):
     def test_one_time_link_limit(self):
         u = user_with_links()
         self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('once', 7), 1)
-        self.assertEqual(u.links_remaining_in_period('once', 6), 0)
+        self.assertEqual(u.links_remaining_in_period('once', 6), 1)
+        self.assertEqual(u.links_remaining_in_period('once', 5), 0)
 
 
     def test_monthly_link_limit(self):

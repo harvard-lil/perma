@@ -847,8 +847,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             if self.cached_paid_through:
                 link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
             # else, check the last 365 days
-            links = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None)
-            link_count = links.count()
+            link_count = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
             print(links.all())
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
