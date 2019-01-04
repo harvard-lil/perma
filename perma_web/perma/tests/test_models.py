@@ -98,8 +98,7 @@ def user_with_links():
     # a user with 6 links, made at intervals
     user = LinkUser()
     user.save()
-    now = timezone.now()
-    today = now.replace(day=5)
+    today = timezone.now()
     earlier_this_month = today.replace(day=1)
     last_calendar_year = today - relativedelta(years=1)
     within_the_last_year = today - relativedelta(months=6)
