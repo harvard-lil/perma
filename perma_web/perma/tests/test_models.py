@@ -98,17 +98,14 @@ def user_with_links():
     # a user with 6 links, made at intervals
     user = LinkUser()
     user.save()
-    now = timezone.now()
-    today = now.replace(day=5)
+    today = timezone.now()
     earlier_this_month = today.replace(day=1)
-    last_calendar_year = today - relativedelta(years=1)
     within_the_last_year = today - relativedelta(months=6)
     over_a_year_ago = today - relativedelta(years=1, days=2)
     three_years_ago = today - relativedelta(years=3)
     links = [
         Link(creation_timestamp=today, guid="AAAA-AAAA", created_by=user),
         Link(creation_timestamp=earlier_this_month, guid="BBBB-BBBB", created_by=user),
-        Link(creation_timestamp=last_calendar_year, guid="CCCC-CCCC", created_by=user),
         Link(creation_timestamp=within_the_last_year, guid="DDDD-DDDDD", created_by=user),
         Link(creation_timestamp=over_a_year_ago, guid="EEEE-EEEE", created_by=user),
         Link(creation_timestamp=three_years_ago, guid="FFFF-FFFF", created_by=user),
@@ -1111,8 +1108,8 @@ class ModelsTestCase(PermaTestCase):
     def test_one_time_link_limit(self):
         u = user_with_links()
         self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('once', 7), 1)
-        self.assertEqual(u.links_remaining_in_period('once', 6), 0)
+        self.assertEqual(u.links_remaining_in_period('once', 6), 1)
+        self.assertEqual(u.links_remaining_in_period('once', 5), 0)
 
 
     def test_monthly_link_limit(self):
@@ -1123,13 +1120,10 @@ class ModelsTestCase(PermaTestCase):
 
 
     def test_annual_link_limit(self):
-        '''
-        How was this ever passing with 4/3?
-        '''
         u = user_with_links()
         self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('annually', 5), 1)
-        self.assertEqual(u.links_remaining_in_period('annually', 4), 0)
+        self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
+        self.assertEqual(u.links_remaining_in_period('annually', 3), 0)
 
 
     def test_unlimited_user_link_limit(self):

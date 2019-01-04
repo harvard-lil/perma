@@ -846,7 +846,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             # if you have a paid subscription, calculate via its expiry date
             if self.cached_paid_through:
                 link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
-            # else, check the last calendar year
+            # else, check the last 365 days
             link_count = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
