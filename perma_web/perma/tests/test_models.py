@@ -1122,13 +1122,10 @@ class ModelsTestCase(PermaTestCase):
 
 
     def test_annual_link_limit(self):
-        '''
-        How was this ever passing with 4/3?
-        '''
         u = user_with_links()
         self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('annually', 5), 1)
-        self.assertEqual(u.links_remaining_in_period('annually', 4), 0)
+        self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
+        self.assertEqual(u.links_remaining_in_period('annually', 3), 0)
 
 
     def test_unlimited_user_link_limit(self):
