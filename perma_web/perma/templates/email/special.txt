@@ -1,3 +1,5 @@
+TITLE: Introducing Individual Account Subscription Tiers for Perma
+
 Dear Perma.cc users:
 
 This year we'll be launching a series of enhancements to improve Perma account administration and sustain our ability to offer the Perma service to those outside the academic community.
