@@ -5,13 +5,24 @@ from __future__ import unicode_literals
 from django.db import migrations
 
 
-def grant_ten_bonus_links(apps, schema_editor):
+def grant_up_to_ten_bonus_links(apps, schema_editor):
     """
-    All active LinkUsers should be awarded 10 bonus links
+    All LinkUsers should be allowed to create at least 10 more Personal Links.
     """
     LinkUser = apps.get_model('perma', 'LinkUser')
+    Link = apps.get_model('perma', 'Link')
     active_users = LinkUser.objects.filter(is_confirmed=True, is_active=True)
-    active_users.update(bonus_links_remaining=10)
+    for user in active_users.iterator():
+        # If users have fewer than 10 links left, 'once', top them up with bonus links
+        #
+        # N.B. model methods are not available within migrations.
+        # This logic replicates user.links_remaining_in_period('once', 10)
+        link_count = Link.objects.filter(created_by_id=user.id, organization_id=None).count()
+        links_remaining = max(10 - link_count, 0)
+        need_to_top_off = 10 - links_remaining
+        if need_to_top_off:
+            user.bonus_links_remaining = need_to_top_off
+            user.save(update_fields=['bonus_links_remaining'])
 
 
 def zero_out_bonus_links(apps, schema_editor):
@@ -27,5 +38,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(grant_ten_bonus_links, zero_out_bonus_links),
+        migrations.RunPython(grant_up_to_ten_bonus_links, zero_out_bonus_links),
     ]
