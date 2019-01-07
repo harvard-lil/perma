@@ -6,7 +6,7 @@ Our first enhancement - which will go live on January 22, 2019 - will introduce 
 
 This change will not affect Perma usage that is sponsored and supported by academic libraries or other registrars. Non-academic organizations can also offer unlimited Perma Links to their staff by signing up to be a registrar for a monthly group rate. Such memberships also include collaboration and administrative tools.
 
-If you'd like more detail on this change, please read our blog post, here: [URL]
+If you'd like more detail on this change, please read our blog post, here: http://blogs.harvard.edu/perma/2019/01/07/introducing-individual-account-subscription-tiers-for-perma/
 
 As always, we thank you for your support of Perma and your work to protect web sources from link rot.
 
