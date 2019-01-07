@@ -3,3 +3,7 @@ TITLE: A Perma.cc account has been created for you
 To activate your account, please click the link below or copy it to your web browser.
 
 http://{{ host }}{{ activation_route }}
+
+Please note that effective January 22, 2019 users not associated with a registrar organization will have access to Perma on a trial basis. Users wishing to continue creating links will have access via a monthly subscription. All links created between now and the 22nd will still be preserved and available. For more information check out our blog post about subscription tiers.
+
+http://blogs.harvard.edu/perma/2019/01/07/introducing-individual-account-subscription-tiers-for-perma/
