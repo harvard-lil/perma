@@ -1,5 +1,15 @@
-Hello Perma.cc User!
+Dear Perma.cc users:
 
-We are excited to announce that times are changing.
+This year we'll be launching a series of enhancements to improve Perma account administration and sustain our ability to offer the Perma service to those outside the academic community.
 
-- The Perma.cc Team
+Our first enhancement - which will go live on January 22, 2019 - will introduce paid subscription tiers for individuals using Perma outside the support of an academic library or other registrar. Everyone will receive an initial, upfront credit of 10 Perma Links and, for usage beyond that, will be able to choose a monthly subscription tier that best fits their needs. Each tier reflects a different monthly fee and allotment for new links starting at 10 links for $10. As a result of this change, Perma no longer will offer all users 10 free links on a recurring monthly basis.
+
+This change will not affect Perma usage that is sponsored and supported by academic libraries or other registrars. Non-academic organizations can also offer unlimited Perma Links to their staff by signing up to be a registrar for a monthly group rate. Such memberships also include collaboration and administrative tools.
+
+If you'd like more detail on this change, please read our blog post, here: [URL]
+
+As always, we thank you for your support of Perma and your work to protect web sources from link rot.
+
+Sincerely,
+
+The Perma Team
