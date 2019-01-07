@@ -193,6 +193,10 @@ class CustomerModel(models.Model):
     unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
     link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
     link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
+    bonus_links_remaining = models.IntegerField(
+        default=0,
+        help_text="A mechanism for giving a customer extra links, without affecting their long-term link_limit or link_limit_period."
+    )
 
     @cached_property
     def customer_type(self):
@@ -860,8 +864,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         # Special handling for users without active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.nonpaying and self.subscription_status != 'active':
-            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
-        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False) + self.bonus_links_remaining, settings.DEFAULT_CREATE_LIMIT_PERIOD)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit) + self.bonus_links_remaining, self.link_limit_period)
 
     def link_creation_allowed(self):
         return self.get_links_remaining()[0] > 0

@@ -94,9 +94,12 @@ def customers():
 def noncustomers():
     return [nonpaying_registrar(), nonpaying_user()]
 
-def user_with_links():
+def user_with_links(link_limit_period=None):
     # a user with 6 links, made at intervals
-    user = LinkUser()
+    if link_limit_period:
+        user = LinkUser(link_limit_period=link_limit_period)
+    else:
+        user = LinkUser()
     user.save()
     today = timezone.now()
     earlier_this_month = today.replace(day=1)
@@ -1144,6 +1147,20 @@ class ModelsTestCase(PermaTestCase):
         self.assertNotEqual(u.links_remaining_in_period('once', 1, False), float("inf"))
         self.assertNotEqual(u.links_remaining_in_period('monthly', 1, False), float("inf"))
         self.assertNotEqual(u.links_remaining_in_period('annually', 1, False), float("inf"))
+
+
+    def test_link_limit_with_bonus(self):
+        for period in ['once', 'monthly', 'annually']:
+            u = user_with_links(link_limit_period=period)
+            self.assertFalse(u.unlimited)
+            self.assertFalse(u.bonus_links_remaining)
+            self.assertEqual(u.link_limit_period, period)
+            without_bonus = u.get_links_remaining()[0]
+            u.bonus_links_remaining = 3
+            u.save()
+            with_bonus = u.get_links_remaining()[0]
+            self.assertEqual(without_bonus + 3, with_bonus)
+            u.delete()
 
 
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)

@@ -389,6 +389,13 @@ class AuthenticatedLinkListView(BaseView):
 
             link = serializer.save(created_by=request.user)
 
+            # decrement bonus links remaining, if appropriate
+            if request.user.bonus_links_remaining and not folder.organization:
+                request.user.bonus_links_remaining = request.user.bonus_links_remaining - 1
+                request.user.save(update_fields=['bonus_links_remaining'])
+            # TODO: when Perma begins supporting Registrar customers with limits,
+            # add appropriate logic here.
+
             # put link in folder and handle Org settings based on folder
             if folder.organization and folder.organization.default_to_private:
                 link.is_private = True
