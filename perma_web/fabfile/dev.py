@@ -443,6 +443,91 @@ def read_playback_tests(*filepaths):
         print("%s: %s" % (err_type, len(sub_errs)))
     print("Total:", err_count)
 
+
+@task
+def ping_all_users(limit_to="", exclude="", batch_size="500"):
+    '''
+       Sends an email to all our current users. See templates/email/special.txt
+
+       Arguments should be strings, with multiple values separated by semi-colons
+       e.g. fab ping_all_users:limit_to="14;27;30",batch_size="1000"
+
+       Limit filters are applied before exclude filters.
+    '''
+    import logging
+    from tqdm import tqdm
+    from perma.models import LinkUser
+    from perma.email import send_user_email
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("BEGIN: ping_all_users")
+
+    # load desired Perma users
+    if limit_to:
+        users = LinkUser.objects.filter(id__in=limit_to.split(";"))
+    else:
+        users = LinkUser.objects.filter(is_confirmed=True, is_active=True)
+    if exclude:
+        users = users.exclude(id__in=exclude.split(";"))
+
+    # exclude users we have already emailed
+    already_emailed_path = '/tmp/perma_emailed_user_list'
+    already_emailed = set()
+    if os.path.exists(already_emailed_path):
+        logging.info("Loading list of already-emailed users.")
+        with open(already_emailed_path) as f:
+            lines = f.read().splitlines()
+            for line in lines:
+                already_emailed.add(int(line))
+    if already_emailed:
+        users = users.exclude(id__in=already_emailed)
+
+    # limit to our desired batch size
+    not_yet_emailed = users.count()
+    batch_size = int(batch_size)
+    if not_yet_emailed > batch_size:
+        logger.info("{} users to email: limiting to first {}".format(not_yet_emailed, batch_size))
+        users = users[:batch_size]
+
+    to_send_count = users.count()
+    if not to_send_count:
+        logger.info("No users to email.")
+        return
+
+    sent_count = 0
+    failed_list = []
+    logger.info("Begin emailing {} users.".format(to_send_count))
+    with open(already_emailed_path, 'a') as f:
+        for user in tqdm(users):
+            succeeded = send_user_email(user.email,
+                                        'email/special.txt',
+                                         {'user': user})
+            if succeeded:
+                sent_count += 1
+                f.write(str(user.id)+"\n")
+            else:
+                failed_list.append(user.id)
+
+    logger.info("Emailed {} users".format(sent_count))
+    if to_send_count != sent_count:
+        if failed_list:
+            msg = "Some users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
+        else:
+            msg = "Some users were not emailed. Check log for fatal SMTP errors."
+        logger.error(msg)
+
+    # offer to send another batch if there are any users left to email
+    remaining_to_email = not_yet_emailed - sent_count
+    if remaining_to_email:
+        if input("\nSend another batch of size {}? [y/n]\n".format(batch_size)).lower() == 'y':
+            ping_all_users(batch_size=str(batch_size))
+        else:
+            logger.info("Stopped with ~ {} remaining users to email".format(remaining_to_email))
+    else:
+        logger.info("Done! Run me again, to catch anybody who signed up while this was running!")
+
+
 @task
 def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", email="stats", year=""):
     '''

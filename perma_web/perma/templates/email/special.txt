@@ -1,13 +1,15 @@
-Hello Perma.cc Registrar!
+Dear Perma.cc users:
 
-We're excited to announce a change to the way Perma.cc handles our users' efforts to preserve web pages that have generic no-archive metatags.
+This year we'll be launching a series of enhancements to improve Perma account administration and sustain our ability to offer the Perma service to those outside the academic community.
 
-In the past, when someone used Perma to preserve a webpage with a generic no-archive metatag (such as a New York Times or NPR article) the resulting Perma record was automatically, unalterably set to "Private." We've found that this practice was unnecessary and often a source of confusion and frustration for our users.
+Our first enhancement - which will go live on January 22, 2019 - will introduce paid subscription tiers for individuals using Perma outside the support of an academic library or other registrar. Everyone will receive an initial, upfront credit of 10 Perma Links and, for usage beyond that, will be able to choose a monthly subscription tier that best fits their needs. Each tier reflects a different monthly fee and allotment for new links starting at 10 links for $10. As a result of this change, Perma no longer will offer all users 10 free links on a recurring monthly basis.
 
-Going forward, when someone uses Perma to preserve a page that contains a generic no-archive tag, that Perma record will not automatically be set to "Private." Instead, these records will be public by default, and users will have the option to manually make them private if they or their institutions wish. In addition, existing Perma records with generic no-archive metatags will remain private, but users can now make those records public.
+This change will not affect Perma usage that is sponsored and supported by academic libraries or other registrars. Non-academic organizations can also offer unlimited Perma Links to their staff by signing up to be a registrar for a monthly group rate. Such memberships also include collaboration and administrative tools.
 
-Perma.cc will continue to recognize any Perma-specific no-archive metatag or a Perma-specific robots.txt exclusion. Any Perma records of sites that use one of those techniques will be private.
+If you'd like more detail on this change, please read our blog post, here: http://blogs.harvard.edu/perma/2019/01/07/introducing-individual-account-subscription-tiers-for-perma/
 
-We're enthusiastic about the way this change will provide even greater access to links and citations that have been protected through Perma. Check out the Perma.cc blog for our post on this and other recent news (https://blogs.harvard.edu/perma/), and let us know of any questions or concerns via https://perma.cc/contact or directly at info@perma.cc.
+As always, we thank you for your support of Perma and your work to protect web sources from link rot.
 
-- The Perma.cc Team
+Sincerely,
+
+The Perma Team
