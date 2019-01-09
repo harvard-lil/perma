@@ -167,6 +167,7 @@ class CustomerModel(models.Model):
         abstract = True
 
     nonpaying = models.BooleanField(default=False, help_text="Whether this customer qualifies for a free account.")
+    in_trial = models.BooleanField(default=True, help_text="Is this customer in their trial period?")
     base_rate =  models.DecimalField(
         max_digits=19,
         decimal_places=2,
@@ -230,8 +231,10 @@ class CustomerModel(models.Model):
         if post_data['subscription'] is None:
             return None
 
-        # store the subscription status locally, for use if Perma Payments is unavailable
+        # Alert Perma that this user is no longer in their trial period.
+        # Store the subscription status locally, for use if Perma Payments is unavailable
         # and update local link limit and rate to match Perma Payments' records
+        self.in_trial = False
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
         pending_change = None
@@ -250,7 +253,7 @@ class CustomerModel(models.Model):
                 'link_limit': post_data['subscription']['link_limit'],
                 'effective': apply_changes_at
             }
-        self.save(update_fields=['cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
+        self.save(update_fields=['in_trial', 'cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
         self.refresh_from_db()
 
         return {
@@ -857,9 +860,9 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             Calculate how many personal links remain.
             Returns a tuple: (links, applicable period)
         """
-        # Special handling for users without active paid subscriptions:
+        # Special handling for non-trial users who lack active paid subscriptions:
         # apply the same rules that are applied to new users
-        if not self.nonpaying and self.subscription_status != 'active':
+        if not self.in_trial and not self.nonpaying and self.subscription_status != 'active':
             return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
         return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
 
