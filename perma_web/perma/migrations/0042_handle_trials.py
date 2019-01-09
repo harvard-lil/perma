@@ -48,9 +48,6 @@ def grant_trial_users_ten_links(apps, schema_editor):
     Link = apps.get_model('perma', 'Link')
     active_trial_users = LinkUser.objects.filter(is_confirmed=True, is_active=True, link_limit_period='once', in_trial=True)
     for user in active_trial_users.iterator():
-        # N.B. model methods are not available within migrations.
-        # This logic replicates user.links_remaining_in_period('once', 10)
-        #
         # N.B. model managers are not available in migrations unless explicitly enabled
         # https://docs.djangoproject.com/en/2.1/topics/migrations/#model-managers
         # I don't want to break anything, so not enabling the Link manager:
