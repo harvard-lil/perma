@@ -43,7 +43,8 @@ def paying_registrar():
         nonpaying=False,
         cached_subscription_status="Sentinel Status",
         cached_paid_through=GENESIS,
-        base_rate=Decimal(100.00)
+        base_rate=Decimal(100.00),
+        in_trial=False
     )
     registrar.save()
     registrar.refresh_from_db()
@@ -58,7 +59,8 @@ def paying_limited_registrar():
         cached_paid_through=GENESIS,
         cached_subscription_rate=Decimal(0.01),
         base_rate=Decimal(100.00),
-        unlimited=False
+        unlimited=False,
+        in_trial=False
     )
     registrar.save()
     registrar.refresh_from_db()
@@ -81,7 +83,8 @@ def paying_user():
         cached_subscription_status="Sentinel Status",
         cached_paid_through=GENESIS,
         cached_subscription_rate=Decimal(0.01),
-        base_rate=Decimal(100.00)
+        base_rate=Decimal(100.00),
+        in_trial=False
     )
     user.save()
     user.refresh_from_db()
@@ -405,8 +408,12 @@ class ModelsTestCase(PermaTestCase):
 
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_none_and_no_network_call_if_nonpaying(self, post):
+        # also verify that their value of in_trial is unchanged by the call
         for noncustomer in noncustomers():
+            in_trial = noncustomer.in_trial
             self.assertIsNone(noncustomer.get_subscription())
+            noncustomer.refresh_from_db()
+            self.assertEqual(in_trial, noncustomer.in_trial)
             self.assertEqual(post.call_count, 0)
 
 
@@ -469,6 +476,25 @@ class ModelsTestCase(PermaTestCase):
             self.assertIsNone(customer.get_subscription())
             self.assertEqual(post.call_count, 1)
             post.reset_mock()
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_happy_path_sets_customer_trial_period_to_false(self, post, process):
+        post.return_value.status_code = 200
+        for customer in [paying_limited_registrar(), paying_user()]:
+            # artificially set this to True, for the purpose of this test
+            customer.in_trial = True
+            customer.save()
+            customer.refresh_from_db()
+            self.assertTrue(customer.in_trial)
+
+            response = spoof_pp_response_subscription(customer)
+            process.return_value = response
+            customer.get_subscription()
+            customer.refresh_from_db()
+
+            self.assertFalse(customer.in_trial)
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
