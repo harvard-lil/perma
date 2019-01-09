@@ -42,14 +42,12 @@ def revert_premium_users_to_default(apps, schema_editor):
 
 def grant_trial_users_ten_links(apps, schema_editor):
     """
-    All trial LinkUsers should be allowed to create at least 10 more Personal Links.
+    All trial LinkUsers should be allowed to create exactly 10 more Personal Links.
     """
     LinkUser = apps.get_model('perma', 'LinkUser')
     Link = apps.get_model('perma', 'Link')
     active_trial_users = LinkUser.objects.filter(is_confirmed=True, is_active=True, link_limit_period='once', in_trial=True)
     for user in active_trial_users.iterator():
-        # If users have fewer than 10 links left, 'once', top them up
-        #
         # N.B. model methods are not available within migrations.
         # This logic replicates user.links_remaining_in_period('once', 10)
         #
