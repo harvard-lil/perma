@@ -586,3 +586,5 @@ GEOCODING_KEY = None
 
 # override django-storages default
 AWS_DEFAULT_ACL = 'private'
+
+PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120

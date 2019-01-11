@@ -1,0 +1,6 @@
+from .settings_dev import *
+
+# To talk to the CyberSource test tier, replace these values
+CS_PROFILE_ID = ''
+CS_ACCESS_KEY = ''
+CS_SECRET_KEY = ''
