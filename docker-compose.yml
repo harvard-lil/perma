@@ -1,6 +1,9 @@
 version: '2'
 
 services:
+  #
+  # Perma
+  #
   rabbitmq:
     image: rabbitmq:3.7.2
     volumes:
@@ -53,8 +56,46 @@ services:
     depends_on:
       - db
 
+  #
+  # Perma Payments
+  #
+  pp_db:
+    image: postgres:9.6.2
+    volumes:
+      - pp_db_data:/var/lib/postgresql/data:delegated
+    networks:
+      - perma_payments
+
+  perma-payments:
+    image: harvardlil/perma-payments:0.95
+    # hack: sleep to give the database time to start up
+    command: >
+      sh -c "sleep 5 && pipenv run ./manage.py migrate &&
+             pipenv run fab run"
+    ports:
+      - "80:80"
+    depends_on:
+      - pp_db
+    environment:
+      - DJANGO__DATABASES__default__HOST=pp_db
+    # TO CUSTOMIZE CONFIG:
+    # copy ./services/docker/perma-payments/settings.py.example
+    # to ./services/docker/perma-payments/settings.py,
+    # alter config as desired, in the usual way, then comment in this volume
+    # and re-run docker-compose up
+    # volumes:
+    #   - ./services/docker/perma-payments/settings.py:/perma-payments/config/settings/settings.py
+    networks:
+      - default
+      - perma_payments
+
+networks:
+  default:
+  perma_payments:
+
 volumes:
   node_modules:
   db3_data:
   rabbitmq_home:
   # redis_data:
+  pp_db_data:
