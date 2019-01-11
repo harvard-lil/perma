@@ -80,7 +80,6 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_public_key': 'ZmkWU6AdQlNrDCLNI154HSGH96jjs21UA3K+YpqezWg=',
     'perma_payments_public_key': 'DG8o9cS5Lgeuu7XAF08sw0aOX7mJFu9TVEtdrrBQHDY=',
 }
-PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 
 SUBSCRIBE_URL = '/subscribe/'
 CANCEL_URL = '/cancel-request/'
