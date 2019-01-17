@@ -30,6 +30,7 @@ This section of the user guide provides answers to common questions about Perma.
         <ul>
           <li class="reading-toc-section"><a href="#general">General</a></li>
           <li class="reading-toc-section"><a href="#librarian">Librarians</a></li>
+          <li class="reading-toc-section"><a href="#billing">Subscriptions and Billing</a></li>
           <li class="reading-toc-section"><a href="#journals">Academic journals</a></li>
           <li class="reading-toc-section"><a href="#technical">Technical questions</a></li>
         </ul>
@@ -41,120 +42,152 @@ This section of the user guide provides answers to common questions about Perma.
     <div class="col-sm-8 reading-body">
       <h2 class="body-ah" id="general">General</h2>
 
-      <h3 class="body-bh" data-href="who-is">Who runs Perma.cc?</h3>
+      <h3 class="body-bh">Who runs Perma.cc?</h3>
       <div class="faq-answer">
-        <p class="body-text">Perma.cc is developed and maintained by the <a href="http://lil.law.harvard.edu">Harvard Library Innovation Lab</a> at the Harvard Law School Library. Perma.cc is administered by a <a href="{% url 'about' %}#perma-partners">consortium</a> of libraries, with each library assisting its local journals and faculty users.
+        <p class="body-text">Perma.cc is developed and maintained by the <a href="http://lil.law.harvard.edu">Harvard Library Innovation Lab</a> at the Harvard Law School Library. Perma.cc is administered by a <a href="{% url 'about' %}#perma-partners">consortium</a> of libraries, with each library assisting its local users.
         </p>
       </div>
 
-      <h3 class="body-bh" data-href="what-is">Who can use Perma.cc?</h3>
+      <h3 class="body-bh">Who can use Perma.cc?</h3>
       <div class="faq-answer">
-        <p class="body-text">Anyone can sign up for a free Perma.cc <a href="{% url 'docs' %}#accounts">account</a>, which you can use to preserve up to 10 records per month. To preserve unlimited records, you have to be a member of an archiving organization sponsored by a registrar.</p>
+        <p class="body-text">Anyone can sign up for a Perma.cc subscription by creating an <a href="{% url 'docs' %}#accounts">account</a>, and it is free for anyone associated with a registrar organization. Academic libraries and courts can become registrars for free. Other organizations can become registrars for a monthly fee, and their users would have free access.</p>
       </div>
 
-      <h3 class="body-bh" data-href="forever">How long will you keep my Perma.cc Links?</h3>
+      <h3 class="body-bh">How long will you keep my Perma.cc Links?</h3>
       <div class="faq-answer">
         <p class="body-text">Links will be preserved as a part of the permanent collection of participating libraries. While we can't guarantee that these records will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
       </div>
 
-      <h3 class="body-bh" data-href="delete-links">Can I delete a Perma.cc Link?</h3>
+      <h3 class="body-bh">Can I delete a Perma.cc Link?</h3>
       <div class="faq-answer">
         <p class="body-text">You can delete links within 24 hours after you create them.</p>
       </div>
 
-      <h3 class="body-bh" data-href="how-many-links">How many links has Perma.cc helped save from rot?</h3>
+      <h3 class="body-bh">How many links has Perma.cc helped save from rot?</h3>
       <div class="faq-answer">
         <p class="body-text">{{ users_count|intcomma }} people, across {{ orgs_count|intcomma }} organizations, attached to {{ registrars_count }} libraries have archived {{ links_count|intcomma }} links. Whew!</p>
       </div>
 
-      <h2 class="body-ah" id="librarian">Libraries</h2>
+      <h2 class="body-ah">Libraries</h2>
 
-      <h3 class="body-bh" data-href="library-partner">What is a Perma.cc partner library?</h3>
+      <h3 class="body-bh">What is a Perma.cc partner library?</h3>
       <div class="faq-answer">
         <p class="body-text">Perma.cc is administered by a community of partner libraries, also called "registrars." Each of these libraries is responsible for helping its affiliated journals and scholars use Perma.cc. Each of these libraries has special authority and oversight privileges, including the ability to create and remove archiving organizations and to monitor Perma.cc usage by associated users.</p>
         <p class="body-text">To learn more about the role of libraries in Perma.cc, take a look at our <a href="{% url 'docs_libraries' %}">user guide</a>.</p>
       </div>
 
-      <h3 class="body-bh" data-href="become-partner">Can my library become a Perma.cc partner library?</h3>
+      <h3 class="body-bh">Can my library become a Perma.cc partner library?</h3>
       <div class="faq-answer">
-        <p class="body-text">Any academic or government library can become a Perma.cc partner library. If you're interested, please let us know via this <a href="{% url 'libraries' %}">signup form</a>.
+        <p class="body-text">Any academic or government library can become a Perma.cc partner library for free. If you're interested, please let us know via this <a href="{% url 'libraries' %}">signup form</a>.
         <p class="body-text">Other libraries should <a href="{% url 'contact' %}?subject=Our%20Library%20Would%20Like%20to%20Use%20Perma">contact us</a> to learn more about the options currently available for your patrons and staff.</p>
       </div>
 
-      <h3 class="body-bh" data-href="sponsor-journal">What are the fees to become a Perma.cc registrar?</h3>
+      <h3 class="body-bh">What are the fees to become a Perma.cc registrar?</h3>
       <div class="faq-answer">
-        <p class="body-text">Becoming a registrar is free for academic libraries and courts.</p>
+        <p class="body-text">Becoming a registrar is free for academic libraries and courts. Other libraries or organizations interesting in administering Perma to their users should <a href="{% url 'contact' %}?subject=Our%20Library%20Would%20Like%20to%20Use%20Perma">reach out</a> to discuss subscription options.</p>
       </div>
 
-      <h3 class="body-bh" data-href="registrar-responsibilities">What are the responsibilities of a Perma.cc registrar?</h3>
+      <h3 class="body-bh">What are the responsibilities of a Perma.cc registrar?</h3>
       <div class="faq-answer">
         <p class="body-text">Your main responsibility is help the journals and scholars within your community use Perma.cc. This means setting up archiving organizations, helping to train new users and acting as a resource for those at your institution who want to use Perma.cc. You will also serve as the primary point of contact for everyday questions from your users submitted through the contact form. The Perma team is cc'd on these questions in order to help with any bugs or technical issues.</p>
         <p class="body-text">Check out our user guide for more information on the <a href="{% url 'docs_libraries' %}">authority and responsibilities</a> of registrars.</p>
       </div>
 
+      <h2 class="body-ah" id="billing">Subscriptions and Billing</h2>
+
+      <h3 class="body-bh">Who qualifies for a free account?</h3>
+      <div class="faq-answer">
+        <p class="body-text">For individuals, anyone who is currently affiliated with a registrar organization can request a free account via their Perma administrator. Otherwise, users can access Perma via a paid subscription.</p>
+      </div>
+
+      <h3 class="body-bh">When will you charge my credit card?</h3>
+      <div class="faq-answer">
+        <p class="body-text">We bill on the first of each month for the tier that you have most recently requested. You’ll be able to make up to that number of links during that month.</p>
+      </div>
+
+      <h3 class="body-bh">What happens if I join or upgrade in the middle of the month?</h3>
+      <div class="faq-answer">
+        <p class="body-text">If you subscribe or upgrade partway through the month, we'll immediately increase your link limit to that of your new subscription minus the links you’ve already used, and immediately bill you a prorated amount based on how much of the month is left. At the beginning of the next month, we will bill you at the new rate.
+      </div>
+
+      <h3 class="body-bh">How does prorating work?</h3>
+      <div class="faq-answer">
+      <h4>Here's an example for new users:</h4>
+       <p class="body-text">If you subscribe on the first day of the month, we charge you $10 since you will an account for the entire coming month. On the first of the next month, you will be rebilled at the $10/mo rate. You will have a full 10 links available.</p>
+       <p class="body-text">If you subscribe halfway through the month, we'll charge you half, or $5, since you would have an account for half the month. You will have a full 10 links available. On the first of the next month, you will be rebilled at the $10/mo rate.</p>
+      <h4> Here's an example for current users:</h4>
+       <p class="body-text">You have a 10 link, $10/mo account and want to upgrade to a 20 link, $20/mo account. You have already used 3 links, so you have 7 left in your account. If you purchase the upgrade on the first day of the month, the upgrade will cost $10, the full amount, since you will have an upgraded account for the entire coming month. Since your new account limits afford you 10 more links, you will now have 17 links for the rest of the month. On the first of the next month, you will be rebilled at the $20/mo rate, and have a full 20 links available.</p>
+       <p class="body-text">If you purchase the upgrade halfway through the month, the upgrade will cost $5, or half of the full amount, since you would have an upgraded account for half the month. Since your new account limits afford you 10 more links, you will now have 17 links for the rest of the month. On the first of the next month, you will be rebilled at the $20/mo rate.</p>
+       <p class="body-text">Still have questions? <a href="{% url 'contact' %}">Get in touch,</a> we're happy to help.</p>
+      </div>
+
+      <h3 class="body-bh">What about downgrading?</h3>
+      <div class="faq-answer">
+        <p class="body-text">If you request a downgrade, it will go into effect on the first of the following month. Your link limit won’t immediately go down, and when the next billing cycle comes around you’ll be charged the lower rate and your account will have a lower link limit.
+      </div>
+
+      <h3 class="body-bh">Will I lose links I've already made if I cancel or downgrade my subscription?</h3>
+      <div class="faq-answer">
+        <p class="body-text">Nope. After 24 hours all Perma Links are added to our permanent collection and will be accessible and controllable by you. The only thing a change in your subscription would affect is now many <i>new</i> Perma Links you can create.
+      </div>
+
       <h2 class="body-ah" id="journals">Academic journals</h2>
 
-      <h3 class="body-bh" data-href="who-users">Which journal members should be affiliated users?</h3>
+      <h3 class="body-bh">Which journal members should be affiliated users?</h3>
       <div class="faq-answer">
         <p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals affiliate all journal members with the organization. Some do so only for senior editorial staff.</p>
       </div>
 
-      <h3 class="body-bh" data-href="upon-graduation">What happens when journal members graduate?</h3>
+      <h3 class="body-bh">What happens when journal members graduate?</h3>
       <div class="faq-answer">
         <p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals remove affiliated users upon graduation. Others don't. Bear in mind that if you keep affiliated users on after graduation, any links they create will be associated with your journal's organization and visible to all of the users for your organization. Likewise, they will be able to access (and potentially modify) any links others on your journal create.</p>
         <p class="body-text">Review our <a href="{% url 'docs_accounts' %}">user guide</a> to learn more about adding and removing users.</p>
       </div>
 
-      <h3 class="body-bh" data-href="multiple-orgs">Can users be affiliated with multiple organizations?</h3>
+      <h3 class="body-bh">Can users be affiliated with multiple organizations?</h3>
       <div class="faq-answer">
         <p class="body-text">Yes.</p>
       </div>
 
-      <h3 class="body-bh" data-href="bluebook">What does the Bluebook say about using Perma.cc?</h3>
+      <h3 class="body-bh">What does the Bluebook say about using Perma.cc?</h3>
       <div class="faq-answer">
         <p class="body-text">Rule 18.2.1(d) in the 20th Edition of <a href="https://www.legalbluebook.com/">The Bluebook</a> says: "Archiving of Internet sources is encouraged, but only when a reliable archival tool is available.  For citations to Internet sources, append the archive URL to the full citation in brackets."</p>
         <p class="body-text">The Bluebook uses Perma.cc as an example of a reliable archival tool.</p>
       </div>
 
-      <h2 class="body-ah" id="technical">Technical</h2>
+      <h2 class="body-ah">Technical</h2>
 
-      <h3 class="body-bh" data-href="which-browsers">Which web browsers does Perma.cc support?</h3>
+      <h3 class="body-bh">Which web browsers does Perma.cc support?</h3>
       <div class="faq-answer">
-        <p class="body-text">
-          Perma.cc works on Chrome, Firefox, Safari and IE10+.
-        </p>
+        <p class="body-text">Perma.cc works on Chrome, Firefox, Safari and IE10+.</p>
       </div>
 
-      <h3 class="body-bh" data-href="perma-code">Is Perma.cc open source?</h3>
+      <h3 class="body-bh">Is Perma.cc open source?</h3>
       <div class="faq-answer">
-        <p class="body-text">
-          Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">available on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.
-        </p>
+        <p class="body-text">Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">available on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.</p>
       </div>
 
-      <h3 class="body-bh" data-href="perma-api">Does Perma.cc have an API?</h3>
+      <h3 class="body-bh">Does Perma.cc have an API?</h3>
       <div class="faq-answer">
-        <p class="body-text">
-          Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.
-        </p>
+        <p class="body-text">Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.</p>
       </div>
 
-      <h3 class="body-bh" data-href="no-indexing">Are Perma.cc archives available in search engines?</h3>
+      <h3 class="body-bh">Are Perma.cc archives available in search engines?</h3>
       <div class="faq-answer">
         <p class="body-text">We don't make archived pages available to search engines.</p>
       </div>
 
-      <h3 class="body-bh" data-href="deep-links">Does Perma.cc preserve embedded links (sometimes also called "deep links" or "secondary links")?</h3>
+      <h3 class="body-bh">Does Perma.cc preserve embedded links (sometimes also called "deep links" or "secondary links")?</h3>
       <div class="faq-answer">
         <p class="body-text">No. Perma.cc preserves only the targeted page. It does not drill down to capture pages that are linked on the targeted page. So for example, if you use Perma.cc to preserve a page that has 10 links on it, you would preserve that page but not the pages available at the 10 links.</p>
       </div>
 
-      <h3 class="body-bh" data-href="warc-replay">How do I view a downloaded archive?</h3>
-        <div class="faq-answer">
-          <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files like <a href="https://github.com/webrecorder/webrecorderplayer-electron/releases/latest">Rhizome's Webrecorder Player</a></p>
-        </div>
+      <h3 class="body-bh">How do I view a downloaded archive?</h3>
+      <div class="faq-answer">
+        <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files like <a href="https://github.com/webrecorder/webrecorderplayer-electron/releases/latest">Rhizome's Webrecorder Player</a></p>
+      </div>
 
-      <h3 class="body-bh" data-href="robots-text">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</h3>
+      <h3 class="body-bh">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</h3>
       <div class="faq-answer">
         <p class="body-text">
           It's important to note that Perma.cc does not crawl your site like a search engine might,
