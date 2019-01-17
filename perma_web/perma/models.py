@@ -1283,7 +1283,7 @@ class Link(DeletableModel):
         # wait for WR to finish uploading the WARC
         while True:
             try:
-                query_wr_api(
+                upload_data = query_wr_api(
                     method='get',
                     path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
                     cookie=wr_session_cookie,
