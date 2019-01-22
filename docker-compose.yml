@@ -38,9 +38,12 @@ services:
     build: ./perma_web
     image: perma3:0.11
     tty: true
-    command: bash
-    # Some people prefer the below ;-)
-    # command: pipenv run fab run
+    # command: bash
+    # TO AUTOMATICALLY START PERMA:
+    # (sleep hack to give the database and rabbitmq time to start up)
+    # command: >
+    #   sh -c "sleep 10 && pipenv run ./manage.py migrate &&
+    #          pipenv run fab run"
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,
