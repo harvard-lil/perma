@@ -47,7 +47,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -1176,7 +1176,8 @@ def get_sitewide_cookie_domain(request):
 
 def logout(request):
     if request.method == 'POST':
-        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)
+        clear_wr_session(request)
+        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')
     return render(request, "registration/logout.html")
 
 
@@ -1212,6 +1213,7 @@ def limited_login(request, template_name='registration/login.html',
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
+    clear_wr_session(request)
     return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
 
@@ -1277,7 +1279,7 @@ def set_access_token_cookie(request):
 def set_safari_cookie(request):
     """
         Special handling for Safari's third party cookie blocking: when showing a private link, user will be forwarded
-        to this view on WARC_HOST to have an arbitrary cookie set, so Safari will let us set an authorization cookie
+        to this view on PLAYBACK_HOST to have an arbitrary cookie set, so Safari will let us set an authorization cookie
         in the iframe. Once we set the cookie we forward back to the referrer.
     """
     redirect_url = request.GET.get('next')

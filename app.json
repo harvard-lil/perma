@@ -73,7 +73,7 @@
     "DJANGO__SECRET_KEY":{
       "required":true
     },
-    "DJANGO__WARC_HOST":{
+    "DJANGO__PLAYBACK_HOST":{
       "required":true
     }
   },

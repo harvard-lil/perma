@@ -450,10 +450,33 @@ INTERNET_ARCHIVE_SECRET_KEY = ''
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
 
+# Feature Flag: whether to use Webrecorder or Pywb for playback
+ENABLE_WR_PLAYBACK = False
 
-# If set, warc content must be served from this host.
-# On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
-WARC_HOST = None
+#
+# Playback
+#
+# If set, playbacks must be served from PLAYBACK_HOST.
+# On production, this is highly recommended to be different from HOST
+HOST = 'localhost'
+PLAYBACK_HOST = HOST
+
+#
+# Webrecorder Playback
+#
+# Use 'http://nginx' if running on same docker instance
+WEBRECORDER_HOST = 'http://nginx'
+
+# Or, external webrecorder host if WR is on remote machine and/or
+# not running perma in Docker, eg:
+#WEBRECORDER_HOST = 'http://remote-webrecorder-host/
+
+WR_API = WEBRECORDER_HOST + '/api/v1'
+
+# Time (in seconds) to wait for upload to finalize
+# after data fully uploaded to Webreccorder
+# Or, assume error if upload not done after this many seconds
+WR_REPLAY_UPLOAD_TIMEOUT = 20
 
 # circumventing cloudflare's caching policy
 # using different route for timegate
@@ -487,8 +510,9 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SECURE_SSL_REDIRECT',
     'DEBUG',
     'ENABLE_BATCH_LINKS',
-    'WARC_HOST',
-    'HOST'
+    'PLAYBACK_HOST',
+    'HOST',
+    'ENABLE_WR_PLAYBACK'
 )
 
 
