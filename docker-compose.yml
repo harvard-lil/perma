@@ -15,7 +15,7 @@ services:
   # 1) comment in the perma-redis stanza
   # 2) comment in the data volume
   # 3) add the caches setting found in settings_prod to your settings.py,
-  #.   with "LOCATION": "redis://perma-redis:6379/0"
+  #    with "LOCATION": "redis://perma-redis:6379/0"
   # perma-redis:
   #   image: redis:4.0.6
   #   volumes:
