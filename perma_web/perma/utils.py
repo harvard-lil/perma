@@ -662,6 +662,10 @@ def safe_get_response_json(response):
 
 
 def set_options_headers(request, response, always_set_allowed_origin=False):
+    '''
+    Mutates response in-place.
+    '''
+
     origin = request.META.get('HTTP_ORIGIN')
     origin_host = settings.PLAYBACK_HOST
     target_host = settings.HOST
@@ -698,4 +702,3 @@ def set_options_headers(request, response, always_set_allowed_origin=False):
         response['Access-Control-Allow-Headers'] = headers
 
     response['Access-Control-Allow-Credentials'] = 'true'
-    return response

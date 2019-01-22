@@ -437,8 +437,7 @@ def archive_error(request):
 
     # even if not setting full headers (eg. if Origin is not set)
     # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
-    res = set_options_headers(request, response, always_set_allowed_origin=True)
-
+    set_options_headers(request, response, always_set_allowed_origin=True)
     return response
 
 
