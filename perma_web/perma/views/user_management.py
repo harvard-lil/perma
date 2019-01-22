@@ -1177,7 +1177,7 @@ def get_sitewide_cookie_domain(request):
 def logout(request):
     if request.method == 'POST':
         clear_wr_session(request)
-        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')
+        return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)
     return render(request, "registration/logout.html")
 
 

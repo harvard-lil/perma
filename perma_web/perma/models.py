@@ -1487,7 +1487,7 @@ class Link(DeletableModel):
                 # successfully uploaded if reached here
                 return
 
-            except WebrecorderException as e:
+            except WebrecorderException:
                 time.sleep(0.5)
                 # if all uploaded (size == total_size), but not yet done after
                 # timeout, likely something is wrong, so raise exception
