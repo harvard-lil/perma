@@ -569,16 +569,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',  # authenticate with Django login
     ),
     'NON_FIELD_ERRORS_KEY': 'error',  # default key for {'fieldname': 'error message'} error responses
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', # enable pagination by default
     'PAGE_SIZE': 300,  # max results per page
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'SEARCH_PARAM': 'q',  # query string key for plain text searches
     'ORDERING_PARAM': 'order_by',  # query string key to specify ordering of results
 }
-
-# for rest framework -- cause django_filters to raise exceptions for malformed filters so our API can return them to the user
-from django_filters import STRICTNESS
-FILTERS_STRICTNESS = STRICTNESS.RAISE_VALIDATION_ERROR
-
 
 # If using geocoding
 # Via https://console.developers.google.com/apis/api/geocoding_backend/overview

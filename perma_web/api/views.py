@@ -29,7 +29,7 @@ class BaseView(APIView):
 
     # configure filtering of list endpoints by query string
     filter_backends = (
-        django_filters.rest_framework.DjangoFilterBackend,  # subclasses can be filtered by keyword if filter_class is set
+        django_filters.rest_framework.DjangoFilterBackend,  # subclasses can be filtered by keyword if filterset_class is set
         SearchFilter,         # subclasses can be filtered by q= if search_fields is set
         OrderingFilter        # subclasses can be ordered by order_by= if ordering_fields is set
     )
@@ -253,10 +253,10 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
     """
         Custom filter for searching links by query string.
     """
-    date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='date')      # ?date=
-    min_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='gte')   # ?min_date=
-    max_date = django_filters.IsoDateTimeFilter(name="creation_timestamp", lookup_expr='lte')   # ?max_date=
-    url = django_filters.CharFilter(name="submitted_url", lookup_expr='icontains')              # ?url=
+    date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='date')      # ?date=
+    min_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='gte')   # ?min_date=
+    max_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='lte')   # ?max_date=
+    url = django_filters.CharFilter(field_name="submitted_url", lookup_expr='icontains')              # ?url=
     class Meta:
         model = Link
         fields = ['url', 'date', 'min_date', 'max_date']
@@ -266,7 +266,7 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
 class PublicLinkListView(BaseView):
     permission_classes = ()  # no login required
     serializer_class = LinkSerializer
-    filter_class = LinkFilter
+    filterset_class = LinkFilter
     search_fields = ('guid', 'submitted_url', 'submitted_title')  # fields that can be searched with q= query string
 
     def get(self, request, format=None):
@@ -309,7 +309,7 @@ class PublicLinkDownloadView(BaseView):
 # /folders/:parent_id/archives
 class AuthenticatedLinkListView(BaseView):
     serializer_class = AuthenticatedLinkSerializer
-    filter_class = LinkFilter
+    filterset_class = LinkFilter
     search_fields = PublicLinkListView.search_fields + ('notes',)  # private links can also be searched by notes field
 
     @staticmethod
