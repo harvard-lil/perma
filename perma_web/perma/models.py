@@ -1297,7 +1297,7 @@ class Link(DeletableModel):
                 # if all uploaded (size == total_size), but not yet done after
                 # timeout, likely something is wrong, so raise exception
                 if ((upload_data.get('total_size') == upload_data.get('size')) and
-                    (time.time() - start_time) > settings.WR_REPLAY_UPLOAD_TIMEOUT):
+                        (time.time() - start_time) > settings.WR_REPLAY_UPLOAD_TIMEOUT):
                     raise
 
 
