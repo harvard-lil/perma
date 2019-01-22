@@ -114,6 +114,7 @@ volumes:
 
 networks:
   default:
+  perma_payments:
   # webrecorder:
   #   external:
   #     name: webrecorder_default
