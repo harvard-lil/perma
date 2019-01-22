@@ -1,0 +1,16 @@
+# See https://github.com/webrecorder/webrecorder/blob/master/webrecorder/webrecorder/config/wr.yaml
+# for available settings
+# Include the whole top-level key's values: no way to zero in, so far as I can tell
+
+session.durations:
+    # begin customized
+    short:
+        total: 60
+        extend: 0
+    # end customized
+    long:
+        total: 15724800
+        extend: 604800
+    restricted:
+        total: 5400
+        extend: 0

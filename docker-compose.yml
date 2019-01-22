@@ -117,6 +117,7 @@ services:
       - redis
     volumes:
       - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
     networks:
       - webrecorder
 
@@ -130,6 +131,7 @@ services:
       - redis
     volumes:
       - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
     networks:
       - webrecorder
 
@@ -142,6 +144,7 @@ services:
       - redis
     volumes:
       - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
     networks:
       - webrecorder
 
