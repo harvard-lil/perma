@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from django.contrib.auth.views import redirect_to_login
 from django.forms import widgets
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.conf import settings
 from django.utils import timezone
@@ -13,10 +13,13 @@ from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
 
+from django.utils.six.moves.http_client import responses
+
+
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
-    parse_user_agent, protocol, stream_warc_if_permissible)
+    parse_user_agent, protocol, stream_warc_if_permissible, set_options_headers)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -39,6 +42,7 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
+
 def landing(request):
     """
     The landing page
@@ -55,6 +59,7 @@ def landing(request):
             'this_page': 'landing',
             'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
         })
+
 
 def about(request):
     """
@@ -76,6 +81,7 @@ def about(request):
         'partners_last_col': partners_last_col
     })
 
+
 def faq(request):
     """
     The faq page
@@ -87,11 +93,13 @@ def faq(request):
     return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
         'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
 
+
 def stats(request):
     """
     The global stats
     """
     return render(request, 'stats.html')
+
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -130,15 +138,15 @@ def single_permalink(request, guid):
         return stream_warc_if_permissible(link, request.user)
 
     # Special handling for private links on Safari:
-    # Safari won't let us set the auth cookie for the WARC_HOST domain inside the iframe, unless we've already set a
-    # cookie on that domain outside the iframe. So do a redirect to WARC_HOST to set a cookie and then come back.
+    # Safari won't let us set the auth cookie for the PLAYBACK_HOST domain inside the iframe, unless we've already set a
+    # cookie on that domain outside the iframe. So do a redirect to PLAYBACK_HOST to set a cookie and then come back.
     # safari=1 in the query string indicates that the redirect has already happened.
     # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
     if link.is_private and not request.GET.get('safari'):
         user_agent = parse_user_agent(raw_user_agent)
         if user_agent.get('family') == 'Safari':
             return redirect_to_login(request.build_absolute_uri(),
-                                     "//%s%s" % (settings.WARC_HOST, reverse('user_management_set_safari_cookie')))
+                                     "//%s%s" % (settings.PLAYBACK_HOST, reverse('user_management_set_safari_cookie')))
 
     # handle requested capture type
     if serve_type == 'image':
@@ -187,6 +195,15 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
+    if settings.ENABLE_WR_PLAYBACK:
+        wr_username = link.init_replay_for_user(request)
+        context.update({
+            'wr_host': settings.PLAYBACK_HOST,
+            'wr_prefix': link.wr_iframe_prefix(wr_username),
+            'wr_url': capture.url,
+            'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
+        })
+
     response = render(request, 'archive/single-link.html', context)
 
     # Adjust status code
@@ -200,6 +217,30 @@ def single_permalink(request, guid):
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
     response['Link'] = link_memento_headers.format(link.ascii_safe_url, link.memento_formatted_date, link.memento, link.timegate, link.timemap)
 
+    return response
+
+
+def set_iframe_session_cookie(request):
+    """
+    The <iframe> used for Perma Link playback serves content from Webrecorder
+    and requires a WR session cookie. The cookie's value is set via a WR api
+    call during Perma's `link.init_replay_for_user` and is stored in Perma's
+    session data. If the iframe requests a resource without the cookie,
+    WR will redirect here. This route in turn redirects back to WR with the
+    session cookie as a GET param. WR sets the cookie in the browser, and then,
+    finally, redirects to the originally requested resource.
+    """
+    if request.method == 'OPTIONS':
+        # no redirects required; subsequent requests from the browser get the cookie
+        response = HttpResponse()
+    else:
+        cookie = urlencode({'cookie': request.session.get('wr_session_cookie')})
+        url = protocol() + settings.PLAYBACK_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
+        response = HttpResponseRedirect(url)
+        response['Cache-Control'] = 'no-cache'
+
+    # set CORS headers (for both OPTIONS and actual redirect)
+    set_options_headers(request, response)
     return response
 
 
@@ -369,3 +410,34 @@ def robots_txt(request):
             pass
     disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
+
+
+@csrf_exempt
+def archive_error(request):
+    """
+    Replay content not found error page
+    """
+
+    # handle cors options for error page redirect from cors
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+        set_options_headers(request, response)
+        return response
+
+    status = request.GET.get('status')
+    status_line = '{0} {1}'.format(status, responses.get(int(status), ''))
+
+    response = render(request, 'archive/archive-error.html', {
+        'err_url': request.GET.get('url'),
+        'timestamp': request.GET.get('timestamp'),
+        'status': status_line,
+        'err_msg': request.GET.get('error'),
+    }, status=status)
+
+
+    # even if not setting full headers (eg. if Origin is not set)
+    # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
+    set_options_headers(request, response, always_set_allowed_origin=True)
+    return response
+
+

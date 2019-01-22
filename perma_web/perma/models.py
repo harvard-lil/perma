@@ -50,12 +50,13 @@ from pywb.warc.cdxindexer import write_cdx_index
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebrecorderException
 from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset)
+    write_resource_record_from_asset,
+    get_wr_session, clear_wr_session, query_wr_api, get_wr_uploaded, set_wr_uploaded)
 
 
 logger = logging.getLogger(__name__)
@@ -1131,19 +1132,18 @@ class Link(DeletableModel):
         """
         http://perma-archives.test:8000/warc/timegate/http://example.com
         """
-        return protocol() + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
+        return protocol() + settings.PLAYBACK_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
 
     @cached_property
     def timemap(self):
         """
         http://perma-archives.test:8000/warc/timemap/*/http://example.com
         """
-        return protocol() + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
+        return protocol() + settings.PLAYBACK_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
 
     @cached_property
     def memento_formatted_date(self):
         return format_date_time(mktime(self.creation_timestamp.timetuple()))
-
 
     def get_default_title(self):
         return self.url_details.netloc
@@ -1385,7 +1385,7 @@ class Link(DeletableModel):
         return client.get(full_url, follow_redirects=follow_redirects)
 
     def base_playback_url(self, host=None):
-        host = host or settings.WARC_HOST
+        host = host or settings.PLAYBACK_HOST
         return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
 
     def create_access_token(self):
@@ -1424,6 +1424,76 @@ class Link(DeletableModel):
 
     def accessible_to(self, user):
         return user.can_edit(self)
+
+    ###
+    ### Methods for playback via Webrecorder
+    ###
+
+    @cached_property
+    def wr_collection_slug(self):
+        return self.guid.lower()
+
+    def wr_iframe_prefix(self, wr_username):
+        return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
+
+    def init_replay_for_user(self, request):
+        wr_username, wr_session_cookie, is_new_session = get_wr_session(request)
+        if is_new_session or not get_wr_uploaded(request, self.wr_collection_slug):
+            try:
+                self.upload_to_wr(wr_username, wr_session_cookie)
+                set_wr_uploaded(request, self.wr_collection_slug)
+            except WebrecorderException:
+                clear_wr_session(request)
+                raise
+        return wr_username
+
+    def upload_to_wr(self, wr_username, wr_session_cookie):
+        """
+        Upload warc to a temporary Webrecorder per-user collection for playback
+        (The collection is unique per user and per GUID)
+        """
+
+        # Create the temporary collection
+        query_wr_api(
+            method='post',
+            path='/collections?user={user}'.format(user=wr_username),
+            json={'title': self.wr_collection_slug, 'external': True},
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200 or (code == 400 and data == {'error': 'duplicate_name'})
+        )
+
+        warc_path = self.warc_storage_file()
+        upload_data = None
+        start_time = time.time()
+
+        with default_storage.open(warc_path, 'rb') as warc_file:
+            _, upload_data = query_wr_api(
+                method='put',
+                path='/upload?force-coll={coll}&filename={coll}.warc.gz'.format(coll=self.wr_collection_slug),
+                data=warc_file,
+                cookie=wr_session_cookie,
+                valid_if=lambda code, data: code == 200 and data.get('upload_id')
+            )
+
+        # wait for WR to finish uploading the WARC
+        while True:
+            try:
+                upload_data = query_wr_api(
+                    method='get',
+                    path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
+                    cookie=wr_session_cookie,
+                    valid_if=lambda code, data: code == 200 and data.get('done'))
+
+                # successfully uploaded if reached here
+                return
+
+            except WebrecorderException as e:
+                time.sleep(0.5)
+                # if all uploaded (size == total_size), but not yet done after
+                # timeout, likely something is wrong, so raise exception
+                if ((upload_data.get('total_size') == upload_data.get('size')) and
+                        (time.time() - start_time) > settings.WR_REPLAY_UPLOAD_TIMEOUT):
+                    raise
 
 
 class Capture(models.Model):
@@ -1487,7 +1557,7 @@ class Capture(models.Model):
         if not self.link.is_private:
             return self.playback_url()
         return mark_safe("//%s%s?%s" % (
-            settings.WARC_HOST,
+            settings.PLAYBACK_HOST,
             reverse('user_management_set_access_token_cookie'),
             urlencode({
                 'token': self.link.create_access_token(),

@@ -8,6 +8,9 @@ services:
     image: rabbitmq:3.7.2
     volumes:
       - rabbitmq_home:/var/lib/rabbitmq:delegated
+    networks:
+      - default
+
   # TO USE REDIS: add the caches setting found in settings_prod to your settings.py
   # redis:
   #   image: redis:4.0.6
@@ -25,11 +28,15 @@ services:
       - db3_data:/var/lib/mysql:delegated
       # BIND MOUNTS
       - ./services/mysql/conf.d:/etc/mysql/conf.d
+    networks:
+      - default
   web:
     build: ./perma_web
     image: perma3:0.11
     tty: true
     command: bash
+    # Some people prefer the below ;-)
+    # command: pipenv run fab run
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,
@@ -55,6 +62,11 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - default
+      # TO CONNECT TO A SEPARATELY-RUNNING WEBRECORDER INSTANCE:
+      # start the WR containers first, then uncomment and start Perma's containers
+      # - webrecorder
 
   #
   # Perma Payments
@@ -99,3 +111,9 @@ volumes:
   rabbitmq_home:
   # redis_data:
   pp_db_data:
+
+networks:
+  default:
+  # webrecorder:
+  #   external:
+  #     name: webrecorder_default
