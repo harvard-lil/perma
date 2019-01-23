@@ -858,3 +858,67 @@ def test_db_connection(connection):
     cursor = connections[connection].cursor()
     print("Succeeded.")
     cursor.close()
+
+
+@task
+def clear_wr_session_keys():
+    """
+    Iterates through all active Perma sessions and removes everything related to Webrecorder,
+    forcing a new Webrecorder session for all users on their next playback.
+
+    Only works with with database-backed sessions.
+    """
+    from importlib import import_module
+    from django.conf import settings
+    from django.contrib.sessions.models import Session
+
+    SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+    SessionStore.clear_expired()
+
+    for s in Session.objects.iterator():
+        try:
+            loaded = SessionStore(session_key=s.session_key)
+            # cast keys to list to avoid error about mutating an object while iterating over it
+            for key in list(loaded.keys()):
+                if key.startswith('wr_'):
+                    del loaded[key]
+            loaded.save()
+        except KeyError:
+            pass
+
+
+@task
+def clear_wr_session_for_user(target_email):
+    """
+    Iterates through all active Perma sessions, and retrieves the sessions
+    for a given logged in Perma user, then removes everything Webrecorder-related,
+    forcing a new Webrecorder session for that user on their next playback.
+
+    Only works with database-backed sessions.
+    Uses internal Django session key name, so likely fragile.
+
+    Invocation:
+    fab dev.clear_wr_session_for_user:target_email="test_admin_user@example.com"
+    """
+    from importlib import import_module
+    from django.conf import settings
+    from django.contrib.sessions.models import Session
+
+    SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+    SessionStore.clear_expired()
+
+    from perma.models import LinkUser
+    target_user_id = str(LinkUser.objects.get(email=target_email).id)
+
+    for s in Session.objects.iterator():
+        try:
+            loaded = SessionStore(session_key=s.session_key)
+            if loaded.get('_auth_user_id') == target_user_id:
+                # cast keys to list to avoid error about mutating an object while iterating over it
+                for key in list(loaded.keys()):
+                    if key.startswith('wr_'):
+                        del loaded[key]
+                loaded.save()
+                print("Cleared session for user {} ({})".format(target_user_id, target_email))
+        except KeyError:
+            pass

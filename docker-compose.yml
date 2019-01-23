@@ -11,8 +11,12 @@ services:
     networks:
       - default
 
-  # TO USE REDIS: add the caches setting found in settings_prod to your settings.py
-  # redis:
+  # TO USE REDIS:
+  # 1) comment in the perma-redis stanza
+  # 2) comment in the data volume
+  # 3) add the caches setting found in settings_prod to your settings.py,
+  #    with "LOCATION": "redis://perma-redis:6379/0"
+  # perma-redis:
   #   image: redis:4.0.6
   #   volumes:
   #     - redis_data:/data:delegated
@@ -34,9 +38,12 @@ services:
     build: ./perma_web
     image: perma3:0.11
     tty: true
-    command: bash
-    # Some people prefer the below ;-)
-    # command: pipenv run fab run
+    # command: bash
+    # TO AUTOMATICALLY START PERMA:
+    # (sleep hack to give the database and rabbitmq time to start up)
+    # command: >
+    #   sh -c "sleep 10 && pipenv run ./manage.py migrate &&
+    #          pipenv run fab run"
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,
@@ -52,11 +59,11 @@ services:
       - ./services/django:/perma/services/django:delegated
       - ./services/logs:/perma/services/logs:delegated
     environment:
-      # Temporary: let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
+      # perma-archives host is unnecessary if playback is handled by WR
       - "perma-archives.test:127.0.0.1"
     ports:
       - "8000:8000"
@@ -64,9 +71,7 @@ services:
       - db
     networks:
       - default
-      # TO CONNECT TO A SEPARATELY-RUNNING WEBRECORDER INSTANCE:
-      # start the WR containers first, then uncomment and start Perma's containers
-      # - webrecorder
+      - webrecorder
 
   #
   # Perma Payments
@@ -101,9 +106,80 @@ services:
       - default
       - perma_payments
 
-networks:
-  default:
-  perma_payments:
+  #
+  # Webrecorder
+  #
+  app:
+    image: harvardlil/webrecorder:0.03
+    command: uwsgi /code/apps/apiapp.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - warcserver
+      - recorder
+      - redis
+    volumes:
+      - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+    networks:
+      - webrecorder
+
+  recorder:
+    image: harvardlil/webrecorder:0.03
+    command: uwsgi /code/apps/rec.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - warcserver
+      - redis
+    volumes:
+      - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+    networks:
+      - webrecorder
+
+  warcserver:
+    image: harvardlil/webrecorder:0.03
+    command: uwsgi /code/apps/load.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - redis
+    volumes:
+      - ./data:/data
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+    networks:
+      - webrecorder
+
+  nginx:
+    image: webrecorder/nginx
+    depends_on:
+      - app
+    volumes:
+      - ./data:/data
+      - ./services/docker/webrecorder/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./services/docker/webrecorder/nginx/webrec.conf:/etc/nginx/webrec.conf
+      - ./services/docker/webrecorder/nginx/502.html:/usr/share/nginx/html/502.html
+    ports:
+      # The WR API. See perma_web/perma/settings/settings_common "WR_API"
+      # for a description of when to expose this port
+      # - 8089:80
+      # WR "content"/playback host
+      - 8092:81
+    extra_hosts:
+      - "perma-archives.test:127.0.0.1"
+    networks:
+      - default
+      - webrecorder
+
+  redis:
+    image: redis:4.0.6
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    volumes:
+      - wr_redis_data:/data:delegated
+    networks:
+      - webrecorder
 
 volumes:
   node_modules:
@@ -111,10 +187,20 @@ volumes:
   rabbitmq_home:
   # redis_data:
   pp_db_data:
+  wr_redis_data:
 
 networks:
   default:
   perma_payments:
-  # webrecorder:
+  # TO CONNECT TO A SEPARATELY-RUNNING WEBRECORDER INSTANCE
+  # instead of spinning one up here from our pre-built image
+  # --------------------------------------------------------
+  # 1) start the WR containers first, via WR's own repo and docker-compose file
+  # 2) comment out the Webecorder service and all its associated containers above
+  # 3) uncomment the "external" stanza below,
+  # 4) finally, start Perma's containers
+  #
+  # (recommended for simultaneous Perma and Webrecorder development)
+  webrecorder:
   #   external:
   #     name: webrecorder_default

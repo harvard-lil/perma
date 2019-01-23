@@ -459,19 +459,22 @@ ENABLE_WR_PLAYBACK = False
 # If set, playbacks must be served from PLAYBACK_HOST.
 # On production, this is highly recommended to be different from HOST
 HOST = 'localhost'
+
+# The host and port loaded by Perma's iframe during playback
+# Must be publicly available
 PLAYBACK_HOST = HOST
 
+# The Webrecorder API, used internally by Perma to create WR sessions and upload
+# warcs for playback. Not in use if ENABLE_WR_PLAYBACK = False
 #
-# Webrecorder Playback
+# Use 'http://nginx' and port 80 if running on same docker instance
 #
-# Use 'http://nginx' if running on same docker instance
-WEBRECORDER_HOST = 'http://nginx'
+# Or, if WR is on remote machine and/or not running Perma in Docker,
+# use the remote host and the port that is being publicly exposed
+# and mapped to port 80 on the nginx container by docker-compose. E.g.
+# http://remote-webrecorder-host:8089
+WR_API = 'http://nginx/api/v1'
 
-# Or, external webrecorder host if WR is on remote machine and/or
-# not running perma in Docker, eg:
-#WEBRECORDER_HOST = 'http://remote-webrecorder-host/
-
-WR_API = WEBRECORDER_HOST + '/api/v1'
 
 # Time (in seconds) to wait for upload to finalize
 # after data fully uploaded to Webreccorder
