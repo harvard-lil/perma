@@ -38,7 +38,7 @@ services:
     build: ./perma_web
     image: perma3:0.11
     tty: true
-    # command: bash
+    command: bash
     # TO AUTOMATICALLY START PERMA:
     # (sleep hack to give the database and rabbitmq time to start up)
     # command: >
@@ -110,7 +110,7 @@ services:
   # Webrecorder
   #
   app:
-    image: harvardlil/webrecorder:0.03
+    image: harvardlil/webrecorder:0.06
     command: uwsgi /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -119,13 +119,13 @@ services:
       - recorder
       - redis
     volumes:
-      - ./data:/data
-      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
     networks:
       - webrecorder
 
   recorder:
-    image: harvardlil/webrecorder:0.03
+    image: harvardlil/webrecorder:0.06
     command: uwsgi /code/apps/rec.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -133,21 +133,21 @@ services:
       - warcserver
       - redis
     volumes:
-      - ./data:/data
-      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+      - wr_warcs:/data/warcs
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
     networks:
       - webrecorder
 
   warcserver:
-    image: harvardlil/webrecorder:0.03
+    image: harvardlil/webrecorder:0.06
     command: uwsgi /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
       - redis
     volumes:
-      - ./data:/data
-      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
     networks:
       - webrecorder
 
@@ -156,10 +156,10 @@ services:
     depends_on:
       - app
     volumes:
-      - ./data:/data
-      - ./services/docker/webrecorder/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./services/docker/webrecorder/nginx/webrec.conf:/etc/nginx/webrec.conf
-      - ./services/docker/webrecorder/nginx/502.html:/usr/share/nginx/html/502.html
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/docker/webrecorder/nginx/webrec.conf:/etc/nginx/webrec.conf:ro
+      - ./services/docker/webrecorder/nginx/502.html:/usr/share/nginx/html/502.html:ro
     ports:
       # The WR API. See perma_web/perma/settings/settings_common "WR_API"
       # for a description of when to expose this port
@@ -187,6 +187,7 @@ volumes:
   rabbitmq_home:
   # redis_data:
   pp_db_data:
+  wr_warcs:
   wr_redis_data:
 
 networks:
