@@ -147,7 +147,9 @@ def stats(request, stat_type=None):
             'links_w_timeout_failure_tag': Link.objects.filter(tags__name__in=['timeout-failure']).count(),
             'links_w_browser_crashed_tag': Link.objects.filter(tags__name__in=['browser-crashed']).count(),
             'total_user_count': LinkUser.objects.count(),
-            'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count()
+            'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count(),
+            'users_with_ten_links':LinkUser.objects.filter(link_count=10).count(),
+            'confirmed_users_with_no_links':LinkUser.objects.filter(is_confirmed=True, link_count=0).count()
         }
         out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_user_percentage_of_total'] = round(100.0*out['private_user_direction']/out['total_link_count'], 1) if out['total_link_count'] else 0
@@ -163,6 +165,9 @@ def stats(request, stat_type=None):
         out['tagged_browser_crashed_percentage_of_total'] = round(100.0*out['links_w_browser_crashed_tag']/out['total_link_count'], 1) if out['total_link_count'] else 0
 
         out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1) if out['total_user_count'] else 0
+        out['users_with_ten_links_percentage'] = round(100.0*out['users_with_ten_links']/out['total_user_count'], 1) if out['total_user_count'] else 0
+        out['confirmed_users_with_no_links_percentage'] = round(100.0*out['confirmed_users_with_no_links']/out['total_user_count'], 1) if out['total_user_count'] else 0
+
 
     elif stat_type == "celery":
         inspector = celery_inspect()
