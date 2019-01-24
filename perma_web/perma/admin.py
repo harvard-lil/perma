@@ -143,6 +143,8 @@ class LinkUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
     ordering = None
     readonly_fields = ['date_joined']
+    # Adds so many fields to the form that it becomes illegal to submit,
+    # for users with many links.
     # inlines = [
     #     new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
     # ]
