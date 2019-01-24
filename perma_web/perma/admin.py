@@ -183,6 +183,7 @@ class LinkAdmin(SimpleHistoryAdmin):
 class FolderAdmin(MPTTModelAdmin):
     list_display = ['name', 'owned_by', 'organization']
     list_filter = ['owned_by', 'organization']
+    raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization']
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
