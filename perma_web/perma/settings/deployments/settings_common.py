@@ -149,6 +149,11 @@ MIDDLEWARE = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+# If the Django redis cache is configured but unavailable,
+# the ratelimiting plugin should allow all requests,
+# rather than reject them
+RATELIMIT_FAIL_OPEN = True
+
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
 CSRF_FAILURE_VIEW = 'perma.views.error_management.csrf_failure'
 

@@ -7,7 +7,7 @@ name = "pypi"
 
 # general
 celery = "==3.1.25"                         # task queue
-Django = "==1.11.16"
+Django = "==1.11.18"
 django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "==1.13.1.post1"                # task automation
 netaddr = "*"                               # to check archive IPs against banned ranges
@@ -87,13 +87,13 @@ newrelic = "==2.66.0.49"
 "beautifulsoup4" = "*"                      # parses html of responses
 coverage = "*"                              # record code coverage
 django-admin-smoke-tests = "*"              # basic tests for the Django admin
-fakeredis = "*"                             # simulate redis backend for tests
+fakeredis = "~=0.16"                        # simulate redis backend for tests
 "flake8" = "*"                              # code linting
 hypothesis = "*"                            # run tests with lots of generated input
 mock = "*"                                  # safe monkey patching
 pytest-cov = "*"                            # integrate coverage w/ pytest
 pytest-django = "*"                         # tools for django in pytest
-pytest-django-ordering = "*"                # runs transaction-wrapped tests before table truncating tests
+pytest-django-ordering = {ref = "174ee67eb7bda93d4870f02e55b475e38113f522",git = "https://github.com/rebeccacremona/pytest-django-ordering.git",editable = true}                # runs transaction-wrapped tests before table truncating tests
 pytest-xdist = "*"                          # run tests in parallel
 pytest = "*"                                # test runner
 sauceclient = "*"                           # run functional tests in many browsers online

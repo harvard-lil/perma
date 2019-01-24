@@ -30,6 +30,7 @@ before_install:
 
 install:
   # python reqs
+  - pip install -U pip
   - pip install pipenv
   - pipenv install --deploy --dev
   - pip install coveralls
