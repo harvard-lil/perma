@@ -143,6 +143,8 @@ class LinkUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
     ordering = None
     readonly_fields = ['date_joined']
+    # Adds so many fields to the form that it becomes illegal to submit,
+    # for users with many links.
     # inlines = [
     #     new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
     # ]
@@ -151,7 +153,7 @@ class LinkUserAdmin(UserAdmin):
 
 class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted']
-    search_fields = ['guid', 'submitted_url', 'tags__name']
+    search_fields = ['guid', 'submitted_url', 'tags__name', 'created_by__email']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
@@ -182,7 +184,8 @@ class LinkAdmin(SimpleHistoryAdmin):
 
 class FolderAdmin(MPTTModelAdmin):
     list_display = ['name', 'owned_by', 'organization']
-    list_filter = ['owned_by', 'organization']
+    search_fields = ['name', 'owned_by__email', 'organization__name']
+    raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization']
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
