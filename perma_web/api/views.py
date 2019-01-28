@@ -481,7 +481,7 @@ class AuthenticatedLinkDetailView(BaseView):
 
             # include remaining links in response
             links_remaining = request.user.get_links_remaining()
-            serializer.data['links_remaining'] = links_remaining[0]
+            serializer.data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
             serializer.data['links_remaining_period'] = links_remaining[1]
 
             # clear out any caches that might be based on old link data
@@ -591,7 +591,7 @@ class LinkBatchesListView(BaseView):
                 response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
                 data = response[0]['data'].copy()
                 links_remaining = request.user.get_links_remaining()
-                data['links_remaining'] = links_remaining[0]
+                data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
                 data['links_remaining_period'] = links_remaining[1]
                 return Response(data, status=status.HTTP_201_CREATED)
             raise ValidationError(serializer.errors)
