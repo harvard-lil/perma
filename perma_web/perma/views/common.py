@@ -195,7 +195,7 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if settings.ENABLE_WR_PLAYBACK:
+    if settings.ENABLE_WR_PLAYBACK and context['can_view'] and not link.user_deleted:
         wr_username = link.init_replay_for_user(request)
         context.update({
             'wr_host': settings.PLAYBACK_HOST,
