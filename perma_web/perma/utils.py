@@ -598,12 +598,13 @@ def clear_wr_session(request):
     """
     Clear Webrecorder session info in Perma and in WR
     """
-    wr_username = request.session.pop('wr_username', None)
-    wr_session_cookie = request.session.pop('wr_session_cookie', None)
+    wr_username = request.session.get('wr_username')
+    wr_session_cookie = request.session.get('wr_session_cookie')
 
     for key in list(request.session.keys()):
-        if key.startswith('wr_uploaded:'):
-            request.session.pop(key, None)
+        if key.startswith('wr_'):
+            del request.session[key]
+    request.session.save()
 
     if not wr_username or not wr_session_cookie:
         return
