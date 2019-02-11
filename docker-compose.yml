@@ -11,7 +11,7 @@ services:
     networks:
       - default
 
-  # TO USE REDIS:
+  # TO USE REDIS FOR CACHING:
   # 1) comment in the perma-redis stanza
   # 2) comment in the data volume
   # 3) add the caches setting found in settings_prod to your settings.py,
@@ -63,8 +63,10 @@ services:
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
-      # perma-archives host is unnecessary if playback is handled by WR
+      # N.B. the "perma-archives.test" host is unnecessary if playback is handled by WR
       - "perma-archives.test:127.0.0.1"
+      # N.B. the "web" host is required for functional tests if playback is handled by WR
+      - "web:127.0.0.1"
     ports:
       - "8000:8000"
     depends_on:
@@ -72,6 +74,22 @@ services:
     networks:
       - default
       - webrecorder
+
+
+  #
+  # Perma Functional Tests
+  #
+  selenium:
+    image: selenium/standalone-chrome:3.141.59-fluorine
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - START_XVFB=false
+    ports:
+      - 4444:4444
+    networks:
+      - default
+
 
   #
   # Perma Payments
@@ -168,9 +186,15 @@ services:
       - 8092:81
     extra_hosts:
       - "perma-archives.test:127.0.0.1"
+      # See "aliases" for explanation of "perma-archives"
+      - "perma-archives:127.0.0.1"
     networks:
-      - default
-      - webrecorder
+      default:
+        aliases:
+          # Alias this service for functional tests, since WR disallows identical hosts for content and API access.
+          # This permits us to access the API at "nginx" and content at "perma-archives".
+          - perma-archives
+      webrecorder:
 
   redis:
     image: redis:4.0.6

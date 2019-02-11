@@ -137,3 +137,15 @@ TIERS = {
         }
     ]
 }
+
+REMOTE_SELENIUM = False
+if REMOTE_SELENIUM:
+    HOST = 'web:8000'
+    PLAYBACK_HOST = 'web:8000'
+    ALLOWED_HOSTS.append('web')
+
+ENABLE_WR_PLAYBACK = False
+if ENABLE_WR_PLAYBACK:
+    assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
+    WR_API = 'http://nginx:80/api/v1'
+    PLAYBACK_HOST = 'perma-archives:81'
