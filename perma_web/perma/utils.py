@@ -603,7 +603,7 @@ def clear_wr_session(request):
 
     for key in list(request.session.keys()):
         if key.startswith('wr_uploaded:'):
-                request.session.pop(key, None)
+            request.session.pop(key, None)
 
     if not wr_username or not wr_session_cookie:
         return
