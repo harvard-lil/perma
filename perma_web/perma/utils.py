@@ -637,6 +637,7 @@ def get_wr_uploaded(request, link):
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
     # Make the request
+
     try:
         response = requests.request(
             method,
@@ -644,7 +645,9 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
             json=json,
             data=data,
             headers={'Host': settings.HOST},
-            cookies={'__wr_sesh': cookie}
+            cookies={'__wr_sesh': cookie},
+            timeout=10,
+            allow_redirects=False
         )
     except requests.exceptions.RequestException as e:
         raise WebrecorderException() from e
