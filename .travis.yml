@@ -5,6 +5,9 @@ env: CFLAGS="-O0"
 
 dist: precise
 
+services:
+  - docker
+
 # make sure perma.test resolves to localhost so our tests work
 addons:
   hosts:
