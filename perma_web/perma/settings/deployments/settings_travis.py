@@ -11,18 +11,18 @@ DATABASES['perma-cdxline']['HOST'] = '127.0.0.1'
 DATABASES['perma-cdxline']['USER'] = 'root'
 DATABASES['perma-cdxline']['PASSWORD'] = ''
 
-REMOTE_SELENIUM = True
-if REMOTE_SELENIUM:
-    HOST = 'perma.test:8000'
-    PLAYBACK_HOST = 'perma-archives.test:8000'
-
-ENABLE_WR_PLAYBACK = True
-if ENABLE_WR_PLAYBACK:
-    assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
-    # WR_API = 'http://nginx:8089/api/v1'
-    # PLAYBACK_HOST = 'perma-archives.test:8092'
-    WR_API = 'http://perma-archives.test:80/api/v1'
-    ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
-    PLAYBACK_HOST = 'nginx:81'
+# REMOTE_SELENIUM = True
+# if REMOTE_SELENIUM:
+#     HOST = 'perma.test:8000'
+#     PLAYBACK_HOST = 'perma-archives.test:8000'
 
 # VICTORY! PYWB PLAYBACK + SELENIUM JUST WORKED
+
+# ENABLE_WR_PLAYBACK = True
+# if ENABLE_WR_PLAYBACK:
+#     assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
+#     # WR_API = 'http://nginx:8089/api/v1'
+#     # PLAYBACK_HOST = 'perma-archives.test:8092'
+#     WR_API = 'http://perma-archives.test:80/api/v1'
+#     ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
+#     PLAYBACK_HOST = 'nginx:81'

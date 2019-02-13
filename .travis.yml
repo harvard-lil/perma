@@ -26,44 +26,45 @@ cache:
   directories:
     - perma_web/node_modules
 
-before_install:
-  - mkdir travis-phantomjs
-  - wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2
-  - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
-  - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
-  - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
-  - cd perma_web
+# before_install:
+#   - mkdir travis-phantomjs
+#   - wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2
+#   - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
+#   - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
+#   - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
+#   - cd perma_web
 
-install:
-  # python reqs
-  - pip install -U pip
-  - pip install pipenv
-  - pipenv install --deploy --dev
-  - pip install coveralls
+# install:
+#   # python reqs
+#   - pip install -U pip
+#   - pip install pipenv
+#   - pipenv install --deploy --dev
+#   - pip install coveralls
 
-  # node reqs
-  - nvm install 6
-  - npm install
+#   # node reqs
+#   - nvm install 6
+#   - npm install
 
 before_script:
   # linting
   - flake8 .
 
-  - mysql -e 'CREATE DATABASE perma;'
-  - mysql -e 'CREATE DATABASE perma_cdxline;'
+  # - mysql -e 'CREATE DATABASE perma;'
+  # - mysql -e 'CREATE DATABASE perma_cdxline;'
 
-  # try to avoid mysql has gone away errors
-  - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
-  - mysql -e 'SET GLOBAL wait_timeout = 36000;'
-  - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
+  # # try to avoid mysql has gone away errors
+  # - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
+  # - mysql -e 'SET GLOBAL wait_timeout = 36000;'
+  # - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
   # spin up selenium and webrecorder
-  - docker-compose -f ../docker-compose-travis.yml up -d
+  - docker-compose up -d
 
   - date
 
 script:
-  pipenv run fab dev.test_python:travis=True,apps=functional_tests
+  - docker-compose exec web fab dev.test_python:apps=functional_tests
+  # pipenv run fab dev.test_python:travis=True,apps=functional_tests
   # - pipenv run fab dev.test_python:travis=True
   # - pipenv run fab dev.test_js
 
