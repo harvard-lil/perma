@@ -16,10 +16,11 @@ if REMOTE_SELENIUM:
     HOST = 'perma.test:8000'
     PLAYBACK_HOST = 'perma-archives.test:8000'
 
-ENABLE_WR_PLAYBACK = False
+ENABLE_WR_PLAYBACK = True
 if ENABLE_WR_PLAYBACK:
     assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
-    WR_API = 'http://nginx:80/api/v1'
-    PLAYBACK_HOST = 'perma-archives:81'
+    WR_API = 'http://perma-archives.org:8089/api/v1'
+    PLAYBACK_HOST = 'perma-archives.test:8092'
+    ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
 
 # VICTORY! PYWB PLAYBACK + SELENIUM JUST WORKED
