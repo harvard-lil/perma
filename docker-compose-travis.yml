@@ -32,8 +32,8 @@ services:
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/uploadcontroller.py:/code/webrecorder/uploadcontroller.py:ro
       - ./services/docker/webrecorder/usercontroller.py:/code/webrecorder/usercontroller.py:ro
-    networks:
-      - webrecorder
+    network_mode: "host"
+
 
   recorder:
     image: harvardlil/webrecorder:0.06
@@ -46,8 +46,7 @@ services:
     volumes:
       - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
-    networks:
-      - webrecorder
+    network_mode: "host"
 
   warcserver:
     image: harvardlil/webrecorder:0.06
@@ -59,8 +58,7 @@ services:
     volumes:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
-    networks:
-      - webrecorder
+    network_mode: "host"
 
   nginx:
     image: webrecorder/nginx
@@ -81,13 +79,7 @@ services:
       - "perma-archives.test:127.0.0.1"
       # See "aliases" for explanation of "perma-archives"
       - "perma-archives:127.0.0.1"
-    networks:
-      default:
-        aliases:
-          # Alias this service for functional tests, since WR disallows identical hosts for content and API access.
-          # This permits us to access the API at "nginx" and content at "perma-archives".
-          - perma-archives
-      webrecorder:
+    network_mode: "host"
 
   redis:
     image: redis:4.0.6
@@ -95,13 +87,8 @@ services:
       - ./services/docker/webrecorder/wr-travis.env
     volumes:
       - wr_redis_data:/data:delegated
-    networks:
-      - webrecorder
+    network_mode: "host"
 
 volumes:
   wr_warcs:
   wr_redis_data:
-
-networks:
-  default:
-  webrecorder:
