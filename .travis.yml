@@ -47,7 +47,7 @@ cache:
 
 before_script:
   # linting
-  - flake8 .
+  # - flake8 .
 
   # - mysql -e 'CREATE DATABASE perma;'
   # - mysql -e 'CREATE DATABASE perma_cdxline;'
@@ -58,7 +58,7 @@ before_script:
   # - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
   # spin up selenium and webrecorder
-  - docker-compose up -d
+  - docker-compose -f ../docker-compose.yml up -d
 
   - date
 
@@ -72,8 +72,8 @@ after_failure:
   - date
 after_success:
   - date
-  - coverage report
-  - coveralls
+  # - coverage report
+  # - coveralls
 
 # See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr
 sudo: false
