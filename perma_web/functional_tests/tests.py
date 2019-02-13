@@ -165,7 +165,8 @@ class FunctionalTest(BaseTestCase):
             cls.server_thread.httpd.set_app(cls.server_thread.static_handler(wsgi_app))
 
             if settings.REMOTE_SELENIUM:
-                cls.server_url = 'http://{}'.format(settings.HOST)
+                cls.server_url = 'http://0.0.0.0:8000'
+                # cls.server_url = 'http://{}'.format(settings.HOST)
             else:
                 cls.server_thread.host = LOCAL_SERVER_DOMAIN
                 cls.server_url = cls.live_server_url

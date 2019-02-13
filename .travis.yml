@@ -63,8 +63,9 @@ before_script:
   - date
 
 script:
-  - pipenv run fab dev.test_python:travis=True
-  - pipenv run fab dev.test_js
+  pipenv run fab dev.test_python:travis=True,apps=functional_tests
+  # - pipenv run fab dev.test_python:travis=True
+  # - pipenv run fab dev.test_js
 
 after_failure:
   - date
