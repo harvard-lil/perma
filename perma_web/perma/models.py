@@ -1477,23 +1477,19 @@ class Link(DeletableModel):
 
         # wait for WR to finish uploading the WARC
         while True:
-            try:
-                upload_data = query_wr_api(
-                    method='get',
-                    path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
-                    cookie=wr_session_cookie,
-                    valid_if=lambda code, data: code == 200 and data.get('done'))
+            if time.time() - start_time > settings.WR_REPLAY_UPLOAD_TIMEOUT:
+                raise WebrecorderException("Upload timed out; check Webrecorder logs.")
 
-                # successfully uploaded if reached here
-                return
+            _, upload_data = query_wr_api(
+                method='get',
+                path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
+                cookie=wr_session_cookie,
+                valid_if=lambda code, data: code == 200)
 
-            except WebrecorderException:
-                time.sleep(0.5)
-                # if all uploaded (size == total_size), but not yet done after
-                # timeout, likely something is wrong, so raise exception
-                if ((upload_data.get('total_size') == upload_data.get('size')) and
-                        (time.time() - start_time) > settings.WR_REPLAY_UPLOAD_TIMEOUT):
-                    raise
+            if upload_data.get('done'):
+                break
+
+            time.sleep(0.5)
 
 
 class Capture(models.Model):

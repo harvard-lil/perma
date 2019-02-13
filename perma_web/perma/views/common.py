@@ -195,7 +195,7 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if settings.ENABLE_WR_PLAYBACK:
+    if settings.ENABLE_WR_PLAYBACK and context['can_view'] and not link.user_deleted:
         wr_username = link.init_replay_for_user(request)
         context.update({
             'wr_host': settings.PLAYBACK_HOST,
@@ -424,16 +424,13 @@ def archive_error(request):
         set_options_headers(request, response)
         return response
 
-    status = request.GET.get('status')
-    status_line = '{0} {1}'.format(status, responses.get(int(status), ''))
-
+    status_code = int(request.GET.get('status', '500'))
     response = render(request, 'archive/archive-error.html', {
         'err_url': request.GET.get('url'),
         'timestamp': request.GET.get('timestamp'),
-        'status': status_line,
+        'status': '{0} {1}'.format(status_code, responses.get(status_code)),
         'err_msg': request.GET.get('error'),
-    }, status=status)
-
+    }, status=status_code)
 
     # even if not setting full headers (eg. if Origin is not set)
     # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues

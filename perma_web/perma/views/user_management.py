@@ -1200,6 +1200,7 @@ def limited_login(request, template_name='registration/login.html',
     """
 
     if request.method == "POST" and not request.user.is_authenticated:
+        clear_wr_session(request)
         username = request.POST.get('username')
         try:
             target_user = LinkUser.objects.get(email=username)
@@ -1218,7 +1219,6 @@ def limited_login(request, template_name='registration/login.html',
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
-    clear_wr_session(request)
     return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
 

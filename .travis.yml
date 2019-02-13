@@ -9,11 +9,13 @@ dist: precise
 addons:
   hosts:
     - perma.test
+    - perma-archives.test
 
   # anything we might want to see from a failed build
   artifacts:
     paths:
       - perma_web/failed_test_files
+    debug: true
 
 cache:
   pip: true

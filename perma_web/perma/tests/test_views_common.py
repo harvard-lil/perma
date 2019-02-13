@@ -10,6 +10,8 @@ from .utils import PermaTestCase
 
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode
+from mock import patch
+import os
 
 @override_settings(CONTACT_REGISTRARS=True)
 class CommonViewsTestCase(PermaTestCase):
@@ -36,8 +38,9 @@ class CommonViewsTestCase(PermaTestCase):
     # Record page
 
     def assert_can_view_capture(self, guid):
-        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
-        self.assertIn(b"<iframe ", response.content)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
+            self.assertIn(b"<iframe ", response.content)
 
     def test_regular_archive(self):
         self.assert_can_view_capture('3SLN-JHX9')
@@ -45,32 +48,38 @@ class CommonViewsTestCase(PermaTestCase):
             self.log_in_user(user)
             self.assert_can_view_capture('3SLN-JHX9')
 
-    def test_dark_archive(self):
-        response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
-        self.assertIn(b"This record is private and cannot be displayed.", response.content)
 
-        # check that top bar is displayed to logged-in users
-        for user in self.users:
-            self.log_in_user(user)
-            response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
-            self.assertIn(b"This record is private.", response.content)
+    # patch default storage so that it returns a sample warc
+    def test_dark_archive(self):
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
+            self.assertIn(b"This record is private and cannot be displayed.", response.content)
+
+            # check that top bar is displayed to logged-in users
+            for user in self.users:
+                self.log_in_user(user)
+                response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
+                self.assertIn(b"This record is private.", response.content)
+
 
     def test_redirect_to_download(self):
-        # Give user option to download to view pdf if on mobile
-        link = Link.objects.get(pk='7CF8-SS4G')
-        file_url = link.captures.filter(role='primary').get().playback_url_with_access_token()
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            # Give user option to download to view pdf if on mobile
+            link = Link.objects.get(pk='7CF8-SS4G')
+            file_url = link.captures.filter(role='primary').get().playback_url_with_access_token()
 
-        client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
-        response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
-        self.assertIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+            client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
+            response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
+            self.assertIn(b"Perma.cc can\'t display this file type on mobile", response.content)
 
-        # Make sure that we're including the archived capture url
-        self.assertIn(bytes(file_url, 'utf-8'), response.content)
+            # Make sure that we're including the archived capture url
+            self.assertIn(bytes(file_url, 'utf-8'), response.content)
 
-        # If not on mobile, display link as normal
-        client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
-        response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
-        self.assertNotIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+            # If not on mobile, display link as normal
+            client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
+            response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
+            self.assertNotIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+
 
     def test_deleted(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410)
