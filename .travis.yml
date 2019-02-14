@@ -65,7 +65,8 @@ before_script:
   - date
 
 script:
-  - docker-compose exec web pipenv run fab dev.test_python:apps=functional_tests
+  - docker-compose exec web pipenv run fab dev.test
+  # - docker-compose exec web pipenv run fab dev.test_python:apps=functional_tests
   # - pipenv run fab dev.test_python:travis=True,apps=functional_tests
   # - pipenv run fab dev.test_python:travis=True
   # - pipenv run fab dev.test_js
