@@ -59,6 +59,7 @@ before_script:
 
   # spin up selenium and webrecorder
   - docker-compose up -d
+  - sleep 15
 
   - date
 
