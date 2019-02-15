@@ -7,7 +7,6 @@ import datetime
 import sys
 from urllib.parse import urlparse
 import requests
-from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException
 import time
@@ -207,19 +206,14 @@ class FunctionalTest(BaseTestCase):
         options.add_argument('headless')
         options.add_argument('window-size=1024x800')
         cls.driver = webdriver.Remote(
-            command_executor='http://selenium:4444/wd/hub',
+            command_executor='http://{}:4444/wd/hub'.format(settings.REMOTE_SELENIUM_HOST),
             desired_capabilities=options.to_capabilities()
         )
 
+
     @classmethod
     def setUpLocal(cls):
-        try:
-            # use Firefox if available on local system
-            cls.virtual_display = Display(visible=0, size=(1024, 800))
-            cls.virtual_display.start()
-            cls.driver = webdriver.Firefox(capabilities=cls.base_desired_capabilities)
-        except RuntimeError:
-            cls.driver = webdriver.PhantomJS(desired_capabilities=cls.base_desired_capabilities)
+        cls.driver = webdriver.PhantomJS(desired_capabilities=cls.base_desired_capabilities)
         cls.driver.set_window_size(1024, 800)
         socket.setdefaulttimeout(30)
 

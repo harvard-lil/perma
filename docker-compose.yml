@@ -172,7 +172,7 @@ services:
       - webrecorder
 
   nginx:
-    image: webrecorder/nginx
+    image: nginx:1.13-alpine
     depends_on:
       - app
     volumes:
@@ -188,14 +188,8 @@ services:
       - 8092:81
     extra_hosts:
       - "perma-archives.test:127.0.0.1"
-      # See "aliases" for explanation of "perma-archives"
-      - "perma-archives:127.0.0.1"
     networks:
       default:
-        aliases:
-          # Alias this service for functional tests, since WR disallows identical hosts for content and API access.
-          # This permits us to access the API at "nginx" and content at "perma-archives".
-          - perma-archives
       webrecorder:
 
   redis:

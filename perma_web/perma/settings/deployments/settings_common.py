@@ -541,6 +541,8 @@ USE_SAUCE = False  # Default to local functional tests
 SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
 TESTING = False
+REMOTE_SELENIUM = False
+REMOTE_SELENIUM_HOST = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 

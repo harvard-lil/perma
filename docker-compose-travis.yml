@@ -1,0 +1,100 @@
+version: '2'
+
+services:
+
+  #
+  # Perma Functional Tests
+  #
+  selenium:
+    image: selenium/standalone-chrome:3.141.59-fluorine
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - START_XVFB=false
+    ports:
+      - 4444:4444
+    network_mode: "host"
+
+  #
+  # Webrecorder
+  #
+  app:
+    image: harvardlil/webrecorder:0.06
+    command: uwsgi /code/apps/apiapp.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - warcserver
+      - recorder
+      - redis
+    volumes:
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
+      - ./services/docker/webrecorder/uploadcontroller.py:/code/webrecorder/uploadcontroller.py:ro
+      - ./services/docker/webrecorder/usercontroller.py:/code/webrecorder/usercontroller.py:ro
+    networks:
+      - webrecorder
+
+  recorder:
+    image: harvardlil/webrecorder:0.06
+    command: uwsgi /code/apps/rec.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - warcserver
+      - redis
+    volumes:
+      - wr_warcs:/data/warcs
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
+    networks:
+      - webrecorder
+
+  warcserver:
+    image: harvardlil/webrecorder:0.06
+    command: uwsgi /code/apps/load.ini
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    depends_on:
+      - redis
+    volumes:
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
+    networks:
+      - webrecorder
+
+  nginx:
+    image: nginx:1.13-alpine
+    depends_on:
+      - app
+    volumes:
+      - wr_warcs:/data/warcs:ro
+      - ./services/docker/webrecorder/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/docker/webrecorder/nginx/webrec.conf:/etc/nginx/webrec.conf:ro
+      - ./services/docker/webrecorder/nginx/502.html:/usr/share/nginx/html/502.html:ro
+    ports:
+      # The WR API
+      - 8089:80
+      # WR "content"/playback host
+      - 8092:81
+    extra_hosts:
+      - "perma-archives.test:127.0.0.1"
+    networks:
+      default:
+      webrecorder:
+
+  redis:
+    image: redis:4.0.6
+    env_file:
+      - ./services/docker/webrecorder/wr.env
+    volumes:
+      - wr_redis_data:/data:delegated
+    networks:
+      - webrecorder
+
+volumes:
+  wr_warcs:
+  wr_redis_data:
+
+networks:
+  default:
+  webrecorder:
