@@ -7,7 +7,6 @@ import datetime
 import sys
 from urllib.parse import urlparse
 import requests
-from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException
 import time
@@ -213,13 +212,7 @@ class FunctionalTest(BaseTestCase):
 
     @classmethod
     def setUpLocal(cls):
-        try:
-            # use Firefox if available on local system
-            cls.virtual_display = Display(visible=0, size=(1024, 800))
-            cls.virtual_display.start()
-            cls.driver = webdriver.Firefox(capabilities=cls.base_desired_capabilities)
-        except RuntimeError:
-            cls.driver = webdriver.PhantomJS(desired_capabilities=cls.base_desired_capabilities)
+        cls.driver = webdriver.PhantomJS(desired_capabilities=cls.base_desired_capabilities)
         cls.driver.set_window_size(1024, 800)
         socket.setdefaulttimeout(30)
 
