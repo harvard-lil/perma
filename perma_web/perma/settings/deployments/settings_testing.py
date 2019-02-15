@@ -157,4 +157,4 @@ ENABLE_WR_PLAYBACK = False
 if ENABLE_WR_PLAYBACK:
     assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
     WR_API = 'http://nginx:80/api/v1'
-    PLAYBACK_HOST = 'perma-archives:81'
+    PLAYBACK_HOST = 'nginx:81'
