@@ -172,7 +172,7 @@ services:
       - webrecorder
 
   nginx:
-    image: webrecorder/nginx
+    image: nginx:1.13-alpine
     depends_on:
       - app
     volumes:
