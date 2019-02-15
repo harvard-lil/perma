@@ -3,7 +3,11 @@ python:
   - "3.5"
 env: CFLAGS="-O0"
 
-dist: precise
+dist: trusty
+
+services:
+  - docker
+  - mysql
 
 # make sure perma.test resolves to localhost so our tests work
 addons:
@@ -33,7 +37,7 @@ before_install:
 install:
   # python reqs
   - pip install -U pip
-  - pip install pipenv
+  - pip install -U pipenv
   - pipenv install --deploy --dev
   - pip install coveralls
 
@@ -53,6 +57,9 @@ before_script:
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
   - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
+  # spin up selenium and webrecorder
+  - docker-compose -f ../docker-compose-travis.yml up -d
+  - sleep 10
   - date
 
 script:

@@ -1,3 +1,5 @@
+import os
+
 from .settings_dev import *
 
 #########
@@ -140,9 +142,16 @@ TIERS = {
 
 REMOTE_SELENIUM = False
 if REMOTE_SELENIUM:
-    HOST = 'web:8000'
-    PLAYBACK_HOST = 'web:8000'
-    ALLOWED_HOSTS.append('web')
+    if os.environ.get('DOCKERIZED'):
+        HOST = 'web:8000'
+        PLAYBACK_HOST = 'web:8000'
+        ALLOWED_HOSTS.append('web')
+        REMOTE_SELENIUM_HOST = 'selenium'
+    else:
+        HOST = 'perma.test:8000'
+        PLAYBACK_HOST = 'perma-archives.test:8000'
+        REMOTE_SELENIUM_HOST = 'localhost'
+
 
 ENABLE_WR_PLAYBACK = False
 if ENABLE_WR_PLAYBACK:

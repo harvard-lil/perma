@@ -206,9 +206,10 @@ class FunctionalTest(BaseTestCase):
         options.add_argument('headless')
         options.add_argument('window-size=1024x800')
         cls.driver = webdriver.Remote(
-            command_executor='http://selenium:4444/wd/hub',
+            command_executor='http://{}:4444/wd/hub'.format(settings.REMOTE_SELENIUM_HOST),
             desired_capabilities=options.to_capabilities()
         )
+
 
     @classmethod
     def setUpLocal(cls):

@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+
+  #
+  # Perma Functional Tests
+  #
+  selenium:
+    image: selenium/standalone-chrome:3.141.59-fluorine
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - START_XVFB=false
+    ports:
+      - 4444:4444
+    network_mode: "host"
