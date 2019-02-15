@@ -58,8 +58,13 @@ before_script:
   - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
   # spin up selenium and webrecorder
+  # healthcheck adapted from https://stackoverflow.com/a/46005602
   - docker-compose -f ../docker-compose-travis.yml up -d
   - sleep 10
+  - sh -c "[ $(curl -o /dev/null --max-time 10 --head --silent --write-out "%{http_code}" http://perma-archives.test:8089/api/v1) -eq 200 ] && echo 'Webrecorder API is up!' || (echo 'Webrecorder API not available'; exit 1)"
+  - sh -c "[ $(curl -o /dev/null --max-time 10 --head --silent --write-out "%{http_code}" http://perma-archives.test:8092/) -eq 303 ] && echo 'Webrecorder content host responsive!' || (echo 'Webrecorder content host not available'; exit 1)"
+  - docker-compose -f ../docker-compose-travis.yml exec selenium sh -c "[ $(curl -o /dev/null --max-time 10 --head --silent --write-out "%{http_code}" http://perma-archives.test:8089/api/v1) -eq 200 ] && echo 'Selenium container can communicate with Webrecorder' || (echo 'Selenium container cannot communicate with Webrecorder...'; exit 1)"
+
   - date
 
 script:
@@ -68,6 +73,7 @@ script:
 
 after_failure:
   - date
+  - docker-compose -f ../docker-compose-travis.yml logs
 after_success:
   - date
   - coverage report
