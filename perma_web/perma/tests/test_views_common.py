@@ -102,7 +102,7 @@ class CommonViewsTestCase(PermaTestCase):
 
     def test_replacement_link(self):
         response = self.client.get(reverse('single_permalink', kwargs={'guid': 'ABCD-0006'}))
-        self.assertRedirects(response, reverse('single_permalink', kwargs={'guid': '3SLN-JHX9'}))
+        self.assertRedirects(response, reverse('single_permalink', kwargs={'guid': '3SLN-JHX9'}), fetch_redirect_response=False)
 
 
     ###
