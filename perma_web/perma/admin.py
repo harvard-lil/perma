@@ -35,12 +35,13 @@ class RegistrarChangeForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrarChangeForm, self).__init__(*args, **kwargs)
-        try:
-            # get the latest subscription info from Perma Payments
-            kwargs['instance'].get_subscription()
-        except PermaPaymentsCommunicationException:
-            # This gets logged inside get_subscription; don't duplicate logging here
-            pass
+        if kwargs.get('instance'):
+            try:
+                # get the latest subscription info from Perma Payments
+                kwargs['instance'].get_subscription()
+            except PermaPaymentsCommunicationException:
+                # This gets logged inside get_subscription; don't duplicate logging here
+                pass
 
 
 class RegistrarAdmin(SimpleHistoryAdmin):
