@@ -117,6 +117,22 @@ def user_with_links():
         link.save()
     return user
 
+def user_with_links_this_month_before_the_15th():
+    # for use in testing mid-month link count limits
+    user = LinkUser()
+    user.save()
+    links = [
+        Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=user),
+        Link(creation_timestamp=timezone.now().replace(day=2), guid="BBBB-BBBB", created_by=user),
+        Link(creation_timestamp=timezone.now().replace(day=3), guid="DDDD-DDDDD", created_by=user),
+        Link(creation_timestamp=timezone.now().replace(day=4), guid="EEEE-EEEE", created_by=user),
+        Link(creation_timestamp=timezone.now().replace(day=14), guid="FFFF-FFFF", created_by=user),
+    ]
+    for link in links:
+        link.save()
+    return user
+
+
 def spoof_pp_response_wrong_pk(customer):
     data = {
         "customer_pk": "not_the_pk",
@@ -472,8 +488,15 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_no_subscription(self, post, process):
         post.return_value.status_code = 200
         for customer in customers():
+            # artificially set this for the purpose of this test
+            customer.cached_subscription_started = timezone.now()
+            customer.save()
+            customer.refresh_from_db()
+            self.assertTrue(customer.cached_subscription_started)
+
             process.return_value = spoof_pp_response_no_subscription(customer)
             self.assertIsNone(customer.get_subscription())
+            self.assertFalse(customer.cached_subscription_started)
             self.assertEqual(post.call_count, 1)
             post.reset_mock()
 
@@ -483,11 +506,13 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_happy_path_sets_customer_trial_period_to_false(self, post, process):
         post.return_value.status_code = 200
         for customer in [paying_limited_registrar(), paying_user()]:
-            # artificially set this to True, for the purpose of this test
+            # artificially set this for the purpose of this test
             customer.in_trial = True
+            customer.cached_subscription_started = None
             customer.save()
             customer.refresh_from_db()
             self.assertTrue(customer.in_trial)
+            self.assertFalse(customer.cached_subscription_started)
 
             response = spoof_pp_response_subscription(customer)
             process.return_value = response
@@ -495,6 +520,7 @@ class ModelsTestCase(PermaTestCase):
             customer.refresh_from_db()
 
             self.assertFalse(customer.in_trial)
+            self.assertTrue(customer.cached_subscription_started)
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
@@ -1134,8 +1160,40 @@ class ModelsTestCase(PermaTestCase):
     def test_one_time_link_limit(self):
         u = user_with_links()
         self.assertFalse(u.unlimited)
+        self.assertFalse(u.cached_subscription_started)
         self.assertEqual(u.links_remaining_in_period('once', 6), 1)
         self.assertEqual(u.links_remaining_in_period('once', 5), 0)
+
+
+    @patch('perma.models.timezone', autospec=True)
+    def test_one_time_link_limit_with_midmonth_subscription1(self, mocked_timezone):
+        fifteenth_of_month = timezone.now().replace(day=15)
+        mocked_timezone.now.return_value = fifteenth_of_month
+
+        u = user_with_links_this_month_before_the_15th()
+        u.cached_subscription_started = fifteenth_of_month
+        u.save()
+
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('once', 6), 6)
+        self.assertEqual(u.links_remaining_in_period('once', 5), 5)
+        self.assertEqual(mocked_timezone.now.call_count, 2)
+
+
+    @patch('perma.models.timezone', autospec=True)
+    def test_one_time_link_limit_with_midmonth_subscription2(self, mocked_timezone):
+        fifteenth_of_month = timezone.now().replace(day=15)
+        fifth_of_month = timezone.now().replace(day=5)
+        mocked_timezone.now.return_value = fifteenth_of_month
+
+        u = user_with_links_this_month_before_the_15th()
+        u.cached_subscription_started = fifth_of_month
+        u.save()
+
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('once', 6), 5)
+        self.assertEqual(u.links_remaining_in_period('once', 5), 4)
+        self.assertEqual(mocked_timezone.now.call_count, 2)
 
 
     def test_monthly_link_limit(self):
@@ -1143,6 +1201,37 @@ class ModelsTestCase(PermaTestCase):
         self.assertFalse(u.unlimited)
         self.assertEqual(u.links_remaining_in_period('monthly', 3), 1)
         self.assertEqual(u.links_remaining_in_period('monthly', 2), 0)
+
+
+    @patch('perma.models.timezone', autospec=True)
+    def test_monthly_link_limit_with_midmonth_subscription1(self, mocked_timezone):
+        fifteenth_of_month = timezone.now().replace(day=15)
+        mocked_timezone.now.return_value = fifteenth_of_month
+
+        u = user_with_links_this_month_before_the_15th()
+        u.cached_subscription_started = fifteenth_of_month
+        u.save()
+
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('monthly', 3), 3)
+        self.assertEqual(u.links_remaining_in_period('monthly', 2), 2)
+        self.assertEqual(mocked_timezone.now.call_count, 2)
+
+
+    @patch('perma.models.timezone', autospec=True)
+    def test_monthly_link_limit_with_midmonth_subscription2(self, mocked_timezone):
+        fifteenth_of_month = timezone.now().replace(day=15)
+        fifth_of_month = timezone.now().replace(day=5)
+        mocked_timezone.now.return_value = fifteenth_of_month
+
+        u = user_with_links_this_month_before_the_15th()
+        u.cached_subscription_started = fifth_of_month
+        u.save()
+
+        self.assertFalse(u.unlimited)
+        self.assertEqual(u.links_remaining_in_period('monthly', 3), 2)
+        self.assertEqual(u.links_remaining_in_period('monthly', 2), 1)
+        self.assertEqual(mocked_timezone.now.call_count, 2)
 
 
     def test_annual_link_limit(self):
