@@ -175,6 +175,11 @@ class CustomerModel(models.Model):
         default=Decimal(settings.DEFAULT_BASE_RATE),
         help_text="Base rate for calculating subscription cost."
     )
+    cached_subscription_started = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Used to help calculate how many links have been created against a paying customer's link limit."
+    )
     cached_subscription_status = models.CharField(
         max_length=50,
         null=True,
@@ -230,17 +235,26 @@ class CustomerModel(models.Model):
             raise InvalidTransmissionException(msg)
 
         if post_data['subscription'] is None:
+            if self.cached_subscription_started:
+                # reset this, so that link counts work properly if the customer
+                # purchases a new subscription in the future
+                self.cached_subscription_started = None
+                self.save(update_fields=['cached_subscription_started'])
+                self.refresh_from_db()
             return None
 
         # Alert Perma that this user is no longer in their trial period.
         # Store the subscription status locally, for use if Perma Payments is unavailable
         # and update local link limit and rate to match Perma Payments' records
+        subscription_change_effective = pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp'])
         self.in_trial = False
+        if not self.cached_subscription_started:
+            self.cached_subscription_started = subscription_change_effective
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
+
         pending_change = None
-        apply_changes_at = pp_date_from_post(post_data['subscription']['link_limit_effective_timestamp'])
-        if apply_changes_at <= timezone.now():
+        if subscription_change_effective <= timezone.now():
             self.link_limit_period = post_data['subscription']['frequency']
             self.cached_subscription_rate = Decimal(post_data['subscription']['rate'])
             if post_data['subscription']['link_limit'] == 'unlimited':
@@ -252,9 +266,9 @@ class CustomerModel(models.Model):
             pending_change = {
                 'rate': post_data['subscription']['rate'],
                 'link_limit': post_data['subscription']['link_limit'],
-                'effective': apply_changes_at
+                'effective': subscription_change_effective
             }
-        self.save(update_fields=['in_trial', 'cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
+        self.save(update_fields=['in_trial', 'cached_subscription_started', 'cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
         self.refresh_from_db()
 
         return {
@@ -841,10 +855,18 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             link_count = float("-inf")
         elif period == 'once':
             # TRIAL: all non-org links ever
-            link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
+            if self.cached_subscription_started:
+                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id, organization_id=None).count()
+            else:
+                link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
         elif period == 'monthly':
-            # MONTHLY RECURRING: links this calendar month
-            link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
+            # MONTHLY RECURRING: links this calendar month (or, for new customers, links this month from the moment you started paying us)
+            if self.cached_subscription_started and \
+               self.cached_subscription_started.year == today.year and \
+               self.cached_subscription_started.month == today.month:
+                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id, organization_id=None).count()
+            else:
+                link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
         elif period == 'annually':
             # ANNUAL RECURRING
             # if you have a paid subscription, calculate via its expiry date

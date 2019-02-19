@@ -6,10 +6,12 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
+from django.forms import ModelForm
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
+from .exceptions import PermaPaymentsCommunicationException
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
 
 ### helpers ###
@@ -29,15 +31,29 @@ class LinkInline(admin.TabularInline):
 
 ### admin models ###
 
+class RegistrarChangeForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(RegistrarChangeForm, self).__init__(*args, **kwargs)
+        if kwargs.get('instance'):
+            try:
+                # get the latest subscription info from Perma Payments
+                kwargs['instance'].get_subscription()
+            except PermaPaymentsCommunicationException:
+                # This gets logged inside get_subscription; don't duplicate logging here
+                pass
+
 
 class RegistrarAdmin(SimpleHistoryAdmin):
+    form = RegistrarChangeForm
+
     search_fields = ['name', 'email', 'website']
     list_display = ['name', 'status', 'unlimited', 'nonpaying', 'base_rate', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
     list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
-        ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period')}),
+        ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [
@@ -107,6 +123,12 @@ class LinkUserChangeForm(UserChangeForm):
 
     def __init__(self, *args, **kwargs):
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
+        try:
+            # get the latest subscription info from Perma Payments
+            kwargs['instance'].get_subscription()
+        except PermaPaymentsCommunicationException:
+            # This gets logged inside get_subscription; don't duplicate logging here
+            pass
 
         # make sure that user's current organizations show even if they have been deleted
         self.initial['organizations'] = Organization.objects.all_with_deleted().filter(users__id=kwargs['instance'].pk)
@@ -129,7 +151,7 @@ class LinkUserAdmin(UserAdmin):
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'notes')}),
         (None, {'fields': ('password',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
-        ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial')}),
+        ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
