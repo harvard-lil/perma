@@ -46,31 +46,37 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
                 # use runserver_plus if installed
                 import django_extensions  # noqa
 
-                ## The following comment and line are from the Vagrant era, and may
-                ## need amendment for Docker.
-                # use --reloader-type stat because:
-                #  (1) we have to have watchdog installed for pywb, which causes
-                # runserver_plus to attempt to use it as the reloader, which depends
-                # on inotify, but
-                #  (2) we are using a Vagrant NFS mount, which does not support inotify
-                # see https://github.com/django-extensions/django-extensions/pull/1041
-                options = '--threaded --reloader-type stat'
+                if not settings.SECURE_SSL_REDIRECT:
+                    print("\nError! When using SSL, you must run with settings.SECURE_SSL_REDIRECT = True\n")
+                else:
+                    ## The following comment and line are from the Vagrant era, and may
+                    ## need amendment for Docker.
+                    # use --reloader-type stat because:
+                    #  (1) we have to have watchdog installed for pywb, which causes
+                    # runserver_plus to attempt to use it as the reloader, which depends
+                    # on inotify, but
+                    #  (2) we are using a Vagrant NFS mount, which does not support inotify
+                    # see https://github.com/django-extensions/django-extensions/pull/1041
+                    options = '--threaded --reloader-type stat'
 
-                # create a cert if necessary or supply your own; we assume perma.test
-                # is in your /etc/hosts
-                conf_file = "%s.conf" % os.path.splitext(cert_file)[0]
-                with open(conf_file, "w") as f:
-                    f.write("[dn]\nCN=%s\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:%s\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth" % (host, host))
-                if not os.path.exists(cert_file):
-                    local("openssl req -x509 -out %s -keyout %s -newkey rsa:2048 -nodes -sha256 -subj '/CN=%s' -extensions EXT -config %s" % (cert_file, "%s.key" % os.path.splitext(cert_file)[0], host, conf_file))
-                options += ' --cert-file %s' % cert_file
+                    # create a cert if necessary or supply your own; we assume perma.test
+                    # is in your /etc/hosts
+                    conf_file = "%s.conf" % os.path.splitext(cert_file)[0]
+                    with open(conf_file, "w") as f:
+                        f.write("[dn]\nCN=%s\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:%s\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth" % (host, host))
+                    if not os.path.exists(cert_file):
+                        local("openssl req -x509 -out %s -keyout %s -newkey rsa:2048 -nodes -sha256 -subj '/CN=%s' -extensions EXT -config %s" % (cert_file, "%s.key" % os.path.splitext(cert_file)[0], host, conf_file))
+                    options += ' --cert-file %s' % cert_file
 
-                local("python manage.py runserver_plus %s %s" % (port, options))
+                    local("python manage.py runserver_plus %s %s" % (port, options))
             except ImportError:
                 print("\nWarning! We can't serve via SSL, as django-extensions is not\n" +
                       "installed. You may wish to run `pipenv install --dev`.\n")
         else:
-            local("python manage.py runserver %s" % port)
+            if settings.SECURE_SSL_REDIRECT:
+                print("\nError! When *not* using SSL, you must run with settings.SECURE_SSL_REDIRECT = False\n")
+            else:
+                local("python manage.py runserver %s" % port)
     finally:
         for proc in proc_list:
             os.kill(proc.pid, signal.SIGKILL)
