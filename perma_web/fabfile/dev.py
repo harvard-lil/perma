@@ -14,10 +14,14 @@ from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
-def run_django(port="0.0.0.0:8000"):
+def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', host='perma.test'):
     """
-        Run django test server on open port, so it's accessible outside Vagrant.
+        Run django test server on open port, so it's accessible outside Docker.
+
+        Use runserver_plus for SSL; runserver otherwise.
     """
+    use_ssl = True if use_ssl else False
+
     commands = []
 
     if settings.ENABLE_BATCH_LINKS and not settings.RUN_TASKS_ASYNC:
@@ -37,15 +41,35 @@ def run_django(port="0.0.0.0:8000"):
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
 
     try:
-        try:
-            # use runserver_plus if installed
-            import django_extensions  # noqa
-            # use --reloader-type stat because:
-            #  (1) we have to have watchdog installed for pywb, which causes runserver_plus to attempt to use it as the reloader, which depends on inotify, but
-            #  (2) we are using a Vagrant NFS mount, which does not support inotify
-            # see https://github.com/django-extensions/django-extensions/pull/1041
-            local("python manage.py runserver_plus %s --threaded --reloader-type stat" % port)
-        except ImportError:
+        if use_ssl:
+            try:
+                # use runserver_plus if installed
+                import django_extensions  # noqa
+
+                ## The following comment and line are from the Vagrant era, and may
+                ## need amendment for Docker.
+                # use --reloader-type stat because:
+                #  (1) we have to have watchdog installed for pywb, which causes
+                # runserver_plus to attempt to use it as the reloader, which depends
+                # on inotify, but
+                #  (2) we are using a Vagrant NFS mount, which does not support inotify
+                # see https://github.com/django-extensions/django-extensions/pull/1041
+                options = '--threaded --reloader-type stat'
+
+                # create a cert if necessary or supply your own; we assume perma.test
+                # is in your /etc/hosts
+                conf_file = "%s.conf" % os.path.splitext(cert_file)[0]
+                with open(conf_file, "w") as f:
+                    f.write("[dn]\nCN=%s\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:%s\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth" % (host, host))
+                if not os.path.exists(cert_file):
+                    local("openssl req -x509 -out %s -keyout %s -newkey rsa:2048 -nodes -sha256 -subj '/CN=%s' -extensions EXT -config %s" % (cert_file, "%s.key" % os.path.splitext(cert_file)[0], host, conf_file))
+                options += ' --cert-file %s' % cert_file
+
+                local("python manage.py runserver_plus %s %s" % (port, options))
+            except ImportError:
+                print("\nWarning! We can't serve via SSL, as django-extensions is not\n" +
+                      "installed. You may wish to run `pipenv install --dev`.\n")
+        else:
             local("python manage.py runserver %s" % port)
     finally:
         for proc in proc_list:
