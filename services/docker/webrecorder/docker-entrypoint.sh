@@ -3,7 +3,7 @@
 # and https://success.docker.com/article/use-a-script-to-initialize-stateful-container-data
 set -e
 
-# Make sure the these directories exist and are owned by "archivist".
+# Make sure these directories exist and are owned by "archivist".
 # Must be run as root; configure Docker or Docker-Compose accordingly.
 if [ "$1" = 'uwsgi' ]; then
     mkdir -p "$RECORD_ROOT"
