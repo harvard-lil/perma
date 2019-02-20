@@ -59,3 +59,8 @@ npm-debug.log
 .hypothesis/
 # except for the examples directory
 !.hypothesis/examples/
+
+# ignore certs/keys/confs from serving via SSL with runserver_plus
+perma_web/*.crt
+perma_web/*.key
+perma_web/*.conf

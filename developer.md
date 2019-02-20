@@ -34,6 +34,26 @@ The server will automatically reload any time you made a change to the
 
 Press `CONTROL-C` to stop the server.
 
+To run with SSL (for instance, to test locally against a remote
+instance of webrecorder that is behind SSL), set `SECURE_SSL_REDIRECT
+= True`, try
+
+`d fab run:use_ssl=True`
+
+and visit `https://perma.test:8000/` -- you'll need to make an
+exception for the self-signed certificate in your
+browser. Alternatively, you can supply your own certificate with
+something like
+
+`d fab run:use_ssl=True,cert_file=myfile.crt`
+
+(See `run_django` in `perma_web/fabfile/dev.py` for how the
+self-signed certificate is created.)
+
+Remember to set `SECURE_SSL_REDIRECT = False` when you go back to
+running without SSL. Note also that if you run with SSL against a
+local (non-SSL) webrecorder, playback will fail silently.
+
 ### Run all the tests
 
 `d fab test`

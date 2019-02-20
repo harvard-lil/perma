@@ -11019,7 +11019,7 @@ webpackJsonp([1],[
 	    + alias3(__default(__webpack_require__(148)).call(alias1,(depth0 != null ? depth0.url : depth0),200,{"name":"truncatechars","hash":{},"data":data}))
 	    + "\n            </a>\n          </div>\n        </div>\n        <div class=\"col col-sm-6 col-md-40 align-right item-permalink\">\n          "
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.delete_available : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-	    + "\n          <a class=\"perma no-drag\" href=\"http://"
+	    + "\n          <a class=\"perma no-drag\" href=\"//"
 	    + alias3(alias2((depth0 != null ? depth0.local_url : depth0), depth0))
 	    + "\" target=\"_blank\">"
 	    + alias3(alias2((depth0 != null ? depth0.local_url : depth0), depth0))
