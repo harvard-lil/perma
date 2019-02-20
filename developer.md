@@ -51,7 +51,8 @@ something like
 self-signed certificate is created.)
 
 Remember to set `SECURE_SSL_REDIRECT = False` when you go back to
-running without SSL.
+running without SSL. Note also that if you run with SSL against a
+local (non-SSL) webrecorder, playback will fail silently.
 
 ### Run all the tests
 
