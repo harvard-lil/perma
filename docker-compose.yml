@@ -128,7 +128,7 @@ services:
   # Webrecorder
   #
   app:
-    image: harvardlil/webrecorder:0.06
+    image: harvardlil/webrecorder:0.07
     command: uwsgi /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -145,8 +145,13 @@ services:
       - webrecorder
 
   recorder:
-    image: harvardlil/webrecorder:0.06
-    command: uwsgi /code/apps/rec.ini
+    image: harvardlil/webrecorder:0.07
+    user: root
+    entrypoint:
+      - "/docker-entrypoint.sh"
+    command:
+      - "uwsgi"
+      - "/code/apps/rec.ini"
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
@@ -155,11 +160,12 @@ services:
     volumes:
       - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
+      - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh
     networks:
       - webrecorder
 
   warcserver:
-    image: harvardlil/webrecorder:0.06
+    image: harvardlil/webrecorder:0.07
     command: uwsgi /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
