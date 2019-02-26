@@ -645,7 +645,6 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
             settings.WR_API + path,
             json=json,
             data=data,
-            headers={'Host': settings.HOST},
             cookies={'__wr_sesh': cookie},
             timeout=10,
             allow_redirects=False
