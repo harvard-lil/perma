@@ -178,7 +178,7 @@ services:
       - webrecorder
 
   nginx:
-    image: nginx:1.13-alpine
+    image: harvardlil/nginx:0.01
     depends_on:
       - app
     volumes:
