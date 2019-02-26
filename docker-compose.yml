@@ -185,7 +185,6 @@ services:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./services/docker/webrecorder/nginx/webrec.conf:/etc/nginx/webrec.conf:ro
-      - ./services/docker/webrecorder/nginx/502.html:/usr/share/nginx/html/502.html:ro
     ports:
       # The WR API. See perma_web/perma/settings/settings_common "WR_API"
       # for a description of when to expose this port
