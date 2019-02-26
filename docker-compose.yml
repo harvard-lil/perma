@@ -129,7 +129,7 @@ services:
   #
   app:
     image: harvardlil/webrecorder:0.07
-    command: uwsgi /code/apps/apiapp.ini
+    command: uwsgi --need-app /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
@@ -151,6 +151,7 @@ services:
       - "/docker-entrypoint.sh"
     command:
       - "uwsgi"
+      - "--need-app"
       - "/code/apps/rec.ini"
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -166,7 +167,7 @@ services:
 
   warcserver:
     image: harvardlil/webrecorder:0.07
-    command: uwsgi /code/apps/load.ini
+    command: uwsgi --need-app /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
