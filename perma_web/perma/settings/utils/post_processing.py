@@ -41,6 +41,10 @@ def post_process_settings(settings):
         'run-next-capture': {
             'task': 'perma.tasks.run_next_capture',
             'schedule': crontab(minute='*'),
+        },
+        'verify_webrecorder_api_available': {
+            'task': 'perma.tasks.verify_webrecorder_api_available',
+            'schedule': crontab(minute='*')
         }
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
