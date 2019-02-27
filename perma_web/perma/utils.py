@@ -638,7 +638,6 @@ def get_wr_uploaded(request, link):
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
     # Make the request
-
     try:
         response = requests.request(
             method,
