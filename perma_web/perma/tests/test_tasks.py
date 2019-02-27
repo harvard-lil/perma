@@ -1,7 +1,10 @@
+from mock import patch
+import requests
+
 from django.core import mail
 
 from django.test import TestCase, override_settings
-from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, send_js_errors
+from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, send_js_errors, verify_webrecorder_api_available
 from perma.models import Link, UncaughtError
 
 @override_settings(CELERY_ALWAYS_EAGER=True, UPLOAD_TO_INTERNET_ARCHIVE=True)
@@ -47,3 +50,17 @@ class TaskTestCase(TestCase):
         self.assertIn('Function: getNextContents', message_parts)
         self.assertIn('File: static/bundles/create.js', message_parts)
         self.assertNotIn('showFolderContents', message_parts)
+
+    def test_verify_webrecorder_api_available(self):
+        # this test really verifies that Webrecorder is available in the test environment,
+        # as well as testing the task
+        self.assertTrue(verify_webrecorder_api_available.delay())
+
+    @patch('perma.tasks.requests.get')
+    def test_verify_webrecorder_api_available_fails(self, mocked_get):
+        response = requests.Response()
+        for code in [400, 404, 500, 502]:
+            response.status_code = code
+            mocked_get.return_value = response
+            with self.assertRaises(requests.exceptions.RequestException):
+                self.assertFalse(verify_webrecorder_api_available.delay())

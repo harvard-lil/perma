@@ -1469,3 +1469,18 @@ def send_js_errors():
                          'email/admin/js_errors.txt',
                          {'errors': formatted_errors})
         return errors
+
+
+@shared_task()
+def verify_webrecorder_api_available():
+    """
+    UptimeRobot-like helper to verify that the Webrecorder API is available.
+    Necessary because the api should not be exposed to the public internet.
+    """
+    r = requests.get(
+        settings.WR_API,
+        timeout=5,
+        allow_redirects=False
+    )
+    r.raise_for_status()
+    assert "description: Webrecorder API" in r.text
