@@ -562,19 +562,34 @@ def stream_warc_if_permissible(link, user):
 #
 # Webrecorder Helpers
 #
+DEFAULT_WR_USER = 'perma'
 
-def get_wr_session(request):
-    """
-    Initializes Webrecorder session or retrieves existing session.
-    """
+def get_wr_public_session(request):
+    wr_public_session_cookie = request.session.get('wr_public_session_cookie')
+
+    if not wr_public_session_cookie:
+        response, data = query_wr_api(
+            method='post',
+            path='/auth/login',
+            cookie=wr_public_session_cookie,
+            json={'username': DEFAULT_WR_USER, 'password': 'TestTest123'},
+            valid_if=lambda code, data: code == 200
+        )
+
+        wr_public_session_cookie = response.cookies.get('__wr_sesh')
+        request.session['wr_public_session_cookie'] = wr_public_session_cookie
+
+    return wr_public_session_cookie
+
+def get_wr_private_session(request):
     wr_username = request.session.get('wr_username')
-    wr_session_cookie = request.session.get('wr_session_cookie')
+    wr_private_session_cookie = request.session.get('wr_private_session_cookie')
     is_new_session = False
 
     response, data = query_wr_api(
         method='post',
         path='/auth/anon_user',
-        cookie=wr_session_cookie,
+        cookie=wr_private_session_cookie,
         valid_if=lambda code, data: code == 200
     )
 
@@ -586,10 +601,27 @@ def get_wr_session(request):
         request.session['wr_username'] = new_username
         wr_username = new_username
         is_new_session = True
-    if new_cookie and wr_session_cookie != new_cookie:
-        request.session['wr_session_cookie'] = new_cookie
-        wr_session_cookie = new_cookie
+    if new_cookie and wr_private_session_cookie != new_cookie:
+        request.session['wr_private_session_cookie'] = new_cookie
+        wr_private_session_cookie = new_cookie
         is_new_session = True
+
+    return wr_username, wr_private_session_cookie, is_new_session
+
+def get_wr_session(request, is_private=False, collection_slug=None):
+    """
+    Initializes Webrecorder session or retrieves existing session.
+    """
+    if not is_private:
+        wr_username = DEFAULT_WR_USER
+        wr_session_cookie = get_wr_public_session(request)
+        is_new_session = False
+
+    else:
+        wr_username, wr_session_cookie, is_new_session = get_wr_private_session(request)
+
+    if not is_new_session and collection_slug:
+        is_new_session = not get_wr_collection_exists(wr_username, wr_session_cookie, collection_slug)
 
     return wr_username, wr_session_cookie, is_new_session
 
@@ -598,22 +630,20 @@ def clear_wr_session(request):
     """
     Clear Webrecorder session info in Perma and in WR
     """
-    wr_username = request.session.get('wr_username')
-    wr_session_cookie = request.session.get('wr_session_cookie')
+    wr_username = request.session.pop('wr_username', '')
+    wr_private_session_cookie = request.session.pop('wr_private_session_cookie', '')
+    wr_public_session_cookie = request.session.pop('wr_public_session_cookie', '')
 
-    for key in list(request.session.keys()):
-        if key.startswith('wr_'):
-            del request.session[key]
     request.session.save()
 
-    if not wr_username or not wr_session_cookie:
+    if not wr_username or not wr_private_session_cookie:
         return
 
     try:
         query_wr_api(
             method='delete',
             path='/user/{user}'.format(user=wr_username),
-            cookie=wr_session_cookie,
+            cookie=wr_private_session_cookie,
             valid_if=lambda code, data: code == 200
         )
     except WebrecorderException:
@@ -621,30 +651,41 @@ def clear_wr_session(request):
         logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
 
 
-def set_wr_uploaded(request, link):
-    """
-    Mark a link id/collection slug as having been uploaded
-    """
-    request.session['wr_uploaded:' + link] = True
-
-
-def get_wr_uploaded(request, link):
-    """
-    Mark a link id/collection slug as having been uploaded
-    """
-    return request.session.get('wr_uploaded:' + link)
-
+def get_wr_collection_exists(wr_username, wr_session_cookie, collection_slug):
+    try:
+        response, data = query_wr_api(
+            method='get',
+            path='/collection/{slug}?user={user}'.format(slug=collection_slug, user=wr_username),
+            cookie=wr_session_cookie,
+            valid_if=lambda code, data: code == 200
+        )
+        return True
+    except Exception:
+        return False
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
     # Make the request
+    if cookie:
+        cookies = {'__wr_sesh': cookie}
+    else:
+        cookies = None
+
+    # Need to send host header if using internal WR
+    # TODO: add separate setting for this?
+    if 'nginx' in settings.WR_API:
+        headers = {'Host': settings.HOST}
+    else:
+        headers = None
+
     try:
         response = requests.request(
             method,
             settings.WR_API + path,
             json=json,
             data=data,
-            cookies={'__wr_sesh': cookie},
+            headers=headers,
+            cookies=cookies,
             timeout=10,
             allow_redirects=False
         )
@@ -659,7 +700,8 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
         raise WebrecorderException("{code}: {message}".format(
             code=response.status_code,
             message=str(data)
-        ))
+        ), data=data)
+
     return response, data
 
 

@@ -234,7 +234,7 @@ def set_iframe_session_cookie(request):
         # no redirects required; subsequent requests from the browser get the cookie
         response = HttpResponse()
     else:
-        cookie = urlencode({'cookie': request.session.get('wr_session_cookie')})
+        cookie = urlencode({'cookie': request.session.get('wr_private_session_cookie')})
         url = protocol() + settings.PLAYBACK_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
         response = HttpResponseRedirect(url)
         response['Cache-Control'] = 'no-cache'

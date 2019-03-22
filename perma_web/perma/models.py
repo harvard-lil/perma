@@ -56,7 +56,7 @@ from .utils import (tz_datetime, protocol,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset,
-    get_wr_session, clear_wr_session, query_wr_api, get_wr_uploaded, set_wr_uploaded)
+    get_wr_session, clear_wr_session, query_wr_api)
 
 
 logger = logging.getLogger(__name__)
@@ -1459,30 +1459,38 @@ class Link(DeletableModel):
         return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
 
     def init_replay_for_user(self, request):
-        wr_username, wr_session_cookie, is_new_session = get_wr_session(request)
-        if is_new_session or not get_wr_uploaded(request, self.wr_collection_slug):
+        is_private = self.is_private
+        wr_username, wr_session_cookie, is_new_session = get_wr_session(request, is_private, self.wr_collection_slug)
+        if is_new_session:
             try:
-                self.upload_to_wr(wr_username, wr_session_cookie)
-                set_wr_uploaded(request, self.wr_collection_slug)
+                self.upload_to_wr(wr_username, wr_session_cookie, is_private)
             except WebrecorderException:
                 clear_wr_session(request)
                 raise
         return wr_username
 
-    def upload_to_wr(self, wr_username, wr_session_cookie):
+    def upload_to_wr(self, wr_username, wr_session_cookie, is_private):
         """
         Upload warc to a temporary Webrecorder per-user collection for playback
         (The collection is unique per user and per GUID)
         """
 
-        # Create the temporary collection
-        query_wr_api(
-            method='post',
-            path='/collections?user={user}'.format(user=wr_username),
-            json={'title': self.wr_collection_slug, 'external': True},
-            cookie=wr_session_cookie,
-            valid_if=lambda code, data: code == 200 or (code == 400 and data == {'error': 'duplicate_name'})
-        )
+        # Create the collection
+        try:
+            query_wr_api(
+                method='post',
+                path='/collections?user={user}'.format(user=wr_username),
+                json={'title': self.wr_collection_slug, 'external': True, 'public': not is_private},
+                cookie=wr_session_cookie,
+                valid_if=lambda code, data: code == 200
+            )
+        except WebrecorderException as wr:
+            if wr.data == {'error': 'duplicate_name'}:
+                # if duplicate and not private, already part of public 'perma' user
+                # no need to reupload
+                # if private, re-upload just in case (maybe not needed)
+                if not is_private:
+                    return
 
         warc_path = self.warc_storage_file()
         upload_data = None
