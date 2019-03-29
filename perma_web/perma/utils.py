@@ -562,106 +562,72 @@ def stream_warc_if_permissible(link, user):
 #
 # Webrecorder Helpers
 #
-DEFAULT_WR_USER = 'perma'
-
-def get_wr_public_session(request):
-    wr_public_session_cookie = request.session.get('wr_public_session_cookie')
-
-    if not wr_public_session_cookie:
-        response, data = query_wr_api(
-            method='post',
-            path='/auth/login',
-            cookie=wr_public_session_cookie,
-            json={'username': DEFAULT_WR_USER, 'password': 'TestTest123'},
-            valid_if=lambda code, data: code == 200
-        )
-
-        wr_public_session_cookie = response.cookies.get('__wr_sesh')
-        request.session['wr_public_session_cookie'] = wr_public_session_cookie
-
-    return wr_public_session_cookie
-
-def get_wr_private_session(request):
-    wr_username = request.session.get('wr_username')
-    wr_private_session_cookie = request.session.get('wr_private_session_cookie')
-    is_new_session = False
+def ensure_session(request, session_key, user_key, login_info):
+    session_cookie = request.session.get(session_key, '')
 
     response, data = query_wr_api(
         method='post',
-        path='/auth/anon_user',
-        cookie=wr_private_session_cookie,
+        path='/auth/ensure_login',
+        cookie=session_cookie,
+        json=login_info,
         valid_if=lambda code, data: code == 200
     )
 
-    # If this is a new session, WR returns a new username and session cookie:
-    # Set/Update Perma's records.
-    new_username = data['user']['username']
-    new_cookie = response.cookies.get('__wr_sesh') # NB cookie only present in api response if session is new
-    if wr_username != new_username:
-        request.session['wr_username'] = new_username
-        wr_username = new_username
-        is_new_session = True
-    if new_cookie and wr_private_session_cookie != new_cookie:
-        request.session['wr_private_session_cookie'] = new_cookie
-        wr_private_session_cookie = new_cookie
-        is_new_session = True
+    new_session_cookie = response.cookies.get('__wr_sesh')
+    if new_session_cookie:
+        session_cookie = new_session_cookie
 
-    return wr_username, wr_private_session_cookie, is_new_session
+    request.session[session_key] = session_cookie
+    if user_key:
+        request.session[user_key] = data.get('username')
+
+    return data.get('username'), session_cookie, data.get('coll_empty')
 
 def get_wr_session(request, is_private=False, collection_slug=None):
     """
     Initializes Webrecorder session or retrieves existing session.
     """
+    login_info = {}
+
     if not is_private:
-        wr_username = DEFAULT_WR_USER
-        wr_session_cookie = get_wr_public_session(request)
-        is_new_session = False
-
+        login_info['username'] = settings.WR_PERMA_USER
+        login_info['password'] = settings.WR_PERMA_PASSWORD
+        login_info['public'] = True
+        session_key = 'wr_public_session_cookie'
+        user_key = ''
     else:
-        wr_username, wr_session_cookie, is_new_session = get_wr_private_session(request)
+        session_key = 'wr_private_session_cookie'
+        user_key = 'wr_temp_username'
 
-    if not is_new_session and collection_slug:
-        is_new_session = not get_wr_collection_exists(wr_username, wr_session_cookie, collection_slug)
+    if collection_slug:
+        login_info['title'] = collection_slug
+        login_info['external'] = True
 
-    return wr_username, wr_session_cookie, is_new_session
-
+    return ensure_session(request, session_key, user_key, login_info)
 
 def clear_wr_session(request):
     """
     Clear Webrecorder session info in Perma and in WR
     """
-    wr_username = request.session.pop('wr_username', '')
+    wr_temp_username = request.session.pop('wr_temp_username', '')
     wr_private_session_cookie = request.session.pop('wr_private_session_cookie', '')
-    wr_public_session_cookie = request.session.pop('wr_public_session_cookie', '')
+    request.session.pop('wr_public_session_cookie', '')
 
     request.session.save()
 
-    if not wr_username or not wr_private_session_cookie:
+    if not wr_temp_username or not wr_private_session_cookie:
         return
 
     try:
         query_wr_api(
             method='delete',
-            path='/user/{user}'.format(user=wr_username),
+            path='/user/{user}'.format(user=wr_temp_username),
             cookie=wr_private_session_cookie,
             valid_if=lambda code, data: code == 200
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
-        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
-
-
-def get_wr_collection_exists(wr_username, wr_session_cookie, collection_slug):
-    try:
-        response, data = query_wr_api(
-            method='get',
-            path='/collection/{slug}?user={user}'.format(slug=collection_slug, user=wr_username),
-            cookie=wr_session_cookie,
-            valid_if=lambda code, data: code == 200
-        )
-        return True
-    except Exception:
-        return False
+        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_temp_username))
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
@@ -671,20 +637,12 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
     else:
         cookies = None
 
-    # Need to send host header if using internal WR
-    # TODO: add separate setting for this?
-    if 'nginx' in settings.WR_API:
-        headers = {'Host': settings.HOST}
-    else:
-        headers = None
-
     try:
         response = requests.request(
             method,
             settings.WR_API + path,
             json=json,
             data=data,
-            headers=headers,
             cookies=cookies,
             timeout=10,
             allow_redirects=False

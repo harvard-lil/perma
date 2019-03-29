@@ -19,6 +19,4 @@ class PermaPaymentsCommunicationException(Exception):
     pass
 
 class WebrecorderException(Exception):
-    def __init__(self, msg, data=None):
-        super(WebrecorderException, self).__init__(msg)
-        self.data = data
+    pass

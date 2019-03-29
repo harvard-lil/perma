@@ -1459,38 +1459,24 @@ class Link(DeletableModel):
         return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
 
     def init_replay_for_user(self, request):
-        is_private = self.is_private
-        wr_username, wr_session_cookie, is_new_session = get_wr_session(request, is_private, self.wr_collection_slug)
-        if is_new_session:
+        result = get_wr_session(request, self.is_private, self.wr_collection_slug)
+
+        wr_username, wr_session_cookie, collection_is_empty = result
+
+        if collection_is_empty:
             try:
-                self.upload_to_wr(wr_username, wr_session_cookie, is_private)
+                self.upload_to_wr(wr_username, wr_session_cookie)
             except WebrecorderException:
                 clear_wr_session(request)
                 raise
+
         return wr_username
 
-    def upload_to_wr(self, wr_username, wr_session_cookie, is_private):
+    def upload_to_wr(self, wr_username, wr_session_cookie):
         """
         Upload warc to a temporary Webrecorder per-user collection for playback
         (The collection is unique per user and per GUID)
         """
-
-        # Create the collection
-        try:
-            query_wr_api(
-                method='post',
-                path='/collections?user={user}'.format(user=wr_username),
-                json={'title': self.wr_collection_slug, 'external': True, 'public': not is_private},
-                cookie=wr_session_cookie,
-                valid_if=lambda code, data: code == 200
-            )
-        except WebrecorderException as wr:
-            if wr.data == {'error': 'duplicate_name'}:
-                # if duplicate and not private, already part of public 'perma' user
-                # no need to reupload
-                # if private, re-upload just in case (maybe not needed)
-                if not is_private:
-                    return
 
         warc_path = self.warc_storage_file()
         upload_data = None
