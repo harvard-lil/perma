@@ -128,7 +128,7 @@ services:
   # Webrecorder
   #
   app:
-    image: harvardlil/webrecorder:0.08
+    image: harvardlil/webrecorder:0.09
     command: uwsgi --need-app /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -144,7 +144,7 @@ services:
       - webrecorder
 
   recorder:
-    image: harvardlil/webrecorder:0.08
+    image: harvardlil/webrecorder:0.09
     user: root
     entrypoint:
       - "/docker-entrypoint.sh"
@@ -166,7 +166,7 @@ services:
       - webrecorder
 
   warcserver:
-    image: harvardlil/webrecorder:0.08
+    image: harvardlil/webrecorder:0.09
     command: uwsgi --need-app /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
