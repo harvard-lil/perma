@@ -137,16 +137,17 @@ def single_permalink(request, guid):
     if serve_type == 'warc_download':
         return stream_warc_if_permissible(link, request.user)
 
-    # Special handling for private links on Safari:
-    # Safari won't let us set the auth cookie for the PLAYBACK_HOST domain inside the iframe, unless we've already set a
-    # cookie on that domain outside the iframe. So do a redirect to PLAYBACK_HOST to set a cookie and then come back.
-    # safari=1 in the query string indicates that the redirect has already happened.
-    # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
-    if link.is_private and not request.GET.get('safari'):
-        user_agent = parse_user_agent(raw_user_agent)
-        if user_agent.get('family') == 'Safari':
-            return redirect_to_login(request.build_absolute_uri(),
-                                     "//%s%s" % (settings.PLAYBACK_HOST, reverse('user_management_set_safari_cookie')))
+    if not settings.ENABLE_WR_PLAYBACK:
+        # Special handling for private links on Safari:
+        # Safari won't let us set the auth cookie for the PLAYBACK_HOST domain inside the iframe, unless we've already set a
+        # cookie on that domain outside the iframe. So do a redirect to PLAYBACK_HOST to set a cookie and then come back.
+        # safari=1 in the query string indicates that the redirect has already happened.
+        # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
+        if link.is_private and not request.GET.get('safari'):
+            user_agent = parse_user_agent(raw_user_agent)
+            if user_agent.get('family') == 'Safari':
+                return redirect_to_login(request.build_absolute_uri(),
+                                         "//%s%s" % (settings.PLAYBACK_HOST, reverse('user_management_set_safari_cookie')))
 
     # handle requested capture type
     if serve_type == 'image':
