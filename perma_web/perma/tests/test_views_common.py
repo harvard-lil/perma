@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import override_settings, Client
 
 from perma.urls import urlpatterns
-from perma.models import Registrar, Link
+from perma.models import Registrar, Link, CaptureJob
 
 from .utils import PermaTestCase
 
@@ -37,17 +37,56 @@ class CommonViewsTestCase(PermaTestCase):
 
     # Record page
 
-    def assert_can_view_capture(self, guid):
+    def assert_not_500(self, guid):
+        # only makes sure the template renders without internal server error.
+        # makes no claims about the contents of the iframe
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
             self.assertIn(b"<iframe ", response.content)
+            return response
 
-    def test_regular_archive(self):
-        self.assert_can_view_capture('3SLN-JHX9')
+    def test_archive_without_capture_job(self):
+        # assert no capture job
+        with self.assertRaises(CaptureJob.DoesNotExist):
+            link = Link.objects.get(guid='3SLN-JHX9')
+            link.capture_job
+        self.assert_not_500('3SLN-JHX9')
         for user in self.users:
             self.log_in_user(user)
-            self.assert_can_view_capture('3SLN-JHX9')
+            self.assert_not_500('3SLN-JHX9')
 
+    def test_regular_archive(self):
+        # ensure capture job present and 'completed'
+        link = Link.objects.get(guid='UU32-XY8I')
+        link.capture_job.status = 'completed'
+        link.capture_job.save()
+        self.assert_not_500('UU32-XY8I')
+        for user in self.users:
+            self.log_in_user(user)
+            self.assert_not_500('UU32-XY8I')
+
+    def test_archive_with_unsuccessful_capturejob(self):
+        link = Link.objects.get(guid='UU32-XY8I')
+        for status in ['pending','in_progress','deleted','failed', 'invalid']:
+            link.capture_job.status = status
+            link.capture_job.save()
+            self.assert_not_500('UU32-XY8I')
+
+    def test_archive_with_no_captures(self):
+        link = Link.objects.get(guid='TE73-AKWM')
+        self.assertTrue(link.capture_job.status == 'completed')
+        self.assertFalse(link.captures.count())
+        self.assert_not_500('TE73-AKWM')
+        # TODO: this just renders a blank iframe... not desirable.
+        # See https://github.com/harvard-lil/perma/issues/2574
+
+    def test_archive_with_only_screenshot(self):
+        link = Link.objects.get(guid='ABCD-0007')
+        self.assertTrue(link.capture_job.status == 'completed')
+        self.assertTrue(link.captures.count())
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0007'}}, require_status_code=302)
+            self.assertIn('?type=image', response.get('location'))
 
     # patch default storage so that it returns a sample warc
     def test_dark_archive(self):
@@ -60,7 +99,6 @@ class CommonViewsTestCase(PermaTestCase):
                 self.log_in_user(user)
                 response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
                 self.assertIn(b"This record is private.", response.content)
-
 
     def test_redirect_to_download(self):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
@@ -80,9 +118,8 @@ class CommonViewsTestCase(PermaTestCase):
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
             self.assertNotIn(b"Perma.cc can\'t display this file type on mobile", response.content)
 
-
     def test_deleted(self):
-        response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410)
+        response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410, request_kwargs={'follow': True})
         self.assertIn(b"This record has been deleted.", response.content)
 
     def test_misformatted_nonexistent_links_404(self):
