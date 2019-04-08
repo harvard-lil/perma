@@ -48,7 +48,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     form = RegistrarChangeForm
 
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'unlimited', 'nonpaying', 'base_rate', 'cached_subscription_status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
+    list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
     list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
@@ -122,13 +122,14 @@ class LinkUserChangeForm(UserChangeForm):
         model = LinkUser
 
     def __init__(self, *args, **kwargs):
-        super(LinkUserChangeForm, self).__init__(*args, **kwargs)
         try:
             # get the latest subscription info from Perma Payments
             kwargs['instance'].get_subscription()
         except PermaPaymentsCommunicationException:
             # This gets logged inside get_subscription; don't duplicate logging here
             pass
+
+        super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
         # make sure that user's current organizations show even if they have been deleted
         self.initial['organizations'] = Organization.objects.all_with_deleted().filter(users__id=kwargs['instance'].pk)
@@ -160,7 +161,7 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying', 'base_rate', 'cached_subscription_status', 'date_joined', 'last_login', 'link_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying','cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
     ordering = None
