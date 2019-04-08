@@ -195,11 +195,10 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if (settings.ENABLE_WR_PLAYBACK
-           and context['can_view']
-           and not link.user_deleted
-           and link.ready_for_playback()
-        ):
+    if settings.ENABLE_WR_PLAYBACK \
+           and context['can_view'] \
+           and not link.user_deleted \
+           and link.ready_for_playback():
         wr_username = link.init_replay_for_user(request)
         context.update({
             'wr_host': settings.PLAYBACK_HOST,
