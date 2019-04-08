@@ -1492,7 +1492,7 @@ def sync_subscriptions_from_perma_payments():
     """
     Perma only learns about changes to a customer's record in Perma
     Payments when the user transacts with Perma. For admin convenience,
-    get refresh Perma's records on demand.
+    refresh Perma's records on demand.
     """
     customers = LinkUser.objects.filter(in_trial=False)
     for customer in customers:
