@@ -47,6 +47,7 @@ from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob, UncaughtError
 from perma.email import send_self_email
+from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset)
@@ -1484,3 +1485,19 @@ def verify_webrecorder_api_available():
     )
     r.raise_for_status()
     assert "description: Webrecorder API" in r.text
+
+
+@shared_task()
+def sync_subscriptions_from_perma_payments():
+    """
+    Perma only learns about changes to a customer's record in Perma
+    Payments when the user transacts with Perma. For admin convenience,
+    get refresh Perma's records on demand.
+    """
+    customers = LinkUser.objects.filter(in_trial=False)
+    for customer in customers:
+        try:
+            customer.get_subscription()
+        except PermaPaymentsCommunicationException:
+            # This gets logged inside get_subscription; don't duplicate logging here
+            pass

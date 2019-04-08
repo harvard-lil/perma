@@ -42,6 +42,10 @@ def post_process_settings(settings):
             'task': 'perma.tasks.run_next_capture',
             'schedule': crontab(minute='*'),
         },
+        'sync_subscriptions_from_perma_payments': {
+            'task': 'perma.tasks.sync_subscriptions_from_perma_payments',
+            'schedule': crontab(hour='23', minute='0')
+        },
         'verify_webrecorder_api_available': {
             'task': 'perma.tasks.verify_webrecorder_api_available',
             'schedule': crontab(minute='*')

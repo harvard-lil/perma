@@ -17,6 +17,7 @@ CELERYBEAT_JOB_NAMES = [
     'send-links-to-internet-archives',
     'send-js-errors',
     'run-next-capture',
+    'sync_subscriptions_from_perma_payments'
     ]
 
 # logging
