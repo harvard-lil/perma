@@ -122,13 +122,14 @@ class LinkUserChangeForm(UserChangeForm):
         model = LinkUser
 
     def __init__(self, *args, **kwargs):
-        super(LinkUserChangeForm, self).__init__(*args, **kwargs)
         try:
             # get the latest subscription info from Perma Payments
             kwargs['instance'].get_subscription()
         except PermaPaymentsCommunicationException:
             # This gets logged inside get_subscription; don't duplicate logging here
             pass
+
+        super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
         # make sure that user's current organizations show even if they have been deleted
         self.initial['organizations'] = Organization.objects.all_with_deleted().filter(users__id=kwargs['instance'].pk)
