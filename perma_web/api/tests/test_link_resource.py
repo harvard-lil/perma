@@ -88,7 +88,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
     #######
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=4)
+        self.successful_get(self.public_list_url, count=5)
 
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)

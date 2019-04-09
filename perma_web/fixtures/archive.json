@@ -242,6 +242,23 @@
     }
   },
   {
+    "pk": "ABCD-0007",
+    "model": "perma.link",
+    "fields": {
+      "folders": [
+        30,
+        34
+      ],
+      "notes": "Screenshot Only",
+      "created_by": 4,
+      "submitted_title": "Wikipedia",
+      "submitted_url": "https://www.wikipedia.org/",
+      "creation_timestamp": "2014-07-19T20:21:31Z",
+      "archive_timestamp": "2014-07-20T20:21:31Z",
+      "organization": 1
+    }
+  },
+  {
   "fields": {
     "status": "pending",
     "url": "http://dolekemp96.org",
@@ -382,7 +399,7 @@
     "link": "ABCD-0004"
   },
   "model": "perma.capture",
-  "pk": 10
+  "pk": 11
   },
   {
   "fields": {
@@ -395,6 +412,76 @@
     "link": "ABCD-0005"
   },
   "model": "perma.capture",
-  "pk": 10
+  "pk": 12
+  },
+  {
+  "fields": {
+    "status": "success",
+    "url": "file:///ABCD-0007/cap.png",
+    "user_upload": false,
+    "record_type": "resource",
+    "role": "screenshot",
+    "content_type": "image/png",
+    "link": "ABCD-0007"
+  },
+  "model": "perma.capture",
+  "pk": 13
+  },
+  {
+  "fields": {
+    "link": "UU32-XY8I",
+    "status": "completed",
+    "message": null,
+    "human": true,
+    "order": 966.0,
+    "submitted_url": "https://www.wikipedia.org/",
+    "created_by": 4,
+    "link_batch": null,
+    "attempt": 1,
+    "step_count": 6.0,
+    "step_description": "Saving web archive file",
+    "capture_start_time": "2019-03-27T19:03:49Z",
+    "capture_end_time": "2019-03-27T19:03:55.493Z"
+  },
+  "model": "perma.capturejob",
+  "pk": 1
+  },
+  {
+  "fields": {
+    "link": "TE73-AKWM",
+    "status": "completed",
+    "message": null,
+    "human": true,
+    "order": 966.0,
+    "submitted_url": "http://metafilter.com",
+    "created_by": 4,
+    "link_batch": null,
+    "attempt": 1,
+    "step_count": 6.0,
+    "step_description": "Saving web archive file",
+    "capture_start_time": "2019-03-27T19:03:49Z",
+    "capture_end_time": "2019-03-27T19:03:55.493Z"
+  },
+  "model": "perma.capturejob",
+  "pk": 2
+  },
+  {
+  "fields": {
+    "link": "ABCD-0007",
+    "status": "completed",
+    "message": null,
+    "human": true,
+    "order": 966.0,
+    "submitted_url": "https://www.wikipedia.org/",
+    "created_by": 4,
+    "link_batch": null,
+    "attempt": 1,
+    "step_count": 6.0,
+    "step_description": "Saving web archive file",
+    "capture_start_time": "2019-03-27T19:03:49Z",
+    "capture_end_time": "2019-03-27T19:03:55.493Z"
+  },
+  "model": "perma.capturejob",
+  "pk": 3
   }
 ]

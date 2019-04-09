@@ -1450,6 +1450,33 @@ class Link(DeletableModel):
     ###
     ### Methods for playback via Webrecorder
     ###
+    def ready_for_playback(self):
+        """
+        Reports whether a Perma Link has been successfully captured and
+        is ready for playback:
+        - CaptureJob succeeded
+        - Either primary or screenshot capture succeeded
+
+        See also /perma/perma_web/static/js/helpers/link.helpers.js
+        """
+        ready = False
+
+        for capture in self.captures.all():
+            if capture.status == 'success':
+                if capture.role in ['primary', 'screenshot']:
+                    ready = True
+
+        # Early Perma Links do not have CaptureJobs; if no CaptureJob,
+        # judge based on Capture statuses alone.
+        job = None
+        try:
+            job = self.capture_job
+        except CaptureJob.DoesNotExist:
+            pass
+        if job and job.status != 'completed':
+            ready = False
+
+        return ready
 
     @cached_property
     def wr_collection_slug(self):
