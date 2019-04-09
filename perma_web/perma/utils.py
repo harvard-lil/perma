@@ -621,8 +621,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
         logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
         return
 
-    session_already_expired = response.status_code == 404
-    if session_already_expired:
+    if response.status_code == 404:
         if error_if_wr_user_not_found:
             log_level = logging.ERROR
         else:
