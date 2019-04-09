@@ -614,7 +614,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
             method='delete',
             path='/user/{user}'.format(user=wr_username),
             cookie=wr_session_cookie,
-            valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') == 'not_found')
+            valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') in ['not_found', 'no_such_user'])
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
