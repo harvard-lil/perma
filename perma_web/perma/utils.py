@@ -594,7 +594,7 @@ def get_wr_session(request):
     return wr_username, wr_session_cookie, is_new_session
 
 
-def clear_wr_session(request):
+def clear_wr_session(request, error_if_wr_user_not_found=False):
     """
     Clear Webrecorder session info in Perma and in WR
     """
@@ -610,15 +610,24 @@ def clear_wr_session(request):
         return
 
     try:
-        query_wr_api(
+        response, _  = query_wr_api(
             method='delete',
             path='/user/{user}'.format(user=wr_username),
             cookie=wr_session_cookie,
-            valid_if=lambda code, data: code == 200
+            valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') == 'not_found')
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
         logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
+        return
+
+    session_already_expired = response.status_code == 404
+    if session_already_expired:
+        if error_if_wr_user_not_found:
+            log_level = logging.ERROR
+        else:
+            log_level = logging.INFO
+        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_username))
 
 
 def set_wr_uploaded(request, link):
