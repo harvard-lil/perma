@@ -141,6 +141,7 @@ def stats(request, stat_type=None):
             'private_link_count': Link.objects.filter(is_private=True).count(),
             'private_user_direction': Link.objects.filter(is_private=True, private_reason='user').count(),
             'private_policy': Link.objects.filter(is_private=True, private_reason='policy').count(),
+            'private_old_policy': Link.objects.filter(is_private=True, private_reason='old_policy').count(),
             'private_takedown': Link.objects.filter(is_private=True, private_reason='takedown').count(),
             'private_meta_failure': Link.objects.filter(is_private=True, private_reason='failure').count(),
             'links_w_meta_failure_tag': Link.objects.filter(tags__name__in=['meta-tag-retrieval-failure']).count(),
@@ -156,6 +157,8 @@ def stats(request, stat_type=None):
         out['private_user_percentage_of_private'] = round(100.0*out['private_user_direction']/out['private_link_count'], 1) if out['private_link_count'] else 0
         out['private_policy_percentage_of_total'] = round(100.0*out['private_policy']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_policy_percentage_of_private'] = round(100.0*out['private_policy']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_old_policy_percentage_of_total'] = round(100.0*out['private_old_policy']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_old_policy_percentage_of_private'] = round(100.0*out['private_old_policy']/out['private_link_count'], 1) if out['private_link_count'] else 0
         out['private_takedown_percentage_of_total'] = round(100.0*out['private_takedown']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_takedown_percentage_of_private'] = round(100.0*out['private_takedown']/out['private_link_count'], 1) if out['private_link_count'] else 0
         out['private_meta_failure_percentage_of_total'] = round(100.0*out['private_meta_failure']/out['total_link_count'], 1) if out['total_link_count'] else 0
