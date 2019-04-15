@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ab845fbbb12df344cda953dde5e96a3eb0bcb32347e42587b53f5bfbbc74e776"
+            "sha256": "614d141264796c9c28cacab9be74a687b00bd10e5edd89a86d5db01063a3460f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -275,11 +275,11 @@
         },
         "django-mptt": {
             "hashes": [
-                "sha256:18a41d1b56ca7c02a5b04d246e33ee2d18f6ee5459c02ed1d945f5abdef23a2e",
-                "sha256:689a04cce0981671d6061a9928c33a16b47abb0d4cd43cf7dec31ae284fdae9d"
+                "sha256:6bf9eb26e54e92006ca82108a1c946c7df533ec27bddf3f795a83a32a3d1b04b",
+                "sha256:c765c1501dd0b5c22f0ca8b948550bd294cd2db68aefa0560c6ed7fcfdf4b95e"
             ],
             "index": "pypi",
-            "version": "==0.9.1"
+            "version": "==0.10.0"
         },
         "django-ratelimit": {
             "hashes": [
@@ -456,10 +456,10 @@
         },
         "jinja2": {
             "hashes": [
-                "sha256:35341f3a97b46327b3ef1eb624aadea87a535b8f50863036e085e7c426ac5891",
-                "sha256:3997cf273f1424207c60d5895264f74483fce72702f15a7cd51a8551d43663ca"
+                "sha256:065c4f02ebe7f7cf559e49ee5a95fb800a9e4528727aec6f24402a5374c65013",
+                "sha256:14dd6caf1527abb21f08f86c784eac40853ba93edb79552aa1e4b8aef1b61c7b"
             ],
-            "version": "==2.8.1"
+            "version": "==2.10.1"
         },
         "jmespath": {
             "hashes": [
@@ -666,11 +666,11 @@
         },
         "pytz": {
             "hashes": [
-                "sha256:32b0891edff07e28efe91284ed9c31e123d84bea3fd98e1f72be2508f43ef8d9",
-                "sha256:d5f05e487007e29e03409f9398d074e158d920d36eb82eaf66fb1136b0c5374c"
+                "sha256:303879e36b721603cc54604edcac9d20401bdbe31e1e4fdee5b9f98d5d31dfda",
+                "sha256:d747dd3d23d77ef44c6a3526e274af6efeb0a6f1afd5a69ba4d5be4098c8e141"
             ],
             "index": "pypi",
-            "version": "==2018.9"
+            "version": "==2019.1"
         },
         "pyvirtualdisplay": {
             "hashes": [
@@ -680,11 +680,9 @@
             "version": "==0.1.5"
         },
         "pywb": {
-            "hashes": [
-                "sha256:d9c06d771187042e62a58a8cc1856fe87cc0acc96cfcc5565a9cf3a137560b0c"
-            ],
-            "index": "pypi",
-            "version": "==0.33.2"
+            "editable": true,
+            "git": "https://github.com/rebeccacremona/pywb.git",
+            "ref": "2fb6fb8c218b74d094abd5bcfb4dca847c60d1fc"
         },
         "pyyaml": {
             "hashes": [
@@ -1009,12 +1007,12 @@
         },
         "hypothesis": {
             "hashes": [
-                "sha256:57139f7aa305426bc47945b63e9859eacd3f78d5cb8356427cc0d9b4b45d8dc9",
-                "sha256:70370ee7de7b095e315423e49222f38afb15d4e348b8b610b080167f350d54a6",
-                "sha256:be65790b6c91a39b32366f65cb4fb0485893030a262bfd98b342abb79e77d8a8"
+                "sha256:401b7731775ea869e12ada6e02736e269a1c30abae458122d130a05891178f2e",
+                "sha256:b03f14c0be8545a9722216a61ea09ea3460df1d1aae6f2e2b967e742d4c91e6d",
+                "sha256:b27ba950ca8edaaf42ea66ce91120f6032d3c1aa2ca0a74fe534c47d2282c73e"
             ],
             "index": "pypi",
-            "version": "==4.14.6"
+            "version": "==4.16.0"
         },
         "mccabe": {
             "hashes": [
@@ -1131,11 +1129,11 @@
         },
         "pytz": {
             "hashes": [
-                "sha256:32b0891edff07e28efe91284ed9c31e123d84bea3fd98e1f72be2508f43ef8d9",
-                "sha256:d5f05e487007e29e03409f9398d074e158d920d36eb82eaf66fb1136b0c5374c"
+                "sha256:303879e36b721603cc54604edcac9d20401bdbe31e1e4fdee5b9f98d5d31dfda",
+                "sha256:d747dd3d23d77ef44c6a3526e274af6efeb0a6f1afd5a69ba4d5be4098c8e141"
             ],
             "index": "pypi",
-            "version": "==2018.9"
+            "version": "==2019.1"
         },
         "redis": {
             "hashes": [
@@ -1161,10 +1159,10 @@
         },
         "soupsieve": {
             "hashes": [
-                "sha256:3aef141566afd07201b525c17bfaadd07580a8066f82b57f7c9417f26adbd0a3",
-                "sha256:e41a65e99bd125972d84221022beb1e4b5cfc68fa12c170c39834ce32d1b294c"
+                "sha256:6898e82ecb03772a0d82bd0d0a10c0d6dcc342f77e0701d0ec4a8271be465ece",
+                "sha256:b20eff5e564529711544066d7dc0f7661df41232ae263619dede5059799cdfca"
             ],
-            "version": "==1.9"
+            "version": "==1.9.1"
         },
         "sqlparse": {
             "hashes": [
