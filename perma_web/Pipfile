@@ -13,6 +13,7 @@ django-ratelimit = "*"                      # IP-based rate-limiting
 netaddr = "*"                               # to check archive IPs against banned ranges
 pytz = "*"                                  # timezone helper
 requests = {version = "==2.20.0", extras = ["security"]}
+urllib3 = "==1.24.2"                        # from requests
 tqdm = "*"                                  # progress bar in dev fab tasks
 Werkzeug = "==0.11.1"
 
