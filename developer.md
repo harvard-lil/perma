@@ -81,7 +81,7 @@ script that will create a new `Pipfile.lock` and will rebuild the
 Docker image with the new dependencies installed.
 
 N.B. To ensure that other Perma developers are prompted to install
-you changes, please increment the image version number for "web"
+your changes, please increment the image version number for "web"
 in `docker-compose.yaml`. This is not yet managed programmatically.
 
 ### Update the node dependencies
