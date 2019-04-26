@@ -55,8 +55,8 @@ from .utils import (tz_datetime, protocol,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset,
-    get_wr_session, clear_wr_session, query_wr_api)
+    write_resource_record_from_asset, get_wr_session_cookie,
+    clear_wr_session, query_wr_api)
 
 
 logger = logging.getLogger(__name__)
@@ -1459,25 +1459,68 @@ class Link(DeletableModel):
         return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
 
     def init_replay_for_user(self, request):
-        result = get_wr_session(request, self.is_private, self.wr_collection_slug)
+        """
+        Set up a Webrecorder collection for playback.
 
-        wr_username, wr_session_cookie, collection_is_empty = result
+        Private Perma Links are uploaded to a private, temporary
+        collection (unique per visitor and per GUID) protected by
+        a session cookie (views.common.set_iframe_session_cookie).
 
-        if collection_is_empty:
+        Public Perma Links are uploaded to a public, longer-lived
+        collection belonging to a persistent, Perma-managed WR user
+        (shared by all visitors, to permit caching and reduce churn).
+
+        If the collection already exists, this method is a no-op.
+        """
+        json = {
+            'title': self.wr_collection_slug,
+            'external': True
+        }
+
+        if self.is_private:
+            session_key = 'wr_private_session_cookie'
+        else:
+            session_key = 'wr_public_session_cookie'
+            json['username'] = settings.WR_PERMA_USER
+            json['password'] = settings.WR_PERMA_PASSWORD
+            json['public'] = True
+
+        # If a visitor has a usable WR session already, reuse it.
+        # If they don't, WR will start a fresh session and will return
+        # a new cookie.
+        wr_session_cookie = get_wr_session_cookie(request, session_key)
+
+        response, data = query_wr_api(
+            method='post',
+            path='/auth/ensure_login',
+            cookie=wr_session_cookie,
+            json=json,
+            valid_if=lambda code, data: code == 200 and all(key in data for key in {'username', 'coll_empty'})
+        )
+
+        new_session_cookie = response.cookies.get('__wr_sesh')
+        if new_session_cookie:
+            wr_session_cookie = new_session_cookie
+            request.session[session_key + '_timestamp'] = datetime.utcnow().timestamp()
+            request.session[session_key] = wr_session_cookie
+
+        # Store the temp username in the session so that we can
+        # force the deletion of this WR user in the future
+        # (e.g. on logout, etc.).
+        if self.is_private:
+            request.session['wr_temp_username'] = data['username']
+
+        if data['coll_empty']:
+            logger.debug("Uploading {} for '{}'".format(self.guid, data['username']))
             try:
-                self.upload_to_wr(wr_username, wr_session_cookie)
+                self.upload_to_wr(data['username'], wr_session_cookie)
             except WebrecorderException:
                 clear_wr_session(request)
                 raise
 
-        return wr_username
+        return data['username']
 
     def upload_to_wr(self, wr_username, wr_session_cookie):
-        """
-        Upload warc to a temporary Webrecorder per-user collection for playback
-        (The collection is unique per user and per GUID)
-        """
-
         warc_path = self.warc_storage_file()
         upload_data = None
         start_time = time.time()

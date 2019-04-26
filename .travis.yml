@@ -65,6 +65,8 @@ before_script:
   - sh -c "[ $(curl -o /dev/null --max-time 10 --head --silent --write-out "%{http_code}" http://perma-archives.test:8092/) -eq 303 ] && echo 'Webrecorder content host responsive!' || (echo 'Webrecorder content host not available'; exit 1)"
   - docker-compose -f ../docker-compose-travis.yml exec selenium sh -c "[ $(curl -o /dev/null --max-time 10 --head --silent --write-out "%{http_code}" http://perma-archives.test:8089/api/v1) -eq 200 ] && echo 'Selenium container can communicate with Webrecorder' || (echo 'Selenium container cannot communicate with Webrecorder...'; exit 1)"
 
+  # create the WR user necessary for public playbacks
+  - bash ../init_wr.sh
   - date
 
 script:

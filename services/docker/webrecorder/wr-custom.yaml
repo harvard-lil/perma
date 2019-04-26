@@ -1,3 +1,9 @@
+#
+# NOTE FOR DEPLOYMENT:
+# When this file is changed, Perma's Salt config needs a tweak.
+# Please mention this when submitting PRs.
+#
+
 # See https://github.com/webrecorder/webrecorder/blob/master/webrecorder/webrecorder/config/wr.yaml
 # for available settings
 # Include the whole top-level key's values: no way to zero in, so far as I can tell
@@ -5,7 +11,7 @@
 session.durations:
     # begin customized
     short:
-        total: 60
+        total: 120
         extend: 0
     # end customized
     long:

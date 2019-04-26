@@ -109,7 +109,7 @@ For more information on migrations, see [Schema and data migrations](#schema-and
 1) `docker-compose down` to delete your existing containers.
 2) `docker volume rm perma_db3_data` to delete the database.
 3) `docker-compose up -d` to spin up new containers.
-4) `bash init.sh` to create a fresh database, pre-populated with test fixtures.
+4) `bash init_perma.sh` to create a fresh database, pre-populated with test fixtures.
 
 ### Run arbitrary commands
 

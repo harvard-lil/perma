@@ -562,49 +562,6 @@ def stream_warc_if_permissible(link, user):
 #
 # Webrecorder Helpers
 #
-def ensure_session(request, session_key, user_key, login_info):
-    session_cookie = request.session.get(session_key, '')
-
-    response, data = query_wr_api(
-        method='post',
-        path='/auth/ensure_login',
-        cookie=session_cookie,
-        json=login_info,
-        valid_if=lambda code, data: code == 200
-    )
-
-    new_session_cookie = response.cookies.get('__wr_sesh')
-    if new_session_cookie:
-        session_cookie = new_session_cookie
-
-    request.session[session_key] = session_cookie
-    if user_key:
-        request.session[user_key] = data.get('username')
-
-    return data.get('username'), session_cookie, data.get('coll_empty')
-
-def get_wr_session(request, is_private=False, collection_slug=None):
-    """
-    Initializes Webrecorder session or retrieves existing session.
-    """
-    login_info = {}
-
-    if not is_private:
-        login_info['username'] = settings.WR_PERMA_USER
-        login_info['password'] = settings.WR_PERMA_PASSWORD
-        login_info['public'] = True
-        session_key = 'wr_public_session_cookie'
-        user_key = ''
-    else:
-        session_key = 'wr_private_session_cookie'
-        user_key = 'wr_temp_username'
-
-    if collection_slug:
-        login_info['title'] = collection_slug
-        login_info['external'] = True
-
-    return ensure_session(request, session_key, user_key, login_info)
-
 def clear_wr_session(request):
     """
     Clear Webrecorder session info in Perma and in WR
@@ -612,7 +569,6 @@ def clear_wr_session(request):
     wr_temp_username = request.session.pop('wr_temp_username', '')
     wr_private_session_cookie = request.session.pop('wr_private_session_cookie', '')
     request.session.pop('wr_public_session_cookie', '')
-
     request.session.save()
 
     if not wr_temp_username or not wr_private_session_cookie:
@@ -632,18 +588,13 @@ def clear_wr_session(request):
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
     # Make the request
-    if cookie:
-        cookies = {'__wr_sesh': cookie}
-    else:
-        cookies = None
-
     try:
         response = requests.request(
             method,
             settings.WR_API + path,
             json=json,
             data=data,
-            cookies=cookies,
+            cookies={'__wr_sesh': cookie} if cookie else None,
             timeout=10,
             allow_redirects=False
         )
@@ -658,9 +609,17 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
         raise WebrecorderException("{code}: {message}".format(
             code=response.status_code,
             message=str(data)
-        ), data=data)
+        ))
 
     return response, data
+
+
+def get_wr_session_cookie(request, session_key):
+    cookie = request.session.get(session_key)
+    timestamp = request.session.get(session_key + '_timestamp')
+    if cookie and timestamp >= (datetime.utcnow() - timedelta(seconds=settings.WR_COOKIE_PERMITTED_AGE)).timestamp():
+        return cookie
+    return None
 
 
 def safe_get_response_json(response):

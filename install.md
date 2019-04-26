@@ -63,9 +63,10 @@ The first time this runs, it will build the 1.4GB Docker image, which
 may take several minutes. (After the first time, it should only take
 1-3 seconds.)
 
-Finally, initialize the database:
+Finally, initialize the databases:
 
-    $ bash init.sh
+    $ bash init_perma.sh
+    $ bash init_wr.sh
 
 You should now have a working installation of Perma! See [common commands](./developer.md#common-tasks-and-commands) to explore what you can do, like [running
 the application](./developer.md#run-perma) and [running the tests](/developer.md#run-all-the-tests).
