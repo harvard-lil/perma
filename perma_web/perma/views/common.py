@@ -226,10 +226,11 @@ def single_permalink(request, guid):
 
 def set_iframe_session_cookie(request):
     """
-    The <iframe> used for Perma Link playback serves content from Webrecorder
-    and requires a WR session cookie. The cookie's value is set via a WR api
-    call during Perma's `link.init_replay_for_user` and is stored in Perma's
-    session data. If the iframe requests a resource without the cookie,
+    The <iframe> used for Perma Link playback serves content from Webrecorder.
+    If the Perma Link is private, playback requires a WR session cookie.
+    The cookie's value is set via a WR api call during Perma's
+    `link.init_replay_for_user` and is stored in Perma's session data.
+    If the iframe requests a resource without the cookie,
     WR will redirect here. This route in turn redirects back to WR with the
     session cookie as a GET param. WR sets the cookie in the browser, and then,
     finally, redirects to the originally requested resource.
@@ -238,7 +239,7 @@ def set_iframe_session_cookie(request):
         # no redirects required; subsequent requests from the browser get the cookie
         response = HttpResponse()
     else:
-        cookie = urlencode({'cookie': request.session.get('wr_session_cookie')})
+        cookie = urlencode({'cookie': request.session.get('wr_private_session_cookie')})
         url = protocol() + settings.PLAYBACK_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
         response = HttpResponseRedirect(url)
         response['Cache-Control'] = 'no-cache'
