@@ -584,7 +584,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
-        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
+        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_temp_username))
         return
 
     if response.status_code == 404:
@@ -592,7 +592,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
             log_level = logging.ERROR
         else:
             log_level = logging.INFO
-        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_username))
+        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_temp_username))
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
