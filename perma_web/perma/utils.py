@@ -563,62 +563,28 @@ def stream_warc_if_permissible(link, user):
 # Webrecorder Helpers
 #
 
-def get_wr_session(request):
-    """
-    Initializes Webrecorder session or retrieves existing session.
-    """
-    wr_username = request.session.get('wr_username')
-    wr_session_cookie = request.session.get('wr_session_cookie')
-    is_new_session = False
-
-    response, data = query_wr_api(
-        method='post',
-        path='/auth/anon_user',
-        cookie=wr_session_cookie,
-        valid_if=lambda code, data: code == 200
-    )
-
-    # If this is a new session, WR returns a new username and session cookie:
-    # Set/Update Perma's records.
-    new_username = data['user']['username']
-    new_cookie = response.cookies.get('__wr_sesh') # NB cookie only present in api response if session is new
-    if wr_username != new_username:
-        request.session['wr_username'] = new_username
-        wr_username = new_username
-        is_new_session = True
-    if new_cookie and wr_session_cookie != new_cookie:
-        request.session['wr_session_cookie'] = new_cookie
-        wr_session_cookie = new_cookie
-        is_new_session = True
-
-    return wr_username, wr_session_cookie, is_new_session
-
-
 def clear_wr_session(request, error_if_wr_user_not_found=False):
     """
     Clear Webrecorder session info in Perma and in WR
     """
-    wr_username = request.session.get('wr_username')
-    wr_session_cookie = request.session.get('wr_session_cookie')
-
-    for key in list(request.session.keys()):
-        if key.startswith('wr_'):
-            del request.session[key]
+    wr_temp_username = request.session.pop('wr_temp_username', '')
+    wr_private_session_cookie = request.session.pop('wr_private_session_cookie', '')
+    request.session.pop('wr_public_session_cookie', '')
     request.session.save()
 
-    if not wr_username or not wr_session_cookie:
+    if not wr_temp_username or not wr_private_session_cookie:
         return
 
     try:
         response, _  = query_wr_api(
             method='delete',
-            path='/user/{user}'.format(user=wr_username),
-            cookie=wr_session_cookie,
+            path='/user/{user}'.format(user=wr_temp_username),
+            cookie=wr_private_session_cookie,
             valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') in ['not_found', 'no_such_user'])
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
-        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_username))
+        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_temp_username))
         return
 
     if response.status_code == 404:
@@ -626,22 +592,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
             log_level = logging.ERROR
         else:
             log_level = logging.INFO
-        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_username))
-
-
-def set_wr_uploaded(request, link):
-    """
-    Mark a link id/collection slug as having been uploaded
-    """
-    request.session['wr_uploaded:' + link] = True
-
-
-def get_wr_uploaded(request, link):
-    """
-    Mark a link id/collection slug as having been uploaded
-    """
-    return request.session.get('wr_uploaded:' + link)
-
+        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_temp_username))
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
@@ -652,7 +603,7 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
             settings.WR_API + path,
             json=json,
             data=data,
-            cookies={'__wr_sesh': cookie},
+            cookies={'__wr_sesh': cookie} if cookie else None,
             timeout=10,
             allow_redirects=False
         )
@@ -668,7 +619,16 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
             code=response.status_code,
             message=str(data)
         ))
+
     return response, data
+
+
+def get_wr_session_cookie(request, session_key):
+    cookie = request.session.get(session_key)
+    timestamp = request.session.get(session_key + '_timestamp')
+    if cookie and timestamp >= (datetime.utcnow() - timedelta(seconds=settings.WR_COOKIE_PERMITTED_AGE)).timestamp():
+        return cookie
+    return None
 
 
 def safe_get_response_json(response):
