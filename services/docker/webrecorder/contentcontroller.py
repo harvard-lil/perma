@@ -67,7 +67,7 @@ class ContentController(BaseController, RewriterApp):
         # Perma occasionally refuses to play back the content of certain
         # URLs or domains. This is a temporary workaround, until we devise
         # a more universally satisfactory solution.
-        self.refuse_playback = [url for url in os.environ.get('REFUSE_PLAYBACK').split(',') if url]
+        self.refuse_playback = [url for url in os.environ.get('REFUSE_PLAYBACK', '').split(',') if url]
         # END PERMA CUSTOMIZATION
 
     def _init_client_archive_info(self):
