@@ -30,6 +30,7 @@ services:
     volumes:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
+      - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py
     networks:
       - webrecorder
 

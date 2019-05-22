@@ -132,6 +132,8 @@ services:
     command: uwsgi --need-app /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
+    environment:
+      - REFUSE_PLAYBACK=${REFUSE_PLAYBACK}
     depends_on:
       - warcserver
       - recorder
@@ -139,7 +141,7 @@ services:
     volumes:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
-
+      - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py
     networks:
       - webrecorder
 
@@ -161,7 +163,6 @@ services:
       - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
-
     networks:
       - webrecorder
 
