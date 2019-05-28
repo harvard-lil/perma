@@ -409,7 +409,7 @@ class CommonViewsTestCase(PermaTestCase):
                           user='test_another_library_org_user@example.com')
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
-        self.assertIn("Affiliations: Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", message.body)
+        self.assertIn("Affiliations: Another Library's Journal (Another Library), A Third Journal (Test Library)", message.body)
         self.assertIn("Logged in: true", message.body)
 
     def test_contact_reg_user_affiliation_string(self):
