@@ -2,7 +2,7 @@ import logging
 
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
-from django.template.loader import render_to_string
+from django.template import Context, RequestContext, engines
 from django.utils import timezone
 
 from .models import Registrar, LinkUser
@@ -11,12 +11,26 @@ from .utils import tz_datetime
 logger = logging.getLogger(__name__)
 
 
+def render_email(template, context, request=None):
+    # load the django template engine directly, so that we can
+    # pass in a Context/RequestContext object with autocomplete=False
+    # https://docs.djangoproject.com/en/1.11/topics/templates/#django.template.loader.engines
+    #
+    # (though render and render_to_string take a "context" kwarg of type dict,
+    #  that dict cannot be used to configure autoescape, but only to pass keys/values to the template)
+    engine = engines['django'].engine
+    if request:
+        ctx = RequestContext(request, context, autoescape=False)
+    else:
+        ctx = Context(context, autoescape=False)
+    return engine.get_template(template).render(ctx)
+
 ###
 ### Send email
 ###
 
 def send_user_email(to_address, template, context):
-    email_text = render_to_string(template, context=context)
+    email_text = render_email(template, context)
     title, email_text = email_text.split("\n\n", 1)
     title = title.split("TITLE: ")[-1]
     success_count = send_mail(
@@ -37,7 +51,7 @@ def send_user_email(to_address, template, context):
     # to_send = []
     # for recipient in recipients:
     #     to_address, context = recipient
-    #     email_text = render_to_string(template, context)
+    #     email_text = render_email(template, context)
     #     title, email_text = email_text.split("\n\n", 1)
     #     title = title.split("TITLE: ")[-1]
     #     to_send.append(( title,
@@ -55,7 +69,7 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
     """
     EmailMessage(
         title,
-        render_to_string(template, context=context, request=request),
+        render_email(template, context, request),
         settings.DEFAULT_FROM_EMAIL,
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
@@ -70,7 +84,7 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
     if devs_only:
         EmailMessage(
             title,
-            render_to_string(template, context=context, request=request),
+            render_email(template, context, request),
             settings.DEFAULT_FROM_EMAIL,
             [admin[1] for admin in settings.ADMINS]
         ).send(fail_silently=False)
@@ -78,7 +92,7 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
         # Use a special reply-to address to avoid Freshdesk's filters: a ticket will be opened.
         EmailMessage(
             title,
-            render_to_string(template, context=context, request=request),
+            render_email(template, context, request),
             settings.DEFAULT_FROM_EMAIL,
             [settings.DEFAULT_FROM_EMAIL],
             headers={'Reply-To': settings.DEFAULT_REPLYTO_EMAIL}
@@ -93,7 +107,7 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
     """
     EmailMessage(
         title,
-        render_to_string(template, context=context, request=request),
+        render_email(template, context, request),
         settings.DEFAULT_FROM_EMAIL,
         to_addresses,
         cc=[settings.DEFAULT_FROM_EMAIL, from_address],
