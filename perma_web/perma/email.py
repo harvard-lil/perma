@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 ###
 
 def send_user_email(to_address, template, context):
-    email_text = render_to_string(template, context=context, using="AUTOESCAPE_OFF")
+    email_text = render_to_string(template, context=context)
     title, email_text = email_text.split("\n\n", 1)
     title = title.split("TITLE: ")[-1]
     success_count = send_mail(
@@ -55,7 +55,7 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
     """
     EmailMessage(
         title,
-        render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+        render_to_string(template, context=context, request=request),
         settings.DEFAULT_FROM_EMAIL,
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
@@ -70,7 +70,7 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
     if devs_only:
         EmailMessage(
             title,
-            render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+            render_to_string(template, context=context, request=request),
             settings.DEFAULT_FROM_EMAIL,
             [admin[1] for admin in settings.ADMINS]
         ).send(fail_silently=False)
@@ -78,7 +78,7 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
         # Use a special reply-to address to avoid Freshdesk's filters: a ticket will be opened.
         EmailMessage(
             title,
-            render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+            render_to_string(template, context=context, request=request),
             settings.DEFAULT_FROM_EMAIL,
             [settings.DEFAULT_FROM_EMAIL],
             headers={'Reply-To': settings.DEFAULT_REPLYTO_EMAIL}
@@ -93,7 +93,7 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
     """
     EmailMessage(
         title,
-        render_to_string(template, context=context, request=request, using="AUTOESCAPE_OFF"),
+        render_to_string(template, context=context, request=request),
         settings.DEFAULT_FROM_EMAIL,
         to_addresses,
         cc=[settings.DEFAULT_FROM_EMAIL, from_address],

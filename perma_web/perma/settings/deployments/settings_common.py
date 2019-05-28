@@ -125,13 +125,6 @@ TEMPLATES = [
         },
     },
 ]
-# Add a second, identical template engine except with autoescape off,
-# for use when rendering non-HTML templates.
-# Use by passing 'using='AUTOESCAPE_OFF' to render or render_to_string.
-off = TEMPLATES[0].copy()
-off['NAME'] = 'AUTOESCAPE_OFF'
-off['OPTIONS']['autoescape'] = False
-TEMPLATES.append(off)
 
 MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
