@@ -1596,11 +1596,6 @@ class Link(DeletableModel):
                 valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') in ['no_such_collection', 'no_such_user']
             )
         else:
-            # TODO:
-            # If behind Cloudflare, the cache will be out-of-date here.
-            # We should consider retrieving a list of matching cdx from WR
-            # before the making DELELTE request, and clearing the Cloudflare
-            # cache after the DELETE request has returned.
             response, data = query_wr_api(
                 method='post',
                 path='/auth/login',
