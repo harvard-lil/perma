@@ -1577,6 +1577,48 @@ class Link(DeletableModel):
 
             time.sleep(0.5)
 
+    def delete_from_wr(self, request):
+        """
+        In general, it should not be necessary to manually delete
+        anything from Webrecorder. This utility method is useful
+        only in the rare case where Webrecorder has an out-of-date
+        copy of the Perma Link's warc and a user is awaiting a
+        playback of the up-to-date warc. This should only happen
+        when a user is "replacing" a capture.
+        """
+        if self.is_private:
+            user = request.session.get('wr_temp_username')
+            cookie = request.session.get('wr_private_session_cookie')
+            response, data = query_wr_api(
+                method='delete',
+                path='/collection/{}?user={}'.format(self.wr_collection_slug, user),
+                cookie=cookie,
+                valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') in ['no_such_collection', 'no_such_user']
+            )
+        else:
+            # TODO:
+            # If behind Cloudflare, the cache will be out-of-date here.
+            # We should consider retrieving a list of matching cdx from WR
+            # before the making DELELTE request, and clearing the Cloudflare
+            # cache after the DELETE request has returned.
+            response, data = query_wr_api(
+                method='post',
+                path='/auth/login',
+                cookie=None,
+                json={
+                    'username': settings.WR_PERMA_USER,
+                    'password': settings.WR_PERMA_PASSWORD
+                },
+                valid_if=lambda code, data: code == 200
+            )
+            cookie = response.cookies.get('__wr_sesh')
+            response, data = query_wr_api(
+                method='delete',
+                path='/collection/{}?user={}'.format(self.wr_collection_slug, settings.WR_PERMA_USER),
+                cookie=cookie,
+                valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') == 'no_such_collection'
+            )
+
 
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
