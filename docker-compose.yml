@@ -154,6 +154,8 @@ services:
       - "uwsgi"
       - "--need-app"
       - "/code/apps/rec.ini"
+    environment:
+      - WR_DEBUG=False
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
@@ -163,6 +165,8 @@ services:
       - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./services/docker/webrecorder/main.py:/code/webrecorder/rec/main.py:ro
+      - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
     networks:
       - webrecorder
 
