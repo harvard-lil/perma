@@ -21,6 +21,8 @@ services:
   app:
     image: harvardlil/webrecorder:0.10
     command: uwsgi /code/apps/apiapp.ini
+    environment:
+      - APP_HOST=perma-archives.test:8089
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:

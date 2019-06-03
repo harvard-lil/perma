@@ -140,7 +140,7 @@ TIERS = {
     ]
 }
 
-REMOTE_SELENIUM = False
+REMOTE_SELENIUM = True
 if REMOTE_SELENIUM:
     if os.environ.get('DOCKERIZED'):
         HOST = 'web:8000'
@@ -153,7 +153,7 @@ if REMOTE_SELENIUM:
         REMOTE_SELENIUM_HOST = 'localhost'
 
 
-ENABLE_WR_PLAYBACK = False
+ENABLE_WR_PLAYBACK = True
 if ENABLE_WR_PLAYBACK:
     assert REMOTE_SELENIUM, "WR Playback must be tested with REMOTE_SELENIUM = True"
     if os.environ.get('DOCKERIZED'):
