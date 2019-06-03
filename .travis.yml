@@ -75,7 +75,8 @@ script:
   - docker-compose exec recorder whoami
   - docker-compose exec recorder ls -l /data
   - docker-compose exec recorder ls -l /data/warcs
-  - docker-compose exec touch /data/warcs/thing.txt
+  - docker-compose exec recorder touch /data/warcs/thing.txt
+  - docker-compose exec recorder ls -l /data/warcs
 
 after_failure:
   - date
