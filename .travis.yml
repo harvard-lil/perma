@@ -70,8 +70,12 @@ before_script:
   - date
 
 script:
-  - pipenv run fab dev.test_python:travis=True
-  - pipenv run fab dev.test_js
+  # - pipenv run fab dev.test_python:travis=True
+  # - pipenv run fab dev.test_js
+  - docker-compose exec recorder whoami
+  - docker-compose exec recorder ls -l /data
+  - docker-compose exec recorder ls -l /data/warcs
+  - docker-compose exec touch /data/warcs/thing.txt
 
 after_failure:
   - date
