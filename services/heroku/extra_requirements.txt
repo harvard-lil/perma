@@ -1,4 +1,0 @@
-# heroku requirements
-# these will get added onto the end of requirements.txt by heroku-buildpack-perma
-
-
