@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-source bin/utils
-
-# Run Django migrations.
-echo "-----> Migrating database"
-./manage.py migrate | indent

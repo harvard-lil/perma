@@ -9,7 +9,7 @@ except Exception as e:
     print("WARNING: Can't configure Django. %s" % e)
 
 # import sub-tasks
-from . import dev, heroku  # noqa
+from . import dev  # noqa
 from .dev import run_django, test  # noqa
 
 # optionally import fab_targets
