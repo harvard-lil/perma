@@ -142,6 +142,7 @@ services:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py
+      - ./services/docker/webrecorder/app_main.py:/code/webrecorder/main.py:ro
     networks:
       - webrecorder
 
@@ -165,7 +166,7 @@ services:
       - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
-      - ./services/docker/webrecorder/main.py:/code/webrecorder/rec/main.py:ro
+      - ./services/docker/webrecorder/recorder_main.py:/code/webrecorder/rec/main.py:ro
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
     networks:
       - webrecorder
