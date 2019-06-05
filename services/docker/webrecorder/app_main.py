@@ -1,11 +1,21 @@
 from gevent import monkey; monkey.patch_all()
 
+### BEGIN PERMA CUSTOMIZATIONS
+### Temporary monkey patches:
+### these changes to pywb should eventually appear upstream,
+### after we are confident enough to submit PRs.
+###
+
 # patch cookie rewriting to be quieter
+# https://github.com/webrecorder/pywb/blob/master/pywb/rewrite/cookie_rewriter.py#L15
 from pywb.rewrite.cookie_rewriter import WbUrlBaseCookieRewriter
-import six
-from six.moves.http_cookies import SimpleCookie, CookieError
-import logging
 def quiet_rewrite(self, cookie_str, header='Set-Cookie'):
+   # begin Perma customization
+    from pywb.rewrite.cookie_rewriter import six
+    from six.moves.http_cookies import SimpleCookie, CookieError
+    import logging
+    # end Perma customization
+
     results = []
     cookie_str = self.REMOVE_EXPIRES.sub('', cookie_str)
     try:
@@ -28,6 +38,10 @@ def quiet_rewrite(self, cookie_str, header='Set-Cookie'):
 
     return results
 WbUrlBaseCookieRewriter.rewrite = quiet_rewrite
+
+#
+# END PERMA CUSTOMIZATIONS
+#
 
 #from app import init
 from webrecorder.maincontroller import MainController
