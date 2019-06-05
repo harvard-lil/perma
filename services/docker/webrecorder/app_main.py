@@ -39,6 +39,73 @@ def quiet_rewrite(self, cookie_str, header='Set-Cookie'):
     return results
 WbUrlBaseCookieRewriter.rewrite = quiet_rewrite
 
+
+# patch invalid CXDline logging to be more informative
+# https://github.com/webrecorder/pywb/blob/master/pywb/warcserver/index/cdxobject.py#L153
+from pywb.warcserver.index.cdxobject import CDXObject
+def log_invalid_cdx(self, cdxline=b''):
+    # begin Perma customization
+    from pywb.warcserver.index.cdxobject import (OrderedDict, to_native_str,
+        json_decode, six, quote, CDXException, URLKEY, TIMESTAMP)
+    # end Perma customization
+
+    OrderedDict.__init__(self)
+
+    cdxline = cdxline.rstrip()
+    self._from_json = False
+    self._cached_json = None
+
+    # Allows for filling the fields later or in a custom way
+    if not cdxline:
+        self.cdxline = cdxline
+        return
+
+    fields = cdxline.split(b' ' , 2)
+
+    # Check for CDX JSON
+    if fields[-1].startswith(b'{'):
+        self[URLKEY] = to_native_str(fields[0], 'utf-8')
+        self[TIMESTAMP] = to_native_str(fields[1], 'utf-8')
+        json_fields = json_decode(to_native_str(fields[-1], 'utf-8'))
+        for n, v in six.iteritems(json_fields):
+            n = to_native_str(n, 'utf-8')
+            n = self.CDX_ALT_FIELDS.get(n, n)
+
+            if n == 'url':
+                try:
+                    v.encode('ascii')
+                except UnicodeEncodeError:
+                    v = quote(v.encode('utf-8'), safe=':/')
+
+            if n != 'filename':
+                v = to_native_str(v, 'utf-8')
+
+            self[n] = v
+
+        self.cdxline = cdxline
+        self._from_json = True
+        return
+
+    more_fields = fields.pop().split(b' ')
+    fields.extend(more_fields)
+
+    cdxformat = None
+    for i in self.CDX_FORMATS:
+        if len(i) == len(fields):
+            cdxformat = i
+    if not cdxformat:
+        # begin Perma customization
+        msg = 'unknown {0}-field cdx format: {1}'.format(len(fields), fields)
+        # begin Perma customization
+        raise CDXException(msg)
+
+    for header, field in zip(cdxformat, fields):
+        self[header] = to_native_str(field, 'utf-8')
+
+    self.cdxline = cdxline
+
+CDXObject.__init__ = log_invalid_cdx
+
 #
 # END PERMA CUSTOMIZATIONS
 #
