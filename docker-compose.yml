@@ -143,6 +143,7 @@ services:
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py
       - ./services/docker/webrecorder/app_main.py:/code/webrecorder/main.py:ro
+      - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py
     networks:
       - webrecorder
 
