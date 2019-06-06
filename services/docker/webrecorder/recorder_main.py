@@ -13,7 +13,7 @@ def catch_unicode_exception(self, method, mime, length, stream,
                             buffered_stream=None,
                             environ=None):
     from pywb.warcserver.inputrequest import (to_native_str, unquote_plus,
-        urlencode, PY3, cgi, base64)
+        urlencode, PY3, cgi, base64, BytesIO)
 
     self.query = b''
 
