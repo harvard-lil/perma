@@ -50,7 +50,7 @@ def no_spaces(self, rec_headers):
     uri = _orig_uri_format(self, rec_headers)
     if uri is not None and " " in uri:
         logger.warning("Replacing spaces in invalid WARC-Target-URI: {}".format(uri))
-        uri = uri.replace(" ", "")
+        uri = uri.replace(" ", "%20")
     return uri
 ArcWarcRecordLoader._ensure_target_uri_format = no_spaces
 
