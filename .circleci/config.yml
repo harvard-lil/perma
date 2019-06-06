@@ -1,0 +1,68 @@
+version: 2.1
+jobs:
+  build:
+    machine: true
+    working_directory: ~/project
+    steps:
+
+      # Initial setup
+      - checkout:
+          path: ~/project
+      - run:
+          name: "Info"
+          command: |
+            docker-compose --version
+            docker version
+
+      # Quick tests to fail fast on common errors
+      - run:
+          name: "Flake8"
+          command: |
+            export PYENV_VERSION=3.5.2  # use the version of python3 installed on circleci
+            pip install flake8`awk '/flake8/,/version/' perma_web/Pipfile.lock | tail -n 1 | cut -d '"' -f 4`  # install our version of flake8
+            flake8 perma_web/
+
+      # Docker image building and caching
+      # This block shaves a minute or two off of the test runtime by using cached docker images.
+      # Otherwise we could omit this step entirely and let `docker-compose run` build what it needs to.
+      - restore_cache:
+          key: docker-images-{{ checksum "docker-compose.yml" }}
+      - run:
+          name: "Build docker images"
+          command: |
+            if test -f ~/docker-cache.tar; then
+              echo "Loading cached docker images"
+              docker load -i ~/docker-cache.tar
+            else
+              echo "Building new docker images"
+              docker-compose build
+              docker save -o ~/docker-cache.tar capstone capstone-postgres
+            fi
+      - save_cache:
+          key: docker-images-{{ checksum "docker-compose.yml" }}
+          paths:
+            - "~/docker-cache.tar"
+
+      # Actual tests
+      - run:
+          name: "Test"
+          command: |
+            mkdir staticfiles                                # avoid whitenoise warning
+            mkdir -p junit/pytest                            # storage for circleci test info
+            docker-compose run web pytest \
+              --junitxml=junit/pytest/test-results.xml       `# write test results so they can be displayed by circleci` \
+              --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
+              --fail-on-template-vars
+
+      # Upload test details to circleci
+      - store_test_results:
+          path: junit
+
+      # Upload coverage to Codecov
+      # Recommended approach is to use an orb: https://circleci.com/blog/making-code-coverage-easy-to-see-with-the-codecov-orb/
+      # Currently using python package instead of orb, because of https://github.com/codecov/codecov-circleci-orb/issues/12
+      - run:
+          name: "Upload coverage"
+          command: |
+            sudo pip install codecov
+            codecov
