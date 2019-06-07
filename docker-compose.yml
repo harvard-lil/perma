@@ -141,9 +141,10 @@ services:
     volumes:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
-      - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py
+      - ./services/docker/webrecorder/maincontroller.py:/code/webrecorder/maincontroller.py:ro
+      - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py:ro
       - ./services/docker/webrecorder/app_main.py:/code/webrecorder/main.py:ro
-      - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py
+      - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py:ro
     networks:
       - webrecorder
 
