@@ -32,7 +32,7 @@ before_install:
   - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
   - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
   - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
-   - cd perma_web
+  - cd perma_web
 
 install:
   # python reqs
