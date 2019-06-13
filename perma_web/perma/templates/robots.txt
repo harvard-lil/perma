@@ -4,3 +4,6 @@ User-agent: *
 {% endfor %}
 {% for fragment in disallow %}Disallow: /{{ fragment }}
 {% endfor %}
+
+User-agent: LinkCheck by Siteimprove.com
+Disallow: /
