@@ -35,12 +35,11 @@ jobs:
               docker load -i ~/docker-cache.tar
             else
               echo "Building new docker images"
-              cp services/docker/webrecorder/wr_circle.env services/docker/webrecorder/wr.env
               docker-compose build
               docker save -o ~/docker-cache.tar perma3
             fi
       - save_cache:
-          key: docker-images-{{ checksum "docker-compose.yml" }}-{{ checksum "services/docker/webrecorder/wr_circle.env" }}
+          key: docker-images-{{ checksum "docker-compose.yml" }}
           paths:
             - "~/docker-cache.tar"
 
@@ -50,6 +49,7 @@ jobs:
           command: |
             mkdir staticfiles                                # avoid whitenoise warning
             mkdir -p junit/pytest                            # storage for circleci test info
+            cp services/docker/webrecorder/wr_circle.env services/docker/webrecorder/wr.env
             docker-compose up -d
             sleep 10
             docker-compose exec web pipenv run fab dev.create_db
