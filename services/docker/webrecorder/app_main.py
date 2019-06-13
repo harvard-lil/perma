@@ -39,21 +39,6 @@ def quiet_rewrite(self, cookie_str, header='Set-Cookie'):
     return results
 WbUrlBaseCookieRewriter.rewrite = quiet_rewrite
 
-# don't pass WARC-Target-URI with spaces to the cdxline indexers, which don't expect that
-# https://github.com/webrecorder/warcio/blob/c64c4394805e13256695f51af072c95389397ee9/warcio/recordloader.py#L217
-# cause of at least some of the errors in https://github.com/harvard-lil/perma/issues/2605
-from warcio.recordloader import ArcWarcRecordLoader
-_orig_uri_format = ArcWarcRecordLoader._ensure_target_uri_format
-def no_spaces(self, rec_headers):
-    import logging
-    logger = logging.getLogger(__name__)
-    uri = _orig_uri_format(self, rec_headers)
-    if uri is not None and " " in uri:
-        logger.warning("Replacing spaces in invalid WARC-Target-URI: {}".format(uri))
-        uri = uri.replace(" ", "%20")
-    return uri
-ArcWarcRecordLoader._ensure_target_uri_format = no_spaces
-
 # patch invalid CXDline logging to be more informative
 # https://github.com/webrecorder/pywb/blob/master/pywb/warcserver/index/cdxobject.py#L153
 from pywb.warcserver.index.cdxobject import CDXObject
