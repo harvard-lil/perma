@@ -40,7 +40,7 @@ jobs:
               docker save -o ~/docker-cache.tar perma3
             fi
       - save_cache:
-          key: docker-images-{{ checksum "docker-compose.yml" }}
+          key: docker-images-{{ checksum "docker-compose.yml" }}-{{ checksum "services/docker/webrecorder/wr_circle.env" }}
           paths:
             - "~/docker-cache.tar"
 
