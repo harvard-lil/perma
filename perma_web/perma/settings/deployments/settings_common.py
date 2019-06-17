@@ -531,8 +531,10 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 
 CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
-# Default user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
+# Default user agent is adapted from the PhantomJS default
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) Safari/538.1"
+PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
+DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
 
 APPEND_SLASH = False
 

@@ -86,12 +86,12 @@ def safe_save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=list(kwargs.keys()))
 
-def get_url(url, thread_list, proxy_address, requested_urls):
+def get_url(url, thread_list, proxy_address, requested_urls, user_agent):
     """
         Get a url, via proxied python requests.get(), in a way that is interruptable from other threads.
         Blocks calling thread. (Recommended: only call in sub-threads.)
     """
-    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url, requested_urls))
+    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url, requested_urls, user_agent))
     request_thread.join()
     return request_thread.response, request_thread.response_exception
 
@@ -102,8 +102,9 @@ class ProxiedRequestThread(threading.Thread):
         While the thread is running, see `self.pending_data` for how much has been downloaded so far.
         Once the thread is done, see `self.response` and `self.response_exception` for the results.
     """
-    def __init__(self, proxy_address, url, requested_urls, *args, **kwargs):
+    def __init__(self, proxy_address, url, requested_urls, user_agent, *args, **kwargs):
         self.url = url
+        self.user_agent = user_agent
         self.proxy_address = proxy_address
         self.pending_data = 0
         self.stop = threading.Event()
@@ -116,7 +117,7 @@ class ProxiedRequestThread(threading.Thread):
         try:
             self.requested_urls.add(self.url)
             self.response = requests.get(self.url,
-                                         headers={'User-Agent': settings.CAPTURE_USER_AGENT},
+                                         headers={'User-Agent': self.user_agent},
                                          proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
                                          verify=False,
                                          stream=True,
@@ -544,9 +545,9 @@ def meta_tag_analysis_failed(link):
 
 # robots.txt
 
-def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls):
+def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls, user_agent):
     robots_txt_location = urllib.parse.urljoin(content_url, '/robots.txt')
-    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls)
+    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls, user_agent)
     if e or not robots_txt_response or not robots_txt_response.ok:
         print("Couldn't reach robots.txt")
         return
@@ -564,10 +565,10 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address,
 
 # favicons
 
-def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, proxy_address, requested_urls):
+def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, proxy_address, requested_urls, user_agent):
     favicon_urls = favicon_get_urls(dom_tree, content_url)
     for favicon_url in favicon_urls:
-        favicon = favicon_fetch(favicon_url, thread_list, proxy_address, requested_urls)
+        favicon = favicon_fetch(favicon_url, thread_list, proxy_address, requested_urls, user_agent)
         if favicon:
             successful_favicon_urls.append(favicon)
     if not successful_favicon_urls:
@@ -588,9 +589,9 @@ def favicon_get_urls(dom_tree, content_url):
     urls = list(OrderedDict((url, True) for url in urls).keys())  # remove duplicates without changing list order
     return urls
 
-def favicon_fetch(url, thread_list, proxy_address, requested_urls):
+def favicon_fetch(url, thread_list, proxy_address, requested_urls, user_agent):
     print("Fetching favicon from %s ..." % url)
-    response, e = get_url(url, thread_list, proxy_address, requested_urls)
+    response, e = get_url(url, thread_list, proxy_address, requested_urls, user_agent)
     if e or not response or not response.ok:
         print("Favicon failed:", e, response)
         return
@@ -872,6 +873,11 @@ def run_next_capture():
         requested_urls = set()  # all URLs we have requested -- used to avoid duplicate requests
         stop = False
 
+        capture_user_agent = settings.CAPTURE_USER_AGENT
+        if any(domain in link.url_details.netloc for domain in settings.DOMAINS_REQUIRING_UNIQUE_USER_AGENT):
+            capture_user_agent = capture_user_agent + " " + settings.PERMA_USER_AGENT_SUFFIX
+        print("Using user-agent: %s" % capture_user_agent)
+
         # A default title is added in models.py, if an api user has not specified a title.
         # Make sure not to override it during the capture process.
         if link.submitted_title != link.get_default_title():
@@ -1073,7 +1079,7 @@ def run_next_capture():
         print("WarcProx opened.")
         # END WARCPROX SETUP
 
-        browser, display = get_browser(settings.CAPTURE_USER_AGENT, proxy_address, warcprox_controller.proxy.ca.ca_file)
+        browser, display = get_browser(capture_user_agent, proxy_address, warcprox_controller.proxy.ca.ca_file)
         browser.set_window_size(*BROWSER_SIZE)
 
         # fetch page in the background
@@ -1124,7 +1130,8 @@ def run_next_capture():
             content_url,
             thread_list,
             proxy_address,
-            requested_urls
+            requested_urls,
+            capture_user_agent
         ))
 
         inc_progress(capture_job, 1, "Checking x-robots-tag directives.")
@@ -1150,7 +1157,8 @@ def run_next_capture():
                     content_url,
                     thread_list,
                     proxy_address,
-                    requested_urls
+                    requested_urls,
+                    capture_user_agent
                 ))
 
             print("Waiting for onload event before proceeding.")
@@ -1182,7 +1190,7 @@ def run_next_capture():
                 # grab all media urls that aren't already being grabbed,
                 # each in its own background thread
                 for media_url in media_urls - requested_urls:
-                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls))
+                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls, capture_user_agent))
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         inc_progress(capture_job, 1, "Waiting for post-load requests")
