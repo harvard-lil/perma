@@ -13,11 +13,6 @@ from webrecorder.cookieguard import CookieGuard
 from webrecorder.utils import redis_pipeline
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
-# BEGIN PERMA CUSTOMIZATION
-import logging
-logger = logging.getLogger(__name__)
-# END PERMA CUSTOMIZATION
-
 
 # ============================================================================
 class Session(object):
@@ -387,34 +382,21 @@ class RedisSessionMiddleware(CookieGuard):
         duration = self.durations[session.dura_type]['total']
 
         if session.should_save:
-            #
-            # BEGIN PERMA CUSTOMIZATION
-            #
-            try:
-                with redis_pipeline(self.redis) as pi:
-                    data = base64.b64encode(pickle.dumps(session._sesh))
+            with redis_pipeline(self.redis) as pi:
+                data = base64.b64encode(pickle.dumps(session._sesh))
 
-                    ttl = session.ttl
-                    if ttl == 0:
-                        logger.warning("SETEX error diagnosed! It happens when session.ttl == 0")
-                    if ttl <= 0:
-                        ttl = duration
+                ttl = session.ttl
+                if ttl <= 0:  # PERMA CUSTOMIZATION: changed from < to <=
+                    ttl = duration
 
-                        pi.setex(session.key, ttl, data)
+                pi.setex(session.key, ttl, data)
 
-                        if set_cookie:
-                            self.track_long_term(session, pi)
+                if set_cookie:
+                    self.track_long_term(session, pi)
 
-                        # set redis duration
-                        if session.curr_role != 'anon':
-                            pi.expire(session.key, duration)
-
-            except Exception:
-                logger.error("SETEX error not fully diagnosed.", exc_info=True)
-                return
-            #
-            # END PERMA CUSTOMIZATION
-            #
+                # set redis duration
+                if session.curr_role != 'anon':
+                    pi.expire(session.key, duration)
 
         elif set_cookie and session.curr_role != 'anon':
             # extend redis duration if extending cookie!
