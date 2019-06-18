@@ -399,8 +399,6 @@ class RedisSessionMiddleware(CookieGuard):
                 if ttl <= 0:
                     ttl = duration
 
-                sextex = "SETEX args: {}, {}, and {}".format(session.key, ttl, data)
-                expire = "EXPIRE args: {}, {}".format(session.key, duration)
                 try:
                     pi.setex(session.key, ttl, data)
 
@@ -411,9 +409,9 @@ class RedisSessionMiddleware(CookieGuard):
                     if session.curr_role != 'anon':
                         pi.expire(session.key, duration)
 
-                except redis.exceptions.ResponseError:
-                    logger.warning("SETEX error not fully diagnosed.")
-                    raise
+                except Exception:
+                    logger.error("SETEX error not fully diagnosed.", exc_info=True)
+                    return
                 #
                 # END PERMA CUSTOMIZATION
                 #
