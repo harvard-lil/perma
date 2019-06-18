@@ -13,6 +13,11 @@ from webrecorder.cookieguard import CookieGuard
 from webrecorder.utils import redis_pipeline
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
+# BEGIN PERMA CUSTOMIZATION
+import logging
+logger = logging.getLogger(__name__)
+# END PERMA CUSTOMIZATION
+
 
 # ============================================================================
 class Session(object):
@@ -386,27 +391,32 @@ class RedisSessionMiddleware(CookieGuard):
                 data = base64.b64encode(pickle.dumps(session._sesh))
 
                 ttl = session.ttl
-                if ttl < 0:
+                #
+                # BEGIN PERMA CUSTOMIZATION
+                #
+                if ttl == 0:
+                    logger.warning("SETEX error diagnosed! It happens when session.ttl == 0")
+                if ttl <= 0:
                     ttl = duration
 
-                pi.setex(session.key, ttl, data)
+                sextex = "SETEX args: {}, {}, and {}".format(session.key, ttl, data)
+                expire = "EXPIRE args: {}, {}".format(session.key, duration)
+                try:
+                    pi.setex(session.key, ttl, data)
 
-                if set_cookie:
-                    self.track_long_term(session, pi)
+                    if set_cookie:
+                        self.track_long_term(session, pi)
 
-                # set redis duration
-                if session.curr_role != 'anon':
-                    #
-                    # BEGIN PERMA CUSTOMIZATION
-                    #
-                    if duration == 0:
-                        print("\n\nDEBUGGING SESSION DURATION!\n\n")
-                        print(session.curr_role)
-                        print(self.durations)
-                    #
-                    # END PERMA CUSTOMIZATION
-                    #
-                    pi.expire(session.key, duration)
+                    # set redis duration
+                    if session.curr_role != 'anon':
+                        pi.expire(session.key, duration)
+
+                except redis.exceptions.ResponseError:
+                    logger.warning("SETEX error not fully diagnosed.")
+                    raise
+                #
+                # END PERMA CUSTOMIZATION
+                #
 
         elif set_cookie and session.curr_role != 'anon':
             # extend redis duration if extending cookie!
