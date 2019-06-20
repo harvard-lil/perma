@@ -143,11 +143,15 @@ services:
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py:ro
       # Temporary patches for webrecorder
+      # https://github.com/webrecorder/webrecorder/pull/721
       - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py:ro
       - ./services/docker/webrecorder/maincontroller.py:/code/webrecorder/maincontroller.py:ro
       # Temporary patches for pywb
+      # https://github.com/webrecorder/pywb/pull/477
+      # https://github.com/webrecorder/pywb/pull/478
       - ./services/docker/webrecorder/app_main.py:/code/webrecorder/main.py:ro
       # Temporary patches for warcio
+      # https://github.com/webrecorder/warcio/pull/80
       - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder
@@ -173,10 +177,13 @@ services:
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       # Temporary patches for webrecorder
+      # https://github.com/webrecorder/webrecorder/pull/716
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
       # Temporary patches for pywb
+      # https://github.com/webrecorder/pywb/pull/480
       - ./services/docker/webrecorder/recorder_main.py:/code/webrecorder/rec/main.py:ro
       # Temporary patches for warcio
+      # https://github.com/webrecorder/warcio/pull/80
       - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder
@@ -192,6 +199,7 @@ services:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       # Temporary patches for warcio
+      # https://github.com/webrecorder/warcio/pull/80
       - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder

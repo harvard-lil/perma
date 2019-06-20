@@ -235,6 +235,7 @@ class ArcWarcRecordLoader(object):
 
         # BEGIN PERMA CUSTOMIZATION
         # https://github.com/webrecorder/warcio/blob/c64c4394805e13256695f51af072c95389397ee9/warcio/recordloader.py#L217
+        # https://github.com/webrecorder/warcio/pull/80
         # don't pass WARC-Target-URI with spaces to the cdxline indexers, which don't expect that
         # cause of at least some of the errors in https://github.com/harvard-lil/perma/issues/2605
         if uri is not None and " " in uri:
