@@ -386,7 +386,9 @@ class RedisSessionMiddleware(CookieGuard):
                 data = base64.b64encode(pickle.dumps(session._sesh))
 
                 ttl = session.ttl
-                if ttl <= 0:  # PERMA CUSTOMIZATION: changed from < to <=
+                # PERMA CUSTOMIZATION: changed from < to <=
+                # https://github.com/webrecorder/webrecorder/pull/721
+                if ttl <= 0:
                     ttl = duration
 
                 pi.setex(session.key, ttl, data)

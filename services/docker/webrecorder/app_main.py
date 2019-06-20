@@ -8,6 +8,7 @@ from gevent import monkey; monkey.patch_all()
 
 # patch cookie rewriting to be quieter
 # https://github.com/webrecorder/pywb/blob/master/pywb/rewrite/cookie_rewriter.py#L15
+# https://github.com/webrecorder/pywb/pull/477
 from pywb.rewrite.cookie_rewriter import WbUrlBaseCookieRewriter
 def quiet_rewrite(self, cookie_str, header='Set-Cookie'):
    # begin Perma customization
@@ -41,6 +42,7 @@ WbUrlBaseCookieRewriter.rewrite = quiet_rewrite
 
 # patch invalid CXDline logging to be more informative
 # https://github.com/webrecorder/pywb/blob/master/pywb/warcserver/index/cdxobject.py#L153
+# https://github.com/webrecorder/pywb/pull/478
 from pywb.warcserver.index.cdxobject import CDXObject
 def log_invalid_cdx(self, cdxline=b''):
     # begin Perma customization

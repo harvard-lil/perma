@@ -8,6 +8,7 @@ from gevent import monkey; monkey.patch_all()
 
 # First pass fix for https://github.com/webrecorder/pywb/issues/471
 # https://github.com/webrecorder/pywb/blob/master/pywb/warcserver/inputrequest.py#L232
+# https://github.com/webrecorder/pywb/pull/480
 from pywb.warcserver.inputrequest import MethodQueryCanonicalizer
 def catch_unicode_exception(self, method, mime, length, stream,
                             buffered_stream=None,
@@ -52,14 +53,21 @@ def catch_unicode_exception(self, method, mime, length, stream,
     if not mime:
         mime = ''
 
+    # begin Perma customization
+    def handle_binary(query):
+        query = base64.b64encode(query)
+        query = to_native_str(query)
+        query = unquote_plus(query)
+        query = '__wb_post_data=' + query
+        return query
+
     if mime.startswith('application/x-www-form-urlencoded'):
-        # begin Perma customization
         try:
             query = to_native_str(query)
             query = unquote_plus(query)
         except UnicodeDecodeError:
-            query = to_native_str(query, 'iso-8859-1')
-        # end Perma customization
+            query = handle_binary(query)
+    # end Perma customization
 
     elif mime.startswith('multipart/'):
         env = {'REQUEST_METHOD': 'POST',
@@ -85,9 +93,9 @@ def catch_unicode_exception(self, method, mime, length, stream,
         query = self.amf_parse(query, environ)
 
     else:
-        query = base64.b64encode(query)
-        query = to_native_str(query)
-        query = '__wb_post_data=' + query
+        # begin Perma customization
+        query = handle_binary(query)
+        # end Perma customization
 
     self.query = query
 
