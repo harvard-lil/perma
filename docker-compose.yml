@@ -146,6 +146,7 @@ services:
       # https://github.com/webrecorder/webrecorder/pull/721
       - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py:ro
       - ./services/docker/webrecorder/maincontroller.py:/code/webrecorder/maincontroller.py:ro
+      - ./services/docker/webrecorder/importer.py:/code/webrecorder/models/importer.py:ro
       # Temporary patches for pywb
       # https://github.com/webrecorder/pywb/pull/477
       # https://github.com/webrecorder/pywb/pull/478
