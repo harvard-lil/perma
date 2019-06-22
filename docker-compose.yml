@@ -106,6 +106,7 @@ services:
       sh -c "sleep 5 && pipenv run ./manage.py migrate &&
              pipenv run fab run"
     ports:
+      - "8000:80"
     depends_on:
       - pp_db
     environment:
