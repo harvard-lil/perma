@@ -162,7 +162,7 @@ def spoof_pp_response_subscription(customer):
         "customer_type": customer.customer_type,
         "subscription": {
             "status": "Sentinel Status",
-            "rate": "9999.99",
+            "rate": "80.99",
             "frequency": "sample",
             "paid_through": "1970-01-21T00:00:00.000000Z",
             "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
@@ -177,10 +177,10 @@ def spoof_pp_response_subscription_with_pending_change(customer):
         "customer_type": customer.customer_type,
         "subscription": {
             "status": "Sentinel Status",
-            "rate": "9999.99",
+            "rate": "80.99",
             "frequency": "sample",
-            "paid_through": "9999-01-21T00:00:00.000000Z",
-            "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
+            "paid_through": "80-01-21T00:00:00.000000Z",
+            "link_limit_effective_timestamp": "80-01-21T00:00:00.000000Z",
             "link_limit": "unlimited"
 
         }
@@ -560,7 +560,7 @@ class ModelsTestCase(PermaTestCase):
                 'link_limit': str(customer.link_limit),
                 'rate': str(customer.cached_subscription_rate),
                 'frequency': customer.link_limit_period,
-                'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+                'paid_through': pp_date_from_post('80-01-21T00:00:00.000000Z'),
                 'pending_change': {
                     'rate': response['subscription']['rate'],
                     'link_limit': response['subscription']['link_limit'],
@@ -784,9 +784,9 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'monthly',
-            'link_limit': 9999
+            'link_limit': 80
         }
         for customer in customers():
             tier = {
@@ -808,9 +808,9 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'monthly',
-            'link_limit': 9999
+            'link_limit': 80
         }
         for customer in customers():
             tier = {
@@ -832,9 +832,9 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'monthly',
-            'link_limit': 9999
+            'link_limit': 80
         }
         for customer in customers():
             tier = {
@@ -966,10 +966,10 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'annually',
             'paid_through': next_year,
-            'link_limit': 9999
+            'link_limit': 80
 
         }
         for customer in customers():
@@ -992,10 +992,10 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'annually',
             'paid_through': today_next_year(GENESIS.replace(day=1)),
-            'link_limit': 9999
+            'link_limit': 80
 
         }
         for customer in customers():
@@ -1018,10 +1018,10 @@ class ModelsTestCase(PermaTestCase):
         next_year = today_next_year(now)
         subscription = {
             'status': 'Current',
-            'rate': '9999.10',
+            'rate': '80.10',
             'frequency': 'annually',
             'paid_through': now,
-            'link_limit': 9999
+            'link_limit': 80
 
         }
         for customer in customers():

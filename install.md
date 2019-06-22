@@ -30,7 +30,7 @@ Hosts
 Perma serves content at several hosts. To ensure that URLs resolve correctly,
 add the following domains to your computer's hosts file:
 
-    127.0.0.1 perma.test api.perma.test perma-archives.test
+    127.0.0.1 perma.kresnanusantara.co.id api.perma.kresnanusantara.co.id perma-archives.kresnanusantara.co.id
 
 For additional information on modifying your hosts file,
 [try this help doc](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file).
@@ -219,4 +219,4 @@ Or, use Fabric to spin up Django's development server and launch Webpack (which 
 
     $ pipenv run fab run
 
-With the development server running, Perma should be available at http://perma.test:8000
+With the development server running, Perma should be available at http://perma.kresnanusantara.co.id:80

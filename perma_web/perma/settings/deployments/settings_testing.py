@@ -143,13 +143,13 @@ TIERS = {
 REMOTE_SELENIUM = True
 if REMOTE_SELENIUM:
     if os.environ.get('DOCKERIZED'):
-        HOST = 'web:8000'
-        PLAYBACK_HOST = 'web:8000'
+        HOST = 'web:80'
+        PLAYBACK_HOST = 'web:80'
         ALLOWED_HOSTS.append('web')
         REMOTE_SELENIUM_HOST = 'selenium'
     else:
-        HOST = 'perma.test:8000'
-        PLAYBACK_HOST = 'perma-archives.test:8000'
+        HOST = 'perma.kresnanusantara.co.id:80'
+        PLAYBACK_HOST = 'perma-archives.kresnanusantara.co.id:80'
         REMOTE_SELENIUM_HOST = 'localhost'
 
 
@@ -160,5 +160,5 @@ if ENABLE_WR_PLAYBACK:
         WR_API = 'http://nginx/api/v1'
         PLAYBACK_HOST = 'nginx:81'
     else:
-        WR_API = 'http://perma-archives.test:8089/api/v1'
-        PLAYBACK_HOST = 'perma-archives.test:8092'
+        WR_API = 'http://perma-archives.kresnanusantara.co.id:8089/api/v1'
+        PLAYBACK_HOST = 'perma-archives.kresnanusantara.co.id:8092'

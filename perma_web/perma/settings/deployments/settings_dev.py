@@ -7,11 +7,11 @@ DEBUG = True
 #
 # HOSTS
 #
-HOST = 'perma.test:8000'
-PLAYBACK_HOST = 'perma-archives.test:8000'
+HOST = 'perma.kresnanusantara.co.id:80'
+PLAYBACK_HOST = 'perma-archives.kresnanusantara.co.id:80'
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['perma.test', 'perma-archives.test', 'api.perma.test']
+ALLOWED_HOSTS = ['perma.kresnanusantara.co.id', 'perma-archives.kresnanusantara.co.id', 'api.perma.kresnanusantara.co.id']
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')

@@ -23,7 +23,7 @@ should still work: just skip the `d`!)
 `d fab run`
 
 That's it! You should now be able to load Perma in your browser at
-`http://perma.test:8000/`. It will take a few seconds for the first page
+`http://perma.kresnanusantara.co.id:80/`. It will take a few seconds for the first page
 to load, while we wait for Perma's CSS, JS and other assets to be compiled.
 
 To log in and explore Perma, try logging in as one of our
@@ -40,7 +40,7 @@ instance of webrecorder that is behind SSL), set `SECURE_SSL_REDIRECT
 
 `d fab run:use_ssl=True`
 
-and visit `https://perma.test:8000/` -- you'll need to make an
+and visit `https://perma.kresnanusantara.co.id:80/` -- you'll need to make an
 exception for the self-signed certificate in your
 browser. Alternatively, you can supply your own certificate with
 something like
@@ -310,7 +310,7 @@ you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our
 
     $ d fab dev.test_sauce
 
-By default `d fab dev.test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
+By default `d fab dev.test_sauce` is pointed at 127.0.0.1:80, which Sauce can't reach from outside, so you'll have to set
 up a tunnel first by running
 
     $ d fab dev.sauce_tunnel

@@ -7,7 +7,7 @@ describe("Test link.helpers.js", function() {
     window.linkObj = {
       captures: [ {
         content_type: "text/html",
-        playback_url: "//perma.test:8000/warc/ZFK8-B42T/http://example.com",
+        playback_url: "//perma.kresnanusantara.co.id:80/warc/ZFK8-B42T/http://example.com",
         record_type: "response",
         role: "primary",
         status: "success",
@@ -15,7 +15,7 @@ describe("Test link.helpers.js", function() {
         user_upload: false,
         }, {
           content_type:"image/png",
-          playback_url:"//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/cap.png",
+          playback_url:"//perma.kresnanusantara.co.id:80/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/cap.png",
           record_type:"resource",
           role:"screenshot",
           status:"success",
@@ -23,7 +23,7 @@ describe("Test link.helpers.js", function() {
           user_upload:false,
         }, {
           content_type:"favicon",
-          playback_url:"//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico",
+          playback_url:"//perma.kresnanusantara.co.id:80/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico",
           record_type:"resource",
           role:"favicon",
           status:"success",
@@ -36,7 +36,7 @@ describe("Test link.helpers.js", function() {
       expiration_date_formatted:"undefined NaN, NaN",
       favicon_url:"",
       guid:"ZFK8-B42T",
-      local_url:"localhost:8000/ZFK8-B42T",
+      local_url:"localhost:80/ZFK8-B42T",
       title:"Example Domain",
       url:"http://example.com",
       warc_size:21030
@@ -48,7 +48,7 @@ describe("Test link.helpers.js", function() {
   describe("Test findFaviconUrl", function(){
     it("finds favicon url when one exists", function(){
       var url = LinkHelpers.findFaviconURL(window.linkObj);
-      expect(url).toEqual("//perma.test:8000/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico");
+      expect(url).toEqual("//perma.kresnanusantara.co.id:80/warc/ZFK8-B42T/id_/file:///ZFK8-B42T/favicon.ico");
     });
     it("does not error when favicon does not exist", function(){
       var linkObjCopy = window.linkObj;

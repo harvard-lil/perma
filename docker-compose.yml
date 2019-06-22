@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 
 services:
   #
@@ -23,7 +23,7 @@ services:
   db:
     image: mysql:5.6
     environment:
-        MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
     volumes:
       # NAMED VOLUMES
       # If the volume contains a database (a subdirectory named mysql)
@@ -61,20 +61,19 @@ services:
     environment:
       - DOCKERIZED=True
     extra_hosts:
-      - "perma.test:127.0.0.1"
-      - "api.perma.test:127.0.0.1"
-      # N.B. the "perma-archives.test" host is unnecessary if playback is handled by WR
-      - "perma-archives.test:127.0.0.1"
+      - "perma.kresnanusantara.co.id:127.0.0.1"
+      - "api.perma.kresnanusantara.co.id:127.0.0.1"
+      # N.B. the "perma-archives.kresnanusantara.co.id" host is unnecessary if playback is handled by WR
+      - "perma-archives.kresnanusantara.co.id:127.0.0.1"
       # N.B. the "web" host is required for functional tests if playback is handled by WR
       - "web:127.0.0.1"
     ports:
-      - "8000:8000"
+      - "80:80"
     depends_on:
       - db
     networks:
       - default
       - webrecorder
-
 
   #
   # Perma Functional Tests
@@ -89,7 +88,6 @@ services:
       - 4444:4444
     networks:
       - default
-
 
   #
   # Perma Payments
@@ -108,7 +106,6 @@ services:
       sh -c "sleep 5 && pipenv run ./manage.py migrate &&
              pipenv run fab run"
     ports:
-      - "80:80"
     depends_on:
       - pp_db
     environment:
@@ -220,7 +217,7 @@ services:
       # WR "content"/playback host
       - 8092:81
     extra_hosts:
-      - "perma-archives.test:127.0.0.1"
+      - "perma-archives.kresnanusantara.co.id:127.0.0.1"
     networks:
       default:
       webrecorder:

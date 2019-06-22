@@ -341,7 +341,7 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
     """
     For use with threaded tests like archive creation
     """
-    server_domain = "perma.test"
+    server_domain = "perma.kresnanusantara.co.id"
     server_port = 8999
     serve_files = []
 

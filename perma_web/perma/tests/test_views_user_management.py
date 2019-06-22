@@ -41,7 +41,7 @@ def spoof_current_monthly_subscription_with_scheduled_downgrade():
         "pending_change": {
             "rate": "1.00",
             "link_limit": 1,
-            "effective": GENESIS.replace(year=9999)
+            "effective": GENESIS.replace(year=80)
         }
     }
 

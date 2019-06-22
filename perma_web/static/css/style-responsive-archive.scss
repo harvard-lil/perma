@@ -1274,7 +1274,7 @@ body.modal-open {
 .modal {
   @include fill-screen;
   display: none;
-  z-index: 9999;
+  z-index: 80;
 }
 
 .modal-dialog {

@@ -155,7 +155,7 @@ class FunctionalTest(BaseTestCase):
             cls.server_url = REMOTE_SERVER_URL
         else:
             cls.host = '0.0.0.0'
-            cls.port = 8000
+            cls.port = 80
             super().setUpClass()
 
             # By default, the test server only mounts the django app,

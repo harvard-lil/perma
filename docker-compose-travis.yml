@@ -22,7 +22,7 @@ services:
     image: harvardlil/webrecorder:0.10
     command: uwsgi /code/apps/apiapp.ini
     environment:
-      - APP_HOST=perma-archives.test:8089
+      - APP_HOST=perma-archives.kresnanusantara.co.id:8089
     env_file:
       - ./services/docker/webrecorder/wr.env
     depends_on:
@@ -98,7 +98,7 @@ services:
       # WR "content"/playback host
       - 8092:81
     extra_hosts:
-      - "perma-archives.test:127.0.0.1"
+      - "perma-archives.kresnanusantara.co.id:127.0.0.1"
     networks:
       default:
       webrecorder:

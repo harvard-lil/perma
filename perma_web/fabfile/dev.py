@@ -14,7 +14,7 @@ from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
-def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', host='perma.test'):
+def run_django(port="0.0.0.0:80", use_ssl=False, cert_file='perma-test.crt', host='perma.kresnanusantara.co.id'):
     """
         Run django test server on open port, so it's accessible outside Docker.
 
@@ -59,7 +59,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
                     # see https://github.com/django-extensions/django-extensions/pull/1041
                     options = '--threaded --reloader-type stat'
 
-                    # create a cert if necessary or supply your own; we assume perma.test
+                    # create a cert if necessary or supply your own; we assume perma.kresnanusantara.co.id
                     # is in your /etc/hosts
                     conf_file = "%s.conf" % os.path.splitext(cert_file)[0]
                     with open(conf_file, "w") as f:
@@ -137,7 +137,7 @@ def test_sauce(server_url=None, test_flags=''):
         Run functional_tests through Sauce rather than local phantomjs.
     """
     shell_envs = {
-        'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:8000",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)
+        'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:80",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)
         'DJANGO__USE_SAUCE': "True"
     }
     if server_url:
@@ -182,7 +182,7 @@ def init_db():
 
 
 @task
-def screenshots(base_url='http://perma.test:8000'):
+def screenshots(base_url='http://perma.kresnanusantara.co.id:80'):
     import StringIO
     from PIL import Image
     from selenium import webdriver

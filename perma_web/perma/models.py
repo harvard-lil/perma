@@ -1145,21 +1145,21 @@ class Link(DeletableModel):
     @cached_property
     def memento(self):
         """
-        http://perma.test:8000/23W3-NDSB
+        http://perma.kresnanusantara.co.id:80/23W3-NDSB
         """
         return protocol() + settings.HOST + '/' + self.guid
 
     @cached_property
     def timegate(self):
         """
-        http://perma-archives.test:8000/warc/timegate/http://example.com
+        http://perma-archives.kresnanusantara.co.id:80/warc/timegate/http://example.com
         """
         return protocol() + settings.PLAYBACK_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
 
     @cached_property
     def timemap(self):
         """
-        http://perma-archives.test:8000/warc/timemap/*/http://example.com
+        http://perma-archives.kresnanusantara.co.id:80/warc/timemap/*/http://example.com
         """
         return protocol() + settings.PLAYBACK_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
 

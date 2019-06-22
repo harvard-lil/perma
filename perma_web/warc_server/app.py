@@ -12,7 +12,7 @@ from .pywb_config import (PermaCDXServer,
 application = init_app(create_perma_wb_router,
                        load_yaml=False,
                        config={
-                           'port': 8000,
+                           'port': 80,
                            'collections': {'': 'PermaCDXSource'},
                            'archive_paths': str(get_archive_path(), 'utf-8'),
                            'server_cls': PermaCDXServer,

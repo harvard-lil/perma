@@ -3,7 +3,7 @@
     "model": "sites.site",
     "pk": 1,
     "fields": {
-      "domain": "perma.test",
+      "domain": "perma.kresnanusantara.co.id",
       "name": "Perma"
     }
   }
