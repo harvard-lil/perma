@@ -182,6 +182,7 @@ services:
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
       # Temporary patches for pywb
       # https://github.com/webrecorder/pywb/pull/480
+      # https://github.com/webrecorder/pywb/pull/482
       - ./services/docker/webrecorder/recorder_main.py:/code/webrecorder/rec/main.py:ro
       # Temporary patches for warcio
       # https://github.com/webrecorder/warcio/pull/80
