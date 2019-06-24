@@ -9,6 +9,9 @@ from gevent import monkey; monkey.patch_all()
 # First pass fix for https://github.com/webrecorder/pywb/issues/471
 # https://github.com/webrecorder/pywb/blob/master/pywb/warcserver/inputrequest.py#L232
 # https://github.com/webrecorder/pywb/pull/480
+#
+# And, first pass fix for https://github.com/harvard-lil/perma/issues/2634
+#
 from pywb.warcserver.inputrequest import MethodQueryCanonicalizer
 def catch_unicode_exception(self, method, mime, length, stream,
                             buffered_stream=None,
@@ -93,9 +96,13 @@ def catch_unicode_exception(self, method, mime, length, stream,
         query = self.amf_parse(query, environ)
 
     else:
-        # begin Perma customization
+        # begin Perma customization, pywb#471
         query = handle_binary(query)
         # end Perma customization
+
+    # begin Perma customization, perma#2634
+    query = query[:2**15]
+    # end Perma customization
 
     self.query = query
 
