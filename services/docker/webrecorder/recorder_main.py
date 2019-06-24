@@ -11,7 +11,7 @@ from gevent import monkey; monkey.patch_all()
 # https://github.com/webrecorder/pywb/pull/480
 #
 # And, first pass fix for https://github.com/harvard-lil/perma/issues/2634
-#
+# https://github.com/webrecorder/pywb/pull/482
 from pywb.warcserver.inputrequest import MethodQueryCanonicalizer
 def catch_unicode_exception(self, method, mime, length, stream,
                             buffered_stream=None,
