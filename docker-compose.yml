@@ -180,6 +180,8 @@ services:
       # Temporary patches for webrecorder
       # https://github.com/webrecorder/webrecorder/pull/716
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
+      - ./services/docker/webrecorder/local.py:/code/webrecorder/rec/storage/local.py:ro
+      - ./services/docker/webrecorder/collection.py:/code/webrecorder/models/collection.py:ro
       # Temporary patches for pywb
       # https://github.com/webrecorder/pywb/pull/480
       # https://github.com/webrecorder/pywb/pull/482
