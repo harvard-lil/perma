@@ -20,6 +20,21 @@ from webrecorder.utils import get_bool
 from webrecorder.models.dynstats import DynStats
 from webrecorder.models.stats import Stats
 
+#
+# BEGIN PERMA CUSTOMIZATION
+#
+
+# https://github.com/webrecorder/warcio/blob/master/warcio/statusandheaders.py#L16
+ENCODE_HEADER_RX = re.compile(r'[=]["\']?([^;"]+)["\']?(?=[;]?)')
+
+# https://github.com/webrecorder/warcio/blob/master/warcio/statusandheaders.py#L189
+from warcio.utils import to_native_str
+def do_encode(m, encoding='UTF-8'):
+    return "*={0}''".format(encoding) + quote(to_native_str(m.group(1)))
+
+#
+# END PERMA CUSTOMIZATION
+#
 
 # ============================================================================
 class ContentController(BaseController, RewriterApp):
@@ -790,9 +805,24 @@ class ContentController(BaseController, RewriterApp):
             if frontend_cache_header:
                 resp.status_headers.headers.append(frontend_cache_header)
 
+            # BEGIN PERMA CUSTOMIZATIONS
+            # make sure all headers can be encoded in ascii
+            # workaround for https://github.com/harvard-lil/perma/issues/2603
+            # technique adapted from https://github.com/webrecorder/warcio/blob/master/warcio/statusandheaders.py#L183
+            headers = resp.status_headers.headers
+            for i, header in enumerate(headers[:]):
+                try:
+                    header[1].encode('ascii')
+                except UnicodeEncodeError:
+                    escaped = ENCODE_HEADER_RX.sub(do_encode, header[1])
+                    if escaped == header[1]:
+                        escaped = quote(escaped)
+                    headers[i] = (header[0], escaped)
+
             resp = HTTPResponse(body=resp.body,
                                 status=resp.status_headers.statusline,
-                                headers=resp.status_headers.headers)
+                                headers=headers)
+            # END PERMA CUSTOMIZATIONS
 
             return resp
 
