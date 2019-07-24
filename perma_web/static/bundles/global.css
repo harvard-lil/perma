@@ -7629,6 +7629,7 @@ a.perma:hover,
 #linker #browser-tools-message a:hover,
 #linker #personal-links-banner a:hover,
 .col-folders > .panel-heading a:hover,
+#link-list-header a:hover,
 .item-title a:hover,
 .item-subtitle a:hover,
 .item-affil a:hover,
@@ -7640,6 +7641,7 @@ a.perma:focus,
 #linker #browser-tools-message a:focus,
 #linker #personal-links-banner a:focus,
 .col-folders > .panel-heading a:focus,
+#link-list-header a:focus,
 .item-title a:focus,
 .item-subtitle a:focus,
 .item-affil a:focus,
@@ -7654,6 +7656,7 @@ a.perma:active,
 #linker #browser-tools-message a:active,
 #linker #personal-links-banner a:active,
 .col-folders > .panel-heading a:active,
+#link-list-header a:active,
 .item-title a:active,
 .item-subtitle a:active,
 .item-affil a:active:hover,
@@ -12480,6 +12483,14 @@ footer #boilerplate a {
 
 #link-list-header .organization:before {
   top: 1px;
+}
+
+#link-list-header a {
+  position: relative;
+  top: 5px;
+  margin-left: 0.5em;
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .col-links,

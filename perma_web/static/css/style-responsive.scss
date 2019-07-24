@@ -3880,12 +3880,24 @@ footer {
   }
 }
 
-#link-list-header .organization {
-  @include ui-shared-icon;
-  &:before {
-    top: 1px;
+#link-list-header {
+  .organization {
+    @include ui-shared-icon;
+    &:before {
+      top: 1px;
+    }
+  }
+
+  a {
+    position: relative;
+    top: 5px;
+    margin-left: 0.5em;
+    font-size: 20px;
+    color: $color-trans-gray;
+    @extend .style-standard-hover;
   }
 }
+
 
 
 .col-links, .col-folders {

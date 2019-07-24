@@ -209,7 +209,8 @@ webpackJsonp([1],[
 	    showFolderContents(data.folderId);
 	    var template = headerTemplate({
 	      "organization": data.orgId,
-	      "path": data.path.join(" > ")
+	      "path": data.path.join(" > "),
+	      "folder": data.folderId
 	    });
 	    $linkListHeader.html(template);
 	  }).on("BatchLinkModule.batchCreated", function () {
@@ -10971,9 +10972,12 @@ webpackJsonp([1],[
 	},"3":function(container,depth0,helpers,partials,data) {
 	    return "Your Perma Links\n";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1;
+	    var stack1, helper, alias1=depth0 != null ? depth0 : {};
 	
-	  return ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.organization : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data})) != null ? stack1 : "");
+	  return ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.organization : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data})) != null ? stack1 : "")
+	    + "<a href=\"/api/v1/folders/"
+	    + container.escapeExpression(((helper = (helper = helpers.folder || (depth0 != null ? depth0.folder : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"folder","hash":{},"data":data}) : helper)))
+	    + "/archives/export\" id=\"export-links-csv\" class=\"pull-right icon-download-alt\" title=\"Export Links\"></a>\n";
 	},"useData":true});
 
 /***/ },
