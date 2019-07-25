@@ -3,6 +3,7 @@ import csv
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
+from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponse
 from mptt.exceptions import InvalidMove
 from rest_framework import status
@@ -506,6 +507,8 @@ class AuthenticatedLinkDetailView(BaseView):
 
                 # write new warc and capture
                 link.write_uploaded_file(uploaded_file, cache_break=True)
+                link.warc_size=default_storage.size(link.warc_storage_file())
+                link.save()
 
                 # delete the link from Webrecorder and
                 # clear the user's Webrecorder session, if any,
