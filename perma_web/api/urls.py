@@ -45,6 +45,8 @@ urlpatterns = [
         url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/folders/(?P<pk>[0-9]+)/?$', views.FolderDetailView.as_view()),
         # /folders/:id/archives
         url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/archives/?$', views.AuthenticatedLinkListView.as_view()),
+        # /folders/:id/archives/export
+        url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/archives/export/?$', views.AuthenticatedLinkListExportView.as_view()),
         # /folders/:id/archives/:guid
         url(r'^(?P<parent_type>folders)/(?P<parent_id>[0-9]+)/archives/%s/?$' % guid_pattern, views.MoveLinkView.as_view()),
 
@@ -56,6 +58,8 @@ urlpatterns = [
         url(r'^public/archives/%s/download/?$' % guid_pattern, views.PublicLinkDownloadView.as_view(), name='public_archives_download'),
         # /archives
         url(legacy_user_prefix + r'archives/?$', views.AuthenticatedLinkListView.as_view(), name='archives'),
+        # /archives/export
+        url(legacy_user_prefix + r'archives/export/?$', views.AuthenticatedLinkListExportView.as_view(), name='archives_export'),
         # /archives/batches
         url(legacy_user_prefix + r'archives/batches/?$', views.LinkBatchesListView.as_view(), name='link_batches'),
         # /archives/batches/:id

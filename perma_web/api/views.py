@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import csv
 import django_filters
 from django.conf import settings
@@ -325,9 +326,12 @@ class AuthenticatedLinkListView(BaseView):
                 raise ValidationError({'folder': ["Folder not found."]})
         return None
 
-    @load_parent
-    def get(self, request, format=None):
-        """ List links for user. """
+    @staticmethod
+    def load_links(request):
+        """
+            Helper method to load links.
+            Used by AuthenticatedLinkListView.get and AuthenticatedLinkListExportView.get
+        """
         queryset = Link.objects\
             .order_by('-creation_timestamp')\
             .select_related('organization', 'organization__registrar', 'organization__shared_folder', 'capture_job', 'created_by')\
@@ -338,7 +342,12 @@ class AuthenticatedLinkListView(BaseView):
         if request.parent:
             queryset = queryset.filter(folders=request.parent)
 
-        return self.simple_list(request, queryset)
+        return queryset
+
+    @load_parent
+    def get(self, request, format=None):
+        """ List links for user. """
+        return self.simple_list(request, self.load_links(request))
 
     @load_parent
     def post(self, request, format=None):
@@ -432,6 +441,35 @@ class AuthenticatedLinkListView(BaseView):
 
         raise_invalid_capture_job(capture_job, serializer.errors)
 
+
+# /archives/export
+# /folders/:parent_id/archives/export
+class AuthenticatedLinkListExportView(BaseView):
+
+    @load_parent
+    def get(self, request, format=None):
+        queryset = AuthenticatedLinkListView.load_links(request)
+        formatted_data = [
+            OrderedDict([
+                ('url', link.capture_job.submitted_url),
+                ('status', "success" if link.capture_job.status == "completed" else "error"),
+                ('error_message', link.capture_job.message),
+                ('title', link.submitted_title),
+                ('perma_link', "{}://{}/{}".format(request.scheme, request.get_host(), link.guid))
+            ])
+            for link in queryset
+        ]
+        response = HttpResponse(content_type='text/csv')
+        if request.parent:
+            filename = "perma-folder-{}-archives.csv".format(request.parent.id)
+        else:
+            filename = "perma-archives.csv"
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+        if formatted_data:
+            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer.writeheader()
+            writer.writerows(formatted_data)
+        return response
 
 
 # /archives/:guid

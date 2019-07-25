@@ -32,7 +32,8 @@ function setupEventHandlers () {
       showFolderContents(data.folderId);
       let template = headerTemplate({
         "organization": data.orgId,
-        "path": data.path.join(" > ")
+        "path": data.path.join(" > "),
+        "folder": data.folderId
       });
       $linkListHeader.html(template);
     })
