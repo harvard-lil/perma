@@ -152,6 +152,11 @@ def single_permalink(request, guid):
     # handle requested capture type
     if serve_type == 'image':
         capture = link.screenshot_capture
+
+        # not all Perma Links have screenshots; if no screenshot is present,
+        # forward to primary capture for playback or for appropriate error message
+        if (not capture or capture.status != 'success') and link.primary_capture:
+            return HttpResponseRedirect(reverse('single_permalink', args=[guid]))
     else:
         capture = link.primary_capture
 
