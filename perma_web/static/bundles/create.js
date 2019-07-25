@@ -310,10 +310,9 @@ webpackJsonp([1],[
 	
 	  if (query) {
 	    requestData.q = query;
-	    endpoint = '/archives/';
-	  } else {
-	    endpoint = '/folders/' + folderID + '/archives/';
 	  }
+	  endpoint = '/folders/' + folderID + '/archives/';
+	
 	  // Content fetcher.
 	  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
 	  function getNextContents() {
