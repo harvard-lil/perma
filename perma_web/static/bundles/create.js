@@ -11377,7 +11377,7 @@ webpackJsonp([1],[
 	  var template = selectedFolderTemplate({
 	    "path": path.join(" > "),
 	    "private": currentFolderPrivate,
-	    "links_remaining": !currentOrg || currentOrg === "None" ? links_remaining : null
+	    "links_remaining": !currentOrg || currentOrg === "None" ? links_remaining.toString() : null
 	  });
 	  $organizationDropdownButton.html(template);
 	
