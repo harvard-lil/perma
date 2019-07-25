@@ -1819,6 +1819,9 @@ class CaptureJob(models.Model):
         """
             Record completion time and status for this job.
         """
+        if status == 'completed' and self.link and self.link.captures.count() == 0:
+            logger.error("To investigate: {} has no captures, but was being marked complete".format(self.link.guid))
+            status = 'failed'
         self.status = status
         self.capture_end_time = timezone.now()
         self.save(update_fields=['status', 'capture_end_time', 'message'])
