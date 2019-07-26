@@ -409,6 +409,8 @@ class AuthenticatedLinkListView(BaseView):
             uploaded_file = request.data.get('file')
             if uploaded_file:
                 link.write_uploaded_file(uploaded_file)
+                link.warc_size = default_storage.size(link.warc_storage_file())
+                link.save()
 
             # handle submitted url
             else:
@@ -507,7 +509,7 @@ class AuthenticatedLinkDetailView(BaseView):
 
                 # write new warc and capture
                 link.write_uploaded_file(uploaded_file, cache_break=True)
-                link.warc_size=default_storage.size(link.warc_storage_file())
+                link.warc_size = default_storage.size(link.warc_storage_file())
                 link.save()
 
                 # delete the link from Webrecorder and
