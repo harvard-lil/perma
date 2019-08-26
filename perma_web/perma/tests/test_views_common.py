@@ -104,7 +104,11 @@ class CommonViewsTestCase(PermaTestCase):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             # Give user option to download to view pdf if on mobile
             link = Link.objects.get(pk='7CF8-SS4G')
-            file_url = link.captures.filter(role='primary').get().playback_url_with_access_token()
+
+            if settings.ENABLE_WR_PLAYBACK:
+                file_url = "im_/" + link.captures.filter(role='primary').get().url
+            else:
+                file_url = link.captures.filter(role='primary').get().playback_url_with_access_token()
 
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}))
