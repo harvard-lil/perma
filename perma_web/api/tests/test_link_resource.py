@@ -460,13 +460,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         link = Link.objects.get(guid=obj['guid'])
         self.assertFalse(link.is_private)
 
-    def test_should_accept_spaces_in_url(self):
-        obj = self.successful_post(self.list_url,
-                                   data={'url': self.server_url + "/test page.html?a b=c d#e f"},
-                                   user=self.org_user)
-
-        link = Link.objects.get(guid=obj['guid'])
-        self.assertValidCapture(link.primary_capture)
 
     def test_media_capture_in_iframes(self):
         settings.ENABLE_AV_CAPTURE = True
@@ -547,3 +540,36 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             new_link = Link.objects.get(guid=obj['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
             self.successful_delete(new_link_url, user=self.org_user)
+
+
+class MisbehavingTestCase(LinkResourceTestMixin, ApiResourceTransactionTestCase):
+
+    serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [
+        ['target_capture_files/test.html', 'test page.html'],
+        ['target_capture_files/test.html', 'subdir/test.html'],
+
+        ['target_capture_files/test.wav', 'test2.wav'],
+        ['target_capture_files/test.mp4', 'test2.mp4'],
+        ['target_capture_files/test.swf', 'test2.swf'],
+        ['target_capture_files/test.swf', 'test3.swf'],
+    ]
+
+    def setUp(self):
+        super(MisbehavingTestCase, self).setUp()
+        self.post_data = {
+            'url': self.server_url + "/test.html",
+            'title': 'This is a test page',
+            'description': 'This is a test description'
+        }
+
+    # After this test runs, no other tests in the test case pass,
+    # since upgrading to Werkzeug 0.15. I can't figure out why.
+    # This test and others like it use pywb playback, not WR.
+    # When redesigning to use WR, this should resolve.
+    def test_should_accept_spaces_in_url(self):
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test page.html?a b=c d#e f"},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertValidCapture(link.primary_capture)
