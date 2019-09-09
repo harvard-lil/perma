@@ -6,13 +6,17 @@ I'm Brett Johnson from the Perma.cc team at Harvard Law Library.
 
 I hope you've had a wonderful start to your September. I know this is a very busy time for you all as you introduce students to the services your library offers. To that end I wanted to reach out with some resources that may help you assist journal members and others at your school using Perma.cc.
 
-* Creating Perma.cc orgs and adding org users: https://docs.google.com/document/d/1ZNheAxvY24HBvRbxsDBJAgK7Q_syHYOplTNKQ47PQZA/edit
+* Creating Perma.cc orgs and adding org users:
+  https://docs.google.com/document/d/1ZNheAxvY24HBvRbxsDBJAgK7Q_syHYOplTNKQ47PQZA/edit
 
-* Handling graduating and departing users: https://blogs.harvard.edu/perma/2019/03/07/academic-libraries-on-perma-how-to-handle-departing-or-graduating-users/
+* Handling graduating and departing users:
+  https://blogs.harvard.edu/perma/2019/03/07/academic-libraries-on-perma-how-to-handle-departing-or-graduating-users/
 
-* How to use a Perma.cc link in a citation: https://guides.library.harvard.edu/c.php?g=537635&p=3756915
+* How to use a Perma.cc link in a citation:
+  https://guides.library.harvard.edu/c.php?g=537635&p=3756915
 
-* How bad is link rot? A collection of studies: https://blogs.harvard.edu/perma/2019/02/14/so-how-bad-a-problem-is-link-rot/
+* How bad is link rot? A collection of studies:
+  https://blogs.harvard.edu/perma/2019/02/14/so-how-bad-a-problem-is-link-rot/
 
 As you communicate with your journals about using Perma, please feel free to reach out to us at info@perma.cc with any questions that come up - and follow us on Twitter @permacc !
 
