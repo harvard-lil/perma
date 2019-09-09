@@ -1,15 +1,21 @@
-TITLE: Perma.cc update: new batch link creation feature!
+TITLE: Perma.cc: notes for law school registrars
 
-* We'd like to share news of an exciting new feature that is now available. Over the past year, the Perma.cc development team has been working on a function that allows users to create more than one Perma Link at a time. This feature – Batch Link Creation - is now available for all your users, and could be especially helpful for those of you who support law journals.
+Hi Perma Colleagues!
 
-Read more about this new feature on our blog: https://blogs.harvard.edu/perma/2018/06/22/feature-update-batch-link-creation/ - and feel free to distribute this Google document to your users, which you can make a copy of and customize: https://docs.google.com/document/d/1QhBhaJpI78l2T8Q16w5EiC_PnOwnoeCxaggmFmLdWRg/edit
+I'm Brett Johnson from the Perma.cc team at Harvard Law Library.
 
-* Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your organization, please contact us.
+I hope you've had a wonderful start to your September. I know this is a very busy time for you all as you introduce students to the services your library offers. To that end I wanted to reach out with some resources that may help you assist journal members and others at your school using Perma.cc.
 
-    Perma Links created (total): {{ total_links }}
-    Perma Links created ({{ year }}): {{ year_links }}
-    Your most active organization ({{ year }}): {{ most_active_org.name | default:"(no activity in your organizations)" }}
+* Creating Perma.cc orgs and adding org users: https://docs.google.com/document/d/1ZNheAxvY24HBvRbxsDBJAgK7Q_syHYOplTNKQ47PQZA/edit
 
-As always, we welcome your ideas and feedback, and thank you for supporting Perma.cc!
+* Handling graduating and departing users: https://blogs.harvard.edu/perma/2019/03/07/academic-libraries-on-perma-how-to-handle-departing-or-graduating-users/
 
-The Perma Team
+* How to use a Perma.cc link in a citation: https://guides.library.harvard.edu/c.php?g=537635&p=3756915
+
+* How bad is link rot? A collection of studies: https://blogs.harvard.edu/perma/2019/02/14/so-how-bad-a-problem-is-link-rot/
+
+As you communicate with your journals about using Perma, please feel free to reach out to us at info@perma.cc with any questions that come up - and follow us on Twitter @permacc !
+
+Thanks for reading - and happy Fall semester from me and the rest of the Perma.cc Team!
+
+P.S. - Interested in some swag (stickers, bookmarks, etc.) to help promote Perma.cc at your school? Reply to this email with your name and shipping address and we'll get a pack out to you!
