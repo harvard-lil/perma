@@ -1,17 +1,25 @@
-TITLE: Introducing Individual Account Subscription Tiers for Perma
+TITLE: Perma.cc: notes for law school registrars
 
-Dear Perma.cc users:
+Hi Perma Colleagues!
 
-This year we'll be launching a series of enhancements to improve Perma account administration and sustain our ability to offer the Perma service to those outside the academic community.
+I'm Brett Johnson from the Perma.cc team at Harvard Law Library.
 
-Our first enhancement - which will go live on January 22, 2019 - will introduce paid subscription tiers for individuals using Perma outside the support of an academic library or other registrar. Everyone will receive an initial, upfront credit of 10 Perma Links and, for usage beyond that, will be able to choose a monthly subscription tier that best fits their needs. Each tier reflects a different monthly fee and allotment for new links starting at 10 links for $10. As a result of this change, Perma no longer will offer all users 10 free links on a recurring monthly basis.
+I hope you've had a wonderful start to your September. I know this is a very busy time for you all as you introduce students to the services your library offers. To that end I wanted to reach out with some resources that may help you assist journal members and others at your school using Perma.cc.
 
-This change will not affect Perma usage that is sponsored and supported by academic libraries or other registrars. Non-academic organizations can also offer unlimited Perma Links to their staff by signing up to be a registrar for a monthly group rate. Such memberships also include collaboration and administrative tools.
+* Creating Perma.cc orgs and adding org users:
+  https://docs.google.com/document/d/1ZNheAxvY24HBvRbxsDBJAgK7Q_syHYOplTNKQ47PQZA/edit
 
-If you'd like more detail on this change, please read our blog post, here: http://blogs.harvard.edu/perma/2019/01/07/introducing-individual-account-subscription-tiers-for-perma/
+* Handling graduating and departing users:
+  https://blogs.harvard.edu/perma/2019/03/07/academic-libraries-on-perma-how-to-handle-departing-or-graduating-users/
 
-As always, we thank you for your support of Perma and your work to protect web sources from link rot.
+* How to use a Perma.cc link in a citation:
+  https://guides.library.harvard.edu/c.php?g=537635&p=3756915
 
-Sincerely,
+* How bad is link rot? A collection of studies:
+  https://blogs.harvard.edu/perma/2019/02/14/so-how-bad-a-problem-is-link-rot/
 
-The Perma Team
+As you communicate with your journals about using Perma, please feel free to reach out to us at info@perma.cc with any questions that come up - and follow us on Twitter @permacc !
+
+Thanks for reading - and happy Fall semester from me and the rest of the Perma.cc Team!
+
+P.S. - Interested in some swag (stickers, bookmarks, etc.) to help promote Perma.cc at your school? Reply to this email with your name and shipping address and we'll get a pack out to you!
