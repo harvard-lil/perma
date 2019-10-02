@@ -7,7 +7,7 @@ name = "pypi"
 
 # general
 celery = "==3.1.25"                         # task queue
-Django = "==1.11.24"
+Django = "==1.11.25"
 django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "==1.13.1.post1"                # task automation
 netaddr = "*"                               # to check archive IPs against banned ranges
