@@ -341,7 +341,7 @@ class FunctionalTest(BaseTestCase):
         def test_playback(capture_url):
             self.driver.get(capture_url)
             repeat_while_exception(lambda: self.driver.switch_to.frame(self.driver.find_elements_by_tag_name('iframe')[0]), StaleElementReferenceException, 10)
-            repeat_while_exception(lambda: get_element_with_text('This domain is established to be used for illustrative examples', 'p'), NoSuchElementException, 30)
+            repeat_while_exception(lambda: get_element_with_text('This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.', 'p'), NoSuchElementException, 30)
             # Evidently the above doesn't work on Sauce with Safari and this version of Webdriver.
             # If you run into problems in the future and want to test pywb playback, you can use
             # something like the below. But note, the below strategy will not work with WR playback,
