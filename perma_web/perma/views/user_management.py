@@ -1252,53 +1252,6 @@ def reset_password(request):
     return auth_views.PasswordResetView.as_view(form_class=OurPasswordResetForm)(request)
 
 
-def set_access_token_cookie(request):
-    """
-        This function is designed to run on the warc playback domain. It will set an access token cookie and then
-        redirect to the target warc playback.
-    """
-    token = request.GET.get('token', '')
-    link_guid = request.GET.get('guid')
-    next = request.GET.get('next')
-
-    redirect_url = '%s/%s/%s' % (settings.WARC_ROUTE, link_guid, next)
-    response = HttpResponseRedirect(redirect_url)
-
-    if token and Link(pk=link_guid).validate_access_token(token):
-        # set token cookie
-        response.set_cookie(link_guid,
-                            token,
-                            httponly=True,
-                            secure=settings.SESSION_COOKIE_SECURE,
-                            path='/warc/%s/' % link_guid)
-
-        # set nocache cookie so CloudFlare doesn't cache authenticated results
-        response.set_cookie('nocache',
-                            '1',
-                            httponly=True,
-                            secure=settings.SESSION_COOKIE_SECURE)
-
-        # Workaround so IE accepts cookies in iframe. See http://stackoverflow.com/a/16475093
-        response['P3P'] = 'CP="No P3P policy."'
-
-    return response
-
-
-def set_safari_cookie(request):
-    """
-        Special handling for Safari's third party cookie blocking: when showing a private link, user will be forwarded
-        to this view on PLAYBACK_HOST to have an arbitrary cookie set, so Safari will let us set an authorization cookie
-        in the iframe. Once we set the cookie we forward back to the referrer.
-    """
-    redirect_url = request.GET.get('next')
-    if not is_safe_url(url=redirect_url, host=settings.HOST):
-        return HttpResponseBadRequest()
-    redirect_url += ('&' if '?' in redirect_url else '?') + 'safari=1'
-    response = HttpResponseRedirect(redirect_url)
-    response.set_cookie('safari', '1')
-    return response
-
-
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def libraries(request):
     """

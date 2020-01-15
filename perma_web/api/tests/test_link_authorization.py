@@ -3,7 +3,7 @@ import os
 from django.core.urlresolvers import reverse
 
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
-from perma.models import Link, LinkUser, Folder, Capture, CDXLine
+from perma.models import Link, LinkUser, Folder, Capture
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -290,13 +290,9 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
             count = Link.objects.count()
             captures = Capture.objects.filter(link_id=new_link.guid)
-            cdxlines = CDXLine.objects.filter(link_id=new_link.guid)
             self.assertGreaterEqual(len(captures), 1)
-            self.assertGreaterEqual(len(cdxlines), 1)
             self.successful_delete(new_link_url, user=self.regular_user)
             self.assertEqual(Link.objects.count(), count-1)
             new_captures = Capture.objects.filter(link_id=new_link.guid)
-            new_cdxlines = CDXLine.objects.filter(link_id=new_link.guid)
             self.assertEqual(len(new_captures), 0)
-            self.assertEqual(len(new_cdxlines), 0)
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)

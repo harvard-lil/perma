@@ -78,15 +78,9 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
 
-def _pywb_static_dir_location():
-    # helper to return absolute path of pywb's static directory
-    import pywb
-    return os.path.join(os.path.dirname(pywb.__file__), 'static')
-
 # where to look for static files (in addition to app/static/)
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
-    ('pywb', _pywb_static_dir_location())  # include pywb's static files at /static/pywb
 )
 
 STATICFILES_FINDERS = (         # how to look for static files
@@ -154,7 +148,6 @@ ROOT_URLCONF = 'urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
-
 
 
 INSTALLED_APPS = (
@@ -351,10 +344,6 @@ LOGGING = {
         }
     }
 }
-LOG_PLAYBACK_404 = False
-
-# URLS we should not allow to play back
-REFUSE_PLAYBACK = []
 
 # IP ranges we won't archive.
 # Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
@@ -448,9 +437,6 @@ INTERNET_ARCHIVE_SECRET_KEY = ''
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
 
-# Feature Flag: whether to use Webrecorder or Pywb for playback
-ENABLE_WR_PLAYBACK = False
-
 #
 # Playback
 #
@@ -492,11 +478,6 @@ WR_REPLAY_UPLOAD_TIMEOUT = 20
 # WR_REPLAY_UPLOAD_TIMEOUT (Perma settings)
 WR_COOKIE_PERMITTED_AGE = 60
 
-# circumventing cloudflare's caching policy
-# using different route for timegate
-TIMEGATE_WARC_ROUTE = '/warc/timegate'
-WARC_ROUTE = '/warc'
-
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
@@ -526,7 +507,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'ENABLE_BATCH_LINKS',
     'PLAYBACK_HOST',
     'HOST',
-    'ENABLE_WR_PLAYBACK'
 )
 
 

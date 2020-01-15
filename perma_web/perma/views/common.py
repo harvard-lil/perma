@@ -2,7 +2,6 @@ from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from django.contrib.auth.views import redirect_to_login
 from django.forms import widgets
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
@@ -19,7 +18,7 @@ from django.utils.six.moves.http_client import responses
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
-    parse_user_agent, protocol, stream_warc_if_permissible, set_options_headers)
+    protocol, stream_warc_if_permissible, set_options_headers)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -137,18 +136,6 @@ def single_permalink(request, guid):
     if serve_type == 'warc_download':
         return stream_warc_if_permissible(link, request.user)
 
-    if not settings.ENABLE_WR_PLAYBACK:
-        # Special handling for private links on Safari:
-        # Safari won't let us set the auth cookie for the PLAYBACK_HOST domain inside the iframe, unless we've already set a
-        # cookie on that domain outside the iframe. So do a redirect to PLAYBACK_HOST to set a cookie and then come back.
-        # safari=1 in the query string indicates that the redirect has already happened.
-        # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
-        if link.is_private and not request.GET.get('safari'):
-            user_agent = parse_user_agent(raw_user_agent)
-            if user_agent.get('family') == 'Safari':
-                return redirect_to_login(request.build_absolute_uri(),
-                                         "//%s%s" % (settings.PLAYBACK_HOST, reverse('user_management_set_safari_cookie')))
-
     # handle requested capture type
     if serve_type == 'image':
         capture = link.screenshot_capture
@@ -201,8 +188,7 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if settings.ENABLE_WR_PLAYBACK \
-           and context['can_view'] \
+    if context['can_view'] \
            and not link.user_deleted \
            and link.ready_for_playback():
         wr_username = link.init_replay_for_user(request)
@@ -220,11 +206,6 @@ def single_permalink(request, guid):
         response.status_code = 410
     elif not context['can_view'] and link.is_private:
         response.status_code = 403
-
-    # Add memento headers
-    response['Memento-Datetime'] = link.memento_formatted_date
-    link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
-    response['Link'] = link_memento_headers.format(link.ascii_safe_url, link.memento_formatted_date, link.memento, link.timegate, link.timemap)
 
     return response
 

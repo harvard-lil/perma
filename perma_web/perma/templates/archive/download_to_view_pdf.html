@@ -1,9 +1,5 @@
 <div class="record-message">
   <p class="record-message-primary">Perma.cc can't display this file type on mobile, but you can view or download the archived file by clicking below.</p>
   <p class="record-message-secondary">File type {{mime_type}}</p>
-  {% if ENABLE_WR_PLAYBACK %}
-    <a class="btn btn-primary" target="_blank" href="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}">View/Download File</a>
-  {% else %}
-    <a class="btn btn-primary" target="_blank" href="{{ capture.playback_url_with_access_token }}">View/Download File</a>
-  {% endif %}
+  <a class="btn btn-primary" target="_blank" href="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}">View/Download File</a>
 </div>

@@ -45,7 +45,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.http import HttpRequest
 
-from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob, UncaughtError
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (run_task, url_in_allowed_ip_range,
@@ -783,12 +783,6 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
         warc_size=default_storage.size(link.warc_storage_file())
     )
     capture_job.mark_completed()
-
-    try:
-        print("Writing CDX lines to the DB")
-        CDXLine.objects.create_all_from_link(link)
-    except Exception as e:
-        print("Unable to create CDX lines at this time: {}".format(e))
 
 
 def save_favicons(link, successful_favicon_urls):

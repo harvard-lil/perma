@@ -52,18 +52,16 @@ class TaskTestCase(TestCase):
         self.assertIn('File: static/bundles/create.js', message_parts)
         self.assertNotIn('showFolderContents', message_parts)
 
-    if settings.ENABLE_WR_PLAYBACK:
-        def test_verify_webrecorder_api_available(self):
-            # this test really verifies that Webrecorder is available in the test environment,
-            # as well as testing the task
-            self.assertTrue(verify_webrecorder_api_available.delay())
+    def test_verify_webrecorder_api_available(self):
+        # this test really verifies that Webrecorder is available in the test environment,
+        # as well as testing the task
+        self.assertTrue(verify_webrecorder_api_available.delay())
 
-    if settings.ENABLE_WR_PLAYBACK:
-        @patch('perma.tasks.requests.get')
-        def test_verify_webrecorder_api_available_fails(self, mocked_get):
-            response = requests.Response()
-            for code in [400, 404, 500, 502]:
-                response.status_code = code
-                mocked_get.return_value = response
-                with self.assertRaises(requests.exceptions.RequestException):
-                    self.assertFalse(verify_webrecorder_api_available.delay())
+    @patch('perma.tasks.requests.get')
+    def test_verify_webrecorder_api_available_fails(self, mocked_get):
+        response = requests.Response()
+        for code in [400, 404, 500, 502]:
+            response.status_code = code
+            mocked_get.return_value = response
+            with self.assertRaises(requests.exceptions.RequestException):
+                self.assertFalse(verify_webrecorder_api_available.delay())
