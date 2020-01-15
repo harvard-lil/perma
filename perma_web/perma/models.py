@@ -25,6 +25,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
@@ -1554,10 +1555,6 @@ class Capture(models.Model):
             True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image).
         """
         return self.mime_type() not in self.INLINE_TYPES
-
-    def playback_url(self):
-        """I don't want to change our API... so expose something meaningful here."""
-        return ''
 
 
 class CaptureJob(models.Model):
