@@ -3,7 +3,6 @@ import requests
 
 from django.core import mail
 
-from django.conf import settings
 from django.test import TestCase, override_settings
 from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, send_js_errors, verify_webrecorder_api_available
 from perma.models import Link, UncaughtError

@@ -3,16 +3,17 @@ from glob import glob
 import os
 import dateutil.parser
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
 from io import StringIO
-from surt import surt
 import json
 import urllib.parse
+import re
 from mock import patch
 
-from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR
+from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file
 from perma.models import Link, LinkUser, Folder
 
 
@@ -71,16 +72,45 @@ class LinkResourceTestMixin():
             'private_reason',
         ]
 
-    def assertValidCapture(self, capture):
-        """
-            Make sure capture matches WARC contents.
-        """
-        self.assertEqual(capture.status, 'success')
-        # TODO: we need to test this without pywb playback
-        # replay_response = capture.replay()
-        # self.assertTrue(capture.content_type, "Capture is missing a content type.")
-        # self.assertEqual(capture.content_type.split(';',1)[0], replay_response.headers.get('content-type', '').split(';',1)[0])
-        # self.assertTrue(replay_response.data, "Capture data is missing.")
+    def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False):
+
+        def find_recording_in_warc(index, capture_url, content_type):
+            return next(
+                (entry for entry in index if
+                    entry['content-type'] == 'application/http;msgtype=response' and
+                    entry['http:content-type'].split(';',1)[0] == content_type.split(';',1)[0] and
+                    re.fullmatch(r'^{}/?$'.format(capture_url), entry['warc-target-uri'])),
+                None
+            )
+
+        def find_file_in_warc(index, capture_url, content_type):
+            return next(
+                (entry for entry in index if
+                    entry['content-type'] ==  content_type and
+                    re.fullmatch(r'^{}/?$'.format(capture_url), entry['warc-target-uri'])),
+                None
+            )
+
+        # verify the primary capture's basics are sound
+        self.assertEqual(link.primary_capture.status, 'success')
+        self.assertTrue(link.primary_capture.content_type, "Capture is missing a content type.")
+
+        # create an index of the warc
+        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+            index = index_warc_file(warc_file)
+
+        # see if the index reports the content is in the warc
+        find_record = find_file_in_warc if upload else find_recording_in_warc
+        self.assertTrue(find_record(index, link.primary_capture.url, link.primary_capture.content_type))
+        for record in expected_records or []:
+            self.assertTrue(find_record(index, "{}/{}".format(self.server_url, record[0]), record[1]), "No matching record found for {}.".format(record[0]))
+
+        # repeat for the screenshot
+        if check_screenshot:
+            self.assertEqual(link.screenshot_capture.status, 'success')
+            self.assertTrue(link.screenshot_capture.content_type, "Capture is missing a content type.")
+            self.assertTrue(find_file_in_warc(index, link.screenshot_capture.url, link.screenshot_capture.content_type))
+
 
 class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
 
@@ -287,8 +317,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertValidCapture(link.screenshot_capture)
-        self.assertValidCapture(link.primary_capture)
+        self.assertRecordsInWarc(link, check_screenshot=True)
 
         # test favicon captured via meta tag
         self.assertIn("favicon_meta.ico", link.favicon_capture.url)
@@ -314,7 +343,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertValidCapture(link.primary_capture)
+        self.assertRecordsInWarc(link)
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_org.shared_folder.pk).exists())
@@ -471,26 +500,19 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         # verify that all images in src and srcset were found and captured
-        # TODO: we need to test this without CDX.
-        # expected_captures = (
-        #     # test_media_a.html
-        #     "test.wav", "test2.wav",
-        #     # test_media_b.html
-        #     "test.mp4", "test2.mp4",
-        #     # test_media_c.html
-        #     "test.swf", "test2.swf", "test3.swf",
-        #     "test1.jpg", "test2.png", "test_fallback.jpg",
-        #     "wide1.png", "wide2.png", "narrow.png"
-        # )
-        failures = []
-        # for expected_capture in expected_captures:
-        #     try:
-        #         cdxline = CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid'])
-        #         if cdxline.parsed['status'] != '200':
-        #             failures.append("%s returned HTTP status %s." % (expected_capture, cdxline.parsed['status']))
-        #     except CDXLine.DoesNotExist:
-        #         failures.append("%s not captured." % expected_capture)
-        self.assertFalse(bool(failures), "Failures in fetching media from iframes: %s" % failures)
+        expected_records = (
+            # test_media_a.html
+            ("test.wav", "audio/x-wav"), ("test2.wav", "audio/x-wav"),
+            # test_media_b.html
+            ("test.mp4", "video/mp4"), ("test2.mp4", "video/mp4"),
+            # test_media_c.html
+            ("test.swf", "application/x-shockwave-flash"), ("test2.swf", "application/x-shockwave-flash"), ("test3.swf", "application/x-shockwave-flash"),
+            ("test1.jpg", "image/jpeg"), ("test2.png", "image/png"), ("test_fallback.jpg", "image/jpeg"),
+            ("wide1.png", "image/png"), ("wide2.png", "image/png"), ("narrow.png", "image/png")
+        )
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertRecordsInWarc(link, expected_records=expected_records)
+
 
     #########################
     # File Archive Creation #
@@ -504,7 +526,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertValidCapture(link.primary_capture)
+            self.assertRecordsInWarc(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_create_archive_from_jpg_file(self):
@@ -515,7 +537,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertValidCapture(link.primary_capture)
+            self.assertRecordsInWarc(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_reject_invalid_file(self):
@@ -542,34 +564,15 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             self.successful_delete(new_link_url, user=self.org_user)
 
 
-class MisbehavingTestCase(LinkResourceTestMixin, ApiResourceTransactionTestCase):
+    ####################
+    # Regression Tests #
+    ####################
 
-    serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [
-        ['target_capture_files/test.html', 'test page.html'],
-        ['target_capture_files/test.html', 'subdir/test.html'],
-
-        ['target_capture_files/test.wav', 'test2.wav'],
-        ['target_capture_files/test.mp4', 'test2.mp4'],
-        ['target_capture_files/test.swf', 'test2.swf'],
-        ['target_capture_files/test.swf', 'test3.swf'],
-    ]
-
-    def setUp(self):
-        super(MisbehavingTestCase, self).setUp()
-        self.post_data = {
-            'url': self.server_url + "/test.html",
-            'title': 'This is a test page',
-            'description': 'This is a test description'
-        }
-
-    # After this test runs, no other tests in the test case pass,
-    # since upgrading to Werkzeug 0.15. I can't figure out why.
-    # This test and others like it use pywb playback, not WR.
-    # When redesigning to use WR, this should resolve.
     def test_should_accept_spaces_in_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test page.html?a b=c d#e f"},
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertValidCapture(link.primary_capture)
+        self.assertEqual(link.capture_job.status, 'completed')
+        self.assertEqual(link.primary_capture.status, 'success')

@@ -1,16 +1,13 @@
 import socket
 import os
-# import subprocess
 import unittest
 import re
 import datetime
 import sys
-from urllib.parse import urlparse
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException
 import time
-import signal
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase

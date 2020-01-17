@@ -5,7 +5,6 @@ from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_http_methods
@@ -22,7 +21,6 @@ from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
-from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
 

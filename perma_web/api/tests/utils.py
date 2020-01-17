@@ -11,6 +11,8 @@ from multiprocessing import Process
 from contextlib import contextmanager
 import urllib.parse
 import json
+from io import StringIO
+from warcio.indexer import Indexer
 
 from django.test.utils import override_settings
 from django.conf import settings
@@ -34,6 +36,14 @@ def copy_file_or_dir(src, dst):
             shutil.copy(src, dst)
         else:
             raise
+
+
+def index_warc_file(warc_file):
+    index_file = StringIO()
+    indexer = Indexer("warc-target-uri,content-type,http:content-type,http:status", warc_file, index_file)
+    indexer.process_one(warc_file, index_file, '')
+    index_file.seek(0)
+    return [json.loads(line) for line in index_file]
 
 
 class TestHTTPServer(HTTPServer):
