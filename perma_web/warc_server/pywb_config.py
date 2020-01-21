@@ -85,6 +85,8 @@ def get_archive_path():
     except NotImplementedError:
         archive_path = default_storage.url('')
         archive_path = archive_path.split('?', 1)[0]  # remove query params
+        if archive_path[-1] != '/':
+            archive_path += '/'
 
     # must be ascii, for some reason, else you'll get
     # 'unicode' object has no attribute 'get'
