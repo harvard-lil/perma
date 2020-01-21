@@ -90,4 +90,4 @@ class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
     logging.getLogger('botocore').setLevel(logging.WARNING)
 
 class AzureMediaStorage(BaseMediaStorage, AzureStorage):
-    azure_container = settings.MEDIA_ROOT
+    location = settings.MEDIA_ROOT
