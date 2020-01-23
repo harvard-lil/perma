@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
 from perma.models import Link, LinkUser
@@ -36,8 +34,10 @@ class LinkValidationTestCase(LinkValidationMixin, ApiResourceTestCase):
     def test_should_fail_gracefully_if_passed_long_unicode(self):
         '''
             See https://github.com/harvard-lil/perma/issues/1841
+            The unicode chars -> ☃
         '''
-        u = u"This is a block of text that contains 64 or more characters, including one or more unicode characters like ☃"
+        u = b"This is a block of text that contains 64 or more characters, including one or more unicode characters like \xe2\x98\x83"
+
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            data={'url': u})
