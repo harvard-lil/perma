@@ -95,7 +95,7 @@ sauceclient = "*"                           # run functional tests in many brows
 django-extensions = "*"                     # runserver_plus for SSL
 
 [requires]
-python_version = "3.5"
+python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true
