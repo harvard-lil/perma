@@ -61,8 +61,8 @@ warcprox = "==2.4b2"
 
 
 # alternate storages
-django-storages = "*"                       # custom storage backends for Django
-"boto3" = "*"                               # required for django-storages to use s3 backend
+django-storages = {version = "*", extras = ["azure"]}   # custom storage backends for Django (including Azure)
+"boto3" = "*"                                           # required for django-storages to use s3 backend
 
 
 # api

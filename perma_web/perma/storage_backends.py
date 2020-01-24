@@ -8,6 +8,7 @@ from django.conf import settings
 import django.dispatch
 
 from storages.backends.s3boto3 import S3Boto3Storage
+from storages.backends.azure_storage import AzureStorage
 from whitenoise.storage import CompressedManifestStaticFilesStorage
 
 # used only for suppressing INFO logging in S3Boto3Storage
@@ -87,3 +88,6 @@ class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
     # suppress boto3's INFO logging per https://github.com/boto/boto3/issues/521
     logging.getLogger('boto3').setLevel(logging.WARNING)
     logging.getLogger('botocore').setLevel(logging.WARNING)
+
+class AzureMediaStorage(BaseMediaStorage, AzureStorage):
+    location = settings.MEDIA_ROOT
