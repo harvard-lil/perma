@@ -49,15 +49,12 @@ sorl-thumbnail = "==12.3"
 Wand = "==0.4.4"
 
 
-# capture/playback related stuff
-LinkHeader = "==0.4.3"                      # memento headers for single-link pages
+# capture related stuff
 pyquery = "*"                               # extract data from HTML in capture task
 PyVirtualDisplay = "==0.1.5"                # for capturing with non-headless browsers
-#pywb = "==0.33.2"                           # playback engine
-pywb = {ref = "2fb6fb8c218b74d094abd5bcfb4dca847c60d1fc",git = "https://github.com/rebeccacremona/pywb.git",editable = true}
 selenium = "==2.47.3"                       # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
 tempdir = "*"                               # create temp dirs to be deleted at end of function -- handy for archive creation
-ua-parser = "*"                             # user agent parsing to detect mobile and Safari browsers during playbacks
+ua-parser = "*"                             # user agent parsing to detect mobile browsers during playbacks
 warcio = "==1.7.1"                          # helps us write metadata and inspect our WARCs
 warcprox = "==2.4b2"
 
