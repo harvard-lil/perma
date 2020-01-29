@@ -1,9 +1,10 @@
 language: python
 python:
-  - "3.5"
+  - "3.7"
 env: CFLAGS="-O0"
 
-dist: trusty
+dist: xenial
+sudo: required
 
 services:
   - docker
@@ -49,8 +50,11 @@ before_script:
   # linting
   - flake8 .
 
-  - mysql -e 'CREATE DATABASE perma;'
-  - mysql -e 'CREATE DATABASE perma_cdxline;'
+  - sudo cp $TRAVIS_BUILD_DIR/services/mysql/conf.d/custom.cnf /etc/mysql/conf.d/
+  - sudo service mysql restart
+
+  - mysql -e 'CREATE DATABASE perma CHARACTER SET utf8;'
+  - mysql -e 'CREATE DATABASE perma_cdxline CHARACTER SET utf8;'
 
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
@@ -80,6 +84,3 @@ after_success:
   - date
   - coverage report
   - coveralls
-
-# See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr
-sudo: false

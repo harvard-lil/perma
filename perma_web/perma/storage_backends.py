@@ -9,7 +9,7 @@ import django.dispatch
 
 from storages.backends.s3boto3 import S3Boto3Storage
 from storages.backends.azure_storage import AzureStorage
-from whitenoise.storage import CompressedManifestStaticFilesStorage
+from whitenoise.storage import CompressedStaticFilesStorage
 
 # used only for suppressing INFO logging in S3Boto3Storage
 import logging
@@ -20,7 +20,7 @@ file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwri
 
 ### Static files config
 
-class StaticStorage(CompressedManifestStaticFilesStorage):
+class StaticStorage(CompressedStaticFilesStorage):
     pass
 
 
