@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c17c484c9b69aaa752cad89437430d6622da23521cbe00990acf0123a46a78c3"
+            "sha256": "d3ed1700b520a6c108d29b868db175d06e4b0f48c3d1a7e74e8097a8a3965de1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -382,6 +382,12 @@
             "git": "https://github.com/celery/kombu.git",
             "ref": "a03530ccf8253f3e53ac03309d235a5288ef793a"
         },
+        "linkheader": {
+            "hashes": [
+                "sha256:7fbbc35c0ba3fbbc530571db7e1c886e7db3d718b29b345848ac9686f21b50c3"
+            ],
+            "version": "==0.4.3"
+        },
         "lxml": {
             "hashes": [
                 "sha256:06d4e0bbb1d62e38ae6118406d7cdb4693a3fa34ee3762238bcb96c9e36a93cd",
@@ -571,6 +577,13 @@
             "index": "pypi",
             "version": "==2.20.0"
         },
+        "requests-file": {
+            "hashes": [
+                "sha256:75c175eed739270aec3c5279ffd74e6527dada275c5c0d76b5817e9c86bb7dea",
+                "sha256:8f04aa6201bacda0567e7ac7f677f1499b0fc76b22140c54bc06edf1ba92e2fa"
+            ],
+            "version": "==1.4.3"
+        },
         "rethinkdb": {
             "hashes": [
                 "sha256:b5354ecd896b59065693e4139c067f401c9f57970268e9b93f83d869709d1c17"
@@ -622,12 +635,31 @@
             "index": "pypi",
             "version": "==0.3.0"
         },
+        "surt": {
+            "hashes": [
+                "sha256:24167eb6c01f24f757eef9bca6bf0ec089ec05ad5b6213c3b727a5e58c0c4720"
+            ],
+            "index": "pypi",
+            "version": "==0.3.1"
+        },
         "tempdir": {
             "hashes": [
                 "sha256:689680ed3ba4cc8347a70e67efc25086ce85b53b9d24a1420899c585bbf7ba8e"
             ],
             "index": "pypi",
             "version": "==0.7.1"
+        },
+        "timegate": {
+            "editable": true,
+            "git": "https://github.com/mementoweb/timegate.git",
+            "ref": "6810fbc873b84f6af8e78e89fc8515f21b695cae"
+        },
+        "tldextract": {
+            "hashes": [
+                "sha256:16b2f7e81d89c2a5a914d25bdbddd3932c31a6b510db886c3ce0764a195c0ee7",
+                "sha256:9aa21a1f7827df4209e242ec4fc2293af5940ec730cde46ea80f66ed97bfc808"
+            ],
+            "version": "==2.2.2"
         },
         "tqdm": {
             "hashes": [

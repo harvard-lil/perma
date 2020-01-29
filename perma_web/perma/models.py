@@ -35,6 +35,7 @@ from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
+import surt
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
@@ -1069,6 +1070,7 @@ class Link(DeletableModel):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
+    submitted_url_surt = models.CharField(max_length=4200)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     submitted_description = models.CharField(max_length=300, null=True, blank=True)
@@ -1161,6 +1163,9 @@ class Link(DeletableModel):
                 else:
                     raise Exception("No valid GUID found in 100 attempts.")
                 self.guid = guid
+
+        if not self.submitted_url_surt:
+            self.submitted_url_surt = surt.surt(self.submitted_url)
 
         if self.is_private and not self.private_reason:
             self.private_reason = 'user'

@@ -72,6 +72,10 @@ django-filter = "*"                         # searching
 # link preservation
 internetarchive = "==1.0.10"                # upload warcs to internet archive
 
+# memento support
+surt = "*"                                  # canonicalizes URLs for sorting and comparing
+#timegate = "0.5.0.dev20160000"             # find the closest PermaLink to a datetime
+timegate = {ref = "6810fbc873b84f6af8e78e89fc8515f21b695cae",git = "https://github.com/mementoweb/timegate.git",editable = true}
 
 # perma payments
 PyNaCl = "*"                                # encryption

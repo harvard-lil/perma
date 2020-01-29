@@ -1,10 +1,17 @@
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
+from dateutil.tz import tzutc
+from io import StringIO
+from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
+from timegate.utils import closest
+from warcio.timeutils import datetime_to_http_date
+from werkzeug.http import parse_date
 
 from django.forms import widgets
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import (HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect,
+    JsonResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.conf import settings
 from django.utils import timezone
@@ -18,7 +25,8 @@ from django.utils.six.moves.http_client import responses
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
-    protocol, stream_warc_if_permissible, set_options_headers)
+    protocol, stream_warc_if_permissible, set_options_headers,
+    timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_querystring)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -207,6 +215,19 @@ def single_permalink(request, guid):
     elif not context['can_view'] and link.is_private:
         response.status_code = 403
 
+    # Add memento headers
+    response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
+    response['Link'] = str(
+        LinkHeader([
+            Rel(link.submitted_url, rel='original'),
+            Rel(timegate_url(request, link.submitted_url), rel='timegate'),
+            Rel(timemap_url(request, link.submitted_url, 'link'), rel='timemap', type='application/link-format'),
+            Rel(timemap_url(request, link.submitted_url, 'json'), rel='timemap', type='application/json'),
+            Rel(timemap_url(request, link.submitted_url, 'html'), rel='timemap', type='text/html'),
+            Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
+        ])
+    )
+
     return response
 
 
@@ -232,6 +253,73 @@ def set_iframe_session_cookie(request):
 
     # set CORS headers (for both OPTIONS and actual redirect)
     set_options_headers(request, response)
+    return response
+
+
+def timemap(request, response_format, url):
+    url = url_with_querystring(request, url)
+    data = memento_data_for_url(request, url)
+    if data:
+        if response_format == 'json':
+            # Should 'self' be included?
+            # It's included in https://memgator.cs.odu.edu/timemap/json/http://www.cs.odu.edu/~mln/
+            # but is not mentioned by http://mementoweb.org/guide/timemap-json/
+            # del data['self']
+            response = JsonResponse(data)
+        elif response_format == 'html':
+            response = render(request, 'memento/timemap.html', data)
+        else:
+            content_type = 'application/link-format'
+            file = StringIO()
+            file.writelines(f"{line},\n" for line in [
+                Rel(data['original_uri'], rel='original'),
+                Rel(data['timegate_uri'], rel='timegate'),
+                Rel(data['timemap_uri']['link_format'], rel='timemap', type='application/link-format'),
+                Rel(data['timemap_uri']['json_format'], rel='timemap', type='application/json'),
+                Rel(data['timemap_uri']['html_format'], rel='timemap', type='text/html')
+            ] + [
+                Rel(memento['uri'], rel='memento', datetime=datetime_to_http_date(memento['datetime'])) for memento in data['mementos']['list']
+            ])
+            file.seek(0)
+            response = HttpResponse(file, content_type=f'{content_type}')
+    else:
+        if response_format == 'html':
+            response = render(request, 'memento/timemap.html', {"original_uri": url}, status=404)
+        else:
+            response = HttpResponseNotFound('404 page not found\n')
+
+    response['X-Memento-Count'] = str(len(data['mementos']['list'])) if data else 0
+    return response
+
+
+def timegate(request, url):
+    data = memento_data_for_url(request, url_with_querystring(request, url))
+    if not data:
+        return HttpResponseNotFound('404 page not found\n')
+
+    accept_datetime = request.META.get('HTTP_ACCEPT_DATETIME')
+    if accept_datetime:
+        accept_datetime = parse_date(accept_datetime)
+        if not accept_datetime:
+            return HttpResponseBadRequest('Invalid value for Accept-Datetime.')
+    else:
+        accept_datetime = timezone.now()
+    accept_datetime = accept_datetime.replace(tzinfo=tzutc())
+
+    target, target_datetime = closest(map(lambda m: m.values(), data['mementos']['list']), accept_datetime)
+
+    response = redirect(target)
+    response['Vary'] = 'accept-datetime'
+    response['Link'] = str(
+        LinkHeader([
+            Rel(data['original_uri'], rel='original'),
+            Rel(data['timegate_uri'], rel='timegate'),
+            Rel(data['timemap_uri']['link_format'], rel='timemap', type='application/link-format'),
+            Rel(data['timemap_uri']['json_format'], rel='timemap', type='application/json'),
+            Rel(data['timemap_uri']['html_format'], rel='timemap', type='text/html'),
+            Rel(target, rel='memento', datetime=datetime_to_http_date(target_datetime)),
+        ])
+    )
     return response
 
 

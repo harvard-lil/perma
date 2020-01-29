@@ -294,11 +294,13 @@ class FunctionalTest(BaseTestCase):
         def test_playback(capture_url):
             self.driver.get(capture_url)
             repeat_while_exception(lambda: self.driver.switch_to.frame(self.driver.find_elements_by_tag_name('iframe')[0]), StaleElementReferenceException, 10)
-            repeat_while_exception(lambda: get_element_with_text('This domain is for use in illustrative examples in documents.', 'p'), NoSuchElementException, 30)
+            repeat_while_exception(lambda: get_element_with_text(example_text, 'p'), NoSuchElementException, 30)
             # Evidently the above doesn't work on Sauce with Safari and this version of Webdriver.
             self.driver.get(capture_url)
             get_element_with_text('See the Screenshot View', 'a').click()
             assert_text_displayed('This is a screenshot.')
+
+        example_text = 'This domain is for use in illustrative examples in documents.'
 
         info("Starting functional tests at time:", datetime.datetime.utcnow())
 
@@ -392,48 +394,21 @@ class FunctionalTest(BaseTestCase):
             # self.assertEqual(folder_id, str(folder_from_storage))
 
 
-            # Memento (not yet supported with WR Playback)
-            if False:
-                info("Checking timemap.")
+            # Memento
+            info("Checking timemap.")
+            self.driver.get(self.server_url + '/timemap/html/' + url_to_capture)
+            self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
+            assert_text_displayed(url_to_capture, 'b')
 
-                # why does this hold on to the test server thread?
-                self.driver.get(self.server_url + '/warc/*/' + url_to_capture)
+            # Displays playback by timestamp
+            # get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
+            # assert_text_displayed(example_text, 'p')
 
-                self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
-                assert_text_displayed('http://' + url_to_capture, 'b')
-
-                # Displays playback by timestamp
-                get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-                assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-
-                # info("Checking timegate")
-                # self.driver.get(self.server_url + settings.TIMEGATE_WARC_ROUTE  + "/" + url_to_capture)
-
-                assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-
-                # timegate redirects to a memento (timestamped) url
-                str_to_match = r"%s%s/\d+/http://%s" % (self.server_url, settings.WARC_ROUTE, url_to_capture)
-                reg = re.compile(str_to_match)
-                self.assertIsNotNone(reg.search(self.driver.current_url))
-                # checking that we don't see /warc/timegate in url because of redirect
-                reg = re.compile(settings.TIMEGATE_WARC_ROUTE)
-                self.assertFalse(reg.match(self.driver.current_url))
-
-                # hack: requesting the "*" url above is messing up the test server and causing this requests.get to hang. load "/" to reset things; no idea why this works
-                self.driver.get(self.server_url)
-
-                # taking advantage of running server to check headers
-                response = requests.get(self.server_url + settings.TIMEGATE_WARC_ROUTE + '/' + url_to_capture, allow_redirects=False)
-                # response is memento response that's a redirect from the timegate url
-                link_headers = response.headers['Link'].split(', ')
-                for header in link_headers:
-                    if 'rel="timemap"' in header:
-                        reg = re.compile('%s/timemap/*/' % settings.WARC_ROUTE)
-                        self.assertIsNotNone(reg.search(header))
-
-                    if 'rel="memento"' in header:
-                        reg = re.compile(r'%s%s/\d+/http://%s' % (self.server_url, settings.WARC_ROUTE, url_to_capture))
-                        self.assertIsNotNone(reg.search(header))
+            info("Checking timegate")
+            self.driver.get(self.server_url + "/timegate/" + url_to_capture)
+            self.assertFalse('timegate' in self.driver.current_url)
+            repeat_while_exception(lambda: self.driver.switch_to.frame(self.driver.find_elements_by_tag_name('iframe')[0]), StaleElementReferenceException, 10)
+            repeat_while_exception(lambda: get_element_with_text(example_text, 'p'), NoSuchElementException, 30)
 
             info("Checking for unexpected javascript errors")
             # Visit every test every view that doesn't take parameters,

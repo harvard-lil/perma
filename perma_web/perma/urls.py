@@ -143,6 +143,11 @@ urlpatterns = [
     # display custom template when WR reports a replay error
     url(r'^archive-error/?$', common.archive_error, name='archive_error'),
 
+    # memento support
+    url(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
+    url(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
+
+
     # Our Perma ID catchall
     url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
 

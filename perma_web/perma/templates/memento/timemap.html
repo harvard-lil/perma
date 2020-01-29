@@ -1,0 +1,34 @@
+{% extends "base-responsive.html" %}
+
+{% block mainContent %}
+
+  <div class="container cont-fixed">
+    <div class="row">
+      <div class="col-sm-12">
+        <h2>Query Results</h2>
+        {% if mementos.list %}
+          <b>{{ mementos.list|length }}</b> capture{{ mementos.list|length|pluralize }} of <b>{{ original_uri }}</b>
+          <br><br>
+          <div class="table-responsive">
+            <table id="captures" class="table">
+              <tr>
+                <th>Captured At</th>
+                <th>Perma Link / Memento Url</th>
+              </tr>
+              {% for memento in mementos.list %}
+                <tr>
+                  <td>{{ memento.datetime }}</td>
+                  <td><a href="{{ memento.uri }}" style="text-decoration: underline;">{{ memento.uri }}</a></td>
+                </tr>
+              {% endfor %}
+            </table>
+          </div>
+          <p><a href="{{ timemap_uri.json_format }}">JSON TimeMap</a></p>
+          <p><a href="{{ timemap_uri.link_format }}">Link-Format Timemap</a></p>
+        {% else %}
+          <i>No captures found for <b>{{ original_uri }}</b></i>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
