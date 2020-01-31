@@ -336,7 +336,7 @@ def memento_data_for_url(request, url):
         {
             'uri': memento_url(request, link),
             'datetime': link.creation_timestamp,
-        } for link in Link.objects.filter(submitted_url_surt=surt.surt(url)).order_by('creation_timestamp')
+        } for link in Link.objects.visible_to_memento().filter(submitted_url_surt=surt.surt(url)).order_by('creation_timestamp')
     ]
     if not mementos:
         return {}

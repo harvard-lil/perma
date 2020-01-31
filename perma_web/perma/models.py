@@ -1025,7 +1025,9 @@ class Folder(MPTTModel):
                 # else, user must belong to this org
                 return user.organizations.filter(pk=self.organization_id).exists()
 
+
 class LinkQuerySet(QuerySet):
+
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
@@ -1043,22 +1045,40 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
 
-    def discoverable(self):
-        """ Limit queryset to Links that can be publicly found by searching. """
-        return self.filter(is_unlisted=False, is_private=False)
+    #
+    # See https://github.com/harvard-lil/perma/issues/2687
+    #
 
-    def visible_to_lockss(self):
+    def discoverable(self):
+        return self.filter(Link.DISCOVERABLE_FILTER)
+
+    def successful(self):
+        """ Limit queryset to those where any non-favicon capture succeeded"""
+        return self.filter(
+            captures__in=Capture.objects.filter(Capture.CAN_PLAYBACK_FILTER)
+        ).distinct()
+
+    def permanent(self):
         """
-            expose the bundled WARC if any non-favicon capture succeeded
+            The required wait period has elapsed, and the user did not delete the Link.
+            It is a permanent part of the collection.
         """
-        capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
         return self.filter(
             archive_timestamp__lte=timezone.now(),
             user_deleted=False,
-            captures__in=Capture.objects.filter(capture_filter)
-        ).exclude(
+        )
+
+    def visible_to_lockss(self):
+        """
+            Expose the bundled WARC after the required wait period,
+            if capture succeeded, unless deleted or made private by the user or by admins.
+        """
+        return self.permanent().successful().exclude(
             private_reason__in=['user', 'takedown']
-        ).distinct()
+        )
+
+    def visible_to_memento(self):
+        return self.permanent().successful().discoverable()
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1094,6 +1114,26 @@ class Link(DeletableModel):
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
     replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
+
+    # See https://github.com/harvard-lil/perma/issues/2687
+    DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
+    def is_discoverable(self):
+        return not self.is_private and not self.is_unlisted
+
+    def is_archive_eligible(self):
+        return self.archive_timestamp < timezone.now()
+
+    def is_permanent(self):
+        return self.is_archive_eligible() and not self.user_deleted
+
+    def is_successful(self):
+        return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
+
+    def can_upload_to_internet_archive(self):
+        return self.is_discoverable()
+
+    def is_visible_to_memento(self):
+        return self.is_permanent() and self.is_successful() and self.is_discoverable()
 
     objects = LinkManager()
     tracker = FieldTracker()
@@ -1221,10 +1261,6 @@ class Link(DeletableModel):
                 self.organization = folder.organization
             self.save(update_fields=['organization'])
 
-    def can_upload_to_internet_archive(self):
-        """ Return True if this link is appropriate for upload to IA. """
-        return self.is_discoverable()
-
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.
         stripped_guid = re.sub('[^0-9A-Za-z]+', '', self.guid)
@@ -1294,12 +1330,6 @@ class Link(DeletableModel):
     def delete_related(self):
         Capture.objects.filter(link_id=self.pk).delete()
 
-    def is_archive_eligible(self):
-        """
-            True if it's older than 24 hours
-        """
-        return self.archive_timestamp < timezone.now()
-
     @cached_property
     def screenshot_capture(self):
         return self.captures.filter(role='screenshot').first()
@@ -1347,9 +1377,6 @@ class Link(DeletableModel):
             default_storage.store_file(default_storage.open(old_name), new_name)
             default_storage.delete(old_name)
 
-    def is_discoverable(self):
-        return not self.is_private and not self.is_unlisted
-
     def accessible_to(self, user):
         return user.can_edit(self)
 
@@ -1359,18 +1386,13 @@ class Link(DeletableModel):
     def ready_for_playback(self):
         """
         Reports whether a Perma Link has been successfully captured and
-        is ready for playback:
-        - CaptureJob succeeded
-        - Either primary or screenshot capture succeeded
+        is ready for playback. This should be synonymous with "is_successful",
+        but isn't quite yet... https://github.com/harvard-lil/perma/issues/2687.
+        Avoiding getting too deep in refactoring at this instant.
 
         See also /perma/perma_web/static/js/helpers/link.helpers.js
         """
-        ready = False
-
-        for capture in self.captures.all():
-            if capture.status == 'success':
-                if capture.role in ['primary', 'screenshot']:
-                    ready = True
+        ready = self.is_successful()
 
         # Early Perma Links do not have CaptureJobs; if no CaptureJob,
         # judge based on Capture statuses alone.
@@ -1531,6 +1553,8 @@ class Capture(models.Model):
         ('resource','WARC Resource record -- file without web headers')))
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
+
+    CAN_PLAYBACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
 
     def __str__(self):
         return "%s %s" % (self.role, self.status)

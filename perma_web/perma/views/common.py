@@ -215,18 +215,19 @@ def single_permalink(request, guid):
     elif not context['can_view'] and link.is_private:
         response.status_code = 403
 
-    # Add memento headers
-    response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
-    response['Link'] = str(
-        LinkHeader([
-            Rel(link.submitted_url, rel='original'),
-            Rel(timegate_url(request, link.submitted_url), rel='timegate'),
-            Rel(timemap_url(request, link.submitted_url, 'link'), rel='timemap', type='application/link-format'),
-            Rel(timemap_url(request, link.submitted_url, 'json'), rel='timemap', type='application/json'),
-            Rel(timemap_url(request, link.submitted_url, 'html'), rel='timemap', type='text/html'),
-            Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
-        ])
-    )
+    # Add memento headers, when appropriate
+    if link.is_visible_to_memento():
+        response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
+        response['Link'] = str(
+            LinkHeader([
+                Rel(link.submitted_url, rel='original'),
+                Rel(timegate_url(request, link.submitted_url), rel='timegate'),
+                Rel(timemap_url(request, link.submitted_url, 'link'), rel='timemap', type='application/link-format'),
+                Rel(timemap_url(request, link.submitted_url, 'json'), rel='timemap', type='application/json'),
+                Rel(timemap_url(request, link.submitted_url, 'html'), rel='timemap', type='text/html'),
+                Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
+            ])
+        )
 
     return response
 
