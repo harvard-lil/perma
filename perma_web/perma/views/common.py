@@ -26,7 +26,7 @@ from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     protocol, stream_warc_if_permissible, set_options_headers,
-    timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_querystring)
+    timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -258,7 +258,7 @@ def set_iframe_session_cookie(request):
 
 
 def timemap(request, response_format, url):
-    url = url_with_querystring(request, url)
+    url = url_with_qs_and_hash(url, request.META['QUERY_STRING'])
     data = memento_data_for_url(request, url)
     if data:
         if response_format == 'json':
@@ -294,7 +294,7 @@ def timemap(request, response_format, url):
 
 
 def timegate(request, url):
-    data = memento_data_for_url(request, url_with_querystring(request, url))
+    data = memento_data_for_url(request, url_with_qs_and_hash(url, request.META['QUERY_STRING']))
     if not data:
         return HttpResponseNotFound('404 page not found\n')
 

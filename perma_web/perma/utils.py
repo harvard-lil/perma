@@ -315,22 +315,33 @@ def protocol():
 
 ### memento
 
-def url_with_querystring(request, url):
-    querystring = request.META['QUERY_STRING']
-    if querystring:
-        return f"{url}?{querystring}"
+def url_with_qs_and_hash(url, qs_and_hash=None):
+    if qs_and_hash:
+        url = f"{url}?{qs_and_hash}"
     return url
 
+def url_split(url):
+    """ Separate into base and query + hash"""
+    return url.split('?', 1)
+
 def timemap_url(request, url, response_format):
-    return request.build_absolute_uri(reverse('timemap', args=[response_format, url]))
+    base, *qs_and_hash = url_split(url)
+    return url_with_qs_and_hash(
+        request.build_absolute_uri(reverse('timemap', args=[response_format, base])),
+        qs_and_hash[0] if qs_and_hash else ''
+    )
 
 def timegate_url(request, url):
-    return request.build_absolute_uri(reverse('timegate', args=[url]))
+    base, *qs_and_hash = url_split(url)
+    return url_with_qs_and_hash(
+        request.build_absolute_uri(reverse('timegate', args=[base])),
+        qs_and_hash[0] if qs_and_hash else ''
+    )
 
 def memento_url(request, link):
     return request.build_absolute_uri(reverse('single_permalink', args=[link.guid]))
 
-def memento_data_for_url(request, url):
+def memento_data_for_url(request, url, qs=None, hash=None):
     from perma.models import Link  #noqa
     mementos = [
         {
