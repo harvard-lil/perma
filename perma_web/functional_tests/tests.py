@@ -1,10 +1,8 @@
 import socket
 import os
 import unittest
-import re
 import datetime
 import sys
-import requests
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException
 import time
@@ -392,23 +390,6 @@ class FunctionalTest(BaseTestCase):
             # self.assertEqual(self.server_url + '/manage/create/?folder=' + folder_id, current_url)
             # folder_from_storage = self.driver.execute_script("var ls = JSON.parse(localStorage.perma_selection); return ls[Object.keys(ls)[0]].folderIds[0]")
             # self.assertEqual(folder_id, str(folder_from_storage))
-
-
-            # Memento
-            info("Checking timemap.")
-            self.driver.get(self.server_url + '/timemap/html/' + url_to_capture)
-            self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
-            assert_text_displayed(url_to_capture, 'b')
-
-            # Displays playback by timestamp
-            # get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-            # assert_text_displayed(example_text, 'p')
-
-            info("Checking timegate")
-            self.driver.get(self.server_url + "/timegate/" + url_to_capture)
-            self.assertFalse('timegate' in self.driver.current_url)
-            repeat_while_exception(lambda: self.driver.switch_to.frame(self.driver.find_elements_by_tag_name('iframe')[0]), StaleElementReferenceException, 10)
-            repeat_while_exception(lambda: get_element_with_text(example_text, 'p'), NoSuchElementException, 30)
 
             info("Checking for unexpected javascript errors")
             # Visit every test every view that doesn't take parameters,
