@@ -18,7 +18,8 @@ jobs:
       - run:
           name: "Flake8"
           command: |
-            export PYENV_VERSION=3.5.2  # use the version of python3 installed on circleci
+            pyenv install 3.7.3
+            export PYENV_VERSION=3.7.3  # use the version of python3 installed on circleci
             pip install flake8`awk '/flake8/,/version/' perma_web/Pipfile.lock | tail -n 1 | cut -d '"' -f 4`  # install our version of flake8
             flake8 perma_web/
 
