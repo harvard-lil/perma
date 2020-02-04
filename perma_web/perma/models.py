@@ -1090,7 +1090,7 @@ class Link(DeletableModel):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
-    submitted_url_surt = models.CharField(max_length=4200)
+    submitted_url_surt = models.CharField(max_length=2100, null=True, blank=True)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     submitted_description = models.CharField(max_length=300, null=True, blank=True)
@@ -1115,6 +1115,11 @@ class Link(DeletableModel):
 
     replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
 
+    objects = LinkManager()
+    tracker = FieldTracker()
+    history = HistoricalRecords()
+    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
+
     # See https://github.com/harvard-lil/perma/issues/2687
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
     def is_discoverable(self):
@@ -1134,11 +1139,6 @@ class Link(DeletableModel):
 
     def is_visible_to_memento(self):
         return self.is_permanent() and self.is_successful() and self.is_discoverable()
-
-    objects = LinkManager()
-    tracker = FieldTracker()
-    history = HistoricalRecords()
-    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
     @cached_property
     def ascii_safe_url(self):

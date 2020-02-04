@@ -956,3 +956,44 @@ def clear_wr_session_for_user(target_email):
                 print("Cleared session for user {} ({})".format(target_user_id, target_email))
         except KeyError:
             pass
+
+
+@task
+def populate_link_surt_column(batch_size="500", model='Link'):
+    import logging
+    from tqdm import tqdm
+    import surt
+    from perma.models import Link, HistoricalLink
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("BEGIN: populate_link_surt_column")
+
+    models = {'Link': Link, 'HistoricalLink': HistoricalLink}
+    links = models[model].objects.filter(submitted_url_surt__isnull=True)
+
+    # limit to our desired batch size
+    not_populated = links.count()
+    batch_size = int(batch_size)
+    if not_populated > batch_size:
+        logger.info(f"{not_populated} links to update: limiting to first {batch_size}")
+        links = links[:batch_size]
+
+    to_update = links.count()
+    if not to_update:
+        logger.info("No links to update.")
+        return
+
+    for link in tqdm(links):
+        link.submitted_url_surt = surt.surt(link.submitted_url)
+        link.save()
+
+    # offer to send another batch if there are any links left to update
+    remaining_to_update = not_populated - to_update
+    if remaining_to_update:
+        if input(f"\nSend another batch of size {batch_size}? [y/n]\n").lower() == 'y':
+            populate_link_surt_column(batch_size=str(batch_size), model=model)
+        else:
+            logger.info(f"Stopped with ~ {remaining_to_update} remaining {model}s to update")
+    else:
+        logger.info(f"No more {model}s left to update!")
