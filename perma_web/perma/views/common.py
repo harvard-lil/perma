@@ -323,6 +323,8 @@ def timegate(request, url):
             Rel(data['timemap_uri']['link_format'], rel='timemap', type='application/link-format'),
             Rel(data['timemap_uri']['json_format'], rel='timemap', type='application/json'),
             Rel(data['timemap_uri']['html_format'], rel='timemap', type='text/html'),
+            Rel(data['mementos']['first']['uri'], rel='first memento', datetime=datetime_to_http_date(data['mementos']['first']['datetime'])),
+            Rel(data['mementos']['last']['uri'], rel='last memento', datetime=datetime_to_http_date(data['mementos']['last']['datetime'])),
             Rel(target, rel='memento', datetime=datetime_to_http_date(target_datetime)),
         ])
     )
