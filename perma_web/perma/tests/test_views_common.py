@@ -201,6 +201,7 @@ class CommonViewsTestCase(PermaTestCase):
         expected =b"""\
 <wikipedia.org>; rel=original,
 <http://testserver/timegate/wikipedia.org>; rel=timegate,
+<http://testserver/timemap/link/wikipedia.org>; rel=self; type=application/link-format,
 <http://testserver/timemap/link/wikipedia.org>; rel=timemap; type=application/link-format,
 <http://testserver/timemap/json/wikipedia.org>; rel=timemap; type=application/json,
 <http://testserver/timemap/html/wikipedia.org>; rel=timemap; type=text/html,
@@ -228,6 +229,8 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response._headers['location'][1], 'http://testserver/ABCD-0009')
         self.assertIn('accept-datetime', response._headers['vary'][1])
+        self.assertIn('<http://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response._headers['link'][1])
+        self.assertIn('<http://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
         self.assertIn('<http://testserver/ABCD-0009>; rel=memento; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
         self.assertIn('<wikipedia.org>; rel=original,', response._headers['link'][1])
         self.assertIn('<http://testserver/timegate/wikipedia.org>; rel=timegate,', response._headers['link'][1])
@@ -240,6 +243,8 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response._headers['location'][1], 'http://testserver/ABCD-0008')
         self.assertIn('accept-datetime', response._headers['vary'][1])
+        self.assertIn('<http://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response._headers['link'][1])
+        self.assertIn('<http://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
         self.assertIn('<http://testserver/ABCD-0008>; rel=memento; datetime="Sun, 19 Jul 2015 20:21:31 GMT"', response._headers['link'][1])
         self.assertIn('<wikipedia.org>; rel=original,', response._headers['link'][1])
         self.assertIn('<http://testserver/timegate/wikipedia.org>; rel=timegate,', response._headers['link'][1])
