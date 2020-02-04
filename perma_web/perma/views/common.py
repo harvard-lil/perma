@@ -266,10 +266,6 @@ def timemap(request, response_format, url):
     data = memento_data_for_url(request, url)
     if data:
         if response_format == 'json':
-            # Should 'self' be included?
-            # It's included in https://memgator.cs.odu.edu/timemap/json/http://www.cs.odu.edu/~mln/
-            # but is not mentioned by http://mementoweb.org/guide/timemap-json/
-            # del data['self']
             response = JsonResponse(data)
         elif response_format == 'html':
             response = render(request, 'memento/timemap.html', data)
@@ -279,6 +275,7 @@ def timemap(request, response_format, url):
             file.writelines(f"{line},\n" for line in [
                 Rel(data['original_uri'], rel='original'),
                 Rel(data['timegate_uri'], rel='timegate'),
+                Rel(data['self'], rel='self', type='application/link-format'),
                 Rel(data['timemap_uri']['link_format'], rel='timemap', type='application/link-format'),
                 Rel(data['timemap_uri']['json_format'], rel='timemap', type='application/json'),
                 Rel(data['timemap_uri']['html_format'], rel='timemap', type='text/html')
