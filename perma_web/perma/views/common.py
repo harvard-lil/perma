@@ -257,6 +257,10 @@ def set_iframe_session_cookie(request):
     return response
 
 
+@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
+@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
 def timemap(request, response_format, url):
     url = url_with_qs_and_hash(url, request.META['QUERY_STRING'])
     data = memento_data_for_url(request, url)
@@ -293,6 +297,10 @@ def timemap(request, response_format, url):
     return response
 
 
+@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timegate']))
+@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
 def timegate(request, url):
     data = memento_data_for_url(request, url_with_qs_and_hash(url, request.META['QUERY_STRING']))
     if not data:

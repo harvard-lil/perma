@@ -283,9 +283,8 @@ LOGIN_DAY_LIMIT = '50000/d'
 # Cache-Control max-age settings
 CACHE_MAX_AGES = {
     'single_permalink' : 60 * 60,     # 1hr
-    'timegate'     : 0,     # 1hr
-    'timemap'      : 60 * 30,     # 30mins
-    'memento'      : 60 * 60 * 4, # 4hrs
+    'timegate'     : 0,
+    'timemap'      : 60 * 30,         # 30mins
 }
 
 # Dashboard user lists
