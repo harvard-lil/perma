@@ -52,10 +52,6 @@ urlpatterns = [
     url(r'^logout/?$', user_management.logout, name='logout'),
     url(r'^register/?$', RedirectView.as_view(url='/sign-up/', permanent=True)),
 
-    # session handling for the separate warc playback domain
-    url(r'^login/set-access-token/?$', user_management.set_access_token_cookie, name='user_management_set_access_token_cookie'),
-    url(r'^login/set-safari-cookie/?$', user_management.set_safari_cookie, name='user_management_set_safari_cookie'),
-
     url(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
     url(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', user_management.sign_up_faculty, name='sign_up_faculty'),
@@ -141,20 +137,23 @@ urlpatterns = [
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
     url(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
 
+    # WR playback-related
+    # pass webrecorder session cookie to iframe
+    url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
+    # display custom template when WR reports a replay error
+    url(r'^archive-error/?$', common.archive_error, name='archive_error'),
+
+    # memento support
+    url(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
+    url(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
+
+
     # Our Perma ID catchall
     url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
 
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
 ]
-
-if settings.ENABLE_WR_PLAYBACK:
-    urlpatterns = [
-        # pass webrecorder session cookie to iframe
-        url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
-        # display custom template when WR reports a replay error
-        url(r'^archive-error/?$', common.archive_error, name='archive_error')
-    ] + urlpatterns  # prepend so Perma ID catchall regex doesn't interfere
 
 
 # debug-only serving of media assets

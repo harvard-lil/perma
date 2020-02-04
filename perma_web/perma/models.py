@@ -3,14 +3,12 @@ from decimal import Decimal
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import hashlib
-import io
 import json
 import os
 import logging
 import random
 import re
 import socket
-from urllib.parse import urlencode
 from urllib.parse import urlparse
 import simple_history
 import requests
@@ -18,22 +16,14 @@ import itertools
 import time
 import hmac
 import uuid
-from time import mktime
-from wsgiref.handlers import format_date_time
 
 from mptt.managers import TreeManager
 from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
-from werkzeug.test import Client
-from werkzeug.wrappers import BaseResponse
 
-from django.core.signing import TimestampSigner, BadSignature
-from django.core.urlresolvers import reverse
-from django.utils.safestring import mark_safe
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
-from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q, Max, Count
@@ -45,13 +35,12 @@ from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
-from pywb.cdx.cdxobject import CDXObject
-from pywb.warc.cdxindexer import write_cdx_index
+import surt
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebrecorderException
-from .utils import (tz_datetime, protocol,
+from .utils import (tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
@@ -1036,7 +1025,9 @@ class Folder(MPTTModel):
                 # else, user must belong to this org
                 return user.organizations.filter(pk=self.organization_id).exists()
 
+
 class LinkQuerySet(QuerySet):
+
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
@@ -1054,22 +1045,40 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
 
-    def discoverable(self):
-        """ Limit queryset to Links that can be publicly found by searching. """
-        return self.filter(is_unlisted=False, is_private=False)
+    #
+    # See https://github.com/harvard-lil/perma/issues/2687
+    #
 
-    def visible_to_lockss(self):
+    def discoverable(self):
+        return self.filter(Link.DISCOVERABLE_FILTER)
+
+    def successful(self):
+        """ Limit queryset to those where any non-favicon capture succeeded"""
+        return self.filter(
+            captures__in=Capture.objects.filter(Capture.CAN_PLAYBACK_FILTER)
+        ).distinct()
+
+    def permanent(self):
         """
-            expose the bundled WARC if any non-favicon capture succeeded
+            The required wait period has elapsed, and the user did not delete the Link.
+            It is a permanent part of the collection.
         """
-        capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
         return self.filter(
             archive_timestamp__lte=timezone.now(),
             user_deleted=False,
-            captures__in=Capture.objects.filter(capture_filter)
-        ).exclude(
+        )
+
+    def visible_to_lockss(self):
+        """
+            Expose the bundled WARC after the required wait period,
+            if capture succeeded, unless deleted or made private by the user or by admins.
+        """
+        return self.permanent().successful().exclude(
             private_reason__in=['user', 'takedown']
-        ).distinct()
+        )
+
+    def visible_to_memento(self):
+        return self.permanent().successful().discoverable()
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1081,6 +1090,7 @@ class Link(DeletableModel):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
+    submitted_url_surt = models.CharField(max_length=2100, null=True, blank=True)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     submitted_description = models.CharField(max_length=300, null=True, blank=True)
@@ -1109,6 +1119,26 @@ class Link(DeletableModel):
     tracker = FieldTracker()
     history = HistoricalRecords()
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
+
+    # See https://github.com/harvard-lil/perma/issues/2687
+    DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
+    def is_discoverable(self):
+        return not self.is_private and not self.is_unlisted
+
+    def is_archive_eligible(self):
+        return self.archive_timestamp < timezone.now()
+
+    def is_permanent(self):
+        return self.is_archive_eligible() and not self.user_deleted
+
+    def is_successful(self):
+        return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
+
+    def can_upload_to_internet_archive(self):
+        return self.is_discoverable()
+
+    def is_visible_to_memento(self):
+        return self.is_permanent() and self.is_successful() and self.is_discoverable()
 
     @cached_property
     def ascii_safe_url(self):
@@ -1139,34 +1169,6 @@ class Link(DeletableModel):
         except (requests.ConnectionError, requests.Timeout):
             return False
 
-
-    # header values for memento: https://mementoweb.org/guide/rfc/
-
-    @cached_property
-    def memento(self):
-        """
-        http://perma.test:8000/23W3-NDSB
-        """
-        return protocol() + settings.HOST + '/' + self.guid
-
-    @cached_property
-    def timegate(self):
-        """
-        http://perma-archives.test:8000/warc/timegate/http://example.com
-        """
-        return protocol() + settings.PLAYBACK_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + self.ascii_safe_url
-
-    @cached_property
-    def timemap(self):
-        """
-        http://perma-archives.test:8000/warc/timemap/*/http://example.com
-        """
-        return protocol() + settings.PLAYBACK_HOST + settings.WARC_ROUTE + '/timemap/*/' + self.ascii_safe_url
-
-    @cached_property
-    def memento_formatted_date(self):
-        return format_date_time(mktime(self.creation_timestamp.timetuple()))
-
     def get_default_title(self):
         return self.url_details.netloc
 
@@ -1176,9 +1178,6 @@ class Link(DeletableModel):
             self.submitted_title = self.get_default_title()
 
         initial_folder = kwargs.pop('initial_folder', None)
-
-        if self.tracker.has_changed('is_unlisted') or self.tracker.has_changed('is_private'):
-            CDXLine.objects.filter(link_id=self.pk).update(is_unlisted=self.is_unlisted, is_private=self.is_private)
 
         if not self.pk:
             if not self.archive_timestamp:
@@ -1204,6 +1203,9 @@ class Link(DeletableModel):
                 else:
                     raise Exception("No valid GUID found in 100 attempts.")
                 self.guid = guid
+
+        if not self.submitted_url_surt:
+            self.submitted_url_surt = surt.surt(self.submitted_url)
 
         if self.is_private and not self.private_reason:
             self.private_reason = 'user'
@@ -1258,10 +1260,6 @@ class Link(DeletableModel):
             else:
                 self.organization = folder.organization
             self.save(update_fields=['organization'])
-
-    def can_upload_to_internet_archive(self):
-        """ Return True if this link is appropriate for upload to IA. """
-        return self.is_discoverable()
 
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.
@@ -1330,14 +1328,7 @@ class Link(DeletableModel):
     #     self.save(update_fields=['thumbnail_status'])
 
     def delete_related(self):
-        CDXLine.objects.filter(link_id=self.pk).delete()
         Capture.objects.filter(link_id=self.pk).delete()
-
-    def is_archive_eligible(self):
-        """
-            True if it's older than 24 hours
-        """
-        return self.archive_timestamp < timezone.now()
 
     @cached_property
     def screenshot_capture(self):
@@ -1386,64 +1377,6 @@ class Link(DeletableModel):
             default_storage.store_file(default_storage.open(old_name), new_name)
             default_storage.delete(old_name)
 
-    def replay_url(self, url, wsgi_application=None, follow_redirects=True):
-        """
-            Given a URL contained in this WARC, return a werkzeug BaseResponse for the URL as played back by pywb.
-        """
-        # By default, play back from our pywb wsgi app.
-        if not wsgi_application:
-            from warc_server.app import application as pywb_application  # local to avoid circular imports
-            wsgi_application = pywb_application
-
-        # Set up a werkzeug wsgi client.
-        client = Client(wsgi_application, BaseResponse)
-
-        # Set a cookie to allow replay of private links.
-        if self.is_private:
-            client.set_cookie('localhost', self.guid, self.create_access_token())
-
-        # Return pywb's response as a BaseResponse.
-        full_url = '/%s/%s' % (self.guid, url)
-        return client.get(full_url, follow_redirects=follow_redirects)
-
-    def base_playback_url(self, host=None):
-        host = host or settings.PLAYBACK_HOST
-        return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
-
-    def create_access_token(self):
-        """
-            Return an access token for accessing this link.
-            Access token consists of the link GUID, signed by Django with the current timestamp.
-        """
-        return TimestampSigner().sign(self.pk)
-
-    def validate_access_token(self, token, max_age=60):
-        """
-            Validate an access token for this link.
-            Access token should be the link GUID, signed by Django no more than max_age seconds ago.
-        """
-        try:
-            return TimestampSigner().unsign(token, max_age=max_age) == self.pk
-        except BadSignature:
-            return False
-
-    def is_discoverable(self):
-        return not self.is_private and not self.is_unlisted
-
-    ### functions to deal with link-specific caches ###
-
-    @classmethod
-    def get_cdx_cache_key(cls, guid):
-        return "cdx-"+guid
-
-    @classmethod
-    def get_warc_cache_key(cls, warc_storage_file):
-        return "warc-"+re.sub(r'[^\w-]', '', warc_storage_file)
-
-    def clear_cache(self):
-        cache.delete(Link.get_cdx_cache_key(self.guid))
-        cache.delete(Link.get_warc_cache_key(self.warc_storage_file()))
-
     def accessible_to(self, user):
         return user.can_edit(self)
 
@@ -1453,18 +1386,13 @@ class Link(DeletableModel):
     def ready_for_playback(self):
         """
         Reports whether a Perma Link has been successfully captured and
-        is ready for playback:
-        - CaptureJob succeeded
-        - Either primary or screenshot capture succeeded
+        is ready for playback. This should be synonymous with "is_successful",
+        but isn't quite yet... https://github.com/harvard-lil/perma/issues/2687.
+        Avoiding getting too deep in refactoring at this instant.
 
         See also /perma/perma_web/static/js/helpers/link.helpers.js
         """
-        ready = False
-
-        for capture in self.captures.all():
-            if capture.status == 'success':
-                if capture.role in ['primary', 'screenshot']:
-                    ready = True
+        ready = self.is_successful()
 
         # Early Perma Links do not have CaptureJobs; if no CaptureJob,
         # judge based on Capture statuses alone.
@@ -1626,12 +1554,10 @@ class Capture(models.Model):
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
 
+    CAN_PLAYBACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
+
     def __str__(self):
         return "%s %s" % (self.role, self.status)
-
-    def replay(self):
-        """ Replay this capture through pywb. Returns a werkzeug BaseResponse object. """
-        return self.link.replay_url(self.url)
 
     def mime_type(self):
         """
@@ -1657,33 +1583,6 @@ class Capture(models.Model):
             True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image).
         """
         return self.mime_type() not in self.INLINE_TYPES
-
-    def url_fragment(self):
-        return ("id_/" if self.record_type == 'resource' else "") + self.url
-
-    def playback_url(self):
-        if not self.url:
-            return None
-        return self.link.base_playback_url() + self.url_fragment()
-
-    def playback_url_with_access_token(self):
-        """
-            Return a URL that will allow playback of a private link.
-            If link is not private, returns regular playback URL.
-
-            IMPORTANT: Links returned by this function should only be displayed to authorized users.
-        """
-        if not self.link.is_private:
-            return self.playback_url()
-        return mark_safe("//%s%s?%s" % (
-            settings.PLAYBACK_HOST,
-            reverse('user_management_set_access_token_cookie'),
-            urlencode({
-                'token': self.link.create_access_token(),
-                'guid': self.link_id,
-                'next': self.url_fragment().encode('utf-8'),
-            })
-        ))
 
 
 class CaptureJob(models.Model):
@@ -1881,53 +1780,6 @@ class MinuteStats(models.Model):
     users_sum = models.IntegerField(default=0)
     organizations_sum = models.IntegerField(default=0)
     registrars_sum = models.IntegerField(default=0)
-
-
-class CDXLineManager(models.Manager):
-    def create_all_from_link(self, link):
-        warc_path = link.warc_storage_file()
-        with default_storage.open(warc_path, 'rb') as warc_file, io.BytesIO() as cdx_io:
-            write_cdx_index(cdx_io, warc_file, warc_path)
-            cdx_io.seek(0)
-            next(cdx_io) # first line is a header so skip it
-            lines = []
-            for line in cdx_io:
-                lines.append(CDXLine(raw=str(line, 'utf-8'), link_id=link.guid, is_unlisted=link.is_unlisted, is_private=link.is_private))
-            # Delete any existing rows to reduce the likelihood of a race condition,
-            # if someone hits the link before the capture process has written the CDXLine db.
-            CDXLine.objects.filter(link_id=link.guid).delete()
-            results = CDXLine.objects.bulk_create(lines, batch_size=999)
-        return results
-
-
-class CDXLine(models.Model):
-    link_id = models.CharField(null=True, max_length=255, db_index=True)
-    urlkey = models.CharField(max_length=2100, null=False, blank=False)
-    raw = models.TextField(null=False, blank=False)
-    is_unlisted = models.BooleanField(default=False)
-    is_private = models.BooleanField(default=False)
-
-    objects = CDXLineManager()
-
-    def __init__(self, *args, **kwargs):
-        super(CDXLine, self).__init__(*args, **kwargs)
-        if self.raw:
-            self.__set_defaults()
-
-    @cached_property
-    def parsed(self):
-        return CDXObject(bytes(self.raw, 'utf-8'))
-
-    def __set_defaults(self):
-        if not self.urlkey:
-            self.urlkey = self.parsed['urlkey']
-
-    @cached_property
-    def timestamp(self):
-        return self.parsed['timestamp']
-
-    def is_revisit(self):
-        return self.parsed.is_revisit()
 
 
 class UncaughtError(models.Model):

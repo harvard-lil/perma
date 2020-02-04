@@ -54,7 +54,6 @@ before_script:
   - sudo service mysql restart
 
   - mysql -e 'CREATE DATABASE perma CHARACTER SET utf8;'
-  - mysql -e 'CREATE DATABASE perma_cdxline CHARACTER SET utf8;'
 
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'

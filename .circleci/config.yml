@@ -14,14 +14,6 @@ jobs:
             docker-compose --version
             docker version
 
-      # Quick tests to fail fast on common errors
-      - run:
-          name: "Flake8"
-          command: |
-            export PYENV_VERSION=3.5.2  # use the version of python3 installed on circleci
-            pip install flake8`awk '/flake8/,/version/' perma_web/Pipfile.lock | tail -n 1 | cut -d '"' -f 4`  # install our version of flake8
-            flake8 perma_web/
-
       # Docker image building and caching
       # This block shaves a minute or two off of the test runtime by using cached docker images.
       # Otherwise we could omit this step entirely and let `docker-compose run` build what it needs to.
@@ -51,7 +43,8 @@ jobs:
             mkdir -p junit/pytest                            # storage for circleci test info
             cp services/docker/webrecorder/wr_circle.env services/docker/webrecorder/wr.env
             docker-compose up -d
-            sleep 10
+            sleep 15
+            docker-compose exec web pipenv run flake8 perma_web/
             docker-compose exec web pipenv run fab dev.create_db
             docker-compose exec web pipenv run fab dev.init_db
             docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'

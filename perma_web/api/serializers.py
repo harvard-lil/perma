@@ -131,7 +131,7 @@ class CaptureJobSerializer(BaseSerializer):
 class CaptureSerializer(BaseSerializer):
     class Meta:
         model = Capture
-        fields = ('role', 'status', 'url', 'record_type', 'content_type', 'user_upload', 'playback_url')
+        fields = ('role', 'status', 'url', 'record_type', 'content_type', 'user_upload')
 
 
 ### LINK ###

@@ -516,9 +516,8 @@ class AuthenticatedLinkDetailView(BaseView):
                 # clear the user's Webrecorder session, if any,
                 # so that the new warc is used for this visitor's
                 # next playback of this link.
-                if settings.ENABLE_WR_PLAYBACK:
-                    link.delete_from_wr(request)
-                    clear_wr_session(request)
+                link.delete_from_wr(request)
+                clear_wr_session(request)
 
             # update internet archive if privacy changes
             if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_archive_eligible():
@@ -534,9 +533,6 @@ class AuthenticatedLinkDetailView(BaseView):
             links_remaining = request.user.get_links_remaining()
             serializer.data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
             serializer.data['links_remaining_period'] = links_remaining[1]
-
-            # clear out any caches that might be based on old link data
-            link.clear_cache()
 
             return Response(serializer.data)
 

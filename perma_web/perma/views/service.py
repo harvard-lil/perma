@@ -3,13 +3,11 @@ from datetime import timedelta, datetime
 
 from django.core import serializers
 from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
-
 from perma.models import WeekStats, MinuteStats
 from perma.utils import get_lat_long, user_passes_test_or_403
-from django.http import JsonResponse
-
 
 def stats_sums(request):
     """

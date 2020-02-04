@@ -1,23 +1,17 @@
 import socket
 import os
-# import subprocess
 import unittest
-import re
 import datetime
 import sys
-from urllib.parse import urlparse
-import requests
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException
 import time
-import signal
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.urlresolvers import reverse
 
 from perma.urls import urlpatterns
-from perma.wsgi import application as wsgi_app
 from perma.models import UncaughtError
 from perma.tests.utils import failed_test_files_path
 
@@ -31,8 +25,7 @@ from perma.tests.utils import failed_test_files_path
 #
 # (2) is the browser:
 #    (a) a set of remote Sauce browsers
-#    (b) a local PhantomJS browser
-#    (c) a selenium-driven browser running in its own Docker container
+#    (b) a selenium-driven browser running in its own Docker container
 #
 #
 # N.B. Some of these combinations may not work with the current code base.
@@ -158,25 +151,14 @@ class FunctionalTest(BaseTestCase):
             cls.port = 8000
             super().setUpClass()
 
-            # By default, the test server only mounts the django app,
-            # which will leave out the warc app, used for pywb playback,
-            # so mount them both here
-            cls.server_thread.httpd.set_app(cls.server_thread.static_handler(wsgi_app))
-
-            if settings.REMOTE_SELENIUM:
-                cls.server_url = 'http://{}'.format(settings.HOST)
-            else:
-                cls.server_thread.host = LOCAL_SERVER_DOMAIN
-                cls.server_url = cls.live_server_url
+            cls.server_url = 'http://{}'.format(settings.HOST)
 
     @classmethod
     def setUpBrowser(cls):
         if settings.USE_SAUCE:
             cls.setUpSauce()
-        elif settings.REMOTE_SELENIUM:
-            cls.setUpRemoteSelenium()
         else:
-            cls.setUpLocal()
+            cls.setUpRemoteSelenium()
         cls.driver.implicitly_wait(5)
         print("Using %s for integration tests." % (type(cls.driver)))
 
@@ -184,10 +166,8 @@ class FunctionalTest(BaseTestCase):
     def tearDownClass(cls):
         if settings.USE_SAUCE:
             cls.tearDownSauce()
-        elif settings.REMOTE_SELENIUM:
-            cls.tearDownRemoteSelenium()
         else:
-            cls.tearDownLocal()
+            cls.tearDownRemoteSelenium()
 
     @classmethod
     def setUpSauce(cls):
@@ -209,26 +189,6 @@ class FunctionalTest(BaseTestCase):
             command_executor='http://{}:4444/wd/hub'.format(settings.REMOTE_SELENIUM_HOST),
             desired_capabilities=options.to_capabilities()
         )
-
-
-    @classmethod
-    def setUpLocal(cls):
-        cls.driver = webdriver.PhantomJS(desired_capabilities=cls.base_desired_capabilities)
-        cls.driver.set_window_size(1024, 800)
-        socket.setdefaulttimeout(30)
-
-    @classmethod
-    def tearDownLocal(cls):
-        # to get past transient error (selenium OSError: [Errno 9] Bad file descriptor),
-        # send signal according to https://stackoverflow.com/a/45786385/4074877
-        try:
-            cls.driver.service.process.send_signal(signal.SIGTERM)
-        except AttributeError:
-            pass
-
-        cls.driver.quit()
-        if cls.virtual_display:
-            cls.virtual_display.stop()
 
     @classmethod
     def tearDownRemoteSelenium(cls):
@@ -318,41 +278,27 @@ class FunctionalTest(BaseTestCase):
                     raise Exception("%s timed out after %s seconds" % (func, timeout))
                 time.sleep(sleep_time)
 
-        def fix_host(url):
-            if REMOTE_SERVER_URL or settings.ENABLE_WR_PLAYBACK:
-                return url
-            o = urlparse(url)
-            o = o._replace(scheme='http',
-                           netloc="{0}:{1}".format(self.server_thread.host,
-                                                   self.server_thread.port))
-            return o.geturl()
-
         def test_js_error_handling():
             # helper to throw a javascript error and confirm it was recorded on the backend
             if REMOTE_SERVER_URL:
                 return  # can only check this on local server
-            if settings.REMOTE_SELENIUM:
-                return # this is not working with the remote Chrome, don't know why
-            err_count = UncaughtError.objects.count()
-            self.driver.execute_script("setTimeout(function(){doesNotExist()})")
-            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
-            self.assertIn('doesNotExist', UncaughtError.objects.last().message)
+            return
+            # this is not working with the remote Chrome, don't know why
+            # err_count = UncaughtError.objects.count()
+            # self.driver.execute_script("setTimeout(function(){doesNotExist()})")
+            # repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
+            # self.assertIn('doesNotExist', UncaughtError.objects.last().message)
 
         def test_playback(capture_url):
             self.driver.get(capture_url)
             repeat_while_exception(lambda: self.driver.switch_to.frame(self.driver.find_elements_by_tag_name('iframe')[0]), StaleElementReferenceException, 10)
-            repeat_while_exception(lambda: get_element_with_text('This domain is for use in illustrative examples in documents.', 'p'), NoSuchElementException, 30)
+            repeat_while_exception(lambda: get_element_with_text(example_text, 'p'), NoSuchElementException, 30)
             # Evidently the above doesn't work on Sauce with Safari and this version of Webdriver.
-            # If you run into problems in the future and want to test pywb playback, you can use
-            # something like the below. But note, the below strategy will not work with WR playback,
-            # which only works inside a Perma-hosted iframe.
-            #
-            # warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
-            # self.driver.get(warc_url)
-            # assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
             self.driver.get(capture_url)
             get_element_with_text('See the Screenshot View', 'a').click()
             assert_text_displayed('This is a screenshot.')
+
+        example_text = 'This domain is for use in illustrative examples in documents.'
 
         info("Starting functional tests at time:", datetime.datetime.utcnow())
 
@@ -444,50 +390,6 @@ class FunctionalTest(BaseTestCase):
             # self.assertEqual(self.server_url + '/manage/create/?folder=' + folder_id, current_url)
             # folder_from_storage = self.driver.execute_script("var ls = JSON.parse(localStorage.perma_selection); return ls[Object.keys(ls)[0]].folderIds[0]")
             # self.assertEqual(folder_id, str(folder_from_storage))
-
-
-            # Memento (not yet supported with WR Playback)
-            if not settings.ENABLE_WR_PLAYBACK:
-                info("Checking timemap.")
-
-                # why does this hold on to the test server thread?
-                self.driver.get(self.server_url + '/warc/*/' + url_to_capture)
-
-                self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
-                assert_text_displayed('http://' + url_to_capture, 'b')
-
-                # Displays playback by timestamp
-                get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-                assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-
-                info("Checking timegate")
-                self.driver.get(self.server_url + settings.TIMEGATE_WARC_ROUTE  + "/" + url_to_capture)
-
-                assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-
-                # timegate redirects to a memento (timestamped) url
-                str_to_match = r"%s%s/\d+/http://%s" % (self.server_url, settings.WARC_ROUTE, url_to_capture)
-                reg = re.compile(str_to_match)
-                self.assertIsNotNone(reg.search(self.driver.current_url))
-                # checking that we don't see /warc/timegate in url because of redirect
-                reg = re.compile(settings.TIMEGATE_WARC_ROUTE)
-                self.assertFalse(reg.match(self.driver.current_url))
-
-                # hack: requesting the "*" url above is messing up the test server and causing this requests.get to hang. load "/" to reset things; no idea why this works
-                self.driver.get(self.server_url)
-
-                # taking advantage of running server to check headers
-                response = requests.get(self.server_url + settings.TIMEGATE_WARC_ROUTE + '/' + url_to_capture, allow_redirects=False)
-                # response is memento response that's a redirect from the timegate url
-                link_headers = response.headers['Link'].split(', ')
-                for header in link_headers:
-                    if 'rel="timemap"' in header:
-                        reg = re.compile('%s/timemap/*/' % settings.WARC_ROUTE)
-                        self.assertIsNotNone(reg.search(header))
-
-                    if 'rel="memento"' in header:
-                        reg = re.compile(r'%s%s/\d+/http://%s' % (self.server_url, settings.WARC_ROUTE, url_to_capture))
-                        self.assertIsNotNone(reg.search(header))
 
             info("Checking for unexpected javascript errors")
             # Visit every test every view that doesn't take parameters,
