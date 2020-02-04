@@ -36,7 +36,7 @@ services:
       - default
   web:
     build: ./perma_web
-    image: perma3:0.35
+    image: perma3:0.36
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
