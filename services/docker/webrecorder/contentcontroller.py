@@ -24,6 +24,8 @@ from webrecorder.models.stats import Stats
 # BEGIN PERMA CUSTOMIZATION
 #
 
+import time
+
 # https://github.com/webrecorder/warcio/blob/master/warcio/statusandheaders.py#L16
 ENCODE_HEADER_RX = re.compile(r'[=]["\']?([^;"]+)["\']?(?=[;]?)')
 
@@ -800,7 +802,19 @@ class ContentController(BaseController, RewriterApp):
 
             request.environ['pywb.static_prefix'] = self.BUNDLE_PREFIX
 
-            resp = self.render_content(wb_url, kwargs, request.environ)
+            # BEGIN PERMA CUSTOMIZATIONS
+            try:
+                resp = self.render_content(wb_url, kwargs, request.environ)
+            except UpstreamException as ue:
+                if ue.status_code == 404:
+                    # Retry all 404s after 1s, in a broad effort to allay
+                    # https://github.com/harvard-lil/perma/issues/2633
+                    # until I pinpoint the real problem.
+                    time.sleep(1)
+                    resp = self.render_content(wb_url, kwargs, request.environ)
+                else:
+                    raise
+            # END PERMA CUSTOMIZATIONS
 
             if frontend_cache_header:
                 resp.status_headers.headers.append(frontend_cache_header)

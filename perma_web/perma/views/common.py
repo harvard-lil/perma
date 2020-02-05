@@ -4,6 +4,7 @@ from dateutil.tz import tzutc
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
+import time
 from timegate.utils import closest
 from warcio.timeutils import datetime_to_http_date
 from werkzeug.http import parse_date
@@ -199,7 +200,17 @@ def single_permalink(request, guid):
     if context['can_view'] \
            and not link.user_deleted \
            and link.ready_for_playback():
-        wr_username = link.init_replay_for_user(request)
+        try:
+            wr_username = link.init_replay_for_user(request)
+        except:  # noqa
+            # We are experiencing many varieties of transient flakiness in playback:
+            # second attempts, triggered by refreshing the page, almost always seem to work.
+            # While we debug... let's give playback a second try here, and see if this
+            # noticeably improves user experience.
+            logger.exception(f"First attempt to init replay failed. (Retrying: observe whether this error recurs.)")
+            time.sleep(1)
+            wr_username = link.init_replay_for_user(request)
+
         context.update({
             'wr_host': settings.PLAYBACK_HOST,
             'wr_prefix': link.wr_iframe_prefix(wr_username),
