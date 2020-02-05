@@ -202,7 +202,7 @@ def single_permalink(request, guid):
            and link.ready_for_playback():
         try:
             wr_username = link.init_replay_for_user(request)
-        except:
+        except:  # noqa
             # We are experiencing many varieties of transient flakiness in playback:
             # second attempts, triggered by refreshing the page, almost always seem to work.
             # While we debug... let's give playback a second try here, and see if this
