@@ -200,7 +200,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - wr_warcs:/data/warcs:ro
+      - wr_warcs:/data/warcs
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       # Temporary patches for warcio
       # https://github.com/webrecorder/warcio/pull/80
