@@ -530,7 +530,12 @@ def archive_error(request):
         set_options_headers(request, response)
         return response
 
-    status_code = int(request.GET.get('status', '500'))
+    status_code = int(request.GET.get('status', '200'))
+    if status_code != 404:
+        # We only want to return 404 and 200 here, to avoid complications with Cloudflare.
+        # Other error statuses always (?) indicate some problem with WR, not a status code we
+        # need or want to pass on to the user.
+        status_code == 200
     response = render(request, 'archive/archive-error.html', {
         'err_url': request.GET.get('url'),
         'timestamp': request.GET.get('timestamp'),
