@@ -9,7 +9,7 @@ import time
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from perma.urls import urlpatterns
 from perma.models import UncaughtError

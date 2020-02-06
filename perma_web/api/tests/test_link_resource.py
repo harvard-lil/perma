@@ -4,7 +4,7 @@ import os
 import dateutil.parser
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
 from io import StringIO

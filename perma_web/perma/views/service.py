@@ -2,7 +2,7 @@ import pytz
 from datetime import timedelta, datetime
 
 from django.core import serializers
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone

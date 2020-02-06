@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core import mail
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import override_settings, Client
 
 from perma.urls import urlpatterns
