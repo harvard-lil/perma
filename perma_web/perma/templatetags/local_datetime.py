@@ -35,4 +35,5 @@ def local_datetime_js():
     """
         Return an inline script block with the support javascript for the local_datetime filter.
     """
-    return mark_safe("<script>%s</script>" % open(os.path.join(settings.PROJECT_ROOT, "static/js/helpers/local-datetime.js")).read())
+    with open(os.path.join(settings.PROJECT_ROOT, "static/js/helpers/local-datetime.js")) as special_js:
+        return mark_safe("<script>%s</script>" % special_js.read())

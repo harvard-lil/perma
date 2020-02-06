@@ -1374,7 +1374,8 @@ class Link(DeletableModel):
         old_name = self.warc_storage_file()
         if default_storage.exists(old_name):
             new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % timezone.now().timestamp())
-            default_storage.store_file(default_storage.open(old_name), new_name)
+            with default_storage.open(old_name) as old_file:
+                default_storage.store_file(old_file, new_name)
             default_storage.delete(old_name)
 
     def accessible_to(self, user):

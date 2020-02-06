@@ -46,8 +46,9 @@ class StaticBundlesTestCase(unittest.TestCase):
                 continue
 
             # check for non-matching files
-            if open(test_file, 'rb').read() != open(real_file, 'rb').read():
-                errors.append("File needs to be regenerated: %s" % real_file)
+            with open(test_file, 'rb') as test, open(real_file, 'rb') as real:
+                if test.read() != real.read():
+                    errors.append("File needs to be regenerated: %s" % real_file)
 
         # check for extra files
         for extra_file in set(os.path.basename(i) for i in real_files) - set(os.path.basename(i) for i in test_files):
@@ -60,11 +61,12 @@ class StaticBundlesTestCase(unittest.TestCase):
             # Use a regex to remove substrings like "path":"somestuff",
             # so we can compare webpack stats files generated on different systems.
             # This is fine since "path" isn't used on production.
-            remove_path_re = re.compile(r'"path":"[^"]*?"')
-            test_tracker_contents = remove_path_re.sub('', open(test_bundle_tracker_file.name).read())
-            real_tracker_contents = remove_path_re.sub('', open(real_bundle_tracker_file).read())
-            if test_tracker_contents != real_tracker_contents:
-                errors.append("File needs to be regenerated: %s" % real_bundle_tracker_file)
+            with open(test_bundle_tracker_file.name) as test, open(real_bundle_tracker_file) as real:
+                remove_path_re = re.compile(r'"path":"[^"]*?"')
+                test_tracker_contents = remove_path_re.sub('', test.read())
+                real_tracker_contents = remove_path_re.sub('', real.read())
+                if test_tracker_contents != real_tracker_contents:
+                    errors.append("File needs to be regenerated: %s" % real_bundle_tracker_file)
 
         # report errors
         if errors:

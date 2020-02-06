@@ -81,10 +81,11 @@ def fetch_warc(request, path, guid):
         raise Http404
 
     # deliver warc file
-    response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
-                                     content_type="application/gzip")
-    response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
-    return response
+    with default_storage.open(link.warc_storage_file()) as file:
+        response = StreamingHttpResponse(FileWrapper(file, 1024 * 8),
+                                         content_type="application/gzip")
+        response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
+        return response
 
 
 @allow_by_ip
