@@ -343,11 +343,15 @@ def memento_url(request, link):
 
 def memento_data_for_url(request, url, qs=None, hash=None):
     from perma.models import Link  #noqa
+    try:
+        canonicalized = surt.surt(url)
+    except ValueError:
+        return {}
     mementos = [
         {
             'uri': memento_url(request, link),
             'datetime': link.creation_timestamp,
-        } for link in Link.objects.visible_to_memento().filter(submitted_url_surt=surt.surt(url)).order_by('creation_timestamp')
+        } for link in Link.objects.visible_to_memento().filter(submitted_url_surt=canonicalized).order_by('creation_timestamp')
     ]
     if not mementos:
         return {}
