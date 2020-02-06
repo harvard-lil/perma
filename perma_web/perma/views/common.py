@@ -27,7 +27,8 @@ from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     protocol, stream_warc_if_permissible, set_options_headers,
-    timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash)
+    timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
+    get_client_ip)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -398,12 +399,19 @@ def contact(request):
 
     if request.method == 'POST':
         form = handle_registrar_fields(ContactForm(request.POST))
+        # Only send email if box2 is filled out and box1 is not.
+        # box1 is display: none, so should never be filled out except by spam bots.
+        if form.data.get('box1'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid contact email from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('contact_thanks'))
+
         if form.is_valid():
             # Assemble info for email
             from_address = form.cleaned_data['email']
             subject = "[perma-contact] " + form.cleaned_data['subject']
             context = {
-                "message": form.cleaned_data['message'],
+                "message": form.cleaned_data['box2'],
                 "from_address": from_address,
                 "referer": form.cleaned_data['referer'],
                 "affiliation_string": affiliation_string()
@@ -468,7 +476,7 @@ def contact(request):
         form = handle_registrar_fields(
             ContactForm(
                 initial={
-                    'message': message,
+                    'box2': message,
                     'subject': subject,
                     'referer': request.META.get('HTTP_REFERER', ''),
                     'email': getattr(request.user, 'email', '')

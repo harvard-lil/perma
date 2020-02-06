@@ -277,9 +277,9 @@ class CommonViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
         textareas = soup.select('textarea')
-        self.assertEqual(len(textareas), 1)
+        self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['message'])
+            self.assertIn(textarea['name'],['box1', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_regular(self):
@@ -298,9 +298,9 @@ class CommonViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
         textareas = soup.select('textarea')
-        self.assertEqual(len(textareas), 1)
+        self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['message'])
+            self.assertIn(textarea['name'],['box1', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_registrar(self):
@@ -319,9 +319,9 @@ class CommonViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
         textareas = soup.select('textarea')
-        self.assertEqual(len(textareas), 1)
+        self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['message'])
+            self.assertIn(textarea['name'],['box1', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_single_reg_org_user(self):
@@ -340,9 +340,9 @@ class CommonViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
         textareas = soup.select('textarea')
-        self.assertEqual(len(textareas), 1)
+        self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['message'])
+            self.assertIn(textarea['name'],['box1', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_multi_reg_org_user(self):
@@ -361,9 +361,9 @@ class CommonViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
         textareas = soup.select('textarea')
-        self.assertEqual(len(textareas), 1)
+        self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['message'])
+            self.assertIn(textarea['name'],['box1', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
         selects = soup.select('select')
         self.assertEqual(len(selects), 1)
@@ -374,7 +374,7 @@ class CommonViewsTestCase(PermaTestCase):
     def check_contact_params(self, soup):
         subject_field = soup.find('input', {'name': 'subject'})
         self.assertEqual(subject_field.get('value', ''), self.custom_subject)
-        message_field = soup.find('textarea', {'name': 'message'})
+        message_field = soup.find('textarea', {'name': 'box2'})
         self.assertEqual(message_field.text.strip(), self.message_text)
 
     def test_contact_params_regular(self):
@@ -390,7 +390,7 @@ class CommonViewsTestCase(PermaTestCase):
     def check_contact_flags(self, soup):
         subject_field = soup.find('input', {'name': 'subject'})
         self.assertEqual(subject_field.get('value', ''), self.flag_subject)
-        message_field = soup.find('textarea', {'name': 'message'})
+        message_field = soup.find('textarea', {'name': 'box2'})
         self.assertEqual(message_field.text.strip(), self.flag_message)
 
     def test_contact_flags(self):
@@ -417,8 +417,8 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         response = self.submit_form('contact',
                                      data = { 'email': '',
-                                              'message': '' },
-                                     error_keys = ['email', 'message'])
+                                              'box2': '' },
+                                     error_keys = ['email', 'box2'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
     def test_contact_org_user_submit_fail(self):
@@ -429,9 +429,9 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         response = self.submit_form('contact',
                                      data = { 'email': '',
-                                              'message': '' },
+                                              'box2': '' },
                                      user='test_org_user@example.com',
-                                     error_keys = ['email', 'message', 'registrar'])
+                                     error_keys = ['email', 'box2', 'registrar'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
     def test_contact_standard_submit_required(self):
@@ -440,7 +440,7 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         self.submit_form('contact',
                           data = { 'email': self.from_email,
-                                   'message': self.message_text,
+                                   'box2': self.message_text,
                                    'subject': self.custom_subject,
                                    'referer': self.refering_page },
                           success_url=reverse('contact_thanks'))
@@ -456,13 +456,27 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [self.our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': self.from_email})
 
+    def test_contact_standard_submit_required_with_spam_catcher(self):
+        '''
+            All fields, including custom subject and referer
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'box1': "I'm a bot",
+                                   'box2': self.message_text,
+                                   'subject': self.custom_subject,
+                                   'referer': self.refering_page },
+                          success_url=reverse('contact_thanks'))
+
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_contact_standard_submit_no_optional(self):
         '''
             All fields except custom subject and referer
         '''
         self.submit_form('contact',
                           data = { 'email': self.from_email,
-                                   'message': self.message_text },
+                                   'box2': self.message_text },
                           success_url=reverse('contact_thanks'))
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
@@ -482,7 +496,7 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         response = self.submit_form('contact',
                                      data = { 'email': self.from_email,
-                                              'message': self.message_text,
+                                              'box2': self.message_text,
                                               'registrar': 'not_a_licit_registrar_id'},
                                      user='test_org_user@example.com',
                                      error_keys = ['registrar'])
@@ -499,7 +513,7 @@ class CommonViewsTestCase(PermaTestCase):
         for user in ['test_org_user@example.com', 'multi_registrar_org_user@example.com']:
             self.submit_form('contact',
                               data = { 'email': self.from_email,
-                                       'message': self.message_text,
+                                       'box2': self.message_text,
                                        'registrar': registrar.id },
                               user=user,
                               success_url=success)
@@ -520,7 +534,7 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         self.submit_form('contact',
                           data = { 'email': self.from_email,
-                                   'message': self.message_text,
+                                   'box2': self.message_text,
                                    'registrar': 2 },
                           user='test_another_library_org_user@example.com')
         self.assertEqual(len(mail.outbox), 1)
@@ -534,7 +548,7 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         self.submit_form('contact',
                           data = { 'email': self.from_email,
-                                   'message': self.message_text },
+                                   'box2': self.message_text },
                           user='test_registrar_user@example.com')
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]

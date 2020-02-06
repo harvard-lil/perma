@@ -11333,6 +11333,14 @@ button#addlink,
   }
 }
 
+.contact-form label[for="id_box1"] {
+  display: none;
+}
+
+.contact-form textarea[name="box1"] {
+  display: none;
+}
+
 .list-user._isPrivate span.ui-private {
   overflow: hidden;
   display: inline-block;
