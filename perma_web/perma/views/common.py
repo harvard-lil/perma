@@ -209,7 +209,7 @@ def single_permalink(request, guid):
             # While we debug... let's give playback a second try here, and see if this
             # noticeably improves user experience.
             logger.exception(f"First attempt to init replay failed. (Retrying: observe whether this error recurs.)")
-            time.sleep(1)
+            time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
             wr_username = link.init_replay_for_user(request)
 
         context.update({

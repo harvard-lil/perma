@@ -477,6 +477,9 @@ WR_REPLAY_UPLOAD_TIMEOUT = 20
 # WR_REPLAY_UPLOAD_TIMEOUT (Perma settings)
 WR_COOKIE_PERMITTED_AGE = 60
 
+# Seconds to wait before retrying a failed WR playback.
+WR_PLAYBACK_RETRY_AFTER = 1
+
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
