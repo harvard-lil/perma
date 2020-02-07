@@ -13,7 +13,7 @@ from django.forms import widgets
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import (HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect,
     JsonResponse, HttpResponseNotFound, HttpResponseBadRequest)
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 from django.conf import settings
 from django.utils import timezone
 from django.views.generic import TemplateView

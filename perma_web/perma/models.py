@@ -544,7 +544,7 @@ class Organization(DeletableModel):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations", on_delete=models.CASCADE)
-    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="top_level_for_org")
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="top_level_for_org", on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     default_to_private = models.BooleanField(default=False)
     link_count = models.IntegerField(default=0) # A cache of the number of links under this org's purview
@@ -620,6 +620,11 @@ class LinkUserManager(BaseUserManager):
         return user
 
 
+# This is a temporary workaround for the problem described in
+# https://github.com/jazzband/django-model-utils/issues/331#issuecomment-478994563
+# where django-model-utils FieldTracker breaks the setter for overridden attributes on abstract base classes
+del AbstractBaseUser.is_active
+
 class LinkUser(CustomerModel, AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
@@ -630,7 +635,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     )
 
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
-    pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users')
+    pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users', on_delete=models.CASCADE)
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
                                            help_text="If set, this user is an org user. This should not be set if registrar is set!<br><br>"
                                                      "Note: <b>This list will include deleted orgs of which this user is a member.</b> This is a historical"
@@ -643,7 +648,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
     confirmation_code = models.CharField(max_length=45, blank=True)
-    root_folder = models.OneToOneField('Folder', blank=True, null=True)
+    root_folder = models.OneToOneField('Folder', blank=True, null=True, on_delete=models.CASCADE)
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
@@ -1374,7 +1379,8 @@ class Link(DeletableModel):
         old_name = self.warc_storage_file()
         if default_storage.exists(old_name):
             new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % timezone.now().timestamp())
-            default_storage.store_file(default_storage.open(old_name), new_name)
+            with default_storage.open(old_name) as old_file:
+                default_storage.store_file(old_file, new_name)
             default_storage.delete(old_name)
 
     def accessible_to(self, user):

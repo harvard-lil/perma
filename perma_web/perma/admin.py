@@ -72,7 +72,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
             registrar_users=Count('users', distinct=True),
-            last_active=Max('users__last_login', distinct=True),
+            last_active=Max('users__last_login'),
             orgs_count=Count('organizations',distinct=True)
         ).prefetch_related('tags')
     def registrar_users(self, obj):

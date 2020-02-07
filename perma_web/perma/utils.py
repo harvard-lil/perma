@@ -28,7 +28,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse
 from django.utils.decorators import available_attrs

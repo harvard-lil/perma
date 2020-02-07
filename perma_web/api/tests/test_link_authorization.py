@@ -1,6 +1,6 @@
 import os
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
 from perma.models import Link, LinkUser, Folder, Capture

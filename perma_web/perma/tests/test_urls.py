@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from perma.urls import urlpatterns
 from .utils import PermaTestCase
@@ -15,7 +15,7 @@ class UrlsTestCase(PermaTestCase):
         }
 
         for urlpattern in urlpatterns:
-            if '?P<' not in urlpattern.regex.pattern \
+            if '?P<' not in urlpattern.pattern._regex \
                      and urlpattern.name \
                      and urlpattern.name not in exclude:
                 response = self.client.get(reverse(urlpattern.name))

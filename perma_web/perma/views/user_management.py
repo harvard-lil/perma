@@ -25,7 +25,7 @@ from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
 
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.template.context_processors import csrf
 from django.contrib import messages
 
