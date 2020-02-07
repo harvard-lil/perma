@@ -9,9 +9,9 @@ name = "pypi"
 #celery = "==3.1.25"                         # task queue
 celery = {ref = "60420ba75a960f64683902d39064575dd163daa0",git = "https://github.com/celery/celery.git",editable = true}
 kombu = {ref = "a03530ccf8253f3e53ac03309d235a5288ef793a",git = "https://github.com/celery/kombu.git",editable = true}
-Django = "==1.11.28"
+Django = "==2.0.13"
 django-ratelimit = "*"                      # IP-based rate-limiting
-"Fabric3" = "==1.13.1.post1"                # task automation
+"Fabric3" = "*"                             # task automation
 netaddr = "*"                               # to check archive IPs against banned ranges
 pytz = "*"                                  # timezone helper
 requests = {version = "==2.20.0", extras = ["security"]}
@@ -28,7 +28,7 @@ sqlparse = "*"                              # for data migrations
 
 
 # models
-django-model-utils = "==3.1.2"              # soft deletion and other nice things; pinned until we upgrade to Django 2
+django-model-utils = "*"                    # soft deletion and other nice things
 django-mptt = "*"                           # trees (like our folder tree)
 django-simple-history = "*"                 # track changes to certain models
 django-taggit = "*"                         # add tags to model instances

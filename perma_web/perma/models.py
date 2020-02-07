@@ -620,6 +620,11 @@ class LinkUserManager(BaseUserManager):
         return user
 
 
+# This is a temporary workaround for the problem described in
+# https://github.com/jazzband/django-model-utils/issues/331#issuecomment-478994563
+# where django-model-utils FieldTracker breaks the setter for overridden attributes on abstract base classes
+del AbstractBaseUser.is_active
+
 class LinkUser(CustomerModel, AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',

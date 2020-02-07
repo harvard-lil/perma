@@ -59,7 +59,7 @@ class PermaTestCase(TestCase):
         url = reverse(view_name, *reverse_args, **reverse_kwargs)
         if query_params:
             url += '?' + urlencode(query_params)
-        resp = getattr(self.client, method.lower())(bytes(url, 'utf-8'), *request_args, **request_kwargs)
+        resp = getattr(self.client, method.lower())(url, *request_args, **request_kwargs)
         if require_status_code:
             self.assertEqual(resp.status_code, require_status_code)
         return resp

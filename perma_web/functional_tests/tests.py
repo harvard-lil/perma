@@ -395,7 +395,7 @@ class FunctionalTest(BaseTestCase):
             # Visit every test every view that doesn't take parameters,
             # except the route for posting new js errors
             for urlpattern in urlpatterns:
-                if '?P<' not in urlpattern.regex.pattern and urlpattern.name and urlpattern.name not in [
+                if '?P<' not in urlpattern.pattern._regex and urlpattern.name and urlpattern.name not in [
                     "error_management_post_new",
                     "set_iframe_session_cookie"
                 ]:
