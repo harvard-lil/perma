@@ -96,7 +96,7 @@ urlpatterns = [
 
 ### error handlers ###
 
-def handler404(request):
+def handler404(request, exception):
     return HttpResponse('Page Not Found', status=404)
 def handler500(request):
     return HttpResponse('Internal Server Error', status=500)
