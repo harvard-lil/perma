@@ -480,6 +480,11 @@ WR_COOKIE_PERMITTED_AGE = 60
 # Seconds to wait before retrying a failed WR playback.
 WR_PLAYBACK_RETRY_AFTER = 1
 
+# Disable SameSite protection (https://www.owasp.org/index.php/SameSite)
+# So that we can set iframe cookies properly, when we receive the redirect from Webrecorder
+# https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-SESSION_COOKIE_SAMESITE
+SESSION_COOKIE_SAMESITE = None
+
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
