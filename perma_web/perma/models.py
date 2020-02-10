@@ -1490,7 +1490,7 @@ class Link(DeletableModel):
 
         logger.info(f"{self.guid}: opening warc")
         with default_storage.open(warc_path, 'rb') as warc_file:
-           logger.info(f"{self.guid}: making PUT API call")
+            logger.info(f"{self.guid}: making PUT API call")
             _, upload_data = query_wr_api(
                 method='put',
                 path='/upload?force-coll={coll}&filename={coll}.warc.gz'.format(coll=self.wr_collection_slug),
