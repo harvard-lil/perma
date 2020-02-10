@@ -1449,8 +1449,10 @@ class Link(DeletableModel):
         # If a visitor has a usable WR session already, reuse it.
         # If they don't, WR will start a fresh session and will return
         # a new cookie.
+        logger.info(f"{self.guid}: Getting cookie")
         wr_session_cookie = get_wr_session_cookie(request, session_key)
 
+        logger.info(f"{self.guid}: Getting session")
         response, data = query_wr_api(
             method='post',
             path='/auth/ensure_login',
@@ -1472,7 +1474,7 @@ class Link(DeletableModel):
             request.session['wr_temp_username'] = data['username']
 
         if data['coll_empty']:
-            logger.debug("Uploading {} for '{}'".format(self.guid, data['username']))
+            logger.info(f"{self.guid}: Uploading to WR for {data['username']}")
             try:
                 self.upload_to_wr(data['username'], wr_session_cookie)
             except WebrecorderException:
@@ -1486,7 +1488,9 @@ class Link(DeletableModel):
         upload_data = None
         start_time = time.time()
 
+        logger.info(f"{self.guid}: opening warc")
         with default_storage.open(warc_path, 'rb') as warc_file:
+            logger.info(f"{self.guid}: making PUT API call")
             _, upload_data = query_wr_api(
                 method='put',
                 path='/upload?force-coll={coll}&filename={coll}.warc.gz'.format(coll=self.wr_collection_slug),
@@ -1497,6 +1501,7 @@ class Link(DeletableModel):
 
         # wait for WR to finish uploading the WARC
         while True:
+            logger.info(f"{self.guid}: Waiting for WR to be ready.")
             if time.time() - start_time > settings.WR_REPLAY_UPLOAD_TIMEOUT:
                 raise WebrecorderException("Upload timed out; check Webrecorder logs.")
 
