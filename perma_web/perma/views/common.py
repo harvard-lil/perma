@@ -181,6 +181,7 @@ def single_permalink(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
+    logger.info(f"Preparing context for {link.guid}")
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
@@ -202,16 +203,19 @@ def single_permalink(request, guid):
            and not link.user_deleted \
            and link.ready_for_playback():
         try:
+            logger.info(f"Initializing play back of {link.guid}")
             wr_username = link.init_replay_for_user(request)
-        except:  # noqa
+        except Exception:  # noqa
             # We are experiencing many varieties of transient flakiness in playback:
             # second attempts, triggered by refreshing the page, almost always seem to work.
             # While we debug... let's give playback a second try here, and see if this
             # noticeably improves user experience.
-            logger.exception(f"First attempt to init replay failed. (Retrying: observe whether this error recurs.)")
+            logger.exception(f"First attempt to init replay of {link.guid} failed. (Retrying: observe whether this error recurs.)")
             time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
+            logger.info(f"Initializing play back of {link.guid} (2nd try)")
             wr_username = link.init_replay_for_user(request)
 
+        logger.info(f"Updating context with WR playback information for {link.guid}")
         context.update({
             'wr_host': settings.PLAYBACK_HOST,
             'wr_prefix': link.wr_iframe_prefix(wr_username),
@@ -219,6 +223,7 @@ def single_permalink(request, guid):
             'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
         })
 
+    logger.info(f"Rendering template for {link.guid}")
     response = render(request, 'archive/single-link.html', context)
 
     # Adjust status code
@@ -228,7 +233,9 @@ def single_permalink(request, guid):
         response.status_code = 403
 
     # Add memento headers, when appropriate
+    logger.info(f"Deciding whether to include memento headers for {link.guid}")
     if link.is_visible_to_memento():
+        logger.info(f"Including memento headers for {link.guid}")
         response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
         response['Link'] = str(
             LinkHeader([
@@ -240,7 +247,7 @@ def single_permalink(request, guid):
                 Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
             ])
         )
-
+    logger.info(f"Returning response for {link.guid}")
     return response
 
 
