@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "16323db614c4e4026661a7d654832e7ad1f6d869ac8af2c2ddd09478c6d99624"
+            "sha256": "0d6258bb2ae8777d446aaddbb0f7358f0e246e4561f394507e113b2f8b0188a2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -685,6 +685,13 @@
             "index": "pypi",
             "version": "==1.24.2"
         },
+        "uwsgitop": {
+            "hashes": [
+                "sha256:99ca245119e4a0600840a62b7b4e020c9870fe90952b24eecfff0c9090c75d14"
+            ],
+            "index": "pypi",
+            "version": "==0.11"
+        },
         "wand": {
             "hashes": [
                 "sha256:28e0454c9d16d69c5d5034918d96320d8f9f1377b4fdaf4944eec2f938c74704",
@@ -1029,13 +1036,6 @@
                 "sha256:7c3dca29c022744e95b547e867cee89f4fce4373f3549ccd8797d8eb52cdb873"
             ],
             "version": "==0.3.0"
-        },
-        "uwsgitop": {
-            "hashes": [
-                "sha256:99ca245119e4a0600840a62b7b4e020c9870fe90952b24eecfff0c9090c75d14"
-            ],
-            "index": "pypi",
-            "version": "==0.11"
         },
         "wcwidth": {
             "hashes": [
