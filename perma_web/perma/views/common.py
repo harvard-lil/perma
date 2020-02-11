@@ -237,13 +237,15 @@ def single_permalink(request, guid):
     if link.is_visible_to_memento():
         logger.info(f"Including memento headers for {link.guid}")
         response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
+        # impose an arbitrary length-limit on the submitted URL, so that this header doesn't become illegally large
+        url = link.submitted_url[:500]
         response['Link'] = str(
             LinkHeader([
-                Rel(link.submitted_url, rel='original'),
-                Rel(timegate_url(request, link.submitted_url), rel='timegate'),
-                Rel(timemap_url(request, link.submitted_url, 'link'), rel='timemap', type='application/link-format'),
-                Rel(timemap_url(request, link.submitted_url, 'json'), rel='timemap', type='application/json'),
-                Rel(timemap_url(request, link.submitted_url, 'html'), rel='timemap', type='text/html'),
+                Rel(url, rel='original'),
+                Rel(timegate_url(request, url), rel='timegate'),
+                Rel(timemap_url(request, url, 'link'), rel='timemap', type='application/link-format'),
+                Rel(timemap_url(request, url, 'json'), rel='timemap', type='application/json'),
+                Rel(timemap_url(request, url, 'html'), rel='timemap', type='text/html'),
                 Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
             ])
         )
@@ -318,7 +320,9 @@ def timemap(request, response_format, url):
 @ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.DAY_LIMIT, block=True, key=ratelimit_ip_key)
 def timegate(request, url):
-    data = memento_data_for_url(request, url_with_qs_and_hash(url, request.META['QUERY_STRING']))
+    # impose an arbitrary length-limit on the submitted URL, so that the headers don't become illegally large
+    url = url_with_qs_and_hash(url, request.META['QUERY_STRING'])[:500]
+    data = memento_data_for_url(request, url)
     if not data:
         return HttpResponseNotFound('404 page not found\n')
 
