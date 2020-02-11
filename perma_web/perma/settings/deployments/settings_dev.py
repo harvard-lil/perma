@@ -15,7 +15,7 @@ ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
 
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
-LOGGING['handlers']['default']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
+LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
 PHANTOMJS_LOG = os.path.join(LOGGING_DIR, 'phantomjs.log')
 
 # user-generated files

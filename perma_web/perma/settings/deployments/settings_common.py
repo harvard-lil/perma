@@ -1,5 +1,6 @@
 # Core settings used by all deployments.
 import os, sys
+from copy import deepcopy
 
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
@@ -290,58 +291,60 @@ CACHE_MAX_AGES = {
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 50
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(filename)s %(lineno)d: %(message)s'
-        },
+from django.utils.log import DEFAULT_LOGGING
+LOGGING = deepcopy(DEFAULT_LOGGING)
+LOGGING['handlers'] = {
+    **LOGGING['handlers'],
+    # log everything to console on both dev and prod
+    'console': {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'standard',
     },
-    'filters': {
-         'require_debug_false': {
-             '()': 'django.utils.log.RequireDebugFalse'
-         }
-     },
-    'handlers': {
-        'default': {
-            'level':'INFO',
-            'filters': ['require_debug_false'],
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/perma.log',
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
-            'formatter':'standard',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'perma.reporter.CustomAdminEmailHandler'
-        },
+    # custom error email template
+    'mail_admins': {
+        'level': 'ERROR',
+        'filters': ['require_debug_false'],
+        'class': 'perma.reporter.CustomAdminEmailHandler'
     },
-    'loggers': {
-        '': {
-            'handlers': ['default', 'mail_admins'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'warcprox': {
-            'level': 'CRITICAL'
-        },
-        'requests' : {
-            'level': 'WARNING'
-        }
-    }
+    # log to file
+    'file': {
+        'level':'INFO',
+        'class':'logging.handlers.RotatingFileHandler',
+        'filename': '/tmp/perma.log',
+        'maxBytes': 1024*1024*5, # 5 MB
+        'backupCount': 5,
+        'formatter':'standard',
+    },
+}
+LOGGING['loggers'] = {
+    **LOGGING['loggers'],
+    # only show warnings for third-party apps
+    '': {
+        'level': 'WARNING',
+        'handlers': ['console', 'mail_admins', 'file'],
+    },
+    # disable django's built-in handlers to avoid double emails
+    'django': {
+        'level': 'WARNING'
+    },
+    'django.request': {
+        'level': 'ERROR'
+    },
+    'warcprox': {
+        'level': 'CRITICAL'
+    },
+    # show info for our first-party apps
+    **{
+        app_name: {'level': 'INFO'}
+        for app_name in ('api', 'lockss', 'perma',)
+    },
+}
+LOGGING['formatters'] = {
+    **LOGGING['formatters'],
+    'standard': {
+        'format': '%(asctime)s [%(levelname)s] %(filename)s %(lineno)d: %(message)s'
+    },
 }
 
 # IP ranges we won't archive.

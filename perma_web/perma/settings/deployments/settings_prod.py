@@ -21,7 +21,7 @@ CELERYBEAT_JOB_NAMES = [
     ]
 
 # logging
-LOGGING['handlers']['default']['filename'] = '/var/log/perma/perma.log'
+LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
 # use separate subdomain for user content
