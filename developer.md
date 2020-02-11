@@ -100,8 +100,6 @@ in `docker-compose.yaml`. This is not yet managed programmatically.
 
 `d ./manage.py migrate`
 
-`d ./manage.py migrate --database=perma-cdxline`
-
 For more information on migrations, see [Schema and data migrations](#schema-and-data-migrations)
 
 ### Reset the database
