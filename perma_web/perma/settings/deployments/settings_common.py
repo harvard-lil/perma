@@ -8,14 +8,6 @@ this_module = sys.executable if hasattr(sys, "frozen") else __file__
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
-# make sure mysql uses innodb and utf8
-_mysql_connection_options = {
-    "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
-    # for mysql 5.7+, use:
-    # "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
-    "charset": "utf8",
-}
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -24,29 +16,16 @@ DATABASES = {
         'PASSWORD': 'perma',
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '3306',                      # Set to empty string for default.
-        'OPTIONS': _mysql_connection_options
-
-    },
-    'perma-cdxline': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'perma_cdxline',
-        'USER': 'perma',
-        'PASSWORD': 'perma',
-        'HOST': '',
-        'PORT': '3306',
-        'OPTIONS': _mysql_connection_options
+        'OPTIONS': {
+            "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
+            "charset": "utf8",
+        }
     },
 }
 if os.environ.get('DOCKERIZED'):
     DATABASES['default']['USER'] = 'root'
     DATABASES['default']['PASSWORD'] = 'password'
     DATABASES['default']['HOST'] = 'db'
-    DATABASES['perma-cdxline']['USER'] = 'root'
-    DATABASES['perma-cdxline']['PASSWORD'] = 'password'
-    DATABASES['perma-cdxline']['HOST'] = 'db'
-
-# https://docs.djangoproject.com/en/1.9/topics/db/multi-db/#using-routers
-DATABASE_ROUTERS = ['perma.cdx_router.CDXRouter']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

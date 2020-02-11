@@ -119,14 +119,12 @@ Sometimes LXML can be a little difficult to install. Using static dependencies c
 
 ### Database installation
 
-Perma requires two databases, one to keep track of the URLs in its archives
-(CDXLines) and one for everything else.
+Perma requires a database.
 
 Something like the following can be used to create a new user and new databases:
 
     $ mysql -u root -psomepasshere
     mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
-    mysql> create database perma_cdxline character set utf8; grant all on perma_cdxline.* to perma@'localhost' identified by 'perma';
     mysql -u perma -p perma
     mysql> show databases;
 
@@ -134,12 +132,11 @@ Something like the following can be used to create a new user and new databases:
 ### Create your tables
 
     $ pipenv run python manage.py migrate
-    $ pipenv run python manage.py migrate --database=perma-cdxline
 
-For deployments, you should set an index on the urlkey field in the perma_cdxline table (this will make cdxline lookups faster):
+For deployments, you should set an index on the submitted_url_surt field in the perma_link table (this will make mementoweb lookups faster):
 
-    $ mysql -u perma -pperma perma_cdxline
-    mysql> alter table perma_cdxline add key perma_cdxline_urlkey (urlkey(255));
+    $ mysql -u perma -pperma perma_link
+    mysql> alter table perma_link add key perma_link_surt (submitted_url_surt(255));
 
 If you like, load the test data fixtures:
 
