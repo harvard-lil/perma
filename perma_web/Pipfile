@@ -95,6 +95,7 @@ pytest-xdist = "*"                          # run tests in parallel
 pytest = "*"                                # test runner
 sauceclient = "*"                           # run functional tests in many browsers online
 django-extensions = "*"                     # runserver_plus for SSL
+uwsgitop = "*"                              # uWSGI monitoring
 
 [requires]
 python_version = "3.7"
