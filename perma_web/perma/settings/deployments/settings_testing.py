@@ -34,9 +34,9 @@ ADMINS = (
 # - https://docs.djangoproject.com/en/1.4/topics/testing/#speeding-up-the-tests
 # - http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
 
-CELERY_ALWAYS_EAGER = True
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-BROKER_BACKEND = 'memory'
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = 'memory://localhost/'
 
 # faster collectstatic
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

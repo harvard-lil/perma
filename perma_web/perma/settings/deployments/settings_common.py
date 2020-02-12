@@ -385,17 +385,17 @@ CLIENT_IP_HEADER = 'REMOTE_ADDR'
 
 # Celery settings
 if os.environ.get('DOCKERIZED'):
-    BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
+    CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
 else:
-    BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+    CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
 # If a task is running longer than five minutes, ask it to shut down
-CELERYD_TASK_SOFT_TIME_LIMIT=300
+CELERY_TASK_SOFT_TIME_LIMIT=300
 # If a task is running longer than seven minutes, kill it
-CELERYD_TASK_TIME_LIMIT = 420
+CELERY_TASK_TIME_LIMIT = 420
 # Estimate of active celery workers
 # https://github.com/harvard-lil/perma/issues/2438
 # this value will be reset in settings.utils.post_processing
@@ -508,8 +508,8 @@ DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
 APPEND_SLASH = False
 
 # Schedule celerybeat jobs.
-# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
-CELERYBEAT_JOB_NAMES = []
+# These will be added to CELERY_BEAT_SCHEDULE in settings.utils.post_processing
+CELERY_BEAT_JOB_NAMES = []
 
 
 # tests
@@ -535,7 +535,7 @@ LOCKSS_CRAWL_INTERVAL = "12h"
 LOCKSS_QUORUM = 3
 LOCKSS_DEBUG_IPS = False
 
-CELERY_ROUTES = {
+CELERY_TASK_ROUTES = {
     'perma.tasks.upload_to_internet_archive': {'queue': 'background'},
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},

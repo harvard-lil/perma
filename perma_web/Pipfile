@@ -6,9 +6,7 @@ name = "pypi"
 [packages]
 
 # general
-#celery = "==3.1.25"                         # task queue
-celery = {ref = "60420ba75a960f64683902d39064575dd163daa0",git = "https://github.com/celery/celery.git",editable = true}
-kombu = {ref = "a03530ccf8253f3e53ac03309d235a5288ef793a",git = "https://github.com/celery/kombu.git",editable = true}
+celery = "*"                                # task queue
 Django = "~=2.2"
 django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "*"                             # task automation

@@ -804,7 +804,7 @@ def clean_up_failed_captures():
     """
     # use database time with a custom where clause to ensure consistent time across workers
     for capture_job in CaptureJob.objects.filter(status='in_progress').select_related('link').extra(
-            where=["capture_start_time < now() - INTERVAL %s second" % settings.CELERYD_TASK_TIME_LIMIT]
+            where=["capture_start_time < now() - INTERVAL %s second" % settings.CELERY_TASK_TIME_LIMIT]
     ):
         capture_job.mark_failed("Timed out.")
         capture_job.link.captures.filter(status='pending').update(status='failed')

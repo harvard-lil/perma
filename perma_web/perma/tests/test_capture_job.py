@@ -114,7 +114,7 @@ class CaptureJobTestCase(TransactionTestCase):
         self.assertEqual(job.status, "in_progress")
 
         # once job is sufficiently old, clean_up_failed_captures should mark it as failed
-        job.capture_start_time -= timedelta(seconds=settings.CELERYD_TASK_TIME_LIMIT+60)
+        job.capture_start_time -= timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT+60)
         job.save()
         clean_up_failed_captures()
         job.refresh_from_db()
