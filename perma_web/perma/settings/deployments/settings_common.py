@@ -260,6 +260,11 @@ LOGIN_MINUTE_LIMIT = '5000/m'
 LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 # Cache-Control max-age settings
 CACHE_MAX_AGES = {
     'single_permalink' : 60 * 60,     # 1hr
@@ -385,9 +390,9 @@ CLIENT_IP_HEADER = 'REMOTE_ADDR'
 
 # Celery settings
 if os.environ.get('DOCKERIZED'):
-    CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
+    CELERY_BROKER_URL = 'redis://perma-redis:6379/1'
 else:
-    CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+    CELERY_BROKER_URL = 'redis://guest:guest@localhost::6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

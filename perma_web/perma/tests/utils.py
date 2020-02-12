@@ -131,3 +131,10 @@ class PermaTestCase(TestCase):
 
         return resp
 
+
+
+# from https://github.com/jamesls/fakeredis/issues/234
+from django_redis.pool import ConnectionFactory
+class FakeConnectionFactory(ConnectionFactory):
+    def get_connection(self, params):
+        return self.redis_client_cls(**self.redis_client_cls_kwargs)
