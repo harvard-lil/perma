@@ -51,7 +51,7 @@ def post_process_settings(settings):
             'schedule': crontab(minute='*')
         }
     }
-    settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
+    settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),
                                            **settings.get('CELERY_BEAT_SCHEDULE', {}))
 
     # Count celery capture workers, by convention named w1, w2, etc.
