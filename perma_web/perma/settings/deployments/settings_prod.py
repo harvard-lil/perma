@@ -34,7 +34,6 @@ THUMBNAIL_REDIS_HOST = 'localhost'
 THUMBNAIL_REDIS_PORT = '6379'
 
 # caching
-# in dev, Django will use the default in-memory cache
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

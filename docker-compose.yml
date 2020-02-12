@@ -4,22 +4,14 @@ services:
   #
   # Perma
   #
-  rabbitmq:
-    image: rabbitmq:3.7.2
-    volumes:
-      - rabbitmq_home:/var/lib/rabbitmq:delegated
-    networks:
-      - default
-
   # TO USE REDIS FOR CACHING:
-  # 1) comment in the perma-redis stanza
-  # 2) comment in the data volume
-  # 3) add the caches setting found in settings_prod to your settings.py,
-  #    with "LOCATION": "redis://perma-redis:6379/0"
-  # perma-redis:
-  #   image: redis:4.0.6
-  #   volumes:
-  #     - redis_data:/data:delegated
+  # Add the caches setting found in settings_prod to your settings.py,
+  # with "LOCATION": "redis://perma-redis:6379/0"
+  # (Don't clobber the Celery backend, which is at /1)
+  perma-redis:
+    image: redis:4.0.6
+    volumes:
+      - redis_data:/data:delegated
   db:
     image: mysql:5.6
     environment:
@@ -36,7 +28,7 @@ services:
       - default
   web:
     build: ./perma_web
-    image: perma3:0.42
+    image: perma3:0.43
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -240,8 +232,7 @@ services:
 volumes:
   node_modules:
   db3_data:
-  rabbitmq_home:
-  # redis_data:
+  redis_data:
   pp_db_data:
   wr_warcs:
   wr_redis_data:

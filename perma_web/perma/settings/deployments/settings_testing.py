@@ -58,20 +58,20 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 #     }
 # }
 
-
+# Work around for https://github.com/jamesls/fakeredis/issues/234
+DJANGO_REDIS_CONNECTION_FACTORY = 'perma.tests.utils.FakeConnectionFactory'
 
 # Use production cache setup, except with fakeredis backend
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
         }
     }
 }
-
 
 # Perma.cc encryption keys for communicating with Perma-Payments
 # generated using perma_payments.security.generate_public_private_keys

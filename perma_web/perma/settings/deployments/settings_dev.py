@@ -34,7 +34,7 @@ SECRET_KEY = 'secret'
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
-CELERY_RESULT_BACKEND = 'amqp'
+CELERY_RESULT_BACKEND = None
 
 ### optional dev packages ###
 
