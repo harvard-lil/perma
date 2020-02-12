@@ -36,7 +36,7 @@ ADMINS = (
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
-BROKER_BACKEND = 'memory'
+CELERY_BROKER_URL = 'memory://localhost/'
 
 # faster collectstatic
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
