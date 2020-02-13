@@ -396,7 +396,7 @@ class CustomerModel(models.Model):
                 'rate': subscription['rate'],
                 'next_payment': subscription['paid_through'].strftime("%Y-%m-%d"),
                 'required_fields': required_fields,
-                'encrypted_data': prep_for_perma_payments(required_fields)
+                'encrypted_data': prep_for_perma_payments(required_fields).decode('utf-8')
             })
         else:
             for tier in settings.TIERS[self.customer_type]:
@@ -419,7 +419,7 @@ class CustomerModel(models.Model):
                     'rate': tier['recurring_amount'],
                     'next_payment': tier['next_payment'],
                     'required_fields': required_fields,
-                    'encrypted_data': prep_for_perma_payments(required_fields)
+                    'encrypted_data': prep_for_perma_payments(required_fields).decode('utf-8')
                 })
 
         return {

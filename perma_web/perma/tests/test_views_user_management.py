@@ -1017,7 +1017,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_subscribe_form_if_no_standing_subscription(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.return_value = None
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_subscription',
                       user=u)
@@ -1025,7 +1025,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Purchase a personal subscription', r.content)
         self.assertIn(b'<form class="upgrade-form', r.content)
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(prepped.return_value, r.content)
         get_subscription.assert_called_once_with(u)
 
 
@@ -1035,7 +1035,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_subscription',
                       user=u)
@@ -1112,14 +1112,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         assert u.can_view_subscription()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Individual'})
 
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(prepped.return_value, r.content)
         self.assertIn(b'Are you sure you want to cancel', r.content)
 
         get_subscription.assert_called_once_with(u)
@@ -1143,8 +1143,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
-        prepped_v.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
+        prepped_v.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
@@ -1158,7 +1158,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, 'Change Plan')
         self.assertNotContains(r, 'Cancel Scheduled Downgrade')
         self.assertContains(r, '<input required type="radio" name="encrypted_data"', available_tiers)
-        self.assertContains(r, str(sentinel.prepped), available_tiers + 1)
+        self.assertContains(r, prepped.return_value, available_tiers + 1)
         get_subscription.assert_called_once_with(u)
 
 
@@ -1169,8 +1169,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_current_monthly_subscription_with_scheduled_downgrade()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
-        prepped_v.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
+        prepped_v.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
@@ -1180,7 +1180,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, 'Cancel Scheduled Downgrade')
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', 2)
         self.assertNotContains(r, '<input required type="radio" name="encrypted_data"')
-        self.assertContains(r, str(sentinel.prepped), 2)
+        self.assertContains(r, prepped.return_value, 2)
         get_subscription.assert_called_once_with(u)
 
 
@@ -1190,7 +1190,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_on_hold_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
@@ -1198,7 +1198,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         self.assertContains(r, 'Update Credit Card Information')
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', 1)
-        self.assertContains(r, str(sentinel.prepped), 1)
+        self.assertContains(r, prepped.return_value, 1)
         self.assertNotContains(r, 'Change Plan')
         get_subscription.assert_called_once_with(u)
 
@@ -1209,7 +1209,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_cancellation_requested_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
@@ -1217,7 +1217,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         self.assertContains(r, 'Update Credit Card Information')
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', 1)
-        self.assertContains(r, str(sentinel.prepped), 1)
+        self.assertContains(r, prepped.return_value, 1)
         self.assertNotContains(r, 'Change Plan')
         get_subscription.assert_called_once_with(u)
 
@@ -1230,7 +1230,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_registrar_user_nonpaying_registrar(self, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='test_registrar_user@example.com')
         get_subscription_u.return_value = None
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_subscription',
                       user=u)
@@ -1242,7 +1242,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertNotIn(b'Purchase a subscription for Test Firm', r.content)
         self.assertContains(r, '<form class="upgrade-form', individual_tier_count)
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count)
-        self.assertContains(r, str(sentinel.prepped), individual_tier_count)
+        self.assertContains(r, prepped.return_value, individual_tier_count)
 
         get_subscription_u.assert_called_once_with(u)
         self.assertEqual(get_subscription_r.call_count, 0)
@@ -1255,7 +1255,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         get_subscription_u.return_value = None
         get_subscription_r.return_value = None
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_subscription',
                       user=u)
@@ -1266,7 +1266,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'Purchase a subscription for Test Firm', r.content)
         self.assertContains(r, '<form class="upgrade-form', tier_count)
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', tier_count)
-        self.assertContains(r, str(sentinel.prepped), tier_count)
+        self.assertContains(r, prepped.return_value, tier_count)
         get_subscription_u.assert_called_once_with(u)
         get_subscription_r.assert_called_once_with(u.registrar)
 
@@ -1279,7 +1279,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_u.return_value = None
         subscription = spoof_current_monthly_subscription()
         get_subscription_r.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_subscription',
                       user=u)
@@ -1291,7 +1291,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertNotIn(b'Purchase a subscription for Test Firm', r.content)
         self.assertContains(r, '<form class="upgrade-form', individual_tier_count)
         self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count)
-        self.assertContains(r, str(sentinel.prepped), individual_tier_count)
+        self.assertContains(r, prepped.return_value, individual_tier_count)
 
         self.assertIn(b'Rate', r.content)
         self.assertIn(b'Paid Through', r.content)
@@ -1312,14 +1312,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         assert u.can_view_subscription()
         subscription = spoof_current_monthly_subscription()
         get_subscription_u.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Individual'})
 
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(prepped.return_value, r.content)
         self.assertIn(b'Are you sure you want to cancel', r.content)
         self.assertNotIn(b'Test Firm', r.content)
         self.assertIn(b'personal', r.content)
@@ -1335,14 +1335,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         assert u.can_view_subscription()
         subscription = spoof_current_monthly_subscription()
         get_subscription_r.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Registrar'})
 
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(bytes(str(sentinel.prepped), 'utf-8'), r.content)
+        self.assertIn(prepped.return_value, r.content)
         self.assertIn(b'Are you sure you want to cancel', r.content)
         self.assertIn(b'Test Firm', r.content)
         self.assertNotIn(b'Personal', r.content)
@@ -1357,7 +1357,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         assert u.can_view_subscription()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
@@ -1375,7 +1375,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         assert u.can_view_subscription()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
-        prepped.return_value = sentinel.prepped
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
+
 
         r = self.post('user_management_settings_subscription_update',
                       user=u,
