@@ -1091,7 +1091,7 @@ def settings_subscription_cancel(request):
             'customer_pk': customer.id,
             'customer_type': account_type,
             'timestamp': timezone.now().timestamp()
-        })
+        }).decode('utf-8')
     }
     return render(request, 'user_management/settings-subscription-cancel-confirm.html', context)
 
@@ -1119,7 +1119,7 @@ def settings_subscription_update(request):
             'customer_pk': customer.id,
             'customer_type': account_type,
             'timestamp': timezone.now().timestamp()
-        })
+        }).decode('utf-8')
     }
     return render(request, 'user_management/settings-subscription-update.html', context)
 
