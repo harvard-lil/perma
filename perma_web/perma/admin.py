@@ -190,7 +190,7 @@ class LinkAdmin(SimpleHistoryAdmin):
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
         new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
-                   fields=['status', 'message', 'step_count', 'step_description', 'human'],
+                   fields=['status', 'superseded', 'message', 'step_count', 'step_description', 'human'],
                    readonly_fields=['message', 'step_count', 'step_description', 'human'],
                    can_delete=False)
     ]
@@ -212,8 +212,8 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
-    list_filter = ['status']
+    list_display = ['id', 'status', 'superseded', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
+    list_filter = ['status', 'superseded']
     raw_id_fields = ['link', 'created_by']
 
     def get_queryset(self, request):

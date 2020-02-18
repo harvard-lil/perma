@@ -503,9 +503,10 @@ class AuthenticatedLinkDetailView(BaseView):
             uploaded_file = request.data.get('file')
             if uploaded_file:
 
-                # delete related cdxlines and captures, delete warc (rename)
+                # delete related cdxlines and captures, delete warc (rename), mark capture job as superseded
                 link.delete_related()
                 link.safe_delete_warc()
+                link.mark_capturejob_superseded()
 
                 # write new warc and capture
                 link.write_uploaded_file(uploaded_file, cache_break=True)

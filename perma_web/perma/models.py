@@ -1337,6 +1337,14 @@ class Link(DeletableModel):
     def delete_related(self):
         Capture.objects.filter(link_id=self.pk).delete()
 
+    def mark_capturejob_superseded(self):
+        try:
+            job = self.capture_job
+            job.superseded = True
+            job.save()
+        except CaptureJob.DoesNotExist:
+            pass
+
     @cached_property
     def screenshot_capture(self):
         return self.captures.filter(role='screenshot').first()
