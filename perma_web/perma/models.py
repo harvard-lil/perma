@@ -1094,6 +1094,8 @@ class Link(DeletableModel):
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
+
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     submitted_url_surt = models.CharField(max_length=2100, null=True, blank=True)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
@@ -1103,9 +1105,6 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
-    internet_archive_upload_status = models.CharField(max_length=20,
-                                                      default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('failed_permanently','failed_permanently'),('deleted','deleted')))
 
     warc_size = models.IntegerField(blank=True, null=True)
 
@@ -1114,11 +1113,13 @@ class Link(DeletableModel):
     is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
+    internet_archive_upload_status = models.CharField(max_length=20,
+                                                      default='not_started',
+                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('failed_permanently','failed_permanently'),('deleted','deleted')))
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
-    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
 
     objects = LinkManager()
     tracker = FieldTracker()
