@@ -1107,6 +1107,7 @@ class Link(DeletableModel):
     notes = models.TextField(blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
+    cached_can_play_back = models.BooleanField(null=True, default=None, help_text="After archive_timestamp, cache whether this link can be played back, for efficiency.")
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
@@ -1621,6 +1622,8 @@ class CaptureJob(models.Model):
     step_description = models.CharField(max_length=255, blank=True, null=True)
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
+
+    superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
 
     # settings to allow our tests to draw out race conditions
     TEST_PAUSE_TIME = 0
