@@ -547,6 +547,7 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.upload_to_internet_archive': {'queue': 'background'},
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
+    'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
 }
 
 

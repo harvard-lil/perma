@@ -25,7 +25,10 @@ def post_process_settings(settings):
 
     # add the named celerybeat jobs
     celerybeat_job_options = {
-        # primary server
+        'cache_playback_status_for_new_links': {
+            'task': 'perma.tasks.cache_playback_status_for_new_links',
+            'schedule': crontab(hour='*', minute='30'),
+        },
         'update-stats': {
             'task': 'perma.tasks.update_stats',
             'schedule': crontab(minute='*'),

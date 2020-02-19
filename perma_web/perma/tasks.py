@@ -1370,6 +1370,21 @@ def update_stats():
         current_week.save()
 
 
+@shared_task(bind=True, acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def cache_playback_status_for_new_links(self):
+    links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
+    for link_guid in links.values_list('guid', flat=True).iterator():
+        cache_playback_status.delay(link_guid)
+
+
+@shared_task(bind=True, acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def cache_playback_status(self, link_guid):
+    link = Link.objects.get(guid=link_guid)
+    link.cached_can_play_back = link.can_play_back()
+    if link.tracker.has_changed('cached_can_play_back'):
+        link.save(update_fields=['cached_can_play_back'])
+
+
 @shared_task(bind=True)
 def delete_from_internet_archive(self, link_guid):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
