@@ -199,9 +199,7 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if context['can_view'] \
-           and not link.user_deleted \
-           and link.ready_for_playback():
+    if context['can_view'] and link.can_play_back():
         try:
             logger.info(f"Initializing play back of {link.guid}")
             wr_username = link.init_replay_for_user(request)

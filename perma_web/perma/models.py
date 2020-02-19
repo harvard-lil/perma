@@ -1138,14 +1138,14 @@ class Link(DeletableModel):
     def is_permanent(self):
         return self.is_archive_eligible() and not self.user_deleted
 
-    def is_successful(self):
+    def has_successful_capture(self):
         return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
 
     def can_upload_to_internet_archive(self):
         return self.is_discoverable()
 
     def is_visible_to_memento(self):
-        return self.is_permanent() and self.is_successful() and self.is_discoverable()
+        return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
 
     @cached_property
     def ascii_safe_url(self):
@@ -1396,31 +1396,45 @@ class Link(DeletableModel):
     def accessible_to(self, user):
         return user.can_edit(self)
 
-    ###
-    ### Methods for playback via Webrecorder
-    ###
-    def ready_for_playback(self):
+    def can_play_back(self):
         """
-        Reports whether a Perma Link has been successfully captured and
-        is ready for playback. This should be synonymous with "is_successful",
-        but isn't quite yet... https://github.com/harvard-lil/perma/issues/2687.
-        Avoiding getting too deep in refactoring at this instant.
+        Reports whether a Perma Link has been successfully captured (or uploaded)
+        and is ready for playback.
 
         See also /perma/perma_web/static/js/helpers/link.helpers.js
         """
-        ready = self.is_successful()
+        if self.cached_can_play_back is not None:
+            return self.cached_can_play_back
+
+        if self.user_deleted:
+            return False
+
+        successful_metadata = self.has_successful_capture()
 
         # Early Perma Links do not have CaptureJobs; if no CaptureJob,
-        # judge based on Capture statuses alone.
+        # judge based on Capture statuses alone; otherwise, inspect
+        # CaptureJob status
         job = None
         try:
             job = self.capture_job
         except CaptureJob.DoesNotExist:
             pass
-        if job and job.status != 'completed':
-            ready = False
+        if job and not job.superseded and job.status != 'completed':
+            successful_metadata = False
 
-        return ready
+        # I assert that the presence of a warc in default_storage means a Link
+        # can be played back. If there is a disconnect between our metadata and
+        # the contents of default_storage... something is wrong and needs fixing.
+        has_warc = default_storage.exists(self.warc_storage_file())
+        if successful_metadata != has_warc:
+            logger.error(f"Conflicting metadata about {self.guid}: has_warc={has_warc}, successful_metadata={successful_metadata}")
+
+        # Trust our records (the metadata) more than has_warc
+        return successful_metadata
+
+    ###
+    ### Methods for playback via Webrecorder
+    ###
 
     @cached_property
     def wr_collection_slug(self):
