@@ -31,6 +31,7 @@ import warcprox
 from warcprox.controller import WarcproxController
 from warcprox.warcproxy import WarcProxyHandler
 from warcprox.mitmproxy import ProxyingRecordingHTTPResponse
+from warcprox.mitmproxy import http_client
 import requests
 from requests.structures import CaseInsensitiveDict
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -730,7 +731,7 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
         time.sleep(1)
 
     if warcprox.controller:
-        warcprox_controller.warc_writer_processor.pool.shutdown() # blocking
+        warcprox_controller.warc_writer_processor.writer_pool.close_writers()  # blocking
 
 
 def process_metadata(metadata, link):
@@ -942,6 +943,7 @@ def run_next_capture():
                 req += self.rfile.read(int(self.headers['Content-Length']))
 
             prox_rec_res = None
+            start = time.time()
             try:
                 self.logger.debug('sending to remote server req=%r', req)
 
@@ -955,9 +957,14 @@ def run_next_capture():
                         tmp_file_max_memory_size=self._tmp_file_max_memory_size)
                 prox_rec_res.begin(extra_response_headers=extra_response_headers)
 
-                buf = prox_rec_res.read(65536)
+                buf = None
                 while buf != b'':
-                    buf = prox_rec_res.read(65536)
+                    try:
+                        buf = prox_rec_res.read(65536)
+                    except http_client.IncompleteRead as e:
+                        self.logger.warn('%s from %s', e, self.url)
+                        buf = e.partial
+
                     if (self._max_resource_size and
                             prox_rec_res.recorder.len > self._max_resource_size):
                         prox_rec_res.truncated = b'length'
@@ -967,6 +974,15 @@ def run_next_capture():
                                 'truncating response because max resource size %d '
                                 'bytes exceeded for URL %s',
                                 self._max_resource_size, self.url)
+                        break
+                    elif ('content-length' not in self.headers and
+                           time.time() - start > 3 * 60 * 60):
+                        prox_rec_res.truncated = b'time'
+                        self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
+                        self._remote_server_conn.sock.close()
+                        self.logger.info(
+                                'reached hard timeout of 3 hours fetching url '
+                                'without content-length: %s', self.url)
                         break
 
                     # begin Perma changes #
@@ -982,25 +998,44 @@ def run_next_capture():
                     # end Perma changes #
 
                 self.log_request(prox_rec_res.status, prox_rec_res.recorder.len)
-            except:  # noqa
-                self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
-                self._remote_server_conn.sock.close()
+                # Let's close off the remote end. If remote connection is fine,
+                # put it back in the pool to reuse it later.
+                if not is_connection_dropped(self._remote_server_conn):
+                    self._conn_pool._put_conn(self._remote_server_conn)
+
+            except Exception as e:
+                # A common error is to connect to the remote server successfully
+                # but raise a `RemoteDisconnected` exception when trying to begin
+                # downloading. Its caused by prox_rec_res.begin(...) which calls
+                # http_client._read_status(). The connection fails there.
+                # https://github.com/python/cpython/blob/3.7/Lib/http/client.py#L275
+                # Another case is when the connection is fine but the response
+                # status is problematic, raising `BadStatusLine`.
+                # https://github.com/python/cpython/blob/3.7/Lib/http/client.py#L296
+                # In both cases, the host is bad and we must add it to
+                # `bad_hostnames_ports` cache.
+                if isinstance(e, (http_client.RemoteDisconnected,
+                                  http_client.BadStatusLine)):
+                    host_port = self._hostname_port_cache_key()
+                    with self.server.bad_hostnames_ports_lock:
+                        self.server.bad_hostnames_ports[host_port] = 502
+                    self.logger.info('bad_hostnames_ports cache size: %d',
+                                     len(self.server.bad_hostnames_ports))
+
+                # Close the connection only if its still open. If its already
+                # closed, an `OSError` "([Errno 107] Transport endpoint is not
+                # connected)" would be raised.
+                if not is_connection_dropped(self._remote_server_conn):
+                    self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
+                    self._remote_server_conn.sock.close()
                 raise
             finally:
-                try:
-                    # Let's close off the remote end. If remote connection is fine,
-                    # put it back in the pool to reuse it later.
-                    if not is_connection_dropped(self._remote_server_conn):
-                        self._conn_pool._put_conn(self._remote_server_conn)
-                except ValueError:
-                    # the connection is already closed
-                    pass
                 if prox_rec_res:
                     prox_rec_res.close()
 
             return req, prox_rec_res
 
-        warcprox.mitmproxy.MitmProxyHandler._proxy_request = stoppable_proxy_request
+        warcprox.mitmproxy.MitmProxyHandler._inner_proxy_request = stoppable_proxy_request
 
 
         def _proxy_request(self):
@@ -1050,7 +1085,7 @@ def run_next_capture():
                     address="127.0.0.1",
                     port=warcprox_port,
                     max_threads=settings.MAX_PROXY_THREADS,
-                    writer_threads=1,
+                    queue_size=settings.MAX_PROXY_QUEUE_SIZE,
                     gzip=True,
                     stats_db_file="",
                     dedup_db_file="",
