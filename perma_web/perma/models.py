@@ -1411,9 +1411,9 @@ class Link(DeletableModel):
 
         successful_metadata = self.has_successful_capture()
 
-        # Early Perma Links do not have CaptureJobs; if no CaptureJob,
-        # judge based on Capture statuses alone; otherwise, inspect
-        # CaptureJob status
+        # Early Perma Links and direct uploads do not have CaptureJobs;
+        # if no CaptureJob, judge based on Capture statuses alone;
+        # otherwise, inspect CaptureJob status
         job = None
         try:
             job = self.capture_job
