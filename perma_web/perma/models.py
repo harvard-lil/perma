@@ -1334,7 +1334,7 @@ class Link(DeletableModel):
     #     self.thumbnail_status = 'failed'
     #     self.save(update_fields=['thumbnail_status'])
 
-    def delete_related(self):
+    def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()
 
     def mark_capturejob_superseded(self):

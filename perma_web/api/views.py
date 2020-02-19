@@ -503,8 +503,8 @@ class AuthenticatedLinkDetailView(BaseView):
             uploaded_file = request.data.get('file')
             if uploaded_file:
 
-                # delete related cdxlines and captures, delete warc (rename), mark capture job as superseded
-                link.delete_related()
+                # delete related captures, delete warc (rename), mark capture job as superseded
+                link.delete_related_captures()
                 link.safe_delete_warc()
                 link.mark_capturejob_superseded()
 
@@ -546,7 +546,8 @@ class AuthenticatedLinkDetailView(BaseView):
         if not request.user.can_delete(link):
             raise PermissionDenied()
 
-        link.delete_related()  # delete related captures and cdxlines
+        link.delete_related_captures()
+        link.cached_can_playback = False
         link.safe_delete()
         link.save()
 
