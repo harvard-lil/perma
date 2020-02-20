@@ -22,6 +22,7 @@ import socket
 from socket import error as socket_error
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
+from celery.signals import task_failure
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -40,6 +41,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import internetarchive
 
 from django.core.files.storage import default_storage
+from django.core.mail import mail_admins
 from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
@@ -55,7 +57,7 @@ from perma.utils import (run_task, url_in_allowed_ip_range,
 from perma import site_scripts
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('celery.django')
 
 ### CONSTANTS ###
 
@@ -67,6 +69,38 @@ AFTER_LOAD_TIMEOUT = 25 # seconds to allow page to keep loading additional resou
 SHUTDOWN_GRACE_PERIOD = settings.SHUTDOWN_GRACE_PERIOD # seconds to allow slow threads to finish before we complete the capture job
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 BROWSER_SIZE = [1024, 800]
+
+
+### ERROR REPORTING ###
+
+@task_failure.connect()
+def celery_task_failure_email(**kwargs):
+    """
+    Celery 4.0 onward has no method to send emails on failed tasks
+    so this event handler is intended to replace it. It reports truly failed
+    tasks, just as those terminated after CELERY_TASK_TIME_LIMIT.
+    From https://github.com/celery/celery/issues/3389
+    """
+
+    subject = u"[Django][{queue_name}@{host}] Error: Task {sender.name} ({task_id}): {exception}".format(
+        queue_name=u'celery',
+        host=socket.gethostname(),
+        **kwargs
+    )
+
+    message = u"""Task {sender.name} with id {task_id} raised exception:
+{exception!r}
+
+
+Task was called with args: {args} kwargs: {kwargs}.
+
+The contents of the full traceback was:
+
+{einfo}
+    """.format(
+        **kwargs
+    )
+    mail_admins(subject, message)
 
 
 ### THREAD HELPERS ###
@@ -1257,8 +1291,7 @@ def run_next_capture():
     except SoftTimeLimitExceeded:
         capture_job.link.tags.add('timeout-failure')
     except:  # noqa
-        print("Exception while capturing job %s:" % capture_job.link_id)
-        traceback.print_exc()
+        logger.exception(f"Exception while capturing job {capture_job.link_id}:")
     finally:
         try:
             teardown(link, thread_list, browser, display, warcprox_controller, warcprox_thread)
@@ -1279,8 +1312,7 @@ def run_next_capture():
 
 
         except:  # noqa
-            print("Exception while tearing down/saving capture job %s:" % capture_job.link_id)
-            traceback.print_exc()
+            logger.exception(f"Exception while capturing job {capture_job.link_id}:")
         finally:
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
