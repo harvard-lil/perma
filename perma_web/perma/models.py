@@ -820,7 +820,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             An archive can be deleted if it is less than 24 hours old-style
             and it was created by a user or someone in the org.
         """
-        return not link.is_archive_eligible() and self.can_edit(link)
+        return not link.is_permanent() and self.can_edit(link)
 
     def can_toggle_private(self, link):
         if not self.can_edit(link):
@@ -1050,10 +1050,6 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
 
-    #
-    # See https://github.com/harvard-lil/perma/issues/2687
-    #
-
     def discoverable(self):
         return self.filter(Link.DISCOVERABLE_FILTER)
 
@@ -1078,12 +1074,19 @@ class LinkQuerySet(QuerySet):
             Expose the bundled WARC after the required wait period,
             if capture succeeded, unless deleted or made private by the user or by admins.
         """
+        if settings.USE_CACHED_STATUS_FOR_LOCKSS:
+            return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
         return self.permanent().successful().exclude(
             private_reason__in=['user', 'takedown']
         )
 
     def visible_to_memento(self):
+        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
+            return self.discoverable().filter(cached_can_play_back=True)
         return self.permanent().successful().discoverable()
+
+    def visible_to_ia(self):
+        return self.visible_to_memento()
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1127,25 +1130,23 @@ class Link(DeletableModel):
     history = HistoricalRecords()
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
-    # See https://github.com/harvard-lil/perma/issues/2687
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
     def is_discoverable(self):
         return not self.is_private and not self.is_unlisted
 
-    def is_archive_eligible(self):
-        return self.archive_timestamp < timezone.now()
-
     def is_permanent(self):
-        return self.is_archive_eligible() and not self.user_deleted
+        return self.archive_timestamp < timezone.now() and not self.user_deleted
 
     def has_successful_capture(self):
         return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
 
-    def can_upload_to_internet_archive(self):
-        return self.is_discoverable()
-
     def is_visible_to_memento(self):
+        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
+            return self.cached_can_playback and self.is_discoverable()
         return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
+
+    def can_upload_to_internet_archive(self):
+        return self.is_visible_to_memento()
 
     @cached_property
     def ascii_safe_url(self):

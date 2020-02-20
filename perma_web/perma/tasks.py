@@ -1441,19 +1441,17 @@ def delete_from_internet_archive(self, link_guid):
     link.internet_archive_upload_status = 'deleted'
     link.save()
 
+
 @shared_task()
 def upload_all_to_internet_archive():
-    # find all links created 48-24 hours ago
-    # include timezone
-    start_date = timezone.now() - timedelta(days=2)
-    end_date = timezone.now() - timedelta(days=1)
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
 
-    links = Link.objects.filter(
-        Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed'),
-        creation_timestamp__range=(start_date, end_date))
-    for link in links:
-        if link.can_upload_to_internet_archive():
-            run_task(upload_to_internet_archive.s(link_guid=link.guid))
+    links = Link.objects.visible_to_ia().filter(
+        Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed')
+    )
+    for link_guid in links.values_list('guid', flat=True).iterator():
+        upload_to_internet_archive.delay(link_guid)
 
 
 @shared_task(bind=True)

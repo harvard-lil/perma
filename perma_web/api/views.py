@@ -521,7 +521,7 @@ class AuthenticatedLinkDetailView(BaseView):
                 clear_wr_session(request)
 
             # update internet archive if privacy changes
-            if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_archive_eligible():
+            if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_permanent():
                 if was_private:
                     # link was private but has been marked public
                     run_task(upload_to_internet_archive.s(link_guid=link.guid))
