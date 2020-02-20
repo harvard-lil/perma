@@ -1170,7 +1170,7 @@ def run_next_capture():
                         have_content = True
                         content_url = str(response.url, 'utf-8')
                         content_type = getattr(response, 'content_type', None)
-                        content_type = content_type.lower() if content_type else ''
+                        content_type = content_type.lower() if content_type else 'text/html; charset=utf-8'
                         robots_directives = response.parsed_headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')
                         break
