@@ -894,7 +894,7 @@ def run_next_capture():
         start_time = time.time()
         link = capture_job.link
         target_url = link.ascii_safe_url
-        browser = warcprox_controller = warcprox_thread = display = screenshot = None
+        browser = warcprox_controller = warcprox_thread = display = screenshot = content_type = None
         have_content = have_html = False
         thread_list = []
         page_metadata = {}
@@ -1169,7 +1169,8 @@ def run_next_capture():
 
                         have_content = True
                         content_url = str(response.url, 'utf-8')
-                        content_type = getattr(response, 'content_type', '').lower()
+                        content_type = getattr(response, 'content_type', None)
+                        content_type = content_type.lower() if content_type else 'text/html; charset=utf-8'
                         robots_directives = response.parsed_headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')
                         break
