@@ -318,6 +318,10 @@ LOGGING['loggers'] = {
     'warcprox': {
         'level': 'CRITICAL'
     },
+    'celery.django': {
+        'level': 'ERROR',
+        'handlers': ['console', 'mail_admins', 'file'],
+    },
     # show info for our first-party apps
     **{
         app_name: {'level': 'INFO'}
@@ -396,7 +400,6 @@ else:
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_SEND_TASK_ERROR_EMAILS = True
 # If a task is running longer than five minutes, ask it to shut down
 CELERY_TASK_SOFT_TIME_LIMIT=300
 # If a task is running longer than seven minutes, kill it
