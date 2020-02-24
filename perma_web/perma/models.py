@@ -1142,7 +1142,7 @@ class Link(DeletableModel):
 
     def is_visible_to_memento(self):
         if settings.USE_CACHED_STATUS_FOR_MEMENTO:
-            return self.cached_can_playback and self.is_discoverable()
+            return self.cached_can_play_back and self.is_discoverable()
         return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
 
     def can_upload_to_internet_archive(self):
