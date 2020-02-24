@@ -547,7 +547,7 @@ class AuthenticatedLinkDetailView(BaseView):
             raise PermissionDenied()
 
         link.delete_related_captures()
-        link.cached_can_playback = False
+        link.cached_can_play_back = False
         link.safe_delete()
         link.save()
 
