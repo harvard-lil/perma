@@ -22,7 +22,8 @@ class TaskTestCase(TestCase):
 
     def testUploadToInternetArchive(self):
         # test when GUID does not exist
-        self.assertTrue(upload_to_internet_archive.delay('ZZZZ-ZZZZ'))
+        with self.assertRaises(Link.DoesNotExist):
+            upload_to_internet_archive.delay('ZZZZ-ZZZZ')
 
     def testDeleteFromInternetArchive(self):
         # test when GUID does not exist
