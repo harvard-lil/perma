@@ -37,6 +37,10 @@ def post_process_settings(settings):
             'task': 'perma.tasks.upload_all_to_internet_archive',
             'schedule': crontab(minute='0', hour='*'),
         },
+        'retry-delete-from-internet-archive': {
+            'task': 'perma.tasks.retry_delete_from_internet_archive',
+            'schedule': crontab(minute='0', hour='*'),
+        },
         'send-js-errors': {
             'task': 'perma.tasks.send_js_errors',
             'schedule': crontab(hour='10', minute='0', day_of_week=1)

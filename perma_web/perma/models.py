@@ -1119,7 +1119,7 @@ class Link(DeletableModel):
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
     internet_archive_upload_status = models.CharField(max_length=20,
                                                       default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('failed_permanently','failed_permanently'),('deleted','deleted')))
+                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete')))
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
@@ -1147,6 +1147,10 @@ class Link(DeletableModel):
 
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()
+
+    @cached_property
+    def ia_identifier(self):
+        return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
     @cached_property
     def ascii_safe_url(self):
