@@ -1056,7 +1056,7 @@ class LinkQuerySet(QuerySet):
     def successful(self):
         """ Limit queryset to those where any non-favicon capture succeeded"""
         return self.filter(
-            captures__in=Capture.objects.filter(Capture.CAN_PLAYBACK_FILTER)
+            captures__in=Capture.objects.filter(Capture.CAN_PLAY_BACK_FILTER)
         ).distinct()
 
     def permanent(self):
@@ -1138,7 +1138,7 @@ class Link(DeletableModel):
         return self.archive_timestamp < timezone.now() and not self.user_deleted
 
     def has_successful_capture(self):
-        return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
+        return self.captures.filter(Capture.CAN_PLAY_BACK_FILTER).exists()
 
     def is_visible_to_memento(self):
         if settings.USE_CACHED_STATUS_FOR_MEMENTO:
@@ -1594,7 +1594,7 @@ class Capture(models.Model):
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
 
-    CAN_PLAYBACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
+    CAN_PLAY_BACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
 
     def __str__(self):
         return "%s %s" % (self.role, self.status)
