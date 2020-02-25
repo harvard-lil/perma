@@ -175,14 +175,14 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_url_surt', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'warc_size']
     search_fields = ['guid', 'submitted_url', 'tags__name', 'created_by__email']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
-        ('Mirroring', {'fields': ('archive_timestamp',)}),
+        ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
     readonly_fields = ['guid', 'folders', 'creation_timestamp', 'warc_size']  #, 'archive_timestamp']
     inlines = [
@@ -190,7 +190,7 @@ class LinkAdmin(SimpleHistoryAdmin):
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
         new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
-                   fields=['status', 'message', 'step_count', 'step_description', 'human'],
+                   fields=['status', 'superseded', 'message', 'step_count', 'step_description', 'human'],
                    readonly_fields=['message', 'step_count', 'step_description', 'human'],
                    can_delete=False)
     ]
@@ -212,8 +212,8 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
-    list_filter = ['status']
+    list_display = ['id', 'status', 'superseded', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
+    list_filter = ['status', 'superseded']
     raw_id_fields = ['link', 'created_by']
 
     def get_queryset(self, request):

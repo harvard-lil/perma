@@ -56,9 +56,9 @@ class LinkManagementViewsTestCase(PermaTestCase):
                   user = 'test_user@example.com',
                   require_status_code = 404)
 
-    # only brand new links can be deleted (they aren't "archive eligible"),
-    # so we have to mock Link.is_archive_eligible to always return false
-    @patch.object(Link, 'is_archive_eligible', lambda x: False)
+    # only brand new links can be deleted,
+    # so we have to mock Link.is_permanent to always return false
+    @patch.object(Link, 'is_permanent', lambda x: False)
     def test_confirm_delete_permitted_link(self):
         self.get('user_delete_link',
                   reverse_kwargs={'args':['JJ3S-2Q5N']},

@@ -820,7 +820,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             An archive can be deleted if it is less than 24 hours old-style
             and it was created by a user or someone in the org.
         """
-        return not link.is_archive_eligible() and self.can_edit(link)
+        return not link.is_permanent() and self.can_edit(link)
 
     def can_toggle_private(self, link):
         if not self.can_edit(link):
@@ -1050,17 +1050,13 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
 
-    #
-    # See https://github.com/harvard-lil/perma/issues/2687
-    #
-
     def discoverable(self):
         return self.filter(Link.DISCOVERABLE_FILTER)
 
     def successful(self):
         """ Limit queryset to those where any non-favicon capture succeeded"""
         return self.filter(
-            captures__in=Capture.objects.filter(Capture.CAN_PLAYBACK_FILTER)
+            captures__in=Capture.objects.filter(Capture.CAN_PLAY_BACK_FILTER)
         ).distinct()
 
     def permanent(self):
@@ -1078,12 +1074,19 @@ class LinkQuerySet(QuerySet):
             Expose the bundled WARC after the required wait period,
             if capture succeeded, unless deleted or made private by the user or by admins.
         """
+        if settings.USE_CACHED_STATUS_FOR_LOCKSS:
+            return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
         return self.permanent().successful().exclude(
             private_reason__in=['user', 'takedown']
         )
 
     def visible_to_memento(self):
+        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
+            return self.discoverable().filter(cached_can_play_back=True)
         return self.permanent().successful().discoverable()
+
+    def visible_to_ia(self):
+        return self.visible_to_memento()
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1094,6 +1097,8 @@ class Link(DeletableModel):
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     GUID_CHARACTER_SET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
+
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     submitted_url_surt = models.CharField(max_length=2100, null=True, blank=True)
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
@@ -1103,47 +1108,49 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
-    internet_archive_upload_status = models.CharField(max_length=20,
-                                                      default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('failed_permanently','failed_permanently'),('deleted','deleted')))
 
     warc_size = models.IntegerField(blank=True, null=True)
+    cached_can_play_back = models.BooleanField(null=True, default=None, help_text="After archive_timestamp, cache whether this link can be played back, for efficiency.")
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
     is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
+    internet_archive_upload_status = models.CharField(max_length=20,
+                                                      default='not_started',
+                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete')))
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
-    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.", on_delete=models.CASCADE)
 
     objects = LinkManager()
     tracker = FieldTracker()
     history = HistoricalRecords()
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
-    # See https://github.com/harvard-lil/perma/issues/2687
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
     def is_discoverable(self):
         return not self.is_private and not self.is_unlisted
 
-    def is_archive_eligible(self):
-        return self.archive_timestamp < timezone.now()
-
     def is_permanent(self):
-        return self.is_archive_eligible() and not self.user_deleted
+        return self.archive_timestamp < timezone.now() and not self.user_deleted
 
-    def is_successful(self):
-        return self.captures.filter(Capture.CAN_PLAYBACK_FILTER).exists()
-
-    def can_upload_to_internet_archive(self):
-        return self.is_discoverable()
+    def has_successful_capture(self):
+        return self.captures.filter(Capture.CAN_PLAY_BACK_FILTER).exists()
 
     def is_visible_to_memento(self):
-        return self.is_permanent() and self.is_successful() and self.is_discoverable()
+        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
+            return self.cached_can_play_back and self.is_discoverable()
+        return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
+
+    def can_upload_to_internet_archive(self):
+        return self.is_visible_to_memento()
+
+    @cached_property
+    def ia_identifier(self):
+        return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
     @cached_property
     def ascii_safe_url(self):
@@ -1332,8 +1339,16 @@ class Link(DeletableModel):
     #     self.thumbnail_status = 'failed'
     #     self.save(update_fields=['thumbnail_status'])
 
-    def delete_related(self):
+    def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()
+
+    def mark_capturejob_superseded(self):
+        try:
+            job = self.capture_job
+            job.superseded = True
+            job.save()
+        except CaptureJob.DoesNotExist:
+            pass
 
     @cached_property
     def screenshot_capture(self):
@@ -1386,31 +1401,45 @@ class Link(DeletableModel):
     def accessible_to(self, user):
         return user.can_edit(self)
 
-    ###
-    ### Methods for playback via Webrecorder
-    ###
-    def ready_for_playback(self):
+    def can_play_back(self):
         """
-        Reports whether a Perma Link has been successfully captured and
-        is ready for playback. This should be synonymous with "is_successful",
-        but isn't quite yet... https://github.com/harvard-lil/perma/issues/2687.
-        Avoiding getting too deep in refactoring at this instant.
+        Reports whether a Perma Link has been successfully captured (or uploaded)
+        and is ready for playback.
 
         See also /perma/perma_web/static/js/helpers/link.helpers.js
         """
-        ready = self.is_successful()
+        if self.cached_can_play_back is not None:
+            return self.cached_can_play_back
 
-        # Early Perma Links do not have CaptureJobs; if no CaptureJob,
-        # judge based on Capture statuses alone.
+        if self.user_deleted:
+            return False
+
+        successful_metadata = self.has_successful_capture()
+
+        # Early Perma Links and direct uploads do not have CaptureJobs;
+        # if no CaptureJob, judge based on Capture statuses alone;
+        # otherwise, inspect CaptureJob status
         job = None
         try:
             job = self.capture_job
         except CaptureJob.DoesNotExist:
             pass
-        if job and job.status != 'completed':
-            ready = False
+        if job and not job.superseded and job.status != 'completed':
+            successful_metadata = False
 
-        return ready
+        # I assert that the presence of a warc in default_storage means a Link
+        # can be played back. If there is a disconnect between our metadata and
+        # the contents of default_storage... something is wrong and needs fixing.
+        has_warc = default_storage.exists(self.warc_storage_file())
+        if successful_metadata != has_warc:
+            logger.error(f"Conflicting metadata about {self.guid}: has_warc={has_warc}, successful_metadata={successful_metadata}")
+
+        # Trust our records (the metadata) more than has_warc
+        return successful_metadata
+
+    ###
+    ### Methods for playback via Webrecorder
+    ###
 
     @cached_property
     def wr_collection_slug(self):
@@ -1565,7 +1594,7 @@ class Capture(models.Model):
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
 
-    CAN_PLAYBACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
+    CAN_PLAY_BACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
 
     def __str__(self):
         return "%s %s" % (self.role, self.status)
@@ -1620,6 +1649,8 @@ class CaptureJob(models.Model):
     step_description = models.CharField(max_length=255, blank=True, null=True)
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
+
+    superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
 
     # settings to allow our tests to draw out race conditions
     TEST_PAUSE_TIME = 0

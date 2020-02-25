@@ -319,7 +319,7 @@ LOGGING['loggers'] = {
         'level': 'CRITICAL'
     },
     'celery.django': {
-        'level': 'ERROR',
+        'level': 'INFO',
         'handlers': ['console', 'mail_admins', 'file'],
     },
     # show info for our first-party apps
@@ -546,7 +546,9 @@ LOCKSS_DEBUG_IPS = False
 CELERY_TASK_ROUTES = {
     'perma.tasks.upload_to_internet_archive': {'queue': 'background'},
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
+    'perma.tasks.retry_delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
+    'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
 }
 
 
@@ -604,3 +606,6 @@ GEOCODING_KEY = None
 AWS_DEFAULT_ACL = 'private'
 
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
+
+USE_CACHED_STATUS_FOR_MEMENTO = False
+USE_CACHED_STATUS_FOR_LOCKSS = False

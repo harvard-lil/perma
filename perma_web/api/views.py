@@ -503,9 +503,10 @@ class AuthenticatedLinkDetailView(BaseView):
             uploaded_file = request.data.get('file')
             if uploaded_file:
 
-                # delete related cdxlines and captures, delete warc (rename)
-                link.delete_related()
+                # delete related captures, delete warc (rename), mark capture job as superseded
+                link.delete_related_captures()
                 link.safe_delete_warc()
+                link.mark_capturejob_superseded()
 
                 # write new warc and capture
                 link.write_uploaded_file(uploaded_file, cache_break=True)
@@ -520,7 +521,7 @@ class AuthenticatedLinkDetailView(BaseView):
                 clear_wr_session(request)
 
             # update internet archive if privacy changes
-            if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_archive_eligible():
+            if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_permanent():
                 if was_private:
                     # link was private but has been marked public
                     run_task(upload_to_internet_archive.s(link_guid=link.guid))
@@ -545,7 +546,8 @@ class AuthenticatedLinkDetailView(BaseView):
         if not request.user.can_delete(link):
             raise PermissionDenied()
 
-        link.delete_related()  # delete related captures and cdxlines
+        link.delete_related_captures()
+        link.cached_can_play_back = False
         link.safe_delete()
         link.save()
 

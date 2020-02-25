@@ -68,7 +68,7 @@ django-filter = "*"                         # searching
 
 
 # link preservation
-internetarchive = "==1.0.10"                # upload warcs to internet archive
+internetarchive = "*"                       # upload warcs to internet archive
 
 # memento support
 surt = "*"                                  # canonicalizes URLs for sorting and comparing
