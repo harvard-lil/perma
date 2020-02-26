@@ -488,7 +488,7 @@ def decrypt_from_perma_payments(ciphertext, encoder=encoding.Base64Encoder):
 #
 
 @contextmanager
-def preserve_perma_warc(guid, timestamp, destination):
+def preserve_perma_warc(guid, timestamp, destination, warc_size):
     """
     Context manager for opening a perma warc, ready to receive warc records.
     Safely closes and saves the file to storage when context is exited.
@@ -502,6 +502,7 @@ def preserve_perma_warc(guid, timestamp, destination):
         out.flush()
         out.seek(0)
         default_storage.store_file(out, destination, overwrite=True)
+        warc_size.append(out.tell())
         out.close()
 
 def write_perma_warc_header(out_file, guid, timestamp):

@@ -794,8 +794,9 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
         warcprox_controller.options.directory,
         "{}.warc.gz".format(warcprox_controller.options.warc_filename)
     )
+    warc_size = []  # pass a mutable container to the context manager, so that it can populate it with the size of the finished warc
     with open(recorded_warc_path, 'rb') as recorded_warc_records, \
-         preserve_perma_warc(link.guid, link.creation_timestamp, link.warc_storage_file()) as perma_warc:
+         preserve_perma_warc(link.guid, link.creation_timestamp, link.warc_storage_file(), warc_size) as perma_warc:
         # screenshot first, per Perma custom
         if screenshot:
             write_resource_record_from_asset(screenshot, link.screenshot_capture.url, link.screenshot_capture.content_type, perma_warc)
@@ -807,6 +808,7 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
         link.primary_capture,
         status='success',
         content_type=content_type,
+        warc_size = warc_size[0]
     )
     if screenshot:
         safe_save_fields(
@@ -814,10 +816,6 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
             status='success'
         )
     save_favicons(link, successful_favicon_urls)
-    safe_save_fields(
-        link,
-        warc_size=default_storage.size(link.warc_storage_file())
-    )
     capture_job.mark_completed()
 
 
