@@ -805,10 +805,13 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
 
     # update the db to indicate we succeeded
     safe_save_fields(
+        link,
+        warc_size=warc_size[0]
+    )
+    safe_save_fields(
         link.primary_capture,
         status='success',
-        content_type=content_type,
-        warc_size = warc_size[0]
+        content_type=content_type
     )
     if screenshot:
         safe_save_fields(
