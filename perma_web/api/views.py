@@ -3,7 +3,6 @@ import csv
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
-from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponse
 from mptt.exceptions import InvalidMove
 from rest_framework import status
