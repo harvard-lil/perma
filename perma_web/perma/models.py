@@ -1385,9 +1385,12 @@ class Link(DeletableModel):
                           user_upload='True',
                           content_type=mime_type,
                           url=warc_url)
-        with preserve_perma_warc(self.guid, self.creation_timestamp, self.warc_storage_file()) as warc:
+        warc_size = []  # pass a mutable container to the context manager, so that it can populate it with the size of the finished warc
+        with preserve_perma_warc(self.guid, self.creation_timestamp, self.warc_storage_file(), warc_size) as warc:
             uploaded_file.file.seek(0)
             write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
+        self.warc_size = warc_size[0]
+        self.save(update_fields=['warc_size'])
         capture.save()
 
     def safe_delete_warc(self):
