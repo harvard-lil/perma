@@ -500,9 +500,9 @@ def preserve_perma_warc(guid, timestamp, destination, warc_size):
         yield out
     finally:
         out.flush()
+        warc_size.append(out.tell())
         out.seek(0)
         default_storage.store_file(out, destination, overwrite=True)
-        warc_size.append(out.tell())
         out.close()
 
 def write_perma_warc_header(out_file, guid, timestamp):
