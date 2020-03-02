@@ -1375,8 +1375,11 @@ def update_stats():
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
+    queued = 0
     for link_guid in links.values_list('guid', flat=True).iterator():
         cache_playback_status.delay(link_guid)
+        queued = queued + 1
+    logger.info(f"Queued {queued} links to have their playback status cached.")
 
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
