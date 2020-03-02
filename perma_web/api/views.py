@@ -500,6 +500,9 @@ class AuthenticatedLinkDetailView(BaseView):
             uploaded_file = request.data.get('file')
             if uploaded_file:
 
+                if link.capture_job.status ==  'in_progress' :
+                    raise_general_validation_error("Capture in progress: please wait until complete before uploading a replacement.")
+
                 # delete related captures, delete warc (rename), mark capture job as superseded
                 link.delete_related_captures()
                 link.safe_delete_warc()
@@ -540,6 +543,9 @@ class AuthenticatedLinkDetailView(BaseView):
 
         if not request.user.can_delete(link):
             raise PermissionDenied()
+
+        if link.capture_job.status ==  'in_progress' :
+            raise_general_validation_error("Capture in progress: please wait until complete before deleting.")
 
         link.delete_related_captures()
         link.cached_can_play_back = False
