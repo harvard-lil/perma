@@ -164,6 +164,18 @@
       </div>
     </script>
 
+    <script id="celery_queues-template" type="text/x-handlebars-template">
+      <h3 class="body-ah">Celery queues:</h3>
+      <div class="row">
+        <div class="col-sm-3">Tasks in main queue:</div>
+        <div class="col-sm-9">{{ total_main_queue }}</div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3">Tasks in background queue:</div>
+        <div class="col-sm-9">{{ total_background_queue }}</div>
+      </div>
+    </script>
+
     <script id="celery-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Celery task data:</h3>
       <div class="row">
@@ -173,17 +185,18 @@
             <div>
               <h5>Active jobs:</h5>
               {{#each active}}
-                {{name}}: {{kwargs}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
               {{/each}}
             </div>
+            <br>
             <div>
               <h5>Next jobs (not a complete list):</h5>
               {{#each reserved}}
-                {{name}}: {{kwargs}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
               {{/each}}
             </div>
-            <div>{{ reserved }}</div>
             <div>
+              <br>
               <h5>Finished task count:</h5>
               {{#each stats.total}}
                 {{@key}}: {{this}}<br/>
