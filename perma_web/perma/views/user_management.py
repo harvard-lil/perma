@@ -4,6 +4,7 @@ import itertools
 from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
+import redis
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
@@ -185,6 +186,13 @@ def stats(request, stat_type=None):
                     'stats': stats[queue],
                 })
         out = {'queues':queues}
+
+    elif stat_type == "celery_queues":
+        r = redis.from_url(settings.CELERY_BROKER_URL)
+        out = {
+            'total_main_queue': r.llen('celery'),
+            'total_background_queue': r.llen('background'), 
+        }
 
     elif stat_type == "job_queue":
         job_queues = CaptureJob.objects.filter(status='pending').order_by('order', 'pk').select_related('link', 'link__created_by')

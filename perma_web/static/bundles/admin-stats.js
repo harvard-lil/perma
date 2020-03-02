@@ -24,10 +24,17 @@ webpackJsonp([0],[
 	chain = chain.then(addSection("days"));
 	chain = chain.then(addSection("emails"));
 	chain = chain.then(addSection("job_queue"));
+	chain = chain.then(addSection("celery_queues"));
 	chain = chain.then(addSection("celery"));
 	
 	setInterval(function () {
 	  fillSection("job_queue");
+	}, 2000);
+	setInterval(function () {
+	  fillSection("celery_queues");
+	}, 2000);
+	setInterval(function () {
+	  fillSection("celery");
 	}, 2000);
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
