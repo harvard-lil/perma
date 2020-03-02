@@ -765,7 +765,7 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
         print("Waiting for MitmProxyHandler")
         time.sleep(1)
 
-    if warcprox.controller:
+    if warcprox_controller:
         warcprox_controller.warc_writer_processor.writer_pool.close_writers()  # blocking
 
 
