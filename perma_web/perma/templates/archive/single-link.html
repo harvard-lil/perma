@@ -145,7 +145,7 @@
             <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label>
             <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
           </div>
-          {% if can_delete %}
+          {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">
                 <label class="tray-detail-title">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></label>

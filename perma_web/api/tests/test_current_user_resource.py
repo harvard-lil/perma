@@ -22,7 +22,7 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         self.successful_get(self.detail_url, user=self.org_user, fields=self.fields)
 
     def test_get_archives_json(self):
-        self.successful_get(self.detail_url + 'archives/', user=self.org_user, count=13)
+        self.successful_get(self.detail_url + 'archives/', user=self.org_user, count=14)
         self.successful_get(self.detail_url + 'archives/', user=self.regular_user, count=14)
 
     def test_get_folders_json(self):

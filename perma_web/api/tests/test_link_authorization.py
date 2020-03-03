@@ -38,11 +38,16 @@ class LinkAuthorizationMixin():
         self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
         self.unlisted_link = Link.objects.get(pk="ABCD-0005")
 
+        self.in_progress_link = Link.objects.get(pk="ABCD-0010")
+        self.in_progress_link.archive_timestamp = timezone.now() + timedelta(1)
+        self.in_progress_link.save()
+
         self.public_list_url = reverse('api:public_archives')
 
         self.list_url = reverse('api:archives')
         self.link_url = self.get_link_url(self.link)
         self.unrelated_link_url = self.get_link_url(self.unrelated_link)
+        self.in_progress_link_url = self.get_link_url(self.in_progress_link)
 
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
@@ -148,6 +153,24 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
                                 expected_status_code=400)
         self.successful_get(self.link_url, user=self.org_user)
 
+    def test_should_reject_patch_with_capture_in_progress(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
+            data=test_file.read()
+            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
+            self.rejected_patch(self.in_progress_link_url,
+                                user=self.registrar_user,
+                                format="multipart",
+                                data={'file':file_content},
+                                expected_status_code=400)
+            file_content.seek(0)
+            self.in_progress_link.capture_job.status = 'failed'
+            self.in_progress_link.capture_job.save()
+            self.successful_patch(self.in_progress_link_url,
+                                user=self.registrar_user,
+                                format="multipart",
+                                data={'file':file_content})
+
+
     ######################
     # Private / Unlisted #
     ######################
@@ -226,8 +249,6 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
         self.rejected_link_move(self.regular_user, self.unrelated_link, self.regular_user.root_folder,
                                 expected_status_code=403)
 
-
-
     def test_should_reject_delete_for_out_of_window_link(self):
         self.rejected_delete(self.link_url, user=self.org_user,
                              expected_status_code=403)
@@ -241,6 +262,13 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
         self.rejected_delete(self.unrelated_link_url, user=self.related_org_user,
                              expected_status_code=403)
         self.successful_get(self.link_url, user=self.org_user)
+
+    def test_should_reject_delete_with_capture_in_progress(self):
+        self.rejected_delete(self.in_progress_link_url, user=self.registrar_user,
+                             expected_status_code=400)
+        self.in_progress_link.capture_job.status = 'failed'
+        self.in_progress_link.capture_job.save()
+        self.successful_delete(self.in_progress_link_url, user=self.registrar_user)
 
 
 class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
@@ -296,3 +324,4 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
             new_captures = Capture.objects.filter(link_id=new_link.guid)
             self.assertEqual(len(new_captures), 0)
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
+
