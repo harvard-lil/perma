@@ -17,8 +17,9 @@ CELERY_BEAT_JOB_NAMES = [
     'send-links-to-internet-archives',
     'send-js-errors',
     'run-next-capture',
-    'sync_subscriptions_from_perma_payments'
-    ]
+    'verify_webrecorder_api_available',
+    'sync_subscriptions_from_perma_payments',
+]
 
 # logging
 LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
