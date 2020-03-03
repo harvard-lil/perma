@@ -548,7 +548,10 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.retry_delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
+    'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
+    'perma.tasks.verify_webrecorder_api_available': {'queue': 'background'},
     'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
+    'perma.tasks.cache_playback_status': {'queue': 'background'},
 }
 
 
