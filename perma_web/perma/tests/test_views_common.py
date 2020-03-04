@@ -30,6 +30,7 @@ class CommonViewsTestCase(PermaTestCase):
         cls.flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(cls.flag)
         cls.flag_subject = "Reporting Inappropriate Content"
 
+        # populate this now-necessary field dynamically, instead of hard-coding in our test fixtures
         cache_playback_status_for_new_links.apply()
 
 
