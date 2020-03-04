@@ -1074,16 +1074,10 @@ class LinkQuerySet(QuerySet):
             Expose the bundled WARC after the required wait period,
             if capture succeeded, unless deleted or made private by the user or by admins.
         """
-        if settings.USE_CACHED_STATUS_FOR_LOCKSS:
-            return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
-        return self.permanent().successful().exclude(
-            private_reason__in=['user', 'takedown']
-        )
+        return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
 
     def visible_to_memento(self):
-        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
-            return self.discoverable().filter(cached_can_play_back=True)
-        return self.permanent().successful().discoverable()
+        return self.discoverable().filter(cached_can_play_back=True)
 
     def visible_to_ia(self):
         return self.visible_to_memento()
@@ -1110,7 +1104,12 @@ class Link(DeletableModel):
     notes = models.TextField(blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
-    cached_can_play_back = models.BooleanField(null=True, default=None, help_text="After archive_timestamp, cache whether this link can be played back, for efficiency.")
+    cached_can_play_back = models.BooleanField(
+        null=True,
+        default=None,
+        db_index=True,
+        help_text="After archive_timestamp, cache whether this link can be played back, for efficiency."
+    )
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
@@ -1119,7 +1118,8 @@ class Link(DeletableModel):
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
     internet_archive_upload_status = models.CharField(max_length=20,
                                                       default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete')))
+                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete')),
+                                                      db_index=True)
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
@@ -1141,9 +1141,7 @@ class Link(DeletableModel):
         return self.captures.filter(Capture.CAN_PLAY_BACK_FILTER).exists()
 
     def is_visible_to_memento(self):
-        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
-            return self.cached_can_play_back and self.is_discoverable()
-        return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
+        return self.cached_can_play_back and self.is_discoverable()
 
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()

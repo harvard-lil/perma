@@ -5,6 +5,7 @@ from django.test import override_settings, Client
 
 from perma.urls import urlpatterns
 from perma.models import Registrar, Link, CaptureJob
+from perma.tasks import cache_playback_status_for_new_links
 
 from .utils import PermaTestCase
 
@@ -28,6 +29,10 @@ class CommonViewsTestCase(PermaTestCase):
         cls.flag = "zzzz-zzzz"
         cls.flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(cls.flag)
         cls.flag_subject = "Reporting Inappropriate Content"
+
+        # populate this now-necessary field dynamically, instead of hard-coding in our test fixtures
+        cache_playback_status_for_new_links.apply()
+
 
     def test_public_views(self):
         # test static template views
