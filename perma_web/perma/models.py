@@ -1104,7 +1104,12 @@ class Link(DeletableModel):
     notes = models.TextField(blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
-    cached_can_play_back = models.BooleanField(null=True, default=None, help_text="After archive_timestamp, cache whether this link can be played back, for efficiency.")
+    cached_can_play_back = models.BooleanField(
+        null=True,
+        default=None,
+        db_index=True,
+        help_text="After archive_timestamp, cache whether this link can be played back, for efficiency."
+    )
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
