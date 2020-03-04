@@ -178,7 +178,7 @@ def stats(request, stat_type=None):
         stats = inspector.stats()
         queues = []
         if active is not None:
-            for queue in active.keys():
+            for queue in sorted(active.keys()):
                 queues.append({
                     'name': queue,
                     'active': active[queue],
