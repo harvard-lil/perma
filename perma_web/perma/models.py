@@ -1074,16 +1074,10 @@ class LinkQuerySet(QuerySet):
             Expose the bundled WARC after the required wait period,
             if capture succeeded, unless deleted or made private by the user or by admins.
         """
-        if settings.USE_CACHED_STATUS_FOR_LOCKSS:
-            return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
-        return self.permanent().successful().exclude(
-            private_reason__in=['user', 'takedown']
-        )
+        return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
 
     def visible_to_memento(self):
-        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
-            return self.discoverable().filter(cached_can_play_back=True)
-        return self.permanent().successful().discoverable()
+        return self.discoverable().filter(cached_can_play_back=True)
 
     def visible_to_ia(self):
         return self.visible_to_memento()
@@ -1141,9 +1135,7 @@ class Link(DeletableModel):
         return self.captures.filter(Capture.CAN_PLAY_BACK_FILTER).exists()
 
     def is_visible_to_memento(self):
-        if settings.USE_CACHED_STATUS_FOR_MEMENTO:
-            return self.cached_can_play_back and self.is_discoverable()
-        return self.is_permanent() and self.has_successful_capture() and self.is_discoverable()
+        return self.cached_can_play_back and self.is_discoverable()
 
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()
