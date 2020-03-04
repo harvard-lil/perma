@@ -177,6 +177,7 @@ class LinkUserAdmin(UserAdmin):
 class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'warc_size']
     search_fields = ['guid', 'submitted_url', 'tags__name', 'created_by__email']
+    list_filter = ['cached_can_play_back', 'internet_archive_upload_status']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
