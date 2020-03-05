@@ -46,7 +46,6 @@ from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
-from django.db.models import Q
 from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
