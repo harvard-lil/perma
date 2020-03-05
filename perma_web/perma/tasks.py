@@ -1315,7 +1315,7 @@ def run_next_capture():
 
 
         except:  # noqa
-            logger.exception(f"Exception while capturing job {capture_job.link_id}:")
+            logger.exception(f"Exception while finishing job {capture_job.link_id}:")
         finally:
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
