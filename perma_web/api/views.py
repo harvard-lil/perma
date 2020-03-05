@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from perma.utils import run_task, stream_warc, stream_warc_if_permissible, clear_wr_session
-from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
+from perma.tasks import run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
 from .utils import TastypiePagination, load_parent, raise_general_validation_error, \
@@ -521,12 +521,12 @@ class AuthenticatedLinkDetailView(BaseView):
             # update internet archive if privacy changes
             if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_permanent():
                 if was_private:
-                    # link was private but has been marked public
-                    run_task(upload_to_internet_archive.s(link_guid=link.guid))
-
+                    # if link was private but has been marked public, mark it for upload.
+                    link.internet_archive_upload_status = 'upload_or_reupload_required'
                 else:
-                    # link was public but has been marked private
-                    run_task(delete_from_internet_archive.s(link_guid=link.guid))
+                    # if link was public but has been marked private, mark it for deletion.
+                    link.internet_archive_upload_status = 'deletion_required'
+                link.save(update_fields=["internet_archive_upload_status"])
 
             # include remaining links in response
             links_remaining = request.user.get_links_remaining()

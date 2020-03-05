@@ -46,7 +46,6 @@ from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
-from django.db.models import Q
 from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
@@ -1453,14 +1452,14 @@ def delete_from_internet_archive(link_guid):
 
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def retry_delete_from_internet_archive(guids=None, limit=None):
+def delete_all_from_internet_archive(guids=None, limit=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
 
     if guids:
         links = Link.objects.filter(guid__in=guids)
     else:
-        links = Link.objects.filter(internet_archive_upload_status='deletion_incomplete')
+        links = Link.objects.filter(internet_archive_upload_status__in=['deletion_required', 'deletion_incomplete'])
     if limit:
         links = links[:limit]
     queued = 0
@@ -1476,7 +1475,7 @@ def upload_all_to_internet_archive(limit=None):
         return
 
     links = Link.objects.visible_to_ia().filter(
-        Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed')
+        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required']
     )
     if limit:
         links = links[:limit]
