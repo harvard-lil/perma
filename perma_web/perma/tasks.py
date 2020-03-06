@@ -1604,3 +1604,32 @@ def sync_subscriptions_from_perma_payments():
         except PermaPaymentsCommunicationException:
             # This gets logged inside get_subscription; don't duplicate logging here
             pass
+
+
+@shared_task(acks_late=True)
+def populate_warc_size_fields(limit=None):
+    """
+    One-time task, to populate the warc_size field for links where we missed it, the first time around.
+    See https://github.com/harvard-lil/perma/issues/2617 and https://github.com/harvard-lil/perma/issues/2172;
+    old links also often lack this metadata.
+    """
+    links = Link.objects.filter(warc_size__isnull=True, cached_can_play_back=True)
+    if limit:
+        links = links[:limit]
+    queued = 0
+    for link_guid in links.values_list('guid', flat=True).iterator():
+        populate_warc_size.delay(link_guid)
+        queued = queued + 1
+    logger.info(f"Queued {queued} links for populating warc_size.")
+
+
+@shared_task(acks_late=True)
+def populate_warc_size(link_guid):
+    """
+    One-time task, to populate the warc_size field for links where we missed it, the first time around.
+    See https://github.com/harvard-lil/perma/issues/2617 and https://github.com/harvard-lil/perma/issues/2172;
+    old links also often lack this metadata.
+    """
+    link = Link.objects.get(guid=link_guid)
+    link.warc_size = default_storage.size(link.warc_storage_file())
+    link.save(update_fields=['warc_size'])
