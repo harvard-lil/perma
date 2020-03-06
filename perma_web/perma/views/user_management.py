@@ -191,7 +191,8 @@ def stats(request, stat_type=None):
         r = redis.from_url(settings.CELERY_BROKER_URL)
         out = {
             'total_main_queue': r.llen('celery'),
-            'total_background_queue': r.llen('background'), 
+            'total_background_queue': r.llen('background'),
+            'total_ia_queue': r.llen('ia'),
         }
 
     elif stat_type == "job_queue":

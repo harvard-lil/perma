@@ -409,6 +409,16 @@ CELERY_TASK_TIME_LIMIT = 420
 # this value will be reset in settings.utils.post_processing
 WORKER_COUNT = 2
 
+CELERY_TASK_ROUTES = {
+    'perma.tasks.upload_to_internet_archive': {'queue': 'ia'},
+    'perma.tasks.delete_from_internet_archive': {'queue': 'ia'},
+    'perma.tasks.delete_all_from_internet_archive': {'queue': 'ia'},
+    'perma.tasks.upload_all_to_internet_archive': {'queue': 'ia'},
+    'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
+    'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
+    'perma.tasks.cache_playback_status': {'queue': 'background'},
+}
+
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
 RUN_TASKS_ASYNC = True
@@ -542,17 +552,6 @@ LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS cont
 LOCKSS_CRAWL_INTERVAL = "12h"
 LOCKSS_QUORUM = 3
 LOCKSS_DEBUG_IPS = False
-
-CELERY_TASK_ROUTES = {
-    'perma.tasks.upload_to_internet_archive': {'queue': 'background'},
-    'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
-    'perma.tasks.delete_all_from_internet_archive': {'queue': 'background'},
-    'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
-    'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
-    'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
-    'perma.tasks.cache_playback_status': {'queue': 'background'},
-}
-
 
 ENABLE_AV_CAPTURE = False
 RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture

@@ -31,7 +31,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
     if settings.RUN_TASKS_ASYNC:
         print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
               " RUN_TASKS_ASYNC=False is usually easier unless you're specifically testing a Django-Celery interaction.")
-        commands.append('celery -A perma worker --loglevel=info -Q celery,background -B -n w1@%h')
+        commands.append('celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h')
 
     # Only run the webpack background process in debug mode -- with debug False, dev server uses static assets,
     # and running webpack just messes up the webpack stats file.

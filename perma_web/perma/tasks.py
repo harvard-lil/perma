@@ -1475,7 +1475,7 @@ def upload_all_to_internet_archive(limit=None):
         return
 
     links = Link.objects.visible_to_ia().filter(
-        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required']
+        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
     )
     if limit:
         links = links[:limit]
