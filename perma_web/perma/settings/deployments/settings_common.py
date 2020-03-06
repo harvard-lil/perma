@@ -418,6 +418,7 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
     'perma.tasks.cache_playback_status': {'queue': 'background'},
     'perma.tasks.populate_warc_size_fields': {'queue': 'background'},
+    'perma.tasks.populate_warc_size': {'queue': 'background'},
 }
 
 # Control whether Celery tasks should be run in the background or during a request.
