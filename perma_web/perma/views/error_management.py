@@ -2,7 +2,7 @@ import collections
 import json
 
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError
 from django.shortcuts import render, get_object_or_404
 
 from perma.utils import user_passes_test_or_403
@@ -48,11 +48,12 @@ def csrf_failure(request, reason="CSRF Failure."):
         Custom view for CSRF failures, required for proper rendering of
         our custom template.
     '''
-    return render(request, '403_csrf.html')
+    return HttpResponseForbidden(render(request, '403_csrf.html'))
 
 def server_error(request):
     '''
         Custom view for 500 failures, required for proper rendering of
         our custom template.
+        https://github.com/django/django/blob/master/django/views/defaults.py#L97
     '''
-    return render(request, '500.html')
+    return HttpResponseServerError(render(request, '500.html'))
