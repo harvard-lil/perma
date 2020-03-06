@@ -33,7 +33,7 @@ def post_process_settings(settings):
             'task': 'perma.tasks.update_stats',
             'schedule': crontab(minute='*'),
         },
-        'send-links-to-internet-archives': {
+        'send-links-to-internet-archive': {
             'task': 'perma.tasks.upload_all_to_internet_archive',
             'schedule': crontab(minute='0', hour='*'),
         },
