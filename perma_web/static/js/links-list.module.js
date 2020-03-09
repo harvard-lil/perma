@@ -230,6 +230,12 @@ let getLinkContainer = function(elem) {
 };
 
 let toggleLinkDetails = function(e) {
+  if (e.target.tagName == 'A' && e.target.classList.contains('no-drag')) {
+    // Don't toggle details if the user has clicked on the Perma Link URL,
+    // the original URL, or the delete button
+    return
+  }
+
   let linkContainer = getLinkContainer(e.target),
       details = linkContainer.find('.item-details');
   if (details.is(':visible')) {
