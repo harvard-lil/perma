@@ -448,14 +448,19 @@ class AuthenticatedLinkListExportView(BaseView):
 
     @load_parent
     def get(self, request, format=None):
+        def report_status(link):
+            if link.has_capture_job() and link.capture_job.status in ['pending', 'in_progress']:
+                return link.capture_job.status
+            return 'success' if link.can_play_back() else 'failure'
+
         queryset = AuthenticatedLinkListView.load_links(request)
         formatted_data = [
             OrderedDict([
-                ('url', link.capture_job.submitted_url),
-                ('status', "success" if link.capture_job.status == "completed" else "error"),
-                ('error_message', link.capture_job.message),
+                ('url', link.submitted_url),
+                ('status', report_status(link)),
+                ('error_message', link.capture_job.message if link.has_capture_job() else ''),
                 ('title', link.submitted_title),
-                ('perma_link', "{}://{}/{}".format(request.scheme, request.get_host(), link.guid))
+                ('perma_link', f"{request.scheme}://{request.get_host()}/{link.guid}")
             ])
             for link in queryset
         ]
