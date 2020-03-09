@@ -26,10 +26,11 @@ export function handleShowDetails (open) {
 }
 
 function adjustTopMargin () {
-  wrapper = document.getElementsByClassName("capture-wrapper")[0];
-  var header = document.getElementsByTagName('header')[0];
+  let wrapper = document.getElementsByClassName("capture-wrapper")[0];
+  let header = document.getElementsByTagName('header')[0];
   if (!wrapper) return;
-  wrapper.style.marginTop = header.offsetHeight+"px";
+  wrapper.style.marginTop = `${header.offsetHeight}px`;
+  wrapper.style.height = `calc(100% - ${header.offsetHeight}px)`;
 }
 
 init();

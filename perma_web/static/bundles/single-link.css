@@ -4447,6 +4447,10 @@ a:active {
   margin: 0 auto;
 }
 
+#main-content {
+  padding: 0;
+}
+
 #main-archive,
 #main-content,
 #main-content > .row,

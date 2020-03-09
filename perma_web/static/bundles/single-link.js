@@ -87,10 +87,11 @@
 	}
 	
 	function adjustTopMargin() {
-	  wrapper = document.getElementsByClassName("capture-wrapper")[0];
+	  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
 	  var header = document.getElementsByTagName('header')[0];
 	  if (!wrapper) return;
 	  wrapper.style.marginTop = header.offsetHeight + "px";
+	  wrapper.style.height = "calc(100% - " + header.offsetHeight + "px)";
 	}
 	
 	init();
