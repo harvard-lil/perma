@@ -1,6 +1,10 @@
 {% with request.META.HTTP_REFERER as referer %}
   <div class="record-message">
     <p class="record-message-primary">This record is private and cannot be displayed.</p>
+    <p class="record-message-secondary">
+      You may be able to find a similar archive via <a href="http://timetravel.mementoweb.org/list/{{ link.creation_timestamp|date:"YmdHis" }}/{{ link.submitted_url }}" target="_top">Time Travel</a>.
+    </p>
+    <br>
     <p class="record-message-secondary">For more information on private records, see Perma.cc’s <a href="{% url 'docs_perma_link_creation' %}#private-records">documentation</a>. If you feel you’ve reached this page in error, please <a href="{% url 'contact' %}/?subject=Why%20Is%20{{request.path}}%20Private%3F{% if referer %}%20(linked%20at%20{{referer}}){% endif %}">contact Perma.cc</a>.</p>
   <div>
 {% endwith %}
