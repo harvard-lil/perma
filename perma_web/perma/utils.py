@@ -609,7 +609,7 @@ def stream_warc(link):
     # it's easy to forget that deleted links/warcs aren't truly deleted,
     # and easy to accidentally permit the downloading of "deleted" warcs.
     # Users of stream_warc shouldn't have to worry about / remember this.
-    if link.user_deleted:
+    if link.user_deleted or not link.can_play_back():
         raise Http404
     return get_warc_stream(link)
 
