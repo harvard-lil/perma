@@ -60,7 +60,7 @@ services:
       # N.B. the "web" host is required for functional tests if playback is handled by WR
       - "web:127.0.0.1"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       - db
     networks:
@@ -78,7 +78,7 @@ services:
     environment:
       - START_XVFB=false
     ports:
-      - 4444:4444
+      - "127.0.0.1:4444:4444"
     networks:
       - default
 
@@ -100,7 +100,7 @@ services:
       sh -c "sleep 5 && pipenv run ./manage.py migrate &&
              pipenv run fab run"
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
     depends_on:
       - pp_db
     environment:
@@ -211,9 +211,9 @@ services:
     ports:
       # The WR API. See perma_web/perma/settings/settings_common "WR_API"
       # for a description of when to expose this port
-      # - 8089:80
+      # - "127.0.0.1:8089:80"
       # WR "content"/playback host
-      - 8092:81
+      - "127.0.0.1:8092:81"
     extra_hosts:
       - "perma-archives.test:127.0.0.1"
     networks:
