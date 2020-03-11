@@ -140,9 +140,9 @@ module.exports = {
   },
 
   // use CPU-intensive polling because VirtualBox shared folder doesn't support inotify
-  watchOptions: {
-    poll: true
-  },
+  // watchOptions: {
+  //   poll: true
+  // },
 
   // tell sass where to find compass includes
   sassLoader: {
