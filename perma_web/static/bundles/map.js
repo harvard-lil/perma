@@ -1,6 +1,53 @@
 webpackJsonp([5],{
 
-/***/ 194:
+/***/ 277:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+
+var Datamap = __webpack_require__(278);
+
+// show world map
+var partnerMap = new Datamap({
+  element: document.getElementById("plot-map-container"),
+  geographyConfig: {
+    popupOnHover: false,
+    highlightOnHover: false
+  },
+  fills: {
+    defaultFill: '#74bbfa',
+    partner: '#DD671A'
+  },
+  responsive: true
+});
+
+// add partner circles
+partnerMap.bubbles(partnerPoints.map(function (partner) {
+  return {
+    name: partner[2],
+    radius: 5,
+    latitude: partner[0],
+    longitude: partner[1],
+    fillKey: 'partner'
+  };
+}), {
+  popupTemplate: function popupTemplate(geo, data) {
+    return '<div class="hoverinfo">' + data.name + '</div>';
+  },
+  borderWidth: 1,
+  fillOpacity: 1
+});
+
+// resize map on window change
+$(window).on('resize', function () {
+  partnerMap.resize();
+});
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 278:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {(function() {
@@ -12650,8 +12697,8 @@ webpackJsonp([5],{
 
   // Expose library
   if (true) {
-    d3 = __webpack_require__(271);
-    topojson = __webpack_require__(284);
+    d3 = __webpack_require__(279);
+    topojson = __webpack_require__(280);
     module.exports = Datamap;
   }
   else if ( typeof define === "function" && define.amd ) {
@@ -12683,54 +12730,7 @@ webpackJsonp([5],{
 
 /***/ }),
 
-/***/ 218:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var Datamap = __webpack_require__(194);
-
-// show world map
-var partnerMap = new Datamap({
-  element: document.getElementById("plot-map-container"),
-  geographyConfig: {
-    popupOnHover: false,
-    highlightOnHover: false
-  },
-  fills: {
-    defaultFill: '#74bbfa',
-    partner: '#DD671A'
-  },
-  responsive: true
-});
-
-// add partner circles
-partnerMap.bubbles(partnerPoints.map(function (partner) {
-  return {
-    name: partner[2],
-    radius: 5,
-    latitude: partner[0],
-    longitude: partner[1],
-    fillKey: 'partner'
-  };
-}), {
-  popupTemplate: function popupTemplate(geo, data) {
-    return '<div class="hoverinfo">' + data.name + '</div>';
-  },
-  borderWidth: 1,
-  fillOpacity: 1
-});
-
-// resize map on window change
-$(window).on('resize', function () {
-  partnerMap.resize();
-});
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ }),
-
-/***/ 271:
+/***/ 279:
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -22294,7 +22294,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
 
 /***/ }),
 
-/***/ 284:
+/***/ 280:
 /***/ (function(module, exports, __webpack_require__) {
 
 (function (global, factory) {
@@ -22847,5 +22847,5 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 /***/ })
 
-},[218]);
+},[277]);
 //# sourceMappingURL=map.js.map

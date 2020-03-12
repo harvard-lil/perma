@@ -35,7 +35,7 @@ d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},a
 
 /***/ }),
 
-/***/ 16:
+/***/ 20:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -138,7 +138,49 @@ function hasScrolled(elem) {
 
 /***/ }),
 
-/***/ 191:
+/***/ 287:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+
+var DOMHelpers = __webpack_require__(20);
+var HandlebarsHelpers = __webpack_require__(288);
+
+function fillSection(name) {
+  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+    DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
+  });
+}
+
+function addSection(name) {
+  $('.stats-container').append('<div class="row" id="' + name + '">Loading ' + name + ' ...</div>');
+  return function () {
+    fillSection(name);
+  };
+}
+
+var chain = $.when(addSection("random")());
+chain = chain.then(addSection("days"));
+chain = chain.then(addSection("emails"));
+chain = chain.then(addSection("job_queue"));
+chain = chain.then(addSection("celery_queues"));
+chain = chain.then(addSection("celery"));
+
+setInterval(function () {
+  fillSection("job_queue");
+}, 2000);
+setInterval(function () {
+  fillSection("celery_queues");
+}, 2000);
+setInterval(function () {
+  fillSection("celery");
+}, 2000);
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 288:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -176,49 +218,7 @@ function compileTemplate(templateId) {
 }
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
-/***/ }),
-
-/***/ 210:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var DOMHelpers = __webpack_require__(16);
-var HandlebarsHelpers = __webpack_require__(191);
-
-function fillSection(name) {
-  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
-    DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
-  });
-}
-
-function addSection(name) {
-  $('.stats-container').append('<div class="row" id="' + name + '">Loading ' + name + ' ...</div>');
-  return function () {
-    fillSection(name);
-  };
-}
-
-var chain = $.when(addSection("random")());
-chain = chain.then(addSection("days"));
-chain = chain.then(addSection("emails"));
-chain = chain.then(addSection("job_queue"));
-chain = chain.then(addSection("celery_queues"));
-chain = chain.then(addSection("celery"));
-
-setInterval(function () {
-  fillSection("job_queue");
-}, 2000);
-setInterval(function () {
-  fillSection("celery_queues");
-}, 2000);
-setInterval(function () {
-  fillSection("celery");
-}, 2000);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
 /***/ })
 
-},[210]);
+},[287]);
 //# sourceMappingURL=admin-stats.js.map

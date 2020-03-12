@@ -1,6 +1,6 @@
 webpackJsonp([2],{
 
-/***/ 14:
+/***/ 15:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12,7 +12,7 @@ var _iterator = __webpack_require__(28);
 
 var _iterator2 = _interopRequireDefault(_iterator);
 
-var _symbol = __webpack_require__(27);
+var _symbol = __webpack_require__(30);
 
 var _symbol2 = _interopRequireDefault(_symbol);
 
@@ -28,111 +28,27 @@ exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.d
 
 /***/ }),
 
-/***/ 15:
-/***/ (function(module, exports, __webpack_require__) {
+/***/ 16:
+/***/ (function(module, exports) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _keys = __webpack_require__(49);
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _typeof2 = __webpack_require__(14);
-
-var _typeof3 = _interopRequireDefault(_typeof2);
-
-var _stringify = __webpack_require__(43);
-
-var _stringify2 = _interopRequireDefault(_stringify);
-
-exports.request = request;
-exports.getErrorMessage = getErrorMessage;
-exports.stringFromNestedObject = stringFromNestedObject;
-exports.showError = showError;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var ErrorHandler = __webpack_require__(42);
-var Helpers = __webpack_require__(25);
-
-function request(method, url, data, requestArgs) {
-  // set up arguments for API request
-  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
-
-  if (data) {
-    if (method == 'GET') {
-      requestArgs.data = data;
-    } else {
-      requestArgs.data = (0, _stringify2.default)(data);
-      requestArgs.contentType = 'application/json';
-    }
-  }
-
-  requestArgs.url = api_path + url;
-  requestArgs.method = method;
-
-  if (!('error' in requestArgs)) requestArgs.error = showError;
-
-  return $.ajax(requestArgs);
-}
-
-// parse error results from API into string for display to user
-function getErrorMessage(jqXHR) {
-  var message = void 0;
-
-  if (jqXHR.status == 400 && jqXHR.responseText) {
-    try {
-      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
-    } catch (SyntaxError) {
-      // bad json in responseText
-      ErrorHandler.airbrake.notify(SyntaxError);
-    }
-  } else if (jqXHR.status == 401) {
-    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
-  } else if (jqXHR.status) {
-    message = "Error " + jqXHR.status;
-  }
-
-  if (!message) {
-    message = "We're sorry, we've encountered an error processing your request.";
-  }
-
-  return message;
-}
-
-// Get the first string value from a nested object.
-// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
-// Return null if no string is found.
-function stringFromNestedObject(object) {
-  if (object) {
-    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
-      var keys = (0, _keys2.default)(object);
-      for (var i = 0; i < keys.length; i++) {
-        var result = stringFromNestedObject(object[keys[i]]);
-        if (result) return result;
-      }
-    } else if (typeof object === "string") {
-      return object;
-    }
-  }
-  return null;
-}
-
-// display error results from API
-function showError(jqXHR) {
-  var message = getErrorMessage(jqXHR);
-  Helpers.informUser(message, 'danger');
-}
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+exports.f = Object.getOwnPropertySymbols;
 
 /***/ }),
 
-/***/ 16:
+/***/ 17:
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
+var $keys      = __webpack_require__(51)
+  , hiddenKeys = __webpack_require__(46).concat('length', 'prototype');
+
+exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
+  return $keys(O, hiddenKeys);
+};
+
+/***/ }),
+
+/***/ 20:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -235,37 +151,121 @@ function hasScrolled(elem) {
 
 /***/ }),
 
-/***/ 18:
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-var $keys      = __webpack_require__(52)
-  , hiddenKeys = __webpack_require__(45).concat('length', 'prototype');
-
-exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
-  return $keys(O, hiddenKeys);
-};
-
-/***/ }),
-
-/***/ 19:
-/***/ (function(module, exports) {
-
-exports.f = Object.getOwnPropertySymbols;
-
-/***/ }),
-
-/***/ 219:
+/***/ 21:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {
 
-var SingleLinkModule = __webpack_require__(58);
-var DOMHelpers = __webpack_require__(16);
-var APIModule = __webpack_require__(15);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _keys = __webpack_require__(50);
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _typeof2 = __webpack_require__(15);
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
+var _stringify = __webpack_require__(43);
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
+exports.request = request;
+exports.getErrorMessage = getErrorMessage;
+exports.stringFromNestedObject = stringFromNestedObject;
+exports.showError = showError;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var ErrorHandler = __webpack_require__(42);
 var Helpers = __webpack_require__(25);
-var LinkHelpers = __webpack_require__(62);
+
+function request(method, url, data, requestArgs) {
+  // set up arguments for API request
+  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
+
+  if (data) {
+    if (method == 'GET') {
+      requestArgs.data = data;
+    } else {
+      requestArgs.data = (0, _stringify2.default)(data);
+      requestArgs.contentType = 'application/json';
+    }
+  }
+
+  requestArgs.url = api_path + url;
+  requestArgs.method = method;
+
+  if (!('error' in requestArgs)) requestArgs.error = showError;
+
+  return $.ajax(requestArgs);
+}
+
+// parse error results from API into string for display to user
+function getErrorMessage(jqXHR) {
+  var message = void 0;
+
+  if (jqXHR.status == 400 && jqXHR.responseText) {
+    try {
+      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
+    } catch (SyntaxError) {
+      // bad json in responseText
+      ErrorHandler.airbrake.notify(SyntaxError);
+    }
+  } else if (jqXHR.status == 401) {
+    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+  } else if (jqXHR.status) {
+    message = "Error " + jqXHR.status;
+  }
+
+  if (!message) {
+    message = "We're sorry, we've encountered an error processing your request.";
+  }
+
+  return message;
+}
+
+// Get the first string value from a nested object.
+// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
+// Return null if no string is found.
+function stringFromNestedObject(object) {
+  if (object) {
+    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
+      var keys = (0, _keys2.default)(object);
+      for (var i = 0; i < keys.length; i++) {
+        var result = stringFromNestedObject(object[keys[i]]);
+        if (result) return result;
+      }
+    } else if (typeof object === "string") {
+      return object;
+    }
+  }
+  return null;
+}
+
+// display error results from API
+function showError(jqXHR) {
+  var message = getErrorMessage(jqXHR);
+  Helpers.informUser(message, 'danger');
+}
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 276:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+
+var SingleLinkModule = __webpack_require__(60);
+var DOMHelpers = __webpack_require__(20);
+var APIModule = __webpack_require__(21);
+var Helpers = __webpack_require__(25);
+var LinkHelpers = __webpack_require__(65);
 
 var updateBtnID = '#updatePermalink',
     cancelBtnID = '#cancelUpdatePermalink';
@@ -373,233 +373,71 @@ init();
 
 /***/ }),
 
-/***/ 27:
+/***/ 28:
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = { "default": __webpack_require__(29), __esModule: true };
 
 /***/ }),
 
-/***/ 28:
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = { "default": __webpack_require__(30), __esModule: true };
-
-/***/ }),
-
 /***/ 29:
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(39);
-__webpack_require__(38);
-__webpack_require__(40);
-__webpack_require__(41);
-module.exports = __webpack_require__(8).Symbol;
+__webpack_require__(56);
+__webpack_require__(53);
+module.exports = __webpack_require__(5).f('iterator');
 
 /***/ }),
 
 /***/ 30:
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(54);
-__webpack_require__(55);
-module.exports = __webpack_require__(7).f('iterator');
+module.exports = { "default": __webpack_require__(31), __esModule: true };
 
 /***/ }),
 
 /***/ 31:
 /***/ (function(module, exports, __webpack_require__) {
 
-// all enumerable object keys, includes symbols
-var getKeys = __webpack_require__(10)
-  , gOPS    = __webpack_require__(19)
-  , pIE     = __webpack_require__(5);
-module.exports = function(it){
-  var result     = getKeys(it)
-    , getSymbols = gOPS.f;
-  if(getSymbols){
-    var symbols = getSymbols(it)
-      , isEnum  = pIE.f
-      , i       = 0
-      , key;
-    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
-  } return result;
-};
+__webpack_require__(32);
+__webpack_require__(39);
+__webpack_require__(40);
+__webpack_require__(41);
+module.exports = __webpack_require__(8).Symbol;
 
 /***/ }),
 
 /***/ 32:
 /***/ (function(module, exports, __webpack_require__) {
 
-// 7.2.2 IsArray(argument)
-var cof = __webpack_require__(44);
-module.exports = Array.isArray || function isArray(arg){
-  return cof(arg) == 'Array';
-};
-
-/***/ }),
-
-/***/ 34:
-/***/ (function(module, exports, __webpack_require__) {
-
-var getKeys   = __webpack_require__(10)
-  , toIObject = __webpack_require__(2);
-module.exports = function(object, el){
-  var O      = toIObject(object)
-    , keys   = getKeys(O)
-    , length = keys.length
-    , index  = 0
-    , key;
-  while(length > index)if(O[key = keys[index++]] === el)return key;
-};
-
-/***/ }),
-
-/***/ 35:
-/***/ (function(module, exports, __webpack_require__) {
-
-var META     = __webpack_require__(21)('meta')
-  , isObject = __webpack_require__(33)
-  , has      = __webpack_require__(3)
-  , setDesc  = __webpack_require__(4).f
-  , id       = 0;
-var isExtensible = Object.isExtensible || function(){
-  return true;
-};
-var FREEZE = !__webpack_require__(17)(function(){
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function(it){
-  setDesc(it, META, {value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  }});
-};
-var fastKey = function(it, create){
-  // return primitive with prefix
-  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if(!has(it, META)){
-    // can't set metadata to uncaught frozen object
-    if(!isExtensible(it))return 'F';
-    // not necessary to add metadata
-    if(!create)return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function(it, create){
-  if(!has(it, META)){
-    // can't set metadata to uncaught frozen object
-    if(!isExtensible(it))return true;
-    // not necessary to add metadata
-    if(!create)return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function(it){
-  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY:      META,
-  NEED:     false,
-  fastKey:  fastKey,
-  getWeak:  getWeak,
-  onFreeze: onFreeze
-};
-
-/***/ }),
-
-/***/ 36:
-/***/ (function(module, exports, __webpack_require__) {
-
-var pIE            = __webpack_require__(5)
-  , createDesc     = __webpack_require__(20)
-  , toIObject      = __webpack_require__(2)
-  , toPrimitive    = __webpack_require__(24)
-  , has            = __webpack_require__(3)
-  , IE8_DOM_DEFINE = __webpack_require__(50)
-  , gOPD           = Object.getOwnPropertyDescriptor;
-
-exports.f = __webpack_require__(13) ? gOPD : function getOwnPropertyDescriptor(O, P){
-  O = toIObject(O);
-  P = toPrimitive(P, true);
-  if(IE8_DOM_DEFINE)try {
-    return gOPD(O, P);
-  } catch(e){ /* empty */ }
-  if(has(O, P))return createDesc(!pIE.f.call(O, P), O[P]);
-};
-
-/***/ }),
-
-/***/ 37:
-/***/ (function(module, exports, __webpack_require__) {
-
-// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-var toIObject = __webpack_require__(2)
-  , gOPN      = __webpack_require__(18).f
-  , toString  = {}.toString;
-
-var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
-  ? Object.getOwnPropertyNames(window) : [];
-
-var getWindowNames = function(it){
-  try {
-    return gOPN(it);
-  } catch(e){
-    return windowNames.slice();
-  }
-};
-
-module.exports.f = function getOwnPropertyNames(it){
-  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
-};
-
-
-/***/ }),
-
-/***/ 38:
-/***/ (function(module, exports) {
-
-
-
-/***/ }),
-
-/***/ 39:
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 
 // ECMAScript 6 symbols shim
-var global         = __webpack_require__(9)
+var global         = __webpack_require__(10)
   , has            = __webpack_require__(3)
   , DESCRIPTORS    = __webpack_require__(13)
-  , $export        = __webpack_require__(46)
-  , redefine       = __webpack_require__(53)
-  , META           = __webpack_require__(35).KEY
-  , $fails         = __webpack_require__(17)
-  , shared         = __webpack_require__(48)
-  , setToStringTag = __webpack_require__(47)
-  , uid            = __webpack_require__(21)
+  , $export        = __webpack_require__(47)
+  , redefine       = __webpack_require__(54)
+  , META           = __webpack_require__(33).KEY
+  , $fails         = __webpack_require__(14)
+  , shared         = __webpack_require__(45)
+  , setToStringTag = __webpack_require__(48)
+  , uid            = __webpack_require__(18)
   , wks            = __webpack_require__(11)
-  , wksExt         = __webpack_require__(7)
+  , wksExt         = __webpack_require__(5)
   , wksDefine      = __webpack_require__(6)
   , keyOf          = __webpack_require__(34)
-  , enumKeys       = __webpack_require__(31)
-  , isArray        = __webpack_require__(32)
+  , enumKeys       = __webpack_require__(35)
+  , isArray        = __webpack_require__(36)
   , anObject       = __webpack_require__(26)
   , toIObject      = __webpack_require__(2)
-  , toPrimitive    = __webpack_require__(24)
-  , createDesc     = __webpack_require__(20)
-  , _create        = __webpack_require__(51)
+  , toPrimitive    = __webpack_require__(23)
+  , createDesc     = __webpack_require__(19)
+  , _create        = __webpack_require__(55)
   , gOPNExt        = __webpack_require__(37)
-  , $GOPD          = __webpack_require__(36)
+  , $GOPD          = __webpack_require__(38)
   , $DP            = __webpack_require__(4)
-  , $keys          = __webpack_require__(10)
+  , $keys          = __webpack_require__(9)
   , gOPD           = $GOPD.f
   , dP             = $DP.f
   , gOPN           = gOPNExt.f
@@ -722,11 +560,11 @@ if(!USE_NATIVE){
 
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f   = $defineProperty;
-  __webpack_require__(18).f = gOPNExt.f = $getOwnPropertyNames;
-  __webpack_require__(5).f  = $propertyIsEnumerable;
-  __webpack_require__(19).f = $getOwnPropertySymbols;
+  __webpack_require__(17).f = gOPNExt.f = $getOwnPropertyNames;
+  __webpack_require__(7).f  = $propertyIsEnumerable;
+  __webpack_require__(16).f = $getOwnPropertySymbols;
 
-  if(DESCRIPTORS && !__webpack_require__(23)){
+  if(DESCRIPTORS && !__webpack_require__(24)){
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
   }
 
@@ -811,6 +649,168 @@ setToStringTag(global.JSON, 'JSON', true);
 
 /***/ }),
 
+/***/ 33:
+/***/ (function(module, exports, __webpack_require__) {
+
+var META     = __webpack_require__(18)('meta')
+  , isObject = __webpack_require__(27)
+  , has      = __webpack_require__(3)
+  , setDesc  = __webpack_require__(4).f
+  , id       = 0;
+var isExtensible = Object.isExtensible || function(){
+  return true;
+};
+var FREEZE = !__webpack_require__(14)(function(){
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function(it){
+  setDesc(it, META, {value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  }});
+};
+var fastKey = function(it, create){
+  // return primitive with prefix
+  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return 'F';
+    // not necessary to add metadata
+    if(!create)return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function(it, create){
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return true;
+    // not necessary to add metadata
+    if(!create)return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function(it){
+  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY:      META,
+  NEED:     false,
+  fastKey:  fastKey,
+  getWeak:  getWeak,
+  onFreeze: onFreeze
+};
+
+/***/ }),
+
+/***/ 34:
+/***/ (function(module, exports, __webpack_require__) {
+
+var getKeys   = __webpack_require__(9)
+  , toIObject = __webpack_require__(2);
+module.exports = function(object, el){
+  var O      = toIObject(object)
+    , keys   = getKeys(O)
+    , length = keys.length
+    , index  = 0
+    , key;
+  while(length > index)if(O[key = keys[index++]] === el)return key;
+};
+
+/***/ }),
+
+/***/ 35:
+/***/ (function(module, exports, __webpack_require__) {
+
+// all enumerable object keys, includes symbols
+var getKeys = __webpack_require__(9)
+  , gOPS    = __webpack_require__(16)
+  , pIE     = __webpack_require__(7);
+module.exports = function(it){
+  var result     = getKeys(it)
+    , getSymbols = gOPS.f;
+  if(getSymbols){
+    var symbols = getSymbols(it)
+      , isEnum  = pIE.f
+      , i       = 0
+      , key;
+    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
+  } return result;
+};
+
+/***/ }),
+
+/***/ 36:
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.2 IsArray(argument)
+var cof = __webpack_require__(44);
+module.exports = Array.isArray || function isArray(arg){
+  return cof(arg) == 'Array';
+};
+
+/***/ }),
+
+/***/ 37:
+/***/ (function(module, exports, __webpack_require__) {
+
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = __webpack_require__(2)
+  , gOPN      = __webpack_require__(17).f
+  , toString  = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function(it){
+  try {
+    return gOPN(it);
+  } catch(e){
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it){
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+
+/***/ }),
+
+/***/ 38:
+/***/ (function(module, exports, __webpack_require__) {
+
+var pIE            = __webpack_require__(7)
+  , createDesc     = __webpack_require__(19)
+  , toIObject      = __webpack_require__(2)
+  , toPrimitive    = __webpack_require__(23)
+  , has            = __webpack_require__(3)
+  , IE8_DOM_DEFINE = __webpack_require__(52)
+  , gOPD           = Object.getOwnPropertyDescriptor;
+
+exports.f = __webpack_require__(13) ? gOPD : function getOwnPropertyDescriptor(O, P){
+  O = toIObject(O);
+  P = toPrimitive(P, true);
+  if(IE8_DOM_DEFINE)try {
+    return gOPD(O, P);
+  } catch(e){ /* empty */ }
+  if(has(O, P))return createDesc(!pIE.f.call(O, P), O[P]);
+};
+
+/***/ }),
+
+/***/ 39:
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+
 /***/ 40:
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -826,13 +826,28 @@ __webpack_require__(6)('observable');
 /***/ }),
 
 /***/ 5:
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-exports.f = {}.propertyIsEnumerable;
+exports.f = __webpack_require__(11);
 
 /***/ }),
 
-/***/ 58:
+/***/ 6:
+/***/ (function(module, exports, __webpack_require__) {
+
+var global         = __webpack_require__(10)
+  , core           = __webpack_require__(8)
+  , LIBRARY        = __webpack_require__(24)
+  , wksExt         = __webpack_require__(5)
+  , defineProperty = __webpack_require__(4).f;
+module.exports = function(name){
+  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
+  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
+};
+
+/***/ }),
+
+/***/ 60:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -880,22 +895,7 @@ init();
 
 /***/ }),
 
-/***/ 6:
-/***/ (function(module, exports, __webpack_require__) {
-
-var global         = __webpack_require__(9)
-  , core           = __webpack_require__(8)
-  , LIBRARY        = __webpack_require__(23)
-  , wksExt         = __webpack_require__(7)
-  , defineProperty = __webpack_require__(4).f;
-module.exports = function(name){
-  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
-  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
-};
-
-/***/ }),
-
-/***/ 62:
+/***/ 65:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -907,8 +907,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.findFaviconURL = findFaviconURL;
 exports.generateLinkFields = generateLinkFields;
 exports.saveInput = saveInput;
-var DOMHelpers = __webpack_require__(16);
-var APIModule = __webpack_require__(15);
+var DOMHelpers = __webpack_require__(20);
+var APIModule = __webpack_require__(21);
 __webpack_require__(66); // add .format() to Date object
 
 function findFaviconURL(linkObj) {
@@ -1097,11 +1097,11 @@ Date.prototype.format = function (e) {
 /***/ }),
 
 /***/ 7:
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-exports.f = __webpack_require__(11);
+exports.f = {}.propertyIsEnumerable;
 
 /***/ })
 
-},[219]);
+},[276]);
 //# sourceMappingURL=single-link-permissions.js.map
