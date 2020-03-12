@@ -6,21 +6,21 @@
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-/******/
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
-/******/ 			exports: {},
-/******/ 			id: moduleId,
-/******/ 			loaded: false
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/
 /******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
+/******/ 		module.l = true;
 /******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -33,77 +33,104 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
+/******/ 	// identity function for calling harmony imports with the correct context
+/******/ 	__webpack_require__.i = function(value) { return value; };
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 288);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 0:
-/***/ function(module, exports, __webpack_require__) {
+/***/ 196:
+/***/ (function(module, exports) {
 
-	__webpack_require__(216);
-	module.exports = __webpack_require__(217);
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+
+/***/ 288:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(58);
+module.exports = __webpack_require__(196);
 
 
-/***/ },
+/***/ }),
 
-/***/ 216:
-/***/ function(module, exports) {
+/***/ 58:
+/***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.handleShowDetails = handleShowDetails;
-	var resizeTimeout, wrapper;
-	
-	var detailsButton = exports.detailsButton = document.getElementById("details-button");
-	var detailsTray = document.getElementById("collapse-details");
-	
-	function init() {
-	  adjustTopMargin();
-	  var clicked = false;
-	  if (detailsButton) {
-	    detailsButton.onclick = function () {
-	      clicked = !clicked;
-	      handleShowDetails(clicked);
-	    };
-	  }
-	
-	  window.onresize = function () {
-	    if (resizeTimeout != null) clearTimeout(resizeTimeout);
-	    resizeTimeout = setTimeout(adjustTopMargin, 200);
-	  };
-	}
-	
-	function handleShowDetails(open) {
-	  detailsButton.textContent = open ? "Hide record details" : "Show record details";
-	  detailsTray.style.display = open ? "block" : "none";
-	}
-	
-	function adjustTopMargin() {
-	  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
-	  var header = document.getElementsByTagName('header')[0];
-	  if (!wrapper) return;
-	  wrapper.style.marginTop = header.offsetHeight + "px";
-	  wrapper.style.height = "calc(100% - " + header.offsetHeight + "px)";
-	}
-	
-	init();
+"use strict";
 
-/***/ },
 
-/***/ 217:
-/***/ function(module, exports) {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.handleShowDetails = handleShowDetails;
+var resizeTimeout, wrapper;
 
-	// removed by extract-text-webpack-plugin
+var detailsButton = exports.detailsButton = document.getElementById("details-button");
+var detailsTray = document.getElementById("collapse-details");
 
-/***/ }
+function init() {
+  adjustTopMargin();
+  var clicked = false;
+  if (detailsButton) {
+    detailsButton.onclick = function () {
+      clicked = !clicked;
+      handleShowDetails(clicked);
+    };
+  }
+
+  window.onresize = function () {
+    if (resizeTimeout != null) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(adjustTopMargin, 200);
+  };
+}
+
+function handleShowDetails(open) {
+  detailsButton.textContent = open ? "Hide record details" : "Show record details";
+  detailsTray.style.display = open ? "block" : "none";
+}
+
+function adjustTopMargin() {
+  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
+  var header = document.getElementsByTagName('header')[0];
+  if (!wrapper) return;
+  wrapper.style.marginTop = header.offsetHeight + "px";
+  wrapper.style.height = "calc(100% - " + header.offsetHeight + "px)";
+}
+
+init();
+
+/***/ })
 
 /******/ });
 //# sourceMappingURL=single-link.js.map

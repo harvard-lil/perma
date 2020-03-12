@@ -1,1099 +1,1107 @@
-webpackJsonp([7],{
+webpackJsonp([2],{
 
-/***/ 0:
-/***/ function(module, exports, __webpack_require__) {
+/***/ 14:
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	var SingleLinkModule = __webpack_require__(216);
-	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(78);
-	var Helpers = __webpack_require__(96);
-	var LinkHelpers = __webpack_require__(77);
-	
-	var updateBtnID = '#updatePermalink',
-	    cancelBtnID = '#cancelUpdatePermalink';
-	
-	function init() {
-	  // Hide query parameter from the special Safari redirect
-	  if (window.location.href.indexOf('safari=1') > -1) {
-	    history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
-	  }
-	
-	  DOMHelpers.toggleBtnDisable(updateBtnID, true);
-	  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
-	
-	  setupEventHandlers();
-	}
-	
-	function setupEventHandlers() {
-	  $(".edit-link").click(function () {
-	    $(SingleLinkModule.detailsButton).click();
-	    return false;
-	  });
-	
-	  $("button.darchive").click(function () {
-	    handleDarchiving($(this));
-	    return false;
-	  });
-	
-	  $("input:file").change(function () {
-	    var fileName = $(this).val();
-	    var disableStatus = fileName ? false : true;
-	    DOMHelpers.toggleBtnDisable(cancelBtnID, disableStatus);
-	    DOMHelpers.toggleBtnDisable(updateBtnID, disableStatus);
-	  });
-	
-	  $("button:reset").click(function () {
-	    DOMHelpers.toggleBtnDisable(cancelBtnID, true);
-	    DOMHelpers.toggleBtnDisable(updateBtnID, true);
-	  });
-	
-	  $('#archive_upload_form').submit(function (e) {
-	    e.preventDefault();
-	    submitFile();
-	  });
-	  var inputValues = {};
-	  $('#collapse-details').find('input').on('input propertychange change', function () {
-	    var inputarea = $(this);
-	    var name = inputarea.attr("name");
-	    if (name == "file") return;
-	    if (inputarea.val() == inputValues[name]) return;
-	    inputValues[name] = inputarea.val();
-	    var statusElement = inputarea.parent().find(".save-status");
-	
-	    LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, function () {
-	      setTimeout(function () {
-	        $(statusElement).html('');
-	      }, 1000);
-	    });
-	  });
-	}
-	
-	function submitFile() {
-	  DOMHelpers.toggleBtnDisable(updateBtnID, true);
-	  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
-	  var url = "/archives/" + archive.guid + "/";
-	  var data = {};
-	  data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
-	
-	  var requestArgs = {
-	    contentType: false,
-	    processData: false
-	  };
-	  if (window.FormData) {
-	    Helpers.sendFormData("PATCH", url, data, requestArgs).done(function (data) {
-	      location = location;
-	    });
-	  } else {
-	    $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
-	  }
-	}
-	
-	function handleDarchiving(context) {
-	  var $this = context;
-	  if (!$this.hasClass('disabled')) {
-	    var prev_text = $this.text(),
-	        currently_private = prev_text.indexOf('Public') > -1,
-	        private_reason = currently_private ? null : $('select[name="private_reason"]').val() || 'user';
-	
-	    $this.addClass('disabled');
-	    $this.text('Updating ...');
-	
-	    APIModule.request('PATCH', '/archives/' + archive.guid + '/', { is_private: !currently_private, private_reason: private_reason }, {
-	      success: function success() {
-	        window.location.reload(true);
-	      },
-	      error: function error(jqXHR) {
-	        $this.removeClass('disabled');
-	        $this.text(prev_text);
-	      }
-	    });
-	  }
-	}
-	
-	init();
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+"use strict";
 
-/***/ },
 
-/***/ 2:
-/***/ function(module, exports, __webpack_require__) {
+exports.__esModule = true;
 
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.setInputValue = setInputValue;
-	exports.removeElement = removeElement;
-	exports.changeText = changeText;
-	exports.toggleBtnDisable = toggleBtnDisable;
-	exports.changeHTML = changeHTML;
-	exports.emptyElement = emptyElement;
-	exports.getValue = getValue;
-	exports.removeClass = removeClass;
-	exports.showElement = showElement;
-	exports.hideElement = hideElement;
-	exports.addCSS = addCSS;
-	exports.scrollIfTallerThanFractionOfViewport = scrollIfTallerThanFractionOfViewport;
-	exports.viewportHeight = viewportHeight;
-	exports.markIfScrolled = markIfScrolled;
-	function setInputValue(domSelector, value) {
-	  $(domSelector).val(value);
-	}
-	
-	function removeElement(domSelector) {
-	  $(domSelector).remove();
-	}
-	
-	function changeText(domSelector, text) {
-	  $(domSelector).text(text);
-	}
-	
-	function toggleBtnDisable(domSelector, disableStatus) {
-	  // if disableStatus is false, enable.
-	  // if disableStatus is true, disable.
-	  $(domSelector).prop('disabled', disableStatus);
-	}
-	
-	function changeHTML(domSelector, value) {
-	  $(domSelector).html(value);
-	}
-	
-	function emptyElement(domSelector) {
-	  $(domSelector).empty();
-	}
-	
-	function getValue(domSelector) {
-	  return $(domSelector).val();
-	}
-	
-	function removeClass(domSelector, className) {
-	  $(domSelector).removeClass(className);
-	}
-	
-	function showElement(domSelector) {
-	  $(domSelector).show();
-	}
-	
-	function hideElement(domSelector) {
-	  $(domSelector).hide();
-	}
-	
-	function addCSS(domSelector, propertyName, propertyValue) {
-	  $(domSelector).css(propertyName, propertyValue);
-	}
-	
-	function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
-	  var limit = fraction * viewportHeight();
-	  var elem = $(domSelector);
-	  if (elem.prop('scrollHeight') < limit) {
-	    elem.removeClass('scrolling');
-	    elem.css('max-height', 'initial');
-	  } else {
-	    elem.addClass('scrolling');
-	    elem.css('max-height', limit);
-	  }
-	}
-	
-	function viewportHeight() {
-	  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-	}
-	
-	function markIfScrolled(domSelector) {
-	  var elem = $(domSelector);
-	  elem.scroll(function () {
-	    if (hasScrolled(elem)) {
-	      elem.addClass('scrolled');
-	    } else {
-	      elem.removeClass('scrolled');
-	    }
-	  });
-	}
-	
-	function hasScrolled(elem) {
-	  return elem.children().first().position().top < 0;
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+var _iterator = __webpack_require__(28);
 
-/***/ },
+var _iterator2 = _interopRequireDefault(_iterator);
 
-/***/ 9:
-/***/ function(module, exports, __webpack_require__) {
+var _symbol = __webpack_require__(27);
 
-	"use strict";
-	
-	exports.__esModule = true;
-	
-	var _iterator = __webpack_require__(10);
-	
-	var _iterator2 = _interopRequireDefault(_iterator);
-	
-	var _symbol = __webpack_require__(60);
-	
-	var _symbol2 = _interopRequireDefault(_symbol);
-	
-	var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj; };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
-	  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
-	} : function (obj) {
-	  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
-	};
+var _symbol2 = _interopRequireDefault(_symbol);
 
-/***/ },
+var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj; };
 
-/***/ 10:
-/***/ function(module, exports, __webpack_require__) {
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	module.exports = { "default": __webpack_require__(11), __esModule: true };
+exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
+} : function (obj) {
+  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
+};
 
-/***/ },
+/***/ }),
 
-/***/ 11:
-/***/ function(module, exports, __webpack_require__) {
+/***/ 15:
+/***/ (function(module, exports, __webpack_require__) {
 
-	__webpack_require__(12);
-	__webpack_require__(55);
-	module.exports = __webpack_require__(59).f('iterator');
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
 
-/***/ },
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-/***/ 59:
-/***/ function(module, exports, __webpack_require__) {
+var _keys = __webpack_require__(49);
 
-	exports.f = __webpack_require__(52);
+var _keys2 = _interopRequireDefault(_keys);
 
-/***/ },
+var _typeof2 = __webpack_require__(14);
 
-/***/ 60:
-/***/ function(module, exports, __webpack_require__) {
+var _typeof3 = _interopRequireDefault(_typeof2);
 
-	module.exports = { "default": __webpack_require__(61), __esModule: true };
+var _stringify = __webpack_require__(43);
 
-/***/ },
+var _stringify2 = _interopRequireDefault(_stringify);
 
-/***/ 61:
-/***/ function(module, exports, __webpack_require__) {
+exports.request = request;
+exports.getErrorMessage = getErrorMessage;
+exports.stringFromNestedObject = stringFromNestedObject;
+exports.showError = showError;
 
-	__webpack_require__(62);
-	__webpack_require__(73);
-	__webpack_require__(74);
-	__webpack_require__(75);
-	module.exports = __webpack_require__(8).Symbol;
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/***/ },
+var ErrorHandler = __webpack_require__(42);
+var Helpers = __webpack_require__(25);
+
+function request(method, url, data, requestArgs) {
+  // set up arguments for API request
+  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
+
+  if (data) {
+    if (method == 'GET') {
+      requestArgs.data = data;
+    } else {
+      requestArgs.data = (0, _stringify2.default)(data);
+      requestArgs.contentType = 'application/json';
+    }
+  }
+
+  requestArgs.url = api_path + url;
+  requestArgs.method = method;
+
+  if (!('error' in requestArgs)) requestArgs.error = showError;
+
+  return $.ajax(requestArgs);
+}
+
+// parse error results from API into string for display to user
+function getErrorMessage(jqXHR) {
+  var message = void 0;
+
+  if (jqXHR.status == 400 && jqXHR.responseText) {
+    try {
+      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
+    } catch (SyntaxError) {
+      // bad json in responseText
+      ErrorHandler.airbrake.notify(SyntaxError);
+    }
+  } else if (jqXHR.status == 401) {
+    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+  } else if (jqXHR.status) {
+    message = "Error " + jqXHR.status;
+  }
+
+  if (!message) {
+    message = "We're sorry, we've encountered an error processing your request.";
+  }
+
+  return message;
+}
+
+// Get the first string value from a nested object.
+// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
+// Return null if no string is found.
+function stringFromNestedObject(object) {
+  if (object) {
+    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
+      var keys = (0, _keys2.default)(object);
+      for (var i = 0; i < keys.length; i++) {
+        var result = stringFromNestedObject(object[keys[i]]);
+        if (result) return result;
+      }
+    } else if (typeof object === "string") {
+      return object;
+    }
+  }
+  return null;
+}
+
+// display error results from API
+function showError(jqXHR) {
+  var message = getErrorMessage(jqXHR);
+  Helpers.informUser(message, 'danger');
+}
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 16:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setInputValue = setInputValue;
+exports.removeElement = removeElement;
+exports.changeText = changeText;
+exports.toggleBtnDisable = toggleBtnDisable;
+exports.changeHTML = changeHTML;
+exports.emptyElement = emptyElement;
+exports.getValue = getValue;
+exports.removeClass = removeClass;
+exports.showElement = showElement;
+exports.hideElement = hideElement;
+exports.addCSS = addCSS;
+exports.scrollIfTallerThanFractionOfViewport = scrollIfTallerThanFractionOfViewport;
+exports.viewportHeight = viewportHeight;
+exports.markIfScrolled = markIfScrolled;
+function setInputValue(domSelector, value) {
+  $(domSelector).val(value);
+}
+
+function removeElement(domSelector) {
+  $(domSelector).remove();
+}
+
+function changeText(domSelector, text) {
+  $(domSelector).text(text);
+}
+
+function toggleBtnDisable(domSelector, disableStatus) {
+  // if disableStatus is false, enable.
+  // if disableStatus is true, disable.
+  $(domSelector).prop('disabled', disableStatus);
+}
+
+function changeHTML(domSelector, value) {
+  $(domSelector).html(value);
+}
+
+function emptyElement(domSelector) {
+  $(domSelector).empty();
+}
+
+function getValue(domSelector) {
+  return $(domSelector).val();
+}
+
+function removeClass(domSelector, className) {
+  $(domSelector).removeClass(className);
+}
+
+function showElement(domSelector) {
+  $(domSelector).show();
+}
+
+function hideElement(domSelector) {
+  $(domSelector).hide();
+}
+
+function addCSS(domSelector, propertyName, propertyValue) {
+  $(domSelector).css(propertyName, propertyValue);
+}
+
+function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
+  var limit = fraction * viewportHeight();
+  var elem = $(domSelector);
+  if (elem.prop('scrollHeight') < limit) {
+    elem.removeClass('scrolling');
+    elem.css('max-height', 'initial');
+  } else {
+    elem.addClass('scrolling');
+    elem.css('max-height', limit);
+  }
+}
+
+function viewportHeight() {
+  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+}
+
+function markIfScrolled(domSelector) {
+  var elem = $(domSelector);
+  elem.scroll(function () {
+    if (hasScrolled(elem)) {
+      elem.addClass('scrolled');
+    } else {
+      elem.removeClass('scrolled');
+    }
+  });
+}
+
+function hasScrolled(elem) {
+  return elem.children().first().position().top < 0;
+}
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 18:
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
+var $keys      = __webpack_require__(52)
+  , hiddenKeys = __webpack_require__(45).concat('length', 'prototype');
+
+exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
+  return $keys(O, hiddenKeys);
+};
+
+/***/ }),
+
+/***/ 19:
+/***/ (function(module, exports) {
+
+exports.f = Object.getOwnPropertySymbols;
+
+/***/ }),
+
+/***/ 219:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+
+var SingleLinkModule = __webpack_require__(58);
+var DOMHelpers = __webpack_require__(16);
+var APIModule = __webpack_require__(15);
+var Helpers = __webpack_require__(25);
+var LinkHelpers = __webpack_require__(62);
+
+var updateBtnID = '#updatePermalink',
+    cancelBtnID = '#cancelUpdatePermalink';
+
+function init() {
+  // Hide query parameter from the special Safari redirect
+  if (window.location.href.indexOf('safari=1') > -1) {
+    history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
+  }
+
+  DOMHelpers.toggleBtnDisable(updateBtnID, true);
+  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+
+  setupEventHandlers();
+}
+
+function setupEventHandlers() {
+  $(".edit-link").click(function () {
+    $(SingleLinkModule.detailsButton).click();
+    return false;
+  });
+
+  $("button.darchive").click(function () {
+    handleDarchiving($(this));
+    return false;
+  });
+
+  $("input:file").change(function () {
+    var fileName = $(this).val();
+    var disableStatus = fileName ? false : true;
+    DOMHelpers.toggleBtnDisable(cancelBtnID, disableStatus);
+    DOMHelpers.toggleBtnDisable(updateBtnID, disableStatus);
+  });
+
+  $("button:reset").click(function () {
+    DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+    DOMHelpers.toggleBtnDisable(updateBtnID, true);
+  });
+
+  $('#archive_upload_form').submit(function (e) {
+    e.preventDefault();
+    submitFile();
+  });
+  var inputValues = {};
+  $('#collapse-details').find('input').on('input propertychange change', function () {
+    var inputarea = $(this);
+    var name = inputarea.attr("name");
+    if (name == "file") return;
+    if (inputarea.val() == inputValues[name]) return;
+    inputValues[name] = inputarea.val();
+    var statusElement = inputarea.parent().find(".save-status");
+
+    LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, function () {
+      setTimeout(function () {
+        $(statusElement).html('');
+      }, 1000);
+    });
+  });
+}
+
+function submitFile() {
+  DOMHelpers.toggleBtnDisable(updateBtnID, true);
+  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+  var url = "/archives/" + archive.guid + "/";
+  var data = {};
+  data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
+
+  var requestArgs = {
+    contentType: false,
+    processData: false
+  };
+  if (window.FormData) {
+    Helpers.sendFormData("PATCH", url, data, requestArgs).done(function (data) {
+      location = location;
+    });
+  } else {
+    $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
+  }
+}
+
+function handleDarchiving(context) {
+  var $this = context;
+  if (!$this.hasClass('disabled')) {
+    var prev_text = $this.text(),
+        currently_private = prev_text.indexOf('Public') > -1,
+        private_reason = currently_private ? null : $('select[name="private_reason"]').val() || 'user';
+
+    $this.addClass('disabled');
+    $this.text('Updating ...');
+
+    APIModule.request('PATCH', '/archives/' + archive.guid + '/', { is_private: !currently_private, private_reason: private_reason }, {
+      success: function success() {
+        window.location.reload(true);
+      },
+      error: function error(jqXHR) {
+        $this.removeClass('disabled');
+        $this.text(prev_text);
+      }
+    });
+  }
+}
+
+init();
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+
+/***/ 27:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = { "default": __webpack_require__(29), __esModule: true };
+
+/***/ }),
+
+/***/ 28:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = { "default": __webpack_require__(30), __esModule: true };
+
+/***/ }),
+
+/***/ 29:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(39);
+__webpack_require__(38);
+__webpack_require__(40);
+__webpack_require__(41);
+module.exports = __webpack_require__(8).Symbol;
+
+/***/ }),
+
+/***/ 30:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(54);
+__webpack_require__(55);
+module.exports = __webpack_require__(7).f('iterator');
+
+/***/ }),
+
+/***/ 31:
+/***/ (function(module, exports, __webpack_require__) {
+
+// all enumerable object keys, includes symbols
+var getKeys = __webpack_require__(10)
+  , gOPS    = __webpack_require__(19)
+  , pIE     = __webpack_require__(5);
+module.exports = function(it){
+  var result     = getKeys(it)
+    , getSymbols = gOPS.f;
+  if(getSymbols){
+    var symbols = getSymbols(it)
+      , isEnum  = pIE.f
+      , i       = 0
+      , key;
+    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
+  } return result;
+};
+
+/***/ }),
+
+/***/ 32:
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.2 IsArray(argument)
+var cof = __webpack_require__(44);
+module.exports = Array.isArray || function isArray(arg){
+  return cof(arg) == 'Array';
+};
+
+/***/ }),
+
+/***/ 34:
+/***/ (function(module, exports, __webpack_require__) {
+
+var getKeys   = __webpack_require__(10)
+  , toIObject = __webpack_require__(2);
+module.exports = function(object, el){
+  var O      = toIObject(object)
+    , keys   = getKeys(O)
+    , length = keys.length
+    , index  = 0
+    , key;
+  while(length > index)if(O[key = keys[index++]] === el)return key;
+};
+
+/***/ }),
+
+/***/ 35:
+/***/ (function(module, exports, __webpack_require__) {
+
+var META     = __webpack_require__(21)('meta')
+  , isObject = __webpack_require__(33)
+  , has      = __webpack_require__(3)
+  , setDesc  = __webpack_require__(4).f
+  , id       = 0;
+var isExtensible = Object.isExtensible || function(){
+  return true;
+};
+var FREEZE = !__webpack_require__(17)(function(){
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function(it){
+  setDesc(it, META, {value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  }});
+};
+var fastKey = function(it, create){
+  // return primitive with prefix
+  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return 'F';
+    // not necessary to add metadata
+    if(!create)return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function(it, create){
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return true;
+    // not necessary to add metadata
+    if(!create)return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function(it){
+  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY:      META,
+  NEED:     false,
+  fastKey:  fastKey,
+  getWeak:  getWeak,
+  onFreeze: onFreeze
+};
+
+/***/ }),
+
+/***/ 36:
+/***/ (function(module, exports, __webpack_require__) {
+
+var pIE            = __webpack_require__(5)
+  , createDesc     = __webpack_require__(20)
+  , toIObject      = __webpack_require__(2)
+  , toPrimitive    = __webpack_require__(24)
+  , has            = __webpack_require__(3)
+  , IE8_DOM_DEFINE = __webpack_require__(50)
+  , gOPD           = Object.getOwnPropertyDescriptor;
+
+exports.f = __webpack_require__(13) ? gOPD : function getOwnPropertyDescriptor(O, P){
+  O = toIObject(O);
+  P = toPrimitive(P, true);
+  if(IE8_DOM_DEFINE)try {
+    return gOPD(O, P);
+  } catch(e){ /* empty */ }
+  if(has(O, P))return createDesc(!pIE.f.call(O, P), O[P]);
+};
+
+/***/ }),
+
+/***/ 37:
+/***/ (function(module, exports, __webpack_require__) {
+
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = __webpack_require__(2)
+  , gOPN      = __webpack_require__(18).f
+  , toString  = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function(it){
+  try {
+    return gOPN(it);
+  } catch(e){
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it){
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+
+/***/ }),
+
+/***/ 38:
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+
+/***/ 39:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// ECMAScript 6 symbols shim
+var global         = __webpack_require__(9)
+  , has            = __webpack_require__(3)
+  , DESCRIPTORS    = __webpack_require__(13)
+  , $export        = __webpack_require__(46)
+  , redefine       = __webpack_require__(53)
+  , META           = __webpack_require__(35).KEY
+  , $fails         = __webpack_require__(17)
+  , shared         = __webpack_require__(48)
+  , setToStringTag = __webpack_require__(47)
+  , uid            = __webpack_require__(21)
+  , wks            = __webpack_require__(11)
+  , wksExt         = __webpack_require__(7)
+  , wksDefine      = __webpack_require__(6)
+  , keyOf          = __webpack_require__(34)
+  , enumKeys       = __webpack_require__(31)
+  , isArray        = __webpack_require__(32)
+  , anObject       = __webpack_require__(26)
+  , toIObject      = __webpack_require__(2)
+  , toPrimitive    = __webpack_require__(24)
+  , createDesc     = __webpack_require__(20)
+  , _create        = __webpack_require__(51)
+  , gOPNExt        = __webpack_require__(37)
+  , $GOPD          = __webpack_require__(36)
+  , $DP            = __webpack_require__(4)
+  , $keys          = __webpack_require__(10)
+  , gOPD           = $GOPD.f
+  , dP             = $DP.f
+  , gOPN           = gOPNExt.f
+  , $Symbol        = global.Symbol
+  , $JSON          = global.JSON
+  , _stringify     = $JSON && $JSON.stringify
+  , PROTOTYPE      = 'prototype'
+  , HIDDEN         = wks('_hidden')
+  , TO_PRIMITIVE   = wks('toPrimitive')
+  , isEnum         = {}.propertyIsEnumerable
+  , SymbolRegistry = shared('symbol-registry')
+  , AllSymbols     = shared('symbols')
+  , OPSymbols      = shared('op-symbols')
+  , ObjectProto    = Object[PROTOTYPE]
+  , USE_NATIVE     = typeof $Symbol == 'function'
+  , QObject        = global.QObject;
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function(){
+  return _create(dP({}, 'a', {
+    get: function(){ return dP(this, 'a', {value: 7}).a; }
+  })).a != 7;
+}) ? function(it, key, D){
+  var protoDesc = gOPD(ObjectProto, key);
+  if(protoDesc)delete ObjectProto[key];
+  dP(it, key, D);
+  if(protoDesc && it !== ObjectProto)dP(ObjectProto, key, protoDesc);
+} : dP;
+
+var wrap = function(tag){
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
+  sym._k = tag;
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function(it){
+  return typeof it == 'symbol';
+} : function(it){
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D){
+  if(it === ObjectProto)$defineProperty(OPSymbols, key, D);
+  anObject(it);
+  key = toPrimitive(key, true);
+  anObject(D);
+  if(has(AllSymbols, key)){
+    if(!D.enumerable){
+      if(!has(it, HIDDEN))dP(it, HIDDEN, createDesc(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if(has(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;
+      D = _create(D, {enumerable: createDesc(0, false)});
+    } return setSymbolDesc(it, key, D);
+  } return dP(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P){
+  anObject(it);
+  var keys = enumKeys(P = toIObject(P))
+    , i    = 0
+    , l = keys.length
+    , key;
+  while(l > i)$defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P){
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key){
+  var E = isEnum.call(this, key = toPrimitive(key, true));
+  if(this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key))return false;
+  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key){
+  it  = toIObject(it);
+  key = toPrimitive(key, true);
+  if(it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key))return;
+  var D = gOPD(it, key);
+  if(D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it){
+  var names  = gOPN(toIObject(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i){
+    if(!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META)result.push(key);
+  } return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it){
+  var IS_OP  = it === ObjectProto
+    , names  = gOPN(IS_OP ? OPSymbols : toIObject(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i){
+    if(has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true))result.push(AllSymbols[key]);
+  } return result;
+};
+
+// 19.4.1.1 Symbol([description])
+if(!USE_NATIVE){
+  $Symbol = function Symbol(){
+    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
+    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
+    var $set = function(value){
+      if(this === ObjectProto)$set.call(OPSymbols, value);
+      if(has(this, HIDDEN) && has(this[HIDDEN], tag))this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc(1, value));
+    };
+    if(DESCRIPTORS && setter)setSymbolDesc(ObjectProto, tag, {configurable: true, set: $set});
+    return wrap(tag);
+  };
+  redefine($Symbol[PROTOTYPE], 'toString', function toString(){
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f   = $defineProperty;
+  __webpack_require__(18).f = gOPNExt.f = $getOwnPropertyNames;
+  __webpack_require__(5).f  = $propertyIsEnumerable;
+  __webpack_require__(19).f = $getOwnPropertySymbols;
+
+  if(DESCRIPTORS && !__webpack_require__(23)){
+    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+
+  wksExt.f = function(name){
+    return wrap(wks(name));
+  }
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, {Symbol: $Symbol});
+
+for(var symbols = (
+  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), i = 0; symbols.length > i; )wks(symbols[i++]);
+
+for(var symbols = $keys(wks.store), i = 0; symbols.length > i; )wksDefine(symbols[i++]);
+
+$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function(key){
+    return has(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(key){
+    if(isSymbol(key))return keyOf(SymbolRegistry, key);
+    throw TypeError(key + ' is not a symbol!');
+  },
+  useSetter: function(){ setter = true; },
+  useSimple: function(){ setter = false; }
+});
+
+$export($export.S + $export.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function(){
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
+})), 'JSON', {
+  stringify: function stringify(it){
+    if(it === undefined || isSymbol(it))return; // IE8 returns string on undefined
+    var args = [it]
+      , i    = 1
+      , replacer, $replacer;
+    while(arguments.length > i)args.push(arguments[i++]);
+    replacer = args[1];
+    if(typeof replacer == 'function')$replacer = replacer;
+    if($replacer || !isArray(replacer))replacer = function(key, value){
+      if($replacer)value = $replacer.call(this, key, value);
+      if(!isSymbol(value))return value;
+    };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  }
+});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag(global.JSON, 'JSON', true);
+
+/***/ }),
+
+/***/ 40:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(6)('asyncIterator');
+
+/***/ }),
+
+/***/ 41:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(6)('observable');
+
+/***/ }),
+
+/***/ 5:
+/***/ (function(module, exports) {
+
+exports.f = {}.propertyIsEnumerable;
+
+/***/ }),
+
+/***/ 58:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.handleShowDetails = handleShowDetails;
+var resizeTimeout, wrapper;
+
+var detailsButton = exports.detailsButton = document.getElementById("details-button");
+var detailsTray = document.getElementById("collapse-details");
+
+function init() {
+  adjustTopMargin();
+  var clicked = false;
+  if (detailsButton) {
+    detailsButton.onclick = function () {
+      clicked = !clicked;
+      handleShowDetails(clicked);
+    };
+  }
+
+  window.onresize = function () {
+    if (resizeTimeout != null) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(adjustTopMargin, 200);
+  };
+}
+
+function handleShowDetails(open) {
+  detailsButton.textContent = open ? "Hide record details" : "Show record details";
+  detailsTray.style.display = open ? "block" : "none";
+}
+
+function adjustTopMargin() {
+  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
+  var header = document.getElementsByTagName('header')[0];
+  if (!wrapper) return;
+  wrapper.style.marginTop = header.offsetHeight + "px";
+  wrapper.style.height = "calc(100% - " + header.offsetHeight + "px)";
+}
+
+init();
+
+/***/ }),
+
+/***/ 6:
+/***/ (function(module, exports, __webpack_require__) {
+
+var global         = __webpack_require__(9)
+  , core           = __webpack_require__(8)
+  , LIBRARY        = __webpack_require__(23)
+  , wksExt         = __webpack_require__(7)
+  , defineProperty = __webpack_require__(4).f;
+module.exports = function(name){
+  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
+  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
+};
+
+/***/ }),
 
 /***/ 62:
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
-	'use strict';
-	// ECMAScript 6 symbols shim
-	var global         = __webpack_require__(19)
-	  , has            = __webpack_require__(33)
-	  , DESCRIPTORS    = __webpack_require__(27)
-	  , $export        = __webpack_require__(18)
-	  , redefine       = __webpack_require__(32)
-	  , META           = __webpack_require__(63).KEY
-	  , $fails         = __webpack_require__(28)
-	  , shared         = __webpack_require__(47)
-	  , setToStringTag = __webpack_require__(51)
-	  , uid            = __webpack_require__(48)
-	  , wks            = __webpack_require__(52)
-	  , wksExt         = __webpack_require__(59)
-	  , wksDefine      = __webpack_require__(64)
-	  , keyOf          = __webpack_require__(65)
-	  , enumKeys       = __webpack_require__(66)
-	  , isArray        = __webpack_require__(69)
-	  , anObject       = __webpack_require__(24)
-	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
-	  , createDesc     = __webpack_require__(31)
-	  , _create        = __webpack_require__(36)
-	  , gOPNExt        = __webpack_require__(70)
-	  , $GOPD          = __webpack_require__(72)
-	  , $DP            = __webpack_require__(23)
-	  , $keys          = __webpack_require__(38)
-	  , gOPD           = $GOPD.f
-	  , dP             = $DP.f
-	  , gOPN           = gOPNExt.f
-	  , $Symbol        = global.Symbol
-	  , $JSON          = global.JSON
-	  , _stringify     = $JSON && $JSON.stringify
-	  , PROTOTYPE      = 'prototype'
-	  , HIDDEN         = wks('_hidden')
-	  , TO_PRIMITIVE   = wks('toPrimitive')
-	  , isEnum         = {}.propertyIsEnumerable
-	  , SymbolRegistry = shared('symbol-registry')
-	  , AllSymbols     = shared('symbols')
-	  , OPSymbols      = shared('op-symbols')
-	  , ObjectProto    = Object[PROTOTYPE]
-	  , USE_NATIVE     = typeof $Symbol == 'function'
-	  , QObject        = global.QObject;
-	// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
-	var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
-	
-	// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
-	var setSymbolDesc = DESCRIPTORS && $fails(function(){
-	  return _create(dP({}, 'a', {
-	    get: function(){ return dP(this, 'a', {value: 7}).a; }
-	  })).a != 7;
-	}) ? function(it, key, D){
-	  var protoDesc = gOPD(ObjectProto, key);
-	  if(protoDesc)delete ObjectProto[key];
-	  dP(it, key, D);
-	  if(protoDesc && it !== ObjectProto)dP(ObjectProto, key, protoDesc);
-	} : dP;
-	
-	var wrap = function(tag){
-	  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
-	  sym._k = tag;
-	  return sym;
-	};
-	
-	var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function(it){
-	  return typeof it == 'symbol';
-	} : function(it){
-	  return it instanceof $Symbol;
-	};
-	
-	var $defineProperty = function defineProperty(it, key, D){
-	  if(it === ObjectProto)$defineProperty(OPSymbols, key, D);
-	  anObject(it);
-	  key = toPrimitive(key, true);
-	  anObject(D);
-	  if(has(AllSymbols, key)){
-	    if(!D.enumerable){
-	      if(!has(it, HIDDEN))dP(it, HIDDEN, createDesc(1, {}));
-	      it[HIDDEN][key] = true;
-	    } else {
-	      if(has(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;
-	      D = _create(D, {enumerable: createDesc(0, false)});
-	    } return setSymbolDesc(it, key, D);
-	  } return dP(it, key, D);
-	};
-	var $defineProperties = function defineProperties(it, P){
-	  anObject(it);
-	  var keys = enumKeys(P = toIObject(P))
-	    , i    = 0
-	    , l = keys.length
-	    , key;
-	  while(l > i)$defineProperty(it, key = keys[i++], P[key]);
-	  return it;
-	};
-	var $create = function create(it, P){
-	  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
-	};
-	var $propertyIsEnumerable = function propertyIsEnumerable(key){
-	  var E = isEnum.call(this, key = toPrimitive(key, true));
-	  if(this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key))return false;
-	  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
-	};
-	var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key){
-	  it  = toIObject(it);
-	  key = toPrimitive(key, true);
-	  if(it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key))return;
-	  var D = gOPD(it, key);
-	  if(D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;
-	  return D;
-	};
-	var $getOwnPropertyNames = function getOwnPropertyNames(it){
-	  var names  = gOPN(toIObject(it))
-	    , result = []
-	    , i      = 0
-	    , key;
-	  while(names.length > i){
-	    if(!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META)result.push(key);
-	  } return result;
-	};
-	var $getOwnPropertySymbols = function getOwnPropertySymbols(it){
-	  var IS_OP  = it === ObjectProto
-	    , names  = gOPN(IS_OP ? OPSymbols : toIObject(it))
-	    , result = []
-	    , i      = 0
-	    , key;
-	  while(names.length > i){
-	    if(has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true))result.push(AllSymbols[key]);
-	  } return result;
-	};
-	
-	// 19.4.1.1 Symbol([description])
-	if(!USE_NATIVE){
-	  $Symbol = function Symbol(){
-	    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
-	    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
-	    var $set = function(value){
-	      if(this === ObjectProto)$set.call(OPSymbols, value);
-	      if(has(this, HIDDEN) && has(this[HIDDEN], tag))this[HIDDEN][tag] = false;
-	      setSymbolDesc(this, tag, createDesc(1, value));
-	    };
-	    if(DESCRIPTORS && setter)setSymbolDesc(ObjectProto, tag, {configurable: true, set: $set});
-	    return wrap(tag);
-	  };
-	  redefine($Symbol[PROTOTYPE], 'toString', function toString(){
-	    return this._k;
-	  });
-	
-	  $GOPD.f = $getOwnPropertyDescriptor;
-	  $DP.f   = $defineProperty;
-	  __webpack_require__(71).f = gOPNExt.f = $getOwnPropertyNames;
-	  __webpack_require__(68).f  = $propertyIsEnumerable;
-	  __webpack_require__(67).f = $getOwnPropertySymbols;
-	
-	  if(DESCRIPTORS && !__webpack_require__(17)){
-	    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
-	  }
-	
-	  wksExt.f = function(name){
-	    return wrap(wks(name));
-	  }
-	}
-	
-	$export($export.G + $export.W + $export.F * !USE_NATIVE, {Symbol: $Symbol});
-	
-	for(var symbols = (
-	  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
-	  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
-	).split(','), i = 0; symbols.length > i; )wks(symbols[i++]);
-	
-	for(var symbols = $keys(wks.store), i = 0; symbols.length > i; )wksDefine(symbols[i++]);
-	
-	$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
-	  // 19.4.2.1 Symbol.for(key)
-	  'for': function(key){
-	    return has(SymbolRegistry, key += '')
-	      ? SymbolRegistry[key]
-	      : SymbolRegistry[key] = $Symbol(key);
-	  },
-	  // 19.4.2.5 Symbol.keyFor(sym)
-	  keyFor: function keyFor(key){
-	    if(isSymbol(key))return keyOf(SymbolRegistry, key);
-	    throw TypeError(key + ' is not a symbol!');
-	  },
-	  useSetter: function(){ setter = true; },
-	  useSimple: function(){ setter = false; }
-	});
-	
-	$export($export.S + $export.F * !USE_NATIVE, 'Object', {
-	  // 19.1.2.2 Object.create(O [, Properties])
-	  create: $create,
-	  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
-	  defineProperty: $defineProperty,
-	  // 19.1.2.3 Object.defineProperties(O, Properties)
-	  defineProperties: $defineProperties,
-	  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
-	  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
-	  // 19.1.2.7 Object.getOwnPropertyNames(O)
-	  getOwnPropertyNames: $getOwnPropertyNames,
-	  // 19.1.2.8 Object.getOwnPropertySymbols(O)
-	  getOwnPropertySymbols: $getOwnPropertySymbols
-	});
-	
-	// 24.3.2 JSON.stringify(value [, replacer [, space]])
-	$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function(){
-	  var S = $Symbol();
-	  // MS Edge converts symbol values to JSON as {}
-	  // WebKit converts symbol values to JSON as null
-	  // V8 throws on boxed symbols
-	  return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
-	})), 'JSON', {
-	  stringify: function stringify(it){
-	    if(it === undefined || isSymbol(it))return; // IE8 returns string on undefined
-	    var args = [it]
-	      , i    = 1
-	      , replacer, $replacer;
-	    while(arguments.length > i)args.push(arguments[i++]);
-	    replacer = args[1];
-	    if(typeof replacer == 'function')$replacer = replacer;
-	    if($replacer || !isArray(replacer))replacer = function(key, value){
-	      if($replacer)value = $replacer.call(this, key, value);
-	      if(!isSymbol(value))return value;
-	    };
-	    args[1] = replacer;
-	    return _stringify.apply($JSON, args);
-	  }
-	});
-	
-	// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-	$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(22)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
-	// 19.4.3.5 Symbol.prototype[@@toStringTag]
-	setToStringTag($Symbol, 'Symbol');
-	// 20.2.1.9 Math[@@toStringTag]
-	setToStringTag(Math, 'Math', true);
-	// 24.3.3 JSON[@@toStringTag]
-	setToStringTag(global.JSON, 'JSON', true);
+"use strict";
 
-/***/ },
 
-/***/ 63:
-/***/ function(module, exports, __webpack_require__) {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.findFaviconURL = findFaviconURL;
+exports.generateLinkFields = generateLinkFields;
+exports.saveInput = saveInput;
+var DOMHelpers = __webpack_require__(16);
+var APIModule = __webpack_require__(15);
+__webpack_require__(66); // add .format() to Date object
 
-	var META     = __webpack_require__(48)('meta')
-	  , isObject = __webpack_require__(25)
-	  , has      = __webpack_require__(33)
-	  , setDesc  = __webpack_require__(23).f
-	  , id       = 0;
-	var isExtensible = Object.isExtensible || function(){
-	  return true;
-	};
-	var FREEZE = !__webpack_require__(28)(function(){
-	  return isExtensible(Object.preventExtensions({}));
-	});
-	var setMeta = function(it){
-	  setDesc(it, META, {value: {
-	    i: 'O' + ++id, // object ID
-	    w: {}          // weak collections IDs
-	  }});
-	};
-	var fastKey = function(it, create){
-	  // return primitive with prefix
-	  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-	  if(!has(it, META)){
-	    // can't set metadata to uncaught frozen object
-	    if(!isExtensible(it))return 'F';
-	    // not necessary to add metadata
-	    if(!create)return 'E';
-	    // add missing metadata
-	    setMeta(it);
-	  // return object ID
-	  } return it[META].i;
-	};
-	var getWeak = function(it, create){
-	  if(!has(it, META)){
-	    // can't set metadata to uncaught frozen object
-	    if(!isExtensible(it))return true;
-	    // not necessary to add metadata
-	    if(!create)return false;
-	    // add missing metadata
-	    setMeta(it);
-	  // return hash weak collections IDs
-	  } return it[META].w;
-	};
-	// add metadata on freeze-family methods calling
-	var onFreeze = function(it){
-	  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
-	  return it;
-	};
-	var meta = module.exports = {
-	  KEY:      META,
-	  NEED:     false,
-	  fastKey:  fastKey,
-	  getWeak:  getWeak,
-	  onFreeze: onFreeze
-	};
+function findFaviconURL(linkObj) {
+  if (!linkObj.captures) return '';
 
-/***/ },
+  var favCapture = linkObj.captures.filter(function (capture) {
+    return capture.role == 'favicon' && capture.status == 'success';
+  });
 
-/***/ 64:
-/***/ function(module, exports, __webpack_require__) {
+  return favCapture[0] ? favCapture[0].playback_url : '';
+}
 
-	var global         = __webpack_require__(19)
-	  , core           = __webpack_require__(8)
-	  , LIBRARY        = __webpack_require__(17)
-	  , wksExt         = __webpack_require__(59)
-	  , defineProperty = __webpack_require__(23).f;
-	module.exports = function(name){
-	  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
-	  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty($Symbol, name, {value: wksExt.f(name)});
-	};
+function generateLinkFields(link, query) {
+  link.favicon_url = this.findFaviconURL(link);
+  if (window.host) {
+    link.local_url = window.host + '/' + link.guid;
+  }
+  if (query && link.notes) {
+    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
+  }
+  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
+  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
+  if (Date.now() < Date.parse(link.archive_timestamp)) {
+    link.delete_available = true;
+  }
+  // mark the capture as pending if either the primary or the screenshot capture are pending
+  // mark the capture as failed if both the primary and the screenshot capture failed.
+  // (ignore the favicon capture)
+  var primary_failed = false;
+  var screenshot_failed = false;
+  var primary_pending = false;
+  var screenshot_pending = false;
+  link.captures.forEach(function (c) {
+    if (c.role == "primary") {
+      if (c.status == "pending") {
+        primary_pending = true;
+      } else if (c.status == "failed") {
+        primary_failed = true;
+      }
+    }
+    if (c.role == "screenshot") {
+      if (c.status == "pending") {
+        screenshot_pending = true;
+      } else if (c.status == "failed") {
+        screenshot_failed = true;
+      }
+    }
+  });
+  if (primary_pending || screenshot_pending) {
+    link.is_pending = true;
+  };
+  if (primary_failed && screenshot_failed) {
+    link.is_failed = true;
+  };
+  return link;
+}
 
-/***/ },
+var timeouts = {};
+// save changes in a given text box to the server
+function saveInput(guid, inputElement, statusElement, name, callback) {
+  DOMHelpers.changeHTML(statusElement, 'Saving...');
 
-/***/ 65:
-/***/ function(module, exports, __webpack_require__) {
+  var timeoutKey = guid + name;
+  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
 
-	var getKeys   = __webpack_require__(38)
-	  , toIObject = __webpack_require__(40);
-	module.exports = function(object, el){
-	  var O      = toIObject(object)
-	    , keys   = getKeys(O)
-	    , length = keys.length
-	    , index  = 0
-	    , key;
-	  while(length > index)if(O[key = keys[index++]] === el)return key;
-	};
+  // use a setTimeout so notes are only saved once every half second
+  timeouts[timeoutKey] = setTimeout(function () {
+    var data = {};
+    data[name] = DOMHelpers.getValue(inputElement);
+    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
+      DOMHelpers.changeHTML(statusElement, 'Saved!');
+      if (callback) callback(data);
+    });
+  }, 500);
+}
 
-/***/ },
+/***/ }),
 
 /***/ 66:
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
-	// all enumerable object keys, includes symbols
-	var getKeys = __webpack_require__(38)
-	  , gOPS    = __webpack_require__(67)
-	  , pIE     = __webpack_require__(68);
-	module.exports = function(it){
-	  var result     = getKeys(it)
-	    , getSymbols = gOPS.f;
-	  if(getSymbols){
-	    var symbols = getSymbols(it)
-	      , isEnum  = pIE.f
-	      , i       = 0
-	      , key;
-	    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
-	  } return result;
-	};
-
-/***/ },
-
-/***/ 67:
-/***/ function(module, exports) {
-
-	exports.f = Object.getOwnPropertySymbols;
-
-/***/ },
-
-/***/ 68:
-/***/ function(module, exports) {
-
-	exports.f = {}.propertyIsEnumerable;
-
-/***/ },
-
-/***/ 69:
-/***/ function(module, exports, __webpack_require__) {
-
-	// 7.2.2 IsArray(argument)
-	var cof = __webpack_require__(42);
-	module.exports = Array.isArray || function isArray(arg){
-	  return cof(arg) == 'Array';
-	};
-
-/***/ },
-
-/***/ 70:
-/***/ function(module, exports, __webpack_require__) {
-
-	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-	var toIObject = __webpack_require__(40)
-	  , gOPN      = __webpack_require__(71).f
-	  , toString  = {}.toString;
-	
-	var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
-	  ? Object.getOwnPropertyNames(window) : [];
-	
-	var getWindowNames = function(it){
-	  try {
-	    return gOPN(it);
-	  } catch(e){
-	    return windowNames.slice();
-	  }
-	};
-	
-	module.exports.f = function getOwnPropertyNames(it){
-	  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
-	};
+"use strict";
 
 
-/***/ },
+// function used by Django templatetag
+// given seconds since UTC epoch and a Django date filter/PHP date format string,
+// return formatted date in user's local time.
+function insertLocalDateTime(elementID, epochSeconds, formatString) {
+  var dateString = new Date(epochSeconds * 1000).format(formatString),
+      targetElement = document.getElementById(elementID);
+  targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
+}
 
-/***/ 71:
-/***/ function(module, exports, __webpack_require__) {
+// via http://jacwright.com/projects/javascript/date_format/
+// Simulates PHP's date function, which is similar to Django's date format filter
+Date.prototype.format = function (e) {
+  var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
+    var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
+      t += i;
+    } else if (n[i]) {
+      t += n[i].call(this);
+    } else if (i != "\\") {
+      t += i;
+    }
+  }return t;
+};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
+    return (this.getDate() < 10 ? "0" : "") + this.getDate();
+  }, D: function D() {
+    return Date.replaceChars.shortDays[this.getDay()];
+  }, j: function j() {
+    return this.getDate();
+  }, l: function l() {
+    return Date.replaceChars.longDays[this.getDay()];
+  }, N: function N() {
+    return this.getDay() + 1;
+  }, S: function S() {
+    return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
+  }, w: function w() {
+    return this.getDay();
+  }, z: function z() {
+    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
+  }, W: function W() {
+    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
+  }, F: function F() {
+    return Date.replaceChars.longMonths[this.getMonth()];
+  }, m: function m() {
+    return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
+  }, M: function M() {
+    return Date.replaceChars.shortMonths[this.getMonth()];
+  }, n: function n() {
+    return this.getMonth() + 1;
+  }, t: function t() {
+    var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+  }, L: function L() {
+    var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
+  }, o: function o() {
+    var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
+  }, Y: function Y() {
+    return this.getFullYear();
+  }, y: function y() {
+    return ("" + this.getFullYear()).substr(2);
+  }, a: function a() {
+    return this.getHours() < 12 ? "am" : "pm";
+  }, A: function A() {
+    return this.getHours() < 12 ? "AM" : "PM";
+  }, B: function B() {
+    return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
+  }, g: function g() {
+    return this.getHours() % 12 || 12;
+  }, G: function G() {
+    return this.getHours();
+  }, h: function h() {
+    return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
+  }, H: function H() {
+    return (this.getHours() < 10 ? "0" : "") + this.getHours();
+  }, i: function i() {
+    return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
+  }, s: function s() {
+    return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
+  }, u: function u() {
+    var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
+  }, e: function e() {
+    return "Not Yet Supported";
+  }, I: function I() {
+    var e = null;for (var t = 0; t < 12; ++t) {
+      var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
+        e = r;break;
+      } else if (r > e) break;
+    }return this.getTimezoneOffset() == e | 0;
+  }, O: function O() {
+    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
+  }, P: function P() {
+    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
+  }, T: function T() {
+    var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
+  }, Z: function Z() {
+    return -this.getTimezoneOffset() * 60;
+  }, c: function c() {
+    return this.format("Y-m-d\\TH:i:sP");
+  }, r: function r() {
+    return this.toString();
+  }, U: function U() {
+    return this.getTime() / 1e3;
+  } };
 
-	// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-	var $keys      = __webpack_require__(39)
-	  , hiddenKeys = __webpack_require__(49).concat('length', 'prototype');
-	
-	exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
-	  return $keys(O, hiddenKeys);
-	};
+/***/ }),
 
-/***/ },
+/***/ 7:
+/***/ (function(module, exports, __webpack_require__) {
 
-/***/ 72:
-/***/ function(module, exports, __webpack_require__) {
+exports.f = __webpack_require__(11);
 
-	var pIE            = __webpack_require__(68)
-	  , createDesc     = __webpack_require__(31)
-	  , toIObject      = __webpack_require__(40)
-	  , toPrimitive    = __webpack_require__(30)
-	  , has            = __webpack_require__(33)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
-	  , gOPD           = Object.getOwnPropertyDescriptor;
-	
-	exports.f = __webpack_require__(27) ? gOPD : function getOwnPropertyDescriptor(O, P){
-	  O = toIObject(O);
-	  P = toPrimitive(P, true);
-	  if(IE8_DOM_DEFINE)try {
-	    return gOPD(O, P);
-	  } catch(e){ /* empty */ }
-	  if(has(O, P))return createDesc(!pIE.f.call(O, P), O[P]);
-	};
+/***/ })
 
-/***/ },
-
-/***/ 73:
-/***/ function(module, exports) {
-
-
-
-/***/ },
-
-/***/ 74:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(64)('asyncIterator');
-
-/***/ },
-
-/***/ 75:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(64)('observable');
-
-/***/ },
-
-/***/ 77:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.findFaviconURL = findFaviconURL;
-	exports.generateLinkFields = generateLinkFields;
-	exports.saveInput = saveInput;
-	var DOMHelpers = __webpack_require__(2);
-	var APIModule = __webpack_require__(78);
-	__webpack_require__(102); // add .format() to Date object
-	
-	function findFaviconURL(linkObj) {
-	  if (!linkObj.captures) return '';
-	
-	  var favCapture = linkObj.captures.filter(function (capture) {
-	    return capture.role == 'favicon' && capture.status == 'success';
-	  });
-	
-	  return favCapture[0] ? favCapture[0].playback_url : '';
-	}
-	
-	function generateLinkFields(link, query) {
-	  link.favicon_url = this.findFaviconURL(link);
-	  if (window.host) {
-	    link.local_url = window.host + '/' + link.guid;
-	  }
-	  if (query && link.notes) {
-	    link.search_query_in_notes = query && link.notes.indexOf(query) > -1;
-	  }
-	  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
-	  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
-	  if (Date.now() < Date.parse(link.archive_timestamp)) {
-	    link.delete_available = true;
-	  }
-	  // mark the capture as pending if either the primary or the screenshot capture are pending
-	  // mark the capture as failed if both the primary and the screenshot capture failed.
-	  // (ignore the favicon capture)
-	  var primary_failed = false;
-	  var screenshot_failed = false;
-	  var primary_pending = false;
-	  var screenshot_pending = false;
-	  link.captures.forEach(function (c) {
-	    if (c.role == "primary") {
-	      if (c.status == "pending") {
-	        primary_pending = true;
-	      } else if (c.status == "failed") {
-	        primary_failed = true;
-	      }
-	    }
-	    if (c.role == "screenshot") {
-	      if (c.status == "pending") {
-	        screenshot_pending = true;
-	      } else if (c.status == "failed") {
-	        screenshot_failed = true;
-	      }
-	    }
-	  });
-	  if (primary_pending || screenshot_pending) {
-	    link.is_pending = true;
-	  };
-	  if (primary_failed && screenshot_failed) {
-	    link.is_failed = true;
-	  };
-	  return link;
-	}
-	
-	var timeouts = {};
-	// save changes in a given text box to the server
-	function saveInput(guid, inputElement, statusElement, name, callback) {
-	  DOMHelpers.changeHTML(statusElement, 'Saving...');
-	
-	  var timeoutKey = guid + name;
-	  if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
-	
-	  // use a setTimeout so notes are only saved once every half second
-	  timeouts[timeoutKey] = setTimeout(function () {
-	    var data = {};
-	    data[name] = DOMHelpers.getValue(inputElement);
-	    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
-	      DOMHelpers.changeHTML(statusElement, 'Saved!');
-	      if (callback) callback(data);
-	    });
-	  }, 500);
-	}
-
-/***/ },
-
-/***/ 78:
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function($) {'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _keys = __webpack_require__(79);
-	
-	var _keys2 = _interopRequireDefault(_keys);
-	
-	var _typeof2 = __webpack_require__(9);
-	
-	var _typeof3 = _interopRequireDefault(_typeof2);
-	
-	var _stringify = __webpack_require__(6);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
-	exports.request = request;
-	exports.getErrorMessage = getErrorMessage;
-	exports.stringFromNestedObject = stringFromNestedObject;
-	exports.showError = showError;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var ErrorHandler = __webpack_require__(83);
-	var Helpers = __webpack_require__(96);
-	
-	function request(method, url, data, requestArgs) {
-	  // set up arguments for API request
-	  requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
-	
-	  if (data) {
-	    if (method == 'GET') {
-	      requestArgs.data = data;
-	    } else {
-	      requestArgs.data = (0, _stringify2.default)(data);
-	      requestArgs.contentType = 'application/json';
-	    }
-	  }
-	
-	  requestArgs.url = api_path + url;
-	  requestArgs.method = method;
-	
-	  if (!('error' in requestArgs)) requestArgs.error = showError;
-	
-	  return $.ajax(requestArgs);
-	}
-	
-	// parse error results from API into string for display to user
-	function getErrorMessage(jqXHR) {
-	  var message = void 0;
-	
-	  if (jqXHR.status == 400 && jqXHR.responseText) {
-	    try {
-	      message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
-	    } catch (SyntaxError) {
-	      // bad json in responseText
-	      ErrorHandler.airbrake.notify(SyntaxError);
-	    }
-	  } else if (jqXHR.status == 401) {
-	    message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
-	  } else if (jqXHR.status) {
-	    message = "Error " + jqXHR.status;
-	  }
-	
-	  if (!message) {
-	    message = "We're sorry, we've encountered an error processing your request.";
-	  }
-	
-	  return message;
-	}
-	
-	// Get the first string value from a nested object.
-	// For example, return "message" from {"url": "message"} or {"errors": ["message"]}
-	// Return null if no string is found.
-	function stringFromNestedObject(object) {
-	  if (object) {
-	    if ((typeof object === 'undefined' ? 'undefined' : (0, _typeof3.default)(object)) === "object") {
-	      var keys = (0, _keys2.default)(object);
-	      for (var i = 0; i < keys.length; i++) {
-	        var result = stringFromNestedObject(object[keys[i]]);
-	        if (result) return result;
-	      }
-	    } else if (typeof object === "string") {
-	      return object;
-	    }
-	  }
-	  return null;
-	}
-	
-	// display error results from API
-	function showError(jqXHR) {
-	  var message = getErrorMessage(jqXHR);
-	  Helpers.informUser(message, 'danger');
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ },
-
-/***/ 102:
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	// function used by Django templatetag
-	// given seconds since UTC epoch and a Django date filter/PHP date format string,
-	// return formatted date in user's local time.
-	function insertLocalDateTime(elementID, epochSeconds, formatString) {
-	  var dateString = new Date(epochSeconds * 1000).format(formatString),
-	      targetElement = document.getElementById(elementID);
-	  targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
-	}
-	
-	// via http://jacwright.com/projects/javascript/date_format/
-	// Simulates PHP's date function, which is similar to Django's date format filter
-	Date.prototype.format = function (e) {
-	  var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
-	    var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
-	      t += i;
-	    } else if (n[i]) {
-	      t += n[i].call(this);
-	    } else if (i != "\\") {
-	      t += i;
-	    }
-	  }return t;
-	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
-	    return (this.getDate() < 10 ? "0" : "") + this.getDate();
-	  }, D: function D() {
-	    return Date.replaceChars.shortDays[this.getDay()];
-	  }, j: function j() {
-	    return this.getDate();
-	  }, l: function l() {
-	    return Date.replaceChars.longDays[this.getDay()];
-	  }, N: function N() {
-	    return this.getDay() + 1;
-	  }, S: function S() {
-	    return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
-	  }, w: function w() {
-	    return this.getDay();
-	  }, z: function z() {
-	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
-	  }, W: function W() {
-	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
-	  }, F: function F() {
-	    return Date.replaceChars.longMonths[this.getMonth()];
-	  }, m: function m() {
-	    return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
-	  }, M: function M() {
-	    return Date.replaceChars.shortMonths[this.getMonth()];
-	  }, n: function n() {
-	    return this.getMonth() + 1;
-	  }, t: function t() {
-	    var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
-	  }, L: function L() {
-	    var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
-	  }, o: function o() {
-	    var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
-	  }, Y: function Y() {
-	    return this.getFullYear();
-	  }, y: function y() {
-	    return ("" + this.getFullYear()).substr(2);
-	  }, a: function a() {
-	    return this.getHours() < 12 ? "am" : "pm";
-	  }, A: function A() {
-	    return this.getHours() < 12 ? "AM" : "PM";
-	  }, B: function B() {
-	    return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
-	  }, g: function g() {
-	    return this.getHours() % 12 || 12;
-	  }, G: function G() {
-	    return this.getHours();
-	  }, h: function h() {
-	    return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
-	  }, H: function H() {
-	    return (this.getHours() < 10 ? "0" : "") + this.getHours();
-	  }, i: function i() {
-	    return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
-	  }, s: function s() {
-	    return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
-	  }, u: function u() {
-	    var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
-	  }, e: function e() {
-	    return "Not Yet Supported";
-	  }, I: function I() {
-	    var e = null;for (var t = 0; t < 12; ++t) {
-	      var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
-	        e = r;break;
-	      } else if (r > e) break;
-	    }return this.getTimezoneOffset() == e | 0;
-	  }, O: function O() {
-	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
-	  }, P: function P() {
-	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
-	  }, T: function T() {
-	    var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
-	  }, Z: function Z() {
-	    return -this.getTimezoneOffset() * 60;
-	  }, c: function c() {
-	    return this.format("Y-m-d\\TH:i:sP");
-	  }, r: function r() {
-	    return this.toString();
-	  }, U: function U() {
-	    return this.getTime() / 1e3;
-	  } };
-
-/***/ },
-
-/***/ 216:
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.handleShowDetails = handleShowDetails;
-	var resizeTimeout, wrapper;
-	
-	var detailsButton = exports.detailsButton = document.getElementById("details-button");
-	var detailsTray = document.getElementById("collapse-details");
-	
-	function init() {
-	  adjustTopMargin();
-	  var clicked = false;
-	  if (detailsButton) {
-	    detailsButton.onclick = function () {
-	      clicked = !clicked;
-	      handleShowDetails(clicked);
-	    };
-	  }
-	
-	  window.onresize = function () {
-	    if (resizeTimeout != null) clearTimeout(resizeTimeout);
-	    resizeTimeout = setTimeout(adjustTopMargin, 200);
-	  };
-	}
-	
-	function handleShowDetails(open) {
-	  detailsButton.textContent = open ? "Hide record details" : "Show record details";
-	  detailsTray.style.display = open ? "block" : "none";
-	}
-	
-	function adjustTopMargin() {
-	  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
-	  var header = document.getElementsByTagName('header')[0];
-	  if (!wrapper) return;
-	  wrapper.style.marginTop = header.offsetHeight + "px";
-	  wrapper.style.height = "calc(100% - " + header.offsetHeight + "px)";
-	}
-	
-	init();
-
-/***/ }
-
-});
+},[219]);
 //# sourceMappingURL=single-link-permissions.js.map
