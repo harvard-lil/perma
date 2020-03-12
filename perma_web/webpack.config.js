@@ -56,17 +56,11 @@ module.exports = {
       minChunks: Infinity,
     }),
 
-    new ExtractTextPlugin("[name].css"),
-
-    // make sure sub-dependencies aren't included twice
-    new webpack.optimize.DedupePlugin(),
-
-    // uglify
-    // new webpack.optimize.UglifyJsPlugin()
+    new ExtractTextPlugin({filename: "[name].css"}),
   ],
 
   module: {
-    loaders: [
+    rules: [
       // javascript
       { test: /\.jsx?$/,
         exclude: /node_modules/,
@@ -92,7 +86,10 @@ module.exports = {
       // inline css
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract("style", "css?sourceMap"),
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader"
+        }),
       },
 
       // image files (likely included by css)
@@ -104,8 +101,30 @@ module.exports = {
       // scss
       {
         test: /\.scss$/,
-        // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
-        loader: ExtractTextPlugin.extract("style", ["css", "resolve-url", "postcss", "sass?sourceMap=true&precision=8"]),
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: [
+            "css-loader",
+            "resolve-url-loader",
+            {
+              loader: 'postcss-loader',
+              options: {
+                ident: 'postcss',
+                plugins: [
+                  require('autoprefixer'),
+                ]
+              }
+            },
+            {
+              loader: 'sass-loader',
+              options: {
+                sourceMap: true,
+                precision: 8,
+                // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
+              },
+            },
+          ]
+        }),
       },
 
       // bootstrap fonts
@@ -121,8 +140,8 @@ module.exports = {
   },
 
   resolve: {
-    modulesDirectories: ['node_modules'],
-    extensions: ['', '.js', '.jsx'],
+    modules: ['node_modules'],
+    extensions: ['.js', '.jsx'],
 
     alias: {
       'airbrake-js$': 'airbrake-js/lib/client.js', // Exact match
@@ -136,6 +155,8 @@ module.exports = {
       'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
 
       'papaparse': 'papaparse/papaparse.min.js',
+
+      'jquery-form': 'jquery-form/jquery.form.js',
     }
   },
 
@@ -144,16 +165,6 @@ module.exports = {
   //   poll: true
   // },
 
-  // tell sass where to find compass includes
-  sassLoader: {
-    includePaths: [path.resolve(__dirname, './node_modules/compass-mixins/lib')],
-  },
-
   devtool: "source-map",  // dev-only?
 
-  postcss: function () {
-    return [
-      require('autoprefixer')
-    ];
-  }
 }
