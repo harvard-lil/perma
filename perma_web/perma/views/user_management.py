@@ -1668,6 +1668,7 @@ def email_deletion_request(request):
         {
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
-            "email": request.user.email
+            "email": request.user.email,
+            "admin_url": request.build_absolute_uri(reverse('admin:perma_linkuser_change', args=(request.user.id,)))
         }
     )
