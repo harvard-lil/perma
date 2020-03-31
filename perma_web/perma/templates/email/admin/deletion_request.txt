@@ -1,1 +1,3 @@
 {{ email }}{% if first_name or last_name %} ({{ first_name }} {{ last_name }}){% endif %} has requested the deletion of their Perma.cc account.
+
+{{ admin_url }}
