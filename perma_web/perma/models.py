@@ -1435,12 +1435,13 @@ class Link(DeletableModel):
         if job and not job.superseded and job.status != 'completed':
             successful_metadata = False
 
-        # I assert that the presence of a warc in default_storage means a Link
-        # can be played back. If there is a disconnect between our metadata and
-        # the contents of default_storage... something is wrong and needs fixing.
-        has_warc = default_storage.exists(self.warc_storage_file())
-        if successful_metadata != has_warc:
-            logger.error(f"Conflicting metadata about {self.guid}: has_warc={has_warc}, successful_metadata={successful_metadata}")
+        if settings.CHECK_WARC_BEFORE_PLAYBACK:
+            # I assert that the presence of a warc in default_storage means a Link
+            # can be played back. If there is a disconnect between our metadata and
+            # the contents of default_storage... something is wrong and needs fixing.
+            has_warc = default_storage.exists(self.warc_storage_file())
+            if successful_metadata != has_warc:
+                logger.error(f"Conflicting metadata about {self.guid}: has_warc={has_warc}, successful_metadata={successful_metadata}")
 
         # Trust our records (the metadata) more than has_warc
         return successful_metadata
