@@ -482,6 +482,13 @@ WR_COOKIE_PERMITTED_AGE = 60
 # Seconds to wait before retrying a failed WR playback.
 WR_PLAYBACK_RETRY_AFTER = 1
 
+# We're finding that warcs aren't always available for download from S3
+# instantly, immediately after upload. How long do we want to wait for S3
+# to catch up, during first playback, before raising an error?
+WARC_AVAILABLE_TIMEOUT = 7
+
+CHECK_WARC_BEFORE_PLAYBACK = False
+
 # Disable SameSite protection (https://www.owasp.org/index.php/SameSite)
 # So that we can set iframe cookies properly, when we receive the redirect from Webrecorder
 # https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-SESSION_COOKIE_SAMESITE

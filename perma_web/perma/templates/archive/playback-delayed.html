@@ -1,0 +1,12 @@
+{# called from pywb when a requested asset doesn't exist in the warc #}
+{% extends "archive/single-link.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block mainContent %}
+  <div class="record-message" style="padding-top: 15px;">
+    <p class="record-message-primary">Playback Delayed</p>
+    <p class="record-message-secondary">We apologize, the playback of your Perma Link is delayed. Please try again in a couple of seconds. If this problem persists, please let us know.</p>
+  </div>
+{% endblock %}
