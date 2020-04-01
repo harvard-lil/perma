@@ -53,7 +53,7 @@ from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
-    write_resource_record_from_asset, protocol)
+    write_resource_record_from_asset, protocol, remove_control_characters)
 from perma import site_scripts
 
 import logging
@@ -1501,13 +1501,14 @@ def upload_to_internet_archive(link_guid):
         logger.info(f"Queued Link {link_guid} no longer eligible for upload.")
         return
 
+    url = remove_control_characters(link.submitted_url)
     metadata = {
         "collection": settings.INTERNET_ARCHIVE_COLLECTION,
         "title": f"{link_guid}: {truncatechars(link.submitted_title, 50)}",
         "mediatype": "web",
-        "description": f"Perma.cc archive of {link.submitted_url} created on {link.creation_timestamp}.",
+        "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
         "contributor": "Perma.cc",
-        "submitted_url": link.submitted_url,
+        "submitted_url": url,
         "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
         "external-identifier": f"urn:X-perma:{link_guid}",
     }

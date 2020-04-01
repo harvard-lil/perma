@@ -20,6 +20,7 @@ import surt
 import tempdir
 import tempfile
 from ua_parser import user_agent_parser
+import unicodedata
 from urllib.parse import urlparse
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
@@ -371,6 +372,9 @@ def memento_data_for_url(request, url, qs=None, hash=None):
         }
     }
 
+
+def remove_control_characters(s):
+    return "".join(ch for ch in s if unicodedata.category(ch)[0]!="C")
 
 ### perma payments
 

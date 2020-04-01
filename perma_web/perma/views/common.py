@@ -28,7 +28,7 @@ from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     protocol, stream_warc_if_permissible, set_options_headers,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
-    get_client_ip)
+    get_client_ip, remove_control_characters)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -237,6 +237,8 @@ def single_permalink(request, guid):
         response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
         # impose an arbitrary length-limit on the submitted URL, so that this header doesn't become illegally large
         url = link.submitted_url[:500]
+        # strip control characters from url, if somehow they slipped in prior to https://github.com/harvard-lil/perma/commit/272b3a79d94a795142940281c9444b45c24a05db
+        url = remove_control_characters(url)
         response['Link'] = str(
             LinkHeader([
                 Rel(url, rel='original'),
