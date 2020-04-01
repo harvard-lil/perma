@@ -15,6 +15,7 @@ from django.http import (HttpResponse, HttpResponseRedirect, HttpResponsePermane
     JsonResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.urls import reverse, NoReverseMatch
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
@@ -171,7 +172,8 @@ def single_permalink(request, guid):
     # Redirecting to a download page if on mobile
     redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
 
-    # If this record was just created by the current user, show them a new record message
+    # If this record was just created by the current user, we want to do some special-handling:
+    # for instance, show them a message in the template, and give the playback extra time to initialize
     new_record = request.user.is_authenticated and link.created_by_id == request.user.id and not link.user_deleted \
                  and link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
@@ -200,6 +202,15 @@ def single_permalink(request, guid):
     }
 
     if context['can_view'] and link.can_play_back():
+        if new_record:
+            logger.info(f"Ensuring warc for {link.guid} has finished uploading.")
+            start_time = time.time()
+            while not default_storage.exists(link.warc_storage_file()):
+                wait_time = time.time() - start_time
+                if wait_time > settings.WARC_AVAILABLE_TIMEOUT:
+                    logger.error(f"Waited {wait_time} for {link.guid}'s warc; still not available.")
+                    return render(request, 'archive/playback-delayed.html', context,  status=500)
+                time.sleep(1)
         try:
             logger.info(f"Initializing play back of {link.guid}")
             wr_username = link.init_replay_for_user(request)
