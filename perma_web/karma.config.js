@@ -42,3 +42,5 @@ module.exports = function(config) {
     }
   });
 }
+
+webpackConfig.module.rules[0].options.plugins.push(["@babel/plugin-transform-modules-commonjs"]);
