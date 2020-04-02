@@ -54,7 +54,7 @@ install:
   - pip install coveralls
 
   # node reqs
-  - nvm install 6
+  - nvm install 12
   - npm install
 
 before_script:
