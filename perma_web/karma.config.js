@@ -29,9 +29,10 @@ module.exports = function(config) {
     preprocessors: {'./spec/javascripts/*.js': ['webpack', 'sourcemap']},
 
     webpack: {
+      mode: 'none',
       module: webpackConfig.module,
       resolve: webpackConfig.resolve,
-      plugins: [webpackConfig.plugins[1], webpackConfig.plugins[3]],
+      plugins: webpackConfig.plugins,
       devtool: "source-map-inline",
       watchOptions: webpackConfig.watchOptions,
     },

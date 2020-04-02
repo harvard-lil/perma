@@ -1,6 +1,6 @@
 let Handlebars = require('handlebars');
 
-module.exports = function (str, len) {
+export default function truncatechars (str, len) {
 if (str.length > len) {
   var new_str = str.substr (0, len+1);
 

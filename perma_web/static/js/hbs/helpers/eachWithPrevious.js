@@ -1,6 +1,6 @@
 let Handlebars = require('handlebars');
 
-module.exports = function(context, options) {
+export default function eachWithPrevious (context, options) {
   let data;
   if (options.data) {
     data = Handlebars.createFrame(options.data);

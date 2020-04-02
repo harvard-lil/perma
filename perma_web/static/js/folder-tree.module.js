@@ -1,5 +1,5 @@
 require('jstree');  // add jquery support for .tree
-require('core-js/fn/array/find');
+require('core-js/features/array/find');
 require('jstree-css/default/style.min.css');
 
 let APIModule = require('./helpers/api.module.js');

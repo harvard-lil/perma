@@ -1,6 +1,6 @@
 let Handlebars = require('handlebars');
 
-function human_timestamp(datetime) {
+function _human_timestamp (datetime) {
     return new Date(datetime).toLocaleString("en-us", {
         year:   "numeric",
         month:  "long",
@@ -10,6 +10,6 @@ function human_timestamp(datetime) {
     });
 }
 
-module.exports = function(datetime) {
-  return Handlebars.escapeExpression(human_timestamp(datetime));
+export default function human_timestamp (datetime) {
+  return Handlebars.escapeExpression(_human_timestamp(datetime));
 };

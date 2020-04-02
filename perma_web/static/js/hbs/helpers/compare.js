@@ -9,7 +9,7 @@
 // Default comparison of "==="
 // {{/compare}}
 //
-module.exports = function (lvalue, operator, rvalue, options) {
+export default function (lvalue, operator, rvalue, options) {
   let operators, result;
   if (arguments.length < 3) {
     throw new Error("Handlerbars Helper 'compare' needs 2 parameters");
