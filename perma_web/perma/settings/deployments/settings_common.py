@@ -469,7 +469,7 @@ WR_PERMA_PASSWORD = 'Test123Test123'
 # Time (in seconds) to wait for upload to finalize
 # after data fully uploaded to Webreccorder
 # Or, assume error if upload not done after this many seconds
-WR_REPLAY_UPLOAD_TIMEOUT = 20
+WR_REPLAY_UPLOAD_TIMEOUT = 25
 
 # We have WR sessions set to expire after 120s (see wr-custom.yaml).
 # We don't want the cookie to expire mid-upload or mid-playback.
