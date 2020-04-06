@@ -15,6 +15,7 @@ MEDIA_ROOT = 'perma/assets/generated/'
 CELERY_BEAT_JOB_NAMES = [
     'update-stats',
     'send-links-to-internet-archive',
+    'delete-links-from-internet-archive',
     'send-js-errors',
     'run-next-capture',
     'verify_webrecorder_api_available',
