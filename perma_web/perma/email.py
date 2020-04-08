@@ -1,7 +1,9 @@
 import logging
+from smtplib import SMTPException
+from time import sleep
 
 from django.conf import settings
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.template import Context, RequestContext, engines
 from django.utils import timezone
 
@@ -25,6 +27,15 @@ def render_email(template, context, request=None):
         ctx = Context(context, autoescape=False)
     return engine.get_template(template).render(ctx)
 
+
+def retrying_send(message):
+    try:
+        return message.send(fail_silently=False)
+    except SMTPException:
+        sleep(1)
+        return message.send(fail_silently=False)
+
+
 ###
 ### Send email
 ###
@@ -33,14 +44,13 @@ def send_user_email(to_address, template, context):
     email_text = render_email(template, context)
     title, email_text = email_text.split("\n\n", 1)
     title = title.split("TITLE: ")[-1]
-    success_count = send_mail(
+    message = EmailMessage(
         title,
         email_text,
         settings.DEFAULT_FROM_EMAIL,
-        [to_address],
-        fail_silently=False
+        [to_address]
     )
-    return success_count
+    return retrying_send(message)
 
 # def send_mass_user_email(template, recipients):
     # '''
@@ -67,13 +77,14 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
-    EmailMessage(
+    message = EmailMessage(
         title,
         render_email(template, context, request),
         settings.DEFAULT_FROM_EMAIL,
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
-    ).send(fail_silently=False)
+    )
+    retrying_send(message)
 
 
 def send_self_email(title, request, template="email/default.txt", context={}, devs_only=True):
@@ -82,21 +93,22 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
         To contact the main Perma email address, set devs_only=False
     """
     if devs_only:
-        EmailMessage(
+        message = EmailMessage(
             title,
             render_email(template, context, request),
             settings.DEFAULT_FROM_EMAIL,
             [admin[1] for admin in settings.ADMINS]
-        ).send(fail_silently=False)
+        )
     else:
         # Use a special reply-to address to avoid Freshdesk's filters: a ticket will be opened.
-        EmailMessage(
+        message = EmailMessage(
             title,
             render_email(template, context, request),
             settings.DEFAULT_FROM_EMAIL,
             [settings.DEFAULT_FROM_EMAIL],
             headers={'Reply-To': settings.DEFAULT_REPLYTO_EMAIL}
-        ).send(fail_silently=False)
+        )
+    retrying_send(message)
 
 
 def send_user_email_copy_admins(title, from_address, to_addresses, request, template="email/default.txt", context={}):
@@ -105,14 +117,15 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
         the sender and the Perma admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
-    EmailMessage(
+    message = EmailMessage(
         title,
         render_email(template, context, request),
         settings.DEFAULT_FROM_EMAIL,
         to_addresses,
         cc=[settings.DEFAULT_FROM_EMAIL, from_address],
         reply_to=[from_address]
-    ).send(fail_silently=False)
+    )
+    retrying_send(message)
 
 ###
 ### Collect user data, bundled for emails ###
