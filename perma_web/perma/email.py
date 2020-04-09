@@ -31,7 +31,7 @@ def render_email(template, context, request=None):
 def retrying_send(message):
     try:
         return message.send(fail_silently=False)
-    except SMTPException:
+    except (SMTPException, TimeoutError):
         sleep(1)
         return message.send(fail_silently=False)
 
