@@ -1,6 +1,4 @@
 import logging
-from smtplib import SMTPException
-from time import sleep
 
 from django.conf import settings
 from django.core.mail import EmailMessage
@@ -28,14 +26,6 @@ def render_email(template, context, request=None):
     return engine.get_template(template).render(ctx)
 
 
-def retrying_send(message):
-    try:
-        return message.send(fail_silently=False)
-    except (SMTPException, TimeoutError):
-        sleep(1)
-        return message.send(fail_silently=False)
-
-
 ###
 ### Send email
 ###
@@ -50,7 +40,7 @@ def send_user_email(to_address, template, context):
         settings.DEFAULT_FROM_EMAIL,
         [to_address]
     )
-    return retrying_send(message)
+    return message.send(fail_silently=False)
 
 # def send_mass_user_email(template, recipients):
     # '''
@@ -84,7 +74,7 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
     )
-    retrying_send(message)
+    return message.send(fail_silently=False)
 
 
 def send_self_email(title, request, template="email/default.txt", context={}, devs_only=True):
@@ -108,7 +98,7 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
             [settings.DEFAULT_FROM_EMAIL],
             headers={'Reply-To': settings.DEFAULT_REPLYTO_EMAIL}
         )
-    retrying_send(message)
+    return message.send(fail_silently=False)
 
 
 def send_user_email_copy_admins(title, from_address, to_addresses, request, template="email/default.txt", context={}):
@@ -125,7 +115,7 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
         cc=[settings.DEFAULT_FROM_EMAIL, from_address],
         reply_to=[from_address]
     )
-    retrying_send(message)
+    return message.send(fail_silently=False)
 
 ###
 ### Collect user data, bundled for emails ###
