@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import reverse
 
 from .utils import PermaTestCase
@@ -18,19 +19,23 @@ class AuthViewsTestCase(PermaTestCase):
         self.assertEqual(create_url, True)
         self.assertEqual(response.status_code, 302)
         self.assertIn('_auth_user_id', self.client.session)
+        self.assertTrue(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
 
 
     def test_deactived_user_login(self):
-        self.submit_form('user_management_limited_login',
+        response = self.submit_form('user_management_limited_login',
                           data = {'username': 'deactivated_registrar_user@example.com',
                                   'password': 'pass'},
                           success_url=reverse('user_management_account_is_deactivated'))
+        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
+
 
     def test_unactived_user_login(self):
-        self.submit_form('user_management_limited_login',
+        response = self.submit_form('user_management_limited_login',
                           data = {'username': 'unactivated_faculty_user@example.com',
                                   'password': 'pass'},
                           success_url=reverse('user_management_not_active'))
+        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
 
     def test_logout(self):
         """
@@ -41,8 +46,9 @@ class AuthViewsTestCase(PermaTestCase):
         self.client.login(username='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
         self.get('logout')
-        self.submit_form('logout')
+        response = self.submit_form('logout')
         self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
 
     def test_password_change(self):
         """
