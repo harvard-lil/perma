@@ -491,7 +491,7 @@ WR_PLAYBACK_RETRY_AFTER = 1
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
 # to catch up, during first playback, before raising an error?
-WARC_AVAILABLE_TIMEOUT = 7
+WARC_AVAILABLE_TIMEOUT = 9
 
 CHECK_WARC_BEFORE_PLAYBACK = False
 
