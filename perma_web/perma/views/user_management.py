@@ -126,6 +126,7 @@ def stats(request, stat_type=None):
         # get users by email top-level domain
         out = {
             'users_by_domain': list(LinkUser.objects
+                .filter(is_confirmed=True)
                 .annotate(domain=RawSQL("SUBSTRING_INDEX(email, '.', -1)",[]))
                 .values('domain')
                 .annotate(count=Count('domain'))
