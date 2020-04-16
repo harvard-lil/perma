@@ -121,12 +121,12 @@ def safe_save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=list(kwargs.keys()))
 
-def get_url(url, thread_list, proxy_address, requested_urls, user_agent):
+def get_url(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
     """
         Get a url, via proxied python requests.get(), in a way that is interruptable from other threads.
         Blocks calling thread. (Recommended: only call in sub-threads.)
     """
-    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url, requested_urls, user_agent))
+    request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url, requested_urls, proxied_responses, user_agent))
     request_thread.join()
     return request_thread.response, request_thread.response_exception
 
@@ -137,7 +137,7 @@ class ProxiedRequestThread(threading.Thread):
         While the thread is running, see `self.pending_data` for how much has been downloaded so far.
         Once the thread is done, see `self.response` and `self.response_exception` for the results.
     """
-    def __init__(self, proxy_address, url, requested_urls, user_agent, *args, **kwargs):
+    def __init__(self, proxy_address, url, requested_urls, proxied_responses, user_agent, *args, **kwargs):
         self.url = url
         self.user_agent = user_agent
         self.proxy_address = proxy_address
@@ -146,11 +146,14 @@ class ProxiedRequestThread(threading.Thread):
         self.response = None
         self.response_exception = None
         self.requested_urls = requested_urls
+        self.proxied_responses = proxied_responses
         super(ProxiedRequestThread, self).__init__(*args, **kwargs)
 
     def run(self):
+        self.requested_urls.add(self.url)
+        if self.proxied_responses["limit_reached"]:
+            return
         try:
-            self.requested_urls.add(self.url)
             self.response = requests.get(self.url,
                                          headers={'User-Agent': self.user_agent},
                                          proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
@@ -161,7 +164,7 @@ class ProxiedRequestThread(threading.Thread):
             for chunk in self.response.iter_content(chunk_size=8192):
                 self.pending_data += len(chunk)
                 self.response._content += chunk
-                if self.stop.is_set():
+                if self.stop.is_set() or self.proxied_responses["limit_reached"]:
                     return
         except requests.RequestException as e:
             self.response_exception = e
@@ -469,6 +472,29 @@ def capture_current_size(thread_list, recorded):
     """
     return recorded + sum(getattr(thread, 'pending_data', 0) for thread in thread_list)
 
+class CaptureCurrentSizeThread(threading.Thread):
+    """
+        Listen for self.stop to be set, allowing the thread to be halted by other threads.
+    """
+    def __init__(self, thread_list, proxied_responses, *args, **kwargs):
+        self.stop = threading.Event()
+        self.thread_list = thread_list
+        self.proxied_responses = proxied_responses
+        # include 'pending data' for a consistent API with other threads on the thread_list
+        self.pending_data = 0
+        super(CaptureCurrentSizeThread, self).__init__(*args, **kwargs)
+
+    def run(self):
+        while True:
+            if self.stop.is_set():
+                return
+            if capture_current_size(self.thread_list, self.proxied_responses["size"]) > settings.MAX_ARCHIVE_FILE_SIZE:
+                self.proxied_responses["limit_reached"] = True
+                print("Size limit reached.")
+                return
+            time.sleep(.2)
+
+
 def make_absolute_urls(base_url, urls):
     """collect resource urls, converted to absolute urls relative to current browser frame"""
     return [urllib.parse.urljoin(base_url, url) for url in urls if url]
@@ -580,9 +606,9 @@ def meta_tag_analysis_failed(link):
 
 # robots.txt
 
-def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls, user_agent):
+def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
     robots_txt_location = urllib.parse.urljoin(content_url, '/robots.txt')
-    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls, user_agent)
+    robots_txt_response, e = get_url(robots_txt_location, thread_list, proxy_address, requested_urls, proxied_responses, user_agent)
     if e or not robots_txt_response or not robots_txt_response.ok:
         print("Couldn't reach robots.txt")
         return
@@ -600,10 +626,10 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address,
 
 # favicons
 
-def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, proxy_address, requested_urls, user_agent):
+def favicon_thread(successful_favicon_urls, dom_tree, content_url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
     favicon_urls = favicon_get_urls(dom_tree, content_url)
     for favicon_url in favicon_urls:
-        favicon = favicon_fetch(favicon_url, thread_list, proxy_address, requested_urls, user_agent)
+        favicon = favicon_fetch(favicon_url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent)
         if favicon:
             successful_favicon_urls.append(favicon)
     if not successful_favicon_urls:
@@ -624,9 +650,9 @@ def favicon_get_urls(dom_tree, content_url):
     urls = list(OrderedDict((url, True) for url in urls).keys())  # remove duplicates without changing list order
     return urls
 
-def favicon_fetch(url, thread_list, proxy_address, requested_urls, user_agent):
+def favicon_fetch(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
     print("Fetching favicon from %s ..." % url)
-    response, e = get_url(url, thread_list, proxy_address, requested_urls, user_agent)
+    response, e = get_url(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent)
     if e or not response or not response.ok:
         print("Favicon failed:", e, response)
         return
@@ -1082,10 +1108,6 @@ def run_next_capture():
             # skip request if downloaded size exceeds MAX_ARCHIVE_FILE_SIZE.
             if proxied_responses["limit_reached"]:
                 return
-            elif capture_current_size(thread_list, proxied_responses["size"]) > settings.MAX_ARCHIVE_FILE_SIZE:
-                proxied_responses["limit_reached"] = True
-                print("size limit reached")
-                return
 
             with tracker_lock:
                 proxied_pair = [self.url, None]
@@ -1146,6 +1168,9 @@ def run_next_capture():
         browser, display = get_browser(capture_user_agent, proxy_address, warcprox_controller.proxy.ca.ca_file)
         browser.set_window_size(*BROWSER_SIZE)
 
+        print("Tracking capture size...")
+        add_thread(thread_list, CaptureCurrentSizeThread(thread_list, proxied_responses))
+
         # fetch page in the background
         inc_progress(capture_job, 1, "Fetching target URL")
         page_load_thread = threading.Thread(target=browser.get, name="page_load", args=(target_url,))  # returns after onload
@@ -1196,6 +1221,7 @@ def run_next_capture():
             thread_list,
             proxy_address,
             requested_urls,
+            proxied_responses,
             capture_user_agent
         ))
 
@@ -1223,6 +1249,7 @@ def run_next_capture():
                     thread_list,
                     proxy_address,
                     requested_urls,
+                    proxied_responses,
                     capture_user_agent
                 ))
 
@@ -1255,7 +1282,7 @@ def run_next_capture():
                 # grab all media urls that aren't already being grabbed,
                 # each in its own background thread
                 for media_url in media_urls - requested_urls:
-                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls, capture_user_agent))
+                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls, proxied_responses, capture_user_agent))
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         inc_progress(capture_job, 1, "Waiting for post-load requests")
