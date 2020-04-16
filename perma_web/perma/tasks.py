@@ -78,7 +78,7 @@ def celery_task_failure_email(**kwargs):
     """
     Celery 4.0 onward has no method to send emails on failed tasks
     so this event handler is intended to replace it. It reports truly failed
-    tasks, just as those terminated after CELERY_TASK_TIME_LIMIT.
+    tasks, such as those terminated after CELERY_TASK_TIME_LIMIT.
     From https://github.com/celery/celery/issues/3389
     """
 
