@@ -20,7 +20,6 @@ if use_newrelic:
 
 # env setup
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
-os.environ.setdefault("CELERY_LOADER", "django")
 
 # these imports may depend on env setup and/or newrelic setup that came earlier
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
