@@ -537,6 +537,12 @@ CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) Safari/538.1"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
+CAPTURE_HEADERS = {
+    "Accept": "*/*",
+    "Accept-Encoding": "*",
+    "Accept-Language": "*",
+    "Connection": "keep-alive"
+}
 
 APPEND_SLASH = False
 
