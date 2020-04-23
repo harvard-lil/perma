@@ -1169,13 +1169,20 @@ class Link(DeletableModel):
     @cached_property
     def headers(self):
         try:
-            return requests.get(
-                self.ascii_safe_url,
-                verify=False,  # don't check SSL cert?
-                headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
-                timeout=settings.RESOURCE_LOAD_TIMEOUT,
-                stream=True  # we're only looking at the headers
-            ).headers
+            with requests.Session() as s:
+                request = requests.Request(
+                    'GET',
+                    self.ascii_safe_url,
+                    headers={'User-Agent': settings.CAPTURE_USER_AGENT, **settings.CAPTURE_HEADERS}
+                )
+                response = s.send(
+                    request.prepare(),
+                    verify=False,  # don't check SSL cert?
+                    timeout=settings.RESOURCE_LOAD_TIMEOUT,
+                    stream=True  # we're only looking at the headers
+                )
+                response.close()
+                return response.headers
         except (requests.ConnectionError, requests.Timeout):
             return False
 

@@ -154,21 +154,30 @@ class ProxiedRequestThread(threading.Thread):
         if self.proxied_responses["limit_reached"]:
             return
         try:
-            self.response = requests.get(self.url,
-                                         headers={'User-Agent': self.user_agent},
-                                         proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
-                                         verify=False,
-                                         stream=True,
-                                         timeout=1)
-            self.response._content = bytes()
-            for chunk in self.response.iter_content(chunk_size=8192):
-                self.pending_data += len(chunk)
-                self.response._content += chunk
-                if self.stop.is_set() or self.proxied_responses["limit_reached"]:
-                    return
+            with requests.Session() as s:
+                request = requests.Request(
+                    'GET',
+                    self.url,
+                    headers={'User-Agent': self.user_agent, **settings.CAPTURE_HEADERS}
+                )
+                self.response = s.send(
+                    request.prepare(),
+                    proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
+                    verify=False,
+                    stream=True,
+                    timeout=1
+                )
+                self.response._content = bytes()
+                for chunk in self.response.iter_content(chunk_size=8192):
+                    self.pending_data += len(chunk)
+                    self.response._content += chunk
+                    if self.stop.is_set() or self.proxied_responses["limit_reached"]:
+                        return
         except requests.RequestException as e:
             self.response_exception = e
         finally:
+            if self.response:
+                self.response.close()
             self.pending_data = 0
 
 class HaltCaptureException(Exception):
