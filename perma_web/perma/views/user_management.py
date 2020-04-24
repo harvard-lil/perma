@@ -180,12 +180,15 @@ def stats(request, stat_type=None):
         queues = []
         if active is not None:
             for queue in sorted(active.keys()):
-                queues.append({
-                    'name': queue,
-                    'active': active[queue],
-                    'reserved': reserved[queue],
-                    'stats': stats[queue],
-                })
+                try:
+                    queues.append({
+                        'name': queue,
+                        'active': active[queue],
+                        'reserved': reserved[queue],
+                        'stats': stats[queue],
+                    })
+                except KeyError:
+                    pass
         out = {'queues':queues}
 
     elif stat_type == "celery_queues":
