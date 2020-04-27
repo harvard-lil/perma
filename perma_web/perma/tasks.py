@@ -1300,11 +1300,15 @@ def run_next_capture():
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         inc_progress(capture_job, 1, "Waiting for post-load requests")
-        time.sleep(.5)
         unfinished_proxied_pairs = [pair for pair in proxied_pairs if not pair[1]]
         load_time = time.time()
         with browser_running(browser):
             while unfinished_proxied_pairs and browser_still_running(browser):
+
+                if proxied_responses["limit_reached"]:
+                    stop = True
+                    print("Size limit reached: not waiting for additional pending requests.")
+                    break
 
                 print("Waiting for %s pending requests" % len(unfinished_proxied_pairs))
                 # give up after AFTER_LOAD_TIMEOUT seconds
