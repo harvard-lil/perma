@@ -1020,7 +1020,7 @@ def run_next_capture():
             prox_rec_res = None
             start = time.time()
             try:
-                self.logger.debug('sending to remote server req=%r', req)
+                self.logger.debug('sending to remote server req=%r' % req)
 
                 # Send it down the pipe!
                 self._remote_server_conn.sock.sendall(req)
@@ -1037,7 +1037,7 @@ def run_next_capture():
                     try:
                         buf = prox_rec_res.read(65536)
                     except http_client.IncompleteRead as e:
-                        self.logger.warn('%s from %s', e, self.url)
+                        self.logger.warn('%s from %s' %(e, self.url))
                         buf = e.partial
 
                     if (self._max_resource_size and
@@ -1047,8 +1047,8 @@ def run_next_capture():
                         self._remote_server_conn.sock.close()
                         self.logger.info(
                                 'truncating response because max resource size %d '
-                                'bytes exceeded for URL %s',
-                                self._max_resource_size, self.url)
+                                'bytes exceeded for URL %s' %
+                                (self._max_resource_size, self.url))
                         break
                     elif ('content-length' not in self.headers and
                            time.time() - start > 3 * 60 * 60):
@@ -1057,7 +1057,7 @@ def run_next_capture():
                         self._remote_server_conn.sock.close()
                         self.logger.info(
                                 'reached hard timeout of 3 hours fetching url '
-                                'without content-length: %s', self.url)
+                                'without content-length: %s' % self.url)
                         break
 
                     # begin Perma changes #
@@ -1066,8 +1066,8 @@ def run_next_capture():
                         self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                         self._remote_server_conn.sock.close()
                         self.logger.info(
-                                'truncating response because stop signal received'
-                                'recording %s',
+                                'truncating response because stop signal received '
+                                'while recording %s' %
                                 self.url)
                         break
                     # end Perma changes #
@@ -1094,7 +1094,7 @@ def run_next_capture():
                     host_port = self._hostname_port_cache_key()
                     with self.server.bad_hostnames_ports_lock:
                         self.server.bad_hostnames_ports[host_port] = 502
-                    self.logger.info('bad_hostnames_ports cache size: %d',
+                    self.logger.info('bad_hostnames_ports cache size: %d' %
                                      len(self.server.bad_hostnames_ports))
 
                 # Close the connection only if its still open. If its already
