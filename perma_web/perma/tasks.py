@@ -761,7 +761,12 @@ def get_page_size(browser):
             # URLError: the headless browser has gone away for some reason.
             root_element = None
     if root_element:
-        return root_element.size
+        try:
+            return root_element.size
+        except WebDriverException:
+            # If there is no "body" element, a WebDriverException is thrown.
+            # Skip the screenshot in that case: nothing to see
+            pass
 
 def page_pixels_in_allowed_range(page_size):
     return page_size and page_size['width'] * page_size['height'] < settings.MAX_IMAGE_SIZE
