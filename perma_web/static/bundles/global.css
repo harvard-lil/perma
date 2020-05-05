@@ -7757,6 +7757,10 @@ body {
   position: relative;
 }
 
+select {
+  overflow: auto;
+}
+
 cite,
 em,
 i {
@@ -11242,7 +11246,6 @@ input[type="submit"] {
   font-size: 16px;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 400;
-  height: 42px;
 }
 
 .form-group select:focus {

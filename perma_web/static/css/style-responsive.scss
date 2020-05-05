@@ -153,6 +153,11 @@ body {
   position: relative;
 }
 
+// as of 5/5/2020, overflow: visible on Chrome causes select options to overflow the input as a long list, rather than resizing the widget appropriately
+select {
+  overflow: auto;
+}
+
 cite,
 em,
 i {
@@ -3003,7 +3008,6 @@ input[type="submit"] {
     font-size: 16px;
     font-family: $font-hed-alt;
     font-weight: 400;
-    height: 42px;
     &:focus {
       border-color: $color-blue;
       box-shadow: none;
