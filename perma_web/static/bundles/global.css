@@ -7757,6 +7757,10 @@ body {
   position: relative;
 }
 
+select {
+  overflow: auto;
+}
+
 cite,
 em,
 i {

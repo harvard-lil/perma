@@ -153,6 +153,11 @@ body {
   position: relative;
 }
 
+// as of 5/5/2020, overflow: visible on Chrome causes select options to overflow the input as a long list, rather than resizing the widget appropriately
+select {
+  overflow: auto;
+}
+
 cite,
 em,
 i {
