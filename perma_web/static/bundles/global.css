@@ -9399,6 +9399,14 @@ button #addlink {
   }
 }
 
+.body-before-bh {
+  margin-top: 24px;
+}
+
+.body-before-bh + .body-bh {
+  margin-top: 32px;
+}
+
 .body-bh {
   font-size: 16px;
   border-top: 1px solid #DD671A;

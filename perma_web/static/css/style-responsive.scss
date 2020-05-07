@@ -1518,6 +1518,14 @@ button {
   }
 }
 
+.body-before-bh {
+  margin-top: $grid * 3;
+}
+
+.body-before-bh + .body-bh {
+  margin-top: $grid * 4;
+}
+
 .body-bh {
   font-size: 16px;
   border-top: 1px solid $color-orange;
