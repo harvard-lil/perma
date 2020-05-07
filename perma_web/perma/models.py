@@ -590,6 +590,15 @@ class Organization(DeletableModel):
         return self.users.filter(pk=user.pk).exists()
 
 
+class Sponsorship(models.Model):
+    registrar = models.ForeignKey(Registrar, on_delete=models.PROTECT, related_name='sponsorships')
+    user = models.ForeignKey('LinkUser', on_delete=models.CASCADE, related_name='sponsorships')
+    status = models.CharField(max_length=10, blank=True, null=True, choices=(('active','Active: user may create links.'), ('inactive', 'Inactive: user may view, but not create, links.')), default='active')
+    status_changed = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey('LinkUser', related_name='created_sponsorships', on_delete=models.PROTECT)
+
+
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
         """
@@ -641,6 +650,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
                                                      "Note: <b>This list will include deleted orgs of which this user is a member.</b> This is a historical"
                                                      " record and deleted org memberships cannot be removed.<br><br>"
                                            )
+    sponsoring_registrars = models.ManyToManyField(
+        Registrar,
+        blank=True,
+        related_name='sponsored_users',
+        through=Sponsorship,
+        through_fields=('user', 'registrar'),
+        help_text="If set, this user is sponsored by a registrar. Any user can be sponsored by any registrar."
+    )
     is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -754,7 +771,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
             Org users share scope with other members of their orgs.
             Registrar users share scope with others registrar users from
-               the same registrar, as well as all members of the registrar's orgs.
+               the same registrar, sponsored users, and all members of the registrar's orgs.
             Admins share scope with all users.
         """
         if self.is_organization_user:
@@ -762,6 +779,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return len(orgs) > 0
         elif self.is_registrar_user():
             if self.registrar == other_user.registrar:
+                return True
+            if self.registrar in other_user.sponsoring_registrars.all():
                 return True
             orgs = other_user.organizations.all() & Organization.objects.filter(registrar=self.registrar)
             return len(orgs) > 0

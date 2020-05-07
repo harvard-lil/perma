@@ -1,5 +1,5 @@
 {% extends "manage-layout.html" %}
-{% load current_query_string visible_organizations %}
+{% load current_query_string visible_organizations visible_sponsorships %}
 {% load intcomma from humanize %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
@@ -21,7 +21,7 @@
           <label for="add" class="sr-only">new {{ pretty_group_name|lower }} email</label>
           <input id="add" type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
         </div>
-        <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
+        <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name|lower }}</button>
       </fieldset>
     </form>
   </div><!-- add member -->
@@ -60,7 +60,7 @@
     </div>
   </div><!-- search -->
 
-  {% if registrar_filter.name or org_filter.name or status or upgrade or search_query %}
+  {% if registrar_filter.name or org_filter.name or status or upgrade or sponsorship_status or search_query %}
     <div class="row">
       <div class="col-sm-12">
         <div class="remove-search-filters">
@@ -71,6 +71,7 @@
           {% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
           {% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
           {% if upgrade %}<span class="filter-label">Upgrade interest</span> <strong>{{upgrade}}</strong> {% endif %}
+          {% if sponsorship_status %}<span class="filter-label">Sponsorship status</span> <strong>{{sponsorship_status}}</strong> {% endif %}
           {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
           <a class="action remove-filters" href="?sort=last_name"><i aria-hidden="true" class="icon-remove-sign"></i> Clear all filters</a>
          </div>
@@ -175,6 +176,18 @@
                 {% endif %}
               </ul>
             </div>
+          {% elif group_name == 'sponsored_user' %}
+            <div class="dropdown">
+              <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sponsorship Status <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a {% if sponsorship_status == 'active' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sponsorship_status='active' %}"><i aria-hidden="true" class="icon-ok"></i> Active</a>
+                </li>
+                <li>
+                  <a {% if sponsorship_status == 'inactive' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sponsorship_status='inactive' %}"><i aria-hidden="true" class="icon-ok"></i> Inactive</a>
+                </li>
+              </ul>
+            </div>
           {% endif %}
         {% endif %}
 
@@ -224,7 +237,7 @@
             <p class="warning">User must activate account</p>
           {% endif %}
 
-          {% if listed_user|visible_organizations:request.user %}
+          {% if group_name == 'organization_user' and listed_user|visible_organizations:request.user %}
             <div class="item-affil">
               <span class="sr-only">Member of:</span>
               {% for organization in listed_user|visible_organizations:request.user %}
@@ -240,6 +253,22 @@
 
           {% if group_name == 'registrar_user' and request.user.is_staff %}
             <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}#registrar-{{ listed_user.registrar.id }}">{{ listed_user.registrar.name }}</a></div>
+          {% endif %}
+
+          {% if group_name == 'sponsored_user' %}
+            <div>
+              {% with listed_user|visible_sponsorships:request.user as sponsorships %}
+                <span>Sponsorship{{ sponsorships|length|pluralize }}:</span>
+                {% for sponsorship in sponsorships %}
+                  {% if request.user.is_staff %}
+                    {{ sponsorship.registrar.name }} ({{ sponsorship.status }})
+                  {% else %}
+                    {{ sponsorship.status }}
+                  {% endif %}
+                  {% include "user_management/includes/comma.html" %}
+                {% endfor %}
+              {% endwith %}
+            </div>
           {% endif %}
 
           {% if group_name == 'organization_user' %}
@@ -268,15 +297,21 @@
             <div class="item-status">
               {% if listed_user.is_active %}
                 {% if request.user.is_staff %}
-                  {% if group_name != 'admin_user' %}
+                  {% if group_name == 'sponsored_user' %}
+                    {% include "user_management/includes/edit_sponsorship.html" %}
+                  {% elif group_name != 'admin_user' %}
                     <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                   {% else %}
                     <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                   {% endif %}
-                {% elif request.user.is_registrar_user and group_name == 'organization_user' %}
-                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
-                {% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
-                  <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                {% elif request.user.is_registrar_user %}
+                  {% if group_name == 'organization_user' %}
+                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% elif group_name == 'registrar_user' %}
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% elif group_name == 'sponsored_user' %}
+                    {% include "user_management/includes/edit_sponsorship.html" %}
+                  {% endif %}
                 {% else %}
                   <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                 {% endif %}
@@ -287,12 +322,18 @@
                 {% endif %}
               {% else %}
                 {% if request.user.is_staff %}
-                  <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% if group_name == 'sponsored_user' %}
+                    {% include "user_management/includes/edit_sponsorship.html" %}
+                  {% else %}
+                    <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% endif %}
                 {% else %}
                   {% if group_name == 'organization_user' %}
                     <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name == 'registrar_user' %}
                     <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  {% elif group_name == 'sponsored_user' %}
+                    {% include "user_management/includes/edit_sponsorship.html" %}
                   {% endif %}
                 {% endif %}
               {% endif %}

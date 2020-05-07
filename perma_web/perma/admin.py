@@ -12,7 +12,7 @@ from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
 from .exceptions import PermaPaymentsCommunicationException
-from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch
+from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch, Sponsorship
 
 ### helpers ###
 
@@ -27,6 +27,12 @@ class LinkInline(admin.TabularInline):
     can_delete = False
     fields = ['guid', 'submitted_url', 'creation_timestamp']
     readonly_fields = ['guid', 'submitted_url', 'creation_timestamp']
+
+class SponsorshipInline(admin.TabularInline):
+    model = Sponsorship
+    readonly_fields = ('created_by', 'created_at', 'status_changed')
+    fk_name = 'user'
+    extra = 1
 
 
 ### admin models ###
@@ -171,7 +177,19 @@ class LinkUserAdmin(UserAdmin):
     # inlines = [
     #     new_class("CreatedLinksInline", LinkInline, fk_name='created_by', verbose_name_plural="Created Links", show_change_link=True),
     # ]
-    filter_horizontal = ['organizations']
+    inlines = [
+        SponsorshipInline,
+    ]
+    filter_horizontal = ['organizations',]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            instance.created_by = request.user
+            instance.save()
+        formset.save_m2m()
 
 
 class LinkAdmin(SimpleHistoryAdmin):

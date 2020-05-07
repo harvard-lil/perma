@@ -1,0 +1,5 @@
+TITLE: Your Perma.cc account is now sponsored by {{ form.cleaned_data.sponsoring_registrars }}
+
+Your Perma.cc account is now sponsored by {{ sponsoring_registrars }}. Look for your new "Sponsored Links" folder to begin creating Perma Links.
+
+To learn more about sponsored accounts, visit our FAQ page.

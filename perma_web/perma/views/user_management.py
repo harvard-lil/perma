@@ -37,15 +37,17 @@ from perma.forms import (
     OrganizationForm,
     UserForm,
     UserFormWithRegistrar,
+    UserFormWithSponsoringRegistrar,
     UserFormWithOrganization,
     CreateUserFormWithCourt,
     CreateUserFormWithFirm,
     CreateUserFormWithUniversity,
     UserAddRegistrarForm,
+    UserAddSponsoringRegistrarForm,
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm)
-from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
@@ -474,6 +476,22 @@ def manage_single_registrar_user_delete(request, user_id):
 def manage_single_registrar_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'registrar_user')
 
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_sponsored_user(request):
+    return list_users_in_group(request, 'sponsored_user')
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_single_sponsored_user(request, user_id):
+    return edit_user_in_group(request, user_id, 'sponsored_user')
+
+@user_passes_test_or_403(lambda user: user.is_staff)
+def manage_single_sponsored_user_delete(request, user_id):
+    return delete_user_in_group(request, user_id, 'sponsored_user')
+
+@user_passes_test_or_403(lambda user: user.is_staff)
+def manage_single_sponsored_user_reactivate(request, user_id):
+    return reactive_user_in_group(request, user_id, 'sponsored_user')
+
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_user(request):
     return list_users_in_group(request, 'user')
@@ -537,6 +555,8 @@ def list_users_in_group(request, group_name):
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar=request.user.registrar)
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
+        elif group_name == 'sponsored_user':
+            users = users.filter(sponsoring_registrars=request.user.registrar)
         else:
             users = users.filter(registrar=request.user.registrar)
     elif request.user.is_organization_user:
@@ -547,6 +567,8 @@ def list_users_in_group(request, group_name):
         users = users.exclude(is_staff=False)
     elif group_name == 'registrar_user':
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
+    elif group_name == 'sponsored_user':
+        users = users.exclude(sponsoring_registrars=None).prefetch_related('sponsoring_registrars', 'sponsorships')
     elif group_name == 'organization_user':
         # careful handling to exclude users associated only with deleted orgs
         users = users.filter(organizations__user_deleted=0)
@@ -579,9 +601,16 @@ def list_users_in_group(request, group_name):
     if registrar_filter:
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar_id=registrar_filter)
+        elif group_name == 'sponsored_user':
+            users = users.filter(sponsoring_registrars__id=registrar_filter)
         elif group_name == 'registrar_user':
             users = users.filter(registrar_id=registrar_filter)
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
+
+    # handle sponsorship status filter:
+    sponsorship_status = request.GET.get('sponsorship_status', '')
+    if sponsorship_status:
+        users = users.filter(sponsorships__status=sponsorship_status)
 
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
@@ -617,6 +646,7 @@ def list_users_in_group(request, group_name):
         'org_filter': org_filter,
         'status': status,
         'upgrade': upgrade,
+        'sponsorship_status': sponsorship_status
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
@@ -629,15 +659,18 @@ def edit_user_in_group(request, user_id, group_name):
 
     target_user = get_object_or_404(LinkUser, id=user_id)
 
-    # org users can only edit their members in the same orgs
     if request.user.is_registrar_user():
-        # Get the intersection of the user's and the registrar user's orgs
+        # registrar users can edit their sponsored users,
+        # and users who belong to any of their registrar's organizations
+        sponsorships = target_user.sponsorships.filter(registrar=request.user.registrar)
         orgs = target_user.organizations.all() & Organization.objects.filter(registrar=request.user.registrar)
 
-        if len(orgs) == 0:
+        if not sponsorships and len(orgs) == 0:
             raise Http404
 
     elif request.user.is_organization_user:
+        # org users can only edit their members in the same orgs
+        sponsorships = None
         orgs = target_user.organizations.all() & request.user.organizations.all()
 
         if len(orgs) == 0:
@@ -645,6 +678,7 @@ def edit_user_in_group(request, user_id, group_name):
 
     else:
         # Must be admin user
+        sponsorships = target_user.sponsorships.all().order_by('status', 'registrar__name')
         orgs = target_user.organizations.all()
 
     context = {
@@ -653,6 +687,7 @@ def edit_user_in_group(request, user_id, group_name):
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
+        'sponsorships':sponsorships,
         'orgs': orgs,
     }
 
@@ -798,6 +833,33 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
         return True, ""
 
 
+class AddSponsoredUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
+    template_name = 'user_management/user_add_to_sponsoring_registrar_confirm.html'
+    success_url = reverse_lazy('user_management_manage_sponsored_user')
+    confirmation_email_template = 'email/user_added_to_sponsoring_registrar.txt'
+    user_added_email_template = 'email/new_user_added_to_sponsoring_registrar_by_other.txt'
+    new_user_form = UserFormWithSponsoringRegistrar
+    existing_user_form = UserAddSponsoringRegistrarForm
+
+    def get_form_kwargs(self):
+        """ Filter registrars to those current user can access. """
+        return dict(
+            super(AddSponsoredUserToRegistrar, self).get_form_kwargs(),
+            current_user=self.request.user)
+
+    def target_user_valid(self):
+        """ User can only be added to registrar if they aren't admin or registrar or org user. """
+        if self.is_new:
+            return True, ""
+
+        # # limits that apply just if the current user is a registrar rather than staff
+        # if self.request.user.is_registrar_user():
+        #     if self.object.is_registrar_user():
+        #         if self.object.registrar == self.request.user.registrar:
+        #             return False, "%s is already sponsored by your registrar." % self.object
+        return True, ""
+
+
 class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_admin_confirm.html'
     success_url = reverse_lazy('user_management_manage_admin_user')
@@ -855,6 +917,7 @@ def delete_user_in_group(request, user_id, group_name):
     target_user = get_object_or_404(LinkUser, id=user_id)
 
     context = {'target_user': target_user,
+               'action': 'deactivate' if target_user.is_confirmed else 'delete',
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
@@ -919,6 +982,54 @@ def manage_single_registrar_user_remove(request, user_id):
         return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
 
     return render(request, 'user_management/user_remove_registrar_confirm.html', context)
+
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
+def manage_single_sponsored_user_remove(request, user_id, registrar_id):
+    """
+        Remove a sponsored user from a registrar.
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    registrar =  get_object_or_404(Registrar, id=registrar_id)
+    sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
+
+    # Registrar users can only edit their own sponsored users,
+    # and can only deactivate their own sponsorships
+    if request.user.is_registrar_user() and \
+        (request.user.registrar not in target_user.sponsoring_registrars.all() or
+         str(request.user.registrar_id) != registrar_id):
+        raise Http404
+
+    if request.method == 'POST':
+        sponsorship.status = 'inactive'
+        sponsorship.save()
+        return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
+
+    return render(request, 'user_management/user_remove_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
+
+
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
+def manage_single_sponsored_user_readd(request, user_id, registrar_id):
+    """
+        Reactivate an inactive sponsorship for a user
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    registrar =  get_object_or_404(Registrar, id=registrar_id)
+    sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
+
+    # Registrar users can only edit their own sponsored users,
+    # and can only deactivate their own sponsorships
+    if request.user.is_registrar_user() and \
+        (request.user.registrar not in target_user.sponsoring_registrars.all() or
+         str(request.user.registrar_id) != registrar_id):
+        raise Http404
+
+    if request.method == 'POST':
+        sponsorship.status = 'active'
+        sponsorship.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
+
+    return render(request, 'user_management/user_readd_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)

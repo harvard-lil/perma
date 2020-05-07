@@ -1,0 +1,29 @@
+{% extends "admin-layout.html" %}
+
+{% block title %} | {% if request.user.is_registrar_user %}Sponsor user{% else %}Add sponsorship to user {% endif %}{% endblock %}
+
+{% block adminContent %}
+
+  <h3 class="body-bh">{% if request.user.is_registrar_user %}Sponsor {{ user_email }}{% else %}Add sponsorship to {{ user_email }}{% endif %}</h3>
+
+  {% if not form %}
+    <p>{{ error_message }}</p>
+  {% else %}
+
+    {% if object.id %}
+      <p>{{ user_email }} already has an account.  Would you like to {% if request.user.is_registrar_user %}sponsor them{% else %}add a sponsorship{% endif %}?</p>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% include "includes/fieldset.html" %}
+      <button type="submit" class="btn">{% if request.user.is_registrar_user %}Sponsor{% else %}Add sponsorship{% endif %}</button>
+      <a href="{% url 'user_management_manage_sponsored_user' %}" class="btn cancel">Cancel</a>
+    </form>
+
+  {% endif %}
+{% endblock %}
+
+
+
+Sponsor user
