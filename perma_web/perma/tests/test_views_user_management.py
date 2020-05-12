@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from mock import patch, sentinel
 
-from perma.models import LinkUser, Organization, Registrar
+from perma.models import LinkUser, Organization, Registrar, Sponsorship
 from perma.exceptions import PermaPaymentsCommunicationException
 
 from .utils import PermaTestCase
@@ -73,6 +73,10 @@ class UserManagementViewsTestCase(PermaTestCase):
     def setUpTestData(cls):
         cls.admin_user = LinkUser.objects.get(pk=1)
         cls.registrar_user = LinkUser.objects.get(pk=2)
+        cls.sponsored_user = LinkUser.objects.get(pk=20)
+        cls.another_sponsored_user = LinkUser.objects.get(pk=21)
+        cls.inactive_sponsored_user = LinkUser.objects.get(pk=22)
+        cls.another_inactive_sponsored_user = LinkUser.objects.get(pk=23)
         cls.regular_user = LinkUser.objects.get(pk=4)
         cls.registrar = cls.registrar_user.registrar
         cls.pending_registrar = Registrar.objects.get(pk=2)
@@ -342,6 +346,60 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # status filter tested in test_registrar_user_list_filters
 
+
+    def test_sponsored_user_list_filters(self):
+        # test assumptions: four users, with five sponsorships between them
+        # - two users with active sponsorships, two users with inactive sponsorships
+        # - two sponsored by Test Library, two from Another Library, one from A Third Library
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 4 users", count)
+        self.assertEqual(response.count(b'(inactive sponsorship)'), 2)
+        # registrar name appears by each user, and once in the filter dropdown
+        self.assertEqual(response.count(b'Test Library'), 3)
+        self.assertEqual(response.count(b'Another Library'), 3)
+        self.assertEqual(response.count(b'A Third Library'), 2)
+
+        # filter by registrar
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 3}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+
+        # filter by sponsorship status
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'sponsorship_status': 'active'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+        response = self.get('user_management_manage_sponsored_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'sponsorship_status': 'inactive'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+
+        # user status filter tested in test_registrar_user_list_filters
+
+
+
     def test_admin_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
                          user=self.admin_user,
@@ -430,6 +488,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          reverse_kwargs={'args': [self.organization.pk]},
                          require_status_code=404)
 
+
     ### USER A/E/D VIEWS ###
 
     def test_user_list_filters(self):
@@ -488,6 +547,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             ['registrar_user', {'a-registrar': 1}],
             ['user', {}],
             ['organization_user', {'a-organizations': 1}],
+            ['sponsored_user', {'a-sponsoring_registrars': 1}],
         ]:
             # create user
             email += '1'
@@ -754,7 +814,143 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('create_link'))
         self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
 
-    ### ADDING NEW USERS TO REGISTRARS ###
+    ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
+
+    def test_admin_user_can_add_new_sponsored_user_to_registrar(self):
+        address = 'doesnotexist@example.com'
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                          data={'a-sponsoring_registrars': self.registrar.pk,
+                                'a-first_name': 'First',
+                                'a-last_name': 'Last',
+                                'a-email': address},
+                          query_params={'email': address},
+                          success_url=reverse('user_management_manage_sponsored_user'),
+                          success_query=LinkUser.objects.filter(email=address,
+                                                                sponsoring_registrars=self.registrar).exists())
+        # Try to add the same person again; should fail
+        response = self.submit_form('user_management_sponsored_user_add_user',
+                                     data={'a-sponsoring_registrars': self.registrar.pk,
+                                           'a-first_name': 'First',
+                                           'a-last_name': 'Last',
+                                           'a-email': address},
+                                     query_params={'email': address}).content
+        self.assertIn(bytes("Select a valid choice. That choice is not one of the available choices", 'utf-8'), response)
+
+    def test_registrar_user_can_add_new_sponsored_user_to_registrar(self):
+        address = 'doesnotexist@example.com'
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                         data={'a-sponsoring_registrars': self.registrar.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': address},
+                         query_params={'email': address},
+                         success_url=reverse('user_management_manage_sponsored_user'),
+                         success_query=LinkUser.objects.filter(email=address,
+                                                               sponsoring_registrars=self.registrar).exists())
+        # Try to add the same person again; should fail
+        response = self.submit_form('user_management_sponsored_user_add_user',
+                                     data={'a-sponsoring_registrars': self.registrar.pk,
+                                           'a-first_name': 'First',
+                                           'a-last_name': 'Last',
+                                           'a-email': address},
+                                     query_params={'email': address}).content
+        self.assertIn(bytes("{} is already sponsored by your registrar.".format(address), 'utf-8'), response)
+
+    def test_registrar_user_cannot_add_sponsored_user_to_inaccessible_registrar(self):
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                         data={'a-sponsoring_registrars': self.unrelated_registrar.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         error_keys=['sponsoring_registrars'])
+        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                 sponsoring_registrars=self.unrelated_registrar).exists())
+
+    ### ADDING EXISTING USERS TO REGISTRARS AS SPONSORED USERS ###
+
+    def test_admin_user_can_add_sponsorship_to_existing_user(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                         data={'a-sponsoring_registrars': self.registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_sponsored_user'),
+                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
+
+    def test_registrar_user_can_add_sponsorship_to_existing_user(self):
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                         data={'a-sponsoring_registrars': self.registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_sponsored_user'),
+                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
+
+    def test_registrar_user_cannot_add_sponsorship_for_other_registrar_to_existing_user(self):
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_sponsored_user_add_user',
+                         data={'a-sponsoring_registrars': self.unrelated_registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         error_keys=['sponsoring_registrars'])
+        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.unrelated_registrar).exists())
+
+    ### TOGGLING THE STATUS OF SPONSORSHIPS ###
+
+    def test_admin_user_can_deactivate_active_sponsorship(self):
+        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_manage_single_sponsored_user_remove',
+                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
+                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
+        sponsorship.refresh_from_db()
+        self.assertEqual(sponsorship.status, 'inactive')
+
+    def test_admin_user_can_reactivate_inactive_sponsorship(self):
+        sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_manage_single_sponsored_user_readd',
+                         reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
+                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
+        sponsorship.refresh_from_db()
+        self.assertEqual(sponsorship.status, 'active')
+
+    def test_registrar_user_can_deactivate_active_sponsorship(self):
+        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_manage_single_sponsored_user_remove',
+                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
+                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
+        sponsorship.refresh_from_db()
+        self.assertEqual(sponsorship.status, 'inactive')
+
+    def test_registrar_user_cannot_deactivate_active_sponsorship_for_other_registrar(self):
+        self.assertTrue(self.unrelated_registrar in self.another_sponsored_user.sponsoring_registrars.all())
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_manage_single_sponsored_user_remove',
+                         reverse_kwargs={'args': [self.another_sponsored_user.id, self.unrelated_registrar.id]},
+                         require_status_code=404)
+
+    def test_registrar_user_can_reactivate_inactive_sponsorship(self):
+        sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_manage_single_sponsored_user_readd',
+                         reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
+                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
+        sponsorship.refresh_from_db()
+        self.assertEqual(sponsorship.status, 'active')
+
+    def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registrar(self):
+        sponsorship = Sponsorship.objects.get(user=self.another_inactive_sponsored_user, registrar=self.unrelated_registrar, status='inactive')
+        self.log_in_user(self.registrar_user)
+        self.submit_form('user_management_manage_single_sponsored_user_readd',
+                         reverse_kwargs={'args': [self.another_inactive_sponsored_user.id, self.unrelated_registrar.id]},
+                         require_status_code=404)
+        sponsorship.refresh_from_db()
+        self.assertEqual(sponsorship.status, 'inactive')
+
+    ### ADDING NEW USERS TO REGISTRARS AS REGISTRAR USERS) ###
 
     def test_admin_user_can_add_new_user_to_registrar(self):
         address = 'doesnotexist@example.com'
@@ -861,7 +1057,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b"is already a member of another registrar", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_user.pk, registrar=self.registrar).exists())
 
-    ### REMOVING USERS FROM REGISTRARS ###
+    ### REMOVING REGISTRAR USERS FROM REGISTRARS ###
 
     def test_can_remove_user_from_registrar(self):
         self.log_in_user(self.registrar_user)

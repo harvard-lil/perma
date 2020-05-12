@@ -674,5 +674,128 @@
       "created_at": "2013-06-26T00:00:00Z",
       "created_by": 1
     }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 21,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "another_sponsored_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2013-06-26T00:00:00Z",
+      "first_name": "Another Sponsored",
+      "last_name": "User",
+      "confirmation_code": "",
+      "root_folder": 56,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 10,
+      "organizations": [],
+      "nonpaying": true
+    }
+  },
+  {
+    "model": "perma.sponsorship",
+    "pk": 2,
+    "fields": {
+      "registrar": 2,
+      "user": 21,
+      "status": "active",
+      "status_changed": "2013-06-26T00:00:00Z",
+      "created_at": "2013-06-26T00:00:00Z",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "perma.sponsorship",
+    "pk": 3,
+    "fields": {
+      "registrar": 3,
+      "user": 21,
+      "status": "active",
+      "status_changed": "2013-06-26T00:00:00Z",
+      "created_at": "2013-06-26T00:00:00Z",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 22,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "inactive_sponsored_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2013-06-26T00:00:00Z",
+      "first_name": "Inactive Sponsored",
+      "last_name": "User",
+      "confirmation_code": "",
+      "root_folder": 57,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 10,
+      "organizations": [],
+      "nonpaying": true
+    }
+  },
+  {
+    "model": "perma.sponsorship",
+    "pk": 4,
+    "fields": {
+      "registrar": 1,
+      "user": 22,
+      "status": "inactive",
+      "status_changed": "2013-06-26T00:00:00Z",
+      "created_at": "2013-06-26T00:00:00Z",
+      "created_by": 1
+    }
+  },
+    {
+    "model": "perma.linkuser",
+    "pk": 23,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2013-07-23T18:55:25Z",
+      "email": "another_inactive_sponsored_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2013-06-26T00:00:00Z",
+      "first_name": "Inactive Sponsored",
+      "last_name": "User",
+      "confirmation_code": "",
+      "root_folder": 58,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 10,
+      "organizations": [],
+      "nonpaying": true
+    }
+  },
+  {
+    "model": "perma.sponsorship",
+    "pk": 5,
+    "fields": {
+      "registrar": 2,
+      "user": 23,
+      "status": "inactive",
+      "status_changed": "2013-06-26T00:00:00Z",
+      "created_at": "2013-06-26T00:00:00Z",
+      "created_by": 1
+    }
   }
 ]
