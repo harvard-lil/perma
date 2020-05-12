@@ -598,6 +598,11 @@ class Sponsorship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('LinkUser', related_name='created_sponsorships', on_delete=models.PROTECT)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['registrar', 'user'], name='unique_sponsorship'),
+        ]
+
 
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):

@@ -140,8 +140,9 @@ class UserFormWithSponsoringRegistrar(UserForm):
         self.current_user = current_user
         super(UserFormWithSponsoringRegistrar, self).__init__(data, **kwargs)
 
-        # filter available registrars based on current user
         query = self.fields['sponsoring_registrars'].queryset
+        if self.instance and self.instance.pk:
+            query = query.exclude(pk__in=self.instance.sponsoring_registrars.all())
         if current_user and current_user.is_registrar_user():
             query = query.filter(pk=current_user.registrar_id)
             self.initial['sponsoring_registrars'] = str(query.first().id)
@@ -152,14 +153,21 @@ class UserFormWithSponsoringRegistrar(UserForm):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "sponsoring_registrars"]
 
-    def save(self, commit=True):
-        """ Override save so we add* the new sponsor rather than replacing all existing sponsorships for this user. """
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk and self.cleaned_data.get('sponsoring_registrars') and self.cleaned_data['sponsoring_registrars'].id in self.instance.sponsoring_registrars.values_list('id', flat=True):
+            raise forms.ValidationError(
+                '%(user)s is already sponsored by %(registrar)s',
+                code='non-unique-sponsorship',
+                params={'user': self.instance.email, 'registrar': self.cleaned_data['sponsoring_registrars'].name},
+            )
 
+    def save(self, commit=True):
+        """ Override save so we add the new sponsor rather than replacing all existing sponsorships for this user. """
         # Adapted from https://stackoverflow.com/a/2264722
         instance = forms.ModelForm.save(self, False)
         def save_m2m():
-            if self.cleaned_data['sponsoring_registrars'] not in instance.sponsoring_registrars.values_list('id', flat=True):
-                Sponsorship.objects.create(registrar=self.cleaned_data['sponsoring_registrars'], user=instance, created_by=self.current_user)
+            Sponsorship.objects.create(registrar=self.cleaned_data['sponsoring_registrars'], user=instance, created_by=self.current_user)
         self.save_m2m = save_m2m
         if commit:
             instance.save()

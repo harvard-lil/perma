@@ -750,7 +750,6 @@ class BaseAddUserToGroup(UpdateView):
     def form_valid(self, form):
         """ If form is submitted successfully, show success message and send email to target user. """
         response = super(BaseAddUserToGroup, self).form_valid(form)
-
         if self.is_new:
             email_new_user(
                 self.request,
@@ -848,15 +847,13 @@ class AddSponsoredUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
             current_user=self.request.user)
 
     def target_user_valid(self):
-        """ User can only be added to registrar if they aren't admin or registrar or org user. """
+        """ User can only be added to registrar if they aren't already sponsored by the registrar. """
         if self.is_new:
             return True, ""
 
-        # # limits that apply just if the current user is a registrar rather than staff
-        # if self.request.user.is_registrar_user():
-        #     if self.object.is_registrar_user():
-        #         if self.object.registrar == self.request.user.registrar:
-        #             return False, "%s is already sponsored by your registrar." % self.object
+        if self.request.user.is_registrar_user():
+            if self.request.user.registrar in self.object.sponsoring_registrars.all():
+                return False, "%s is already sponsored by your registrar." % self.object
         return True, ""
 
 
