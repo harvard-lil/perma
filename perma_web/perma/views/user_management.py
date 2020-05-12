@@ -574,7 +574,7 @@ def list_users_in_group(request, group_name):
         users = users.filter(organizations__user_deleted=0)
     else:
         # careful handling to include users associated only with deleted orgs
-        users = users.filter(registrar_id=None, is_staff=False).exclude(organizations__user_deleted=0)
+        users = users.filter(registrar_id=None, is_staff=False).exclude(organizations__user_deleted=0).filter(sponsorships=None)
 
     # handle status filter
     status = request.GET.get('status', '')
