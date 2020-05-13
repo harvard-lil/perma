@@ -148,6 +148,7 @@ function sendSelectionChangeEvent (node) {
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
+    data.sponsorId = node.data.sponsor_id;
     data.path = folderTree.get_path(node);
   }
   Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
@@ -176,15 +177,20 @@ function apiFoldersToJsTreeFolders(apiFolders){
       data: {
         folder_id: folder.id,
         organization_id: folder.organization,
+        sponsor_id: folder.sponsored_by
       },
+      state: {disabled: folder.is_sponsored_root_folder},
       li_attr: {
         "data-folder_id": folder.id,
         "data-organization_id": folder.organization,
+        "data-sponsor_id": folder.sponsored_by,
+        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder
       },
       "children": folder.has_children
     };
-    if(folder.organization && !folder.parent)
+    if(folder.organization && !folder.parent){
       jsTreeFolder.type = "shared_folder";
+    }
     return jsTreeFolder;
   });
 }
@@ -448,6 +454,12 @@ function setupEventHandlers () {
     if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
     folderTree.delete_node(node);
     return false;
+  });
+
+  // special handling for Sponsored Links parent folder
+  $('#folder-tree').on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+    let node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+    folderTree.toggle_node(node);
   });
 }
 

@@ -14779,6 +14779,10 @@ section .caption {
   position: relative;
 }
 
+li[data-is_sponsored_root_folder="true"] > a {
+  color: #222222 !important;
+}
+
 /*!
  *  Font Awesome 3.0.2
  *  the iconic font designed for use with Twitter Bootstrap

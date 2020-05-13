@@ -154,7 +154,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
         fields = ["first_name", "last_name", "email", "sponsoring_registrars"]
 
     def clean(self):
-        cleaned_data = super().clean()
+        super().clean()
         if self.instance.pk and self.cleaned_data.get('sponsoring_registrars') and self.cleaned_data['sponsoring_registrars'].id in self.instance.sponsoring_registrars.values_list('id', flat=True):
             raise forms.ValidationError(
                 '%(user)s is already sponsored by %(registrar)s',

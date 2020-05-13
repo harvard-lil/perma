@@ -5817,3 +5817,7 @@ section .caption {
 .col-centered {
   position: relative;
 }
+
+li[data-is_sponsored_root_folder="true"] > a {
+  color: rgb(34, 34, 34) !important;
+}

@@ -2188,6 +2188,8 @@ webpackJsonp([1],[
 	  if (node.data) {
 	    data.folderId = node.data.folder_id;
 	    data.orgId = node.data.organization_id;
+	    data.sponsorId = node.data.sponsor_id;
+	    data.readOnly = node.data.read_only;
 	    data.path = folderTree.get_path(node);
 	  }
 	  Helpers.triggerOnWindow("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
@@ -2214,15 +2216,23 @@ webpackJsonp([1],[
 	      text: folder.name,
 	      data: {
 	        folder_id: folder.id,
-	        organization_id: folder.organization
+	        organization_id: folder.organization,
+	        sponsor_id: folder.sponsored_by,
+	        read_only: folder.read_only
 	      },
+	      state: { disabled: folder.is_sponsored_root_folder },
 	      li_attr: {
 	        "data-folder_id": folder.id,
-	        "data-organization_id": folder.organization
+	        "data-organization_id": folder.organization,
+	        "data-sponsor_id": folder.sponsored_by,
+	        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder,
+	        "data-read_only": folder.read_only
 	      },
 	      "children": folder.has_children
 	    };
-	    if (folder.organization && !folder.parent) jsTreeFolder.type = "shared_folder";
+	    if (folder.organization && !folder.parent) {
+	      jsTreeFolder.type = "shared_folder";
+	    }
 	    return jsTreeFolder;
 	  });
 	}
@@ -2491,6 +2501,12 @@ webpackJsonp([1],[
 	    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
 	    folderTree.delete_node(node);
 	    return false;
+	  });
+	
+	  // special handling for Sponsored Links parent folder
+	  $('#folder-tree').on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+	    var node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+	    folderTree.toggle_node(node);
 	  });
 	}
 	
@@ -11372,18 +11388,26 @@ webpackJsonp([1],[
 	// Exported for access from JS tests
 	function handleSelectionChange(data) {
 	  var currentOrg = data.orgId;
+	  var currentSponsor = data.sponsorId;
+	  var readOnly = data.readOnly;
 	  var path = data.path;
-	  var outOfLinks = !currentOrg && !link_creation_allowed;
+	  var outOfLinks = !readOnly && !currentSponsor && !currentOrg && !link_creation_allowed;
 	
 	  // update top-level variables
 	  currentFolder = data.folderId;
 	  currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
 	
 	  // update the dropdown (no-op if dropdown isn't displayed)
+	  var formatted_links_remaining = void 0;
+	  if (readOnly) {
+	    formatted_links_remaining = '0';
+	  } else {
+	    formatted_links_remaining = currentSponsor || currentOrg && currentOrg !== "None" ? null : links_remaining.toString();
+	  }
 	  var template = selectedFolderTemplate({
 	    "path": path.join(" > "),
 	    "private": currentFolderPrivate,
-	    "links_remaining": !currentOrg || currentOrg === "None" ? links_remaining.toString() : null
+	    "links_remaining": formatted_links_remaining
 	  });
 	  $organizationDropdownButton.html(template);
 	
