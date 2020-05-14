@@ -522,6 +522,30 @@ SESSION_COOKIE_SECURE = False
 
 API_VERSION = 1
 
+USE_ANALYTICS = False
+USE_ANALYTICS_VIEWS = [
+    'landing',
+    'about',
+    'stats',
+    'copyright_policy',
+    'terms_of_service',
+    'privacy_policy',
+    'return_policy',
+    'contingency_plan',
+    'docs',
+    'docs_perma_link_creation',
+    'docs_libraries',
+    'docs_faq',
+    'docs_accounts',
+    'dev_docs',
+    'sign_up',
+    'sign_up_courts',
+    'sign_up_faculty',
+    'sign_up_journals',
+    'sign_up_firm',
+    'libraries'
+]
+
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
@@ -529,6 +553,8 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'ENABLE_BATCH_LINKS',
     'PLAYBACK_HOST',
     'HOST',
+    'USE_ANALYTICS',
+    'USE_ANALYTICS_VIEWS'
 )
 
 
