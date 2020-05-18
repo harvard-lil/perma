@@ -1,0 +1,58 @@
+{% extends "manage-layout.html" %}
+
+{% block dashboardContent %}
+  <h2 class="body-ah">Links sponsored by {% if request.user.is_staff %}<a href="{% url 'user_management_manage_registrar' %}?q={{registrar.name.split|join:'+'|lower}}#registrar-{{ registrar.id }}">{{ registrar }}</a>{% else %}{{ registrar}}{% endif %} for <a href="{% url 'user_management_manage_sponsored_user' %}?q={{target_user.email|urlencode}}#user-{{ target_user.id }}">{{ target_user }}</a></h2>
+    <div class="col-xs-12 col-links">
+      <div class="container item-rows"></div>
+        {% for link in links %}
+          <div class="item-container{% if link.is_private %} _isPrivate{% endif %}{% if link.capture_job.status ==  'pending' or link.capture_job.status ==  'in_progress'%} _isPending{% elif not link.can_play_back %} _isFailed{% endif %}">
+            <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
+              <div class="row">
+                <div class="col col-sm-6 col-md-60 item-title-col">
+                  {% if link.capture_job.status == 'pending' or link.capture_job.status == 'in_progress' %}
+                    <div class="failed_header">Capture In Progress</div>
+                  {% elif not link.can_play_back %}
+                    <div class="failed_header">Capture Failed</div>
+                  {% endif %}
+                  {% if link.is_private %}
+                    <div class="item-private">
+                      <span class="ui-private">[private] </span>
+                      <span class="private-hint">Private record</span>
+                    </div>
+                  {% endif %}
+                  <div class="item-title">
+                    <span>{{ link.submitted_title }}</span>
+                  </div>
+                  <div class="item-subtitle">
+                    <a href="{{ link.submitted_url }}" target="_blank" class="item-link-original no-drag">
+                      {{ link.submitted_url|truncatechars:200 }}
+                    </a>
+                  </div>
+                </div>
+                <div class="col col-sm-6 col-md-40 align-right item-permalink">
+                 {% with request.get_host|add:"/"|add:link.guid as local_url %}
+                  <a class="perma no-drag" href="//{{ local_url }}" target="_blank">{{ local_url }}</a>
+                 {% endwith %}
+                </div>
+              </div>
+              <div class="row item-secondary">
+                <div class="col col-sm-5 pull-right sm-align-right">
+                  <span class="item-date"><span class="label">Created </span>{{link.creation_timestamp|date:"F j, Y"}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="row item-row row-no-bleed">
+            <div class="row">
+              <div class="col col-xs-12">
+                <div class="item-title">
+                  <p class="item-notification">No links.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% include "user_management/includes/paginator.html" with page=links title='Sponsored Links'%}
+    </div>
+{% endblock %}

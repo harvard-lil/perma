@@ -1509,6 +1509,12 @@ button {
   & + p.page-dek {
     margin-top: $grid;
   }
+  & a {
+    text-decoration: underline;
+    &:hover, &:focus {
+      color: black;
+    }
+  }
 }
 
 .body-ah + .body-bh {
@@ -4236,7 +4242,12 @@ ol.result-list {
   }
 }
 
-.item-count-group {
+.item-sponsor-groups {
+  @extend .item-count-groups;
+  display: inline-block;
+}
+
+.item-count-group, .item-sponsor-group {
   font-weight: 200;
   font-size: 14px;
   font-weight: 200;
@@ -4252,7 +4263,9 @@ ol.result-list {
   }
 }
 
-.item-count-label a {
+
+
+.item-count-label a, .item-sponsor-label a {
   font-size: 85%;
   font-weight: 700;
   color: $color-trans-gray;

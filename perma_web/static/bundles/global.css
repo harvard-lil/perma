@@ -9389,6 +9389,15 @@ button #addlink {
   margin-top: 8px;
 }
 
+.body-ah a {
+  text-decoration: underline;
+}
+
+.body-ah a:hover,
+.body-ah a:focus {
+  color: black;
+}
+
 .body-ah + .body-bh {
   margin-top: 24px;
 }
@@ -12876,19 +12885,26 @@ ol.result-list .admin-actions {
   margin-top: 0;
 }
 
-.item-count-groups {
+.item-count-groups,
+.item-sponsor-groups {
   margin-top: 8px;
   margin-bottom: 8px;
 }
 
 @media only screen and (min-width: 768px) {
-  .item-count-groups {
+  .item-count-groups,
+  .item-sponsor-groups {
     margin-bottom: 0;
     margin-top: 16px;
   }
 }
 
-.item-count-group {
+.item-sponsor-groups {
+  display: inline-block;
+}
+
+.item-count-group,
+.item-sponsor-group {
   font-weight: 200;
   font-size: 14px;
   font-weight: 200;
@@ -12900,19 +12916,22 @@ ol.result-list .admin-actions {
   width: 100%;
 }
 
-.item-count-group strong {
+.item-count-group strong,
+.item-sponsor-group strong {
   font-weight: 700;
   color: #DD671A;
 }
 
-.item-count-label a {
+.item-count-label a,
+.item-sponsor-label a {
   font-size: 85%;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.4);
   margin-left: 4px;
 }
 
-.item-count-label a:hover {
+.item-count-label a:hover,
+.item-sponsor-label a:hover {
   color: #222;
 }
 

@@ -224,7 +224,7 @@
     {% for listed_user in users %}
       <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
         <div class="col col-sm-8 col-no-gutter">
-          <h4 class="item-title">
+          <h4 class="item-title" id="user-{{ listed_user.id }}">
             {% if not listed_user.first_name and not listed_user.last_name %}
               {{ listed_user.email }}
             {% else %}
@@ -255,17 +255,16 @@
             <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}#registrar-{{ listed_user.registrar.id }}">{{ listed_user.registrar.name }}</a></div>
           {% endif %}
 
-          {% if group_name == 'sponsored_user' %}
-            <div>
+          {% if group_name == 'sponsored_user' and request.user.is_staff %}
+            <div class="row row-half-bleed item-sponsor-groups">
               {% with listed_user|visible_sponsorships:request.user as sponsorships %}
-                <span>Sponsorship{{ sponsorships|length|pluralize }}:</span>
                 {% for sponsorship in sponsorships %}
-                  {% if request.user.is_staff %}
-                    {{ sponsorship.registrar.name }} ({{ sponsorship.status }})
-                  {% else %}
-                    {{ sponsorship.status }}
-                  {% endif %}
-                  {% include "user_management/includes/comma.html" %}
+                  <div class="item-sponsor-group">
+                    <span class="item-sponsor-label">
+                      <a href="{% url 'user_management_manage_single_sponsored_user_links' listed_user.id sponsorship.registrar.id %}">{{ sponsorship.registrar.name }}: view links
+                      {% if sponsorship.status == 'inactive' %} (inactive sponsorship){% endif %}</a>
+                    </span>
+                  </div>
                 {% endfor %}
               {% endwith %}
             </div>
@@ -343,6 +342,9 @@
             {% endif %}
             {% if not listed_user.is_confirmed %}
               <div class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email <span class="sr-only"> to {{ listed_user.get_full_name}}</span></a></div>
+            {% endif %}
+            {% if group_name == 'sponsored_user' and not request.user.is_staff %}
+              <div class="item-status"><a class="action" href="{% url 'user_management_manage_single_sponsored_user_links' listed_user.id request.user.registrar.id %}">view links</a></div>
             {% endif %}
           </div>
         </div>

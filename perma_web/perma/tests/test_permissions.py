@@ -53,6 +53,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_sponsored_user', {'kwargs':{'user_id': 20}}],
                     ['user_management_manage_single_sponsored_user_remove', {'kwargs':{'user_id': 20, 'registrar_id': 1}}],
                     ['user_management_manage_single_sponsored_user_readd', {'kwargs':{'user_id': 20, 'registrar_id': 1}}],
+                    ['user_management_manage_single_sponsored_user_links', {'kwargs':{'user_id': 20, 'registrar_id': 1}}]
                 ],
                 'allowed': {'test_admin_user@example.com', 'test_registrar_user@example.com'},
             },

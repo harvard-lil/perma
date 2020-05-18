@@ -47,7 +47,7 @@ from perma.forms import (
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm)
-from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
@@ -1027,6 +1027,29 @@ def manage_single_sponsored_user_readd(request, user_id, registrar_id):
         return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
 
     return render(request, 'user_management/user_readd_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
+
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_single_sponsored_user_links(request, user_id, registrar_id):
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    registrar =  get_object_or_404(Registrar, id=registrar_id)
+
+    # Registrar users can only see links belonging to their own sponsorships
+    if request.user.is_registrar_user() and \
+        (request.user.registrar not in target_user.sponsoring_registrars.all() or
+         str(request.user.registrar_id) != registrar_id):
+        raise Http404
+
+    folders = Folder.objects.filter(owned_by=target_user, sponsored_by=registrar)
+    links = Link.objects.filter(folders__in=folders).select_related('capture_job').prefetch_related('captures')
+    links = apply_pagination(request, links)
+
+    return render(request, 'user_management/manage_single_user_links.html', {
+        'this_page': 'users_sponsored_users',
+        'target_user': target_user,
+        'registrar': registrar,
+        'links': links
+    })
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
