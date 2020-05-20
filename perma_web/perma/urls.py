@@ -114,16 +114,6 @@ urlpatterns = [
     url(r'^manage/registrar-users/(?P<user_id>\d+)/reactivate/?$', user_management.manage_single_registrar_user_reactivate, name='user_management_manage_single_registrar_user_reactivate'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/remove/?$', user_management.manage_single_registrar_user_remove, name='user_management_manage_single_registrar_user_remove'),
 
-    url(r'^manage/sponsored-users/?$', user_management.manage_sponsored_user, name='user_management_manage_sponsored_user'),
-    url(r'^manage/sponsored-users/add-user/?$', AddSponsoredUserToRegistrar.as_view(), name='user_management_sponsored_user_add_user'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/?$', user_management.manage_single_sponsored_user, name='user_management_manage_single_sponsored_user'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/delete/?$', user_management.manage_single_sponsored_user_delete, name='user_management_manage_single_sponsored_user_delete'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/reactivate/?$', user_management.manage_single_sponsored_user_reactivate, name='user_management_manage_single_sponsored_user_reactivate'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/remove/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_remove, name='user_management_manage_single_sponsored_user_remove'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/readd/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_readd, name='user_management_manage_single_sponsored_user_readd'),
-    url(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
-
-
     url(r'^manage/users/?$', user_management.manage_user, name='user_management_manage_user'),
     url(r'^manage/users/add-user/?$', AddRegularUser.as_view(), name='user_management_user_add_user'),
     url(r'^manage/users/(?P<user_id>\d+)/?$', user_management.manage_single_user, name='user_management_manage_single_user'),
@@ -164,6 +154,18 @@ urlpatterns = [
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
 ]
+
+if settings.ENABLE_SPONSORED_USERS:
+    urlpatterns += [
+        url(r'^manage/sponsored-users/?$', user_management.manage_sponsored_user, name='user_management_manage_sponsored_user'),
+        url(r'^manage/sponsored-users/add-user/?$', AddSponsoredUserToRegistrar.as_view(), name='user_management_sponsored_user_add_user'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/?$', user_management.manage_single_sponsored_user, name='user_management_manage_single_sponsored_user'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/delete/?$', user_management.manage_single_sponsored_user_delete, name='user_management_manage_single_sponsored_user_delete'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/reactivate/?$', user_management.manage_single_sponsored_user_reactivate, name='user_management_manage_single_sponsored_user_reactivate'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/remove/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_remove, name='user_management_manage_single_sponsored_user_remove'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/readd/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_readd, name='user_management_manage_single_sponsored_user_readd'),
+        url(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
+    ]
 
 
 # debug-only serving of media assets

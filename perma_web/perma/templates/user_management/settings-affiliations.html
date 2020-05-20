@@ -12,7 +12,7 @@
   {% endfor %}
   {% endif %}
 
-  {% if request.user.sponsorships.all %}
+  {% if ENABLE_SPONSORED_USERS and request.user.sponsorships.all %}
     <div class="body-before-bh">
       {% regroup request.user.sponsorships.all|dictsort:"status" by status as sponsorships_list %}
       {% for status in sponsorships_list %}

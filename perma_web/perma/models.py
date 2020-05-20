@@ -723,7 +723,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             Get top level folders for this user, including personal folder, sponsored folder, and shared folders.
         """
         folders = [self.root_folder]
-        if self.sponsored_root_folder:
+        if settings.ENABLE_SPONSORED_USERS and self.sponsored_root_folder:
             folders.append(self.sponsored_root_folder)
         return folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder') if org]
 
