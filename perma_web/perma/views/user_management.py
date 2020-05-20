@@ -999,6 +999,7 @@ def manage_single_sponsored_user_remove(request, user_id, registrar_id):
     if request.method == 'POST':
         sponsorship.status = 'inactive'
         sponsorship.save()
+        sponsorship.folders.update(read_only=True)
         return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
 
     return render(request, 'user_management/user_remove_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
@@ -1023,7 +1024,7 @@ def manage_single_sponsored_user_readd(request, user_id, registrar_id):
     if request.method == 'POST':
         sponsorship.status = 'active'
         sponsorship.save()
-
+        sponsorship.folders.update(read_only=False)
         return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
 
     return render(request, 'user_management/user_readd_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})

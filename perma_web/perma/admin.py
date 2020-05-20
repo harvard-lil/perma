@@ -225,7 +225,7 @@ class LinkAdmin(SimpleHistoryAdmin):
 
 
 class FolderAdmin(MPTTModelAdmin):
-    list_display = ['id', 'level', 'display_level', 'name', 'owned_by', 'organization', 'sponsored_by']
+    list_display = ['id', 'level', 'display_level', 'name', 'owned_by', 'organization', 'sponsored_by', 'read_only']
     search_fields = ['name', 'owned_by__email', 'organization__name']
     raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
 

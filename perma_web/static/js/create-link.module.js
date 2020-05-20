@@ -220,8 +220,9 @@ function updateButtonPrivacy(){
 export function handleSelectionChange (data) {
   let currentOrg = data.orgId;
   let currentSponsor = data.sponsorId;
+  let readOnly = data.readOnly;
   let path = data.path;
-  let outOfLinks = !currentSponsor && !currentOrg && !link_creation_allowed;
+  let outOfLinks = !readOnly && !currentSponsor && !currentOrg && !link_creation_allowed;
 
   // update top-level variables
   currentFolder = data.folderId;

@@ -389,6 +389,11 @@ class AuthenticatedLinkListView(BaseView):
                 raise_invalid_capture_job(capture_job, error)
         else:
             registrar = folder.sponsored_by if folder.sponsored_by else folder.organization.registrar
+
+            msg = None
+            if folder.read_only:
+                registrar_users = [user.email for user in registrar.active_registrar_users()]
+                msg = f"Your registrar has made this folder read-only. For assistance, contact: {', '.join(registrar_users)}."
             if not registrar.link_creation_allowed():
                 error = 'Perma.cc cannot presently make links on behalf of {}. '.format(registrar.name)
                 if request.user.registrar:
@@ -396,7 +401,9 @@ class AuthenticatedLinkListView(BaseView):
                 else:
                     registrar_users = [user.email for user in registrar.active_registrar_users()]
                     contact = 'For assistance with your subscription, contact:  {}.'.format(", ".join(registrar_users))
-                raise_invalid_capture_job(capture_job, error + contact)
+                msg = error + contact
+            if msg:
+                raise_invalid_capture_job(capture_job, msg)
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():

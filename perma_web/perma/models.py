@@ -605,8 +605,12 @@ class Sponsorship(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if not Folder.objects.filter(owned_by=self.user, sponsored_by=self.registrar):
+        if not self.folders:
             self.user.create_sponsored_folder(self.registrar)
+
+    @property
+    def folders(self):
+        return Folder.objects.filter(owned_by=self.user, sponsored_by=self.registrar)
 
 
 class LinkUserManager(BaseUserManager):
@@ -998,7 +1002,6 @@ class Folder(MPTTModel):
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created', on_delete=models.CASCADE)
-    read_only = models.BooleanField(default=False)
 
     # this may be null if this is the shared folder for a org
     owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders', on_delete=models.CASCADE)
@@ -1006,15 +1009,18 @@ class Folder(MPTTModel):
     # this will be set if this is inside a shared folder
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders', on_delete=models.CASCADE)
 
-    # true if this is the apex shared folder (not subfolder) for a org
+    # true if this is the apex shared folder (not subfolder) for a org, denormalized
     is_shared_folder = models.BooleanField(default=False)
 
-    # true if this is the apex folder for a user
+    # true if this is the apex folder for a user; denormalized
     is_root_folder = models.BooleanField(default=False)
 
     # true if this is the apex sponsored folder for a user; denormalized
     is_sponsored_root_folder = models.BooleanField(default=False)
     sponsored_by = models.ForeignKey(Registrar, null=True, blank=True, related_name='sponsored_folders', on_delete=models.CASCADE)
+
+    # true if this is a sponsored folder, but the sponsorship is deactivated; denormalized
+    read_only = models.BooleanField(default=False)
 
     objects = FolderManager()
     tracker = FieldTracker()
@@ -1022,8 +1028,9 @@ class Folder(MPTTModel):
     def save(self, *args, **kwargs):
         # set defaults
         if not self.pk:
-            # set ownership same as parent
+            # set read-only and ownership same as parent
             if self.parent:
+                self.read_only = self.parent.read_only
                 if self.parent.organization:
                     self.organization = self.parent.organization
                 elif self.parent.sponsored_by:
@@ -1038,6 +1045,8 @@ class Folder(MPTTModel):
         super(Folder, self).save(*args, **kwargs)
 
         if parent_has_changed:
+            # update read-only status
+            self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
             # make sure that child folders share organization and owned_by with new parent folder
             # (one or the other should be set, but not both)
             if self.parent.organization_id:

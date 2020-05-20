@@ -149,6 +149,7 @@ function sendSelectionChangeEvent (node) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
     data.sponsorId = node.data.sponsor_id;
+    data.readOnly = node.data.read_only;
     data.path = folderTree.get_path(node);
   }
   Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
@@ -177,14 +178,16 @@ function apiFoldersToJsTreeFolders(apiFolders){
       data: {
         folder_id: folder.id,
         organization_id: folder.organization,
-        sponsor_id: folder.sponsored_by
+        sponsor_id: folder.sponsored_by,
+        read_only: folder.read_only
       },
       state: {disabled: folder.is_sponsored_root_folder},
       li_attr: {
         "data-folder_id": folder.id,
         "data-organization_id": folder.organization,
         "data-sponsor_id": folder.sponsored_by,
-        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder
+        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder,
+        "data-read_only": folder.read_only
       },
       "children": folder.has_children
     };

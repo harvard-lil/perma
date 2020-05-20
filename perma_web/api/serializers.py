@@ -56,7 +56,7 @@ class FolderSerializer(BaseSerializer):
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization', 'sponsored_by', 'is_sponsored_root_folder')
+        fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization', 'sponsored_by', 'is_sponsored_root_folder', 'read_only')
         extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
