@@ -148,6 +148,8 @@ function sendSelectionChangeEvent (node) {
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
+    data.sponsorId = node.data.sponsor_id;
+    data.readOnly = node.data.read_only;
     data.path = folderTree.get_path(node);
   }
   Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
@@ -176,15 +178,22 @@ function apiFoldersToJsTreeFolders(apiFolders){
       data: {
         folder_id: folder.id,
         organization_id: folder.organization,
+        sponsor_id: folder.sponsored_by,
+        read_only: folder.read_only
       },
-      li_attr: {
+      "state": {"disabled": folder.is_sponsored_root_folder},
+      "li_attr": {
         "data-folder_id": folder.id,
         "data-organization_id": folder.organization,
+        "data-sponsor_id": folder.sponsored_by,
+        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder,
+        "data-read_only": folder.read_only
       },
       "children": folder.has_children
     };
-    if(folder.organization && !folder.parent)
+    if(folder.organization && !folder.parent){
       jsTreeFolder.type = "shared_folder";
+    }
     return jsTreeFolder;
   });
 }
@@ -223,7 +232,10 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
       if(!parentFolder)
         // tree must have changed since last time user visited
         break;
-      parentFolder.state = {opened: true};
+      if(!parentFolder.state){
+        parentFolder.state = {}
+      }
+      parentFolder.state.opened = true;
 
       // find the subfolders and load them in:
       let apiResponse = apiResponses[i][0];
@@ -448,6 +460,12 @@ function setupEventHandlers () {
     if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
     folderTree.delete_node(node);
     return false;
+  });
+
+  // special handling for Sponsored Links parent folder
+  $('#folder-tree').on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+    let node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+    folderTree.toggle_node(node);
   });
 }
 

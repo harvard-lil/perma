@@ -211,7 +211,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 13,
+      "tree_id": 14,
       "level": 0
     }
   },
@@ -337,7 +337,7 @@
       "is_root_folder": false,
       "lft": 1,
       "rght": 6,
-      "tree_id": 14,
+      "tree_id": 15,
       "level": 0
     }
   },
@@ -355,7 +355,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 15,
+      "tree_id": 16,
       "level": 0
     }
   },
@@ -373,7 +373,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 17,
       "level": 0
     }
   },
@@ -391,7 +391,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 18,
       "level": 0
     }
   },
@@ -409,7 +409,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 19,
       "level": 0
     }
   },
@@ -427,7 +427,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 20,
       "level": 0
     }
   },
@@ -445,7 +445,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 21,
       "level": 0
     }
   },
@@ -463,7 +463,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 22,
       "level": 0
     }
   },
@@ -481,7 +481,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 23,
       "level": 0
     }
   },
@@ -499,7 +499,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 16,
+      "tree_id": 24,
       "level": 0
     }
   },
@@ -517,7 +517,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 6,
+      "tree_id": 25,
       "level": 0
     }
   },
@@ -535,7 +535,7 @@
       "is_root_folder": false,
       "lft": 1,
       "rght": 2,
-      "tree_id": 8,
+      "tree_id": 26,
       "level": 0
     }
   },
@@ -553,7 +553,7 @@
       "is_root_folder": false,
       "lft": 1,
       "rght": 2,
-      "tree_id": 9,
+      "tree_id": 27,
       "level": 0
     }
   },
@@ -571,7 +571,7 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 7,
+      "tree_id": 28,
       "level": 0
     }
   },
@@ -589,8 +589,225 @@
       "is_root_folder": true,
       "lft": 1,
       "rght": 2,
-      "tree_id": 10,
+      "tree_id": 29,
       "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 55,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 20,
+      "owned_by": 20,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 30,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 56,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 21,
+      "owned_by": 21,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 31,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 57,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 22,
+      "owned_by": 22,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 32,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 58,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 21,
+      "owned_by": 21,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 33,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 59,
+    "fields": {
+      "name": "Sponsored Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 20,
+      "owned_by": 20,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": true,
+      "lft": 1,
+      "rght": 10,
+      "tree_id": 49,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 60,
+    "fields": {
+      "name": "Test Library",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 20,
+      "owned_by": 20,
+      "sponsored_by": 1,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "lft": 4,
+      "rght": 9,
+      "parent": 59,
+      "tree_id": 49,
+      "level": 1
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 61,
+    "fields": {
+      "name": "Sponsored Subfolder",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 20,
+      "owned_by": 20,
+      "sponsored_by": 1,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "lft": 5,
+      "rght": 8,
+      "parent": 60,
+      "tree_id": 49,
+      "level": 2
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 62,
+    "fields": {
+      "name": "Sponsored Links",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 22,
+      "owned_by": 22,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": true,
+      "lft": 1,
+      "rght": 6,
+      "tree_id": 50,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 63,
+    "fields": {
+      "name": "Test Library",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 22,
+      "owned_by": 22,
+      "sponsored_by": 1,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "lft": 2,
+      "rght": 5,
+      "parent": 62,
+      "tree_id": 50,
+      "level": 1,
+      "read_only": true
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 64,
+    "fields": {
+      "name": "Sponsored Subsubfolder",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 20,
+      "owned_by": 20,
+      "sponsored_by": 1,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "lft": 6,
+      "rght": 7,
+      "parent": 61,
+      "tree_id": 49,
+      "level": 3
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 65,
+    "fields": {
+      "name": "Inactive Sponsored Subfolder",
+      "parent": null,
+      "creation_timestamp": "2017-09-28T19:36:07Z",
+      "created_by": 22,
+      "owned_by": 22,
+      "sponsored_by": 1,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "lft": 3,
+      "rght": 4,
+      "parent": 63,
+      "tree_id": 50,
+      "level": 2,
+      "read_only": true
     }
   }
 ]

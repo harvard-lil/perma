@@ -487,6 +487,14 @@ class Registrar(CustomerModel):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        name_has_changed = self.tracker.has_changed('name')
+        super(Registrar, self).save(*args, **kwargs)
+        if name_has_changed:
+            # Rename top-level sponsored folders if registrar name changes.
+            folders = Folder.objects.filter(sponsored_by=self, parent__is_sponsored_root_folder=True)
+            folders.update(name=self.name)
+
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization__registrar=self)
         return link_count_in_time_period(links, start_time, end_time)
@@ -590,6 +598,29 @@ class Organization(DeletableModel):
         return self.users.filter(pk=user.pk).exists()
 
 
+class Sponsorship(models.Model):
+    registrar = models.ForeignKey(Registrar, on_delete=models.PROTECT, related_name='sponsorships')
+    user = models.ForeignKey('LinkUser', on_delete=models.CASCADE, related_name='sponsorships')
+    status = models.CharField(max_length=10, blank=True, null=True, choices=(('active','Active: user may create links.'), ('inactive', 'Inactive: user may view, but not create, links.')), default='active')
+    status_changed = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey('LinkUser', related_name='created_sponsorships', on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['registrar', 'user'], name='unique_sponsorship'),
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.folders:
+            self.user.create_sponsored_folder(self.registrar)
+
+    @property
+    def folders(self):
+        return Folder.objects.filter(owned_by=self.user, sponsored_by=self.registrar)
+
+
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
         """
@@ -641,6 +672,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
                                                      "Note: <b>This list will include deleted orgs of which this user is a member.</b> This is a historical"
                                                      " record and deleted org memberships cannot be removed.<br><br>"
                                            )
+    sponsoring_registrars = models.ManyToManyField(
+        Registrar,
+        blank=True,
+        related_name='sponsored_users',
+        through=Sponsorship,
+        through_fields=('user', 'registrar'),
+        help_text="If set, this user is sponsored by a registrar. Any user can be sponsored by any registrar."
+    )
     is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -649,6 +688,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     last_name = models.CharField(max_length=45, blank=True)
     confirmation_code = models.CharField(max_length=45, blank=True)
     root_folder = models.OneToOneField('Folder', blank=True, null=True, on_delete=models.CASCADE)
+    sponsored_root_folder = models.OneToOneField('Folder', blank=True, null=True, on_delete=models.CASCADE, related_name='sponsored_user')
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
@@ -688,10 +728,12 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def top_level_folders(self):
         """
-            Get top level folders for this user, including personal folder and shared folders.
+            Get top level folders for this user, including personal folder, sponsored folder, and shared folders.
         """
-        orgs = self.get_orgs().select_related('shared_folder')
-        return [self.root_folder] + [org.shared_folder for org in orgs if org]
+        folders = [self.root_folder]
+        if settings.ENABLE_SPONSORED_USERS and self.sponsored_root_folder:
+            folders.append(self.sponsored_root_folder)
+        return folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder') if org]
 
     def all_folder_trees(self):
         """
@@ -726,6 +768,19 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         self.root_folder = root_folder
         self.save()
 
+    def create_sponsored_root_folder(self):
+        if self.sponsored_root_folder:
+            return
+        sponsored_root_folder = Folder(name=u'Sponsored Links', created_by=self, is_sponsored_root_folder=True)
+        sponsored_root_folder.save()
+        self.sponsored_root_folder = sponsored_root_folder
+        self.save()
+
+    def create_sponsored_folder(self, registrar):
+        self.create_sponsored_root_folder()
+        sponsored_folder = Folder(name=registrar.name, created_by=self, parent=self.sponsored_root_folder, sponsored_by=registrar)
+        return sponsored_folder.save()
+
     def as_json(self):
         from api.serializers import LinkUserSerializer  # local import to avoid circular import
         return json.dumps(LinkUserSerializer(self).data)
@@ -754,7 +809,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
             Org users share scope with other members of their orgs.
             Registrar users share scope with others registrar users from
-               the same registrar, as well as all members of the registrar's orgs.
+               the same registrar, sponsored users, and all members of the registrar's orgs.
             Admins share scope with all users.
         """
         if self.is_organization_user:
@@ -762,6 +817,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return len(orgs) > 0
         elif self.is_registrar_user():
             if self.registrar == other_user.registrar:
+                return True
+            if self.registrar in other_user.sponsoring_registrars.all():
                 return True
             orgs = other_user.organizations.all() & Organization.objects.filter(registrar=self.registrar)
             return len(orgs) > 0
@@ -960,11 +1017,18 @@ class Folder(MPTTModel):
     # this will be set if this is inside a shared folder
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders', on_delete=models.CASCADE)
 
-    # true if this is the apex shared folder (not subfolder) for a org
+    # true if this is the apex shared folder (not subfolder) for a org, denormalized
     is_shared_folder = models.BooleanField(default=False)
 
-    # true if this is the apex folder for a user
+    # true if this is the apex folder for a user; denormalized
     is_root_folder = models.BooleanField(default=False)
+
+    # true if this is the apex sponsored folder for a user; denormalized
+    is_sponsored_root_folder = models.BooleanField(default=False)
+    sponsored_by = models.ForeignKey(Registrar, null=True, blank=True, related_name='sponsored_folders', on_delete=models.CASCADE)
+
+    # true if this is a sponsored folder, but the sponsorship is deactivated; denormalized
+    read_only = models.BooleanField(default=False)
 
     objects = FolderManager()
     tracker = FieldTracker()
@@ -972,26 +1036,32 @@ class Folder(MPTTModel):
     def save(self, *args, **kwargs):
         # set defaults
         if not self.pk:
-            # set ownership same as parent
+            # set read-only and ownership same as parent
             if self.parent:
+                self.read_only = self.parent.read_only
                 if self.parent.organization:
                     self.organization = self.parent.organization
+                elif self.parent.sponsored_by:
+                    self.sponsored_by = self.parent.sponsored_by
                 else:
                     self.owned_by = self.parent.owned_by
             if self.created_by and not self.owned_by and not self.organization:
                 self.owned_by = self.created_by
 
-        parent_has_changed = self.tracker.has_changed('parent_id')
+        parent_has_changed = self.pk and self.tracker.has_changed('parent_id')
 
         super(Folder, self).save(*args, **kwargs)
 
         if parent_has_changed:
-            # make sure that child folders share organization and owned_by with new parent folder
-            # (one or the other should be set, but not both)
+            # update read-only status
+            self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
+            # make sure that child folders share organization/sponsor/owned_by with new parent folder
             if self.parent.organization_id:
-                self.get_descendants(include_self=True).update(organization=self.parent.organization_id, owned_by=None)
+                self.get_descendants(include_self=True).update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
+            elif self.parent.sponsored_by_id:
+                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
             else:
-                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None)
+                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -1017,9 +1087,13 @@ class Folder(MPTTModel):
         if user.is_staff:
             return True
 
-        # private folders
+        # private folders (including sponsored folders when viewed by sponsored users)
         if self.owned_by_id == user.pk:
             return True
+
+        # sponsored
+        elif self.sponsored_by_id:
+            return self.sponsored_by_id == user.registrar_id
 
         # shared folders
         elif self.organization_id:
@@ -1030,6 +1104,10 @@ class Folder(MPTTModel):
                 # else, user must belong to this org
                 return user.organizations.filter(pk=self.organization_id).exists()
 
+    @property
+    def sponsorship(self):
+        if self.sponsored_by:
+            return Sponsorship.objects.get(user=self.owned_by, registrar_id=self.sponsored_by)
 
 class LinkQuerySet(QuerySet):
 

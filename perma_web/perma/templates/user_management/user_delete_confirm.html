@@ -1,15 +1,16 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Delete user{% endblock %}
+
+{% block title %} | {{ action|title }} user{% endblock %}
 
 {% block adminContent %}
 
-  <h3 class="body-bh">Delete {{ target_user.email }}</h3>
-  <p class="page-dek">Yahowza! Do you really want to {% if target_user.is_confirmed %}deactivate {{ target_user.email }}{% else %}delete {{ target_user.email }} forever{% endif %}?</p>
+  <h3 class="body-bh">{{ action|title }} {{ target_user.email }}</h3>
+  <p class="page-dek">Yowza! Do you really want to {{ action|title }} {{ target_user.email }}{% if action == 'delete' %} forever{% endif %}?</p>
   <form action="" method="POST">
     {% csrf_token %}
     <a class="btn cancel" href="../">Cancel</a>
     <button type="submit" class="btn delete-confirm">
-      {% if target_user.is_confirmed %}Deactivate{% else %}Delete {{ target_user.email }} forever{% endif %}
+      {{ action|title }} {{ target_user.email }}{% if action == 'delete' %} forever{% endif %}
     </button>
   </form>
 

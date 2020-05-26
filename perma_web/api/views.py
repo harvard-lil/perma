@@ -375,15 +375,25 @@ class AuthenticatedLinkListView(BaseView):
         except ValidationError as e:
             raise_invalid_capture_job(capture_job, e.detail)
 
+        # Disallow creation of links in top-level sponsored folder
+        if folder.is_sponsored_root_folder:
+            error = "You can't make links directly in your Sponsored Links folder. Select a folder belonging to a sponsor."
+            raise_invalid_capture_job(capture_job, error)
+
         # Make sure a limited user has links left to create
-        if not folder.organization:
+        if not folder.organization and not folder.sponsored_by:
             if not request.user.link_creation_allowed():
                 if request.user.nonpaying:
                     raise_invalid_capture_job(capture_job, "You've already reached your limit.")
                 error = "Perma.cc cannot presently make additional Perma Links on your behalf. Visit your subscription settings page for more information."
                 raise_invalid_capture_job(capture_job, error)
         else:
-            registrar = folder.organization.registrar
+            registrar = folder.sponsored_by if folder.sponsored_by else folder.organization.registrar
+
+            msg = None
+            if folder.read_only:
+                registrar_users = [user.email for user in registrar.active_registrar_users()]
+                msg = f"Your registrar has made this folder read-only. For assistance, contact: {', '.join(registrar_users)}."
             if not registrar.link_creation_allowed():
                 error = 'Perma.cc cannot presently make links on behalf of {}. '.format(registrar.name)
                 if request.user.registrar:
@@ -391,7 +401,9 @@ class AuthenticatedLinkListView(BaseView):
                 else:
                     registrar_users = [user.email for user in registrar.active_registrar_users()]
                     contact = 'For assistance with your subscription, contact:  {}.'.format(", ".join(registrar_users))
-                raise_invalid_capture_job(capture_job, error + contact)
+                msg = error + contact
+            if msg:
+                raise_invalid_capture_job(capture_job, msg)
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():

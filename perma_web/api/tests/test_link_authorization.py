@@ -28,6 +28,8 @@ class LinkAuthorizationMixin():
         self.related_org_user = LinkUser.objects.get(pk=5) # belongs to the same org as the one that created the link
         self.unrelated_org_user = LinkUser.objects.get(pk=6)  # belongs to a different org than the one that created the link
         self.firm_user = LinkUser.objects.get(email="case_one_lawyer@firm.com")
+        self.sponsored_user = LinkUser.objects.get(email="test_sponsored_user@example.com")
+        self.inactive_sponsored_user = LinkUser.objects.get(email="inactive_sponsored_user@example.com")
 
         self.regular_user_empty_child_folder = Folder.objects.get(pk=29)
         self.firm_folder = Folder.objects.get(name="Some Case")
@@ -302,6 +304,16 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
         self.assertIn(b"subscription", response.content)
+
+    def test_should_reject_create_if_sponsorship_deactivated(self):
+        sponsored_folder = self.inactive_sponsored_user.sponsorships.first().folders.first()
+        response = self.rejected_post(self.list_url, expected_status_code=400, user=self.inactive_sponsored_user, data=dict(self.post_data, folder=sponsored_folder.pk))
+        self.assertIn(b"Your registrar has made this folder read-only.", response.content)
+
+    def test_should_reject_create_if_sponsored_root_folder(self):
+        sponsored_root_folder = self.sponsored_user.sponsored_root_folder
+        response = self.rejected_post(self.list_url, expected_status_code=400, user=self.sponsored_user, data=dict(self.post_data, folder=sponsored_root_folder.pk))
+        self.assertIn(b"You can't make links directly in your Sponsored Links folder. Select a folder belonging to a sponsor", response.content)
 
     # tests for permitted creations in test_link_resource, where the
     # to-be-captured url is actually being served up.

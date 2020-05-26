@@ -153,3 +153,5 @@ else:
     REMOTE_SELENIUM_HOST = 'localhost'
     WR_API = 'http://perma-archives.test:8089/api/v1'
     PLAYBACK_HOST = 'perma-archives.test:8092'
+
+ENABLE_SPONSORED_USERS = True

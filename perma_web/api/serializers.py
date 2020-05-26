@@ -56,7 +56,7 @@ class FolderSerializer(BaseSerializer):
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization')
+        fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization', 'sponsored_by', 'is_sponsored_root_folder', 'read_only')
         extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
@@ -69,7 +69,10 @@ class FolderSerializer(BaseSerializer):
     def validate_name(self, name):
         if self.instance:
             # renaming
-            if self.instance.is_shared_folder or self.instance.is_root_folder:
+            if self.instance.is_root_folder or \
+               self.instance.is_shared_folder or \
+               self.instance.is_sponsored_root_folder or \
+               (self.instance.parent and self.instance.parent.is_sponsored_root_folder):
                 raise serializers.ValidationError("Top-level folders cannot be renamed.")
         return name
 
@@ -77,9 +80,15 @@ class FolderSerializer(BaseSerializer):
         if self.instance:
             # moving
             if self.instance.is_shared_folder:
-                raise serializers.ValidationError("Can't move organization's shared folder.")
+                raise serializers.ValidationError("You can't move organization's shared folder.")
+            if self.instance.is_sponsored_root_folder:
+                raise serializers.ValidationError("You can't move Sponsored Links folder.")
+            if parent.is_sponsored_root_folder:
+                raise serializers.ValidationError("You can't make top-level sponsored folders.")
+            if self.instance.sponsorship and self.instance.parent == self.instance.sponsorship.user.sponsored_root_folder:
+                raise serializers.ValidationError("You can't move top-level sponsored folders.")
             if self.instance.is_root_folder:
-                raise serializers.ValidationError("Can't move user's main folder.")
+                raise serializers.ValidationError("You can't move Personal Links folder.")
         return parent
 
     def validate(self, data):

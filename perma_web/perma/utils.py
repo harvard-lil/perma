@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -151,7 +151,10 @@ def apply_pagination(request, queryset):
     except ValueError:
         page = 1
     paginator = Paginator(queryset, settings.MAX_USER_LIST_SIZE)
-    return paginator.page(page)
+    try:
+        return paginator.page(page)
+    except EmptyPage:
+        return paginator.page(1)
 
 ### form view helpers ###
 

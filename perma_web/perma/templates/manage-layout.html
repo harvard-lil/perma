@@ -32,6 +32,13 @@
               {% if request.user.is_staff or request.user.is_registrar_user %}
                 <li {% if this_page == "users_registrar_users" %}class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_manage_registrar_user' %}"><span>Registrar users</span></a></li>
               {% endif %}
+
+              {% if ENABLE_SPONSORED_USERS %}
+                {% if request.user.is_staff or request.user.is_registrar_user %}
+                  <li {% if this_page == "users_sponsored_users" %}class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_manage_sponsored_user' %}"><span>Sponsored users</span></a></li>
+                {% endif %}
+              {% endif %}
+
               <li {% if this_page == "users_orgs" %}class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_manage_organization' %}"><span>Organizations</span></a></li>
 
               <!-- Org users -->

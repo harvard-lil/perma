@@ -1,0 +1,6 @@
+{% load visible_sponsorships %}
+{% if request.user.is_staff %}
+  <a class="action" href="{% url 'user_management_manage_single_sponsored_user' listed_user.id %}">edit <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+{% else %}
+  <a class="action" href="{% url 'user_management_manage_single_sponsored_user' listed_user.id %}">edit sponsorship{{ listed_user|visible_sponsorships:request.user|length|pluralize }}<span class="sr-only">for {{ listed_user.get_full_name}}</span></a>
+{% endif %}

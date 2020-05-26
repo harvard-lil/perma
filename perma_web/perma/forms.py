@@ -4,7 +4,7 @@ from django import forms
 from django.forms import ModelForm
 from django.utils.html import mark_safe
 
-from perma.models import Registrar, Organization, LinkUser
+from perma.models import Registrar, Organization, LinkUser, Sponsorship
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +130,51 @@ class UserFormWithRegistrar(UserForm):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
 
+class UserFormWithSponsoringRegistrar(UserForm):
+    """
+    add sponsoring registrar to the create user form
+    """
+    sponsoring_registrars = forms.ModelChoiceField(label='Sponsoring Registrar', queryset=Registrar.objects.approved().order_by('name'))
+
+    def __init__(self, data=None, current_user=None, **kwargs):
+        self.current_user = current_user
+        super(UserFormWithSponsoringRegistrar, self).__init__(data, **kwargs)
+
+        query = self.fields['sponsoring_registrars'].queryset
+        if self.instance and self.instance.pk:
+            query = query.exclude(pk__in=self.instance.sponsoring_registrars.all())
+        if current_user and current_user.is_registrar_user():
+            query = query.filter(pk=current_user.registrar_id)
+            self.initial['sponsoring_registrars'] = str(query.first().id)
+
+        self.fields['sponsoring_registrars'].queryset = query
+
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "sponsoring_registrars"]
+
+    def clean(self):
+        super().clean()
+        if self.instance.pk and self.cleaned_data.get('sponsoring_registrars') and self.cleaned_data['sponsoring_registrars'].id in self.instance.sponsoring_registrars.values_list('id', flat=True):
+            raise forms.ValidationError(
+                '%(user)s is already sponsored by %(registrar)s',
+                code='non-unique-sponsorship',
+                params={'user': self.instance.email, 'registrar': self.cleaned_data['sponsoring_registrars'].name},
+            )
+
+    def save(self, commit=True):
+        """ Override save so we add the new sponsor rather than replacing all existing sponsorships for this user. """
+        # Adapted from https://stackoverflow.com/a/2264722
+        instance = forms.ModelForm.save(self, False)
+        def save_m2m():
+            Sponsorship.objects.create(registrar=self.cleaned_data['sponsoring_registrars'], user=instance, created_by=self.current_user)
+        self.save_m2m = save_m2m
+        if commit:
+            instance.save()
+            self.save_m2m()
+
+        return instance
+
 
 class CreateUserFormWithCourt(UserForm):
     """
@@ -221,6 +266,16 @@ class UserAddRegistrarForm(UserFormWithRegistrar):
         """ Override save to remove any organizations before upgrading to registrar. """
         self.instance.organizations.clear()
         return super(UserAddRegistrarForm, self).save(commit)
+
+
+class UserAddSponsoringRegistrarForm(UserFormWithSponsoringRegistrar):
+    """
+    User form that just lets you change the sponsoring registrars.
+    """
+
+    class Meta:
+        model = LinkUser
+        fields = ("sponsoring_registrars",)
 
 
 class UserAddOrganizationForm(UserFormWithOrganization):

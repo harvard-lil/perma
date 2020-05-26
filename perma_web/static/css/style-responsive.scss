@@ -1509,6 +1509,12 @@ button {
   & + p.page-dek {
     margin-top: $grid;
   }
+  & a {
+    text-decoration: underline;
+    &:hover, &:focus {
+      color: black;
+    }
+  }
 }
 
 .body-ah + .body-bh {
@@ -1516,6 +1522,14 @@ button {
   @include respond-tablet {
     margin-top: $grid * 6;
   }
+}
+
+.body-before-bh {
+  margin-top: $grid * 3;
+}
+
+.body-before-bh + .body-bh {
+  margin-top: $grid * 4;
 }
 
 .body-bh {
@@ -4228,7 +4242,12 @@ ol.result-list {
   }
 }
 
-.item-count-group {
+.item-sponsor-groups {
+  @extend .item-count-groups;
+  display: inline-block;
+}
+
+.item-count-group, .item-sponsor-group {
   font-weight: 200;
   font-size: 14px;
   font-weight: 200;
@@ -4244,7 +4263,9 @@ ol.result-list {
   }
 }
 
-.item-count-label a {
+
+
+.item-count-label a, .item-sponsor-label a {
   font-size: 85%;
   font-weight: 700;
   color: $color-trans-gray;
@@ -5808,4 +5829,14 @@ section .caption {
 
 .col-centered {
   position: relative;
+}
+
+li[data-is_sponsored_root_folder="true"] > a {
+  color: rgb(34, 34, 34) !important;
+}
+
+li[data-read_only="true"] {
+ .icon-folder-close-alt:before, & .icon-folder-open-alt:before {
+    content: "\1F512";
+  }
 }

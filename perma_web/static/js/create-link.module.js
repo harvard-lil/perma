@@ -219,18 +219,26 @@ function updateButtonPrivacy(){
 // Exported for access from JS tests
 export function handleSelectionChange (data) {
   let currentOrg = data.orgId;
+  let currentSponsor = data.sponsorId;
+  let readOnly = data.readOnly;
   let path = data.path;
-  let outOfLinks = !currentOrg && !link_creation_allowed;
+  let outOfLinks = !readOnly && !currentSponsor && !currentOrg && !link_creation_allowed;
 
   // update top-level variables
   currentFolder = data.folderId;
   currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
 
   // update the dropdown (no-op if dropdown isn't displayed)
+  let formatted_links_remaining;
+  if (readOnly) {
+    formatted_links_remaining = '0'
+  } else {
+    formatted_links_remaining = (currentSponsor || (currentOrg && currentOrg !== "None")) ? null : links_remaining.toString()
+  }
   let template = selectedFolderTemplate({
     "path": path.join(" > "),
     "private": currentFolderPrivate,
-    "links_remaining": (!currentOrg || currentOrg === "None") ? links_remaining.toString() : null
+    "links_remaining": formatted_links_remaining
   });
   $organizationDropdownButton.html(template);
 

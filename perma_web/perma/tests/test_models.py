@@ -12,7 +12,7 @@ from perma.exceptions import PermaPaymentsCommunicationException, InvalidTransmi
 from perma.models import (
     ACTIVE_SUBSCRIPTION_STATUSES,
     FIELDS_REQUIRED_FROM_PERMA_PAYMENTS,
-    Link, LinkUser, Organization,Registrar,
+    Link, LinkUser, Organization, Registrar, Folder,
     link_count_in_time_period,
     most_active_org_in_time_period,
     subscription_is_active
@@ -1426,3 +1426,24 @@ class ModelsTestCase(PermaTestCase):
         self.assertTrue(customer.link_creation_allowed())
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
+
+    def test_renaming_registrar_renames_top_level_sponsored_folders(self):
+        new_name = 'A New Name'
+        registrar = Registrar.objects.get(id=1)
+        sponsored_folders = Folder.objects.filter(sponsored_by=registrar).prefetch_related('parent')
+        self.assertTrue(registrar.name != new_name and sponsored_folders)
+        for folder in sponsored_folders:
+            if folder.parent.is_sponsored_root_folder:
+                self.assertEqual(folder.name, registrar.name)
+            else:
+                self.assertNotEqual(folder.name, registrar.name)
+        registrar.name = new_name
+        registrar.save()
+        registrar.refresh_from_db()
+        sponsored_folders = sponsored_folders.all()  # hack to refresh queryset
+        self.assertTrue(registrar.name == new_name and sponsored_folders)
+        for folder in sponsored_folders:
+            if folder.parent.is_sponsored_root_folder:
+                self.assertEqual(folder.name, registrar.name)
+            else:
+                self.assertNotEqual(folder.name, registrar.name)

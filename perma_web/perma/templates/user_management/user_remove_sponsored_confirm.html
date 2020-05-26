@@ -1,0 +1,13 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Deactivate sponsorship user{% endblock %}
+
+{% block adminContent %}
+  <h3 class="body-bh">Deactivate <strong>{{ registrar }}'s</strong> sponsorship of <strong>{{ target_user.email }}</strong>?</h3>
+  <p class="page-dek">This user will no longer be able to create Perma Links courtesy of {{ registrar }}.</p>
+  <p>Both they and registrar users associated with {{ registrar }} will still be able to see the Perma Links they have already created.</p>
+  <p>Do you really want to deactivate <strong>{{ target_user.email }}'s</strong> sponsorship?</p>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Deactivate sponsorship</button>
+  </form>
+{% endblock %}
