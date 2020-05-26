@@ -487,6 +487,14 @@ class Registrar(CustomerModel):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        name_has_changed = self.tracker.has_changed('name')
+        super(Registrar, self).save(*args, **kwargs)
+        if name_has_changed:
+            # Rename top-level sponsored folders if registrar name changes.
+            folders = Folder.objects.filter(sponsored_by=self, parent__is_sponsored_root_folder=True)
+            folders.update(name=self.name)
+
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization__registrar=self)
         return link_count_in_time_period(links, start_time, end_time)
