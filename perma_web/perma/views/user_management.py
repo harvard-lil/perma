@@ -1042,7 +1042,7 @@ def manage_single_sponsored_user_links(request, user_id, registrar_id):
         raise Http404
 
     folders = Folder.objects.filter(owned_by=target_user, sponsored_by=registrar)
-    links = Link.objects.filter(folders__in=folders).select_related('capture_job').prefetch_related('captures')
+    links = Link.objects.filter(folders__in=folders).select_related('capture_job').prefetch_related('captures').order_by('-creation_timestamp')
     links = apply_pagination(request, links)
 
     return render(request, 'user_management/manage_single_user_links.html', {
