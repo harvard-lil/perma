@@ -1047,8 +1047,7 @@ class Folder(MPTTModel):
         if parent_has_changed:
             # update read-only status
             self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
-            # make sure that child folders share organization and owned_by with new parent folder
-            # (one or the other should be set, but not both)
+            # make sure that child folders share organization/sponsor/owned_by with new parent folder
             if self.parent.organization_id:
                 self.get_descendants(include_self=True).update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
             elif self.parent.sponsored_by_id:

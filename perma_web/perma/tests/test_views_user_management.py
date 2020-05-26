@@ -825,9 +825,16 @@ class UserManagementViewsTestCase(PermaTestCase):
                                 'a-last_name': 'Last',
                                 'a-email': address},
                           query_params={'email': address},
-                          success_url=reverse('user_management_manage_sponsored_user'),
-                          success_query=LinkUser.objects.filter(email=address,
-                                                                sponsoring_registrars=self.registrar).exists())
+                          success_url=reverse('user_management_manage_sponsored_user'))
+
+        # Check that everything is set up correctly (we'll do this once, here, and not repeat in other tests)
+        user = LinkUser.objects.get(email=address, sponsoring_registrars=self.registrar)
+        sponsorship = user.sponsorships.first()
+        sponsored_folder = sponsorship.folders.get()
+        self.assertEqual(sponsorship.status, 'active')
+        self.assertEqual(sponsored_folder.parent, user.sponsored_root_folder)
+        self.assertFalse(sponsored_folder.read_only)
+
         # Try to add the same person again; should fail
         response = self.submit_form('user_management_sponsored_user_add_user',
                                      data={'a-sponsoring_registrars': self.registrar.pk,
@@ -900,30 +907,37 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_admin_user_can_deactivate_active_sponsorship(self):
         sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_manage_single_sponsored_user_remove',
                          reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
                          success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
         sponsorship.refresh_from_db()
         self.assertEqual(sponsorship.status, 'inactive')
+        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
+
 
     def test_admin_user_can_reactivate_inactive_sponsorship(self):
         sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
+        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_manage_single_sponsored_user_readd',
                          reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
                          success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
         sponsorship.refresh_from_db()
         self.assertEqual(sponsorship.status, 'active')
+        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
 
     def test_registrar_user_can_deactivate_active_sponsorship(self):
         sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_sponsored_user_remove',
                          reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
                          success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
         sponsorship.refresh_from_db()
         self.assertEqual(sponsorship.status, 'inactive')
+        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
 
     def test_registrar_user_cannot_deactivate_active_sponsorship_for_other_registrar(self):
         self.assertTrue(self.unrelated_registrar in self.another_sponsored_user.sponsoring_registrars.all())
@@ -934,12 +948,14 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_user_can_reactivate_inactive_sponsorship(self):
         sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
+        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_sponsored_user_readd',
                          reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
                          success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
         sponsorship.refresh_from_db()
         self.assertEqual(sponsorship.status, 'active')
+        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
 
     def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registrar(self):
         sponsorship = Sponsorship.objects.get(user=self.another_inactive_sponsored_user, registrar=self.unrelated_registrar, status='inactive')

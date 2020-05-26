@@ -655,6 +655,7 @@
       "last_name": "User",
       "confirmation_code": "",
       "root_folder": 55,
+      "sponsored_root_folder": 59,
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,

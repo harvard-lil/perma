@@ -35,6 +35,8 @@ class LinkResourceTestMixin():
         self.firm_user = LinkUser.objects.get(email="case_one_lawyer@firm.com")
         self.firm_folder = Folder.objects.get(name="Some Case")
 
+        self.sponsored_user = LinkUser.objects.get(email="test_sponsored_user@example.com")
+
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.unrelated_private_link = Link.objects.get(pk="ABCD-0001")
         self.link = Link.objects.get(pk="3SLN-JHX9")
@@ -297,7 +299,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
     @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
     def test_should_permit_create_if_folder_registrar_good_standing(self, allowed):
         allowed.return_value = True
-        self.rejected_post(
+        self.successful_post(
             self.list_url,
             expected_status_code=201,
             user=self.firm_user,
@@ -305,6 +307,20 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                       folder=self.firm_folder.pk)
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
+
+    # This doesn't really belong here. Try to readdress.
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    def test_should_permit_create_if_folder_sponsorship_active(self, get_links_remaining):
+        get_links_remaining.return_value = 0
+        sponsored_folder = self.sponsored_user.sponsorships.first().folders.first()
+        self.successful_post(
+            self.list_url,
+            expected_status_code=201,
+            user=self.sponsored_user,
+            data=dict(self.post_data,
+                      folder=sponsored_folder.pk)
+        )
+        get_links_remaining.assert_not_called()
 
 
     def test_should_create_archive_from_html_url(self):

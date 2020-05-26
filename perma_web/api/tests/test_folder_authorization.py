@@ -12,6 +12,8 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         cls.registrar_user = LinkUser.objects.get(pk=2)
         cls.org_user = LinkUser.objects.get(pk=3)
         cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.sponsored_user = LinkUser.objects.get(pk=20)
+        cls.inactive_sponsored_user = LinkUser.objects.get(pk=22)
 
         cls.empty_root_folder = Folder.objects.get(pk=22)
         cls.nonempty_root_folder = Folder.objects.get(pk=25)
@@ -23,6 +25,12 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         cls.test_journal_shared_folder = Folder.objects.get(pk=27)
         cls.test_journal_subfolder_with_link_a = Folder.objects.get(pk=34)
         cls.test_journal_subfolder_with_link_b = Folder.objects.get(pk=35)
+
+        cls.sponsored_folder = Folder.objects.get(pk=60)
+        cls.sponsored_subfolder = Folder.objects.get(pk=61)
+        cls.sponsored_subsubfolder = Folder.objects.get(pk=64)
+        cls.inactive_sponsored_folder = Folder.objects.get(pk=63)
+        cls.inactive_sponsored_subfolder = Folder.objects.get(pk=65)
 
     # helpers
 
@@ -109,6 +117,52 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                             expected_status_code=400,
                             user=self.regular_user, data=data)
 
+    def test_should_reject_rename_of_sponsored_root_folder_from_all_users(self):
+        data = {'name': 'A new name'}
+        self.rejected_patch(self.detail_url(self.sponsored_user.sponsored_root_folder),
+                            expected_status_code=400,
+                            user=self.admin_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_user.sponsored_root_folder),
+                            expected_status_code=400,
+                            user=self.sponsored_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_user.sponsored_root_folder),
+                            expected_status_code=403,
+                            user=self.registrar_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_user.sponsored_root_folder),
+                            expected_status_code=403,
+                            user=self.regular_user, data=data)
+
+    def test_should_reject_rename_of_sponsored_folder_from_all_users(self):
+        data = {'name': 'A new name'}
+        self.rejected_patch(self.detail_url(self.sponsored_folder),
+                            expected_status_code=400,
+                            user=self.admin_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_folder),
+                            expected_status_code=400,
+                            user=self.sponsored_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_folder),
+                            expected_status_code=400,
+                            user=self.registrar_user, data=data)
+        self.rejected_patch(self.detail_url(self.sponsored_folder),
+                            expected_status_code=403,
+                            user=self.regular_user, data=data)
+
+    def test_should_allow_renaming_of_sponsored_subfolder(self):
+        self.successful_patch(self.detail_url(self.sponsored_subfolder),
+                              expected_status_code=200,
+                              user=self.admin_user, data={'name': 'A new name'})
+        self.successful_patch(self.detail_url(self.sponsored_subfolder),
+                              expected_status_code=200,
+                              user=self.admin_user, data={'name': 'Another new name'})
+        # is this appropriate?
+        self.successful_patch(self.detail_url(self.sponsored_subfolder),
+                              expected_status_code=200,
+                              user=self.registrar_user, data={'name': 'Yet another new name'})
+        self.rejected_patch(self.detail_url(self.sponsored_subfolder),
+                            expected_status_code=403,
+                            user=self.regular_user, data={'name': 'A new name'})
+
+
     ##########
     # Moving #
     ##########
@@ -193,6 +247,63 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                             data={'parent':None},
                             expected_status_code=400,
                             expected_data={"parent": ["This field may not be null."]})
+
+    def test_should_reject_move_of_sponsored_root_folder(self):
+        for user in [self.admin_user, self.sponsored_user]:
+            self.rejected_folder_move(user, self.sponsored_user.sponsored_root_folder,
+                                      user.root_folder,
+                                      expected_status_code=400)
+
+    def test_should_reject_move_of_sponsored_root_folder_by_registrar(self):
+        self.rejected_folder_move(self.registrar_user, self.sponsored_user.sponsored_root_folder,
+                                  self.registrar_user.root_folder,
+                                  expected_status_code=403)
+
+    def test_should_reject_move_of_sponsored_folder(self):
+        for user in [self.admin_user, self.registrar_user, self.sponsored_user]:
+            self.rejected_folder_move(user, self.sponsored_folder,
+                                      user.root_folder,
+                                      expected_status_code=400)
+
+    def move_sponsored_subfolder(self, user):
+        # Move it to personal links...
+        self.successful_folder_move(user, user.root_folder, self.sponsored_subfolder)
+        self.sponsored_subfolder.refresh_from_db()
+        self.sponsored_subsubfolder.refresh_from_db()
+        for folder in [self.sponsored_subfolder, self.sponsored_subsubfolder]:
+            self.assertFalse(folder.sponsored_by)
+            self.assertEqual(folder.owned_by, user)
+        # ... and back again
+        self.successful_folder_move(user, self.sponsored_folder, self.sponsored_subfolder)
+        self.sponsored_subfolder.refresh_from_db()
+        self.sponsored_subsubfolder.refresh_from_db()
+        for folder in [self.sponsored_subfolder, self.sponsored_subsubfolder]:
+            self.assertEqual(folder.sponsored_by, self.sponsored_folder.sponsored_by)
+            self.assertEqual(folder.owned_by, self.sponsored_folder.owned_by)
+
+    def test_should_allow_owner_to_move_sponsored_subfolder(self):
+        self.move_sponsored_subfolder(self.sponsored_user)
+
+    def test_should_allow_admin_to_move_sponsored_subfolder(self):
+        self.move_sponsored_subfolder(self.admin_user)
+
+    def test_should_allow_registrar_to_move_sponsored_subfolder(self):
+        # is this appropriate?
+        self.move_sponsored_subfolder(self.registrar_user)
+
+    def test_should_reject_other_move_of_sponsored_subfolder(self):
+        self.rejected_folder_move(self.regular_user, self.regular_user.root_folder, self.sponsored_subfolder, expected_status_code=403)
+
+    def test_readonly_when_moving_inactive_sposorship_subfolder(self):
+        self.assertTrue(self.inactive_sponsored_subfolder.read_only)
+        # Move it to personal links...
+        self.successful_folder_move(self.inactive_sponsored_user, self.inactive_sponsored_user.root_folder, self.inactive_sponsored_subfolder)
+        self.inactive_sponsored_subfolder.refresh_from_db()
+        self.assertFalse(self.inactive_sponsored_subfolder.read_only)
+        # Move it back...
+        self.successful_folder_move(self.inactive_sponsored_user, self.inactive_sponsored_folder, self.inactive_sponsored_subfolder)
+        self.inactive_sponsored_subfolder.refresh_from_db()
+        self.assertTrue(self.inactive_sponsored_subfolder.read_only)
 
     # these need refreshing of certain in-memory cls-level fixtures
     def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
