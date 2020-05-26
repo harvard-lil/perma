@@ -2220,8 +2220,8 @@ webpackJsonp([1],[
 	        sponsor_id: folder.sponsored_by,
 	        read_only: folder.read_only
 	      },
-	      state: { disabled: folder.is_sponsored_root_folder },
-	      li_attr: {
+	      "state": { "disabled": folder.is_sponsored_root_folder },
+	      "li_attr": {
 	        "data-folder_id": folder.id,
 	        "data-organization_id": folder.organization,
 	        "data-sponsor_id": folder.sponsored_by,
@@ -2276,7 +2276,10 @@ webpackJsonp([1],[
 	      if (!parentFolder)
 	        // tree must have changed since last time user visited
 	        return 'break';
-	      parentFolder.state = { opened: true };
+	      if (!parentFolder.state) {
+	        parentFolder.state = {};
+	      }
+	      parentFolder.state.opened = true;
 	
 	      // find the subfolders and load them in:
 	      var apiResponse = apiResponses[i][0];

@@ -14802,6 +14802,11 @@ li[data-is_sponsored_root_folder="true"] > a {
   color: #222222 !important;
 }
 
+li[data-read_only="true"] .icon-folder-close-alt:before,
+li[data-read_only="true"] .icon-folder-open-alt:before {
+  content: "\1F512";
+}
+
 /*!
  *  Font Awesome 3.0.2
  *  the iconic font designed for use with Twitter Bootstrap

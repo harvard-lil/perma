@@ -5834,3 +5834,9 @@ section .caption {
 li[data-is_sponsored_root_folder="true"] > a {
   color: rgb(34, 34, 34) !important;
 }
+
+li[data-read_only="true"] {
+ .icon-folder-close-alt:before, & .icon-folder-open-alt:before {
+    content: "\1F512";
+  }
+}
