@@ -7391,8 +7391,8 @@ fieldset[disabled] .btn {
 .pagination > .active > span:hover,
 .pagination > .active > a:focus,
 .pagination > .active > span:focus {
-  background-color: #ff4100;
-  border-color: #ff4100;
+  background-color: #2D76EE;
+  border-color: #2D76EE;
 }
 
 .alert {

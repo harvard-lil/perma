@@ -1,20 +1,54 @@
-{% load current_query_string %}
-{% if page.paginator.num_pages > 1 %}
-  <nav class="pagination" aria-label="{% if title %}{{ title }}{% endif %} pagination">
-    <ul class="pagination">
-      {% if page.has_previous %}
-        <li><a href="?{% current_query_string page=page.previous_page_number %}"><span class="sr-only">Previous Page</span><span aria-hidden="true">&lt;</span></a></li>
-      {% endif %}
-      {% for i in page.paginator.page_range %}
+{% load current_query_string short_page_range %}
+
+{% if page.has_other_pages %}
+<nav aria-label="{% if title %}{{ title }}{% endif %} pagination">
+  <ul class="pagination">
+    {% if page.has_previous %}
+      <li>
+        <a rel="prev" href="?{% current_query_string page=page.previous_page_number %}" aria-label="Previous">
+          <span aria-hidden="true">←</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="disabled">
+        <span>
+          <span aria-hidden="true">←</span>
+        </span>
+      </li>
+    {% endif %}
+
+    {% for i in page|short_page_range %}
+      {% if i == '...' %}
+        <li class="disabled">
+          <span>
+            <span>…</span>
+          </span>
+        </li>
+      {% else %}
         {% ifequal i page.number %}
-          <li class="active" aria-current="page"><a href="#"><span class="sr-only">Page</span> {{ i }}</a></li>
+          <li class="active">
+            <span><span class="sr-only">Page</span>{{ page.number }} <span class="sr-only">(current page)</span></span>
+          </li>
         {% else %}
           <li><a href="?{% current_query_string page=i %}"><span class="sr-only">Page</span> {{ i }}</a></li>
         {% endifequal %}
-      {% endfor %}
-      {% if page.has_next  %}
-        <li><a href="?{% current_query_string page=page.next_page_number %}"><span class="sr-only">Next Page</span><span aria-hidden="true"> &gt;</span></a></li>
       {% endif %}
-    </ul>
-  </nav>
+    {% endfor %}
+
+    {% if page.has_next %}
+      <li>
+        <a rel="next" href="?{% current_query_string page=page.next_page_number %}" aria-label="Next">
+          <span aria-hidden="true">→</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="disabled">
+        <span>
+          <span aria-hidden="true">→</span>
+        </span>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+
 {% endif %}
