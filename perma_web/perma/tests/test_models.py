@@ -1382,12 +1382,12 @@ class ModelsTestCase(PermaTestCase):
 
     def test_sponsored_links_not_counted_against_personal_total(self):
         sponsored_user = LinkUser.objects.get(email='test_sponsored_user@example.com')
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 10)
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
         link = Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
         link.save()
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 8)
         link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 10)
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
 
 
     #
