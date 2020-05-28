@@ -40,7 +40,9 @@ class LinkResourceTestMixin():
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.unrelated_private_link = Link.objects.get(pk="ABCD-0001")
         self.link = Link.objects.get(pk="3SLN-JHX9")
+        self.sponsored_user_link = Link.objects.get(pk="ABCD-0011")
 
+        self.sponsored_user_link_detail_url = "{0}/{1}".format(self.list_url, self.sponsored_user_link.pk)
         self.unrelated_link_detail_url = "{0}/{1}".format(self.list_url, self.unrelated_link.pk)
         self.link_detail_url = "{0}/{1}".format(self.list_url, self.link.pk)
 
@@ -168,10 +170,17 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
                                     'description': 'This is a new description'})
 
     def test_should_reject_updates_to_disallowed_fields(self):
-        result = self.rejected_patch(self.unrelated_link_detail_url,
+        response = self.rejected_patch(self.unrelated_link_detail_url,
                                      user=self.unrelated_link.created_by,
                                      data={'url':'foo'})
-        self.assertIn(b"Only updates on these fields are allowed", result.content)
+        self.assertIn(b"Only updates on these fields are allowed", response.content)
+
+    def test_moving_to_sponsored_links_not_allowed_patch(self):
+        response = self.rejected_patch(self.sponsored_user_link_detail_url,
+                                     user=self.sponsored_user,
+                                     data={'folder':self.sponsored_user.sponsored_root_folder.pk})
+        self.assertIn(b"You can't move links to your Sponsored Links folder.", response.content)
+
 
     ##################
     # Private/public #
@@ -197,6 +206,15 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)
         data = self.successful_get(folder_url+"/archives", user=self.org_user)
         self.assertIn(obj, data['objects'])
+
+    def test_moving_to_sponsored_links_not_allowed_put(self):
+        folder = self.sponsored_user.sponsored_root_folder
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
+
+        response = self.rejected_put("{0}/archives/{1}".format(folder_url, self.sponsored_user_link.pk),
+                            user=self.sponsored_user)
+        self.assertIn(b"You can't move links to your Sponsored Links folder.", response.content)
+
 
     ############
     # Ordering #
