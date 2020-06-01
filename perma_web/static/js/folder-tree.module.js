@@ -129,7 +129,22 @@ function selectSavedFolder(){
   if(!folderToSelect && current_user.top_level_folders.length == 1){
     folderToSelect = current_user.top_level_folders[0].id;
   }
-  folderTree.select_node(getNodeByFolderID(folderToSelect));
+  let node = getNodeByFolderID(folderToSelect);
+  if (!node){
+    folderTree.refresh(false, function(state){
+      // This empty function let's the node get selected after the refresh,
+      // necessary when selecting a Sponsored Folder from the dropdown, if
+      // a Sponsored Folder has not previously been loaded.
+      //
+      // I don't understand why this works, and suspect it's brittle.
+      // https://www.jstree.com/api/#/?q=(&f=refresh()
+    });
+    node = getNodeByFolderID(folderToSelect);
+    node.state.selected = true;
+  }
+  if (node){
+    folderTree.select_node(node);
+  }
 }
 
 function setSavedFolder (node) {

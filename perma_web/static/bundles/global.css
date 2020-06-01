@@ -9141,6 +9141,10 @@ button #addlink {
   background-color: #2D76EE;
 }
 
+.links-unlimited.sponsored {
+  background-color: #DD671A;
+}
+
 .dropdown .selector {
   width: 100.3%;
   text-align: left;
@@ -9252,6 +9256,10 @@ button #addlink {
 
 .dropdown .selector-menu .dropdown-header {
   margin-top: 4px;
+}
+
+.dropdown .selector-menu .dropdown-header.sponsored {
+  color: #DD671A;
 }
 
 .dropdown .selector-menu a {

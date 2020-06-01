@@ -122,6 +122,9 @@
   .dropdown-header {
     margin-top: $half;
   }
+  .dropdown-header.sponsored {
+    color: $color-orange;
+  }
 }
 
 /////////////////////////////////////////
@@ -1327,6 +1330,10 @@ button {
   @extend .custom-badge;
   color: white;
   background-color: $color-blue;
+}
+
+.links-unlimited.sponsored {
+  background-color: $color-orange;
 }
 
 @mixin style-ui-after {
