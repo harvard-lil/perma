@@ -611,10 +611,14 @@ class Sponsorship(models.Model):
             models.UniqueConstraint(fields=['registrar', 'user'], name='unique_sponsorship'),
         ]
 
+    tracker = FieldTracker()
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.folders:
             self.user.create_sponsored_folder(self.registrar)
+        if self.tracker.has_changed('status'):
+            self.folders.update(read_only=self.status == 'inactive')
 
     @property
     def folders(self):
@@ -901,30 +905,33 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         if unlimited is None:
             unlimited = self.unlimited
 
+        # exclude sponsored links and links associated with an org
+        personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None)
+
         if unlimited:
             # UNLIMITED (paid or sponsored)
             link_count = float("-inf")
         elif period == 'once':
             # TRIAL: all non-org links ever
             if self.cached_subscription_started:
-                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id).count()
             else:
-                link_count = Link.objects.filter(created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(created_by_id=self.id, organization_id=None).count()
         elif period == 'monthly':
             # MONTHLY RECURRING: links this calendar month (or, for new customers, links this month from the moment you started paying us)
             if self.cached_subscription_started and \
                self.cached_subscription_started.year == today.year and \
                self.cached_subscription_started.month == today.month:
-                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id, organization_id=None).count()
             else:
-                link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
         elif period == 'annually':
             # ANNUAL RECURRING
             # if you have a paid subscription, calculate via its expiry date
             if self.cached_paid_through:
-                link_count = Link.objects.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
             # else, check the last 365 days
-            link_count = Link.objects.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+            link_count = personal_links.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
         return max(limit - link_count, 0)

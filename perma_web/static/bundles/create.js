@@ -1998,6 +1998,7 @@ webpackJsonp([1],[
 	                value: childNode.data.folder_id,
 	                text: childNode.text.trim(),
 	                selected: childNode.data.folder_id == current_folder_id,
+	                disabled: childNode.data.is_sponsored_root_folder || childNode.data.read_only,
 	                "data-orgid": childNode.data.organization_id
 	            }).prepend(new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')));
 	
@@ -2169,7 +2170,22 @@ webpackJsonp([1],[
 	  if (!folderToSelect && current_user.top_level_folders.length == 1) {
 	    folderToSelect = current_user.top_level_folders[0].id;
 	  }
-	  folderTree.select_node(getNodeByFolderID(folderToSelect));
+	  var node = getNodeByFolderID(folderToSelect);
+	  if (!node) {
+	    folderTree.refresh(false, function (state) {
+	      // This empty function let's the node get selected after the refresh,
+	      // necessary when selecting a Sponsored Folder from the dropdown, if
+	      // a Sponsored Folder has not previously been loaded.
+	      //
+	      // I don't understand why this works, and suspect it's brittle.
+	      // https://www.jstree.com/api/#/?q=(&f=refresh()
+	    });
+	    node = getNodeByFolderID(folderToSelect);
+	    node.state.selected = true;
+	  }
+	  if (node) {
+	    folderTree.select_node(node);
+	  }
 	}
 	
 	function setSavedFolder(node) {
@@ -2218,6 +2234,7 @@ webpackJsonp([1],[
 	        folder_id: folder.id,
 	        organization_id: folder.organization,
 	        sponsor_id: folder.sponsored_by,
+	        is_sponsored_root_folder: folder.is_sponsored_root_folder,
 	        read_only: folder.read_only
 	      },
 	      "state": { "disabled": folder.is_sponsored_root_folder },
@@ -11460,12 +11477,25 @@ webpackJsonp([1],[
 	      organizations[org.id] = org;
 	    });
 	    if ((0, _keys2.default)(organizations).length) {
-	      var template = orgListTemplate({
-	        "orgs": data.objects,
-	        "user_folder": current_user.top_level_folders[0].id,
-	        "links_remaining": links_remaining
-	      });
-	      $organizationDropdown.append(template);
+	      if (current_user.top_level_folders[1].is_sponsored_root_folder) {
+	        APIModule.request("GET", "/folders/" + current_user.top_level_folders[1].id + "/folders/").done(function (sponsored_data) {
+	          var template = orgListTemplate({
+	            "orgs": data.objects,
+	            "user_folder": current_user.top_level_folders[0].id,
+	            "sponsored_folders": sponsored_data.objects,
+	            "links_remaining": links_remaining
+	          });
+	          $organizationDropdown.append(template);
+	        });
+	      } else {
+	        var template = orgListTemplate({
+	          "orgs": data.objects,
+	          "user_folder": current_user.top_level_folders[0].id,
+	          "sponsored_folders": null,
+	          "links_remaining": links_remaining
+	        });
+	        $organizationDropdown.append(template);
+	      }
 	    }
 	  });
 	}
@@ -13833,17 +13863,39 @@ webpackJsonp([1],[
 	},"4":function(container,depth0,helpers,partials,data) {
 	    return "<span class=\"ui-private\">(Private)</span> ";
 	},"6":function(container,depth0,helpers,partials,data) {
-	    return "unlimited";
+	    var stack1;
+	
+	  return "  <li class=\"dropdown-header sponsored\">Sponsored Links</li>\n"
+	    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.sponsored_folders : depth0),{"name":"each","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+	},"7":function(container,depth0,helpers,partials,data) {
+	    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+	
+	  return "    <li>\n      <a href=\"#\" data-folderid='["
+	    + alias2(alias1((depth0 != null ? depth0.parent : depth0), depth0))
+	    + ","
+	    + alias2(alias1((depth0 != null ? depth0.id : depth0), depth0))
+	    + "]'>\n        "
+	    + alias2(alias1((depth0 != null ? depth0.name : depth0), depth0))
+	    + " "
+	    + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.read_only : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.program(10, data, 0),"data":data})) != null ? stack1 : "")
+	    + "\n      </a>\n    </li>\n";
 	},"8":function(container,depth0,helpers,partials,data) {
+	    return "<span class=\"links-remaining\">0</span>";
+	},"10":function(container,depth0,helpers,partials,data) {
+	    return "<span class='links-unlimited sponsored'>unlimited</span>";
+	},"12":function(container,depth0,helpers,partials,data) {
+	    return "unlimited";
+	},"14":function(container,depth0,helpers,partials,data) {
 	    return container.escapeExpression(container.lambda((depth0 != null ? depth0.links_remaining : depth0), depth0));
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
 	    var stack1, alias1=depth0 != null ? depth0 : {};
 	
 	  return ((stack1 = __default(__webpack_require__(159)).call(alias1,(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.sponsored_folders : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.user_folder : depth0), depth0))
 	    + "\">\n    Personal Links <span class=\"links-remaining\">"
-	    + ((stack1 = __default(__webpack_require__(157)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(6, data, 0),"inverse":container.program(8, data, 0),"data":data})) != null ? stack1 : "")
+	    + ((stack1 = __default(__webpack_require__(157)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data})) != null ? stack1 : "")
 	    + "</span>\n  </a>\n</li>\n";
 	},"useData":true});
 

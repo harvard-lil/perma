@@ -98,7 +98,7 @@ def noncustomers():
     return [nonpaying_registrar(), nonpaying_user()]
 
 def user_with_links():
-    # a user with 6 links, made at intervals
+    # a user with 6 personal links, made at intervals
     user = LinkUser()
     user.save()
     today = timezone.now()
@@ -1374,6 +1374,20 @@ class ModelsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(customer)
         is_active.assert_called_once_with(sentinel.subscription)
         links_remaining_in_period.assert_called_once_with(customer, customer.link_limit_period, customer.link_limit)
+
+
+    #
+    # Limk limit for sponsored users
+    #
+
+    def test_sponsored_links_not_counted_against_personal_total(self):
+        sponsored_user = LinkUser.objects.get(email='test_sponsored_user@example.com')
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
+        link = Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
+        link.save()
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 8)
+        link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
+        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
 
 
     #

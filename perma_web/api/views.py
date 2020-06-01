@@ -503,13 +503,15 @@ class AuthenticatedLinkDetailView(BaseView):
 
         was_private = link.is_private
         data = request.data
+        folder = AuthenticatedLinkListView.get_folder_from_request(request)
+        if folder and folder.is_sponsored_root_folder:
+            raise_general_validation_error("You can't move links to your Sponsored Links folder. Select a folder belonging to a sponsor or organization, or your Personal Links folder.")
 
         serializer = self.serializer_class(link, data=data, partial=True, context={'request': self.request})
         if serializer.is_valid():
             serializer.save()
 
             # move to new folder
-            folder = AuthenticatedLinkListView.get_folder_from_request(request)
             if folder:
                 link.move_to_folder_for_user(folder, request.user)
 
@@ -592,6 +594,8 @@ class MoveLinkView(BaseView):
             Move link to new folder.
         """
         link = self.get_object_for_user_by_pk(request.user, guid)
+        if request.parent.is_sponsored_root_folder:
+            raise_general_validation_error("You can't move links to your Sponsored Links folder. Select a folder belonging to a sponsor or organization, or your Personal Links folder.")
         link.move_to_folder_for_user(request.parent, request.user)
         serializer = self.serializer_class(link, context={'request': request})
         return Response(serializer.data)
