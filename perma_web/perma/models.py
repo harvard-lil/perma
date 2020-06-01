@@ -611,10 +611,14 @@ class Sponsorship(models.Model):
             models.UniqueConstraint(fields=['registrar', 'user'], name='unique_sponsorship'),
         ]
 
+    tracker = FieldTracker()
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.folders:
             self.user.create_sponsored_folder(self.registrar)
+        if self.tracker.has_changed('status'):
+            self.folders.update(read_only=self.status == 'inactive')
 
     @property
     def folders(self):

@@ -980,11 +980,8 @@ def manage_single_registrar_user_remove(request, user_id):
 
     return render(request, 'user_management/user_remove_registrar_confirm.html', context)
 
-@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
-def manage_single_sponsored_user_remove(request, user_id, registrar_id):
-    """
-        Remove a sponsored user from a registrar.
-    """
+
+def toggle_status(request, user_id, registrar_id, status):
     target_user = get_object_or_404(LinkUser, id=user_id)
     registrar =  get_object_or_404(Registrar, id=registrar_id)
     sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
@@ -997,12 +994,19 @@ def manage_single_sponsored_user_remove(request, user_id, registrar_id):
         raise Http404
 
     if request.method == 'POST':
-        sponsorship.status = 'inactive'
+        sponsorship.status = status
         sponsorship.save()
-        sponsorship.folders.update(read_only=True)
         return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
 
     return render(request, 'user_management/user_remove_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
+
+
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
+def manage_single_sponsored_user_remove(request, user_id, registrar_id):
+    """
+        Deactivate an active sponsorship for a user
+    """
+    return toggle_status(request, user_id, registrar_id, 'inactive')
 
 
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
@@ -1010,24 +1014,7 @@ def manage_single_sponsored_user_readd(request, user_id, registrar_id):
     """
         Reactivate an inactive sponsorship for a user
     """
-    target_user = get_object_or_404(LinkUser, id=user_id)
-    registrar =  get_object_or_404(Registrar, id=registrar_id)
-    sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
-
-    # Registrar users can only edit their own sponsored users,
-    # and can only deactivate their own sponsorships
-    if request.user.is_registrar_user() and \
-        (request.user.registrar not in target_user.sponsoring_registrars.all() or
-         str(request.user.registrar_id) != registrar_id):
-        raise Http404
-
-    if request.method == 'POST':
-        sponsorship.status = 'active'
-        sponsorship.save()
-        sponsorship.folders.update(read_only=False)
-        return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
-
-    return render(request, 'user_management/user_readd_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
+    return toggle_status(request, user_id, registrar_id, 'active')
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
