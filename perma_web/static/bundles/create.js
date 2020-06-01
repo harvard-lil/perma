@@ -1998,6 +1998,7 @@ webpackJsonp([1],[
 	                value: childNode.data.folder_id,
 	                text: childNode.text.trim(),
 	                selected: childNode.data.folder_id == current_folder_id,
+	                disabled: childNode.data.is_sponsored_root_folder || childNode.data.read_only,
 	                "data-orgid": childNode.data.organization_id
 	            }).prepend(new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;')));
 	
@@ -2233,6 +2234,7 @@ webpackJsonp([1],[
 	        folder_id: folder.id,
 	        organization_id: folder.organization,
 	        sponsor_id: folder.sponsored_by,
+	        is_sponsored_root_folder: folder.is_sponsored_root_folder,
 	        read_only: folder.read_only
 	      },
 	      "state": { "disabled": folder.is_sponsored_root_folder },

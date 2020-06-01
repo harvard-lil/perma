@@ -194,6 +194,7 @@ function apiFoldersToJsTreeFolders(apiFolders){
         folder_id: folder.id,
         organization_id: folder.organization,
         sponsor_id: folder.sponsored_by,
+        is_sponsored_root_folder: folder.is_sponsored_root_folder,
         read_only: folder.read_only
       },
       "state": {"disabled": folder.is_sponsored_root_folder},
