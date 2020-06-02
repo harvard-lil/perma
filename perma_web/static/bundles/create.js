@@ -11474,30 +11474,27 @@ webpackJsonp([1],[
 	    limit: 300,
 	    order_by: 'registrar,name'
 	  }).then(function (data) {
-	    // populate the top-level "organizations" var
 	    data.objects.map(function (org) {
 	      organizations[org.id] = org;
 	    });
-	    if ((0, _keys2.default)(organizations).length) {
-	      if (current_user.top_level_folders[1].is_sponsored_root_folder) {
-	        APIModule.request("GET", "/folders/" + current_user.top_level_folders[1].id + "/folders/").done(function (sponsored_data) {
-	          var template = orgListTemplate({
-	            "orgs": data.objects,
-	            "user_folder": current_user.top_level_folders[0].id,
-	            "sponsored_folders": sponsored_data.objects,
-	            "links_remaining": links_remaining
-	          });
-	          $organizationDropdown.append(template);
-	        });
-	      } else {
+	    if (current_user.top_level_folders[1].is_sponsored_root_folder) {
+	      APIModule.request("GET", "/folders/" + current_user.top_level_folders[1].id + "/folders/").done(function (sponsored_data) {
 	        var template = orgListTemplate({
 	          "orgs": data.objects,
 	          "user_folder": current_user.top_level_folders[0].id,
-	          "sponsored_folders": null,
+	          "sponsored_folders": sponsored_data.objects,
 	          "links_remaining": links_remaining
 	        });
 	        $organizationDropdown.append(template);
-	      }
+	      });
+	    } else {
+	      var template = orgListTemplate({
+	        "orgs": data.objects,
+	        "user_folder": current_user.top_level_folders[0].id,
+	        "sponsored_folders": null,
+	        "links_remaining": links_remaining
+	      });
+	      $organizationDropdown.append(template);
 	    }
 	  });
 	}

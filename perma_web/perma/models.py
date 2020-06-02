@@ -832,11 +832,15 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def is_individual(self):
         """ Is the user a regular, individual user? """
-        return bool(not self.is_staff and not self.is_registrar_user() and not self.is_organization_user)
+        return bool(not self.is_staff and not self.is_registrar_user() and not self.is_sponsored_user() and not self.is_organization_user)
 
     def is_registrar_user(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
+
+    def is_sponsored_user(self):
+        """ Is the user sponsored by a registrar? """
+        return self.sponsorships.exists()
 
     def has_registrar_pending(self):
         """ Has requested creation of registrar """
