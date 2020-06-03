@@ -18,6 +18,7 @@ jobs:
       - run:
           name: "Flake8"
           command: |
+            pyenv global 3.7.0
             export PYENV_VERSION=3.7.0  # use the version of python3.7 installed on circleci
             pip install `egrep -o 'flake8==\S+' perma_web/requirements.txt`  # install our version of flake8
             flake8 perma_web/
