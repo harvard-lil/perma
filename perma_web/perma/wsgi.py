@@ -28,14 +28,10 @@ from django.core.wsgi import get_wsgi_application
 # patch email sending to retry on error, to work around sporadic connection issues
 from django.core.mail import EmailMessage
 from smtplib import SMTPException
-from time import sleep
+from perma.wsgi_utils import retry_on_exception
 _orig_send = EmailMessage.send
 def retrying_send(message, *args, **kwargs):
-    try:
-        return _orig_send(message, *args, **kwargs)
-    except (SMTPException, TimeoutError):
-        sleep(1)
-        return _orig_send(message, *args, **kwargs)
+    return retry_on_exception(_orig_send, args=([message] + list(args)), kwargs=kwargs, exception=(SMTPException, TimeoutError))
 EmailMessage.send = retrying_send
 
 # Main application setup
