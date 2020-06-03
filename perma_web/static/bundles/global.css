@@ -9262,6 +9262,10 @@ button #addlink {
   color: #DD671A;
 }
 
+.dropdown .selector-menu .dropdown-header.personal {
+  color: #222;
+}
+
 .dropdown .selector-menu a {
   font-size: 18px;
   font-weight: 200;
@@ -9272,15 +9276,6 @@ button #addlink {
     font-size: 20px;
     font-weight: 200;
   }
-}
-
-.dropdown .selector-menu .personal-links {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.dropdown .selector-menu .personal-links a {
-  margin-top: 4px;
-  border-top: none;
 }
 
 .dropdown.open .selector {

@@ -13891,7 +13891,7 @@ webpackJsonp([1],[
 	
 	  return ((stack1 = __default(__webpack_require__(159)).call(alias1,(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.sponsored_folders : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-	    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
+	    + "<li class=\"dropdown-header personal\">Personal Links</li>\n<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
 	    + container.escapeExpression(container.lambda((depth0 != null ? depth0.user_folder : depth0), depth0))
 	    + "\">\n    Personal Links <span class=\"links-remaining\">"
 	    + ((stack1 = __default(__webpack_require__(157)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data})) != null ? stack1 : "")
