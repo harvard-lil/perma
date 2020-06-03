@@ -23,6 +23,7 @@ from django.views.decorators.cache import cache_control
 
 from django.utils.six.moves.http_client import responses
 
+from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
@@ -204,13 +205,14 @@ def single_permalink(request, guid):
     if context['can_view'] and link.can_play_back():
         if new_record:
             logger.info(f"Ensuring warc for {link.guid} has finished uploading.")
-            start_time = time.time()
-            while not default_storage.exists(link.warc_storage_file()):
-                wait_time = time.time() - start_time
-                if wait_time > settings.WARC_AVAILABLE_TIMEOUT:
-                    logger.error(f"Waited {wait_time} for {link.guid}'s warc; still not available.")
-                    return render(request, 'archive/playback-delayed.html', context,  status=500)
-                time.sleep(1)
+            def assert_exists(filename):
+                assert default_storage.exists(filename)
+            try:
+                retry_on_exception(assert_exists, args=[link.warc_storage_file()], exception=AssertionError, attempts=settings.WARC_AVAILABLE_RETRIES)
+            except AssertionError:
+                logger.error(f"Made {settings.WARC_AVAILABLE_RETRIES} attempts to get {link.guid}'s warc; still not available.")
+                # Let's consider this a HTTP 200, I think...
+                return render(request, 'archive/playback-delayed.html', context,  status=200)
         try:
             logger.info(f"Initializing play back of {link.guid}")
             wr_username = link.init_replay_for_user(request)
