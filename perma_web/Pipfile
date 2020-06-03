@@ -7,6 +7,7 @@ name = "pypi"
 
 # general
 celery = {version = "*", extras =["redis"]} # task queue
+future = ">=0.18.0"                         # undeclared dependency of celery 4.4.4; remove after next celery update
 Django = "~=2.2"
 django-ratelimit = "*"                      # IP-based rate-limiting
 "Fabric3" = "*"                             # task automation
