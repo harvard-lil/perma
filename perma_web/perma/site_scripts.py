@@ -1,15 +1,19 @@
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 
 def forbes_post_load(browser):
     # Wait for splash page to auto redirect
     from perma.tasks import repeat_until_truthy  # avoid circular import
-    current_url = browser.current_url
+    try:
+        current_url = browser.current_url
+    except TimeoutException:
+        return
+
     if '/welcome' in current_url:
         # attempt to click "Continue"
         try:
             browser.find_element_by_css_selector('.continue-button').click()
-        except NoSuchElementException:
+        except (NoSuchElementException, TimeoutException):
             pass
         # wait until URL changes
         repeat_until_truthy(lambda: browser.current_url != current_url)

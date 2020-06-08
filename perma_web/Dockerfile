@@ -39,12 +39,25 @@ RUN echo "deb http://httpredir.debian.org/debian buster main contrib" > /etc/apt
     && apt-get install -y ttf-mscorefonts-installer \
     && apt-get install -y fonts-roboto
 
-# PhantomJS
-RUN wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 \
-    && tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2 \
-    && mv phantomjs-2.1.1-linux-x86_64 /usr/local/share \
-    && ln -sf /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin \
-    && rm phantomjs-2.1.1-linux-x86_64.tar.bz2
+# Install Chrome
+# technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
+RUN apt-get update \
+    && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
+    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome*.deb \
+    && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
+    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
+    && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip \
+    && mv chromedriver /usr/bin/chromedriver \
+    && chmod +x /usr/bin/chromedriver
+
+# Install a cert for use by warcprox
+COPY services/warcprox/perma-warcprox-ca.pem /perma/perma_web
+RUN apt-get update && apt-get install libnss3-tools \
+    && mkdir -p $HOME/.pki/nssdb \
+    && certutil -d $HOME/.pki/nssdb -N --empty-password \
+    && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
 
 # Get Node 6 instead of version in APT repository.
 # Downloads an installation script, which ends by running
@@ -53,15 +66,15 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -y nodejs=6.14.4-1nodesource1
 
 # npm
-COPY npm-shrinkwrap.json /perma/perma_web
+COPY perma_web/npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
     && rm npm-shrinkwrap.json
 
 # python requirements via pipenv.
 # to access the virtualenv, invoke python like this: `pipenv run python`
 # COPY Pipfile though it is ignored, per https://github.com/pypa/pipenv/issues/2834
-COPY Pipfile /perma/perma_web
-COPY Pipfile.lock /perma/perma_web
+COPY perma_web/Pipfile /perma/perma_web
+COPY perma_web/Pipfile.lock /perma/perma_web
 RUN pip3 install -U pip \
     && pip install pipenv \
     && pipenv --python 3.7 install --ignore-pipfile --dev \

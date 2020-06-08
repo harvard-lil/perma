@@ -1,0 +1,6 @@
+**
+!perma_web/Dockerfile
+!perma_web/Pipfile
+!perma_web/Pipfile.lock
+!perma_web/npm-shrinkwrap.json
+!services/warcprox/perma-warcprox-ca.pem
