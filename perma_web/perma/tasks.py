@@ -257,6 +257,7 @@ def get_browser(user_agent, proxy_address, cert_path):
         download_dir = os.path.abspath('./downloads')
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument(f'user-agent={user_agent}')
         chrome_options.add_argument('proxy-server=%s' % proxy_address)
         chrome_options.add_argument('headless')
         chrome_options.add_argument('disable-gpu')
