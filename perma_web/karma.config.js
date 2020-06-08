@@ -12,7 +12,13 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     usePolling: true,
-    browsers: ['PhantomJS'],
+    browsers: ['chrome_with_flags'],
+    customLaunchers: {
+      chrome_with_flags: {
+        base: 'ChromeHeadless',
+        flags: ['--disable-web-security', '--disable-site-isolation-trials', '--no-sandbox']
+      }
+    },
     singleRun: false,
     autoWatchBatchDelay: 300,
 
