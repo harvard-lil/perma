@@ -260,12 +260,13 @@ def get_browser(user_agent, proxy_address, cert_path):
         chrome_options.add_argument('proxy-server=%s' % proxy_address)
         chrome_options.add_argument('headless')
         chrome_options.add_argument('disable-gpu')
-        chrome_options.add_argument('disable-dev-shm-usage')
         chrome_options.add_argument('no-sandbox')
         chrome_options.add_argument('hide-scrollbars')
         chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
                                                          "download.default_directory": download_dir,
                                                          "download.prompt_for_download": "false"})
+        if settings.DISABLE_DEV_SHM:
+            chrome_options.add_argument('disable-dev-shm-usage')
         desired_capabilities = chrome_options.to_capabilities()
         desired_capabilities["acceptSslCerts"] = True
         browser = webdriver.Chrome(desired_capabilities=desired_capabilities)
