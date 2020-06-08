@@ -39,7 +39,7 @@ RUN echo "deb http://httpredir.debian.org/debian buster main contrib" > /etc/apt
     && apt-get install -y ttf-mscorefonts-installer \
     && apt-get install -y fonts-roboto
 
-# Intall Chrome
+# Install Chrome
 # technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
 RUN apt-get update \
     && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
