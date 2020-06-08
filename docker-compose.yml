@@ -27,8 +27,10 @@ services:
     networks:
       - default
   web:
-    build: ./perma_web
-    image: perma3:0.50
+    build:
+      context: .
+      dockerfile: ./perma_web/Dockerfile
+    image: perma3:0.51
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -50,6 +52,10 @@ services:
       - ./services/cloudflare:/perma/services/cloudflare
       - ./services/django:/perma/services/django:delegated
       - ./services/logs:/perma/services/logs:delegated
+      - ./services/warcprox:/perma/services/warcprox:delegated
+    # give chrome lots of space for making big screenshots
+    # https://github.com/elgalu/docker-selenium/issues/20
+    shm_size: 2G
     environment:
       - DOCKERIZED=True
     extra_hosts:

@@ -559,7 +559,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 )
 
 
-CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
+CAPTURE_BROWSER = 'Chrome'  # formerly 'PhantomJS'; some support for 'Firefox'
 # Default user agent is adapted from the PhantomJS default
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) Safari/538.1"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
