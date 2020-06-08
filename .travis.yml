@@ -14,6 +14,9 @@ addons:
   hosts:
     - perma.test
     - perma-archives.test
+  apt:
+    packages:
+      - libnss3-tools
 
   # anything we might want to see from a failed build
   artifacts:
@@ -27,10 +30,19 @@ cache:
     - perma_web/node_modules
 
 before_install:
-  - mkdir travis-phantomjs
-  - wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2
-  - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
-  - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
+  # technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
+  - sudo apt-get update && sudo apt-get -y install google-chrome-stable
+  - CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/")
+  - CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}")
+  - wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip
+  - mv chromedriver ~/bin/chromedriver
+  - chmod +x ~/bin/chromedriver
+  # install certificate used by warcprox
+  - mkdir -p $HOME/.pki/nssdb
+  - certutil -d $HOME/.pki/nssdb -N --empty-password
+  - certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i services/warcprox/perma-warcprox-ca.pem
+  # settings
   - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
   - cd perma_web
 
