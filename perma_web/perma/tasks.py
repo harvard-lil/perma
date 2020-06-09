@@ -202,62 +202,9 @@ ProxyingRecordingHTTPResponse.begin = begin
 # monkey-patch the function freshly on each call of run_next_capture
 _real_proxy_request = WarcProxyHandler._proxy_request
 
-# patch warcprox's connection function to go through Tor whenever onion_tor_socks_proxy_host is set
+# get a copy of warcprox's connection function, which we can use to
+# monkey-patch the function freshly on each call of run_next_capture
 _orig_connect_to_remote_server = MitmProxyHandler._connect_to_remote_server
-def _connect_to_remote_server(self):
-    self._conn_pool = self.server.remote_connection_pool.connection_from_host(
-        host=self.hostname, port=int(self.port), scheme='http',
-        pool_kwargs={'maxsize': 12, 'timeout': self._socket_timeout})
-
-    remote_ip = None
-
-    self._remote_server_conn = self._conn_pool._get_conn()
-    if is_connection_dropped(self._remote_server_conn):
-        # Perma change:
-        # if self.onion_tor_socks_proxy_host and self.hostname.endswith('.onion'):
-        if self.onion_tor_socks_proxy_host:
-            self.logger.info(
-                    "using tor socks proxy at %s:%s to connect to %s",
-                    self.onion_tor_socks_proxy_host,
-                    self.onion_tor_socks_proxy_port or 1080, self.hostname)
-            self._remote_server_conn.sock = socks.socksocket()
-            self._remote_server_conn.sock.set_proxy(
-                    socks.SOCKS5, addr=self.onion_tor_socks_proxy_host,
-                    port=self.onion_tor_socks_proxy_port, rdns=True,
-                    username="user", password="whatever")
-            self._remote_server_conn.sock.settimeout(self._socket_timeout)
-            self._remote_server_conn.sock.connect((self.hostname, int(self.port)))
-        else:
-            self._remote_server_conn.connect()
-            remote_ip = self._remote_server_conn.sock.getpeername()[0]
-
-        # Wrap socket if SSL is required
-        if self.is_connect:
-            try:
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                self._remote_server_conn.sock = context.wrap_socket(
-                        self._remote_server_conn.sock,
-                        server_hostname=self.hostname)
-            except AttributeError:
-                try:
-                    self._remote_server_conn.sock = ssl.wrap_socket(
-                            self._remote_server_conn.sock)
-                except ssl.SSLError:
-                    self.logger.warning(
-                            "failed to establish ssl connection to %s; "
-                            "python ssl library does not support SNI, "
-                            "consider upgrading to python 2.7.9+ or 3.4+",
-                            self.hostname)
-                raise
-            except ssl.SSLError as e:
-                self.logger.error(
-                        'error connecting to %s (%s) port %s: %s',
-                        self.hostname, remote_ip, self.port, e)
-                raise
-    return self._remote_server_conn.sock
-MitmProxyHandler._connect_to_remote_server = _connect_to_remote_server
 
 # BROWSER HELPERS
 
@@ -1217,6 +1164,60 @@ def run_next_capture():
                     proxied_pairs.remove(proxied_pair)
 
         WarcProxyHandler._proxy_request = _proxy_request
+
+        # patch warcprox's  to go through Tor whenever onion_tor_socks_proxy_host is set
+        def _connect_to_remote_server(self):
+            self._conn_pool = self.server.remote_connection_pool.connection_from_host(
+                host=self.hostname, port=int(self.port), scheme='http',
+                pool_kwargs={'maxsize': 12, 'timeout': self._socket_timeout})
+
+            remote_ip = None
+
+            self._remote_server_conn = self._conn_pool._get_conn()
+            if is_connection_dropped(self._remote_server_conn):
+                if self.onion_tor_socks_proxy_host:  # Perma removed `and self.hostname.endswith('.onion')`
+                    self.logger.info(
+                            "using tor socks proxy at %s:%s to connect to %s",
+                            self.onion_tor_socks_proxy_host,
+                            self.onion_tor_socks_proxy_port or 1080, self.hostname)
+                    self._remote_server_conn.sock = socks.socksocket()
+                    self._remote_server_conn.sock.set_proxy(
+                            socks.SOCKS5, addr=self.onion_tor_socks_proxy_host,
+                            port=self.onion_tor_socks_proxy_port, rdns=True,
+                            username="user", password=link.guid)  # Perma added username and password, to force new IPs
+                    self._remote_server_conn.sock.settimeout(self._socket_timeout)
+                    self._remote_server_conn.sock.connect((self.hostname, int(self.port)))
+                else:
+                    self._remote_server_conn.connect()
+                    remote_ip = self._remote_server_conn.sock.getpeername()[0]
+
+                # Wrap socket if SSL is required
+                if self.is_connect:
+                    try:
+                        context = ssl.create_default_context()
+                        context.check_hostname = False
+                        context.verify_mode = ssl.CERT_NONE
+                        self._remote_server_conn.sock = context.wrap_socket(
+                                self._remote_server_conn.sock,
+                                server_hostname=self.hostname)
+                    except AttributeError:
+                        try:
+                            self._remote_server_conn.sock = ssl.wrap_socket(
+                                    self._remote_server_conn.sock)
+                        except ssl.SSLError:
+                            self.logger.warning(
+                                    "failed to establish ssl connection to %s; "
+                                    "python ssl library does not support SNI, "
+                                    "consider upgrading to python 2.7.9+ or 3.4+",
+                                    self.hostname)
+                        raise
+                    except ssl.SSLError as e:
+                        self.logger.error(
+                                'error connecting to %s (%s) port %s: %s',
+                                self.hostname, remote_ip, self.port, e)
+                        raise
+            return self._remote_server_conn.sock
+        MitmProxyHandler._connect_to_remote_server = _connect_to_remote_server
 
         # connect warcprox to an open port
         warcprox_port = 27500

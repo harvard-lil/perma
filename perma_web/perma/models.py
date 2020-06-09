@@ -16,6 +16,7 @@ import itertools
 import time
 import hmac
 import uuid
+import secrets
 
 from mptt.managers import TreeManager
 from rest_framework.settings import api_settings
@@ -1260,7 +1261,9 @@ class Link(DeletableModel):
         try:
             with requests.Session() as s:
                 if any(domain in self.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
-                    s.proxies = {'http':  'socks5://user:1@localhost:9050', 'https': 'socks5://user:1@localhost:9050'}
+                    password = self.guid if self.guid else secrets.token_urlsafe()
+                    s.proxies = {
+                        'http': f'socks5://user:{password}@localhost:9050', 'https': f'socks5://user:{password}@localhost:9050'}
                 request = requests.Request(
                     'GET',
                     self.ascii_safe_url,
