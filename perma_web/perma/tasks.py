@@ -223,7 +223,8 @@ def _connect_to_remote_server(self):
             self._remote_server_conn.sock = socks.socksocket()
             self._remote_server_conn.sock.set_proxy(
                     socks.SOCKS5, addr=self.onion_tor_socks_proxy_host,
-                    port=self.onion_tor_socks_proxy_port, rdns=True)
+                    port=self.onion_tor_socks_proxy_port, rdns=True,
+                    username="user", password="whatever")
             self._remote_server_conn.sock.settimeout(self._socket_timeout)
             self._remote_server_conn.sock.connect((self.hostname, int(self.port)))
         else:
