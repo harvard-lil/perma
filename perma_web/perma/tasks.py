@@ -33,6 +33,7 @@ from warcprox.controller import WarcproxController
 from warcprox.warcproxy import WarcProxyHandler
 from warcprox.mitmproxy import ProxyingRecordingHTTPResponse
 from warcprox.mitmproxy import http_client
+from warcprox.mitmproxy import MitmProxyHandler, socks, ssl
 import requests
 from requests.structures import CaseInsensitiveDict
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -201,6 +202,61 @@ ProxyingRecordingHTTPResponse.begin = begin
 # monkey-patch the function freshly on each call of run_next_capture
 _real_proxy_request = WarcProxyHandler._proxy_request
 
+# patch warcprox's connection function to go through Tor whenever onion_tor_socks_proxy_host is set
+_orig_connect_to_remote_server = MitmProxyHandler._connect_to_remote_server
+def _connect_to_remote_server(self):
+    self._conn_pool = self.server.remote_connection_pool.connection_from_host(
+        host=self.hostname, port=int(self.port), scheme='http',
+        pool_kwargs={'maxsize': 12, 'timeout': self._socket_timeout})
+
+    remote_ip = None
+
+    self._remote_server_conn = self._conn_pool._get_conn()
+    if is_connection_dropped(self._remote_server_conn):
+        # Perma change:
+        # if self.onion_tor_socks_proxy_host and self.hostname.endswith('.onion'):
+        if self.onion_tor_socks_proxy_host:
+            self.logger.info(
+                    "using tor socks proxy at %s:%s to connect to %s",
+                    self.onion_tor_socks_proxy_host,
+                    self.onion_tor_socks_proxy_port or 1080, self.hostname)
+            self._remote_server_conn.sock = socks.socksocket()
+            self._remote_server_conn.sock.set_proxy(
+                    socks.SOCKS5, addr=self.onion_tor_socks_proxy_host,
+                    port=self.onion_tor_socks_proxy_port, rdns=True)
+            self._remote_server_conn.sock.settimeout(self._socket_timeout)
+            self._remote_server_conn.sock.connect((self.hostname, int(self.port)))
+        else:
+            self._remote_server_conn.connect()
+            remote_ip = self._remote_server_conn.sock.getpeername()[0]
+
+        # Wrap socket if SSL is required
+        if self.is_connect:
+            try:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                self._remote_server_conn.sock = context.wrap_socket(
+                        self._remote_server_conn.sock,
+                        server_hostname=self.hostname)
+            except AttributeError:
+                try:
+                    self._remote_server_conn.sock = ssl.wrap_socket(
+                            self._remote_server_conn.sock)
+                except ssl.SSLError:
+                    self.logger.warning(
+                            "failed to establish ssl connection to %s; "
+                            "python ssl library does not support SNI, "
+                            "consider upgrading to python 2.7.9+ or 3.4+",
+                            self.hostname)
+                raise
+            except ssl.SSLError as e:
+                self.logger.error(
+                        'error connecting to %s (%s) port %s: %s',
+                        self.hostname, remote_ip, self.port, e)
+                raise
+    return self._remote_server_conn.sock
+MitmProxyHandler._connect_to_remote_server = _connect_to_remote_server
 
 # BROWSER HELPERS
 
@@ -950,11 +1006,16 @@ def run_next_capture():
         successful_favicon_urls = []
         requested_urls = set()  # all URLs we have requested -- used to avoid duplicate requests
         stop = False
+        proxy = False
 
         capture_user_agent = settings.CAPTURE_USER_AGENT
         if any(domain in link.url_details.netloc for domain in settings.DOMAINS_REQUIRING_UNIQUE_USER_AGENT):
             capture_user_agent = capture_user_agent + " " + settings.PERMA_USER_AGENT_SUFFIX
         print("Using user-agent: %s" % capture_user_agent)
+
+        if any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
+            proxy = True
+            print("Using proxy.")
 
         # A default title is added in models.py, if an api user has not specified a title.
         # Make sure not to override it during the capture process.
@@ -1170,7 +1231,8 @@ def run_next_capture():
                     dedup_db_file="",
                     directory="./warcs", # default, included so we can retrieve from options object
                     warc_filename=link.guid,
-                    cacert=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem')
+                    cacert=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem'),
+                    onion_tor_socks_proxy='localhost:9050' if proxy else None
                 )
                 warcprox_controller = WarcproxController(options)
                 break
