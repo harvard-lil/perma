@@ -240,21 +240,21 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     validate(temp_link.ascii_safe_url)
 
                     # Don't force URL resolution validation if a file is provided
-                    # if not uploaded_file:
-                    #     if not temp_link.ip:
-                    #         errors['url'] = "Couldn't resolve domain."
-                    #     elif not ip_in_allowed_ip_range(temp_link.ip):
-                    #         errors['url'] = "Not a valid IP."
-                    #     elif not temp_link.headers:
-                    #         errors['url'] = "Couldn't load URL."
-                    #     else:
-                    #         # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
-                    #         try:
-                    #             if int(temp_link.headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
-                    #                 errors['url'] = "Target page is too large (max size %sMB)." % (settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024)
-                    #         except ValueError:
-                    #             # content-length header wasn't an integer. Carry on.
-                    #             pass
+                    if not uploaded_file:
+                        if not temp_link.ip:
+                            errors['url'] = "Couldn't resolve domain."
+                        elif not ip_in_allowed_ip_range(temp_link.ip):
+                            errors['url'] = "Not a valid IP."
+                        elif not temp_link.headers:
+                            errors['url'] = "Couldn't load URL."
+                        else:
+                            # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
+                            try:
+                                if int(temp_link.headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
+                                    errors['url'] = "Target page is too large (max size %sMB)." % (settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024)
+                            except ValueError:
+                                # content-length header wasn't an integer. Carry on.
+                                pass
                 except DjangoValidationError:
                     errors['url'] = "Not a valid URL."
                 except TooManyRedirects:
