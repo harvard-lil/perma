@@ -961,7 +961,7 @@ def run_next_capture():
             capture_user_agent = capture_user_agent + " " + settings.PERMA_USER_AGENT_SUFFIX
         print("Using user-agent: %s" % capture_user_agent)
 
-        if any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
+        if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
             proxy = True
             print("Using proxy.")
 
@@ -1165,7 +1165,7 @@ def run_next_capture():
 
         WarcProxyHandler._proxy_request = _proxy_request
 
-        # patch warcprox's  to go through Tor whenever onion_tor_socks_proxy_host is set
+        # patch warcprox's  to go through proxy whenever onion_tor_socks_proxy_host is set
         def _connect_to_remote_server(self):
             self._conn_pool = self.server.remote_connection_pool.connection_from_host(
                 host=self.hostname, port=int(self.port), scheme='http',
@@ -1234,7 +1234,7 @@ def run_next_capture():
                     directory="./warcs", # default, included so we can retrieve from options object
                     warc_filename=link.guid,
                     cacert=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem'),
-                    onion_tor_socks_proxy='localhost:9050' if proxy else None
+                    onion_tor_socks_proxy=settings.PROXY_ADDRESS if proxy else None
                 )
                 warcprox_controller = WarcproxController(options)
                 break
