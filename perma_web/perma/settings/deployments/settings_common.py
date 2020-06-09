@@ -565,6 +565,9 @@ DISABLE_DEV_SHM = False
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
+PROXY_CAPTURES = False
+PROXY_ADDRESS = 'localhost:9050'
+DOMAINS_TO_PROXY = []
 CAPTURE_HEADERS = {
     "Accept": "*/*",
     "Accept-Encoding": "*",

@@ -59,6 +59,9 @@ RUN apt-get update && apt-get install libnss3-tools \
     && certutil -d $HOME/.pki/nssdb -N --empty-password \
     && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
 
+# Install Tor, for optional use as a proxy
+RUN apt-get update && apt-get install -y tor
+
 # Get Node 6 instead of version in APT repository.
 # Downloads an installation script, which ends by running
 # apt-get update: no need to re-run at this layer
