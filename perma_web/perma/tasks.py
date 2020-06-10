@@ -1371,8 +1371,11 @@ def run_next_capture():
                 for media_url in media_urls - requested_urls:
                     add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url, requested_urls, proxied_responses, capture_user_agent))
 
-        # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
+        # Wait AFTER_LOAD_TIMEOUT seconds for any requests that are started shortly to finish
         inc_progress(capture_job, 1, "Waiting for post-load requests")
+        # everything is slower via the proxy; give it time to catch up
+        if proxy:
+            time.sleep(settings.PROXY_POST_LOAD_DELAY)
         unfinished_proxied_pairs = [pair for pair in proxied_pairs if not pair[1]]
         load_time = time.time()
         with browser_running(browser):

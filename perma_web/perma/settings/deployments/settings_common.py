@@ -568,6 +568,7 @@ DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
 PROXY_CAPTURES = False
 PROXY_ADDRESS = 'localhost:9050'
 DOMAINS_TO_PROXY = []
+PROXY_POST_LOAD_DELAY = 5
 CAPTURE_HEADERS = {
     "Accept": "*/*",
     "Accept-Encoding": "*",
