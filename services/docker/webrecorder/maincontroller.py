@@ -1,4 +1,4 @@
-from bottle import debug, request, response, redirect, BaseRequest
+from bottle import debug, request, response, redirect, BaseRequest, static_file
 
 import logging
 import json
@@ -32,6 +32,7 @@ from webrecorder.downloadcontroller import DownloadController
 from webrecorder.uploadcontroller import UploadController
 from webrecorder.appcontroller import AppController
 from webrecorder.autocontroller import AutoController
+from webrecorder.behaviormgr import BehaviorMgr
 
 from webrecorder.browsermanager import BrowserManager
 
@@ -69,6 +70,7 @@ class MainController(BaseController):
                        CollsController,
                        ListsController,
                        AutoController,
+                       BehaviorMgr,
                       ]
 
 
@@ -379,17 +381,10 @@ class MainController(BaseController):
 
         @self.bottle_app.route(['/static/<path:path>', '/static_cors/<path:path>'])
         def static_files(path):
-            filename = path.split('?', 1)[0]
-            filename = os.path.join(self.static_root, filename)
-            if not os.path.isfile(filename):
-                response.status = 404
-                return
-
-            with open(filename, 'rt') as fh:
-                res = fh.read()
+            res = static_file(path, root=self.static_root)
 
             if 'HTTP_ORIGIN' in request.environ:
-                self.set_options_headers(None, None)
+                self.set_options_headers(None, None, res)
 
             return res
 
@@ -400,10 +395,15 @@ class MainController(BaseController):
             self.flash_message(message, msg_type)
             return {}
 
-        @self.bottle_app.route('/api/v1')
-        def get_api_spec():
+        @self.bottle_app.route('/api/v1.yml')
+        def get_api_spec_yaml():
             response.content_type = 'text/yaml'
-            return wr_api_spec.get_api_spec_yaml()
+            return wr_api_spec.get_api_spec_yaml(self.access.is_superuser())
+
+        @self.bottle_app.route('/api/v1.json')
+        def get_api_spec_json():
+            response.content_type = 'application/json'
+            return json.dumps(wr_api_spec.get_api_spec_dict(self.access.is_superuser()))
 
         @self.bottle_app.route('/<:re:.*>', method='ANY')
         def fallthrough():
