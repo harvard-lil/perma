@@ -1704,7 +1704,7 @@ def verify_webrecorder_api_available():
     Necessary because the api should not be exposed to the public internet.
     """
     r = requests.get(
-        settings.WR_API,
+        f'{settings.WR_API}.yml',
         timeout=5,
         allow_redirects=False
     )
