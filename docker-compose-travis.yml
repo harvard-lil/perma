@@ -19,7 +19,7 @@ services:
   # Webrecorder
   #
   app:
-    image: harvardlil/webrecorder:0.10
+    image: harvardlil/webrecorder:0.11
     command: uwsgi /code/apps/apiapp.ini
     environment:
       - APP_HOST=perma-archives.test:8089
@@ -34,17 +34,12 @@ services:
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
       - ./services/docker/webrecorder/contentcontroller.py:/code/webrecorder/contentcontroller.py:ro
       # Temporary patches for webrecorder
-      - ./services/docker/webrecorder/session.py:/code/webrecorder/session.py:ro
       - ./services/docker/webrecorder/maincontroller.py:/code/webrecorder/maincontroller.py:ro
-      # Temporary patches for pywb
-      - ./services/docker/webrecorder/app_main.py:/code/webrecorder/main.py:ro
-      # Temporary patches for warcio
-      - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder
 
   recorder:
-    image: harvardlil/webrecorder:0.10
+    image: harvardlil/webrecorder:0.11
     user: root
     entrypoint:
       - "/docker-entrypoint.sh"
@@ -62,15 +57,11 @@ services:
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       # Temporary patches for webrecorder
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
-      # Temporary patches for pywb
-      - ./services/docker/webrecorder/recorder_main.py:/code/webrecorder/rec/main.py:ro
-      # Temporary patches for warcio
-      - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder
 
   warcserver:
-    image: harvardlil/webrecorder:0.10
+    image: harvardlil/webrecorder:0.11
     command: uwsgi /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -79,8 +70,6 @@ services:
     volumes:
       - wr_warcs:/data/warcs:ro
       - ./services/docker/webrecorder/wr-custom.yaml:/code/webrecorder/config/wr-custom.yaml:ro
-      # Temporary patches for warcio
-      - ./services/docker/webrecorder/recordloader.py:/usr/local/lib/python3.7/site-packages/warcio/recordloader.py:ro
     networks:
       - webrecorder
 
