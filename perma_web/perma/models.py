@@ -911,8 +911,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         if unlimited is None:
             unlimited = self.unlimited
 
-        # exclude sponsored links and links associated with an org
-        personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None)
+        # exclude bonus links, sponsored links and links associated with an org
+        personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None).exclude(bonus_link=True)
 
         if unlimited:
             # UNLIMITED (paid or sponsored)
@@ -945,16 +945,17 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def get_links_remaining(self):
         """
             Calculate how many personal links remain.
-            Returns a tuple: (links, applicable period)
+            Returns a tuple: (links, applicable period, bonus links)
         """
         # Special handling for non-trial users who lack active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.in_trial and not self.nonpaying and self.subscription_status != 'active':
-            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
-        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links if self.bonus_links else 0)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links if self.bonus_links else 0)
 
     def link_creation_allowed(self):
-        return self.get_links_remaining()[0] > 0
+        links_remaining = self.get_links_remaining()
+        return links_remaining[0] > 0 or links_remaining[2] > 0
 
     def can_view_subscription(self):
         """

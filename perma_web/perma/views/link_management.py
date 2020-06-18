@@ -42,7 +42,7 @@ def create_link(request):
     links_remaining = request.user.get_links_remaining()
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
-        'links_remaining': 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0],
+        'links_remaining': 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0] + links_remaining[2],
         'links_remaining_period': links_remaining[1],
         'link_creation_allowed': request.user.link_creation_allowed(),
         'suppress_reminder': 'true' if 'url' in request.GET else request.COOKIES.get('suppress_reminder'),

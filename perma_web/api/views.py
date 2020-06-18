@@ -3,6 +3,7 @@ import csv
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
+from django.db import transaction
 from django.http import Http404, HttpResponse
 from mptt.exceptions import InvalidMove
 from rest_framework import status
@@ -408,7 +409,25 @@ class AuthenticatedLinkListView(BaseView):
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
 
-            link = serializer.save(created_by=request.user)
+            with transaction.atomic():
+                # Technique from https://github.com/harvard-lil/capstone/blob/0f7fb80f26e753e36e0c7a6a199b8fdccdd318be/capstone/capapi/serializers.py#L121
+                #
+                # Fetch the current user data here inside a transaction, using select_for_update
+                # to lock the row so we don't collide with any simultaneous requests
+                user = request.user.__class__.objects.select_for_update().get(pk=request.user.pk)
+
+                # If this is a Personal Link, and if the user only has bonus links left, decrement bonus links
+                bonus_link = False
+                if not folder.organization and not folder.sponsored_by:
+                    links_remaining = user.get_links_remaining()
+                    if links_remaining[2] and not links_remaining[0]:
+                        # (this works because it's part of the same transaction with the select_for_update --
+                        # we don't have to use the same object)
+                        request.user.bonus_links = links_remaining[2] - 1
+                        request.user.save(update_fields=['bonus_links'])
+                        bonus_link = True
+
+                link = serializer.save(created_by=request.user, bonus_link=bonus_link)
 
             # put link in folder and handle Org settings based on folder
             if folder.organization and folder.organization.default_to_private:
