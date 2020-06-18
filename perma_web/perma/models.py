@@ -190,6 +190,7 @@ class CustomerModel(models.Model):
     unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
     link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
     link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
+    bonus_links = models.PositiveIntegerField(blank=True, null=True)
 
     @cached_property
     def customer_type(self):
@@ -1192,6 +1193,7 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
+    bonus_link = models.BooleanField(null=True, blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
