@@ -1373,7 +1373,12 @@ class Link(DeletableModel):
                 self.organization = None
             else:
                 self.organization = folder.organization
-            self.save(update_fields=['organization'])
+            if self.bonus_link and (folder.organization or folder.sponsored_by):
+                self.bonus_link = False
+                user.bonus_links = user.bonus_links + 1
+
+            self.save(update_fields=['organization', 'bonus_link'])
+            user.save(update_fields=['bonus_links'])
 
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.
