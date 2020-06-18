@@ -1704,12 +1704,12 @@ def verify_webrecorder_api_available():
     Necessary because the api should not be exposed to the public internet.
     """
     r = requests.get(
-        f'{settings.WR_API}.yml',
-        timeout=5,
+        f'{settings.WR_API}.json',
+        timeout=10,
         allow_redirects=False
     )
     r.raise_for_status()
-    assert "description: Webrecorder API" in r.text
+    assert "Webrecorder API" in r.text
 
 
 @shared_task()
