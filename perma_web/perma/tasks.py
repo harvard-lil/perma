@@ -1705,7 +1705,7 @@ def verify_webrecorder_api_available():
     """
     r = requests.get(
         f'{settings.WR_API}.yml',
-        timeout=5,
+        timeout=10,
         allow_redirects=False
     )
     r.raise_for_status()
