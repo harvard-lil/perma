@@ -1076,6 +1076,15 @@ class Folder(MPTTModel):
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
             else:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
+            # credit users for any bonus links they are due
+            if self.parent.organization_id or self.parent.sponsored_by_id:
+                bonus_links = Link.objects.filter(bonus_link=True, folders__in=self.get_descendants(include_self=True))
+                if bonus_links:
+                    user = bonus_links[0].created_by
+                    count = bonus_links.update(bonus_link=False)
+                    user.bonus_links = user.bonus_links + count
+                    user.save(update_fields=['bonus_links'])
+
 
     class MPTTMeta:
         order_insertion_by = ['name']
