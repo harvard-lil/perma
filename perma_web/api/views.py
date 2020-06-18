@@ -585,10 +585,15 @@ class AuthenticatedLinkDetailView(BaseView):
         if link.has_capture_job() and link.capture_job.status ==  'in_progress' :
             raise_general_validation_error("Capture in progress: please wait until complete before deleting.")
 
-        link.delete_related_captures()
-        link.cached_can_play_back = False
-        link.safe_delete()
-        link.save()
+        with transaction.atomic():
+            link.delete_related_captures()
+            link.cached_can_play_back = False
+            link.safe_delete()
+            link.save()
+
+            if link.bonus_link:
+                link.created_by.bonus_links = link.created_by.bonus_links + 1
+                link.created_by.save(update_fields=['bonus_links'])
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
