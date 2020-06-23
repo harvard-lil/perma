@@ -84,6 +84,7 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
 }
 
 PURCHASE_URL = '/purchase/'
+ACKNOWLEDGE_PURCHASE_URL = '/acknowledge-purchase/'
 SUBSCRIBE_URL = '/subscribe/'
 CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'

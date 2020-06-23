@@ -26,7 +26,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
@@ -60,6 +60,7 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_pk',
         'customer_type',
         'subscription',
+        'purchases'
     ]
 }
 
@@ -224,6 +225,34 @@ class CustomerModel(models.Model):
             msg = "Unexpected response from Perma-Payments."
             logger.error(msg)
             raise InvalidTransmissionException(msg)
+
+        #
+        # First, credit the user for any bonus links they have purchased.
+        #
+        for purchase in post_data['purchases']:
+            with transaction.atomic():
+                self.bonus_links = self.bonus_links + int(purchase["link_quantity"])
+                self.save(update_fields=['bonus_links'])
+                try:
+                    r = requests.post(
+                        settings.ACKNOWLEDGE_PURCHASE_URL,
+                        data={
+                            'encrypted_data': prep_for_perma_payments({
+                                'timestamp': datetime.utcnow().timestamp(),
+                                'purchase_pk':  purchase['id']
+                            })
+                        }
+                    )
+                    assert r.ok
+                except (requests.RequestException, AssertionError) as e:
+                    msg = "Communication with Perma-Payments failed: {}".format(str(e))
+                    logger.error(msg)
+                    raise PermaPaymentsCommunicationException(msg)
+
+
+        #
+        # Then, handle subscription-related concerns
+        #
 
         if post_data['subscription'] is None:
             if self.cached_subscription_started:
