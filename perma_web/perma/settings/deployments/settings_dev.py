@@ -70,6 +70,7 @@ THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.cached_db_kvstore.KVStore'
 #
 # Perma Payments
 #
+PURCHASE_URL = 'http://localhost/purchase/'
 SUBSCRIBE_URL = 'http://localhost/subscribe/'
 CANCEL_URL = 'http://localhost/cancel-request/'
 SUBSCRIPTION_STATUS_URL = 'http://perma-payments/subscription/'

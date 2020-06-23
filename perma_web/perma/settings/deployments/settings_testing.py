@@ -83,6 +83,7 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_payments_public_key': 'DG8o9cS5Lgeuu7XAF08sw0aOX7mJFu9TVEtdrrBQHDY=',
 }
 
+PURCHASE_URL = '/purchase/'
 SUBSCRIBE_URL = '/subscribe/'
 CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'

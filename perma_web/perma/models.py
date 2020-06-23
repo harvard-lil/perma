@@ -431,6 +431,25 @@ class CustomerModel(models.Model):
             'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade', 'cancel_downgrade'] for tier in tiers)
         }
 
+    def get_bonus_packages(self):
+        bonus_packages = []
+        for package in settings.BONUS_PACKAGES:
+            required_fields = {
+                'timestamp': datetime.utcnow().timestamp(),
+                'customer_pk':  self.pk,
+                'customer_type': self.customer_type,
+                'amount': package['price'],
+                'link_quantity': package['link_quantity']
+            }
+            bonus_packages.append({
+                'amount': required_fields['amount'],
+                'link_quantity': required_fields['link_quantity'],
+                'unit_cost': float(required_fields['amount']) / int(required_fields['link_quantity']),
+                'encrypted_data': prep_for_perma_payments(required_fields).decode('utf-8')
+            })
+        return bonus_packages
+
+
     @cached_property
     def subscription_status(self):
         try:
