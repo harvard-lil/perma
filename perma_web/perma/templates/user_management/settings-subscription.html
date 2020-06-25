@@ -11,7 +11,7 @@
 
   <div class="row">
     {% for package in bonus_packages %}
-      <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
+      <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
           <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
           <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
       </form>

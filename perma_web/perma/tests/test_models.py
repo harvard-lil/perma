@@ -153,7 +153,8 @@ def spoof_pp_response_no_subscription(customer):
     return {
         "customer_pk": customer.pk,
         "customer_type": customer.customer_type,
-        "subscription": None
+        "subscription": None,
+        "purchases": []
     }
 
 def spoof_pp_response_subscription(customer):
@@ -168,7 +169,8 @@ def spoof_pp_response_subscription(customer):
             "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
             "link_limit": "unlimited"
 
-        }
+        },
+        "purchases": []
     }
 
 def spoof_pp_response_subscription_with_pending_change(customer):
@@ -183,7 +185,8 @@ def spoof_pp_response_subscription_with_pending_change(customer):
             "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
             "link_limit": "unlimited"
 
-        }
+        },
+        "purchases": []
     }
     assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
     return response
@@ -1264,7 +1267,7 @@ class ModelsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_allowed_if_nonpaying_and_under_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = (1, 'some period')
+        get_links_remaining.return_value = (1, 'some period', 0)
         user = nonpaying_user()
         self.assertTrue(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 0)
@@ -1274,7 +1277,7 @@ class ModelsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_user_link_creation_denied_if_nonpaying_and_over_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = (0, 'some period')
+        get_links_remaining.return_value = (0, 'some period', 0)
         user = nonpaying_user()
         self.assertFalse(user.link_creation_allowed())
         self.assertEqual(get_subscription.call_count, 0)

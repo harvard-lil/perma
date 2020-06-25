@@ -42,7 +42,7 @@ def spoof_current_monthly_subscription_with_scheduled_downgrade():
             "rate": "1.00",
             "link_limit": 1,
             "effective": GENESIS.replace(year=9999)
-        }
+        },
     }
 
 def spoof_on_hold_monthly_subscription():
@@ -1234,9 +1234,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
+        individual_tier_count = len(settings.TIERS['Individual'])
+        bonus_package_count = len(settings.BONUS_PACKAGES)
+        self.assertIn(b'Get More Personal Links', r.content)
         self.assertIn(b'Purchase a personal subscription', r.content)
-        self.assertIn(b'<form class="upgrade-form', r.content)
-        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        self.assertIn(b'<form class="purchase-form', r.content, bonus_package_count)
+        self.assertIn(b'<form class="upgrade-form', r.content, individual_tier_count)
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content, individual_tier_count + bonus_package_count)
         self.assertIn(prepped.return_value, r.content)
         get_subscription.assert_called_once_with(u)
 
@@ -1283,7 +1287,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         r = self.get('user_management_settings_subscription',
                       user=u)
 
-        self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
+        bonus_package_count = len(settings.BONUS_PACKAGES)
+        self.assertIn(b'Get More Personal Links', r.content)
+        self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content, bonus_package_count)
         self.assertIn(b'received the request to cancel', r.content)
         get_subscription.assert_called_once_with(u)
 
@@ -1450,11 +1456,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Individual tiers should be available; no registrar section should be present
 
         individual_tier_count = len(settings.TIERS['Individual'])
+        bonus_package_count = len(settings.BONUS_PACKAGES)
+        self.assertIn(b'Get More Personal Links', r.content)
         self.assertIn(b'Purchase a personal subscription', r.content)
         self.assertNotIn(b'Purchase a subscription for Test Firm', r.content)
+        self.assertContains(r, '<form class="purchase-form', bonus_package_count)
         self.assertContains(r, '<form class="upgrade-form', individual_tier_count)
-        self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count)
-        self.assertContains(r, prepped.return_value, individual_tier_count)
+        self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count + bonus_package_count)
+        self.assertContains(r, prepped.return_value, individual_tier_count + bonus_package_count)
 
         get_subscription_u.assert_called_once_with(u)
         self.assertEqual(get_subscription_r.call_count, 0)
@@ -1474,11 +1483,14 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # all tiers should be offered, both individual and registrar-level
         tier_count = len(settings.TIERS['Individual']) + len(settings.TIERS['Registrar'])
+        bonus_package_count = len(settings.BONUS_PACKAGES)
+        self.assertIn(b'Get More Personal Links', r.content)
         self.assertIn(b'Purchase a personal subscription', r.content)
         self.assertIn(b'Purchase a subscription for Test Firm', r.content)
+        self.assertContains(r, '<form class="purchase-form', bonus_package_count)
         self.assertContains(r, '<form class="upgrade-form', tier_count)
-        self.assertContains(r, '<input type="hidden" name="encrypted_data"', tier_count)
-        self.assertContains(r, prepped.return_value, tier_count)
+        self.assertContains(r, '<input type="hidden" name="encrypted_data"', tier_count + bonus_package_count)
+        self.assertContains(r, prepped.return_value, tier_count + bonus_package_count)
         get_subscription_u.assert_called_once_with(u)
         get_subscription_r.assert_called_once_with(u.registrar)
 
@@ -1499,11 +1511,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Individual tiers should be available; the registrar's subscription should be present
 
         individual_tier_count = len(settings.TIERS['Individual'])
+        bonus_package_count = len(settings.BONUS_PACKAGES)
+        self.assertIn(b'Get More Personal Links', r.content)
         self.assertIn(b'Purchase a personal subscription', r.content)
         self.assertNotIn(b'Purchase a subscription for Test Firm', r.content)
+        self.assertContains(r, '<form class="purchase-form', bonus_package_count)
         self.assertContains(r, '<form class="upgrade-form', individual_tier_count)
-        self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count)
-        self.assertContains(r, prepped.return_value, individual_tier_count)
+        self.assertContains(r, '<input type="hidden" name="encrypted_data"', individual_tier_count + bonus_package_count)
+        self.assertContains(r, prepped.return_value, individual_tier_count+ bonus_package_count)
 
         self.assertIn(b'Rate', r.content)
         self.assertIn(b'Paid Through', r.content)
