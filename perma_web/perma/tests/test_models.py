@@ -6,7 +6,7 @@ from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 
-from mock import patch, sentinel, Mock
+from mock import patch, sentinel
 
 from perma.exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 import perma.models
@@ -519,7 +519,7 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_no_subscription(self, post, process):
         post.return_value.status_code = 200
         for customer in customers():
-           with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
                 # artificially set this for the purpose of this test
                 customer.cached_subscription_started = timezone.now()
                 customer.save()
