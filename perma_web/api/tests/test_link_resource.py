@@ -390,6 +390,133 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                              data={'url': self.server_url.split("//")[1] + "/test.html"},
                              user=self.org_user)
 
+
+    def test_should_not_use_bonus_link_if_regular_limit_is_available(self):
+        # give our user a bonus link
+        user = self.org_user
+        user.bonus_links = 1
+        user.save(update_fields=['bonus_links'])
+        user.refresh_from_db()
+
+        # establish baselines
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 9)
+        self.assertEqual(bonus_links, 1)
+
+        # make a link
+        target_folder = self.org_user.root_folder
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=user)
+        link = Link.objects.get(guid=obj['guid'])
+        user.refresh_from_db()
+
+        # assertions
+        self.assertFalse(link.bonus_link)
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 8)
+        self.assertEqual(bonus_links, 1)
+
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+    def test_should_use_bonus_link_if_available_and_regular_limit_met(self, remaining):
+        # give our user a bonus link, but nothing else remaining
+        user = self.org_user
+        user.bonus_links = 1
+        user.save(update_fields=['bonus_links'])
+        user.refresh_from_db()
+        remaining.return_value = 0
+
+        # establish baselines
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 1)
+
+        # make a link
+        target_folder = self.org_user.root_folder
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=user)
+        link = Link.objects.get(guid=obj['guid'])
+        user.refresh_from_db()
+
+        # assertions
+        self.assertTrue(link.bonus_link)
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 0)
+
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+    def test_should_not_use_bonus_link_in_sponsored_folder(self, remaining):
+        # give our user a bonus link, but nothing else remaining
+        user = self.sponsored_user
+        user.bonus_links = 1
+        user.save(update_fields=['bonus_links'])
+        user.refresh_from_db()
+        remaining.return_value = 0
+
+        # establish baselines
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 1)
+
+        # make a link
+        target_folder = user.folders.get(name="Test Library")
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=user)
+        link = Link.objects.get(guid=obj['guid'])
+        user.refresh_from_db()
+
+        # assert nothing has changed
+        self.assertFalse(link.bonus_link)
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 1)
+
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+    def test_should_not_use_bonus_link_in_org_folder(self, remaining):
+        # give our user a bonus link, but nothing else remaining
+        user = self.org_user
+        user.bonus_links = 1
+        user.save(update_fields=['bonus_links'])
+        user.refresh_from_db()
+        remaining.return_value = 0
+
+        # establish baselines
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 1)
+
+        # make a link
+        target_folder = Folder.objects.get(name="Test Journal")
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=user)
+        link = Link.objects.get(guid=obj['guid'])
+        user.refresh_from_db()
+
+        # assert nothing has changed
+        self.assertFalse(link.bonus_link)
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 0)
+        self.assertEqual(bonus_links, 1)
+
+
     def test_should_dark_archive_when_perma_noarchive_in_html(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/perma-noarchive.html"},
@@ -596,6 +723,26 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             new_link = Link.objects.get(guid=obj['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
             self.successful_delete(new_link_url, user=self.org_user)
+
+    def test_delete_bonus_link(self):
+        # make a bonus link here, rather than messing with the fixtures
+        bonus_link = Link(created_by=self.regular_user, bonus_link=True)
+        bonus_link.save()
+        bonus_link_url = "{0}/{1}".format(self.list_url, bonus_link.pk)
+
+        # establish baseline
+        links_remaining, _ , bonus_links = self.regular_user.get_links_remaining()
+        self.assertEqual(links_remaining, 6)
+        self.assertEqual(bonus_links, 0)
+
+        # delete the bonus link
+        self.successful_delete(bonus_link_url, user=self.regular_user)
+        self.regular_user.refresh_from_db()
+
+        # assertions
+        links_remaining, links_remaining_period, bonus_links = self.regular_user.get_links_remaining()
+        self.assertEqual(links_remaining, 6)
+        self.assertEqual(bonus_links, 1)
 
 
     ####################

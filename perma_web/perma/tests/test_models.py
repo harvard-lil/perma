@@ -6,13 +6,14 @@ from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 
-from mock import patch, sentinel
+from mock import patch, sentinel, Mock
 
 from perma.exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
+import perma.models
 from perma.models import (
     ACTIVE_SUBSCRIPTION_STATUSES,
     FIELDS_REQUIRED_FROM_PERMA_PAYMENTS,
-    Link, LinkUser, Organization, Registrar, Folder,
+    Link, LinkUser, Organization, Registrar, Folder, Sponsorship,
     link_count_in_time_period,
     most_active_org_in_time_period,
     subscription_is_active
@@ -132,6 +133,20 @@ def user_with_links_this_month_before_the_15th():
         link.save()
     return user
 
+def complex_user_with_bonus_link(in_subfolder=False):
+    user = LinkUser(link_limit=2, bonus_links=0)
+    user.save()
+    user.organizations.add(Organization.objects.get(pk=1))
+    sponsorship = Sponsorship(registrar=Registrar.objects.get(pk=1), user=user, created_by=user)
+    sponsorship.save()
+    subfolder = Folder(parent=user.top_level_folders()[0], name='Subfolder')
+    subfolder.save()
+    bonus_link = Link(created_by=user, bonus_link=True)
+    bonus_link.save()
+    if in_subfolder:
+        bonus_link.move_to_folder_for_user(subfolder, user)
+    user.refresh_from_db()
+    return user, bonus_link
 
 def spoof_pp_response_wrong_pk(customer):
     data = {
@@ -155,6 +170,20 @@ def spoof_pp_response_no_subscription(customer):
         "customer_type": customer.customer_type,
         "subscription": None,
         "purchases": []
+    }
+
+def spoof_pp_response_no_subscription_two_purchases(customer):
+    return {
+        "customer_pk": customer.pk,
+        "customer_type": customer.customer_type,
+        "subscription": None,
+        "purchases": [{
+            "id": 1,
+            "link_quantity": "10"
+        },{
+            "id": 2,
+            "link_quantity": "50"
+        }]
     }
 
 def spoof_pp_response_subscription(customer):
@@ -424,7 +453,6 @@ class ModelsTestCase(PermaTestCase):
     # Related to Perma Payments
     #
 
-
     @patch('perma.models.requests.post', autospec=True)
     def test_get_subscription_none_and_no_network_call_if_nonpaying(self, post):
         # also verify that their value of in_trial is unchanged by the call
@@ -491,17 +519,34 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_no_subscription(self, post, process):
         post.return_value.status_code = 200
         for customer in customers():
-            # artificially set this for the purpose of this test
-            customer.cached_subscription_started = timezone.now()
-            customer.save()
-            customer.refresh_from_db()
-            self.assertTrue(customer.cached_subscription_started)
+           with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+                # artificially set this for the purpose of this test
+                customer.cached_subscription_started = timezone.now()
+                customer.save()
+                customer.refresh_from_db()
+                self.assertTrue(customer.cached_subscription_started)
 
-            process.return_value = spoof_pp_response_no_subscription(customer)
-            self.assertIsNone(customer.get_subscription())
-            self.assertFalse(customer.cached_subscription_started)
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
+                process.return_value = spoof_pp_response_no_subscription(customer)
+                self.assertIsNone(customer.get_subscription())
+                self.assertFalse(customer.cached_subscription_started)
+                self.assertEqual(post.call_count, 1)
+                self.assertEqual(credited.call_count, 0)
+                post.reset_mock()
+
+
+    @patch('perma.models.process_perma_payments_transmission', autospec=True)
+    @patch('perma.models.requests.post', autospec=True)
+    def test_get_subscription_no_subscription_purchased_bonus(self, post, process):
+        post.return_value.status_code = 200
+        for customer in customers():
+            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+                from_pp = spoof_pp_response_no_subscription_two_purchases(customer)
+                process.return_value = from_pp
+                self.assertIsNone(customer.get_subscription())
+                self.assertFalse(customer.cached_subscription_started)
+                self.assertEqual(post.call_count, 1)
+                credited.assert_called_once_with(from_pp['purchases'])
+                post.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
@@ -531,21 +576,23 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_happy_path_no_change_pending(self, post, process):
         post.return_value.status_code = 200
         for customer in [paying_limited_registrar(), paying_user()]:
-            response = spoof_pp_response_subscription(customer)
-            process.return_value = response
-            subscription = customer.get_subscription()
-            customer.refresh_from_db()
-            self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
-            self.assertEqual(subscription, {
-                'status': response['subscription']['status'],
-                'link_limit': response['subscription']['link_limit'],
-                'rate': response['subscription']['rate'],
-                'frequency': response['subscription']['frequency'],
-                'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
-                'pending_change': None
-            })
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
+            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+                response = spoof_pp_response_subscription(customer)
+                process.return_value = response
+                subscription = customer.get_subscription()
+                customer.refresh_from_db()
+                self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
+                self.assertEqual(subscription, {
+                    'status': response['subscription']['status'],
+                    'link_limit': response['subscription']['link_limit'],
+                    'rate': response['subscription']['rate'],
+                    'frequency': response['subscription']['frequency'],
+                    'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
+                    'pending_change': None
+                })
+                self.assertEqual(post.call_count, 1)
+                self.assertEqual(credited.call_count, 0)
+                post.reset_mock()
 
 
     @patch('perma.models.process_perma_payments_transmission', autospec=True)
@@ -553,27 +600,29 @@ class ModelsTestCase(PermaTestCase):
     def test_get_subscription_happy_path_with_pending_change(self, post, process):
         post.return_value.status_code = 200
         for customer in [paying_limited_registrar(), paying_user()]:
-            response = spoof_pp_response_subscription_with_pending_change(customer)
-            process.return_value = response
-            subscription = customer.get_subscription()
-            customer.refresh_from_db()
-            self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
-            self.assertEqual(subscription, {
-                'status': response['subscription']['status'],
-                'link_limit': str(customer.link_limit),
-                'rate': str(customer.cached_subscription_rate),
-                'frequency': customer.link_limit_period,
-                'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
-                'pending_change': {
-                    'rate': response['subscription']['rate'],
-                    'link_limit': response['subscription']['link_limit'],
-                    'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
-                }
-            })
-            self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
-            self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
+            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+                response = spoof_pp_response_subscription_with_pending_change(customer)
+                process.return_value = response
+                subscription = customer.get_subscription()
+                customer.refresh_from_db()
+                self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
+                self.assertEqual(subscription, {
+                    'status': response['subscription']['status'],
+                    'link_limit': str(customer.link_limit),
+                    'rate': str(customer.cached_subscription_rate),
+                    'frequency': customer.link_limit_period,
+                    'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+                    'pending_change': {
+                        'rate': response['subscription']['rate'],
+                        'link_limit': response['subscription']['link_limit'],
+                        'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
+                    }
+                })
+                self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
+                self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
+                self.assertEqual(post.call_count, 1)
+                self.assertEqual(credited.call_count, 0)
+                post.reset_mock()
 
     ### Annotating Tiers with Prices and Dates
 
@@ -1150,6 +1199,69 @@ class ModelsTestCase(PermaTestCase):
         self.assertFalse(subscription_is_active(expired_cancelled_subscription()))
 
     #
+    # crediting users for one-time purchases
+    #
+
+    def credit_a_customer_for_purchases(self, post):
+        customer = paying_user()
+        purchases = spoof_pp_response_no_subscription_two_purchases(customer)["purchases"]
+        credited = customer.credit_for_purchased_links(purchases)
+        self.assertEqual(post.call_count, 2)
+        return credited
+
+
+    @patch('perma.models.requests.post', autospec=True)
+    def test_credit_for_purchased_links_increments_for_all(self, post):
+        post.return_value.ok = True
+        credited = self.credit_a_customer_for_purchases(post)
+        self.assertEqual(credited, 60)
+
+
+    @patch('perma.models.requests.post', autospec=True)
+    def test_credit_for_purchased_links_reverses_if_acknoledgment_fails(self, post):
+        post.return_value.ok = False
+        credited = self.credit_a_customer_for_purchases(post)
+        self.assertEqual(credited, 0)
+        self.assertEqual(post.call_count, 2)
+
+
+    #
+    # Bonus packages info
+    #
+
+    @patch.object(perma.models, 'datetime')
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
+    def test_get_bonus_packages(self, prep, mock_datetime):
+        customer = paying_user()
+        perma.models.datetime.utcnow.return_value = GENESIS
+        prep.return_value.decode.return_value = sentinel.string
+
+        packages = customer.get_bonus_packages()
+
+        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '15.00', 'link_quantity': 10})
+        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '30.00', 'link_quantity': 100})
+        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '125.00', 'link_quantity': 500})
+        self.assertEqual(packages, [
+            {
+                'amount': '15.00',
+                'link_quantity': 10,
+                'unit_cost': 1.5,
+                'encrypted_data': sentinel.string
+            }, {
+                'amount': '30.00',
+                'link_quantity': 100,
+                'unit_cost': 0.3,
+                'encrypted_data': sentinel.string
+            }, {
+                'amount': '125.00',
+                'link_quantity': 500,
+                'unit_cost': 0.25,
+                'encrypted_data': sentinel.string
+            }
+        ])
+
+
+    #
     # Link limit / subscription related tests for individual (non-sponsored) users
     #
 
@@ -1394,6 +1506,26 @@ class ModelsTestCase(PermaTestCase):
 
 
     #
+    # Link limits and bonus links
+    #
+
+    def test_bonus_links_arent_counted_against_personal_total(self):
+        user = LinkUser()
+        user.save()
+        remaining, _, bonus = user.get_links_remaining()
+
+        personal_links = 5
+        bonus_links = 2
+        for _ in range(personal_links):
+            Link(created_by=user).save()
+        for _ in range(bonus_links):
+            Link(created_by=user, bonus_link=True).save()
+        now_remaining, _, now_bonus = user.get_links_remaining()
+        self.assertEqual(now_remaining, remaining - personal_links)
+        self.assertNotEqual(now_remaining, remaining - personal_links - bonus_links)
+
+
+    #
     # Link limit / subscription related tests for registrars
     #
 
@@ -1464,3 +1596,117 @@ class ModelsTestCase(PermaTestCase):
                 self.assertEqual(folder.name, registrar.name)
             else:
                 self.assertNotEqual(folder.name, registrar.name)
+
+
+    #
+    # Moving bonus links around
+    #
+
+    def test_move_bonus_link_to_another_personal_subfolder(self):
+        user, bonus_link = complex_user_with_bonus_link()
+        subfolder = user.folders.get(name="Subfolder")
+
+        # establish baseline
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+        bonus_link.move_to_folder_for_user(subfolder, user)
+        user.refresh_from_db()
+
+        # assert that nothing changed
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+
+    def test_move_bonus_link_to_sponsored_folder(self):
+        user, bonus_link = complex_user_with_bonus_link()
+        sponsored_folder = user.folders.get(name="Test Library")
+
+        # establish baseline
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+        bonus_link.move_to_folder_for_user(sponsored_folder, user)
+        user.refresh_from_db()
+
+        # the user should be credited for the bonus link
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 1)
+
+        # the link should no longer be a bonus link
+        bonus_link.refresh_from_db()
+        self.assertFalse(bonus_link.bonus_link)
+
+
+    def test_move_bonus_link_to_org_folder(self):
+        user, bonus_link = complex_user_with_bonus_link()
+        org_folder = Folder.objects.get(name="Test Journal")
+
+        # establish baseline
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+        bonus_link.move_to_folder_for_user(org_folder, user)
+        user.refresh_from_db()
+
+        # the user should be credited for the bonus link
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 1)
+
+        # the link should no longer be a bonus link
+        bonus_link.refresh_from_db()
+        self.assertFalse(bonus_link.bonus_link)
+
+
+    def test_move_subfolder_with_bonus_links_to_sponsored_folder(self):
+        user, bonus_link = complex_user_with_bonus_link(in_subfolder=True)
+        subfolder = user.folders.get(name="Subfolder")
+        sponsored_folder = user.folders.get(name="Test Library")
+
+        # establish baseline
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+        subfolder.parent = sponsored_folder
+        subfolder.save()
+        user.refresh_from_db()
+
+        # the user should be credited for the bonus link
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 1)
+
+        # the link should no longer be a bonus link
+        bonus_link.refresh_from_db()
+        self.assertFalse(bonus_link.bonus_link)
+
+
+    def test_move_subfolder_with_bonus_links_to_org_folder(self):
+        user, bonus_link = complex_user_with_bonus_link(in_subfolder=True)
+        subfolder = user.folders.get(name="Subfolder")
+        org_folder = Folder.objects.get(name="Test Journal")
+
+        # establish baseline
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 0)
+
+        subfolder.parent = org_folder
+        subfolder.save()
+        user.refresh_from_db()
+
+        # the user should be credited for the bonus link
+        links_remaining, _ , bonus_links = user.get_links_remaining()
+        self.assertEqual(links_remaining, 2)
+        self.assertEqual(bonus_links, 1)
+
+        # the link should no longer be a bonus link
+        bonus_link.refresh_from_db()
+        self.assertFalse(bonus_link.bonus_link)

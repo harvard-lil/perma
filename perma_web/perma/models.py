@@ -229,31 +229,12 @@ class CustomerModel(models.Model):
         #
         # First, credit the user for any bonus links they have purchased.
         #
-        for purchase in post_data['purchases']:
-            with transaction.atomic():
-                self.bonus_links = self.bonus_links + int(purchase["link_quantity"])
-                self.save(update_fields=['bonus_links'])
-                try:
-                    r = requests.post(
-                        settings.ACKNOWLEDGE_PURCHASE_URL,
-                        data={
-                            'encrypted_data': prep_for_perma_payments({
-                                'timestamp': datetime.utcnow().timestamp(),
-                                'purchase_pk':  purchase['id']
-                            })
-                        }
-                    )
-                    assert r.ok
-                except (requests.RequestException, AssertionError) as e:
-                    msg = "Communication with Perma-Payments failed: {}".format(str(e))
-                    logger.error(msg)
-                    raise PermaPaymentsCommunicationException(msg)
-
+        if post_data['purchases']:
+            self.credit_for_purchased_links(post_data['purchases'])
 
         #
         # Then, handle subscription-related concerns
         #
-
         if post_data['subscription'] is None:
             if self.cached_subscription_started:
                 # reset this, so that link counts work properly if the customer
@@ -459,6 +440,38 @@ class CustomerModel(models.Model):
             'tiers': tiers,
             'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade', 'cancel_downgrade'] for tier in tiers)
         }
+
+    def credit_for_purchased_links(self, purchases):
+        credited_link_count = 0
+        for purchase in purchases:
+            try:
+                with transaction.atomic():
+                    link_quantity = int(purchase["link_quantity"])
+                    self.bonus_links = (self.bonus_links or 0) + link_quantity
+                    self.save(update_fields=['bonus_links'])
+                    try:
+                        r = requests.post(
+                            settings.ACKNOWLEDGE_PURCHASE_URL,
+                            data={
+                                'encrypted_data': prep_for_perma_payments({
+                                    'timestamp': datetime.utcnow().timestamp(),
+                                    'purchase_pk':  purchase['id']
+                                })
+                            }
+                        )
+                        assert r.ok
+                    except (requests.RequestException, AssertionError) as e:
+                        msg = "Communication with Perma-Payments failed: {}".format(str(e))
+                        logger.error(msg)
+                        raise PermaPaymentsCommunicationException(msg)
+                    credited_link_count += link_quantity
+            except PermaPaymentsCommunicationException:
+                # I think we want the function to return even if it fails...
+                # We'll be notified via the error message, and the calling
+                # can do its best to proceed... having failed to credit the user
+                # for their links. (Presumably, the customer will also complain if failure persists.)
+                pass
+        return credited_link_count
 
     def get_bonus_packages(self):
         bonus_packages = []
@@ -1115,18 +1128,25 @@ class Folder(MPTTModel):
         super(Folder, self).save(*args, **kwargs)
 
         if parent_has_changed:
+            links = Link.objects.filter(folders__in=self.get_descendants(include_self=True))
+            bonus_links = links.filter(bonus_link=True)
             # update read-only status
             self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
             # make sure that child folders share organization/sponsor/owned_by with new parent folder
             if self.parent.organization_id:
                 self.get_descendants(include_self=True).update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
+                if links:
+                    links.update(organization_id=self.parent.organization_id)
             elif self.parent.sponsored_by_id:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
+                if links:
+                    links.update(organization_id=None)
             else:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
+                if links:
+                    links.update(organization_id=None)
             # credit users for any bonus links they are due
             if self.parent.organization_id or self.parent.sponsored_by_id:
-                bonus_links = Link.objects.filter(bonus_link=True, folders__in=self.get_descendants(include_self=True))
                 if bonus_links:
                     user = bonus_links[0].created_by
                     count = bonus_links.update(bonus_link=False)

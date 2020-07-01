@@ -592,7 +592,7 @@ class AuthenticatedLinkDetailView(BaseView):
             link.save()
 
             if link.bonus_link:
-                link.created_by.bonus_links = link.created_by.bonus_links + 1
+                link.created_by.bonus_links = (link.created_by.bonus_links or 0) + 1
                 link.created_by.save(update_fields=['bonus_links'])
 
         return Response(status=status.HTTP_204_NO_CONTENT)
