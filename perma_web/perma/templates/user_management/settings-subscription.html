@@ -5,18 +5,20 @@
 
 {% block dashboardContent %}
 
-<h2 class="body-ah">Get More Personal Links</h2>
+{% if ENABLE_BONUS_LINKS %}
+  <h2 class="body-ah">Get More Personal Links</h2>
 
-  <p class="page-dek">A one-time purchase, for users with or without subscriptions</p>
+    <p class="page-dek">A one-time purchase, for users with or without subscriptions</p>
 
-  <div class="row">
-    {% for package in bonus_packages %}
-      <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
-          <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
-          <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
-      </form>
-    {% endfor %}
-  </div>
+    <div class="row">
+      {% for package in bonus_packages %}
+        <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
+            <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
+            <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
+        </form>
+      {% endfor %}
+    </div>
+  {% endif %}
 
 {% for account in accounts %}
   {% with subscription=account.subscription %}
