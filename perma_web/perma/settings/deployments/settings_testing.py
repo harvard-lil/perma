@@ -157,3 +157,4 @@ else:
     PLAYBACK_HOST = 'perma-archives.test:8092'
 
 ENABLE_SPONSORED_USERS = True
+ENABLE_BONUS_LINKS = True
