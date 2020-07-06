@@ -1011,8 +1011,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         # Special handling for non-trial users who lack active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.in_trial and not self.nonpaying and self.subscription_status != 'active':
-            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links if self.bonus_links else 0)
-        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links if self.bonus_links else 0)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links or 0)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links or 0)
 
     def link_creation_allowed(self):
         links_remaining, _, bonus_links = self.get_links_remaining()
