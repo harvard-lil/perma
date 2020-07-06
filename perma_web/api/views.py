@@ -419,11 +419,11 @@ class AuthenticatedLinkListView(BaseView):
                 # If this is a Personal Link, and if the user only has bonus links left, decrement bonus links
                 bonus_link = False
                 if not folder.organization and not folder.sponsored_by:
-                    links_remaining = user.get_links_remaining()
-                    if links_remaining[2] and not links_remaining[0]:
+                    links_remaining, _ , bonus_links = user.get_links_remaining()
+                    if bonus_links and not links_remaining:
                         # (this works because it's part of the same transaction with the select_for_update --
                         # we don't have to use the same object)
-                        request.user.bonus_links = links_remaining[2] - 1
+                        request.user.bonus_links = bonus_links - 1
                         request.user.save(update_fields=['bonus_links'])
                         bonus_link = True
 

@@ -1015,8 +1015,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links if self.bonus_links else 0)
 
     def link_creation_allowed(self):
-        links_remaining = self.get_links_remaining()
-        return links_remaining[0] > 0 or links_remaining[2] > 0
+        links_remaining, _, bonus_links = self.get_links_remaining()
+        return links_remaining > 0 or bonus_links > 0
 
     def can_view_subscription(self):
         """
