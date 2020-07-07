@@ -17347,13 +17347,18 @@ function domTreeInit() {
       },
       'data': handleShowFoldersEvent,
       check_callback: function check_callback(operation, node, node_parent, node_position, more) {
-        // Here we handle all actions on folders that have to be checked with the server.
+        // Don't intercept the "edit" action: it just replaces the node with an input field for renaming
+        if (operation == 'edit') {
+          return true;
+        } // Here we handle all actions on folders that have to be checked with the server.
         // That means we have to intercept the jsTree event, cancel it,
         // submit a request to the server, and in the success handler for that request
         // re-trigger the event so jsTree's UI will update.
         // Since we can't tell in this event handler whether an event was triggered by the user
         // (step 1) or by us (step 2), we increment allowedEventsCount when triggering
         // an event and decrement when the event is received:
+
+
         if (allowedEventsCount) {
           allowedEventsCount--;
           return true;
