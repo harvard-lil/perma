@@ -68,6 +68,13 @@ RUN curl -o nodejs.deb https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/n
     && dpkg -i ./nodejs.deb \
     && rm nodejs.deb
 
+# npm
+COPY perma_web/package.json /perma/perma_web
+COPY perma_web/npm-shrinkwrap.json /perma/perma_web
+RUN npm install \
+    && rm package.json \
+    && rm npm-shrinkwrap.json
+
 # python requirements via pipenv.
 # to access the virtualenv, invoke python like this: `pipenv run python`
 # COPY Pipfile though it is ignored, per https://github.com/pypa/pipenv/issues/2834

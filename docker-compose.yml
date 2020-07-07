@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: ./perma_web/Dockerfile
-    image: perma3:0.56
+    image: perma3:0.57
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -39,6 +39,13 @@ services:
     #   sh -c "sleep 10 && pipenv run ./manage.py migrate &&
     #          pipenv run fab run"
     volumes:
+      # NAMED VOLUMES
+      # Use a named, persistent volume so that the node_modules directory,
+      # which is created during the image's build process, and which our
+      # code presently expects to be nested inside the perma_web directory,
+      # isn't wiped out when mounting our code in ./perma_web code to
+      # the container. We can consider restructuring the project instead.
+      - node_modules:/perma/perma_web/node_modules
       # BIND MOUNTS
       - ./perma_web:/perma/perma_web
       - ./services/celery:/perma/services/celery
@@ -210,6 +217,7 @@ services:
       - webrecorder
 
 volumes:
+  node_modules:
   db3_data:
   redis_data:
   pp_db_data:
