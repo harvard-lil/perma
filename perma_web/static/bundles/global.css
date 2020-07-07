@@ -5043,8 +5043,8 @@ fieldset[disabled] .btn {
 .pagination > .active > span:hover,
 .pagination > .active > a:focus,
 .pagination > .active > span:focus {
-  background-color: #ff4100;
-  border-color: #ff4100; }
+  background-color: #2D76EE;
+  border-color: #2D76EE; }
 
 .alert {
   margin-bottom: 0; }
@@ -5275,6 +5275,9 @@ body {
   font-kerning: normal;
   overflow: visible;
   position: relative; }
+
+select {
+  overflow: auto; }
 
 cite,
 em,
@@ -6218,6 +6221,9 @@ button #addlink {
   color: white;
   background-color: #2D76EE; }
 
+.links-unlimited.sponsored {
+  background-color: #DD671A; }
+
 .dropdown .selector {
   width: 100.3%;
   text-align: left;
@@ -6298,6 +6304,10 @@ button #addlink {
     padding-bottom: 8px; }
   .dropdown .selector-menu .dropdown-header {
     margin-top: 4px; }
+  .dropdown .selector-menu .dropdown-header.sponsored {
+    color: #DD671A; }
+  .dropdown .selector-menu .dropdown-header.personal {
+    color: #222; }
   .dropdown .selector-menu a {
     font-size: 18px;
     font-weight: 200; }
@@ -6305,11 +6315,6 @@ button #addlink {
       .dropdown .selector-menu a {
         font-size: 20px;
         font-weight: 200; } }
-  .dropdown .selector-menu .personal-links {
-    background-color: rgba(0, 0, 0, 0.1); }
-    .dropdown .selector-menu .personal-links a {
-      margin-top: 4px;
-      border-top: none; }
 
 .dropdown.open .selector {
   border: 1px solid black;
@@ -6380,12 +6385,22 @@ button #addlink {
     margin-top: 16px; }
   .body-ah + p.page-dek {
     margin-top: 8px; }
+  .body-ah a {
+    text-decoration: underline; }
+    .body-ah a:hover, .body-ah a:focus {
+      color: black; }
 
 .body-ah + .body-bh {
   margin-top: 24px; }
   @media only screen and (min-width: 768px) {
     .body-ah + .body-bh {
       margin-top: 48px; } }
+
+.body-before-bh {
+  margin-top: 24px; }
+
+.body-before-bh + .body-bh {
+  margin-top: 32px; }
 
 .body-bh {
   font-size: 16px;
@@ -7633,8 +7648,7 @@ input[type="submit"] {
     clear: both;
     font-size: 16px;
     font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
-    font-weight: 400;
-    height: 42px; }
+    font-weight: 400; }
     .form-group select:focus {
       border-color: #2D76EE;
       box-shadow: none;
@@ -8756,15 +8770,18 @@ ol.result-list {
   .item-status:first-child {
     margin-top: 0; }
 
-.item-count-groups {
+.item-count-groups, .item-sponsor-groups {
   margin-top: 8px;
   margin-bottom: 8px; }
   @media only screen and (min-width: 768px) {
-    .item-count-groups {
+    .item-count-groups, .item-sponsor-groups {
       margin-bottom: 0;
       margin-top: 16px; } }
 
-.item-count-group {
+.item-sponsor-groups {
+  display: inline-block; }
+
+.item-count-group, .item-sponsor-group {
   font-weight: 200;
   font-size: 14px;
   font-weight: 200;
@@ -8774,16 +8791,16 @@ ol.result-list {
   margin-bottom: 4px;
   background-color: rgba(100, 100, 100, 0.07);
   width: 100%; }
-  .item-count-group strong {
+  .item-count-group strong, .item-sponsor-group strong {
     font-weight: 700;
     color: #DD671A; }
 
-.item-count-label a {
+.item-count-label a, .item-sponsor-label a {
   font-size: 85%;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.4);
   margin-left: 4px; }
-  .item-count-label a:hover {
+  .item-count-label a:hover, .item-sponsor-label a:hover {
     color: #222; }
 
 .row.item-row .perma {
@@ -9998,6 +10015,12 @@ section .caption {
 
 .col-centered {
   position: relative; }
+
+li[data-is_sponsored_root_folder="true"] > a {
+  color: #222222 !important; }
+
+li[data-read_only="true"] .icon-folder-close-alt:before, li[data-read_only="true"] .icon-folder-open-alt:before {
+  content: "\1F512"; }
 
 /*!
  *  Font Awesome 3.0.2

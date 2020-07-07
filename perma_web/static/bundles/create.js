@@ -16458,6 +16458,7 @@ function makeFolderSelector($folder_selector, current_folder_id) {
         value: childNode.data.folder_id,
         text: _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_0___default()(_context = childNode.text).call(_context),
         selected: childNode.data.folder_id == current_folder_id,
+        disabled: childNode.data.is_sponsored_root_folder || childNode.data.read_only,
         "data-orgid": childNode.data.organization_id
       }).prepend(new Array(depth).join('&nbsp;&nbsp;&nbsp;&nbsp;'))); // recurse
 
@@ -16660,7 +16661,25 @@ function selectSavedFolder() {
     folderToSelect = current_user.top_level_folders[0].id;
   }
 
-  folderTree.select_node(getNodeByFolderID(folderToSelect));
+  if (folderToSelect) {
+    var node = getNodeByFolderID(folderToSelect);
+
+    if (!node) {
+      folderTree.refresh(false, function (state) {// This empty function let's the node get selected after the refresh,
+        // necessary when selecting a Sponsored Folder from the dropdown, if
+        // a Sponsored Folder has not previously been loaded.
+        //
+        // I don't understand why this works, and suspect it's brittle.
+        // https://www.jstree.com/api/#/?q=(&f=refresh()
+      });
+      node = getNodeByFolderID(folderToSelect);
+      node.state.selected = true;
+    }
+
+    if (node) {
+      folderTree.select_node(node);
+    }
+  }
 }
 
 function setSavedFolder(node) {
@@ -16685,6 +16704,8 @@ function sendSelectionChangeEvent(node) {
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
+    data.sponsorId = node.data.sponsor_id;
+    data.readOnly = node.data.read_only;
     data.path = folderTree.get_path(node);
   }
 
@@ -16712,15 +16733,28 @@ function apiFoldersToJsTreeFolders(apiFolders) {
       text: folder.name,
       data: {
         folder_id: folder.id,
-        organization_id: folder.organization
+        organization_id: folder.organization,
+        sponsor_id: folder.sponsored_by,
+        is_sponsored_root_folder: folder.is_sponsored_root_folder,
+        read_only: folder.read_only
       },
-      li_attr: {
+      "state": {
+        "disabled": folder.is_sponsored_root_folder
+      },
+      "li_attr": {
         "data-folder_id": folder.id,
-        "data-organization_id": folder.organization
+        "data-organization_id": folder.organization,
+        "data-sponsor_id": folder.sponsored_by,
+        "data-is_sponsored_root_folder": folder.is_sponsored_root_folder,
+        "data-read_only": folder.read_only
       },
       "children": folder.has_children
     };
-    if (folder.organization && !folder.parent) jsTreeFolder.type = "shared_folder";
+
+    if (folder.organization && !folder.parent) {
+      jsTreeFolder.type = "shared_folder";
+    }
+
     return jsTreeFolder;
   });
 }
@@ -16762,9 +16796,12 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
 
       if (!parentFolder) // tree must have changed since last time user visited
         return "break";
-      parentFolder.state = {
-        opened: true
-      }; // find the subfolders and load them in:
+
+      if (!parentFolder.state) {
+        parentFolder.state = {};
+      }
+
+      parentFolder.state.opened = true; // find the subfolders and load them in:
 
       var apiResponse = apiResponses[i][0];
       var subfolders = apiResponse ? apiResponse.objects : null; // if API response doesn't make sense, we'll just stop loading the tree here
@@ -16980,6 +17017,11 @@ function setupEventHandlers() {
     if (!confirm("Really delete folder '" + _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1___default()(_context3 = node.text).call(_context3) + "'?")) return false;
     folderTree.delete_node(node);
     return false;
+  }); // special handling for Sponsored Links parent folder
+
+  $('#folder-tree').on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+    var node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+    folderTree.toggle_node(node);
   });
 }
 
@@ -27025,16 +27067,26 @@ function updateButtonPrivacy() {
 
 function handleSelectionChange(data) {
   var currentOrg = data.orgId;
+  var currentSponsor = data.sponsorId;
+  var readOnly = data.readOnly;
   var path = data.path;
-  var outOfLinks = !currentOrg && !link_creation_allowed; // update top-level variables
+  var outOfLinks = !readOnly && !currentSponsor && !currentOrg && !link_creation_allowed; // update top-level variables
 
   currentFolder = data.folderId;
   currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private']; // update the dropdown (no-op if dropdown isn't displayed)
 
+  var formatted_links_remaining;
+
+  if (readOnly) {
+    formatted_links_remaining = '0';
+  } else {
+    formatted_links_remaining = currentSponsor || currentOrg && currentOrg !== "None" ? null : links_remaining.toString();
+  }
+
   var template = selectedFolderTemplate({
     "path": path.join(" > "),
     "private": currentFolderPrivate,
-    "links_remaining": !currentOrg || currentOrg === "None" ? links_remaining.toString() : null
+    "links_remaining": formatted_links_remaining
   });
   $organizationDropdownButton.html(template); // update the create button
 
@@ -27081,15 +27133,25 @@ function populateOrgDropdown() {
   }).then(function (data) {
     var _context;
 
-    // populate the top-level "organizations" var
     _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_1___default()(_context = data.objects).call(_context, function (org) {
       organizations[org.id] = org;
     });
 
-    if (_babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2___default()(organizations).length) {
+    if (current_user.top_level_folders[1].is_sponsored_root_folder) {
+      APIModule.request("GET", "/folders/" + current_user.top_level_folders[1].id + "/folders/").done(function (sponsored_data) {
+        var template = orgListTemplate({
+          "orgs": data.objects,
+          "user_folder": current_user.top_level_folders[0].id,
+          "sponsored_folders": sponsored_data.objects,
+          "links_remaining": links_remaining
+        });
+        $organizationDropdown.append(template);
+      });
+    } else {
       var template = orgListTemplate({
         "orgs": data.objects,
         "user_folder": current_user.top_level_folders[0].id,
+        "sponsored_folders": null,
         "links_remaining": links_remaining
       });
       $organizationDropdown.append(template);
@@ -29471,17 +29533,39 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 },"4":function(container,depth0,helpers,partials,data) {
     return "<span class=\"ui-private\">(Private)</span> ";
 },"6":function(container,depth0,helpers,partials,data) {
-    return "unlimited";
+    var stack1;
+
+  return "  <li class=\"dropdown-header sponsored\">Sponsored Links</li>\n"
+    + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.sponsored_folders : depth0),{"name":"each","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
+},"7":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+
+  return "    <li>\n      <a href=\"#\" data-folderid='["
+    + alias2(alias1((depth0 != null ? depth0.parent : depth0), depth0))
+    + ","
+    + alias2(alias1((depth0 != null ? depth0.id : depth0), depth0))
+    + "]'>\n        "
+    + alias2(alias1((depth0 != null ? depth0.name : depth0), depth0))
+    + " "
+    + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {},(depth0 != null ? depth0.read_only : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.program(10, data, 0),"data":data})) != null ? stack1 : "")
+    + "\n      </a>\n    </li>\n";
 },"8":function(container,depth0,helpers,partials,data) {
+    return "<span class=\"links-remaining\">0</span>";
+},"10":function(container,depth0,helpers,partials,data) {
+    return "<span class='links-unlimited sponsored'>unlimited</span>";
+},"12":function(container,depth0,helpers,partials,data) {
+    return "unlimited";
+},"14":function(container,depth0,helpers,partials,data) {
     return container.escapeExpression(container.lambda((depth0 != null ? depth0.links_remaining : depth0), depth0));
 },"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : {};
 
   return ((stack1 = __default(__webpack_require__(294)).call(alias1,(depth0 != null ? depth0.orgs : depth0),{"name":"eachWithPrevious","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
-    + "<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
+    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.sponsored_folders : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "<li class=\"dropdown-header personal\">Personal Links</li>\n<li class=\"personal-links\">\n  <a href=\"#\" data-folderid=\""
     + container.escapeExpression(container.lambda((depth0 != null ? depth0.user_folder : depth0), depth0))
     + "\">\n    Personal Links <span class=\"links-remaining\">"
-    + ((stack1 = __default(__webpack_require__(292)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(6, data, 0),"inverse":container.program(8, data, 0),"data":data})) != null ? stack1 : "")
+    + ((stack1 = __default(__webpack_require__(292)).call(alias1,(depth0 != null ? depth0.links_remaining : depth0),"==","Infinity",{"name":"compare","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data})) != null ? stack1 : "")
     + "</span>\n  </a>\n</li>\n";
 },"useData":true});
 

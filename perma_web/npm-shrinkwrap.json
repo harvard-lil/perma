@@ -6545,9 +6545,12 @@
     },
     "karma-chrome-launcher": {
       "version": "3.1.0",
-      "from": "karma-chrome-launcher@latest",
       "resolved": "https://registry.npmjs.org/karma-chrome-launcher/-/karma-chrome-launcher-3.1.0.tgz",
-      "dev": true
+      "integrity": "sha512-3dPs/n7vgz1rxxtynpzZTvb9y/GIaW8xjAwcIGttLbycqoFtI7yo1NGnQi6oFTherRE+GIhCAHZC4vEqWGhNvg==",
+      "dev": true,
+      "requires": {
+        "which": "^1.2.1"
+      }
     },
     "karma-jasmine": {
       "version": "1.0.2",
