@@ -31,7 +31,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse
+from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse, HttpResponse
 from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
@@ -586,7 +586,7 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
     record = warctools.WarcRecord(headers=headers, content=(bytes(content_type, 'utf-8'), data))
     record.write_to(out_file, gzip=True)
 
-def get_warc_stream(link):
+def get_warc_stream(link, stream=True):
     filename = "%s.warc.gz" % link.guid
 
     timestamp = link.creation_timestamp.strftime('%Y%m%d%H%M%S')
@@ -606,23 +606,26 @@ def get_warc_stream(link):
 
     warc_stream = FileWrapper(default_storage.open(link.warc_storage_file()))
     warc_stream = itertools.chain([warcinfo], warc_stream)
-    response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
+    if stream:
+        response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
+    else:
+        response = HttpResponse(warc_stream, content_type="application/gzip")
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
     return response
 
-def stream_warc(link):
+def stream_warc(link, stream=True):
     # `link.user_deleted` is checked here for dev convenience:
     # it's easy to forget that deleted links/warcs aren't truly deleted,
     # and easy to accidentally permit the downloading of "deleted" warcs.
     # Users of stream_warc shouldn't have to worry about / remember this.
     if link.user_deleted or not link.can_play_back():
         raise Http404
-    return get_warc_stream(link)
+    return get_warc_stream(link, stream)
 
-def stream_warc_if_permissible(link, user):
+def stream_warc_if_permissible(link, user, stream=True):
     if user.can_view(link):
-        return stream_warc(link)
+        return stream_warc(link, stream)
     return HttpResponseForbidden('Private archive.')
 
 

@@ -212,6 +212,16 @@
           {% endif %}
         {% endif %}
       </div>
+      {% if request.user.offer_client_side_playback %}
+        <div class="tray-actions col-xs-12">
+          <dt class="tray-detail-title">Client-Side Playback</dt>
+          <dd class="tray-detail-entry">
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=replay">Replay</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=resources">Explore contents</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=pages">List pages</a>
+          </dd>
+        </div>
+      {% endif %}
 
       {# In IE, our tray shows behind iframes containing PDFs. Adding a blank iframe at z-index -1 fixes the problem. Via https://stackoverflow.com/a/12977151/307769 #}
       <script type="text/javascript">
