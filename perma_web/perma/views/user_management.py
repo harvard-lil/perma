@@ -1193,10 +1193,13 @@ def settings_subscription(request):
 
     context = {
         'this_page': 'settings_subscription',
+        'purchase_url': settings.PURCHASE_URL,
         'subscribe_url': settings.SUBSCRIBE_URL,
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         'update_url': reverse('user_management_settings_subscription_update'),
-        'accounts': accounts
+        'accounts': accounts,
+        'bonus_packages': request.user.get_bonus_packages()
+
     }
     return render(request, 'user_management/settings-subscription.html', context)
 

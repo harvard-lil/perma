@@ -26,7 +26,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
@@ -60,6 +60,7 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_pk',
         'customer_type',
         'subscription',
+        'purchases'
     ]
 }
 
@@ -190,6 +191,7 @@ class CustomerModel(models.Model):
     unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
     link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
     link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
+    bonus_links = models.PositiveIntegerField(blank=True, null=True)
 
     @cached_property
     def customer_type(self):
@@ -224,6 +226,15 @@ class CustomerModel(models.Model):
             logger.error(msg)
             raise InvalidTransmissionException(msg)
 
+        #
+        # First, credit the user for any bonus links they have purchased.
+        #
+        if post_data['purchases']:
+            self.credit_for_purchased_links(post_data['purchases'])
+
+        #
+        # Then, handle subscription-related concerns
+        #
         if post_data['subscription'] is None:
             if self.cached_subscription_started:
                 # reset this, so that link counts work properly if the customer
@@ -429,6 +440,57 @@ class CustomerModel(models.Model):
             'tiers': tiers,
             'can_change_tiers': any(tier['type'] in ['upgrade', 'downgrade', 'cancel_downgrade'] for tier in tiers)
         }
+
+    def credit_for_purchased_links(self, purchases):
+        credited_link_count = 0
+        for purchase in purchases:
+            try:
+                with transaction.atomic():
+                    link_quantity = int(purchase["link_quantity"])
+                    self.bonus_links = (self.bonus_links or 0) + link_quantity
+                    self.save(update_fields=['bonus_links'])
+                    try:
+                        r = requests.post(
+                            settings.ACKNOWLEDGE_PURCHASE_URL,
+                            data={
+                                'encrypted_data': prep_for_perma_payments({
+                                    'timestamp': datetime.utcnow().timestamp(),
+                                    'purchase_pk':  purchase['id']
+                                })
+                            }
+                        )
+                        assert r.ok
+                    except (requests.RequestException, AssertionError) as e:
+                        msg = "Communication with Perma-Payments failed: {}".format(str(e))
+                        logger.error(msg)
+                        raise PermaPaymentsCommunicationException(msg)
+                    credited_link_count += link_quantity
+            except PermaPaymentsCommunicationException:
+                # I think we want the function to return even if it fails...
+                # We'll be notified via the error message, and the calling
+                # can do its best to proceed... having failed to credit the user
+                # for their links. (Presumably, the customer will also complain if failure persists.)
+                pass
+        return credited_link_count
+
+    def get_bonus_packages(self):
+        bonus_packages = []
+        for package in settings.BONUS_PACKAGES:
+            required_fields = {
+                'timestamp': datetime.utcnow().timestamp(),
+                'customer_pk':  self.pk,
+                'customer_type': self.customer_type,
+                'amount': package['price'],
+                'link_quantity': package['link_quantity']
+            }
+            bonus_packages.append({
+                'amount': required_fields['amount'],
+                'link_quantity': required_fields['link_quantity'],
+                'unit_cost': float(required_fields['amount']) / int(required_fields['link_quantity']),
+                'encrypted_data': prep_for_perma_payments(required_fields).decode('utf-8')
+            })
+        return bonus_packages
+
 
     @cached_property
     def subscription_status(self):
@@ -910,8 +972,8 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         if unlimited is None:
             unlimited = self.unlimited
 
-        # exclude sponsored links and links associated with an org
-        personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None)
+        # exclude bonus links, sponsored links and links associated with an org
+        personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None).exclude(bonus_link=True)
 
         if unlimited:
             # UNLIMITED (paid or sponsored)
@@ -944,16 +1006,17 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def get_links_remaining(self):
         """
             Calculate how many personal links remain.
-            Returns a tuple: (links, applicable period)
+            Returns a tuple: (links, applicable period, bonus links)
         """
         # Special handling for non-trial users who lack active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.in_trial and not self.nonpaying and self.subscription_status != 'active':
-            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD)
-        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links or 0)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links or 0)
 
     def link_creation_allowed(self):
-        return self.get_links_remaining()[0] > 0
+        links_remaining, _, bonus_links = self.get_links_remaining()
+        return links_remaining > 0 or bonus_links > 0
 
     def can_view_subscription(self):
         """
@@ -1065,15 +1128,31 @@ class Folder(MPTTModel):
         super(Folder, self).save(*args, **kwargs)
 
         if parent_has_changed:
+            links = Link.objects.filter(folders__in=self.get_descendants(include_self=True))
+            bonus_links = links.filter(bonus_link=True)
             # update read-only status
             self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
             # make sure that child folders share organization/sponsor/owned_by with new parent folder
             if self.parent.organization_id:
                 self.get_descendants(include_self=True).update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
+                if links:
+                    links.update(organization_id=self.parent.organization_id)
             elif self.parent.sponsored_by_id:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
+                if links:
+                    links.update(organization_id=None)
             else:
                 self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
+                if links:
+                    links.update(organization_id=None)
+            # credit users for any bonus links they are due
+            if self.parent.organization_id or self.parent.sponsored_by_id:
+                if bonus_links:
+                    user = bonus_links[0].created_by
+                    count = bonus_links.update(bonus_link=False)
+                    user.bonus_links = user.bonus_links + count
+                    user.save(update_fields=['bonus_links'])
+
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -1192,6 +1271,7 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
+    bonus_link = models.BooleanField(null=True, blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
@@ -1370,7 +1450,12 @@ class Link(DeletableModel):
                 self.organization = None
             else:
                 self.organization = folder.organization
-            self.save(update_fields=['organization'])
+            if self.bonus_link and (folder.organization or folder.sponsored_by):
+                self.bonus_link = False
+                user.bonus_links = user.bonus_links + 1
+
+            self.save(update_fields=['organization', 'bonus_link'])
+            user.save(update_fields=['bonus_links'])
 
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.

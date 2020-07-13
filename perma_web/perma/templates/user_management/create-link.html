@@ -47,7 +47,7 @@
 
           {% if request.user.is_individual %}
             <p id="links-remaining-message">
-              {% if request.user.subscription_status == 'problem' %}
+              {% if subscription_status == 'problem' %}
                 Your subscription is on hold due to a <a href="{% url 'user_management_settings_subscription' %}">problem with your credit card</a>.<br>
               {% endif %}
               {% if links_remaining == 'Infinity' %}
@@ -58,7 +58,7 @@
                 {% endif %}
               {% else %}
                   You have <span class="links-remaining">{{ links_remaining }}</span> remaining Perma Links{% if links_remaining_period == "monthly" %} this month{% elif links_remaining_period == "annually" %} this year{% endif %}.
-                  {% if not request.user.nonpaying and not request.user.subscription_status == 'problem' %}
+                  {% if not request.user.nonpaying and not subscription_status == 'problem' %}
                     <br><a href="{% url 'user_management_settings_subscription' %}">Upgrade for additional Perma Links</a>
                   {% endif %}
               {% endif %}
@@ -74,7 +74,7 @@
               </div>
             </div>
             <p id="personal-links-banner" class="hide">
-              {% if request.user.subscription_status == 'problem' %}
+              {% if subscription_status == 'problem' %}
                 <a href="{% url 'user_management_settings_subscription' %}">Your account is on hold</a>.<br>
               {% elif links_remaining != 'Infinity' and not request.user.nonpaying %}
                 get <a href="{% url 'user_management_settings_subscription' %}">more personal links</a>
