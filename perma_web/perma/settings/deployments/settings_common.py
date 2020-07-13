@@ -228,6 +228,21 @@ TIERS = {
 DEFAULT_BASE_RATE = '10.00'
 DEFAULT_BASE_RATE_REGISTRAR = '100.00'
 
+BONUS_PACKAGES = [
+    {
+        'link_quantity': 10,
+        'price': '15.00'
+    },
+    {
+        'link_quantity': 100,
+        'price': '30.00'
+    },
+        {
+        'link_quantity': 500,
+        'price': '125.00'
+    }
+]
+
 # Monthly limit for regular users
 DEFAULT_CREATE_LIMIT = 10
 DEFAULT_CREATE_LIMIT_PERIOD = 'once'
@@ -552,10 +567,12 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'DEBUG',
     'ENABLE_BATCH_LINKS',
     'ENABLE_SPONSORED_USERS',
+    'ENABLE_BONUS_LINKS',
     'PLAYBACK_HOST',
     'HOST',
     'USE_ANALYTICS',
-    'USE_ANALYTICS_VIEWS'
+    'USE_ANALYTICS_VIEWS',
+    'PLAYBACK_UI_JS_URL'
 )
 
 
@@ -662,3 +679,11 @@ AWS_DEFAULT_ACL = 'private'
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 
 ENABLE_SPONSORED_USERS = False
+
+OFFER_CLIENT_SIDE_PLAYBACK = False
+USERS_WITH_CLIENT_SIDE_PLAYBACK = []
+PLAYBACK_UI_JS_URL = 'https://unpkg.com/replaywebpage@1.0.1/ui.js'
+SERVICE_WORKER_URL = 'https://unpkg.com/replaywebpage@1.0.1/sw.js'
+
+ENABLE_BONUS_LINKS = False
+

@@ -3138,23 +3138,22 @@ button#addlink,
 
 // special styling for subscription forms
 
-.upgrade-form button {
+.purchase-form, .upgrade-form {
+    display: inline-block;
+}
+.purchase-form button, .upgrade-form button {
   padding: 8px 8px 32px 24px;
   background-color: #F6F8F1;
   border-radius: 4px;
   padding: 16px 8px;
   border: 1px solid $color-trans-whispergray;
   margin: 0;
+  margin-right: 15px;
+  width: 100%;
+  min-height: 200px;
+
 }
-.upgrade-form {
-    display: inline-block;
-}
-.upgrade-form button {
-    width: 100%;
-    min-height: 200px;
-    margin-right: 15px;
-}
-.upgrade-form button span {
+.purchase-form button span, .upgrade-form button span {
   text-transform: uppercase;
   font-weight: bold;
   line-height: 2;

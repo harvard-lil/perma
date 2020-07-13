@@ -83,6 +83,8 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_payments_public_key': 'DG8o9cS5Lgeuu7XAF08sw0aOX7mJFu9TVEtdrrBQHDY=',
 }
 
+PURCHASE_URL = '/purchase/'
+ACKNOWLEDGE_PURCHASE_URL = '/acknowledge-purchase/'
 SUBSCRIBE_URL = '/subscribe/'
 CANCEL_URL = '/cancel-request/'
 SUBSCRIPTION_STATUS_URL = '/subscription/'
@@ -155,3 +157,4 @@ else:
     PLAYBACK_HOST = 'perma-archives.test:8092'
 
 ENABLE_SPONSORED_USERS = True
+ENABLE_BONUS_LINKS = True

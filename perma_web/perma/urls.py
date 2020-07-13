@@ -167,6 +167,11 @@ if settings.ENABLE_SPONSORED_USERS:
         url(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
     ]
 
+if settings.OFFER_CLIENT_SIDE_PLAYBACK:
+    urlpatterns += [
+        url(r'^replay/sw.js?$', common.replay_service_worker, name='replay_service_worker'),
+        url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
+    ]
 
 # debug-only serving of media assets
 if settings.DEBUG:

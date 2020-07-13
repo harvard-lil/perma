@@ -213,26 +213,37 @@ def single_permalink(request, guid):
                 logger.error(f"Made {settings.WARC_AVAILABLE_RETRIES} attempts to get {link.guid}'s warc; still not available.")
                 # Let's consider this a HTTP 200, I think...
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
-        try:
-            logger.info(f"Initializing play back of {link.guid}")
-            wr_username = link.init_replay_for_user(request)
-        except Exception:  # noqa
-            # We are experiencing many varieties of transient flakiness in playback:
-            # second attempts, triggered by refreshing the page, almost always seem to work.
-            # While we debug... let's give playback a second try here, and see if this
-            # noticeably improves user experience.
-            logger.exception(f"First attempt to init replay of {link.guid} failed. (Retrying: observe whether this error recurs.)")
-            time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
-            logger.info(f"Initializing play back of {link.guid} (2nd try)")
-            wr_username = link.init_replay_for_user(request)
 
-        logger.info(f"Updating context with WR playback information for {link.guid}")
-        context.update({
-            'wr_host': settings.PLAYBACK_HOST,
-            'wr_prefix': link.wr_iframe_prefix(wr_username),
-            'wr_url': capture.url,
-            'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
-        })
+        context['client_side_playback'] = request.GET.get('client-side') if (
+                                              request.GET.get('client-side') and
+                                              settings.OFFER_CLIENT_SIDE_PLAYBACK and
+                                              not request.user.is_anonymous and
+                                              request.user.offer_client_side_playback
+                                          ) else ''
+        if context['client_side_playback']:
+            logger.info(f'Using client-side playback for {link.guid}')
+        else:
+            # Play back using Webrecorder
+            try:
+                logger.info(f"Initializing play back of {link.guid}")
+                wr_username = link.init_replay_for_user(request)
+            except Exception:  # noqa
+                # We are experiencing many varieties of transient flakiness in playback:
+                # second attempts, triggered by refreshing the page, almost always seem to work.
+                # While we debug... let's give playback a second try here, and see if this
+                # noticeably improves user experience.
+                logger.exception(f"First attempt to init replay of {link.guid} failed. (Retrying: observe whether this error recurs.)")
+                time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
+                logger.info(f"Initializing play back of {link.guid} (2nd try)")
+                wr_username = link.init_replay_for_user(request)
+
+            logger.info(f"Updating context with WR playback information for {link.guid}")
+            context.update({
+                'wr_host': settings.PLAYBACK_HOST,
+                'wr_prefix': link.wr_iframe_prefix(wr_username),
+                'wr_url': capture.url,
+                'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
+            })
 
     logger.info(f"Rendering template for {link.guid}")
     response = render(request, 'archive/single-link.html', context)
@@ -289,6 +300,26 @@ def set_iframe_session_cookie(request):
     # set CORS headers (for both OPTIONS and actual redirect)
     set_options_headers(request, response)
     return response
+
+
+def serve_warc(request, guid):
+    """
+    This is a redundant route for downloading a warc, for use in client-side playback,
+    which has specific requirements:
+    - the warc must be served from a URL ending in `.warc`
+    - the response cannot be streamed
+    """
+
+    canonical_guid = Link.get_canonical_guid(guid)
+    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
+    return stream_warc_if_permissible(link, request.user, stream=False)
+
+
+def replay_service_worker(request):
+    """
+    The service worker required for client-side playback:
+    """
+    return HttpResponse(f'importScripts("{ settings.SERVICE_WORKER_URL }");\n', content_type='application/x-javascript')
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
