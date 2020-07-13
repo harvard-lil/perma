@@ -1,6 +1,18 @@
 var ErrorHandler = require('../error-handler.js');
 var Helpers = require('./general.helpers.js');
 
+// Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
+// set up jquery to properly set CSRF header on AJAX post
+// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+$.ajaxSetup({
+  crossdomain: false, // obviates need for sameOrigin test
+  beforeSend: function(xhr, settings) {
+    if (!Helpers.csrfSafeMethod(settings.type)) {
+      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
+    }
+  }
+});
+
 export function request (method, url, data, requestArgs){
   // set up arguments for API request
   requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};

@@ -62,15 +62,17 @@ RUN apt-get update && apt-get install libnss3-tools \
 # Install Tor, for optional use as a proxy
 RUN apt-get update && apt-get install -y tor
 
-# Get Node 6 instead of version in APT repository.
-# Downloads an installation script, which ends by running
-# apt-get update: no need to re-run at this layer
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
-    && apt-get install -y nodejs=6.14.4-1nodesource1
+# pin node version -- see https://github.com/nodesource/distributions/issues/33
+RUN apt-get update && apt-get install -y python-minimal
+RUN curl -o nodejs.deb https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.13.1-1nodesource1_amd64.deb \
+    && dpkg -i ./nodejs.deb \
+    && rm nodejs.deb
 
 # npm
+COPY perma_web/package.json /perma/perma_web
 COPY perma_web/npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
+    && rm package.json \
     && rm npm-shrinkwrap.json
 
 # python requirements via pipenv.

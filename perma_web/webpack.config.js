@@ -2,10 +2,11 @@ var path = require("path");
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   context: __dirname,
+  mode: 'none',
 
   entry: {
     'single-link': [
@@ -44,36 +45,40 @@ module.exports = {
       jQuery: "jquery", $: "jquery", "window.jQuery": "jquery"
     }),
 
+
+    // NB: this plugin was removed in webpack v4; this strategy does not
+    // avoid a duplicate runtime if using the new SplitChunks optimization.
     /*
      We want to include global.js on just about every page, and then some pages have a second js file included as well.
      We don't want a redundant webpack runtime added to the second js files.
      Using CommonsChunkPlugin with `minChunks: Infinity` does what we want -- the runtime just goes into the first file,
      but nothing gets moved around.
      */
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "global",
-      chunks: ["global", "create", "single-link-permissions", "map", "link-delete-confirm", "developer-docs", "stats", "admin-stats"],
-      minChunks: Infinity,
-    }),
+    // new webpack.optimize.CommonsChunkPlugin({
+    //   name: "global",
+    //   chunks: ["global", "create", "single-link-permissions", "map", "link-delete-confirm", "developer-docs", "stats", "admin-stats"],
+    //   minChunks: Infinity,
+    // }),
 
-    new ExtractTextPlugin("[name].css"),
-
-    // make sure sub-dependencies aren't included twice
-    new webpack.optimize.DedupePlugin(),
-
-    // uglify
-    // new webpack.optimize.UglifyJsPlugin()
+    new MiniCssExtractPlugin(),
   ],
 
   module: {
-    loaders: [
+    rules: [
       // javascript
       { test: /\.jsx?$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
-        query: {
-          plugins: ["transform-runtime"],  // add polyfills for <es6 browsers
-          presets: ['es2015']
+        options: {
+          plugins: [
+            [
+              "@babel/plugin-transform-runtime",
+              {
+                "corejs": 3,
+              }
+            ]
+          ],  // add polyfills for <es6 browsers
+          presets: ['@babel/preset-env']
         }
       },
 
@@ -81,7 +86,7 @@ module.exports = {
       {
         test: /\.handlebars$/,
         loader: 'handlebars-loader',
-        query: {
+        options: {
           runtime: 'handlebars/dist/handlebars.min.js',
           helperDirs: [
             __dirname + "/static/js/hbs/helpers",
@@ -92,7 +97,7 @@ module.exports = {
       // inline css
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract("style", "css?sourceMap"),
+        use: [MiniCssExtractPlugin.loader, "css-loader"]
       },
 
       // image files (likely included by css)
@@ -104,25 +109,56 @@ module.exports = {
       // scss
       {
         test: /\.scss$/,
-        // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
-        loader: ExtractTextPlugin.extract("style", ["css", "resolve-url", "postcss", "sass?sourceMap=true&precision=8"]),
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          "resolve-url-loader",
+          {
+            loader: 'postcss-loader',
+            options: {
+              ident: 'postcss',
+              plugins: [
+                require('autoprefixer'),
+              ]
+            }
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true,
+              sassOptions: {
+                precision: 8
+              }
+              // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
+            },
+          },
+        ]
       },
 
       // bootstrap fonts
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=10000&mimetype=application/font-woff'
+        loader: 'url-loader',
+        options: {
+          limit: 10000,
+          mimetype: 'application/font-woff',
+          esModule: false,
+        }
       },
       {
         test: /\.(ttf|otf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=10000'
+        loader: 'url-loader',
+        options: {
+          limit: 10000,
+          esModule: false,
+        }
       }
     ],
   },
 
   resolve: {
-    modulesDirectories: ['node_modules'],
-    extensions: ['', '.js', '.jsx'],
+    modules: ['node_modules'],
+    extensions: ['.js', '.jsx'],
 
     alias: {
       'airbrake-js$': 'airbrake-js/lib/client.js', // Exact match
@@ -136,24 +172,16 @@ module.exports = {
       'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
 
       'papaparse': 'papaparse/papaparse.min.js',
+
+      'jquery-form': 'jquery-form/jquery.form.js',
     }
   },
 
-  // use CPU-intensive polling because VirtualBox shared folder doesn't support inotify
   watchOptions: {
-    poll: true
-  },
-
-  // tell sass where to find compass includes
-  sassLoader: {
-    includePaths: [path.resolve(__dirname, './node_modules/compass-mixins/lib')],
+    poll: false,
+    ignored: /node_modules/
   },
 
   devtool: "source-map",  // dev-only?
 
-  postcss: function () {
-    return [
-      require('autoprefixer')
-    ];
-  }
 }

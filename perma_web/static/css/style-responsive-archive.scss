@@ -8,18 +8,12 @@
 
 //	Import some mixins from Compass
 
-@import "compass/css3/opacity";
+@import "~compass-mixins/lib/compass/css3/opacity";
 
 
 $height-record-hed: 97px;
 $color-trans-white: rgba(254,254,254,.65);
 $color-yellow: #d0a60f;
-
-@-webkit-keyframes success-bg {
-  0% {background-color: $color-highlight;}
-  20% {background-color: $color-highlight;}
-  100% {background-color: white;}
-}
 
 html,body {
   overflow: visible;
@@ -204,7 +198,6 @@ header {
   border-bottom: 1px solid $color-blue;
 
   &._isNewRecord {
-    -webkit-animation: success-bg .7s linear;
     animation: success-bg .7s linear;
     padding-top: 10px;
     padding-bottom: 10px;

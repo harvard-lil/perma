@@ -1,5 +1,5 @@
 require('jstree');  // add jquery support for .tree
-require('core-js/fn/array/find');
+require('core-js/features/array/find');
 require('jstree-css/default/style.min.css');
 
 let APIModule = require('./helpers/api.module.js');
@@ -293,6 +293,11 @@ function domTreeInit () {
         'data' : handleShowFoldersEvent,
 
         check_callback: function (operation, node, node_parent, node_position, more) {
+          // Don't intercept the "edit" action: it just replaces the node with an input field for renaming
+          if (operation == 'edit') {
+            return true;
+          }
+
           // Here we handle all actions on folders that have to be checked with the server.
           // That means we have to intercept the jsTree event, cancel it,
           // submit a request to the server, and in the success handler for that request
