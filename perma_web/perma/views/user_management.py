@@ -998,7 +998,7 @@ def toggle_status(request, user_id, registrar_id, status):
         sponsorship.save()
         return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
 
-    return render(request, 'user_management/user_remove_sponsored_confirm.html', {'target_user': target_user, 'registrar': registrar})
+    return render(request, f"user_management/user_{'readd' if status == 'active' else 'remove'}_sponsored_confirm.html", {'target_user': target_user, 'registrar': registrar})
 
 
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
