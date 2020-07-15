@@ -1177,8 +1177,8 @@ def settings_tools(request):
 
 
 @sensitive_variables()
-@user_passes_test_or_403(lambda user: user.can_view_subscription())
-def settings_subscription(request):
+@user_passes_test_or_403(lambda user: user.can_view_usage_plan())
+def settings_usage_plan(request):
     accounts = []
     try:
         if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
@@ -1187,12 +1187,12 @@ def settings_subscription(request):
             accounts.append(request.user.get_subscription_info(timezone.now()))
     except PermaPaymentsCommunicationException:
         context = {
-            'this_page': 'settings_subscription',
+            'this_page': 'settings_usage_plan',
         }
-        return render(request, 'user_management/settings-subscription-unavailable.html', context)
+        return render(request, 'user_management/settings-usage-plan-unavailable.html', context)
 
     context = {
-        'this_page': 'settings_subscription',
+        'this_page': 'settings_usage_plan',
         'purchase_url': settings.PURCHASE_URL,
         'subscribe_url': settings.SUBSCRIBE_URL,
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
@@ -1201,12 +1201,12 @@ def settings_subscription(request):
         'bonus_packages': request.user.get_bonus_packages()
 
     }
-    return render(request, 'user_management/settings-subscription.html', context)
+    return render(request, 'user_management/settings-usage-plan.html', context)
 
 
 @sensitive_variables()
 @require_http_methods(["POST"])
-@user_passes_test_or_403(lambda user: user.can_view_subscription())
+@user_passes_test_or_403(lambda user: user.can_view_usage_plan())
 def settings_subscription_cancel(request):
     account_type = request.POST.get('account_type', '')
     if account_type == 'Registrar':
@@ -1233,7 +1233,7 @@ def settings_subscription_cancel(request):
 
 @sensitive_variables()
 @require_http_methods(["POST"])
-@user_passes_test_or_403(lambda user: user.can_view_subscription())
+@user_passes_test_or_403(lambda user: user.can_view_usage_plan())
 def settings_subscription_update(request):
     account_type = request.POST.get('account_type', '')
     if account_type == 'Registrar':

@@ -1209,17 +1209,17 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     # Subscription, Individuals (except registrar users)
 
-    def test_nonpaying_user_cannot_see_subscription_page(self):
+    def test_nonpaying_user_cannot_see_usage_plan_page(self):
         u = LinkUser.objects.get(email='test_nonpaying_user@example.com')
-        assert not u.can_view_subscription()
-        self.get('user_management_settings_subscription',
+        assert not u.can_view_usage_plan()
+        self.get('user_management_settings_usage_plan',
                   user=u,
                   require_status_code=403)
 
-    def test_regular_user_can_see_subscription_page(self):
+    def test_regular_user_can_see_usage_plan_page(self):
         u = LinkUser.objects.get(email='test_user@example.com')
-        assert u.can_view_subscription()
-        self.get('user_management_settings_subscription',
+        assert u.can_view_usage_plan()
+        self.get('user_management_settings_usage_plan',
                   user=u,
                   require_status_code=200)
 
@@ -1231,7 +1231,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = None
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         individual_tier_count = len(settings.TIERS['Individual'])
@@ -1253,7 +1253,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         self.assertIn(b'Rate', r.content)
@@ -1271,7 +1271,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         subscription = spoof_on_hold_monthly_subscription()
         get_subscription.return_value = subscription
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         self.assertIn(b'problem with your credit card', r.content)
@@ -1284,7 +1284,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         subscription = spoof_cancellation_requested_subscription()
         get_subscription.return_value = subscription
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         bonus_package_count = len(settings.BONUS_PACKAGES)
@@ -1299,17 +1299,17 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.side_effect = PermaPaymentsCommunicationException
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
-        self.assertIn(b'subscription information is currently unavailable', r.content)
+        self.assertIn(b'is currently unavailable', r.content)
         get_subscription.assert_called_once_with(u)
 
 
     def test_unauthorized_user_cannot_see_cancellation_page(self):
         u = LinkUser.objects.get(email='test_nonpaying_user@example.com')
-        assert not u.can_view_subscription()
+        assert not u.can_view_usage_plan()
         self.post('user_management_settings_subscription_cancel',
                   user=u,
                   require_status_code=403)
@@ -1317,7 +1317,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_authorized_user_cant_use_get_for_cancellation_page(self):
         u = LinkUser.objects.get(email='test_user@example.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         self.get('user_management_settings_subscription_cancel',
                   user=u,
                   require_status_code=405)
@@ -1327,7 +1327,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_authorized_user_cancellation_confirm_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
@@ -1450,7 +1450,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_u.return_value = None
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         # Individual tiers should be available; no registrar section should be present
@@ -1478,7 +1478,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_r.return_value = None
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         # all tiers should be offered, both individual and registrar-level
@@ -1505,7 +1505,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_r.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_subscription',
+        r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         # Individual tiers should be available; the registrar's subscription should be present
@@ -1536,7 +1536,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_personal_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         subscription = spoof_current_monthly_subscription()
         get_subscription_u.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
@@ -1559,7 +1559,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_institutional_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         subscription = spoof_current_monthly_subscription()
         get_subscription_r.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
@@ -1581,7 +1581,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_personal_update_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
@@ -1599,7 +1599,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_allpaying_registrar_user_institutional_update_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
-        assert u.can_view_subscription()
+        assert u.can_view_usage_plan()
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')

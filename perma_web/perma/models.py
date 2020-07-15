@@ -1022,11 +1022,11 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         links_remaining, _, bonus_links = self.get_links_remaining()
         return links_remaining > 0 or bonus_links > 0
 
-    def can_view_subscription(self):
+    def can_view_usage_plan(self):
         """
-            Should the user be able to see the subscription page?
-            Special non-paying users should not see the option to upgrade their personal account.
-            Only authorized users should be able to see a paying registrar's subscription.
+            Should the user be able to see the usage plan page?
+            Special non-paying users should not see the option to make personal purchases.
+            Only authorized users should be able to see a paying registrar's subscription options.
         """
         return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
