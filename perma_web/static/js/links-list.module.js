@@ -116,6 +116,9 @@ function initShowFolderDOM (query) {
     DOMHelpers.setInputValue('.search-query', '');
   }
 
+  // destroy any existing infinite scroll Waypoints
+  Waypoint.destroyAll();
+
   // if fetching folder contents takes more than 500ms, show a loading message
   showLoadingMessage = true;
   setTimeout(function(){

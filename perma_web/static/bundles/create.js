@@ -13565,8 +13565,10 @@ function initShowFolderDOM(query) {
   if (!query || !_babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_5___default()(query).call(query)) {
     // clear query after user clicks a folder
     DOMHelpers.setInputValue('.search-query', '');
-  } // if fetching folder contents takes more than 500ms, show a loading message
+  } // destroy any existing infinite scroll Waypoints
 
+
+  Waypoint.destroyAll(); // if fetching folder contents takes more than 500ms, show a loading message
 
   showLoadingMessage = true;
 
