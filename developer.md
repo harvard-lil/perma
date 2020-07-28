@@ -94,6 +94,12 @@ N.B. To ensure that other Perma developers are prompted to install
 you changes, please increment the image version number for "web"
 in `docker-compose.yaml`. This is not yet managed programmatically.
 
+### Update Chrome
+
+If there's an [update to Google Chrome](https://chromereleases.googleblog.com/),
+run `bash update_chrome.sh` to rebuild the containers, install the new browser,
+increment the Docker image version, and update the capture user agent.
+
 ### Migrate the database
 
 `d ./manage.py makemigrations`
