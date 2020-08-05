@@ -293,7 +293,19 @@ def set_iframe_session_cookie(request):
         response = HttpResponse()
     else:
         cookie = urlencode({'cookie': request.session.get('wr_private_session_cookie')})
-        url = protocol() + settings.PLAYBACK_HOST + '/_set_session?{0}&{1}'.format(request.META.get('QUERY_STRING', ''), cookie)
+        query = request.META.get('QUERY_STRING', '')
+        if not cookie:
+            user = 'Anonymous'
+            if request.user.is_authenticated:
+                user = f"User {request.user.id}"
+            logger.error(f'No WR cookie found in session! User: {user}. Session keys: {request.session.keys()}.')
+            return render(request, 'archive/archive-error.html', {
+                'err_url': f'_set_session?{query}',
+                'timestamp': timezone.now(),
+                'err_msg': 'Missing cookie',
+            })
+
+        url = protocol() + settings.PLAYBACK_HOST + f'/_set_session?{query}&{cookie}'
         response = HttpResponseRedirect(url)
         response['Cache-Control'] = 'no-cache'
 
