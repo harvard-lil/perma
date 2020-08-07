@@ -1180,11 +1180,13 @@ def settings_tools(request):
 @user_passes_test_or_403(lambda user: user.can_view_usage_plan())
 def settings_usage_plan(request):
     accounts = []
+    purchase_history = {}
     try:
         if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
             accounts.append(request.user.registrar.get_subscription_info(timezone.now()))
         if not request.user.nonpaying:
             accounts.append(request.user.get_subscription_info(timezone.now()))
+            purchase_history = request.user.get_purchase_history()
     except PermaPaymentsCommunicationException:
         context = {
             'this_page': 'settings_usage_plan',
@@ -1198,6 +1200,7 @@ def settings_usage_plan(request):
         'cancel_confirm_url': reverse('user_management_settings_subscription_cancel'),
         'update_url': reverse('user_management_settings_subscription_update'),
         'accounts': accounts,
+        'purchase_history': purchase_history,
         'bonus_packages': request.user.get_bonus_packages()
 
     }

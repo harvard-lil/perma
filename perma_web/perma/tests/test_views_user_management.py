@@ -1226,9 +1226,55 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_subscribe_form_if_no_standing_subscription(self, get_subscription, prepped):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_no_purchase_history_section_if_no_one_time_purchases(self, get_purchase_history, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.return_value = None
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
+
+        r = self.get('user_management_settings_usage_plan',
+                      user=u)
+
+        self.assertNotIn(b'Purchase History', r.content)
+        get_subscription.assert_called_once_with(u)
+        get_purchase_history.assert_called_once_with(u)
+
+
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_purchase_history_present_if_one_time_purchases(self, get_purchase_history, get_subscription, prepped):
+        u = LinkUser.objects.get(email='test_user@example.com')
+        get_subscription.return_value = None
+        get_purchase_history.return_value = {
+            'purchases': [
+                {'link_quantity': 10, 'date': GENESIS},
+                {'link_quantity': 3, 'date': GENESIS}
+             ],
+            'total_links': 13
+        }
+        prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
+
+        r = self.get('user_management_settings_usage_plan',
+                      user=u)
+
+        self.assertIn(b'Purchase History', r.content)
+        self.assertIn(b'10 Links', r.content)
+        self.assertIn(b'3 Links', r.content)
+        self.assertIn(b'13 Links', r.content)
+        self.assertIn(b'January 1, 1970', r.content)
+        get_subscription.assert_called_once_with(u)
+        get_purchase_history.assert_called_once_with(u)
+
+
+    @patch('perma.models.prep_for_perma_payments', autospec=True)
+    @patch('perma.models.LinkUser.get_subscription', autospec=True)
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_subscribe_form_if_no_standing_subscription(self, get_purchase_history, get_subscription, prepped):
+        u = LinkUser.objects.get(email='test_user@example.com')
+        get_subscription.return_value = None
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_usage_plan',
@@ -1243,14 +1289,16 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content, individual_tier_count + bonus_package_count)
         self.assertIn(prepped.return_value, r.content)
         get_subscription.assert_called_once_with(u)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_update_button_cancel_button_and_subscription_info_present_if_standing_subscription(self, get_subscription, prepped):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_update_button_cancel_button_and_subscription_info_present_if_standing_subscription(self, get_purchase_history, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_current_monthly_subscription()
         get_subscription.return_value = subscription
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_usage_plan',
@@ -1263,26 +1311,30 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, '<input type="hidden" name="account_type"', 2)
         self.assertIn(b'Cancel Subscription', r.content)
         get_subscription.assert_called_once_with(u)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_help_present_if_subscription_on_hold(self, get_subscription):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_help_present_if_subscription_on_hold(self, get_purchase_history, get_subscription):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_on_hold_monthly_subscription()
         get_subscription.return_value = subscription
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
 
         r = self.get('user_management_settings_usage_plan',
                       user=u)
 
         self.assertIn(b'problem with your credit card', r.content)
         get_subscription.assert_called_once_with(u)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_cancellation_info_present_if_cancellation_requested(self, get_subscription):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_cancellation_info_present_if_cancellation_requested(self, get_purchase_history, get_subscription):
         u = LinkUser.objects.get(email='test_user@example.com')
         subscription = spoof_cancellation_requested_subscription()
         get_subscription.return_value = subscription
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
 
         r = self.get('user_management_settings_usage_plan',
                       user=u)
@@ -1292,7 +1344,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(b'<input type="hidden" name="encrypted_data"', r.content, bonus_package_count)
         self.assertIn(b'received the request to cancel', r.content)
         get_subscription.assert_called_once_with(u)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_apology_page_displayed_if_perma_payments_is_down(self, get_subscription):
@@ -1305,7 +1357,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
         self.assertIn(b'is currently unavailable', r.content)
         get_subscription.assert_called_once_with(u)
-
 
     def test_unauthorized_user_cannot_see_cancellation_page(self):
         u = LinkUser.objects.get(email='test_nonpaying_user@example.com')
@@ -1445,9 +1496,11 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_registrar_user_nonpaying_registrar(self, get_subscription_u, get_subscription_r, prepped):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_registrar_user_nonpaying_registrar(self, get_purchase_history, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='test_registrar_user@example.com')
         get_subscription_u.return_value = None
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_usage_plan',
@@ -1467,15 +1520,17 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         get_subscription_u.assert_called_once_with(u)
         self.assertEqual(get_subscription_r.call_count, 0)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_allpaying_registrar_user_sees_both_subscribe_forms(self, get_subscription_u, get_subscription_r, prepped):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_allpaying_registrar_user_sees_both_subscribe_forms(self, get_purchase_history, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         get_subscription_u.return_value = None
         get_subscription_r.return_value = None
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_usage_plan',
@@ -1493,16 +1548,18 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertContains(r, prepped.return_value, tier_count + bonus_package_count)
         get_subscription_u.assert_called_once_with(u)
         get_subscription_r.assert_called_once_with(u.registrar)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_allpaying_registrar_user_sees_subscriptions_independently(self, get_subscription_u, get_subscription_r, prepped):
+    @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    def test_allpaying_registrar_user_sees_subscriptions_independently(self, get_purchase_history, get_subscription_u, get_subscription_r, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
         get_subscription_u.return_value = None
         subscription = spoof_current_monthly_subscription()
         get_subscription_r.return_value = subscription
+        get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
         r = self.get('user_management_settings_usage_plan',
@@ -1529,7 +1586,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         get_subscription_u.assert_called_once_with(u)
         get_subscription_r.assert_called_once_with(u.registrar)
-
+        get_purchase_history.assert_called_once_with(u)
 
     @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)

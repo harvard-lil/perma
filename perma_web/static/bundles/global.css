@@ -6399,6 +6399,9 @@ button #addlink {
       margin-top: 24px;
       font-size: 18px; } }
 
+.fine-print {
+  margin-top: 16px; }
+
 #after-modals[aria-hidden="true"] {
   overflow: hidden;
   max-height: 100vh; }
