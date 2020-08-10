@@ -10,7 +10,7 @@ This section of the user guide describes how Perma accounts work.
 <div class="container cont-fixed">
   <div class="row">
     <div class="col-sm-12">
-      <h1>Perma.cc user guide <span class="subsection">Accounts</span></h1>
+      <h1>Perma.cc user guide <span class="subsection">Accounts and Usage Plans</span></h1>
     </div>
   </div>
 </div>
@@ -21,7 +21,7 @@ This section of the user guide describes how Perma accounts work.
 
 <div class="container cont-reading cont-fixed" id="overview">
   <div class="row">
-    <div class="col-sm-4 reading-toc" >
+    <div class="col-sm-4 reading-toc">
       <nav aria-label="Accounts Page Table of Contents">
         <h2 class="sr-only">Table of Contents</h2>
         <ul>
@@ -29,19 +29,19 @@ This section of the user guide describes how Perma accounts work.
             <h3 class="reading-toc-chapter"><a href="#accounts">Accounts</a></h3>
             <ul>
               <li class="reading-toc-section"><a href="#who-needs-account">Who Needs an Account?</a></li>
-              <li class="reading-toc-section"><a href="#usage-limits">Usage Limits</a></li>
+              <li class="reading-toc-section"><a href="#account-affiliations">Account Affiliations</a></li>
             </ul>
           </li>
           <li>
-            <h3 class="reading-toc-chapter"><a href="#organizations">Organizations</a></h3>
+            <h3 class="reading-toc-chapter"><a href="#usage-plans">Usage Plans</a></h3>
             <ul>
-              <li class="reading-toc-section"><a href="#free-service-academic">Free Service for Academic Organizations</a></li>
-              <li class="reading-toc-section"><a href="#free-service-courts">Free Service for Courts</a></li>
-              <li class="reading-toc-section"><a href="#paid-service">Paid Service for Other Organizations</a></li>
-              <li class="reading-toc-section"><a href="#authority">Authority and Responsibilities</a></li>
-              <li class="reading-toc-section"><a href="#adding-org-users">Adding and Removing Organization Users</a></li>
-            </ul>
+              <li class="reading-toc-section"><a href="#free-usage-plans">Free Usage Plans</a></li>
+              <li class="reading-toc-section"><a href="#paid-usage-groups">Paid Usage Plans for Groups</a></li>
+              <li class="reading-toc-section"><a href="#paid-usage-individuals">Paid Usage Plans for Individuals</a>
+              </li>
           </li>
+        </ul>
+        </li>
         </ul>
       </nav>
     </div>
@@ -51,41 +51,48 @@ This section of the user guide describes how Perma accounts work.
     <div class="col-sm-8 reading-body">
 
       <h2 id="accounts" class="body-ah">Accounts</h2>
-      <h3 id="who-needs-account" class="body-bh">Who Needs an Account?</h3>
-      <p class="body-text">To preserve web pages with Perma, you need an account. To register for an individual account, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
-      <p class="body-text">You don't need an account to view an archived page someone else made.</p>
+      <h3 id="who-needs-account" class="body-bh">Individual Accounts</h3>
+      <p class="body-text">To preserve web pages with Perma, you need an account. To register for an individual account,
+        please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
+      <p class="body-text">You don't need an account to view an archived page someone else preserved.</p>
+      <h3 id="registrars" class="body-bh">Registrar Accounts</h3>
+      <p class="body-text">Perma also offers accounts to libraries and other entities who administer the Perma service
+        for the individuals and smaller groups within their communities. We call each of these entities a "registrar."
+        Each
+        registrar decides which individuals and groups are affiliated with it and generally supervises the use of Perma
+        by those affiliates.</p>
+      <h3 id="account-affiliations" class="body-bh">Account Affiliations</h3>
+      <p class="body-text">Accounts can be affiliated with any number of registrars. Affiliations are like
+        sponsorships. When a registrar chooses to affiliate with an individual or group, those affiliates share in the
+        registrar's usage plan and can preserve web pages in that registrar's name. The registrar can see and manage any
+        preserved records they've made through that affiliation. And the registrar can end the affiliation at any time.
+      </p>
 
-      <p></p>
+      <h2 id="usage-plans" class="body-ah">Usage Plans</h2>
+      <h3 id="free-usage-plans" class="body-bh">Free Usage Plans</h3>
+      <p class="body-text">Perma is free for academic use. If you are a member of an academic community (current
+        student, faculty or staff) and your library is a Perma registrar, contact your library to request affiliation.
+        If your library is not yet a Perma registrar, they can learn more and sign up for free using this page: <a
+          href="{% url 'libraries' %}">https://perma.cc/libraries</a>.</p>
+      <p class="body-text">Perma also is free for use by state and federal courts and their employees, including
+        reporters of decisions, judges, clerks and other court staff. If your court is interested in using Perma, you
+        can use this page to learn more and contact us about signing up: <a
+          href="{% url 'sign_up_courts' %}">https://perma.cc/signup/courts</a>.</p>
 
-      <h3 id="usage-limits" class="body-bh">Usage Limits</h3>
-      <p class="body-text">If you are affiliated with an organization that qualifies for free, unlimited service or an organization with a paid subscription, contact that organization to acquire an unlimited account.</p>
+      <h3 id="paid-usage-groups" class="body-bh">Paid Usage Plans for Groups</h3>
+      <p class="body-text">Law firms, publishers, news organizations and other entities may become registrars
+        through a paid usage plan, which will give them access to Perma's collaboration and administrative tools and
+        allow them to make Perma available to their employees. To learn more about paid plans, please <a
+          href="{% url 'contact' %}?upgrade=organization">contact us</a>.</p>
 
-      <p class="body-text">Individuals not affiliated with a registrar can create 10 free links as a trial run. After that, usage limits are dictated by the user's <a href="{% url 'sign_up' %}">subscription tier.</a></p>
-
-      <h2 id="organizations" class="body-ah">Organizations</h2>
-
-      <h3 id="free-service-academic" class="body-bh">Free Service for Academic Organizations</h3>
-      <p class="body-text">Free organizational accounts are available to students, faculty and academic journals if their academic library is a Perma.cc registrar. Please contact your library to find out if it is already a Perma.cc registrar. If not, your library can learn more and sign up for free using this page: <a href="{% url 'libraries' %}">https://perma.cc/libraries</a>.</p>
-
-      <h3 id="free-service-courts" class="body-bh">Free Service for Courts</h3>
-      <p class="body-text">Free organizational accounts also are available to state and federal courts. If you're affiliated with a court, you can use this page to learn more and contact us about signing up: <a href="{% url 'sign_up_courts' %}">https://perma.cc/signup/courts</a>.</p>
-
-      <h3 id="paid-service" class="body-bh">Paid Service for Other Organizations</h3>
-      <p class="body-text">Law firms, publishers, news organizations and others may obtain organizational accounts through a paid subscription at a group rate. These  accounts include unlimited Perma.cc service for their members, as well as collaboration tools and administrative controls. To learn more about paid subscriptions, please <a href="{% url 'contact' %}?upgrade=organization">contact us</a>.</p>
-
-      <h3 id="authority" class="body-ah">Authority and Responsibilities</h3>
-      <p class="body-text">The members of an organization can create Perma Records on behalf of the organization. They also can affiliate other Perma users with the organization or remove users from the organization.</p>
-      <p class="body-text">Typically an organization is a collection of Perma users working together on a journal, for a faculty member, for a court or for a law firm. The organization is responsible for ensuring that its users do not abuse their authority. Every link created by anyone on behalf of the organization becomes automatically associated with the entire organization, so it's important that you exercise judgment about who can be affiliated and what kinds of activities on behalf of the organization are appropriate. If you like, you can adopt policies and best practices for Perma usage by those in your organization.</p>
-      <p class="body-text">Within an organization, every user has access to all of the links created on behalf of the org. This lets organization users work collaboratively and manage links across the organization.</p>
-
-      <h3 id="adding-org-users" class="body-bh">Adding and Removing Users</h3>
-      <p class="body-text">Every user within an organization has the ability to add or remove users on behalf of the organization. Each organization should decide for itself, in consultation with its registrar, how it wants to manage the addition and removal of users.</p>
-      <p class="body-text">To assign users to the organization, just select "Manage users" in the main dropdown menu. Then click "add organization user," enter the user's email address and submit. If the user already has a Perma account, you'll be asked to confirm her addition to your organization. If the person doesn't have a Perma account, you'll be asked to create one for her, and we'll send her a verification email so she can get up and running with Perma.</p>
-      <p class="body-text">To remove a user from an organization, click on "Manage users" in the main dropdown menu and enter the user's email address. Find the user's account and click the "remove" button.</p>
+      <h3 id="paid-usage-individuals" class="body-bh">Paid Usage Plans for Individuals</h3>
+      <p class="body-text">For individuals who are not affiliated with Perma regsitrars, or who want independent access
+        to Perma, we offer paid usage plans. We currently offer monthly subscriptions and batch purchase
+        options. To learn more, login and visit the <a
+          href="{% url 'user_management_settings_subscription' %}">Subscription</a> tab in your Account Settings.</p>
     </div>
   </div>
-</div>
 
-{% include 'docs/docs_menu.html' %}
+  {% include 'docs/docs_menu.html' %}
 
-{% endblock %}
+  {% endblock %}
