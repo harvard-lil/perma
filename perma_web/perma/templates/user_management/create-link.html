@@ -59,7 +59,7 @@
               {% else %}
                   You have <span class="links-remaining">{{ links_remaining }}</span> remaining Perma Links{% if links_remaining_period == "monthly" %} this month{% elif links_remaining_period == "annually" %} this year{% endif %}.
                   {% if not request.user.nonpaying and not subscription_status == 'problem' %}
-                    <br><a href="{% url 'user_management_settings_usage_plan' %}">Upgrade for additional Perma Links</a>
+                    <br><a href="{% url 'user_management_settings_usage_plan' %}">View your subscription details or get more Perma Links</a>
                   {% endif %}
               {% endif %}
             </p>
