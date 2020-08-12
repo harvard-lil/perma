@@ -1251,7 +1251,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'purchases': [
                 {'link_quantity': 10, 'date': GENESIS},
                 {'link_quantity': 3, 'date': GENESIS}
-             ],
+            ],
             'total_links': 13
         }
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
