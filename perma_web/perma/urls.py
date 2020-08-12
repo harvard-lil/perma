@@ -79,7 +79,8 @@ urlpatterns = [
     url(r'^settings/affiliations/?$', user_management.settings_affiliations, name='user_management_settings_affiliations'),
     url(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/?$', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', user_management.settings_tools, name='user_management_settings_tools'),
-    url(r'^settings/subscription/?$', user_management.settings_subscription, name='user_management_settings_subscription'),
+    url(r'^settings/usage-plan/?$', user_management.settings_usage_plan, name='user_management_settings_usage_plan'),
+    url(r'^settings/subscription/?$', RedirectView.as_view(url='/settings/usage-plan/', permanent=True), name='user_management_settings_subscription'),
     url(r'^settings/subscription/cancel/?$', user_management.settings_subscription_cancel, name='user_management_settings_subscription_cancel'),
     url(r'^settings/subscription/update/?$', user_management.settings_subscription_update, name='user_management_settings_subscription_update'),
 

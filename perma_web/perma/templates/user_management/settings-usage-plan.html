@@ -5,21 +5,6 @@
 
 {% block dashboardContent %}
 
-{% if ENABLE_BONUS_LINKS %}
-  <h2 class="body-ah">Get More Personal Links</h2>
-
-    <p class="page-dek">A one-time purchase, for users with or without subscriptions</p>
-
-    <div class="row">
-      {% for package in bonus_packages %}
-        <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
-            <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
-            <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
-        </form>
-      {% endfor %}
-    </div>
-  {% endif %}
-
 {% for account in accounts %}
   {% with subscription=account.subscription %}
   {% with customer=account.customer %}
@@ -159,5 +144,39 @@
   {% endwith %}
 
 {% endfor %}
-{% endblock %}
 
+{% if ENABLE_BONUS_LINKS %}
+  <h2 class="body-ah">Get More Personal Links</h2>
+
+    <p class="page-dek">A one-time purchase, for people with or without subscriptions.</p>
+
+    <p class="fine-print">Have a subscription? These extra links carry over. You can make them whenever you want, and you can still make them if you cancel your subscription.</p>
+
+    <div class="row">
+      {% for package in bonus_packages %}
+        <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
+            <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
+            <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
+        </form>
+      {% endfor %}
+    </div>
+    {% if purchase_history.purchases %}
+      <hr>
+
+      <h3 class="body-ch">Purchase History</h3>
+
+      <dl class="dl-horizontal">
+        {% for purchase in purchase_history.purchases %}
+          <dt>{{ purchase.date | date:"F n, Y" }}:</dt><dd>{{ purchase.link_quantity }} Links</dd>
+        {% endfor %}
+      </dl>
+
+      <dl class="dl-horizontal">
+        <dt>TOTAL</dt><dd>{{ purchase_history.total_links }} Links</dd>
+        <dt>REMAINING</dt><dd>{{ request.user.bonus_links }} Links</dd>
+      </dl>
+    {% endif %}
+
+  {% endif %}
+
+{% endblock %}

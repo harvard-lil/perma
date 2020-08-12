@@ -61,6 +61,11 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_type',
         'subscription',
         'purchases'
+    ],
+    'get_purchase_history': [
+        'customer_pk',
+        'customer_type',
+        'purchase_history'
     ]
 }
 
@@ -196,6 +201,46 @@ class CustomerModel(models.Model):
     @cached_property
     def customer_type(self):
         return CUSTOMER_TYPE_MAP[type(self).__name__]
+
+    @sensitive_variables()
+    def get_purchase_history(self):
+        if self.nonpaying:
+            return None
+
+        try:
+            r = requests.post(
+                settings.PURCHASE_HISTORY_URL,
+                data={
+                    'encrypted_data': prep_for_perma_payments({
+                        'timestamp': datetime.utcnow().timestamp(),
+                        'customer_pk':  self.pk,
+                        'customer_type': self.customer_type
+                    })
+                }
+            )
+            assert r.ok
+        except (requests.RequestException, AssertionError) as e:
+            msg = "Communication with Perma-Payments failed: {}".format(str(e))
+            logger.error(msg)
+            raise PermaPaymentsCommunicationException(msg)
+
+        post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_purchase_history'])
+
+        if post_data['customer_pk'] != self.pk or post_data['customer_type'] != self.customer_type:
+            msg = "Unexpected response from Perma-Payments."
+            logger.error(msg)
+            raise InvalidTransmissionException(msg)
+
+        return {
+            'purchases': [
+                {
+                    'link_quantity': item['link_quantity'],
+                    'date': pp_date_from_post(item['date'])
+                } for item in post_data['purchase_history']
+            ],
+            'total_links': sum(int(purchase['link_quantity']) for purchase in post_data['purchase_history'])
+        }
+
 
     @sensitive_variables()
     def get_subscription(self):
@@ -1022,11 +1067,11 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         links_remaining, _, bonus_links = self.get_links_remaining()
         return links_remaining > 0 or bonus_links > 0
 
-    def can_view_subscription(self):
+    def can_view_usage_plan(self):
         """
-            Should the user be able to see the subscription page?
-            Special non-paying users should not see the option to upgrade their personal account.
-            Only authorized users should be able to see a paying registrar's subscription.
+            Should the user be able to see the usage plan page?
+            Special non-paying users should not see the option to make personal purchases.
+            Only authorized users should be able to see a paying registrar's subscription options.
         """
         return not self.nonpaying or (self.is_registrar_user() and not self.registrar.nonpaying)
 
