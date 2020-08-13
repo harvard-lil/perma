@@ -22,7 +22,13 @@
   <div class="capture-wrapper">
     <div class="h_iframe">
       {% if capture.role == 'screenshot' %}
-        <img src="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
+        {% if client_side_playback %}
+          <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
+          <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
+          url="file:///{{ link.guid }}/cap.png" view="{{ client_side_playback }}"></replay-web-page>
+        {% else %}
+          <img src="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
+        {% endif %}
       {% else %}
         {% if client_side_playback %}
           <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
