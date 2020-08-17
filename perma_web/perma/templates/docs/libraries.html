@@ -13,7 +13,7 @@ This section of the user guide describes the Perma.cc library consortium and the
 <div class="container cont-fixed">
   <div class="row">
     <div class="col-sm-12">
-      <h1>Perma.cc user guide <span class="subsection">For Registrars</span></h1>
+      <h1>Perma.cc user guide <span class="subsection">For Libraries and Other Registrars</span></h1>
     </div>
   </div>
 </div>
@@ -29,20 +29,30 @@ This section of the user guide describes the Perma.cc library consortium and the
         <h2 class="sr-only">Table of Contents</h2>
         <ul>
           <li>
-            <h3 class="reading-toc-chapter"><a href="#libraries-and-registrars">Libraries as Registrars</a></h3>
+            <h3 class="reading-toc-chapter"><a href="#libraries-and-registrars">About Registrars</a></h3>
             <ul>
               <li class="reading-toc-section"><a href="#becoming-registrar">Becoming a registrar</a></li>
               <li class="reading-toc-section"><a href="#libraries-authority">Authority and responsibilities</a></li>
+            </ul>
+            <h3 class="reading-toc-chapter"><a href="#affiliated-orgs">Affiliated Organizations</a></h3>
+            <ul>
               <li class="reading-toc-section"><a href="#creating-orgs">Creating new archiving orgs</a></li>
               <li class="reading-toc-section"><a href="#assigning-users-to-orgs">Assigning users to archiving orgs</a>
               </li>
               <li class="reading-toc-section"><a href="#removing-users-from-orgs">Removing users from archiving orgs</a>
               </li>
+            </ul>
+            <h3 class="reading-toc-chapter"><a href="#affiliated-individuals">Affiliated Individuals</a></h3>
+            <ul>
+              <li class="reading-toc-section"><a href="#sponsoring-individuals">Sponsoring Individuals</a></li>
               <li class="reading-toc-section"><a href="#supporting-journals-and-faculty">Supporting your orgs and
                   users</a></li>
-              <li class="reading-toc-section"><a href="#user-resources">Download user resources (PDF)</a></li>
             </ul>
+
+            <h3 class="reading-toc-chapter"><a href="#registrar-resources">Resources for Registrars</a>
           </li>
+        </ul>
+        </li>
         </ul>
       </nav>
     </div>
@@ -50,35 +60,40 @@ This section of the user guide describes the Perma.cc library consortium and the
     <p id="skip-navigation-target" tabindex="-1" class="sr-only">End of user guide navigation and table of contents</p>
 
     <div class="col-sm-8 reading-body">
-      <h2 class="body-ah">For Libraries and Other Registrars</h2>
-      <p class="body-text">Perma.cc is administered by a network of libraries and other trusted organizations that act
-        as registrars. Each registrar manages its own community of archiving organizations, such as journals, which in
-        turn manage their own communities of affiliated users.</p>
+      <h2 class="body-ah">About Registrars</h2>
+      <p class="body-text">Perma.cc is administered by a network of libraries and other trusted entities that act
+        as registrars. Each registrar manages its own community of affiliated individuals and organizations, such as
+        journals, which in turn manage their own affiliations.</p>
 
       <h3 id="becoming-registrar" class="body-bh">Becoming a registrar</h3>
-      <p class="body-text">All academic and government libraries are invited to become registrars and to make Perma
-        available to their academic and government users for free. Other organizations can also join our community of
-        registrars via paid subscription. For more info about accounts, visit our <a
-          href="{% url 'docs_accounts' %}">accounts page.</a></p>
-
-      <p class="body-text">Other organizations interested in becoming a Perma registrar should contact us via this <a
-          href="{% url 'libraries' %}">inquiry form</a>, and we will follow up to learn more about your group and what
-        kinds of users and usage you intend to support.</p>
+      <p class="body-text">All academic libraries and courts are invited to become registrars for free and to extend
+        free Perma service to the faculty, students, journals and employees within their communities. If you are
+        interested, please contact us via this <a href="{% url 'libraries' %}">inquiry form</a> and we will follow up to
+        learn more about your group and what kinds of users and usage you intend to support.</p>
+      <p class="body-text">Other entities can become registrators by signing up for a paid usage plan. For more info,
+        please visit our <a href="{% url 'docs_accounts' %}">accounts page.</a></p>
 
       <h3 id="libraries-authority" class="body-bh">Authority and responsibilities</h3>
-      <p class="body-text">Registrars can create new archiving organizations and affiliate users with those
-        organizations. Typically this means acting as the hub of a network of archiving organizations (such as journals)
-        and their users.</p>
-      <p class="body-text">As a registrar, you'll help train and support Perma.cc users within your network and you'll
-        be the main point of contact between your network and the Perma team. That means you are the main point of
+      <p class="body-text">Registrars have administrative oversight and responsibility for those with whom they
+        affiliate. Registrators can create new archiving organizations and affiliate users with those
+        organizations. Registrars also can affiliate directly with individual users, who we refer to as "sponsored
+        users."</p>
+      <p class="body-text">As a registrar, you'll help train and support Perma.cc users within your community and you'll
+        be the main point of contact between your community and the Perma team. That means you are the main point of
         contact for questions from your Perma users regarding policies and practices. Any questions submitted via the
         Perma contact form will be sent to you to address (the Perma team will be cc'd on them as well, in case the
         question pertains to a bug or technical issue).</p>
-      <p class="body-text">You'll also be responsible for ensuring that those in your network do not abuse their
-        accounts. Every Perma Record created by anyone within your network becomes automatically associated with you, as
-        the relevant registrar, so it's important that you exercise judgment in approving archiving organizations. If
-        you like, you can adopt policies and best practices for Perma.cc usage by those in your network.</p>
-
+      <p class="body-text">You'll also be responsible for ensuring that those in your community do not abuse their
+        accounts. Every Perma Record created by anyone within your community becomes automatically associated with you,
+        as
+        the relevant registrar, so it's important that you exercise judgment in approving archiving organizations and
+        sponsored users. If you like, you can adopt policies and best practices for Perma.cc usage by those in your
+        community.</p>
+      <h2 class="body-ah" id="affiliated-orgs">Affiliated Organizations</h2>
+      <p class="body-text">Each registrar can set up any number of affiliated archiving organizations, which a of
+        groups of individual users who can collaborate with each other and share access to records preserved on their
+        organization's behalf.
+      </p>
       <h3 id="creating-orgs" class="body-bh">Creating new archiving orgs</h3>
       <p class="body-text">Creating new archiving organizations is easy. Just select "Organizations" in the main
         dropdown menu. Click "add new organization," enter the name of the organization in the form and submit.</p>
@@ -125,8 +140,9 @@ This section of the user guide describes the Perma.cc library consortium and the
       <p class="body-text">To remove a user from an archiving org, click on "Organization users" in the dropdown menu
         and enter the user's email address. Find the user's account, click the "remove" button, and then select the
         organization from which she should be removed.</p>
-
-
+      <h2 class="body-ah" id="affiliated-individuals">Affiliated Individuals</h2>
+      <h3 id="sponsoring-individuals" class="body-bh">Sponsoring Individuals</h3>
+      <p class="body-text"></p>
       <h3 id="supporting-journals-and-faculty" class="body-bh">Supporting your orgs and users</h3>
       <p class="body-text">Each library is free to develop its own Perma policies and practices for those in its
         network. As a registrar, you can support as many or as few users associated with your institution as you like.
@@ -140,22 +156,22 @@ This section of the user guide describes the Perma.cc library consortium and the
         members into a single archiving org, they will be able to observe - and potentially move - each other's links.
       </p>
 
-      <h3 id="user-resources" class="body-bh">Download user resources</h3>
-      <p class="body-text">We've created short guides for common types of users. You're welcome to download these as
-        PDFs and share them with your communities. If you'd like to adapt them directly, the text is also available on
-        Google Docs, below. We welcome your comments and feedback!</p>
-      <p class="body-text">For academic journals: <a href="{{ STATIC_URL }}pdfs/guide-journals.pdf"
-          download="Perma-guide-for-journals.pdf">PDF</a> / <a
-          href="https://docs.google.com/document/d/1S7xpKIQlikJ-RYivVxNWyte_HLIR7n5KqJ8pTull3to/edit?usp=sharing">Google
-          Docs</a></p>
-      <p class="body-text">For academic faculty: <a href="{{ STATIC_URL }}pdfs/guide-faculty.pdf"
-          download="Perma-guide-for-faculty.pdf">PDF</a> / <a
-          href="https://docs.google.com/document/d/1oXt39-P0O92j5cOUEetrfjt9HFCqV7e6lnTJdKqTiB0/edit?usp=sharing">Google
-          Docs</a></p>
-      <p class="body-text">For librarian colleagues: <a href="{{ STATIC_URL }}pdfs/guide-librarians.pdf"
-          download="Perma-guide-for-librarians.pdf">PDF</a> / <a
-          href="https://docs.google.com/document/d/13YRXZpc4jhZFc0UWB_RbPXGetyr72KqaLpmPi4ydPR0/edit?usp=sharing">Google
-          Docs</a></p>
+      <h2 id="registrar-resources" class="body-ah">Resources for Registrars</h3>
+        <p class="body-text">We've created short guides for common types of users. You're welcome to download these as
+          PDFs and share them with your communities. If you'd like to adapt them directly, the text is also available on
+          Google Docs, below. We welcome your comments and feedback!</p>
+        <p class="body-text">For academic journals: <a href="{{ STATIC_URL }}pdfs/guide-journals.pdf"
+            download="Perma-guide-for-journals.pdf">PDF</a> / <a
+            href="https://docs.google.com/document/d/1S7xpKIQlikJ-RYivVxNWyte_HLIR7n5KqJ8pTull3to/edit?usp=sharing">Google
+            Docs</a></p>
+        <p class="body-text">For academic faculty: <a href="{{ STATIC_URL }}pdfs/guide-faculty.pdf"
+            download="Perma-guide-for-faculty.pdf">PDF</a> / <a
+            href="https://docs.google.com/document/d/1oXt39-P0O92j5cOUEetrfjt9HFCqV7e6lnTJdKqTiB0/edit?usp=sharing">Google
+            Docs</a></p>
+        <p class="body-text">For librarian colleagues: <a href="{{ STATIC_URL }}pdfs/guide-librarians.pdf"
+            download="Perma-guide-for-librarians.pdf">PDF</a> / <a
+            href="https://docs.google.com/document/d/13YRXZpc4jhZFc0UWB_RbPXGetyr72KqaLpmPi4ydPR0/edit?usp=sharing">Google
+            Docs</a></p>
     </div>
   </div>
 </div>
