@@ -1389,6 +1389,9 @@ class Link(DeletableModel):
     def headers(self):
         try:
             with requests.Session() as s:
+                # Break noisily if requests mediates anything but http and https
+                assert list(s.adapters.keys()) == ['https://', 'http://']
+
                 if settings.PROXY_CAPTURES and any(domain in self.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
                     password = self.guid if self.guid else secrets.token_urlsafe()
                     s.proxies = {
@@ -1406,7 +1409,14 @@ class Link(DeletableModel):
                 )
                 response.close()
                 return response.headers
-        except (requests.ConnectionError, requests.Timeout):
+        except (requests.ConnectionError, requests.Timeout, requests.exceptions.InvalidSchema):
+            # ConectionError and Timeout are self-explanatory.
+            # InvalidSchema is raised if the retrieved URL uses a protocol not handled by
+            # requests' adapters (https://github.com/psf/requests/blob/master/requests/sessions.py#L419).
+            # While we can validate the target URL in advance, it may redirect to any arbitrary schema,
+            # for instance, file://, which will raise InvalidSchema.
+            # We return False, to indicate in all cases that we did not successfully retrieve
+            # any headers, rather than propagating the exception.
             return False
 
     def get_default_title(self):
