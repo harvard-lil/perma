@@ -16,7 +16,7 @@ from warcio.indexer import Indexer
 
 from django.test.utils import override_settings
 from django.conf import settings
-from django.test import TransactionTestCase, TestCase, SimpleTestCase
+from django.test import LiveServerTestCase, TransactionTestCase, TestCase, SimpleTestCase
 from django.utils.functional import cached_property
 from rest_framework.test import APIClient
 
@@ -345,6 +345,9 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
 
 
 class ApiResourceTestCase(ApiResourceTestCaseMixin, TestCase):
+    pass
+
+class ApiResourceLiveServerTestCase(ApiResourceTestCaseMixin, LiveServerTestCase):
     pass
 
 class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCase):

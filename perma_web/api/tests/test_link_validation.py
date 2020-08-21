@@ -1,5 +1,6 @@
 import os
-from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
+import requests
+from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase, ApiResourceLiveServerTestCase
 from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
@@ -122,3 +123,27 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
                                user=self.org_user,
                                data={'url': self.server_url + '/test.html',
                                      'file': test_file})
+
+
+class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestCase):
+
+    def test_should_reject_file_redirecting_url_without_exception(self):
+        url = f'{self.live_server_url}/api/tests/redirect-to-file'
+
+        # verify that the test route redirects as expected
+        redirects = self.client.get(url)
+        self.assertEqual(redirects.status_code, 301)
+        self.assertRegex(redirects.url, r'^file:///')
+
+        # verify that requests raises the exception we expect, when loading it
+        with self.assertRaises(requests.exceptions.InvalidSchema):
+            requests.get(url)
+
+        # verify that the capture request does not raise an exception, but
+        # rather, returns BadRequest
+        resp = self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': url},
+                           expected_status_code=400,
+                           expected_data={})
+        self.assertIn(b"Couldn't load URL", resp.content)
