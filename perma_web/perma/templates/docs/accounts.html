@@ -37,11 +37,9 @@ This section of the user guide describes how Perma accounts work.
             <ul>
               <li class="reading-toc-section"><a href="#free-usage-plans">Free Usage Plans</a></li>
               <li class="reading-toc-section"><a href="#paid-usage-groups">Paid Usage Plans for Groups</a></li>
-              <li class="reading-toc-section"><a href="#paid-usage-individuals">Paid Usage Plans for Individuals</a>
-              </li>
+              <li class="reading-toc-section"><a href="#paid-usage-individuals">Paid Usage Plans for Individuals</a></li>
+            </ul>
           </li>
-        </ul>
-        </li>
         </ul>
       </nav>
     </div>
@@ -92,7 +90,8 @@ This section of the user guide describes how Perma accounts work.
           href="{% url 'user_management_settings_subscription' %}">Subscription</a> tab in your Account Settings.</p>
     </div>
   </div>
+</div>
 
-  {% include 'docs/docs_menu.html' %}
+{% include 'docs/docs_menu.html' %}
 
-  {% endblock %}
+{% endblock %}

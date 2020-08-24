@@ -67,136 +67,91 @@ This section of the user guide covers how to create new archives and organize yo
 
     <div class="col col-sm-8 docs reading-body">
       <h2 class="body-ah" id="creating-records">Creating Perma Records and Links</h2>
-      <p class="body-text">A Perma Record is the preserved copy of a web page you intend to cite. A Perma Link is the
-        unique URL you can use to direct readers to a Perma Record.</p>
-      <p class="body-test">For example, this Perma Link - <a href="http://perma.cc/9265-T4NB"
-          target="blank">http://perma.cc/9265-T4NB</a> - points to a Perma Record of the White House homepage on
-        November 18, 2015.</p>
+      <p class="body-text">A Perma Record is the preserved copy of a web page you intend to cite. A Perma Link is the unique URL you can use to direct readers to a Perma Record.</p>
+      <p class="body-test">For example, this Perma Link - <a href="http://perma.cc/9265-T4NB" target="blank">http://perma.cc/9265-T4NB</a> - points to a Perma Record of the White House homepage on November 18, 2015.</p>
 
       <h3 class="body-bh" id="web-page-preservation">Preservation Methods</h3>
-      <p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve
-        and click the "Create Perma Link" button, or try one of our <a
-          href="{% url 'user_management_settings_tools' %}">Browser Tools</a>.</p>
-      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot"
-        alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page." />
-      <p class="body-text">Perma visits the URL, fetches the contents of the page, makes a record of those contents - a
-        Perma Record - and deposits that record into the permanent collection. Perma also gives you a unique URL - a
-        Perma Link - that's associated with the new Perma Record. </p>
+      <p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button, or try one of our <a href="{% url 'user_management_settings_tools' %}">Browser Tools</a>.</p>
+      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page." />
+      <p class="body-text">Perma visits the URL, fetches the contents of the page, makes a record of those contents - a Perma Record - and deposits that record into the permanent collection. Perma also gives you a unique URL - a Perma Link - that's associated with the new Perma Record. </p>
       <p class="body-text">When the capture process is done, Perma shows you the Perma Record so you can verify it. </p>
-      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot"
-        alt="A screenshot of a Perma Link's Record page. A header with tools tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
-      <p class="body-text">All Perma Records are permanent by default, and we give you a 24-hour period to delete
-        records if need be.</p>
+      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with tools tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
+      <p class="body-text">All Perma Records are permanent by default, and we give you a 24-hour period to delete records if need be.</p>
       <p class="body-text">If the preservation process fails you'll get an error notification like this: </p>
-      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot"
-        alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help." />
-      <p class="body-text">You can retry the capture or, if it continues to fail, use the direct upload option that
-        allows you to upload your own archived image or PDF file.</p>
-      <img src="{{ STATIC_URL }}img/docs/direct_upload.png" class="img-responsive screen-shot"
-        alt="A screenshot of the Direct Upload modal form, accessed via the 'upload your own' link in the error message." />
+      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help." />
+      <p class="body-text">You can retry the capture or, if it continues to fail, use the direct upload option that allows you to upload your own archived image or PDF file.</p>
+      <img src="{{ STATIC_URL }}img/docs/direct_upload.png" class="img-responsive screen-shot" alt="A screenshot of the Direct Upload modal form, accessed via the 'upload your own' link in the error message." />
 
       <h3 class="body-bh" id="preservation-limits">Preservation limits</h3>
-      <p class="body-text">Perma.cc offers unlimited free accounts to anyone affiliated with an academic or court
-        registrar.</p>
-      <p class="body-text">Anyone can create an account and preserve 10 links as a trial run. After that, any user not
-        associated with a registrar organization must have a paid subscription. For those users, preservation limits are
-        associated with their subscription tier.</p>
+      <p class="body-text">Perma.cc offers unlimited free accounts to anyone affiliated with an academic or court registrar.</p>
+      <p class="body-text">Anyone can create an account and preserve 10 links as a trial run. After that, any user not associated with a registrar organization must have a paid subscription. For those users, preservation limits are associated with their subscription tier.</p>
       <p class="body-text">Your remaining record count is displayed on the record creation page.</p>
 
       <h2 class="body-ah" id="using-perma-links">Using Perma Links</h2>
 
       <h3 class="body-bh" id="citing-perma-links">Citing Perma Links</h3>
-      <p class="body-text">Give your readers access to the Perma Records you create by adding the relevant Perma Link to
-        your citation.</p>
+      <p class="body-text">Give your readers access to the Perma Records you create by adding the relevant Perma Link to your citation.</p>
 
       <figure>
         <figcaption>An example from the <a
             href="http://cdn.harvardlawreview.org/wp-content/uploads/2014/06/vol127_west.pdf">Harvard Law Review</a>
         </figcaption>
-        <img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-responsive screen-shot"
-          alt="Footnote 4. See, e.g., Charles P. Pierce, This Cannot Be the Way Occupy Ends, ESQUIRE: POL. BLOG (Nov 17, 2011) http://www.esquire.com/blogs/politics/occupy-wall-street-violence-6575448, archived at https://perma.cc/48VC-ZS62 (bemoaning protestors' 'reciprocal violence' and arguing that the protest 'can't end in images of bleeding cops and tossed barricades'" />
+        <img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-responsive screen-shot" alt="Footnote 4. See, e.g., Charles P. Pierce, This Cannot Be the Way Occupy Ends, ESQUIRE: POL. BLOG (Nov 17, 2011) http://www.esquire.com/blogs/politics/occupy-wall-street-violence-6575448, archived at https://perma.cc/48VC-ZS62 (bemoaning protestors' 'reciprocal violence' and arguing that the protest 'can't end in images of bleeding cops and tossed barricades'" />
       </figure>
 
       <p class="body-text">If you don't publish the Perma Link, your readers won't be able to find the record.</p>
-      <p class="body-text">For users in the legal community, <em>The Bluebook</em> encourages use of a reliable web
-        archiving source like Perma.cc and recommends appending the Perma Link to the citation.</p>
+      <p class="body-text">For users in the legal community, <em>The Bluebook</em> encourages use of a reliable web archiving source like Perma.cc and recommends appending the Perma Link to the citation.</p>
 
-      <blockquote>Charles P. Pierce, <em>This Cannot Be the Way Occupy Ends</em>, ESQUIRE: POL. BLOG (Nov 17, 2011)
-        http://www.esquire.com/blogs/politics/occupy-wall-steret-violence-6575448 [https://perma.cc/48VC-ZS62]
+      <blockquote>Charles P. Pierce, <em>This Cannot Be the Way Occupy Ends</em>, ESQUIRE: POL. BLOG (Nov 17, 2011) http://www.esquire.com/blogs/politics/occupy-wall-steret-violence-6575448 [https://perma.cc/48VC-ZS62]
       </blockquote>
 
       <h3 class="body-bh" id="what-readers-see">What readers see</h3>
-      <p class="body-text">When a reader visits a Perma Link, she'll first see an interactive, web archive version of
-        the record. She'll also have access to a screenshot version and a link to the live version at the original URL.
+      <p class="body-text">When a reader visits a Perma Link, she'll first see an interactive, web archive version of the record. She'll also have access to a screenshot version and a link to the live version at the original URL.
       </p>
 
-      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot"
-        alt="A screenshot of a Perma Link's Record page. A header with links to all the versions of the record tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
+      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with links to all the versions of the record tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
 
-      <p class="body-text">If you'd like to direct your readers to the screenshot view first, just add "?type=image" to
-        the Perma Link, like this: <a href="https://perma.cc/9265-T4NB?type=image"
-          target="blank">https://perma.cc/9265-T4NB?type=image</a>.</p>
+      <p class="body-text">If you'd like to direct your readers to the screenshot view first, just add "?type=image" to the Perma Link, like this: <a href="https://perma.cc/9265-T4NB?type=image" target="blank">https://perma.cc/9265-T4NB?type=image</a>.</p>
 
       <h2 class="body-ah" id="managing-links">Managing Perma Links</h2>
-      <p class="body-text">Perma has tools that let you view, organize and annotate the Perma Links and archives you and
-        your organization(s) have created.</p>
+      <p class="body-text">Perma has tools that let you view, organize and annotate the Perma Links and archives you and your organization(s) have created.</p>
 
       <h3 class="body-bh" id="organizing-links">Organizing Perma Links</h3>
       <p class="body-text">To manage your Perma Links, click the "Create and manage Perma Links" button.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/header-create-and-manage.png" class="img-responsive screen-shot"
-        alt="A screenshot of the main navigation, which contains a link to 'Create and manage Perma Links', visually styled like a button." />
+      <img src="{{ STATIC_URL }}img/docs/header-create-and-manage.png" class="img-responsive screen-shot" alt="A screenshot of the main navigation, which contains a link to 'Create and manage Perma Links', visually styled like a button." />
 
-      <p class="body-text">Below the Perma Link creation form is the link management area, which lists your folders and
-        Perma Links. You also can search or sort your Perma Links.</p>
+      <p class="body-text">Below the Perma Link creation form is the link management area, which lists your folders and Perma Links. You also can search or sort your Perma Links.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/folders-and-links.png" class="img-responsive screen-shot"
-        alt="A screenshot of the lower half of the Create a Perma Link page. Two columns. The left column contains a tree for managing and selecting folders. The right column lists Perma Links from the selected folder. Its first element is a search form, used to further filter the list of links." />
+      <img src="{{ STATIC_URL }}img/docs/folders-and-links.png" class="img-responsive screen-shot" alt="A screenshot of the lower half of the Create a Perma Link page. Two columns. The left column contains a tree for managing and selecting folders. The right column lists Perma Links from the selected folder. Its first element is a search form, used to further filter the list of links." />
 
-      <p class="body-text">Each user gets a Personal Links folder, and you can add as many sub-folders as you need. Each
-        organization also gets a folder, and the organization's members can add sub-folders to organize links however
-        they like. Note that all of an organization's members can access all of the organization's links.</p>
+      <p class="body-text">Each user gets a Personal Links folder, and you can add as many sub-folders as you need. Each organization also gets a folder, and the organization's members can add sub-folders to organize links however they like. Note that all of an organization's members can access all of the organization's links.</p>
 
       <h3 class="body-bh" id="annotating-links">Annotating Perma Links</h3>
-      <p class="body-text">You can annotate any link accessible to you. Click on the item you want to annotate. It'll
-        expand to display more detail, and you can edit the title, add notes, move the link to another folder and view
-        other metadata about the link:</p>
+      <p class="body-text">You can annotate any link accessible to you. Click on the item you want to annotate. It'll expand to display more detail, and you can edit the title, add notes, move the link to another folder and view other metadata about the link:</p>
 
-      <img src="{{ STATIC_URL }}img/docs/annotate_link.png" class="img-responsive screen-shot"
-        alt="A screenshot of the link list with a single expanded Perma Link. Details and an edit form are included at the bottom of the expanded Link's entry." />
+      <img src="{{ STATIC_URL }}img/docs/annotate_link.png" class="img-responsive screen-shot" alt="A screenshot of the link list with a single expanded Perma Link. Details and an edit form are included at the bottom of the expanded Link's entry." />
 
       <h2 class="body-ah" id="about-perma-records">About Perma Records</h2>
 
       <h3 class="body-bh" id="preservation-formats">Preservation formats</h3>
-      <p class="body-text">Perma provides two formats for each preserved web page: (1) capture and (2) screenshot.The
-        capture uses the Web ARChive (or "warc") file format. The screenshot is a .png file.</p>
+      <p class="body-text">Perma provides two formats for each preserved web page: (1) capture and (2) screenshot.The capture uses the Web ARChive (or "warc") file format. The screenshot is a .png file.</p>
 
       <h3 class="body-bh" id="private-records">Private Records</h3>
-      <p class="body-text">In general, Perma Records are public by default and accessible by anyone at the corresponding
-        Perma Link. In some cases, however, Perma Records are not publicly accessible.</p>
+      <p class="body-text">In general, Perma Records are public by default and accessible by anyone at the corresponding Perma Link. In some cases, however, Perma Records are not publicly accessible.</p>
 
-      <p class="body-text">When a reader encounters something that is private for any reason, she'll see this screen:
-      </p>
+      <p class="body-text">When a reader encounters something that is private for any reason, she'll see this screen: </p>
 
-      <img src="{{ STATIC_URL }}img/docs/dark_archive.png" class="img-responsive screen-shot"
-        alt="A screenshot of a private Perma Link's record page, as viewed by the public. Instead of a reproduction of the original website, as is normally displayed here, there is a message stating that the Link is private and cannot be viewed.">
+      <img src="{{ STATIC_URL }}img/docs/dark_archive.png" class="img-responsive screen-shot" alt="A screenshot of a private Perma Link's record page, as viewed by the public. Instead of a reproduction of the original website, as is normally displayed here, there is a message stating that the Link is private and cannot be viewed.">
 
 
-      <p class="body-text">The private or public status of individual Perma Records can be changed on a record-by-record
-        basis through the "Record Details" section of each Perma Record. In addition, archiving organizations can make
-        their Perma Records private by default by adjusting their organization settings.</p>
+      <p class="body-text">The private or public status of individual Perma Records can be changed on a record-by-record basis through the "Record Details" section of each Perma Record. In addition, archiving organizations can make their Perma Records private by default by adjusting their organization settings.</p>
 
-      <p class="body-text">Some Perma Records become private automatically upon creation, and their status cannot be
-        changed. This applies to pages with a Perma-specific “noarchive” metatag or a Perma-specific exclusion in the
-        site's robots.txt file. Each of these Perma Records is preserved in a private archive and is accessible only to
-        the individual account, organization and registrar responsible for the Perma Record.</p>
-      <p class="body-text">Finally, any pages that have been the subject of a valid DMCA takedown notice are placed into
-        the private archive.</p>
+      <p class="body-text">Some Perma Records become private automatically upon creation, and their status cannot be changed. This applies to pages with a Perma-specific “noarchive” metatag or a Perma-specific exclusion in the site's robots.txt file. Each of these Perma Records is preserved in a private archive and is accessible only to the individual account, organization and registrar responsible for the Perma Record.</p>
+      <p class="body-text">Finally, any pages that have been the subject of a valid DMCA takedown notice are placed into the private archive.</p>
 
       <h3 class="body-bh" id="memento">Memento</h3>
-      <p class="body-text"><a href="http://mementoweb.org/about/">Memento</a> is a framework for accessing archived
-        versions of web resources. Like many other web archiving services, Perma has implemented Memento. As a result,
-        all public Perma Records are available via the Memento framework.</p>
+      <p class="body-text"><a href="http://mementoweb.org/about/">Memento</a> is a framework for accessing archived versions of web resources. Like many other web archiving services, Perma has implemented Memento. As a result, all public Perma Records are available via the Memento framework.</p>
 
     </div>
   </div>
