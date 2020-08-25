@@ -13,8 +13,7 @@
           {% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
         </div>
 
-        <div
-          class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/accounts" %} _active{% endif %}">
+        <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/accounts" %} _active{% endif %}">
           {% if request.path == "/docs/accounts" %}
           <div class="overview-module-content" aria-current="page">
           {% else %}
@@ -25,15 +24,14 @@
           {% if request.path == "/docs/accounts" %}</div>{% else %}</a>{% endif %}
         </div>
 
-        <div
-          class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
+        <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
           {% if request.path == "/docs/perma-link-creation" %}
           <div class="overview-module-content" aria-current="page">
           {% else %}
           <a class="overview-module-content" href="{% url 'docs_perma_link_creation' %}">
           {% endif %}
             <strong class="overview-module-title">Links and Records</strong>
-              <p class="overview-module-description">Learn about the links and records you can create with Perma.cc.</p>
+            <p class="overview-module-description">Learn about the links and records you can create with Perma.cc.</p>
           {% if request.path == "/docs/perma-link-creation" %}</div>{% else %}</a>{% endif %}
         </div>
 
