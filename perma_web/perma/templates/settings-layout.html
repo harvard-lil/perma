@@ -22,8 +22,8 @@
 
               <li{% if this_page == 'settings_password' %} class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_settings_password' %}"><span>Password</span></a></li>
 
-              {% if request.user.can_view_subscription %}
-              <li{% if this_page == 'settings_subscription' %} class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_settings_subscription' %}" id="dashboard-settings"><span>Subscription</span></a></li>
+              {% if request.user.can_view_usage_plan %}
+              <li{% if this_page == 'settings_usage_plan' %} class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_settings_usage_plan' %}" id="dashboard-settings"><span>Usage Plan</span></a></li>
               {% endif %}
 
               <li{% if this_page == 'settings_tools' %} class="active" aria-current="page"{% endif %}><a href="{% url 'user_management_settings_tools' %}"><span>Tools</span></a></li>

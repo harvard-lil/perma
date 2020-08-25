@@ -579,7 +579,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 CAPTURE_BROWSER = 'Chrome'  # formerly 'PhantomJS'; some support for 'Firefox'
 DISABLE_DEV_SHM = False
 # Default user agent is adapted from the PhantomJS default
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
 PROXY_CAPTURES = False
@@ -682,8 +682,8 @@ ENABLE_SPONSORED_USERS = False
 
 OFFER_CLIENT_SIDE_PLAYBACK = False
 USERS_WITH_CLIENT_SIDE_PLAYBACK = []
-PLAYBACK_UI_JS_URL = 'https://unpkg.com/replaywebpage@1.0.1/ui.js'
-SERVICE_WORKER_URL = 'https://unpkg.com/replaywebpage@1.0.1/sw.js'
+PLAYBACK_UI_JS_URL = 'https://unpkg.com/replaywebpage@1.0.2/ui.js'
+SERVICE_WORKER_URL = 'https://unpkg.com/replaywebpage@1.0.2/sw.js'
 
 ENABLE_BONUS_LINKS = False
 
