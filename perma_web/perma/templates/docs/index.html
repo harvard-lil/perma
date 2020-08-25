@@ -23,7 +23,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 <div class="container cont-reading cont-fixed">
   <div class="row">
-    <div class="col-sm-4 reading-toc" >
+    <div class="col-sm-4 reading-toc">
       <nav aria-label="Getting Started Page Table of Contents">
         <h2 class="sr-only">Table of Contents</h2>
         <ul>
@@ -40,6 +40,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
             <h3 class="reading-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></h3>
             <ul>
               <li class="reading-toc-section"><a href="#create-account">Accounts</a></li>
+              <li class="reading-toc-section"><a href="#usage-plans">Usage Plans</a></li>
               <li class="reading-toc-section"><a href="#creating-links">Preserving records</a></li>
               <li class="reading-toc-section"><a href="#viewing-records">Viewing records</a></li>
             </ul>
@@ -80,26 +81,28 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
     <div class="col-sm-8 col-right docs reading-body">
       <h2 class="body-ah" id="perma-basics">Perma.cc Basics</h2>
 
-      <h3 id="accounts" class="body-bh">Creating an account</h3>
-      <p class="body-text">To preserve web pages with Perma.cc, you need an account. Perma.cc offers unlimited free accounts to users affiliated with a registrar. Courts and academic institutions qualify for free registrar accounts, and other organizations <a href="{% url 'contact' %}?upgrade=organization">get in touch</a> to learn about how they can join.</p>
-      <p class="body-text">Users not affiliated with a registrar can create 10 links for free as a trial run, and then continue accessing Perma via a paid subscription.</p>
+      <h3 id="accounts" class="body-bh">Accounts</h3>
+      <p class="body-text">To preserve web pages with Perma.cc, you need an account. Anyone can create an account, but your ability to use Perma to preserve web pages depends on your affiliations or paid usage plan.</p>
+      <p class="body-text">To create an account or learn more about accounts, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
 
-      <p class="body-text">To create an account or to learn more about accounts, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
+      <h3 id="usage-plans" class="body-bh">Usage Plans</h3>
+      <p class="body-text">Academic libraries qualify for free, unlimited usage plans, which they can share with any of their affiliates, such as current faculty, students or staff. Courts are also eligible for free, unlimited usage plans.</p>
+      <p class="body-text">We also offer a variety of paid usage plans for other groups and for individuals. To learn more about paid usage plans, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
 
       <h3 id="creating-links" class="body-bh">Preserving records</h3>
-      <p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button, or try one of our <a href="{% url 'user_management_settings_tools' %}">Browser Tools</a>. Perma will visit the web page at your direction and create a record of the contents of that page.</p>
+      <p class="body-text">To preserve a web page, log in to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button, or try one of our <a href="{% url 'user_management_settings_tools' %}">Browser Tools</a>. Perma will visit the web page at your direction and create a record of the contents of that page.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page."/>
+      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page." />
 
       <p class="body-text">When Perma finishes processing your request, it'll direct you to the Perma Record, where you can see the preserved page and the associated Perma Link. You should review the Perma Record to confirm that it displays correctly.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with tools and URL of the Perma Link tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original."/>
+      <img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with tools and URL of the Perma Link tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
 
       <p class="body-text">If preservation fails for some reason, Perma.cc will display a "Failure" message and give you the option to upload your own image (.png, .jpg) or PDF file.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help."/>
+      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help." />
 
-      <p>Learn more about Perma links and records <a href="{% url 'docs_perma_link_creation' %}#perma-link-creation">here</a>.</p>
+      <p>Learn more about Perma links and records <a href="{% url 'docs_perma_link_creation' %}">here</a>.</p>
 
       <h3 id="using-links" class="body-bh">Using links</h3>
       <p class="body-text">How you use a Perma Link in a citation is up to you. One common method, encouraged by <a href="https://www.legalbluebook.com/">The Bluebook</a>, is to include both the Perma Link and the original URL in the citation, like this:</p>

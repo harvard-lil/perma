@@ -19,8 +19,8 @@
           {% else %}
           <a class="overview-module-content" href="{% url 'docs_accounts' %}">
           {% endif %}
-            <strong class="overview-module-title">Accounts</strong>
-            <p class="overview-module-description">Learn about individual and organizational accounts.</p>
+            <strong class="overview-module-title">Accounts and Usage Plans</strong>
+            <p class="overview-module-description">Learn about accounts and usage plans for groups and individuals.</p>
           {% if request.path == "/docs/accounts" %}</div>{% else %}</a>{% endif %}
         </div>
 
@@ -41,8 +41,8 @@
           {% else %}
           <a class="overview-module-content" href="{% url 'docs_libraries' %}">
           {% endif %}
-            <strong class="overview-module-title">For Registrars</strong>
-            <p class="overview-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
+            <strong class="overview-module-title">For Libraries and Other Registrars</strong>
+            <p class="overview-module-description">Learn about the special role of libraries and other registrars in supporting Perma.cc.</p>
           {% if request.path == "/docs/libraries" %}</div>{% else %}</a>{% endif %}
         </div>
 
