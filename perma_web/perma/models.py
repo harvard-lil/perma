@@ -1409,12 +1409,14 @@ class Link(DeletableModel):
                 )
                 response.close()
                 return response.headers
-        except (requests.ConnectionError, requests.Timeout, requests.exceptions.InvalidSchema):
+        except (requests.ConnectionError, requests.Timeout, requests.exceptions.InvalidSchema, requests.exceptions.InvalidURL):
             # ConectionError and Timeout are self-explanatory.
             # InvalidSchema is raised if the retrieved URL uses a protocol not handled by
             # requests' adapters (https://github.com/psf/requests/blob/master/requests/sessions.py#L419).
             # While we can validate the target URL in advance, it may redirect to any arbitrary schema,
             # for instance, file://, which will raise InvalidSchema.
+            # Similarly, InvalidURL is raised when requests cannot parse the target of a redirect.
+            # (https://github.com/psf/requests/blob/8149e9fe54c36951290f198e90d83c8a0498289c/requests/models.py#L383)
             # We return False, to indicate in all cases that we did not successfully retrieve
             # any headers, rather than propagating the exception.
             return False
