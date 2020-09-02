@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: ./perma_web/Dockerfile
-    image: perma3:0.63
+    image: perma3:0.64
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
