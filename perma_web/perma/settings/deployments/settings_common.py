@@ -114,8 +114,10 @@ MIDDLEWARE = (
     'ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+# This defaults to 'SAMEORIGIN' w/ Django 2, but was changed to 'DENY' in Django 3
+X_FRAME_OPTIONS = 'DENY'
 
 # If the Django redis cache is configured but unavailable,
 # the ratelimiting plugin should allow all requests,
