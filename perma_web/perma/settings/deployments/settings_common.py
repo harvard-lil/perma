@@ -114,7 +114,7 @@ MIDDLEWARE = (
     'ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 # If the Django redis cache is configured but unavailable,
