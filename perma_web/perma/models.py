@@ -46,7 +46,7 @@ from .utils import (tz_datetime,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset, get_wr_session_cookie,
-    clear_wr_session, query_wr_api)
+    clear_wr_session, query_wr_api, user_agent_for_domain)
 
 
 logger = logging.getLogger(__name__)
@@ -1399,7 +1399,7 @@ class Link(DeletableModel):
                 request = requests.Request(
                     'GET',
                     self.ascii_safe_url,
-                    headers={'User-Agent': settings.CAPTURE_USER_AGENT, **settings.CAPTURE_HEADERS}
+                    headers={'User-Agent': user_agent_for_domain(self.url_details.netloc), **settings.CAPTURE_HEADERS}
                 )
                 response = s.send(
                     request.prepare(),
