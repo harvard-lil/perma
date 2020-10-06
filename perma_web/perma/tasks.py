@@ -54,7 +54,8 @@ from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
-    write_resource_record_from_asset, protocol, remove_control_characters)
+    write_resource_record_from_asset, protocol, remove_control_characters,
+    user_agent_for_domain)
 from perma import site_scripts
 
 import logging
@@ -956,9 +957,7 @@ def run_next_capture():
         stop = False
         proxy = False
 
-        capture_user_agent = settings.CAPTURE_USER_AGENT
-        if any(domain in link.url_details.netloc for domain in settings.DOMAINS_REQUIRING_UNIQUE_USER_AGENT):
-            capture_user_agent = capture_user_agent + " " + settings.PERMA_USER_AGENT_SUFFIX
+        capture_user_agent = user_agent_for_domain(link.url_details.netloc)
         print("Using user-agent: %s" % capture_user_agent)
 
         if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
