@@ -4,4 +4,9 @@ We will review your library account request as soon as possible. A personal acco
 
 To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a password.
 
-http://{{ host }}{{ activation_route }}
+{{ activation_route }}
+
+The link will be valid for the next {% widthratio activation_expires 1 24 %} hours.
+
+Thanks,
+The Perma.cc Team
