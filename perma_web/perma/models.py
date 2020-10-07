@@ -734,7 +734,7 @@ class Sponsorship(models.Model):
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
+    def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, password=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -749,7 +749,6 @@ class LinkUserManager(BaseUserManager):
             first_name = first_name,
             last_name = last_name,
             authorized_by = authorized_by,
-            confirmation_code = confirmation_code
         )
 
         user.set_password(password)
@@ -798,7 +797,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
-    confirmation_code = models.CharField(max_length=45, blank=True)
     root_folder = models.OneToOneField('Folder', blank=True, null=True, on_delete=models.CASCADE)
     sponsored_root_folder = models.OneToOneField('Folder', blank=True, null=True, on_delete=models.CASCADE, related_name='sponsored_user')
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
@@ -833,10 +831,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def __str__(self):
         return self.email
-
-    def save_new_confirmation_code(self):
-        self.confirmation_code = get_random_string(length=30)
-        self.save()
 
     def top_level_folders(self):
         """
