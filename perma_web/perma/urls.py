@@ -70,7 +70,8 @@ urlpatterns = [
     url(r'^password/change/?$', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
     url(r'^password/change/done/?$', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     url(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
-    url(r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$',
+    url(
+        r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$',
         auth_views.PasswordResetConfirmView.as_view(
             form_class=SetPasswordForm,
             template_name='registration/password_reset_confirm.html'
