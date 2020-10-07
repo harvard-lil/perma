@@ -1290,7 +1290,7 @@ def not_active(request):
         target_user = get_object_or_404(LinkUser, email=email)
         email_new_user(request, target_user)
 
-        messages.add_message(request, messages.INFO, 'Check your email for activation instructions.')
+        messages.add_message(request, messages.INFO, 'Check your e-mail for activation instructions.')
         return HttpResponseRedirect(reverse('user_management_limited_login'))
     else:
         context = {}
@@ -1369,7 +1369,8 @@ def reset_password(request):
         Displays the reset password form.
 
         We wrap the default Django view to add autofocus to the email field,
-        and a custom redirect if unconfirmed users try to reset their password.
+        to handle the logic for unconfirmed users activating their account,
+        and a custom redirect if deactivated users try to reset their password.
     """
     class OurPasswordResetForm(PasswordResetForm):
         def __init__(self, *args, **kwargs):

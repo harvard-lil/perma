@@ -7,6 +7,7 @@ from django.views.generic import RedirectView
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
 from .views import user_management, common, service, link_management, error_management
+from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
 # we created GUIDS as short as 6 chars (#-####)
@@ -69,7 +70,13 @@ urlpatterns = [
     url(r'^password/change/?$', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
     url(r'^password/change/done/?$', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     url(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
-    url(r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
+    url(r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$',
+        auth_views.PasswordResetConfirmView.as_view(
+            form_class=SetPasswordForm,
+            template_name='registration/password_reset_confirm.html'
+        ),
+        name='password_reset_confirm'
+    ),
     url(r'^password/reset/complete/?$', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     url(r'^password/reset/done/?$', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     url(r'^api_key/create/?$', user_management.api_key_create, name='api_key_create'),
