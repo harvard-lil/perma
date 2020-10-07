@@ -52,6 +52,9 @@ urlpatterns = [
     url(r'^logout/?$', user_management.logout, name='logout'),
     url(r'^register/?$', RedirectView.as_view(url='/sign-up/', permanent=True)),
 
+    # Users with old-style activation links should get redirected so they can generate a new one
+    url(r'^register/password/(?P<token>.*)/?$', user_management.redirect_to_reset, name='redirect_to_reset'),
+
     url(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
     url(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', user_management.sign_up_faculty, name='sign_up_faculty'),

@@ -1383,12 +1383,19 @@ def reset_password(request):
             target_user = None
         if target_user:
             if not target_user.is_confirmed:
-                request.session['email'] = target_user.email
-                return HttpResponseRedirect(reverse('user_management_not_active'))
-            if not target_user.is_active:
+                email_new_user(request, target_user)
+            if target_user.is_confirmed and not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
     return auth_views.PasswordResetView.as_view(form_class=OurPasswordResetForm)(request)
+
+def redirect_to_reset(request, token):
+    """
+        Perma used to use custom account-activation logic; now we reuse the reset password flow.
+        Redirect users following the old-style activation links to a page where they can
+        request a new-style activation link.
+    """
+    return HttpResponseRedirect(reverse('password_reset_confirm', args=['0', token]))
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
