@@ -16,7 +16,7 @@ from django.views.generic import UpdateView
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Count, Max, Sum

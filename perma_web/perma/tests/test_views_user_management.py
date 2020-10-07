@@ -2,7 +2,6 @@
 from django.urls import reverse
 from django.core import mail
 from django.conf import settings
-from django.urls import NoReverseMatch
 from django.utils import timezone
 
 from mock import patch, sentinel
