@@ -188,7 +188,7 @@ services:
       - webrecorder
 
   nginx:
-    image: harvardlil/nginx:0.01
+    image: harvardlil/nginx:0.02
     depends_on:
       - app
     volumes:
