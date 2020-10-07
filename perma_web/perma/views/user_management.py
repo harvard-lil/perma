@@ -1383,7 +1383,13 @@ def reset_password(request):
             target_user = None
         if target_user:
             if not target_user.is_confirmed:
-                email_new_user(request, target_user)
+                # This is a weird area... We're doing this, for now, to help
+                # smooth things for the users who sign up while we are transitioning
+                # to new activation links. We think it will be less confusing for them
+                # to receive a "password reset" email, since we ARE asking them to fill
+                # our that form, rather than a welcome email. We can readdress later...
+                # this whole architecture needs some tidying.
+                email_new_user(request, target_user, template="email/unactivated_user_reset_email.txt")
             if target_user.is_confirmed and not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 

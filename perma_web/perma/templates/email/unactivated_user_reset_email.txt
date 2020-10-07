@@ -1,0 +1,11 @@
+TITLE: Password reset for Perma.cc
+
+You're receiving this e-mail because you requested a password reset for your user account at Perma.cc
+
+Please go to the following page and choose a new password:
+{{ activation_route }}
+
+The link will be valid for the next {% widthratio activation_expires 1 24 %} hours.
+
+Thanks,
+The Perma.cc Team
