@@ -1,5 +1,5 @@
 TITLE: A Perma.cc account has been created for you
 
-To activate your account, please click the link below or copy it to your web browser.
+Thanks for signing up for Perma.cc!
 
-http://{{ host }}{{ activation_route }}
+{% include 'email/includes/activation.txt' %}

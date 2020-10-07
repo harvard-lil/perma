@@ -1,6 +1,7 @@
 import logging
 
 from django import forms
+from django.contrib.auth.forms import SetPasswordForm
 from django.forms import ModelForm
 from django.utils.html import mark_safe
 
@@ -95,6 +96,18 @@ class OrganizationForm(ModelForm):
 
 ### USER CREATION FORMS ###
 
+class SetPasswordForm(SetPasswordForm):
+    def save(self, commit=True):
+        """
+        When allowing user to set their password via an email link, we may be in a new-user flow with
+        email_confirmed=False, or a forgot-password flow with email_confirmed=True.
+        """
+        if not self.user.is_confirmed:
+            self.user.is_active = True
+            self.user.is_confirmed = True
+        return super().save(commit)
+
+
 class UserForm(forms.ModelForm):
     """
     User add/edit form.
@@ -102,6 +115,17 @@ class UserForm(forms.ModelForm):
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email"]
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        # save user, and set a password so that the password_reset flow can be
+        # used for email confirmation
+        self.instance.set_password(LinkUser.objects.make_random_password(length=20))
+        user = forms.ModelForm.save(self, commit)
+        return user
 
 class UserFormWithAdmin(UserForm):
     """
