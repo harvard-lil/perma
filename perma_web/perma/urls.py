@@ -52,14 +52,16 @@ urlpatterns = [
     url(r'^logout/?$', user_management.logout, name='logout'),
     url(r'^register/?$', RedirectView.as_view(url='/sign-up/', permanent=True)),
 
+    # Users with old-style activation links should get redirected so they can generate a new one
+    url(r'^register/password/(?P<token>.*)/?$', user_management.redirect_to_reset, name='redirect_to_reset'),
+
     url(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
     url(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', user_management.sign_up_faculty, name='sign_up_faculty'),
     url(r'^sign-up/journals/?$', user_management.sign_up_journals, name='sign_up_journals'),
     url(r'^sign-up/firms/?$', user_management.sign_up_firm, name='sign_up_firm'),
     url(r'^libraries/?$', user_management.libraries, name='libraries'),
-    #url(r'^register/confirm/(?P<code>\w+)/$', user_management.register_email_code_confirmation, name='confirm_register'),
-    url(r'^register/password/(?P<code>[A-Za-z0-9]+)/?$', user_management.register_email_code_password, name='register_password'),
+
     url(r'^register/email/?$', user_management.register_email_instructions, name='register_email_instructions'),
     url(r'^register/library/?$', user_management.register_library_instructions, name='register_library_instructions'),
     url(r'^register/court/?$', user_management.court_request_response, name='court_request_response'),
@@ -67,7 +69,7 @@ urlpatterns = [
     url(r'^password/change/?$', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
     url(r'^password/change/done/?$', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     url(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
-    url(r'^password/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
+    url(r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
     url(r'^password/reset/complete/?$', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     url(r'^password/reset/done/?$', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     url(r'^api_key/create/?$', user_management.api_key_create, name='api_key_create'),

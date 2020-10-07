@@ -2,7 +2,6 @@
 from django.urls import reverse
 from django.core import mail
 from django.conf import settings
-from django.urls import NoReverseMatch
 from django.utils import timezone
 
 from mock import patch, sentinel
@@ -1795,16 +1794,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': user['email']})
 
-    def check_lib_user_email(self, message, new_lib_user):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=new_lib_user['email']).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [new_lib_user['email']])
-
     def test_new_library_render(self):
         '''
            Does the library signup form display as expected?
@@ -1894,7 +1883,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['email'])
 
         # Not logged in, submit all fields including first and last name
         new_lib = self.new_lib()
@@ -1910,7 +1899,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['email'])
 
         # Logged in
         new_lib = self.new_lib()
@@ -1996,16 +1985,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': court_email})
 
-    def check_court_user_email(self, message, new_user):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=new_user['email']).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [new_user['email']])
-
     def test_new_court_success(self):
         '''
             Does the court signup form submit as expected? Success cases.
@@ -2053,7 +2032,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_user_email(mail.outbox[expected_emails_sent - 2], new_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['email'])
         self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # LOGGED IN
@@ -2069,7 +2048,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_user_email(mail.outbox[expected_emails_sent - 2], new_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['email'])
         self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # Existing user's email address, not that of the user logged in.
@@ -2124,16 +2103,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': firm_email})
 
-    def check_firm_user_email(self, message, new_user):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=new_user['email']).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [new_user['email']])
-
     def test_new_firm_success(self):
         '''
             Does the firm signup form submit as expected? Success cases.
@@ -2181,7 +2150,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_user_email(mail.outbox[expected_emails_sent - 2], new_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['email'])
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # LOGGED IN
@@ -2197,7 +2166,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_user_email(mail.outbox[expected_emails_sent - 2], new_user)
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['email'])
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # Existing user's email address, not that of the user logged in.
@@ -2242,16 +2211,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                  'first': u'Joe',
                  'last': u'Yacobówski' }
 
-    def check_journal_user_email(self, message, new_user_email):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [new_user_email])
-
     def test_new_journal_success(self):
         '''
             Does the journal signup form submit as expected? Success cases.
@@ -2270,7 +2229,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_journal_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # LOGGED IN
 
@@ -2284,7 +2243,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_journal_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
     def test_new_journal_failure(self):
         '''
@@ -2334,16 +2293,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                  'last': u'Yacobówski',
                  'requested_account_note': u'Journal {}'.format(rand) }
 
-    def check_faculty_user_email(self, message, new_user_email):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [new_user_email])
-
     def test_new_faculty_success(self):
         '''
             Does the faculty signup form submit as expected? Success cases.
@@ -2361,7 +2310,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_faculty_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
         # LOGGED IN
 
@@ -2375,7 +2324,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_faculty_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
 
     def test_new_faculty_failure(self):
         '''
@@ -2417,6 +2366,14 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### Individual Users ###
 
+    def check_new_activation_email(self, message, user_email):
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(message.recipients(), [user_email])
+
+        activation_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
+        return activation_url
+
     def test_account_creation_views(self):
         # user registration
         new_user_email = "new_email@test.com"
@@ -2424,47 +2381,35 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('register_email_instructions'),
                          success_query=LinkUser.objects.filter(email=new_user_email))
 
-        confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
+        # email sent
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        activation_url = self.check_new_activation_email(message, new_user_email)
 
-        # reg confirm - form loads
-        self.get('register_password',
-                  reverse_kwargs={'args': [confirmation_code]})
+        # if you tamper with the code, it is rejected
+        response = self.client.get(activation_url[:-1]+'wrong/')
+        self.assertContains(response, 'This activation/reset link is invalid')
 
         # reg confirm - non-matching passwords
-        self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                         data={'new_password1':'new-password1', 'new_password2':'new-password2'},
-                         error_keys=['new_password2'])
-
+        response = self.client.get(activation_url, follow=True)
+        post_url = response.redirect_chain[0][0]
+        self.assertTemplateUsed(response, 'registration/password_reset_confirm.html')
+        response = self.client.post(post_url, {'new_password1': 'anewpass1', 'new_password2': 'anewpass2'}, follow=True)
+        self.assertNotContains(response, 'Your password has been set')
+        self.assertContains(response, "The two password fields didn&#39;t match")
         # reg confirm - correct
-        self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                         data={'new_password1': 'new-password1', 'new_password2': 'new-password1'},
-                         success_url=reverse('user_management_limited_login'))
+        response = self.client.post(post_url, {'new_password1': 'anewpass', 'new_password2': 'anewpass'}, follow=True)
+        self.assertContains(response, 'Your password has been set')
+
+        # Doesn't work twice.
+        response = self.client.post(post_url, {'new_password1': 'anotherpass', 'new_password2': 'anotherpass'}, follow=True)
+        self.assertContains(response, 'This activation/reset link is invalid')
+
 
     def test_signup_with_existing_email_rejected(self):
         self.submit_form('sign_up',
                          {'email': self.registrar_user.email, 'first_name': 'Test', 'last_name': 'Test'},
                          error_keys=['email'])
-
-    def test_registration_confirmation_with_bad_code_rejected(self):
-        response = self.submit_form('register_password', reverse_kwargs={'args':['badconfirmationcode']})
-        self.assertTrue('no_code' in response.context)
-
-
-    def test_registration_confirmation_with_malformed_code_rejected(self):
-        # malformed confirmation codes will 404
-        with self.assertRaises(NoReverseMatch):
-            self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
-
-
-    def check_new_activation_email(self, message, user_email):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        confirmation_code = LinkUser.objects.get(email=user_email).confirmation_code
-        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
-        self.assertIn(confirm_url, message.body)
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [user_email])
 
 
     def test_get_new_activation_code(self):

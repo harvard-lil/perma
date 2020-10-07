@@ -159,3 +159,6 @@ else:
 
 ENABLE_SPONSORED_USERS = True
 ENABLE_BONUS_LINKS = True
+
+# don't check password quality locally, since it's annoying
+AUTH_PASSWORD_VALIDATORS = []

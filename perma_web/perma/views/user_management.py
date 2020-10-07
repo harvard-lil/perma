@@ -16,13 +16,16 @@ from django.views.generic import UpdateView
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
 
 from django.shortcuts import get_object_or_404, render
@@ -1380,12 +1383,25 @@ def reset_password(request):
             target_user = None
         if target_user:
             if not target_user.is_confirmed:
-                request.session['email'] = target_user.email
-                return HttpResponseRedirect(reverse('user_management_not_active'))
-            if not target_user.is_active:
+                # This is a weird area... We're doing this, for now, to help
+                # smooth things for the users who sign up while we are transitioning
+                # to new activation links. We think it will be less confusing for them
+                # to receive a "password reset" email, since we ARE asking them to fill
+                # our that form, rather than a welcome email. We can readdress later...
+                # this whole architecture needs some tidying.
+                email_new_user(request, target_user, template="email/unactivated_user_reset_email.txt")
+            if target_user.is_confirmed and not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
     return auth_views.PasswordResetView.as_view(form_class=OurPasswordResetForm)(request)
+
+def redirect_to_reset(request, token):
+    """
+        Perma used to use custom account-activation logic; now we reuse the reset password flow.
+        Redirect users following the old-style activation links to a page where they can
+        request a new-style activation link.
+    """
+    return HttpResponseRedirect(reverse('password_reset_confirm', args=['0', token]))
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -1592,33 +1608,6 @@ def sign_up_journals(request):
 
     return render(request, "registration/sign-up-journals.html", {'form': form})
 
-
-def register_email_code_password(request, code):
-    """
-    Allow system created accounts to create a password.
-    """
-    # find user based on confirmation code
-    try:
-        user = LinkUser.objects.get(confirmation_code=code)
-    except LinkUser.DoesNotExist:
-        return render(request, 'registration/set_password.html', {'no_code': True})
-
-    # save password
-    if request.method == "POST":
-        form = SetPasswordForm(user=user, data=request.POST)
-        if form.is_valid():
-            form.save(commit=False)
-            user.is_active = True
-            user.is_confirmed = True
-            user.save()
-            messages.add_message(request, messages.SUCCESS, 'Your account is activated.  Log in below.')
-            return HttpResponseRedirect(reverse('user_management_limited_login'))
-    else:
-        form = SetPasswordForm(user=user)
-
-    return render(request, 'registration/set_password.html', {'form': form})
-
-
 def register_email_instructions(request):
     """
     After the user has registered, give the instructions for confirming
@@ -1650,13 +1639,15 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
     """
     Send email to newly created accounts
     """
-    if not user.confirmation_code:
-        user.save_new_confirmation_code()
-    host = request.get_host()
+    # This uses the forgot-password flow; logic is borrowed from auth_forms.PasswordResetForm.save()
+    activation_route = request.build_absolute_uri(reverse('password_reset_confirm', args=[
+        urlsafe_base64_encode(force_bytes(user.pk)),
+        default_token_generator.make_token(user),
+    ]))
     context.update({
-        "host": host,
-        "activation_route": reverse('register_password', args=[user.confirmation_code]),
-        "request": request
+        'activation_route': activation_route,
+        'activation_expires': settings.PASSWORD_RESET_TIMEOUT_DAYS,
+        'request': request
     })
     send_user_email(
         user.email,
@@ -1669,19 +1660,7 @@ def email_pending_registrar_user(request, user):
     """
     Send email to newly created accounts for folks requesting library accounts
     """
-    if not user.confirmation_code:
-        user.save_new_confirmation_code()
-
-    host = request.get_host()
-
-    send_user_email(
-        user.email,
-        'email/pending_registrar.txt',
-        {
-            "host": host,
-            "activation_route": reverse('register_password', args=[user.confirmation_code])
-        }
-    )
+    email_new_user(request, user, template='email/pending_registrar.txt')
 
 
 def email_registrar_request(request, pending_registrar):
