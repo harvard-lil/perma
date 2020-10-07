@@ -2386,6 +2386,11 @@ class UserManagementViewsTestCase(PermaTestCase):
         message = mail.outbox[0]
         activation_url = self.check_new_activation_email(message, new_user_email)
 
+        # the new user is created, but is unactivated
+        user = LinkUser.objects.get(email=new_user_email)
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.is_confirmed)
+
         # if you tamper with the code, it is rejected
         response = self.client.get(activation_url[:-1]+'wrong/')
         self.assertContains(response, 'This activation/reset link is invalid')
@@ -2404,6 +2409,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Doesn't work twice.
         response = self.client.post(post_url, {'new_password1': 'anotherpass', 'new_password2': 'anotherpass'}, follow=True)
         self.assertContains(response, 'This activation/reset link is invalid')
+
+        # the new user is now activated and can log in
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_confirmed)
+        response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_email, 'password': 'anewpass'}, follow=True)
+        self.assertContains(response, 'Enter any URL to preserve it forever')
 
 
     def test_signup_with_existing_email_rejected(self):
