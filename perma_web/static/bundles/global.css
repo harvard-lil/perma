@@ -7572,6 +7572,14 @@ div.checkbox {
   padding-top: 8px;
   padding-left: 36px; }
 
+body.single-registrar div.checkbox {
+  background-color: initial; }
+
+.help-inline {
+  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-style: italic;
+  margin-top: 8px; }
+
 ._error input {
   border-color: red; }
 

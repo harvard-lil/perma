@@ -49,7 +49,13 @@ class OrgMembershipWidget(SelectMultipleWithSingleWidget):
 class RegistrarForm(ModelForm):
     class Meta:
         model = Registrar
-        fields = ['name', 'email', 'website']
+        fields = ['name', 'email', 'website', 'orgs_private_by_default']
+        labels = {
+            'orgs_private_by_default': 'New organizations should have their links set to "Private" by default.'
+        }
+        help_texts={
+            'orgs_private_by_default': 'Note: privacy settings can be overridden for individual organizations and links.'
+        }
 
 
 class LibraryRegistrarForm(ModelForm):

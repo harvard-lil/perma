@@ -2972,6 +2972,16 @@ div.checkbox {
   padding-left: 36px;
 }
 
+body.single-registrar div.checkbox {
+  background-color: initial;
+}
+
+.help-inline {
+  font-family: $font-hed;
+  font-style: italic;
+  margin-top: $grid;
+}
+
 ._error {
   input {
     border-color: $color-error;

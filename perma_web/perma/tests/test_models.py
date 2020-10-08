@@ -236,6 +236,72 @@ def expired_cancelled_subscription():
 
 class ModelsTestCase(PermaTestCase):
 
+    def test_new_orgs_are_public_by_default(self):
+        r = Registrar()
+        r.save()
+        o = Organization(registrar=r)
+        o.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertFalse(r.orgs_private_by_default)
+        self.assertFalse(o.default_to_private)
+
+    def test_new_orgs_respect_registrar_default_privacy_policy(self):
+        r = Registrar(orgs_private_by_default=True)
+        r.save()
+        o = Organization(registrar=r)
+        o.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertTrue(r.orgs_private_by_default)
+        self.assertTrue(o.default_to_private)
+
+    def test_existing_org_privacy_unaffected_by_registrar_change(self):
+        r = Registrar()
+        r.save()
+        o = Organization(registrar=r)
+        o.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertFalse(r.orgs_private_by_default)
+        self.assertFalse(o.default_to_private)
+
+        r.orgs_private_by_default = True
+        r.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertTrue(r.orgs_private_by_default)
+        self.assertFalse(o.default_to_private)
+
+        r.orgs_private_by_default = False
+        r.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertFalse(r.orgs_private_by_default)
+        self.assertFalse(o.default_to_private)
+
+    def test_org_privacy_does_not_revert_to_registrar_default_on_save(self):
+        r = Registrar(orgs_private_by_default=True)
+        r.save()
+        o = Organization(registrar=r)
+        o.save()
+        r.refresh_from_db()
+        o.refresh_from_db()
+        self.assertTrue(r.orgs_private_by_default)
+        self.assertTrue(o.default_to_private)
+
+        o.default_to_private = False
+        o.save()
+        o.refresh_from_db()
+        self.assertFalse(o.default_to_private)
+
+        o.name = 'A New Name'
+        o.save()
+        o.refresh_from_db()
+        self.assertEqual(o.name, 'A New Name')
+        self.assertFalse(o.default_to_private)
+
+
     def test_link_count_in_time_period_no_links(self):
         '''
             If no links in period, should return 0

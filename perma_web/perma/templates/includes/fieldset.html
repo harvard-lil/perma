@@ -10,7 +10,11 @@
           <label for="{{ field.id_for_label }}">
             {{ field }} {{ field.label }}
           </label>
+          {% if field.help_text %}
+            <div class="help-inline">{{ field.help_text }}</div>
+          {% endif %}
       </div>
+
     {% else %}
       <div class="form-group {{ form_classes }} {% if field.errors %} _error{% endif %}">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>

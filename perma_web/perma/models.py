@@ -573,6 +573,7 @@ class Registrar(CustomerModel):
     website = models.URLField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
+    orgs_private_by_default = models.BooleanField(default=False, help_text="Whether new orgs created for this registrar default to private links.")
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
     partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
@@ -669,6 +670,8 @@ class Organization(DeletableModel):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
+        if not self.pk:
+            self.default_to_private = self.registrar.orgs_private_by_default
         name_has_changed = self.tracker.has_changed('name')
         super(Organization, self).save(*args, **kwargs)
         if not self.shared_folder:
