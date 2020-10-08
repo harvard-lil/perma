@@ -3,12 +3,16 @@ import decimal
 from mock import patch, sentinel
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.test.client import RequestFactory
+
 
 from hypothesis import given
 from hypothesis.extra.django import TestCase
 from hypothesis.strategies import characters, text, integers, booleans, datetimes, dates, decimals, uuids, binary, dictionaries
 from perma.utils import (
+    AlphaNumericValidator,
     InvalidTransmissionException,
     decrypt_from_perma_payments,
     encrypt_for_perma_payments,
@@ -60,6 +64,27 @@ class UtilsTestCase(TestCase):
         request = self.factory.get('/some/route', REMOTE_ADDR="1.2.3.4")
         self.assertEqual(get_client_ip(request), "1.2.3.4")
 
+
+    # our custom password validator
+
+    def test_lower_upper_number_required(self):
+        validator = AlphaNumericValidator()
+        lower ='a'
+        upper = 'A'
+        number = '1'
+        for char in (lower, upper, number):
+            with self.assertRaises(ValidationError):
+                validator.validate('a')
+        self.assertIsNone(validator.validate(lower+upper+number))
+
+    def test_custom_validator_in_use(self):
+        lower ='a'
+        upper = 'A'
+        number = '1'
+        padding = 'qwertyuio'
+        with self.assertRaises(ValidationError):
+            validate_password(padding)
+        self.assertIsNone(validate_password(lower+upper+number+padding))
 
     # communicate with perma payments
 
