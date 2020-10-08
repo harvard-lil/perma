@@ -20,7 +20,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
-
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.utils.six.moves.http_client import responses
 
 from perma.wsgi_utils import retry_on_exception
@@ -277,6 +277,7 @@ def single_permalink(request, guid):
     return response
 
 
+@xframe_options_exempt
 def set_iframe_session_cookie(request):
     """
     The <iframe> used for Perma Link playback serves content from Webrecorder.
@@ -585,6 +586,7 @@ def robots_txt(request):
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
 
 
+@xframe_options_exempt
 @csrf_exempt
 def archive_error(request):
     """
