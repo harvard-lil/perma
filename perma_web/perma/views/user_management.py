@@ -1290,7 +1290,7 @@ def not_active(request):
         target_user = get_object_or_404(LinkUser, email=email)
         email_new_user(request, target_user)
 
-        messages.add_message(request, messages.INFO, 'Check your e-mail for activation instructions.')
+        messages.add_message(request, messages.INFO, 'Check your email for activation instructions.')
         return HttpResponseRedirect(reverse('user_management_limited_login'))
     else:
         context = {}
