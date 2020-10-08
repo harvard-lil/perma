@@ -82,11 +82,9 @@ class UtilsTestCase(TestCase):
         upper = 'A'
         number = '1'
         padding = 'qwertyuio'
-        with self.assertRaises(ValidationError) as e:
+        with self.assertRaises(ValidationError):
             validate_password(padding)
-            import pdb; pdb.set_trace()
         self.assertIsNone(validate_password(lower+upper+number+padding))
-
 
     # communicate with perma payments
 
