@@ -84,24 +84,27 @@ class AlphaNumericValidator:
 
     @sensitive_variables()
     def validate(self, password, user=None):
-        contains_number = contains_letter = False
+        contains_number = contains_upper = contains_lower = False
         for char in password:
             if not contains_number:
                 if char in string.digits:
                     contains_number = True
-            if not contains_letter:
-                if char in string.ascii_letters:
-                    contains_letter = True
-            if contains_number and contains_letter:
+            if not contains_upper:
+                if char in string.ascii_uppercase:
+                    contains_upper = True
+            if not contains_lower:
+                if char in string.ascii_lowercase:
+                    contains_lower = True
+            if all((contains_number, contains_upper, contains_lower)):
                 break
 
-        if not contains_number or not contains_letter:
-            raise ValidationError("This password does not include at least \
-                                   one letter and at least one number.")
+        if not all((contains_number, contains_upper, contains_lower)):
+            raise ValidationError("This password must include an uppercase letter, \
+                                   a lowercase letter, and a number.")
 
     def get_help_text(self):
-        return "Your password must include at least \
-                one letter and at least one number."
+        return "Your password must include an uppercase letter, \
+                a lowercase letter, and a number."
 
 
 ### list view helpers ###

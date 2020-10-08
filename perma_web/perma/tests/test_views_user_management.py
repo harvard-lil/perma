@@ -2399,22 +2399,22 @@ class UserManagementViewsTestCase(PermaTestCase):
         response = self.client.get(activation_url, follow=True)
         post_url = response.redirect_chain[0][0]
         self.assertTemplateUsed(response, 'registration/password_reset_confirm.html')
-        response = self.client.post(post_url, {'new_password1': 'anewpass1', 'new_password2': 'anewpass2'}, follow=True)
+        response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass2'}, follow=True)
         self.assertNotContains(response, 'Your password has been set')
         self.assertContains(response, "The two password fields didn&#39;t match")
         # reg confirm - correct
-        response = self.client.post(post_url, {'new_password1': 'anewpass', 'new_password2': 'anewpass'}, follow=True)
+        response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, follow=True)
         self.assertContains(response, 'Your password has been set')
 
         # Doesn't work twice.
-        response = self.client.post(post_url, {'new_password1': 'anotherpass', 'new_password2': 'anotherpass'}, follow=True)
+        response = self.client.post(post_url, {'new_password1': 'Anotherpass1', 'new_password2': 'Anotherpass1'}, follow=True)
         self.assertContains(response, 'This activation/reset link is invalid')
 
         # the new user is now activated and can log in
         user.refresh_from_db()
         self.assertTrue(user.is_active)
         self.assertTrue(user.is_confirmed)
-        response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_email, 'password': 'anewpass'}, follow=True)
+        response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_email, 'password': 'Anewpass1'}, follow=True)
         self.assertContains(response, 'Enter any URL to preserve it forever')
 
 
