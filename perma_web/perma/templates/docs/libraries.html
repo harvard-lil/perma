@@ -39,6 +39,7 @@ This section of the user guide describes the Perma.cc library consortium and the
               <li class="reading-toc-section"><a href="#creating-orgs">Creating new archiving organizations</a></li>
               <li class="reading-toc-section"><a href="#assigning-users-to-orgs">Assigning users to archiving orgs</a></li>
               <li class="reading-toc-section"><a href="#authority">Authority and responsibilities</a></li>
+              <li class="reading-toc-section"><a href="#privacy">Organizations and default link privacy</a></li>
             </ul>
             <h3 class="reading-toc-chapter"><a href="#affiliated-individuals">Affiliated Individuals</a></h3>
             <ul>
@@ -59,10 +60,10 @@ This section of the user guide describes the Perma.cc library consortium and the
 
       <h3 id="becoming-registrar" class="body-bh">Becoming a registrar</h3>
       <p class="body-text">All academic libraries and courts are invited to become registrars for free and to extend free Perma service to those within their communities. If you are interested, please contact us via this <a href="{% url 'libraries' %}">inquiry form</a> and we will follow up to learn more about your institution and what kinds of users and usage you intend to support.</p>
-      <p class="body-text">Other entities can become registrators by signing up for a paid usage plan. For more info, please visit our <a href="{% url 'docs_accounts' %}">accounts page.</a></p>
+      <p class="body-text">Other entities can become registrars by signing up for a paid usage plan. For more info, please visit our <a href="{% url 'docs_accounts' %}">accounts page.</a></p>
 
       <h3 id="libraries-authority" class="body-bh">Authority and responsibilities</h3>
-      <p class="body-text">Registrars have administrative oversight and responsibility for their communities. Registrators can create new archiving organizations and affiliate users with those organizations. Registrars also can affiliate directly with individual users, who we refer to as "sponsored users."</p>
+      <p class="body-text">Registrars have administrative oversight and responsibility for their communities. Registrars can create new archiving organizations and affiliate users with those organizations. Registrars also can affiliate directly with individual users, who we refer to as "sponsored users."</p>
       <p class="body-text">As a registrar, you'll help train and support Perma users within your community and you'll be the main point of contact between your community and the Perma team. That means you are the main point of contact for questions from your Perma users regarding policies and practices. Any questions submitted via the Perma contact form will be sent to you to address (the Perma team will be cc'd on them as well, in case the question pertains to a bug or technical issue).</p>
       <p class="body-text">You'll also be responsible for ensuring that those in your community do not abuse their accounts. Every Perma Record created by anyone within your community becomes automatically associated with you, as the relevant registrar, so it's important that you exercise judgment in approving archiving organizations and sponsored users. If you like, you can adopt policies and best practices for Perma.cc usage by those in your community.</p>
 
@@ -83,6 +84,16 @@ This section of the user guide describes the Perma.cc library consortium and the
       <p class="body-text">The members of an organization can create Perma Records on behalf of the organization. They also can affiliate other Perma users with the organization or remove users from the organization.</p>
       <p class="body-text">Typically an organization is a collection of Perma users working together on a journal, for a faculty member, for a court or for a law firm. The organization is responsible for ensuring that its users do not abuse their authority. Every link created by anyone on behalf of the organization becomes automatically associated with the entire organization, so it's important that you exercise judgment about who can be affiliated and what kinds of activities on behalf of the organization are appropriate. If you like, you can adopt policies and best practices for Perma usage by those in your organization.</p>
       <p class="body-text">Within an organization, every user has access to all of the links created on behalf of the org. This lets organization users work collaboratively and manage links across the organization. Every user within the organization also has the ability to add or remove other users from the organization.</p>
+
+      <h3 id="privacy" class="body-bh">Organizations and default link privacy</h3>
+      <p class="body-text">In general, Perma Records are public by default and accessible by anyone at the corresponding Perma Link. In some cases, however, registrars or organizations may prefer for their Perma Records to be made <a href="{% url 'docs_perma_link_creation' %}#private-records">automatically private on creation</a>, then individually toggled to public at a later date upon issuance of the document containing the citation.
+      </p>
+
+      <p class="body-text">To configure a single organization, select "Organizations" in the main menu, then locate the organization in the list. Click "edit" then press the "set to private" button. From that point forward, all new Perma Records will be private. The privacy of already-created Perma Records will not be affected.</p>
+
+      <img src="{{ STATIC_URL }}img/docs/set-to-private.png" class="img-responsive screen-shot" alt="Screenshot of the 'edit organization' page. Links are public by default, followed by a 'set to private' button."/>
+
+      <p class="body-text">If a registrar prefers to make this the default for any newly-created organization in their network, simply <a href="{% url 'contact' %}">contact us</a>, and an administrator can enable the option for your account. From that point forward, all newly-created organizations will default to private links. The default for already-created organizations and the privacy of already-created Perma Records will not be affected.</p>
 
       <h2 class="body-ah" id="affiliated-individuals">Affiliated Individuals</h2>
       <p class="body-text">In addition to creating affiliated organizations, registrars also can affiliate with or "sponsor" individual users. By affiliating with individuals, a registrar extends its usage plan to those individuals. So if a registrar is an academic library and has a free unlimited usage plan, all of its affiliated individuals also will have free unlimited service.</p>
