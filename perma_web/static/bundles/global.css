@@ -7701,10 +7701,10 @@ button#addlink,
 .contact-form textarea[name="box1"] {
   display: none; }
 
-.signup-learnMore-form label[for="id_telephone"] {
+.signup-learnMore-form label[for="id_telephone"], .signup-learnMore-form label[for="id_a-telephone"] {
   display: none; }
 
-.signup-learnMore-form input[name="telephone"] {
+.signup-learnMore-form input[name="telephone"], .signup-learnMore-form input[name="a-telephone"] {
   display: none; }
 
 .list-user._isPrivate span.ui-private {

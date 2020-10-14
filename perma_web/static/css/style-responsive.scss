@@ -3135,10 +3135,10 @@ button#addlink,
 
 .signup-learnMore-form {
   // hide telephone so it will only be filled by spam bots
-  label[for="id_telephone"] {
+  label[for="id_telephone"], label[for="id_a-telephone"] {
     display: none;
   }
-  input[name="telephone"] {
+  input[name="telephone"], input[name="a-telephone"] {
     display: none;
   }
 }
