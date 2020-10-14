@@ -383,10 +383,10 @@ def manage_organization(request):
 
     if request.method == 'POST':
         if form.is_valid():
-            new_user = form.save()
+            new_org = form.save(commit=False)
             if not is_admin:
-                new_user.registrar_id = request.user.registrar_id
-                new_user.save()
+                new_org.registrar_id = request.user.registrar_id
+            new_org.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
 

@@ -58,7 +58,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
     list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
+        (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'orgs_private_by_default')}),
         ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'bonus_links')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
