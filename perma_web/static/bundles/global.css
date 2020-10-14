@@ -7701,6 +7701,12 @@ button#addlink,
 .contact-form textarea[name="box1"] {
   display: none; }
 
+.signup-learnMore-form label[for="id_telephone"] {
+  display: none; }
+
+.signup-learnMore-form input[name="telephone"] {
+  display: none; }
+
 .list-user._isPrivate span.ui-private {
   overflow: hidden;
   display: inline-block;

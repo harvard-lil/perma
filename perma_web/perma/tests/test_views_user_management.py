@@ -1808,9 +1808,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
         inputs = soup.select('input')
-        self.assertEqual(len(inputs), 8)
+        self.assertEqual(len(inputs), 9)
         for input in inputs:
-            if input['name'] == 'csrfmiddlewaretoken':
+            if input['name'] in ['csrfmiddlewaretoken', 'telephone']:
                 self.assertTrue(input.get('value', ''))
             else:
                 self.assertFalse(input.get('value', ''))
@@ -1834,9 +1834,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
         inputs = soup.select('input')
-        self.assertEqual(len(inputs), 8)
+        self.assertEqual(len(inputs), 9)
         for input in inputs:
-            if input['name'] == 'csrfmiddlewaretoken':
+            if input['name'] in ['csrfmiddlewaretoken', 'telephone']:
                 self.assertTrue(input.get('value', ''))
             elif input['name'][:2] == "b-":
                 self.assertTrue(input.get('value', ''))
@@ -1913,6 +1913,21 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib, existing_lib_user)
+
+    def test_new_library_form_honeypot(self):
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        self.submit_form('libraries',
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'],
+                                   u'a-email': new_lib_user['email'],
+                                   u'a-first_name': new_lib_user['first'],
+                                   u'a-last_name': new_lib_user['last'],
+                                   u'a-telephone': "I'm a bot."},
+                          success_url=reverse('register_library_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(Registrar.objects.filter(name=new_lib['name']).exists())
 
     def test_new_library_submit_failure(self):
         '''
@@ -2063,6 +2078,18 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_court_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
+    def test_new_court_form_honeypot(self):
+        new_court = self.new_court()
+        new_user = self.new_court_user()
+        self.submit_form('sign_up_courts',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_court['requested_account_note'],
+                                   'create_account': True,
+                                   'telephone': "I'm a bot." },
+                          success_url = reverse('register_email_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(LinkUser.objects.filter(email=new_user['email']).exists())
+
     def test_new_court_failure(self):
         '''
             Does the court signup form submit as expected? Failure cases.
@@ -2181,6 +2208,18 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
+    def test_new_firm_form_honeypot(self):
+        new_firm = self.new_firm()
+        new_user = self.new_firm_user()
+        self.submit_form('sign_up_firm',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_firm['requested_account_note'],
+                                   'create_account': True,
+                                   'telephone': "I'm a bot." },
+                          success_url = reverse('register_email_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(LinkUser.objects.filter(email=new_user['email']).exists())
+
     def test_new_firm_failure(self):
         '''
             Does the firm signup form submit as expected? Failure cases.
@@ -2244,6 +2283,17 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
+    def test_new_journal_form_honeypot(self):
+        new_journal = self.new_journal()
+        new_user = self.new_journal_user()
+        self.submit_form('sign_up_journals',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_journal['requested_account_note'],
+                                   'telephone': "I'm a bot." },
+                          success_url = reverse('register_email_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(LinkUser.objects.filter(email=new_user['email']).exists())
 
     def test_new_journal_failure(self):
         '''
@@ -2325,6 +2375,16 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
+    def test_new_faculty_form_honeypot(self):
+        new_user = self.new_faculty_user()
+        self.submit_form('sign_up_faculty',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_user['requested_account_note'],
+                                   'telephone': "I'm a bot." },
+                          success_url = reverse('register_email_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(LinkUser.objects.filter(email=new_user['email']).exists())
 
     def test_new_faculty_failure(self):
         '''
@@ -2423,6 +2483,14 @@ class UserManagementViewsTestCase(PermaTestCase):
                          {'email': self.registrar_user.email, 'first_name': 'Test', 'last_name': 'Test'},
                          error_keys=['email'])
 
+    def test_new_user_form_honeypot(self):
+        new_user_email = "new_email@test.com"
+        self.submit_form('sign_up',
+                          data = { 'email': new_user_email,
+                                   'telephone': "I'm a bot." },
+                          success_url = reverse('register_email_instructions'))
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(LinkUser.objects.filter(email=new_user_email).exists())
 
     def test_get_new_activation_code(self):
         self.submit_form('user_management_not_active',

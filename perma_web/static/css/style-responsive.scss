@@ -3133,6 +3133,16 @@ button#addlink,
   }
 }
 
+.signup-learnMore-form {
+  // hide telephone so it will only be filled by spam bots
+  label[for="id_telephone"] {
+    display: none;
+  }
+  input[name="telephone"] {
+    display: none;
+  }
+}
+
 .list-user {
   &._isPrivate {
     span.ui-private {

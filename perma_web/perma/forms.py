@@ -118,9 +118,11 @@ class UserForm(forms.ModelForm):
     """
     User add/edit form.
     """
+    telephone = forms.CharField(label="Do not fill out this box", required=False)  # field to fool bots
+
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email"]
+        fields = ["first_name", "last_name", "email", "telephone"]
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
