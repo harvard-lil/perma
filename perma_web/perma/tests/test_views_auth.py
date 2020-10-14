@@ -43,7 +43,7 @@ class AuthViewsTestCase(PermaTestCase):
         """
 
         # Login with our client and logout with our view
-        self.client.login(username='test_user@example.com', password='pass')
+        self.log_in_user(user='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
         self.get('logout')
         response = self.submit_form('logout')
@@ -55,7 +55,7 @@ class AuthViewsTestCase(PermaTestCase):
         Let's make sure we can login and change our password
         """
 
-        self.client.login(username='test_user@example.com', password='pass')
+        self.log_in_user(user='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
 
         self.client.post(reverse('password_change'),
@@ -65,11 +65,11 @@ class AuthViewsTestCase(PermaTestCase):
         self.client.logout()
 
         # Try to login with our old password
-        self.client.login(username='test_user@example.com', password='pass')
+        self.log_in_user(user='test_user@example.com', password='pass')
         self.assertNotIn('_auth_user_id', self.client.session)
 
         self.client.logout()
 
         # Try to login with our new password
-        self.client.login(username='test_user@example.com', password='Changed-password1')
+        self.log_in_user(user='test_user@example.com', password='Changed-password1')
         self.assertIn('_auth_user_id', self.client.session)
