@@ -1,4 +1,4 @@
-import logging
+from axes.utils import reset as reset_login_attempts
 
 from django import forms
 from django.contrib.auth.forms import SetPasswordForm
@@ -7,6 +7,7 @@ from django.utils.html import mark_safe
 
 from perma.models import Registrar, Organization, LinkUser, Sponsorship
 
+import logging
 logger = logging.getLogger(__name__)
 
 ### HELPERS ###
@@ -111,7 +112,9 @@ class SetPasswordForm(SetPasswordForm):
         if not self.user.is_confirmed:
             self.user.is_active = True
             self.user.is_confirmed = True
-        return super().save(commit)
+        user = super().save(commit)
+        reset_login_attempts(username=user.email)
+        return user
 
 
 class UserForm(forms.ModelForm):
