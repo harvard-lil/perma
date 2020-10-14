@@ -60,4 +60,4 @@ jobs:
 
       # Upload coverage to Codecov using third-party orb
       - codecov/upload:
-          file: .coverage
+          file: perma_web/.coverage
