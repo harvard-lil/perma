@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  codecov: codecov/codecov@1.1.1
 jobs:
   build:
     machine: true
@@ -57,10 +59,5 @@ jobs:
           path: junit
 
       # Upload coverage to Codecov
-      # Recommended approach is to use an orb: https://circleci.com/blog/making-code-coverage-easy-to-see-with-the-codecov-orb/
-      # Currently using python package instead of orb, because of https://github.com/codecov/codecov-circleci-orb/issues/12
-      - run:
-          name: "Upload coverage"
-          command: |
-            sudo pip install codecov
-            codecov
+      - codecov/upload:
+          file: .coverage
