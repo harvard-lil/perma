@@ -39,7 +39,7 @@ class PermaTestCase(TestCase):
             user = user.email
         else:
             self.logged_in_user = LinkUser.objects.get(email=user)
-        self.client.post(reverse('user_management_limited_login'), {'username': user, 'password': password})
+        return self.client.post(reverse('user_management_limited_login'), {'username': user, 'password': password})
 
     def do_request(self,
                    view_name,

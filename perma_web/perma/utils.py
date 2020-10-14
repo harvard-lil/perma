@@ -57,7 +57,8 @@ def run_task(task, *args, **kwargs):
     else:
         return task.apply(args, kwargs, **options)
 
-### login helper ###
+### login helpers ###
+
 def user_passes_test_or_403(test_func):
     """
     Decorator for views that checks that the user passes the given test,
@@ -74,6 +75,9 @@ def user_passes_test_or_403(test_func):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+def cooloff_time():
+    return timedelta(minutes=settings.AXES_COOLOFF_MINUTES)
 
 ### password helper ###
 

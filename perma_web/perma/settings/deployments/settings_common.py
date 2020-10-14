@@ -115,6 +115,12 @@ MIDDLEWARE = (
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
+    # It only formats user lockout messages and renders Axes lockout responses
+    # on failed user authentication attempts from login views.
+    # If you do not want Axes to override the authentication response
+    # you can skip installing the middleware and use your own views.
+    'axes.middleware.AxesMiddleware',
 )
 # This defaults to 'SAMEORIGIN' w/ Django 2, but was changed to 'DENY' in Django 3
 X_FRAME_OPTIONS = 'DENY'
@@ -156,6 +162,7 @@ INSTALLED_APPS = (
     'simple_history',  # record model changes
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
+    'axes',  # limit login attempts
 
     # api
     'api',
@@ -170,6 +177,27 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
+
+
+# Axes, fundamental integration
+AUTHENTICATION_BACKENDS = [
+    # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesBackend',
+
+    # Django ModelBackend is the default authentication backend.
+    'django.contrib.auth.backends.ModelBackend',
+]
+AXES_LOCKOUT_TEMPLATE = 'registration/login_attempts_exceeded.html'
+
+# Axes, configure behavior
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 6
+AXES_LOCK_OUT_AT_FAILURE = True
+AXES_COOLOFF_MINUTES = 30
+AXES_COOLOFF_TIME = 'perma.utils.cooloff_time'
+AXES_ONLY_USER_FAILURES = True  # If True, only lock based on username, and never lock based on IP if attempts exceed the limit. Otherwise utilize the existing IP and user locking logic. Default: False
+AXES_RESET_ON_SUCCESS = True  # If True, a successful login will reset the number of failed logins. Default: False
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {

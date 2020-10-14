@@ -1,0 +1,23 @@
+{% extends "base-responsive.html" %}
+{% load timedelta_from_now %}
+{% block title %} | Too Many Attempts {% endblock %}
+
+{% block mainContent %}
+
+<div class="container cont-fixed">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1 class="page-title">Too Many Attempts</h1>
+      <p class="page-dek">Your account {% if username %}({{ username }}){%endif %} has been temporarily locked due to too many unsuccessful login attempts.</p>
+      <p class="page-dek">You can try again in about {{ cooloff_timedelta|timedelta_from_now|timeuntil }}.</p>
+      <p class="page-dek">Or, you can request an email to reset your password. (If you do not receive it, please make sure you are attempting to log in using the correct email address.)</p>
+      <form action="{% url 'password_reset' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" value="{{ username }}" name="email">
+        <button type="submit" class="btn">Reset my password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock mainContent %}

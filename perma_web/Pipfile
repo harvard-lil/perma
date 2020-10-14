@@ -6,10 +6,11 @@ name = "pypi"
 [packages]
 
 # general
-celery = {version = "*", extras =["redis"]} # task queue
+celery = {version = "~=4.0", extras =["redis"]} # task queue
 future = ">=0.18.0"                         # undeclared dependency of celery 4.4.4; remove after next celery update
 Django = "~=2.2"
 django-ratelimit = "*"                      # IP-based rate-limiting
+django-axes = "*"                           # limit login attempts
 "Fabric3" = "*"                             # task automation
 netaddr = "*"                               # to check archive IPs against banned ranges
 pytz = "*"                                  # timezone helper
