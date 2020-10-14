@@ -196,7 +196,7 @@ AXES_LOCK_OUT_AT_FAILURE = True
 AXES_COOLOFF_MINUTES = 30
 AXES_COOLOFF_TIME = 'perma.utils.cooloff_time'
 AXES_ONLY_USER_FAILURES = True  # If True, only lock based on username, and never lock based on IP if attempts exceed the limit. Otherwise utilize the existing IP and user locking logic. Default: False
-AXES_RESET_ON_SUCCESS: True  # If True, a successful login will reset the number of failed logins. Default: False
+AXES_RESET_ON_SUCCESS = True  # If True, a successful login will reset the number of failed logins. Default: False
 
 
 AUTH_PASSWORD_VALIDATORS = [
