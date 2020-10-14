@@ -22,7 +22,7 @@ jobs:
       - run:
           name: "Info"
           command: |
-            docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}
+            docker login -u "${DOCKERHUB_USERNAME}" -p "${DOCKERHUB_PASSWORD}"
             docker-compose --version
             docker version
 
