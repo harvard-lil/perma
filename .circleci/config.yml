@@ -58,6 +58,6 @@ jobs:
       - store_test_results:
           path: junit
 
-      # Upload coverage to Codecov
+      # Upload coverage to Codecov using third-party orb
       - codecov/upload:
           file: .coverage
