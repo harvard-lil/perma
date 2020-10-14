@@ -4,7 +4,7 @@ orbs:
   codecov: codecov/codecov@1.1.1
 
 workflows:
-  workflow:
+  build:
     jobs:
       - build:
           context:
@@ -22,7 +22,8 @@ jobs:
       - run:
           name: "Info"
           command: |
-            echo "${TEST_VAR}"
+            echo "this is a test"
+            echo ${TEST_VAR}
             docker-compose --version
             docker version
 
