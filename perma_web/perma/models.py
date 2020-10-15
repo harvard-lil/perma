@@ -893,6 +893,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         from api.serializers import LinkUserSerializer  # local import to avoid circular import
         return json.dumps(LinkUserSerializer(self).data)
 
+    def get_api_key(self):
+        key = None
+        try:
+            key = self.api_key.key
+        except LinkUser.api_key.RelatedObjectDoesNotExist:
+            pass
+        return key
+
     ### permissions ###
 
     def has_perm(self, perm, obj=None):
