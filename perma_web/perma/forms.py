@@ -124,6 +124,11 @@ class UserForm(forms.ModelForm):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "telephone"]
 
+    def add_prefix(self, field_name):
+        # rename the email field in the HTML to foil bots that are spamming us
+        field_name = "e-address" if field_name == "email" else field_name
+        return super().add_prefix(field_name)
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)

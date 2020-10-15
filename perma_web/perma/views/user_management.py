@@ -1417,7 +1417,7 @@ def libraries(request):
         else:
             user_form = UserForm(request.POST, prefix = "a")
             user_form.fields['email'].label = "Your email"
-        user_email = request.POST.get('a-email', None)
+        user_email = request.POST.get('a-e-address', None)
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1504,7 +1504,7 @@ def sign_up_courts(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithCourt(request.POST)
-        submitted_email = request.POST.get('email', None)
+        submitted_email = request.POST.get('e-address', None)
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
         except LinkUser.DoesNotExist:
@@ -1575,7 +1575,7 @@ def sign_up_firm(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('email', None)
+        user_email = request.POST.get('e-address', None)
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1703,7 +1703,7 @@ def email_registrar_request(request, pending_registrar):
         email = request.user.email
     except AttributeError:
         # User did not have an account
-        email = request.POST.get('a-email')
+        email = request.POST.get('a-e-address')
 
     send_admin_email(
         "Perma.cc new library registrar account request",
