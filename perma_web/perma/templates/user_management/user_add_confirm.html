@@ -10,7 +10,7 @@
     <p>{{ error_message }}</p>
   {% else %}
 
-    <form method="post">
+    <form class="add-user" method="post">
       {% csrf_token %}
       {% include "includes/fieldset.html" %}
       <button type="submit" class="btn">Add user</button>

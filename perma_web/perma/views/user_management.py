@@ -51,7 +51,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session, get_client_ip
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -1417,7 +1417,7 @@ def libraries(request):
         else:
             user_form = UserForm(request.POST, prefix = "a")
             user_form.fields['email'].label = "Your email"
-        user_email = request.POST.get('a-email', None)
+        user_email = request.POST.get('a-e-address', None)
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1433,6 +1433,11 @@ def libraries(request):
         else:
             form_is_valid = registrar_form.is_valid()
 
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if user_form and user_form.data.get('a-telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {user_form.data}")
+            return HttpResponseRedirect(reverse('register_library_instructions'))
         if form_is_valid:
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
@@ -1477,6 +1482,11 @@ def sign_up(request):
     """
     if request.method == 'POST':
         form = UserForm(request.POST)
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save()
             email_new_user(request, new_user)
@@ -1494,7 +1504,7 @@ def sign_up_courts(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithCourt(request.POST)
-        submitted_email = request.POST.get('email', None)
+        submitted_email = request.POST.get('e-address', None)
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
         except LinkUser.DoesNotExist:
@@ -1507,6 +1517,11 @@ def sign_up_courts(request):
             email_court_request(request, target_user)
             return HttpResponseRedirect(reverse('court_request_response'))
 
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'court'
@@ -1534,6 +1549,11 @@ def sign_up_faculty(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithUniversity(request.POST)
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'faculty'
@@ -1555,7 +1575,7 @@ def sign_up_firm(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('email', None)
+        user_email = request.POST.get('e-address', None)
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1568,6 +1588,11 @@ def sign_up_firm(request):
             email_firm_request(request, target_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'firm'
@@ -1595,6 +1620,11 @@ def sign_up_journals(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithUniversity(request.POST)
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'journal'
@@ -1673,7 +1703,7 @@ def email_registrar_request(request, pending_registrar):
         email = request.user.email
     except AttributeError:
         # User did not have an account
-        email = request.POST.get('a-email')
+        email = request.POST.get('a-e-address')
 
     send_admin_email(
         "Perma.cc new library registrar account request",

@@ -14,7 +14,7 @@
       <p>{{ user_email }} already has an account.  Would you like to {% if request.user.is_registrar_user %}sponsor them{% else %}add a sponsorship{% endif %}?</p>
     {% endif %}
 
-    <form method="post">
+    <form class="add-user" method="post">
       {% csrf_token %}
       {% include "includes/fieldset.html" %}
       <button type="submit" class="btn">{% if request.user.is_registrar_user %}Sponsor{% else %}Add sponsorship{% endif %}</button>

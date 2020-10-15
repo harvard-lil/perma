@@ -10,7 +10,7 @@
       <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
     {% endfor %}
   {% endif %}
-  <form method="post" action="">
+  <form class="change-user" method="post" action="">
     {% csrf_token %}
     {% include "includes/fieldset.html" with form_classes="fg-100" %}
     <button type="submit" class="btn">Save changes</button>

@@ -14,7 +14,7 @@
       <p>{{ user_email }} already has an account.  Would you like to add them to an organization?</p>
     {% endif %}
 
-    <form method="post">
+    <form class="add-user" method="post">
       {% csrf_token %}
       {% include "includes/fieldset.html" %}
       {% if object.id %}
