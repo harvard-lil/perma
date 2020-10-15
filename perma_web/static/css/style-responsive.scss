@@ -3133,7 +3133,7 @@ button#addlink,
   }
 }
 
-.signup-learnMore-form {
+.signup-learnMore-form, .add-user, .change-user {
   // hide telephone so it will only be filled by spam bots
   label[for="id_telephone"], label[for="id_a-telephone"] {
     display: none;

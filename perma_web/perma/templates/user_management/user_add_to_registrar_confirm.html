@@ -27,7 +27,7 @@
       {% endif %}
     {% endif %}
 
-    <form method="post">
+    <form class="add-user" method="post">
       {% csrf_token %}
       {% include "includes/fieldset.html" %}
       {% if object.id %}
