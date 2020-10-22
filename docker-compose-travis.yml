@@ -6,7 +6,7 @@ services:
   # Perma Functional Tests
   #
   selenium:
-    image: selenium/standalone-chrome:3.141.59-fluorine
+    image: registry.lil.tools/selenium/standalone-chrome:3.141.59-fluorine
     volumes:
       - /dev/shm:/dev/shm
     environment:
@@ -19,7 +19,7 @@ services:
   # Webrecorder
   #
   app:
-    image: harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.11
     command: uwsgi /code/apps/apiapp.ini
     environment:
       - APP_HOST=perma-archives.test:8089
@@ -39,7 +39,7 @@ services:
       - webrecorder
 
   recorder:
-    image: harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.11
     user: root
     entrypoint:
       - "/docker-entrypoint.sh"
@@ -61,7 +61,7 @@ services:
       - webrecorder
 
   warcserver:
-    image: harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.11
     command: uwsgi /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -74,7 +74,7 @@ services:
       - webrecorder
 
   nginx:
-    image: harvardlil/nginx:0.02
+    image: registry.lil.tools/harvardlil/nginx:0.02
     depends_on:
       - app
     volumes:
@@ -93,7 +93,7 @@ services:
       webrecorder:
 
   redis:
-    image: redis:4.0.6
+    image: registry.lil.tools/library/redis:4.0.6
     env_file:
       - ./services/docker/webrecorder/wr.env
     volumes:
