@@ -89,3 +89,8 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
     'perma_public_key': "+Y3Kni4Pm+5kWFJgsBL28TyKcgciQdPofRsTwUKaVSE=",
     'perma_payments_public_key': "FhfWRc3QmLzG9SY+QwvTNMT9vcACNzpcMyvNSxKg0jA="
 }
+
+
+# Upload scanning
+SCAN_URL = 'http://filecheck:8888/scan/'
+
