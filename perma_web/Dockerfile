@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM registry.lil.tools/library/debian:buster
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
