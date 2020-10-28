@@ -126,7 +126,7 @@ services:
   # Upload scanning
   #
   filecheck:
-    image: perma-filecheck:0.6
+    image: registry.lil.tools/harvardlil/perma-filecheck:0.7
     environment:
       - UVICORN_PORT=8888
     ports:
