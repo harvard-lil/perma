@@ -92,5 +92,6 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
 
 
 # Upload scanning
+SCAN_UPLOADS = True
 SCAN_URL = 'http://filecheck:8888/scan/'
 
