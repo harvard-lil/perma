@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError, ObjectDoesNotExist
 from django.core.validators import URLValidator
-from requests import TooManyRedirects
+import requests
 from rest_framework import serializers
 
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, LinkBatch
@@ -9,6 +9,8 @@ from perma.utils import ip_in_allowed_ip_range
 
 from .utils import get_mime_type, mime_type_lookup, url_is_invalid_unicode, reverse_api_view
 
+import logging
+logger = logging.getLogger(__name__)
 
 class BaseSerializer(serializers.ModelSerializer):
     """ Base serializer from which all of our serializers inherit. """
@@ -257,7 +259,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                                 pass
                 except DjangoValidationError:
                     errors['url'] = "Not a valid URL."
-                except TooManyRedirects:
+                except requests.TooManyRedirects:
                     errors['url'] = "URL caused a redirect loop."
 
         # check uploaded file
@@ -276,6 +278,25 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     errors['file'] = "Invalid file."
                 elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                     errors['file'] = "File is too large."
+
+                elif settings.SCAN_UPLOADS:
+                    try:
+                        r = requests.post(
+                            settings.SCAN_URL,
+                            files={'file': (uploaded_file.name, uploaded_file.file.getvalue())}
+                        )
+                        assert r.ok, r.status_code
+                        scan_results = r.json()
+                    except (requests.RequestException, AssertionError) as e:
+                        msg = "Communication with filecheck API failed: {}".format(str(e))
+                        logger.error(msg)
+                        errors['file'] = "Validation failed. Try again later."
+                        scan_results = {"safe": False, "reason": "filecheck unavailable"}
+
+                    if not scan_results["safe"]:
+                        msg = f"Unsafe file upload attempt by user {user.id}: {scan_results['reason']}"
+                        logger.warning(msg)
+                        errors['file'] = "Validation failed."
 
         if errors:
             raise serializers.ValidationError(errors)

@@ -217,7 +217,7 @@ class CustomerModel(models.Model):
                     })
                 }
             )
-            assert r.ok
+            assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
             msg = "Communication with Perma-Payments failed: {}".format(str(e))
             logger.error(msg)
@@ -257,7 +257,7 @@ class CustomerModel(models.Model):
                     })
                 }
             )
-            assert r.ok
+            assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
             msg = "Communication with Perma-Payments failed: {}".format(str(e))
             logger.error(msg)
@@ -503,7 +503,7 @@ class CustomerModel(models.Model):
                                 })
                             }
                         )
-                        assert r.ok
+                        assert r.ok, r.status_code
                     except (requests.RequestException, AssertionError) as e:
                         msg = "Communication with Perma-Payments failed: {}".format(str(e))
                         logger.error(msg)

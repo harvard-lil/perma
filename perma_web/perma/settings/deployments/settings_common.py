@@ -721,3 +721,5 @@ SERVICE_WORKER_URL = 'https://unpkg.com/replaywebpage@1.0.2/sw.js'
 
 ENABLE_BONUS_LINKS = False
 
+SCAN_UPLOADS = False
+SCAN_URL = ''

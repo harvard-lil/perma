@@ -123,6 +123,18 @@ services:
       - perma_payments
 
   #
+  # Upload scanning
+  #
+  filecheck:
+    image: registry.lil.tools/harvardlil/perma-filecheck:0.7
+    environment:
+      - UVICORN_PORT=8888
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - default
+
+  #
   # Webrecorder
   #
   app:
