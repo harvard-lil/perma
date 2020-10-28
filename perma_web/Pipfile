@@ -14,8 +14,7 @@ django-axes = "*"                           # limit login attempts
 "Fabric3" = "*"                             # task automation
 netaddr = "*"                               # to check archive IPs against banned ranges
 pytz = "*"                                  # timezone helper
-requests = {version = "==2.20.0", extras = ["security"]}
-urllib3 = "==1.24.2"                        # from requests
+requests = {version = "~=2.20", extras = ["security"]}
 tqdm = "*"                                  # progress bar in dev fab tasks
 Werkzeug = "*"
 uwsgitop = "*"                              # uWSGI monitoring
