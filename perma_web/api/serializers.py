@@ -280,10 +280,11 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     errors['file'] = "File is too large."
 
                 elif settings.SCAN_UPLOADS:
+                    uploaded_file.file.seek(0)
                     try:
                         r = requests.post(
                             settings.SCAN_URL,
-                            files={'file': (uploaded_file.name, uploaded_file.file.getvalue())}
+                            files={'file': (uploaded_file.name, uploaded_file.file.read())}
                         )
                         assert r.ok, r.status_code
                         scan_results = r.json()
