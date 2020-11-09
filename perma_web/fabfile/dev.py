@@ -348,6 +348,15 @@ def upload_all_to_internet_archive():
         upload_to_internet_archive(link.guid)
 
 @task
+def count_pending_ia_links():
+    from perma.models import Link
+
+    count = Link.objects.visible_to_ia().filter(
+        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
+    ).count()
+    print(count)
+
+@task
 def regenerate_urlkeys(urlkey_prefix='file'):
     """
         Rewrite CDXLine urlkeys using the current version of the surt library.
