@@ -279,7 +279,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                 elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                     errors['file'] = "File is too large."
 
-                elif settings.SCAN_UPLOADS:
+                elif not errors.get('file') and settings.SCAN_UPLOADS:
                     uploaded_file.file.seek(0)
                     try:
                         r = requests.post(
