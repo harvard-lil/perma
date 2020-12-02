@@ -14,6 +14,7 @@ from netaddr import IPAddress, IPNetwork
 import operator
 import os
 import requests
+import ssl
 import socket
 import string
 import surt
@@ -22,6 +23,7 @@ import tempfile
 from ua_parser import user_agent_parser
 import unicodedata
 from urllib.parse import urlparse
+from urllib3 import poolmanager
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
@@ -46,13 +48,7 @@ warn = logger.warn
 
 ### requests helpers ###
 
-import requests
-from requests import adapters
-import ssl
-from urllib3 import poolmanager
-
-
-class Sec1TLSAdapter(adapters.HTTPAdapter):
+class Sec1TLSAdapter(requests.adapters.HTTPAdapter):
     """
     Debian Buster and its version of OpenSSL evidently set a minimum TLS version of 1.2,
     and there's a problem that results in SSL: DH_KEY_TOO_SMALL errors, for some websites.
