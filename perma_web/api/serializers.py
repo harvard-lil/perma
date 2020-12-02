@@ -289,15 +289,20 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                         assert r.ok, r.status_code
                         scan_results = r.json()
                     except (requests.RequestException, AssertionError) as e:
-                        msg = "Communication with filecheck API failed: {}".format(str(e))
-                        logger.error(msg)
-                        errors['file'] = "Validation failed. Try again later."
-                        scan_results = {"safe": False, "reason": "filecheck unavailable"}
+                        scan_results = {"safe": False, "reason": f"Communication with filecheck API failed: {str(e)}"}
 
-                    if not scan_results["safe"]:
-                        msg = f"Unsafe file upload attempt by user {user.id}: {scan_results['reason']}"
-                        logger.warning(msg)
-                        errors['file'] = "Validation failed."
+                    if not scan_results['safe']:
+                        if scan_results['reason'].startswith("Communication with filecheck API failed"):
+                            logger.error(scan_results['reason'])
+                            errors['file'] = "Validation failed. Try again later."
+                        elif scan_results['reason'] in ["clamav not running", "clamav out of date"]:
+                            msg = f"Filecheck service reports: {scan_results['reason']}"
+                            logger.error(msg)
+                            errors['file'] = "Validation failed. Try again later."
+                        else:
+                            msg = f"Unsafe file upload attempt by user {user.id}: {scan_results['reason']}"
+                            logger.warning(msg)
+                            errors['file'] = "Validation failed."
 
         if errors:
             raise serializers.ValidationError(errors)
