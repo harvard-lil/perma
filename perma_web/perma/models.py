@@ -40,7 +40,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebrecorderException
-from .utils import (tz_datetime,
+from .utils import (Sec1TLSAdapter, tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
@@ -1396,6 +1396,9 @@ class Link(DeletableModel):
                 # Break noisily if requests mediates anything but http and https
                 assert list(s.adapters.keys()) == ['https://', 'http://']
 
+                # Lower our standards for the required TLS security level
+                s.mount('https://', Sec1TLSAdapter())
+
                 if settings.PROXY_CAPTURES and any(domain in self.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
                     password = self.guid if self.guid else secrets.token_urlsafe()
                     s.proxies = {
@@ -1407,7 +1410,6 @@ class Link(DeletableModel):
                 )
                 response = s.send(
                     request.prepare(),
-                    verify=False,  # don't check SSL cert?
                     timeout=settings.RESOURCE_LOAD_TIMEOUT,
                     stream=True  # we're only looking at the headers
                 )

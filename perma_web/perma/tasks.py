@@ -55,7 +55,7 @@ from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (run_task, url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset, protocol, remove_control_characters,
-    user_agent_for_domain)
+    user_agent_for_domain, Sec1TLSAdapter)
 from perma import site_scripts
 
 import logging
@@ -157,6 +157,10 @@ class ProxiedRequestThread(threading.Thread):
             return
         try:
             with requests.Session() as s:
+
+                # Lower our standards for the required TLS security level
+                s.mount('https://', Sec1TLSAdapter())
+
                 request = requests.Request(
                     'GET',
                     self.url,

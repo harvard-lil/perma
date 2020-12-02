@@ -14,6 +14,7 @@ from netaddr import IPAddress, IPNetwork
 import operator
 import os
 import requests
+import ssl
 import socket
 import string
 import surt
@@ -22,6 +23,7 @@ import tempfile
 from ua_parser import user_agent_parser
 import unicodedata
 from urllib.parse import urlparse
+from urllib3 import poolmanager
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
@@ -43,6 +45,26 @@ from .exceptions import InvalidTransmissionException, WebrecorderException
 logger = logging.getLogger(__name__)
 warn = logger.warn
 
+
+### requests helpers ###
+
+class Sec1TLSAdapter(requests.adapters.HTTPAdapter):
+    """
+    Debian Buster and its version of OpenSSL evidently set a minimum TLS version of 1.2,
+    and there's a problem that results in SSL: DH_KEY_TOO_SMALL errors, for some websites.
+    Lower the security standard for our requests, per https://github.com/psf/requests/issues/4775
+    """
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        """Create and initialize the urllib3 PoolManager."""
+        ctx = ssl.create_default_context()
+        ctx.set_ciphers('DEFAULT@SECLEVEL=1')
+        self.poolmanager = poolmanager.PoolManager(
+                num_pools=connections,
+                maxsize=maxsize,
+                block=block,
+                ssl_version=ssl.PROTOCOL_TLS,
+                ssl_context=ctx)
 
 ### celery helpers ###
 
