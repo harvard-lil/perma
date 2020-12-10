@@ -4,7 +4,7 @@ import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from mptt.exceptions import InvalidMove
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -304,6 +304,8 @@ class PublicLinkDownloadView(BaseView):
             link = Link.objects.discoverable().get(pk=guid)
         except Link.DoesNotExist:
             raise Http404
+        if link.replacement_link_id:
+            return HttpResponseRedirect(reverse_api_view_relative('public_archives_download', kwargs={'guid': link.replacement_link_id}))
         return stream_warc(link)
 
 
@@ -605,6 +607,8 @@ class AuthenticatedLinkDownloadView(BaseView):
     def get(self, request, guid, format=None):
         """ Download warc. """
         link = self.get_object_for_user_by_pk(request.user, guid)
+        if link.replacement_link_id:
+            return HttpResponseRedirect(reverse_api_view_relative('archives_download', kwargs={'guid': link.replacement_link_id}))
         return stream_warc_if_permissible(link, request.user)
 
 
