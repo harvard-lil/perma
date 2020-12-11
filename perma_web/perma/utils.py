@@ -59,12 +59,18 @@ class Sec1TLSAdapter(requests.adapters.HTTPAdapter):
         """Create and initialize the urllib3 PoolManager."""
         ctx = ssl.create_default_context()
         ctx.set_ciphers('DEFAULT@SECLEVEL=1')
+
+        # for whatever reason, required for verify=False
+        ctx.check_hostname = False
         self.poolmanager = poolmanager.PoolManager(
                 num_pools=connections,
                 maxsize=maxsize,
                 block=block,
                 ssl_version=ssl.PROTOCOL_TLS,
                 ssl_context=ctx)
+
+    def cert_verify(self, conn, url, verify, cert):
+        super().cert_verify(conn, url, False, cert)
 
 ### celery helpers ###
 
