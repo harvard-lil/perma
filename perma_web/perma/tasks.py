@@ -1060,6 +1060,9 @@ def run_next_capture():
                         self.logger.warn('%s from %s' %(e, self.url))
                         buf = e.partial
 
+                    if buf:
+                        proxied_responses["size"] += len(buf)
+
                     if (self._max_resource_size and
                             prox_rec_res.recorder.len > self._max_resource_size):
                         prox_rec_res.truncated = b'length'
@@ -1159,8 +1162,6 @@ def run_next_capture():
             with tracker_lock:
                 if response:
                     proxied_responses["any"] = True
-                    if response.size:
-                        proxied_responses["size"] += response.size
                     proxied_pair[1] = response
                 else:
                     # in some cases (502? others?) warcprox is not returning a response
