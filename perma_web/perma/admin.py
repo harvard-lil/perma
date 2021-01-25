@@ -19,6 +19,89 @@ from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link,
 def new_class(name, *args, **kwargs):
     return type(name, args, kwargs)
 
+### filters ###
+
+class InputFilter(admin.SimpleListFilter):
+    """
+    Text input filter, from:
+    https://hakibenita.com/how-to-add-a-text-filter-to-django-admin
+    """
+    template = 'admin/input_filter.html'
+
+    def lookups(self, request, model_admin):
+        # Dummy, required to show the filter.
+        return ((),)
+
+    def choices(self, changelist):
+        # Grab only the "all" option.
+        all_choice = next(super().choices(changelist))
+        all_choice['query_parts'] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+        yield all_choice
+
+
+class SubmittedURLFilter(InputFilter):
+    parameter_name = 'submitted_url'
+    title = 'submitted URL'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(submitted_url__icontains=value)
+
+
+class CreatedByFilter(InputFilter):
+    parameter_name = 'created_by'
+    title = 'user email'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(created_by__email__icontains=value)
+
+
+class GUIDFilter(InputFilter):
+    parameter_name = 'guid'
+    title = 'GUID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(guid__icontains=value)
+
+
+class LinkIDFilter(InputFilter):
+    parameter_name = 'guid'
+    title = 'GUID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(link__guid__icontains=value)
+
+
+class TagFilter(InputFilter):
+    parameter_name = 'tag'
+    title = 'tag'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(tags__name__icontains=value)
+
+
+class MessageFilter(InputFilter):
+    parameter_name = 'message'
+    title = 'message'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(message__icontains=value)
+
 
 ### inlines ###
 
@@ -33,6 +116,7 @@ class SponsorshipInline(admin.TabularInline):
     readonly_fields = ('created_by', 'created_at', 'status_changed')
     fk_name = 'user'
     extra = 1
+    raw_id_fields = ['registrar']
 
 
 ### admin models ###
@@ -167,6 +251,7 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
+    raw_id_fields = ['registrar', 'organizations']
     list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying','cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate', 'bonus_links', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
@@ -182,6 +267,10 @@ class LinkUserAdmin(UserAdmin):
     ]
     filter_horizontal = ['organizations',]
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).select_related('registrar',)
+        return qs
+
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for obj in formset.deleted_objects:
@@ -194,8 +283,7 @@ class LinkUserAdmin(UserAdmin):
 
 class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'warc_size']
-    search_fields = ['guid', 'submitted_url', 'tags__name', 'created_by__email']
-    list_filter = ['cached_can_play_back', 'internet_archive_upload_status']
+    list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'internet_archive_upload_status']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
@@ -216,7 +304,7 @@ class LinkAdmin(SimpleHistoryAdmin):
     raw_id_fields = ['created_by','replacement_link']
 
     def get_queryset(self, request):
-        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',).prefetch_related('tags', 'capture_job')
+        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'capture_job').prefetch_related('tags')
         qs.query.where = WhereNode()  # reset filters to include "deleted" objs
         return qs
 
@@ -229,15 +317,17 @@ class FolderAdmin(MPTTModelAdmin):
     search_fields = ['name', 'owned_by__email', 'organization__name']
     raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('owned_by', 'organization', 'sponsored_by')
 
 class CaptureJobAdmin(admin.ModelAdmin):
     list_display = ['id', 'status', 'superseded', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
-    list_filter = ['status', 'superseded']
-    raw_id_fields = ['link', 'created_by']
+    list_filter = [CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded']
+    raw_id_fields = ['link', 'created_by', 'link_batch']
 
     def get_queryset(self, request):
         q = Q(link__isnull=True) | Q(link__user_deleted=False)
-        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link','link__created_by')
+        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link','created_by').prefetch_related('link__tags')
 
     def link_creation_timestamp(self, obj):
         if obj.link:
