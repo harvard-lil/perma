@@ -5,7 +5,7 @@
   <div class="module aligned">
     <h2>Links</h2>
     <div class="form-row">
-      <a href="{% url 'admin:perma_link_changelist' %}?q={{ original.email | urlencode }}">
+      <a href="{% url 'admin:perma_link_changelist' %}?created_by={{ original.email | urlencode }}">
         View links created by {{ original.email }}
       </a>
     </div>
