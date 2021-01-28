@@ -1117,14 +1117,14 @@ for prop_name in ['is_organization_user']:
 class FolderQuerySet(QuerySet):
     def user_access_filter(self, user):
         # personal folders
-        filter = Q(owned_by=user)
+        folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
         # folders owned by orgs in which the user a member
         orgs = user.get_orgs()
         if orgs:
-            filter |= Q(organization__in=orgs)
+            folder_list.extend(Folder.objects.filter(organization__in=list(orgs)).values_list('id', flat=True))
 
-        return filter
+        return Q(id__in=folder_list)
 
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
@@ -1260,14 +1260,14 @@ class LinkQuerySet(QuerySet):
             User can see/modify a link if they created it or it is in an org folder they belong to.
         """
         # personal links
-        filter = Q(folders__owned_by=user)
+        folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
         # links owned by orgs in which the user a member
         orgs = user.get_orgs()
         if orgs:
-            filter |= Q(folders__organization__in=orgs)
+            folder_list.extend(Folder.objects.filter(organization__in=list(orgs)).values_list('id', flat=True))
 
-        return filter
+        return Q(folders__id__in=folder_list)
 
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))
