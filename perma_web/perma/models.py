@@ -1116,6 +1116,9 @@ for prop_name in ['is_organization_user']:
 
 class FolderQuerySet(QuerySet):
     def user_access_filter(self, user):
+        if user.is_staff:
+            return Q()  # all
+
         # personal folders
         folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
@@ -1158,12 +1161,18 @@ class Folder(MPTTModel):
     # true if this is a sponsored folder, but the sponsorship is deactivated; denormalized
     read_only = models.BooleanField(default=False)
 
+    # since a textual representation of the folder's ancestry is included in the folder's API serialization,
+    # keep a cached copy on the model, so we don't have to constantly hit the DB
+    cached_path = models.TextField(null=True, blank=True)
+
     objects = FolderManager()
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
-        # set defaults
-        if not self.pk:
+        new = not self.pk
+        parent_has_changed = not new and self.tracker.has_changed('parent_id')
+
+        if new:
             # set read-only and ownership same as parent
             if self.parent:
                 self.read_only = self.parent.read_only
@@ -1175,8 +1184,6 @@ class Folder(MPTTModel):
                     self.owned_by = self.parent.owned_by
             if self.created_by and not self.owned_by and not self.organization:
                 self.owned_by = self.created_by
-
-        parent_has_changed = self.pk and self.tracker.has_changed('parent_id')
 
         super(Folder, self).save(*args, **kwargs)
 
@@ -1206,6 +1213,12 @@ class Folder(MPTTModel):
                     user.bonus_links = user.bonus_links + count
                     user.save(update_fields=['bonus_links'])
 
+        if new or parent_has_changed:
+            # update cached paths
+            for desendant in self.get_descendants(include_self=True):
+                desendant.cached_path = desendant.get_path()
+                desendant.save()
+
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -1225,6 +1238,9 @@ class Folder(MPTTModel):
             because it is displayed below user's root folder.
         """
         return self.level + (1 if self.organization_id else 0)
+
+    def get_path(self):
+        return '-'.join([str(f.id) for f in self.get_ancestors(include_self=True)])
 
     def accessible_to(self, user):
         # staff can access any folder
@@ -1258,7 +1274,11 @@ class LinkQuerySet(QuerySet):
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
+            Staff can see/modify all links.
         """
+        if user.is_staff:
+            return Q()  # all
+
         # personal links
         folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
