@@ -301,6 +301,43 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(o.name, 'A New Name')
         self.assertFalse(o.default_to_private)
 
+    def test_new_folder_path_is_cached(self):
+        f1 = Folder()
+        f1.save()
+        f1.refresh_from_db()
+        self.assertEqual(str(f1.pk), f1.cached_path)
+        f2 = Folder(parent=f1)
+        f2.save()
+        f2.refresh_from_db()
+        self.assertEqual(f'{f1.pk}-{f2.pk}', f2.cached_path)
+
+    def test_folders_cached_paths_updated_when_moved(self):
+        # f1
+        # f2
+        # f3 -> f3_1
+        f1 = Folder(name=1)
+        f1.save()
+        f1.refresh_from_db()
+        f2 = Folder(parent=f1, name='2')
+        f2.save()
+        f2.refresh_from_db()
+        f3 = Folder(parent=f1, name='3')
+        f3.save()
+        f3.refresh_from_db()
+        f3_1 = Folder(parent=f3, name='3_1')
+        f3_1.save()
+        f3_1.refresh_from_db()
+        self.assertEqual(f'{f1.pk}-{f3.pk}', f3.cached_path)
+        self.assertEqual(f'{f1.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+
+        # f1
+        # f2 -> f3 -> f3_1
+        f3.parent = f2
+        f3.save()
+        f3.refresh_from_db()
+        f3_1.refresh_from_db()
+        self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}', f3.cached_path)
+        self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
 
     def test_link_count_in_time_period_no_links(self):
         '''
