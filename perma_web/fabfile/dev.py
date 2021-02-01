@@ -1008,3 +1008,42 @@ def populate_link_surt_column(batch_size="500", model='Link'):
             logger.info(f"Stopped with ~ {remaining_to_update} remaining {model}s to update")
     else:
         logger.info(f"No more {model}s left to update!")
+
+
+@task
+def populate_folder_cached_path(batch_size="500"):
+    import logging
+    from tqdm import tqdm
+    from perma.models import Folder
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("BEGIN: populate_folder_cached_path")
+
+    folders = Folder.objects.filter(cached_path__isnull=True)
+
+    # limit to our desired batch size
+    not_populated = folders.count()
+    batch_size = int(batch_size)
+    if not_populated > batch_size:
+        logger.info(f"{not_populated} folders to update: limiting to first {batch_size}")
+        folders = folders[:batch_size]
+
+    to_update = folders.count()
+    if not to_update:
+        logger.info("No folders to update.")
+        return
+
+    for folder in tqdm(folders):
+        folder.cached_path = folder.get_path()
+        folder.save()
+
+    # offer to send another batch if there are any links left to update
+    remaining_to_update = not_populated - to_update
+    if remaining_to_update:
+        if input(f"\nSend another batch of size {batch_size}? [y/n]\n").lower() == 'y':
+            populate_folder_cached_path(batch_size=str(batch_size))
+        else:
+            logger.info(f"Stopped with ~ {remaining_to_update} remaining folders to update")
+    else:
+        logger.info(f"No more folders left to update!")
