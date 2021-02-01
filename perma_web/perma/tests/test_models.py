@@ -332,12 +332,21 @@ class ModelsTestCase(PermaTestCase):
 
         # f1
         # f2 -> f3 -> f3_1
-        f3.parent = f2
+        f3.parent_id = f2.pk
         f3.save()
         f3.refresh_from_db()
         f3_1.refresh_from_db()
         self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}', f3.cached_path)
         self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+
+        # and back
+        f3.parent_id = f1.pk
+        f3.save()
+        f3.refresh_from_db()
+        f3_1.refresh_from_db()
+        self.assertEqual(f'{f1.pk}-{f3.pk}', f3.cached_path)
+        self.assertEqual(f'{f1.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+
 
     def test_link_count_in_time_period_no_links(self):
         '''
