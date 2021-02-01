@@ -1116,6 +1116,9 @@ for prop_name in ['is_organization_user']:
 
 class FolderQuerySet(QuerySet):
     def user_access_filter(self, user):
+        if user.is_staff:
+            return Q()  # all
+
         # personal folders
         folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
@@ -1271,7 +1274,11 @@ class LinkQuerySet(QuerySet):
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
+            Staff can see/modify all links.
         """
+        if user.is_staff:
+            return Q()  # all
+
         # personal links
         folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
 
