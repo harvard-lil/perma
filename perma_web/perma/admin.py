@@ -102,6 +102,33 @@ class MessageFilter(InputFilter):
         if value is not None:
             return queryset.filter(message__icontains=value)
 
+class OwnerFilter(InputFilter):
+    parameter_name = 'owner'
+    title = 'owned by (email)'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(owned_by__email__icontains=value)
+
+class OrgFilter(InputFilter):
+    parameter_name = 'org'
+    title = 'owned by (org)'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(organization__name__icontains=value)
+
+class NameFilter(InputFilter):
+    parameter_name = 'name'
+    title = 'name'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(name__icontains=value)
+
 
 ### inlines ###
 
@@ -313,8 +340,8 @@ class LinkAdmin(SimpleHistoryAdmin):
 
 
 class FolderAdmin(MPTTModelAdmin):
-    list_display = ['id', 'level', 'display_level', 'name', 'owned_by', 'organization', 'sponsored_by', 'read_only']
-    search_fields = ['name', 'owned_by__email', 'organization__name']
+    list_display = ['id', 'level', 'display_level', 'name', 'cached_path', 'owned_by', 'organization', 'sponsored_by', 'read_only']
+    list_filter = [NameFilter, OwnerFilter, OrgFilter]
     raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
 
     def get_queryset(self, request):
