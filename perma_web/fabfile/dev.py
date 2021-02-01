@@ -1046,4 +1046,4 @@ def populate_folder_cached_path(batch_size="500"):
         else:
             logger.info(f"Stopped with ~ {remaining_to_update} remaining folders to update")
     else:
-        logger.info(f"No more folders left to update!")
+        logger.info("No more folders left to update!")
