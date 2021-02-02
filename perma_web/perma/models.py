@@ -727,8 +727,7 @@ class Sponsorship(models.Model):
         super().save(*args, **kwargs)
         if not self.folders:
             self.user.create_sponsored_folder(self.registrar)
-        if self.tracker.has_changed('status'):
-            self.folders.update(read_only=self.status == 'inactive')
+        self.folders.update(read_only=self.status == 'inactive')
 
     @property
     def folders(self):
