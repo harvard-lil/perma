@@ -679,6 +679,10 @@ def get_srcset_image_urls(dom_tree):
             src = src.strip().split()[0]
             if src:
                 urls.append(src)
+    # Get src, too: Chrome (and presumably Firefox) doesn't do
+    # this automatically.
+    for el in dom_tree('img[src]'):
+        urls.append(el.attrib.get('src', ''))
     return urls
 
 def get_audio_video_urls(dom_tree):
