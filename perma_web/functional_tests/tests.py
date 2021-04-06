@@ -57,7 +57,7 @@ else:
     assert socket.gethostbyname(LOCAL_SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + LOCAL_SERVER_DOMAIN + "` to your hosts file before running this test."
 
 
-# (2) Configure Sauce vs. local PhantomJS browsers vs. containerized Chrome:
+# (2) Configure Sauce vs. containerized Chrome:
 
 if settings.USE_SAUCE:
     from sauceclient import SauceClient

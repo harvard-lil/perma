@@ -16,7 +16,6 @@ ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
-PHANTOMJS_LOG = os.path.join(LOGGING_DIR, 'phantomjs.log')
 
 # user-generated files
 MEDIA_ROOT = os.path.join(SERVICES_DIR, 'django/generated_assets/')
