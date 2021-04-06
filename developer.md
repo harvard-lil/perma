@@ -15,7 +15,7 @@ Perma's Docker containers are up and running in the background:
 -  run `docker-compose up -d` to start the containers
 -  run `docker-compose down` to stop them when you are finished.
 
-(If you are not running Perma inside Docker, most of the below the commands
+(If you are not running Perma inside Docker, most of the commands below
 should still work: just skip the `d`!)
 
 ### Run Perma
@@ -82,7 +82,7 @@ Docker image with the new dependencies installed.
 
 N.B. To ensure that other Perma developers are prompted to install
 your changes, please increment the image version number for "web"
-in `docker-compose.yaml`. This is not yet managed programmatically.
+in `docker-compose.yml`. This is not yet managed programmatically.
 
 ### Update the node dependencies
 
@@ -91,8 +91,8 @@ script that will create a new `npm-shrinkwrap.json` and will rebuild the
 Docker image with the new dependencies installed.
 
 N.B. To ensure that other Perma developers are prompted to install
-you changes, please increment the image version number for "web"
-in `docker-compose.yaml`. This is not yet managed programmatically.
+your changes, please increment the image version number for "web"
+in `docker-compose.yml`. This is not yet managed programmatically.
 
 ### Update Chrome
 

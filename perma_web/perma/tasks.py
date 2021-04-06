@@ -66,7 +66,7 @@ logger = logging.getLogger('celery.django')
 RESOURCE_LOAD_TIMEOUT = settings.RESOURCE_LOAD_TIMEOUT # seconds to wait for at least one resource to load before giving up on capture
 ROBOTS_TXT_TIMEOUT = 30 # seconds to wait before giving up on robots.txt
 ONLOAD_EVENT_TIMEOUT = 30 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
-ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
+ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before the browser gives up running a DOM request (should be instant, assuming page is loaded)
 AFTER_LOAD_TIMEOUT = 25 # seconds to allow page to keep loading additional resources after onLoad event fires
 SHUTDOWN_GRACE_PERIOD = settings.SHUTDOWN_GRACE_PERIOD # seconds to allow slow threads to finish before we complete the capture job
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
@@ -224,24 +224,8 @@ def get_browser(user_agent, proxy_address, cert_path):
     display = None
     print("Using browser: %s" % settings.CAPTURE_BROWSER)
 
-    # PhantomJS
-    if settings.CAPTURE_BROWSER == 'PhantomJS':
-        desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
-        desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
-        browser = webdriver.PhantomJS(
-            executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
-            desired_capabilities=desired_capabilities,
-            service_args=[
-                "--proxy=%s" % proxy_address,
-                "--ssl-certificates-path=%s" % cert_path,
-                "--ignore-ssl-errors=true",
-                "--local-url-access=false",
-                "--local-storage-path=."
-            ],
-            service_log_path=settings.PHANTOMJS_LOG)
-
     # Firefox
-    elif settings.CAPTURE_BROWSER == 'Firefox':
+    if settings.CAPTURE_BROWSER == 'Firefox':
         display = start_virtual_display()
 
         desired_capabilities = dict(DesiredCapabilities.FIREFOX)
@@ -695,10 +679,10 @@ def get_srcset_image_urls(dom_tree):
             src = src.strip().split()[0]
             if src:
                 urls.append(src)
-    if settings.CAPTURE_BROWSER != 'PhantomJS':
-        # Get src, too: Chrome (and presumably Firefox) doesn't do this automatically, although PhantomJS does.
-        for el in dom_tree('img[src]'):
-            urls.append(el.attrib.get('src', ''))
+    # Get src, too: Chrome (and presumably Firefox) doesn't do
+    # this automatically.
+    for el in dom_tree('img[src]'):
+        urls.append(el.attrib.get('src', ''))
     return urls
 
 def get_audio_video_urls(dom_tree):
@@ -793,14 +777,14 @@ def page_pixels_in_allowed_range(page_size):
 def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_thread):
     print("Shutting down browser and proxies.")
     for thread in thread_list:
-        # wait until threads are done (have to do this before closing phantomjs)
+        # wait until threads are done
         if hasattr(thread, 'stop'):
             thread.stop.set()
         thread.join()
     if browser:
         if not browser_still_running(browser):
             link.tags.add('browser-crashed')
-        browser.quit()  # shut down phantomjs
+        browser.quit()
     if display:
         display.stop()  # shut down virtual display
     if warcprox_controller:

@@ -25,7 +25,6 @@ CELERY_BEAT_JOB_NAMES = [
 
 # logging
 LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
-PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
 # use separate subdomain for user content
 MEDIA_URL = '//perma-archives.org/media/'

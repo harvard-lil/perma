@@ -138,7 +138,7 @@ def test_js():
 @task
 def test_sauce(server_url=None, test_flags=''):
     """
-        Run functional_tests through Sauce rather than local phantomjs.
+        Run functional_tests through Sauce.
     """
     shell_envs = {
         'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:8000",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)

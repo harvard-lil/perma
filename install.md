@@ -166,16 +166,6 @@ You'll need to start Celery. If you're working in a development environment, do 
 If you're setting up a production machine, be sure to [start Celery as a daemon](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 
 
-### PhantomJS
-
-We use PhantomJS to generate our archives. [Install PhantomJS](http://phantomjs.org/download.html), and then make sure it's in your path:
-
-    $ phantomjs
-    phantomjs>
-
-(If you don't want to put PhantomJS in your path, you can put it in perma_web/lib/ and set PHANTOMJS_BINARY as demonstrated in settings.py.example.)
-
-
 ### ImageMagick and Wand
 
 We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnails from our PDFs and other images. Something like this should get you started on Debian:
