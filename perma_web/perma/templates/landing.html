@@ -262,41 +262,6 @@
     </div>
   </div>
 </section>
-<section id="landing-stats" class="container-fluid container-square-display">
-  <div class="container-fluid section-break cont-bg-knockout inner">
-    <div class="container cont-fixed">
-      <img  src="{{ STATIC_URL }}img/transparent-sq.png"
-            height="400"
-            width="400"
-            class="img-responsive _showMobile"
-            aria-hidden="true"
-            alt=""
-            id="healthylinks">
-      <h2 class="section-title-alt light">Perma.cc has already preserved thousands of links for users all over the world.</h2>
-      <div class="row-stats  _isCentered">
-        <div class="col-stat stat-10p5">
-          <div class="stat-number">{{ links_count|intcomma }}</div>
-          <div class="stat-label">Links preserved</div>
-        </div>
-        <div class="col-stat stat-10p3">
-          <div class="stat-number">{{ users_count|intcomma }}</div>
-          <div class="stat-label">Users</div>
-        </div>
-        <div class="col-stat stat-10p2">
-          <div class="stat-number">{{ orgs_count|intcomma }}</div>
-          <div class="stat-label">Archiving organizations</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12  _isCentered">
-            <a href="{% url 'sign_up' %}" class="btn btn-large">
-              Sign up and create your first Perma Link
-            </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section id="landing-institutions" class="container-fluid">
   <div class="container cont-fixed">
