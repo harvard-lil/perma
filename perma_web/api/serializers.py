@@ -295,13 +295,14 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 
                     if not scan_results['safe']:
                         if scan_results['reason'].startswith("Communication with filecheck API failed"):
+                            # Report the error, but pass the file through.
                             logger.error(scan_results['reason'])
-                            errors['file'] = "Validation failed. Try again later."
                         elif scan_results['reason'] in ["clamav not running", "clamav out of date"]:
+                            # Report the error, but pass the file through.
                             msg = f"Filecheck service reports: {scan_results['reason']}"
                             logger.error(msg)
-                            errors['file'] = "Validation failed. Try again later."
                         else:
+                            # Report the error and block the file.
                             msg = f"Unsafe file upload attempt by user {user.id}: {scan_results['reason']}"
                             logger.warning(msg)
                             errors['file'] = "Validation failed."
