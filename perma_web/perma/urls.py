@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
@@ -184,16 +186,15 @@ if settings.OFFER_CLIENT_SIDE_PLAYBACK:
         url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
     ]
 
-# debug-only serving of media assets
 if settings.DEBUG:
+    # debug-only serving of media assets
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    try:
-        import debug_toolbar
+    # django toolbar
+    if os.environ.get('DEBUG_TOOLBAR'):
+        import debug_toolbar  # noqa
         urlpatterns = [
             url(r'^__debug__/', include(debug_toolbar.urls)),
         ] + urlpatterns
-    except ImportError:
-        pass
 
 # views that only load when running our tests:
 if settings.TESTING:
