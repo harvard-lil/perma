@@ -1,3 +1,0 @@
-# handy packages to have in a dev environment
-ipdb
-django-debug-toolbar==3.2.1
