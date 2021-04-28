@@ -1,5 +1,7 @@
+import os
+
 from django.conf import settings
-from django.conf.urls import url
+from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
@@ -184,9 +186,15 @@ if settings.OFFER_CLIENT_SIDE_PLAYBACK:
         url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
     ]
 
-# debug-only serving of media assets
 if settings.DEBUG:
+    # debug-only serving of media assets
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # django toolbar
+    if os.environ.get('DEBUG_TOOLBAR'):
+        import debug_toolbar  # noqa
+        urlpatterns = [
+            url(r'^__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
 
 # views that only load when running our tests:
 if settings.TESTING:

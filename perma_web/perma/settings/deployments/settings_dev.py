@@ -38,7 +38,7 @@ CELERY_RESULT_BACKEND = None
 ### optional dev packages ###
 
 # django-debug-toolbar
-try:
+if os.environ.get('DEBUG_TOOLBAR'):
     import debug_toolbar  # noqa
     INSTALLED_APPS += (
         'debug_toolbar',
@@ -46,8 +46,7 @@ try:
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_TOOLBAR_CALLBACK': 'perma.utils.show_debug_toolbar'  # we have to override this check because the default depends on IP address, which doesn't work inside Vagrant
     }
-except ImportError:
-    pass
+    MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE
 
 # django_extensions
 try:
