@@ -39,22 +39,9 @@ RUN echo "deb http://httpredir.debian.org/debian buster main contrib" > /etc/apt
     && apt-get install -y ttf-mscorefonts-installer \
     && apt-get install -y fonts-roboto
 
-# Install Chrome
-# technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
-RUN apt-get update \
-    && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
-    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome*.deb \
-    && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
-    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
-    && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip \
-    && mv chromedriver /usr/bin/chromedriver \
-    && chmod +x /usr/bin/chromedriver
-
 # Install a cert for use by warcprox
 COPY services/warcprox/perma-warcprox-ca.pem /perma/perma_web
-RUN apt-get update && apt-get install libnss3-tools \
+RUN apt-get update && apt-get install -y libnss3-tools \
     && mkdir -p $HOME/.pki/nssdb \
     && certutil -d $HOME/.pki/nssdb -N --empty-password \
     && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
@@ -84,6 +71,20 @@ RUN pip3 install -U pip \
     && pip install pipenv \
     && pipenv --python 3.7 install --ignore-pipfile --dev \
     && rm Pipfile.lock
+
+# Install Chrome
+# technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
+ARG chrome-layer-cache-buster
+RUN apt-get update \
+    && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
+    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome*.deb \
+    && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
+    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
+    && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip \
+    && mv chromedriver /usr/bin/chromedriver \
+    && chmod +x /usr/bin/chromedriver
 
 # dev personalizations / try installing packages without rebuilding everything
 RUN apt-get update && apt-get install -y nano
