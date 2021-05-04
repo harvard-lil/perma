@@ -73,7 +73,7 @@ class LinkValidationTestCase(LinkValidationMixin, ApiResourceTestCase):
         self.rejected_post(self.list_url,
                            user=self.org_user,
                            # http://stackoverflow.com/a/10456069/313561
-                           data={'url': 'http://0.42.42.42/'})
+                           data={'url': 'https://0.42.42.42/'})
 
     def test_should_reject_invalid_folder_id(self):
         self.rejected_post(self.list_url,
