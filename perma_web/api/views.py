@@ -228,7 +228,7 @@ class CaptureJobListView(BaseView):
 
     def get(self, request, format=None):
         """ List capture_jobs for user. """
-        queryset = CaptureJob.objects.filter(link__created_by_id=request.user.pk, status__in=['pending', 'in_progress'])
+        queryset = CaptureJob.objects.select_related('link').filter(link__created_by_id=request.user.pk, status__in=['pending', 'in_progress'])
         return self.simple_list(request, queryset)
 
 
