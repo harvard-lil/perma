@@ -669,6 +669,11 @@ class Organization(DeletableModel):
     tracker = FieldTracker()
     history = HistoricalRecords()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_deleted']),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.pk:
             self.default_to_private = self.registrar.orgs_private_by_default
@@ -1373,6 +1378,12 @@ class Link(DeletableModel):
     tracker = FieldTracker()
     history = HistoricalRecords()
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
+
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_deleted', 'is_private', 'is_unlisted']),
+        ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
     def is_discoverable(self):
