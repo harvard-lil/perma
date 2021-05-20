@@ -669,6 +669,11 @@ class Organization(DeletableModel):
     tracker = FieldTracker()
     history = HistoricalRecords()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_deleted']),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.pk:
             self.default_to_private = self.registrar.orgs_private_by_default
