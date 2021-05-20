@@ -1374,6 +1374,12 @@ class Link(DeletableModel):
     history = HistoricalRecords()
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
 
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_deleted', 'is_private', 'is_unlisted']),
+        ]
+
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
     def is_discoverable(self):
         return not self.is_private and not self.is_unlisted
