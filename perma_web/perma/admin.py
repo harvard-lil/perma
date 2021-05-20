@@ -4,9 +4,12 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 from django.forms import ModelForm
+from django.utils.functional import cached_property
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
@@ -146,6 +149,30 @@ class SponsorshipInline(admin.TabularInline):
     raw_id_fields = ['registrar']
 
 
+### paginator ###
+
+class FasterAdminPaginator(Paginator):
+    # This will show inaccurate
+    # adapted from https://djangosnippets.org/snippets/2593/ and https://stackoverflow.com/a/39852663
+
+    @cached_property
+    def count(self):
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT table_rows FROM information_schema.tables WHERE table_name = '{self.object_list.query.model._meta.db_table}'")
+        estimate = int(cursor.fetchone()[0])
+        if estimate > 10000:
+            self.estimated_count = True
+            self.estimated_count_ignores_filter = bool(self.object_list.query.where)
+            return estimate
+        try:
+            return self.object_list.count()
+        except (AttributeError, TypeError):
+            # AttributeError if object_list has no count() method.
+            # TypeError if object_list.count() requires arguments
+            # (i.e. is of type list).
+            return len(self.object_list)
+
+
 ### admin models ###
 
 class RegistrarChangeForm(ModelForm):
@@ -207,6 +234,9 @@ class OrganizationAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
     list_filter = ['registrar', 'user_deleted']
+
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
 
     # statistics
     def get_queryset(self, request):
@@ -282,7 +312,7 @@ class LinkUserAdmin(UserAdmin):
     list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying','cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate', 'bonus_links', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
-    ordering = None
+    ordering = ('-id',)
     readonly_fields = ['date_joined']
     # Adds so many fields to the form that it becomes illegal to submit,
     # for users with many links.
@@ -293,6 +323,9 @@ class LinkUserAdmin(UserAdmin):
         SponsorshipInline,
     ]
     filter_horizontal = ['organizations',]
+
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).select_related('registrar',)
@@ -330,6 +363,9 @@ class LinkAdmin(SimpleHistoryAdmin):
     ]
     raw_id_fields = ['created_by','replacement_link']
 
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
+
     def get_queryset(self, request):
         qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'capture_job').prefetch_related('tags')
         qs.query.where = WhereNode()  # reset filters to include "deleted" objs
@@ -344,17 +380,24 @@ class FolderAdmin(MPTTModelAdmin):
     list_filter = [NameFilter, OwnerFilter, OrgFilter]
     raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
 
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('owned_by', 'organization', 'sponsored_by')
 
+
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'superseded', 'message', 'created_by', 'link_id', 'link_creation_timestamp', 'human', 'link_taglist', 'submitted_url']
+    list_display = ['id', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url']
     list_filter = [CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded']
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
+
     def get_queryset(self, request):
         q = Q(link__isnull=True) | Q(link__user_deleted=False)
-        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link','created_by').prefetch_related('link__tags')
+        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link')
 
     def link_creation_timestamp(self, obj):
         if obj.link:
@@ -378,6 +421,9 @@ class LinkBatchAdmin(admin.ModelAdmin):
                   readonly_fields=['message', 'step_count', 'step_description', 'human'],
                   can_delete=False)
     ]
+
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
 
     def get_queryset(self, request):
         return super(LinkBatchAdmin, self).get_queryset(request).annotate(
