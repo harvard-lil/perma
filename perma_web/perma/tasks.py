@@ -1484,7 +1484,7 @@ def update_stats():
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
     queued = 0
-    for link_guid in links.values_list('guid', flat=True).iterator():
+    for link_guid in links.values_list('guid', flat=True):
         cache_playback_status.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links to have their playback status cached.")
@@ -1572,7 +1572,7 @@ def delete_all_from_internet_archive(guids=None, limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True).iterator():
+    for link_guid in links.values_list('guid', flat=True):
         delete_from_internet_archive.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for deletion from IA.")
@@ -1589,7 +1589,7 @@ def upload_all_to_internet_archive(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True).iterator():
+    for link_guid in links.values_list('guid', flat=True):
         upload_to_internet_archive.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for upload to IA.")
@@ -1727,7 +1727,7 @@ def populate_warc_size_fields(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True).iterator():
+    for link_guid in links.values_list('guid', flat=True):
         populate_warc_size.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for populating warc_size.")
