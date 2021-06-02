@@ -38,7 +38,7 @@ django-settings-context-processor = "*"     # make settings available in templat
 
 
 # assets
-django-webpack-loader = "*"                 # frontend assets building
+django-webpack-loader = "<1.0.0"            # frontend assets building
 Pillow = ">=7.1.0"                          # Used by the Django admin for ImageField display
 whitenoise = "*"                            # serve static assets
 
