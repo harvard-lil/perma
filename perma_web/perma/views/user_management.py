@@ -132,7 +132,9 @@ def stats(request, stat_type=None):
         out = {
             'users_by_domain': list(LinkUser.objects
                 .filter(is_confirmed=True)
-                .annotate(domain=RawSQL("SUBSTRING_INDEX(email, '.', -1)",[]))
+                # Postgres doesn't presently let you extract the last element of a split cleanly:
+                # technique from https://www.postgresql-archive.org/split-part-for-the-last-element-td6159483.html
+                .annotate(domain=RawSQL("reverse(split_part(reverse(lower(email)), '.', 1))", []))
                 .values('domain')
                 .annotate(count=Count('domain'))
                 .order_by('-count')
