@@ -24,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(mark_capture_jobs_superseded, migrations.RunPython.noop),
+        migrations.RunPython(mark_capture_jobs_superseded, migrations.RunPython.noop, elidable=True),
     ]

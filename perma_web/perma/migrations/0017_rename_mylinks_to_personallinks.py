@@ -26,5 +26,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(rename_folders, reverse_code=reverse_rename_folders)
+        migrations.RunPython(rename_folders, reverse_code=reverse_rename_folders, elidable=True)
     ]

@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             field=models.CharField(default=b'pending', max_length=20, choices=[(b'pending', b'pending'), (b'approved', b'approved'), (b'denied', b'denied')]),
         ),
 
-        migrations.RunPython(set_registrar_status),
+        migrations.RunPython(set_registrar_status, elidable=True),
 
         migrations.RemoveField(
             model_name='historicalregistrar',

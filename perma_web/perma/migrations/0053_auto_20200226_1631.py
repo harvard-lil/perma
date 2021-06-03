@@ -28,5 +28,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(mark_deleted_links_unplayable, null_cached_can_play_back),
+        migrations.RunPython(mark_deleted_links_unplayable, null_cached_can_play_back, elidable=True),
     ]

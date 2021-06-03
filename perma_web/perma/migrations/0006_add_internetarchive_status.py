@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
             field=models.CharField(default=b'not_started', max_length=20, choices=[(b'not_started', b'not_started'), (b'completed', b'completed'), (b'failed', b'failed'), (b'failed_permanently', b'failed_permanently'), (b'deleted', b'deleted')]),
         ),
 
-        migrations.RunPython(update_upload_to_ia_field, reverse_code=reverse_update_upload_to_ia_field),
+        migrations.RunPython(update_upload_to_ia_field, reverse_code=reverse_update_upload_to_ia_field, elidable=True),
 
         migrations.RemoveField(
             model_name='historicallink',

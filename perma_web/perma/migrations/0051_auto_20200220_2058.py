@@ -21,5 +21,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ignore_failed_ia_uploads, migrations.RunPython.noop),
+        migrations.RunPython(ignore_failed_ia_uploads, migrations.RunPython.noop, elidable=True),
     ]

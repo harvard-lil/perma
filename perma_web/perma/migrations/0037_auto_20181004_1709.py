@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
             name='private_reason',
             field=models.CharField(blank=True, choices=[('policy', 'Perma-specific robots.txt or meta tag'), ('old_policy', 'Generic robots.txt or meta tag'), ('user', 'At user direction'), ('takedown', 'At request of content owner'), ('failure', 'Analysis of meta tags failed')], max_length=10, null=True),
         ),
-        migrations.RunPython(change_private_reason, migrations.RunPython.noop),
+        migrations.RunPython(change_private_reason, migrations.RunPython.noop, elidable=True),
 
     ]
