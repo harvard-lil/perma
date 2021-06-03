@@ -10,22 +10,14 @@ SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'perma',                      # Or path to database file if using sqlite3.
-        'USER': 'perma',
-        'PASSWORD': 'perma',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '3306',                      # Set to empty string for default.
-        'OPTIONS': {
-            "init_command": "SET default_storage_engine=INNODB; SET NAMES 'utf8';",
-            "charset": "utf8",
-        }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': 'db',
+        'PORT': 5432,
     },
 }
-if os.environ.get('DOCKERIZED'):
-    DATABASES['default']['USER'] = 'root'
-    DATABASES['default']['PASSWORD'] = 'password'
-    DATABASES['default']['HOST'] = 'db'
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
