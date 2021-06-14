@@ -356,8 +356,11 @@ class AuthenticatedLinkListView(BaseView):
     def post(self, request, format=None):
         """ Create new link. """
         data = request.data
+        human = request.data.get('human', False)
+        if not isinstance(human, bool):
+            raise ValidationError({'human': f'Value must be of type bool, not {type(human).__name__}.'})
         capture_job = CaptureJob(
-            human=request.data.get('human', False),
+            human=human,
             submitted_url=request.data.get('url', ''),
             created_by=request.user
         )
