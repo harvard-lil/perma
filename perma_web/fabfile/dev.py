@@ -349,14 +349,31 @@ def upload_all_to_internet_archive():
     for link in links:
         upload_to_internet_archive(link.guid)
 
+
 @task
 def count_pending_ia_links():
+    """
+    For use in monitoring the size of the queue.
+    """
     from perma.models import Link
 
     count = Link.objects.visible_to_ia().filter(
         internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
     ).count()
     print(count)
+
+
+@task
+def count_links_without_cached_playback_status():
+    """
+    For use in monitoring the size of the queue.
+    """
+    from perma.models import Link
+
+    count = Link.objects.permanent().filter(cached_can_play_back__isnull=True).count()
+    print(count)
+
+
 
 @task
 def regenerate_urlkeys(urlkey_prefix='file'):
