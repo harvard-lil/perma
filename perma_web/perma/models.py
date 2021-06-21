@@ -625,6 +625,8 @@ class Registrar(CustomerModel):
         assert self.unlimited
         if self.nonpaying:
             return True
+        if self.id in settings.SPECIAL_UNLIMITED_LINKS_FOR_REGISTRAR:
+            return True
         return self.subscription_status == 'active'
 
 Registrar._meta.get_field('nonpaying').default = True
