@@ -7,3 +7,6 @@ User-agent: *
 
 User-agent: LinkCheck by Siteimprove.com
 Disallow: /
+
+User-agent: Googlebot/Nutch-1.7
+Disallow: /
