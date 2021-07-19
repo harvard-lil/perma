@@ -10,6 +10,7 @@ from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 from django.forms import ModelForm
 from django.utils.functional import cached_property
+from django.template.defaultfilters import filesizeformat
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
@@ -342,16 +343,16 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'warc_size']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'file_size']
     list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'internet_archive_upload_status']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link', 'tags')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'file_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'warc_size']  #, 'archive_timestamp']
+    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size']  #, 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
@@ -373,6 +374,11 @@ class LinkAdmin(SimpleHistoryAdmin):
 
     def tag_list(self, obj):
         return u", ".join(o.name for o in obj.tags.all())
+
+    def file_size(self, obj):
+        return filesizeformat(obj.warc_size)
+
+    file_size.admin_order_field = 'warc_size'
 
 
 class FolderAdmin(MPTTModelAdmin):
