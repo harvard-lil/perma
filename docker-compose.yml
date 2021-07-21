@@ -185,6 +185,8 @@ services:
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
       - ./services/docker/webrecorder/local.py:/code/webrecorder/rec/storage/local.py:ro
       - ./services/docker/webrecorder/collection.py:/code/webrecorder/models/collection.py:ro
+      # fixes a bug on prod, where sometimes the user is removed from redis before the storage committer code runs
+      - ./services/docker/webrecorder/recording.py:/code/webrecorder/models/recording.py:ro
     networks:
       - webrecorder
 
