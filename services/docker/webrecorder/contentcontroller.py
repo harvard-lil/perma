@@ -872,10 +872,22 @@ class ContentController(BaseController, RewriterApp):
             return resp
 
         except WbException as ue:
+            # BEGIN PERMA CUSTOMIZATIONS
+            from collections import Mapping
+            if isinstance(ue.msg, Mapping):
+                msg = ue.msg.get('error')
+            elif isinstance(ue.msg, str):
+                msg = ue.msg
+            else:
+                print(f'Invalidly formatted error message from pywb: type {type(ue.msg)}')
+                msg = ''
+            # END PERMA CUSTOMIZATIONS
             err_context = {
                 'url': ue.url,
                 'status': ue.status_code,
-                'error': ue.msg.get('error'),
+                # BEGIN PERMA CUSTOMIZATIONS
+                'error': msg,
+                # END PERMA CUSTOMIZATIONS
                 'timestamp': wb_url_obj.timestamp if wb_url_obj else '',
                 'user': user,
                 'coll': coll_name,
