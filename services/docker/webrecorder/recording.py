@@ -449,7 +449,10 @@ class Recording(RedisUniqueComponent):
 
             self.redis.publish('close_rec', info_key)
 
-            cdxj_filename, full_cdxj_filename = self.write_cdxj(user, cdxj_key)
+            # BEGIN PERMA CUSTOMIZATION
+            if user:
+                cdxj_filename, full_cdxj_filename = self.write_cdxj(user, cdxj_key)
+            # END PERMA CUSTOMIZATION
 
             all_done = True
 
