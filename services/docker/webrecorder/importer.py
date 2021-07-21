@@ -244,12 +244,10 @@ class BaseImporter(ImportStatusChecker):
                 # BEGIN PERMA CUSTOMIZATION
                 # investigating https://github.com/harvard-lil/perma/issues/2602
                 try:
-                    self.process_pages(info, page_id_map)
+                    self.process_pages(info, page_id_map, upload_key, total_size)
                 except Exception as e:
                     raise Exception("Exception processing pages for {}".format(first_coll.name)) from e
                 # END PERMA CUSTOMIZATION
-
-                self.process_pages(info, page_id_map, upload_key, total_size)
 
                 diff = info['offset'] - last_end
                 last_end = info['offset'] + info['length']
