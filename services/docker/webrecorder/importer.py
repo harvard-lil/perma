@@ -737,8 +737,12 @@ class UploadImporter(BaseImporter):
 
         upload_id, upload_key = self._init_upload_status(user, total_size, 1, filename=filename)
 
-        return self.handle_upload(temp_file, upload_id, upload_key, infos, filename,
+        # BEGIN PERMA CHANGES
+        response_dict = self.handle_upload(temp_file, upload_id, upload_key, infos, filename,
                                   user, force_coll_name, total_size)
+        stream.close()
+        return response_dict
+        # END PERMA CHANGES
 
     def do_upload(self, upload_key, filename, stream, user, coll, rec, offset, length):
         """Send PUT request to upload recording.
