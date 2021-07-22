@@ -182,6 +182,7 @@ services:
       - ./services/docker/webrecorder/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       # Temporary patches for webrecorder
       # https://github.com/webrecorder/webrecorder/pull/716
+      - ./services/docker/webrecorder/recorder_main.py:/code/webrecorder/rec/main.py:ro
       - ./services/docker/webrecorder/tempchecker.py:/code/webrecorder/rec/tempchecker.py:ro
       - ./services/docker/webrecorder/local.py:/code/webrecorder/rec/storage/local.py:ro
       - ./services/docker/webrecorder/collection.py:/code/webrecorder/models/collection.py:ro
