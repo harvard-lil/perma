@@ -873,7 +873,7 @@ class ContentController(BaseController, RewriterApp):
 
         except WbException as ue:
             # BEGIN PERMA CUSTOMIZATIONS
-            from collections import Mapping
+            from collections.abc import Mapping
             if isinstance(ue.msg, Mapping):
                 msg = ue.msg.get('error')
             elif isinstance(ue.msg, str):
