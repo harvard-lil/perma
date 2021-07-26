@@ -7,16 +7,31 @@
 {% block mainContent %}
 
   <div class="record-message">
-    {% if status == '404 Not Found' %}
+
+    <div id="loading">...loading</div>
+
+    <div id="primary-not-found" style="display:none;">
+      <p class="record-message-primary">We’re sorry, something went wrong.</p>
+      <p class="record-message-secondary">
+        It appears that our software experienced an error while playing back this record. This issue is likely temporary and specific to your browser.
+      </p>
+      <p class="record-message-secondary" style="padding-top: 6px;">
+        We suggest opening this Perma Link in a completely new browser or clearing your cache. If your issue persists please <a href="{% url 'contact' %}?subject=Primary%20URL%20Not%20Found">contact us</a>.
+      </p>
+    </div>
+
+    <div id="secondary-not-found" style="display:none;">
       <p class="record-message-primary">Link not found</p>
       <p class="record-message-secondary">
-        You are probably seeing this page because you clicked a link in one of our records. We don’t capture secondary links,
-        but you could check <a href="http://timetravel.mementoweb.org/list/{{ timestamp }}/{{ err_url }}" target="_top">Time Travel</a> or
-        <a href="{{ err_url }}" target="_top">view the link as it exists on the live site</a>.</p>
-    {% else %}
+        You are probably seeing this page because you clicked a link in one of our records.
+        We don’t capture secondary links, but you can check <a href="http://timetravel.mementoweb.org/list/{{ timestamp }}/{{ err_url }}" target="_top">Time Travel</a> or <a href="{{ err_url }}" target="_top">view the link as it exists on the live site</a>.
+      </p>
+    </div>
+
+    <div id="unavailable" style="display:none;">
       <p class="record-message-primary">Playback Unavailable</p>
       <p class="record-message-secondary">We’re having trouble playing back this record’s Capture View. If this problem persists, please let us know.</p>
-      {% if DEBUG %} 
+      {% if DEBUG %}
         <div>
           Error details (you are seeing this because DEBUG mode is on):<br><br>
 
@@ -32,7 +47,27 @@
           Error message: {{ err_msg }}
         </div>
       {% endif %}
-    {% endif %}
+    </div>
+
+    <script>
+      const status_code = "{{ status_code }}"
+      const err_url = "{{ err_url | escapejs }}";
+      const primary_url_regex = new RegExp(`^${window.name}/?$`);
+      const loading = document.getElementById('loading');
+      let elem;
+      if(status_code == 404){
+        if(primary_url_regex.test(err_url)){
+          elem = document.getElementById('primary-not-found');
+        } else {
+          elem = document.getElementById('secondary-not-found');
+        }
+      } else {
+        elem = document.getElementById('unavailable');
+      }
+      loading.style.display = "none";
+      elem.style.display = "block";
+    </script>
+
   </div>
 
 {% endblock %}

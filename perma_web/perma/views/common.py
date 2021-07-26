@@ -609,6 +609,7 @@ def archive_error(request):
     response = render(request, 'archive/archive-error.html', {
         'err_url': request.GET.get('url'),
         'timestamp': request.GET.get('timestamp'),
+        'status_code': status_code,
         'status': f'{status_code} {responses.get(status_code)}',
         'err_msg': request.GET.get('error'),
     }, status=status_code)
