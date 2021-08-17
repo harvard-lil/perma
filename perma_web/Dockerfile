@@ -75,7 +75,7 @@ RUN pip3 install -U pip \
 # Install Chrome
 # technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
 ARG chrome-layer-cache-buster
-RUN apt-get update \
+RUN apt-get --allow-releaseinfo-change update \
     && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
     && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && dpkg -i google-chrome*.deb \
