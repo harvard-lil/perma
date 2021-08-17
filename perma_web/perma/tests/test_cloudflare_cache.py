@@ -21,10 +21,14 @@ and commit the updated files.
         ip4 = requests.get('https://www.cloudflare.com/ips-v4').text
 
         with open(os.path.join(settings.CLOUDFLARE_DIR, 'ips-v4')) as ip4_cache:
-            self.assertEqual(ip4, ip4_cache.read(), msg=self.message)
+            self.assertEqual(set(ip4.split()),
+                             set(ip4_cache.read().split()),
+                             msg=self.message)
 
     def test_cloudflare_ip6_cache(self):
         ip6 = requests.get('https://www.cloudflare.com/ips-v6').text
 
         with open(os.path.join(settings.CLOUDFLARE_DIR, 'ips-v6')) as ip6_cache:
-            self.assertEqual(ip6, ip6_cache.read(), msg=self.message)
+            self.assertEqual(set(ip6.split()),
+                             set(ip6_cache.read().split()),
+                             msg=self.message)
