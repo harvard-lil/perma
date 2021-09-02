@@ -31,8 +31,8 @@ services:
       context: .
       dockerfile: ./perma_web/Dockerfile
       args:
-        chrome-layer-cache-buster: f51c8c61-4b8d-4aef-93ec-282e99f99e55
-    image: perma3:0.110
+        chrome-layer-cache-buster: a277c12a-0588-4b0f-ae22-c4dc2e3d47d8
+    image: perma3:0.111
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
