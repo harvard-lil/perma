@@ -530,7 +530,8 @@ def parse_headers(msg):
 
 # By domain, code to run after the target_url's page onload event.
 post_load_function_lookup = {
-    "^https?://www.forbes.com/forbes/welcome": site_scripts.forbes_post_load
+    "^https?://www.forbes.com/forbes/welcome": site_scripts.forbes_post_load,
+    "^https?://rwi.app/iurisprudentia": site_scripts.iurisprudentia_post_load,
 }
 def get_post_load_function(current_url):
     for regex, post_load_function in post_load_function_lookup.items():
