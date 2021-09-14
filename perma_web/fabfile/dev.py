@@ -99,7 +99,7 @@ def test(apps=_default_tests):
         test_js()
 
 @task
-def test_python(apps=_default_tests, travis=False):
+def test_python(apps=_default_tests):
     """ Run Python tests. """
     if os.environ.get('DOCKERIZED'):
         print("\n\n\n!!!!!!\n!!!!!!\nWarning! Webrecorder requires test-specific settings in this context.\n" +
@@ -123,10 +123,7 @@ def test_python(apps=_default_tests, travis=False):
         }
         with shell_env(**shell_envs):
             # NB: all arguments to Fabric tasks are interpreted as strings
-            if travis == 'True':
-                local("pytest %s --no-migrations --ds=perma.settings --cov --cov-report= " % (apps))
-            else:
-                local("pytest %s --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
+            local("pytest %s --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
     finally:
         # clean up after ourselves
         shutil.rmtree(tmp)
