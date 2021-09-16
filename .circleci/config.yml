@@ -52,7 +52,7 @@ jobs:
             docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
             docker-compose exec web pipenv run pytest \
               --junitxml=junit/pytest/test-results.xml       `# write test results so they can be displayed by circleci` \
-              --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
+              --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to coverage.xml for upload by codecov` \
 
       # Upload test details to circleci
       - store_test_results:
@@ -60,4 +60,4 @@ jobs:
 
       # Upload coverage to Codecov using third-party orb
       - codecov/upload:
-          file: perma_web/.coverage
+          file: perma_web/coverage.xml
