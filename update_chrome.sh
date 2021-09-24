@@ -8,7 +8,7 @@
 ORIG_CACHE_BUSTER=`grep chrome-layer-cache-buster docker-compose.yml | awk  '{print $2}'`
 perl -pi -e "s/chrome-layer-cache-buster: .*/chrome-layer-cache-buster: $(uuidgen)/" docker-compose.yml
 docker-compose up -d --build
-LATEST=`docker-compose exec -T web bash -c "pipenv run google-chrome --version" | cut -f 3 -d ' '`
+LATEST=`docker-compose exec -T web bash -c "google-chrome --version" | cut -f 3 -d ' '`
 SETTING=`grep CAPTURE_USER_AGENT perma_web/perma/settings/deployments/settings_common.py | sed 's/.*Chrome\/\([^ ]*\)\(.*\)/\1/'`
 if [ "$LATEST" != "$SETTING" ] ; then
     perl -pi -e "s/$SETTING/$LATEST/" perma_web/perma/settings/deployments/settings_common.py
