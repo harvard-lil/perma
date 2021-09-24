@@ -184,7 +184,7 @@ def single_permalink(request, guid):
     if not link.submitted_description:
         link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
 
-    logger.info(f"Preparing context for {link.guid}")
+    logger.debug(f"Preparing context for {link.guid}")
     context = {
         'link': link,
         'redirect_to_download_view': redirect_to_download_view,
@@ -204,7 +204,7 @@ def single_permalink(request, guid):
 
     if context['can_view'] and link.can_play_back():
         if new_record:
-            logger.info(f"Ensuring warc for {link.guid} has finished uploading.")
+            logger.debug(f"Ensuring warc for {link.guid} has finished uploading.")
             def assert_exists(filename):
                 assert default_storage.exists(filename)
             try:
@@ -237,7 +237,7 @@ def single_permalink(request, guid):
                 logger.info(f"Initializing play back of {link.guid} (2nd try)")
                 wr_username = link.init_replay_for_user(request)
 
-            logger.info(f"Updating context with WR playback information for {link.guid}")
+            logger.debug(f"Updating context with WR playback information for {link.guid}")
             context.update({
                 'wr_host': settings.PLAYBACK_HOST,
                 'wr_prefix': link.wr_iframe_prefix(wr_username),
@@ -245,7 +245,7 @@ def single_permalink(request, guid):
                 'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
             })
 
-    logger.info(f"Rendering template for {link.guid}")
+    logger.debug(f"Rendering template for {link.guid}")
     response = render(request, 'archive/single-link.html', context)
 
     # Adjust status code
@@ -255,9 +255,9 @@ def single_permalink(request, guid):
         response.status_code = 403
 
     # Add memento headers, when appropriate
-    logger.info(f"Deciding whether to include memento headers for {link.guid}")
+    logger.debug(f"Deciding whether to include memento headers for {link.guid}")
     if link.is_visible_to_memento():
-        logger.info(f"Including memento headers for {link.guid}")
+        logger.debug(f"Including memento headers for {link.guid}")
         response['Memento-Datetime'] = datetime_to_http_date(link.creation_timestamp)
         # impose an arbitrary length-limit on the submitted URL, so that this header doesn't become illegally large
         url = link.submitted_url[:500]
@@ -273,7 +273,7 @@ def single_permalink(request, guid):
                 Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
             ])
         )
-    logger.info(f"Returning response for {link.guid}")
+    logger.debug(f"Returning response for {link.guid}")
     return response
 
 
