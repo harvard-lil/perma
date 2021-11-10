@@ -209,6 +209,7 @@ class CustomerModel(models.Model):
         try:
             r = requests.post(
                 settings.PURCHASE_HISTORY_URL,
+                timeout=settings.PERMA_PAYMENTS_TIMEOUT,
                 data={
                     'encrypted_data': prep_for_perma_payments({
                         'timestamp': datetime.utcnow().timestamp(),
@@ -252,6 +253,7 @@ class CustomerModel(models.Model):
         try:
             r = requests.post(
                 settings.SUBSCRIPTION_STATUS_URL,
+                timeout=settings.PERMA_PAYMENTS_TIMEOUT,
                 data={
                     'encrypted_data': prep_for_perma_payments({
                         'timestamp': datetime.utcnow().timestamp(),
@@ -502,6 +504,7 @@ class CustomerModel(models.Model):
                     try:
                         r = requests.post(
                             settings.ACKNOWLEDGE_PURCHASE_URL,
+                            timeout=settings.PERMA_PAYMENTS_TIMEOUT,
                             data={
                                 'encrypted_data': prep_for_perma_payments({
                                     'timestamp': datetime.utcnow().timestamp(),
