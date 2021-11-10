@@ -220,7 +220,10 @@ class CustomerModel(models.Model):
             assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
             msg = "Communication with Perma-Payments failed: {}".format(str(e))
-            logger.error(msg)
+            if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
+                logger.info(msg)
+            else:
+                logger.error(msg)
             raise PermaPaymentsCommunicationException(msg)
 
         post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_purchase_history'])
@@ -260,7 +263,10 @@ class CustomerModel(models.Model):
             assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
             msg = "Communication with Perma-Payments failed: {}".format(str(e))
-            logger.error(msg)
+            if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
+                logger.info(msg)
+            else:
+                logger.error(msg)
             raise PermaPaymentsCommunicationException(msg)
 
         post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
@@ -506,7 +512,10 @@ class CustomerModel(models.Model):
                         assert r.ok, r.status_code
                     except (requests.RequestException, AssertionError) as e:
                         msg = "Communication with Perma-Payments failed: {}".format(str(e))
-                        logger.error(msg)
+                        if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
+                            logger.info(msg)
+                        else:
+                            logger.error(msg)
                         raise PermaPaymentsCommunicationException(msg)
                     credited_link_count += link_quantity
             except PermaPaymentsCommunicationException:
