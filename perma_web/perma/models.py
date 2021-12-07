@@ -608,12 +608,12 @@ class Registrar(CustomerModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        name_has_changed = self.tracker.has_changed('name')
-        super(Registrar, self).save(*args, **kwargs)
-        if name_has_changed:
-            # Rename top-level sponsored folders if registrar name changes.
-            folders = Folder.objects.filter(sponsored_by=self, parent__is_sponsored_root_folder=True)
-            folders.update(name=self.name)
+        with self.tracker:
+            super(Registrar, self).save(*args, **kwargs)
+            if self.tracker.has_changed('name'):
+                # Rename top-level sponsored folders if registrar name changes.
+                folders = Folder.objects.filter(sponsored_by=self, parent__is_sponsored_root_folder=True)
+                folders.update(name=self.name)
 
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization__registrar=self)
@@ -691,15 +691,15 @@ class Organization(DeletableModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             self.default_to_private = self.registrar.orgs_private_by_default
-        name_has_changed = self.tracker.has_changed('name')
-        super(Organization, self).save(*args, **kwargs)
-        if not self.shared_folder:
-            # Make sure shared folder is created for each org.
-            self.create_shared_folder()
-        elif name_has_changed:
-            # Rename shared folder if org name changes.
-            self.shared_folder.name = self.name
-            self.shared_folder.save()
+        with self.tracker:
+            super(Organization, self).save(*args, **kwargs)
+            if not self.shared_folder:
+                # Make sure shared folder is created for each org.
+                self.create_shared_folder()
+            elif self.tracker.has_changed('name'):
+                # Rename shared folder if org name changes.
+                self.shared_folder.name = self.name
+                self.shared_folder.save()
 
     def __str__(self):
         return self.name
@@ -743,12 +743,12 @@ class Sponsorship(models.Model):
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
-        status_changed = self.tracker.has_changed('status')
-        super().save(*args, **kwargs)
-        if not self.folders:
-            self.user.create_sponsored_folder(self.registrar)
-        if status_changed:
-            self.folders.update(read_only=self.status == 'inactive')
+        with self.tracker:
+            super().save(*args, **kwargs)
+            if not self.folders:
+                self.user.create_sponsored_folder(self.registrar)
+            if self.tracker.has_changed('status'):
+                self.folders.update(read_only=self.status == 'inactive')
 
     @property
     def folders(self):
@@ -1189,6 +1189,8 @@ class Folder(MPTTModel):
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
+
+        # This may need to be refactored in the future to use the new self.tracker content manager.
         new = not self.pk
         parent_has_changed = not new and self.tracker.has_changed('parent_id')
 
