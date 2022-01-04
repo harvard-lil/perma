@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def django_url_prefix(request):
     http_prefix = "s" if settings.SECURE_SSL_REDIRECT else ""
-    return "http%s://%s" % (http_prefix, request.get_host())
+    return f"http{http_prefix}://{request.get_host()}"
 
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
@@ -84,7 +84,7 @@ def fetch_warc(request, path, guid):
     with default_storage.open(link.warc_storage_file()) as file:
         response = StreamingHttpResponse(FileWrapper(file, 1024 * 8),
                                          content_type="application/gzip")
-        response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
+        response['Content-Disposition'] = f"attachment; filename={link.guid}.warc.gz"
         return response
 
 
@@ -101,7 +101,7 @@ def titledb(request):
     today = date.today()
     archival_units = []
     while start_month <= today:
-        archival_units.append([start_month.year, '%02d' % start_month.month])
+        archival_units.append([start_month.year, f'{start_month.month:02}'])
         start_month += relativedelta(months=1)
 
     return render(request, 'lockss/titledb.xml', {

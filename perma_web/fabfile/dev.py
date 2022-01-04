@@ -67,14 +67,15 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
 
                         # create a cert if necessary or supply your own; we assume perma.test
                         # is in your /etc/hosts
-                        conf_file = "%s.conf" % os.path.splitext(cert_file)[0]
+                        cert_file_name = os.path.splitext(cert_file)[0]
+                        conf_file = f"{cert_file_name}.conf"
                         with open(conf_file, "w") as f:
-                            f.write("[dn]\nCN=%s\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:%s\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth" % (host, host))
+                            f.write(f"[dn]\nCN={host}\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:{host}\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
                         if not os.path.exists(cert_file):
-                            local("openssl req -x509 -out %s -keyout %s -newkey rsa:2048 -nodes -sha256 -subj '/CN=%s' -extensions EXT -config %s" % (cert_file, "%s.key" % os.path.splitext(cert_file)[0], host, conf_file))
-                        options += ' --cert-file %s' % cert_file
+                            local(f"openssl req -x509 -out {cert_file} -keyout {cert_file_name}.key -newkey rsa:2048 -nodes -sha256 -subj '/CN={host}' -extensions EXT -config {conf_file}")
+                        options += f' --cert-file {cert_file}'
 
-                        local("python manage.py runserver_plus %s %s" % (port, options))
+                        local(f"python manage.py runserver_plus {port} {options}")
                 except ImportError:
                     print("\nWarning! We can't serve via SSL, as django-extensions is not\n" +
                           "installed. You may wish to run `pipenv install --dev`.\n")
@@ -82,7 +83,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
                 if settings.SECURE_SSL_REDIRECT:
                     print("\nError! When *not* using SSL, you must run with settings.SECURE_SSL_REDIRECT = False\n")
                 else:
-                    local("python manage.py runserver %s" % port)
+                    local(f"python manage.py runserver {port}")
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
@@ -123,8 +124,7 @@ def test_python(apps=_default_tests):
         }
         with shell_env(**shell_envs):
             # NB: all arguments to Fabric tasks are interpreted as strings
-            local("pytest %s --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
-
+            local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= ")
     finally:
         # clean up after ourselves
         shutil.rmtree(tmp)
@@ -160,18 +160,18 @@ def sauce_tunnel():
     """
     if subprocess.call(['which','sc']) == 1: # error return code -- program not found
         sys.exit("Please check that the `sc` program is installed and in your path. To install: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy")
-    local("sc -u %s -k %s" % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY))
+    local(f"sc -u {settings.SAUCE_USERNAME} -k {settings.SAUCE_ACCESS_KEY}")
 
 
 @task
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
-    local("tail -f %s/*" % log_dir)
+    local(f"tail -f {log_dir}/*")
 
 
 @task
 def create_db(host='db', user='root', password='password'):
-    local("mysql -h {} -u{} -p{} -e 'create database perma character set utf8;'".format(host, user, password))
+    local(f"mysql -h {host} -u{user} -p{password} -e 'create database perma character set utf8;'")
 
 
 @task
@@ -303,7 +303,7 @@ def test_internet_archive():
     for link in links:
         identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
         item = internetarchive.get_item(identifier)
-        warc_name = "%s.warc.gz" % link.guid
+        warc_name = f"{link.guid}.warc.gz"
 
         try:
             fnames = [f.name for f in internetarchive.get_files(identifier, glob_pattern="*gz")]
@@ -312,15 +312,15 @@ def test_internet_archive():
                 guid_results["collection"] = item.metadata["collection"] == settings.INTERNET_ARCHIVE_COLLECTION
             else:
                 guid_results["collection"] = item.metadata["collection"][0] == settings.INTERNET_ARCHIVE_COLLECTION
-            guid_results["title"] = item.metadata["title"] == "%s: %s" % (link.guid, truncatechars(link.submitted_title, 50))
+            guid_results["title"] = item.metadata["title"] == f"{link.guid}: {truncatechars(link.submitted_title, 50)}"
             guid_results["mediatype"] = item.metadata["mediatype"]=="web"
-            guid_results["description"] = item.metadata["description"]=="Perma.cc archive of %s created on %s." % (link.submitted_url, link.creation_timestamp,)
+            guid_results["description"] = item.metadata["description"]==f"Perma.cc archive of {link.submitted_url} created on {link.creation_timestamp}."
             guid_results["contributor"] = item.metadata["contributor"]=="Perma.cc"
             guid_results["submitted_url"] = item.metadata["submitted_url"]==link.submitted_url
-            guid_results["perma_url"] = item.metadata["perma_url"]=="http://%s/%s" % (settings.HOST, link.guid)
-            guid_results["external-identifier"] = item.metadata["external-identifier"]=="urn:X-perma:%s" % link.guid
+            guid_results["perma_url"] = item.metadata["perma_url"]==f"http://{settings.HOST}/{link.guid}"
+            guid_results["external-identifier"] = item.metadata["external-identifier"]==f"urn:X-perma:{link.guid}"
             if link.organization:
-                guid_results["organization"] = item.metadata["sponsor"] == "%s - %s" % (link.organization, link.organization.registrar)
+                guid_results["organization"] = item.metadata["sponsor"] == f"{link.organization} - {link.organization.registrar}"
 
         except Exception as e:
             guid_results["error"] = e
@@ -549,7 +549,7 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
     not_yet_emailed = users.count()
     batch_size = int(batch_size)
     if not_yet_emailed > batch_size:
-        logger.info("{} users to email: limiting to first {}".format(not_yet_emailed, batch_size))
+        logger.info(f"{not_yet_emailed} users to email: limiting to first {batch_size}")
         users = users[:batch_size]
 
     to_send_count = users.count()
@@ -559,7 +559,7 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
 
     sent_count = 0
     failed_list = []
-    logger.info("Begin emailing {} users.".format(to_send_count))
+    logger.info(f"Begin emailing {to_send_count} users.")
     with open(already_emailed_path, 'a') as f:
         for user in tqdm(users):
             succeeded = send_user_email(user.email,
@@ -571,10 +571,10 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
             else:
                 failed_list.append(user.id)
 
-    logger.info("Emailed {} users".format(sent_count))
+    logger.info(f"Emailed {sent_count} users")
     if to_send_count != sent_count:
         if failed_list:
-            msg = "Some users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
+            msg = f"Some users were not emailed: {str(failed_list)}. Check log for fatal SMTP errors."
         else:
             msg = "Some users were not emailed. Check log for fatal SMTP errors."
         logger.error(msg)
@@ -582,10 +582,10 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
     # offer to send another batch if there are any users left to email
     remaining_to_email = not_yet_emailed - sent_count
     if remaining_to_email:
-        if input("\nSend another batch of size {}? [y/n]\n".format(batch_size)).lower() == 'y':
+        if input(f"\nSend another batch of size {batch_size}? [y/n]\n").lower() == 'y':
             ping_all_users(batch_size=str(batch_size))
         else:
-            logger.info("Stopped with ~ {} remaining users to email".format(remaining_to_email))
+            logger.info(f"Stopped with ~ {remaining_to_email} remaining users to email")
     else:
         logger.info("Done! Run me again, to catch anybody who signed up while this was running!")
 
@@ -655,7 +655,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
     logger.info("Done emailing registrar users.")
     if len(users) != send_count:
         if failed_list:
-            msg = "Some registrar users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
+            msg = f"Some registrar users were not emailed: {failed_list}. Check log for fatal SMTP errors."
         else:
             msg = "Some registrar users were not emailed. Check log for fatal SMTP errors."
         logger.error(msg)
@@ -725,7 +725,7 @@ def check_s3_hashes():
             for f in tqdm(default_storage.secondary_storage.bucket.list('generated/warcs/')):
                 key = f.key[remove_char_count:]
                 val = f.etag[1:-1]
-                tmp_file.write("%s\t%s\n" % (key, val))
+                tmp_file.write(f"{key}\t{val}\n")
                 remote_paths[key] = val
     else:
         print(f"Using cached remote state from {remote_cache_path}")
@@ -811,7 +811,7 @@ def check_storage(start_date=None):
                         creation_timestamp__lt=end_datetime,
                         captures__in=Capture.objects.filter(capture_filter)
                 ).distinct():
-                    tmp_file.write("{0}\n".format(link.warc_storage_file()))
+                    tmp_file.write(f"{link.warc_storage_file()}\n")
                     # this produces strings like u'warcs/0G/GO/XR/XG/0-GGOX-RXGQ.warc.gz'; make the storage paths match
                     # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
                 start_month += relativedelta(months=1)
@@ -829,7 +829,7 @@ def check_storage(start_date=None):
                             # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
                             # knock off the extra quotation marks
                             hash = f.etag[1:-1]
-                            tmp_file.write("{0}\t{1}\n".format(path, hash))
+                            tmp_file.write(f"{path}\t{hash}\n")
                             storages[key]['lookup'][path] = hash
                 else:
                     if hasattr(storage, '_root_path'):
@@ -850,7 +850,7 @@ def check_storage(start_date=None):
                                 # note that etags are not always md5sums, but should be in these cases; we can rewrite
                                 # or replace md5hash if necessary
                                 hash = md5hash(full_path, storage)
-                                tmp_file.write("{0}\t{1}\n".format(path, hash))
+                                tmp_file.write(f"{path}\t{hash}\n")
                                 storages[key]['lookup'][path] = hash
     else:
         print("Reading storage caches ...")
@@ -904,7 +904,7 @@ def update_cloudflare_cache():
     import requests
     for ip_filename in ('ips-v4', 'ips-v6'):
         with open(os.path.join(settings.CLOUDFLARE_DIR, ip_filename), 'w') as ip_file:
-            ip_file.write(requests.get('https://www.cloudflare.com/%s' % ip_filename).text)
+            ip_file.write(requests.get(f'https://www.cloudflare.com/{ip_filename}').text)
 
 
 @task

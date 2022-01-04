@@ -430,11 +430,11 @@ class Recording(RedisUniqueComponent):
         """
         commit_lock = self.COMMIT_LOCK_KEY.format(rec=self.my_id)
         if not self.redis.set(commit_lock, '1', ex=self.COMMIT_WAIT_SECS, nx=True):
-            logger.debug('Skipping, Already Committing Rec: {0}'.format(self.my_id))
+            logger.debug(f'Skipping, Already Committing Rec: {self.my_id}')
             return
 
         try:
-            logger.debug('Committing Rec: {0}'.format(self.my_id))
+            logger.debug(f'Committing Rec: {self.my_id}')
             collection = self.get_owner()
             user = collection.get_owner()
 
@@ -522,7 +522,7 @@ class Recording(RedisUniqueComponent):
 
             try:
                 with open(target_file, 'wb') as dest:
-                    logger.debug('Copying {0} -> {1}'.format(url, target_file))
+                    logger.debug(f'Copying {url} -> {target_file}')
                     shutil.copyfileobj(src, dest)
                     size = dest.tell()
 

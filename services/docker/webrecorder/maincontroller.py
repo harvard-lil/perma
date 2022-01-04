@@ -282,14 +282,7 @@ class MainController(BaseController):
             if br != '':
                 br = '$br:'+br
 
-            return 'https://{host}{user}/{coll}/{ts}{browser}/{url}'.format(
-                host=host,
-                user=user,
-                coll=coll,
-                ts=ts,
-                browser=br,
-                url=url
-            )
+            return f'https://{host}{user}/{coll}/{ts}{br}/{url}'
 
         @contextfunction
         def get_embed_url(context):
@@ -303,14 +296,7 @@ class MainController(BaseController):
             if br != '':
                 br = '$br:'+br
 
-            return 'https://{host}_embed/{user}/{coll}/{ts}{browser}/{url}'.format(
-                host=host,
-                user=user,
-                coll=coll,
-                ts=ts,
-                browser=br,
-                url=url
-            )
+            return f'https://{host}_embed/{user}/{coll}/{ts}{br}/{url}'
 
         @contextfunction
         def get_recs_for_coll(context):
@@ -422,7 +408,7 @@ class MainController(BaseController):
 
         def err_handler(out):
             # BEGIN PERMA CUSTOMIZATION
-            msg = "{} ({}) raised by {}".format(out.status_code, out.body, request.url)
+            msg = f"{out.status_code} ({out.body}) raised by {request.url}"
             if out.status_code == 500:
                 if out.exception and isinstance(out.exception, Exception):
                     logger.error(msg, exc_info=out.exception)

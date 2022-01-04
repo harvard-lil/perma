@@ -22,13 +22,7 @@ def local_datetime(datetime, format_string="F j, Y g:i a"):
     if not datetime:
         return ""
     random_id = 'date_'+str(random.random())[2:]
-    return mark_safe("<script id='%s'>insertLocalDateTime('%s', %s, '%s')</script><noscript>%s</noscript>" % (
-        random_id,
-        random_id,
-        calendar.timegm(datetime.utctimetuple()),
-        format_string,
-        date_filter(datetime, format_string)
-    ))
+    return mark_safe(f"<script id='{random_id}'>insertLocalDateTime('{random_id}', {calendar.timegm(datetime.utctimetuple())}, '{format_string}')</script><noscript>{date_filter(datetime, format_string)}</noscript>")
 
 @register.simple_tag
 def local_datetime_js():
@@ -36,4 +30,4 @@ def local_datetime_js():
         Return an inline script block with the support javascript for the local_datetime filter.
     """
     with open(os.path.join(settings.PROJECT_ROOT, "static/js/helpers/local-datetime.js")) as special_js:
-        return mark_safe("<script>%s</script>" % special_js.read())
+        return mark_safe(f"<script>{special_js.read()}</script>")

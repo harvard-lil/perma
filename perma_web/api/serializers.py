@@ -22,7 +22,7 @@ class BaseSerializer(serializers.ModelSerializer):
         """
         assert hasattr(self.Meta, 'allowed_update_fields'), "Serializers that are used for update must set Meta.allowed_update_fields"
         if set(validated_data.keys()) - set(self.Meta.allowed_update_fields):
-            raise serializers.ValidationError('Only updates on these fields are allowed: %s' % ', '.join(self.Meta.allowed_update_fields))
+            raise serializers.ValidationError(f'Only updates on these fields are allowed: {", ".join(self.Meta.allowed_update_fields)}')
         return super(BaseSerializer, self).update(instance, validated_data)
 
 
@@ -255,7 +255,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                             # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
                             try:
                                 if int(temp_link.headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
-                                    errors['url'] = "Target page is too large (max size %sMB)." % (settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024)
+                                    errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
                             except ValueError:
                                 # content-length header wasn't an integer. Carry on.
                                 pass

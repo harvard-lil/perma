@@ -88,7 +88,7 @@ def bookmarklet_create(request):
     ...and passes the query string values to /manage/create/
     '''
     tocapture = request.GET.get('url', '')
-    add_url = "{}?url={}".format(reverse('create_link'), tocapture)
+    add_url = f"{reverse('create_link')}?url={tocapture}"
     return redirect(add_url)
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())

@@ -13,10 +13,10 @@ def log_function_io(f):
         try:
             result = f(*args, **kwargs)
             _log_function_io_depth -= 1
-            print_tabbed("Return value of %s: >>>%s<<< (%s)" % (f.__name__, result, type(result)))
+            print_tabbed(f"Return value of {f.__name__}: >>>{result}<<< ({type(result)})")
         except Exception as e:
             _log_function_io_depth -= 1
-            print_tabbed("Exception %s raised in %s: %s" % (type(e), f.__name__, e))
+            print_tabbed(f"Exception {type(e)} raised in {f.__name__}: {e}")
             raise
         return result
     return wrapper

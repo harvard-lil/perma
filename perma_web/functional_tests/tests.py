@@ -117,7 +117,7 @@ def on_platforms(platforms):
         module = sys.modules[base_class.__module__].__dict__
         for i, platform in enumerate(platforms):
             d = dict(base_class.__dict__, desired_capabilities=platform)
-            name = "%s_%s" % (base_class.__name__, i + 1)
+            name = f"{base_class.__name__}_{i+1}"
             module[name] = type(name, (base_class,), d)
     return decorator
 
@@ -173,10 +173,10 @@ class FunctionalTest(BaseTestCase):
     def setUpSauce(cls):
         desired_capabilities = dict(cls.base_desired_capabilities, **cls.desired_capabilities)
         desired_capabilities['name'] = cls.id()
-        sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
+        sauce_url = f"http://{settings.SAUCE_USERNAME}:{settings.SAUCE_ACCESS_KEY}@ondemand.saucelabs.com:80/wd/hub"
         cls.driver = webdriver.Remote(
             desired_capabilities=desired_capabilities,
-            command_executor=sauce_url % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY)
+            command_executor=sauce_url
         )
         socket.setdefaulttimeout(300)  # spinning up iOS browser can take a few minutes
 
@@ -221,7 +221,7 @@ class FunctionalTest(BaseTestCase):
             return self.driver.find_element_by_id(id)
 
         def get_element_with_text(text, element_type='*'):
-            return get_xpath("//%s[contains(text(),'%s')]" % (element_type, text))
+            return get_xpath(f"//{element_type}[contains(text(),'{text}')]")
 
         def is_displayed(element, repeat=True):
             """ Check if element is displayed, by default retrying for 10 seconds if false. """
@@ -271,7 +271,7 @@ class FunctionalTest(BaseTestCase):
                 if result:
                     return result
                 if time.time()>end_time:
-                    raise Exception("%s timed out after %s seconds" % (func, timeout))
+                    raise Exception(f"{func} timed out after {timeout} seconds")
                 time.sleep(sleep_time)
 
         def test_js_error_handling():
@@ -300,7 +300,7 @@ class FunctionalTest(BaseTestCase):
 
         try:
 
-            info("Loading homepage from %s." % self.server_url)
+            info(f"Loading homepage from {self.server_url}")
             self.driver.get(self.server_url)
             assert_text_displayed("Perma.cc is simple") # new text on landing now
             #
@@ -442,8 +442,8 @@ class FunctionalTest(BaseTestCase):
                 info("Attempting to capture screenshot of failed functional test ...")
                 screenshot_path = os.path.join(failed_test_files_path, "failed_functional_test.png")
                 self.driver.save_screenshot(screenshot_path)
-                info("Screenshot of failed functional test is at %s" % screenshot_path)
+                info(f"Screenshot of failed functional test is at {screenshot_path}")
             except Exception as e2:
-                info("Screenshot failed: %s" % e2)
+                info(f"Screenshot failed: {e2}")
 
             raise

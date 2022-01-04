@@ -147,7 +147,7 @@ class BaseImporter(ImportStatusChecker):
         if num_recs >= 2:
             num_recs -= 1
 
-        logger.debug('Parsed {0} recordings, Buffer Size {1}'.format(num_recs, total_size))
+        logger.debug(f'Parsed {num_recs} recordings, Buffer Size {total_size}')
 
         first_coll, rec_infos = self.process_upload(user, force_coll_name, infos, stream,
                                                     filename, total_size, num_recs)
@@ -227,7 +227,7 @@ class BaseImporter(ImportStatusChecker):
 
             for info in rec_infos:
                 count += 1
-                logger.debug('Id: {0}, Uploading Rec {1} of {2}'.format(upload_key, count, num_recs))
+                logger.debug(f'Id: {upload_key}, Uploading Rec {count} of {num_recs}')
 
                 if info['length'] > 0:
                     self.do_upload(upload_key,
@@ -246,7 +246,7 @@ class BaseImporter(ImportStatusChecker):
                 try:
                     self.process_pages(info, page_id_map, upload_key, total_size)
                 except Exception as e:
-                    raise Exception("Exception processing pages for {}".format(first_coll.name)) from e
+                    raise Exception(f"Exception processing pages for {first_coll.name}") from e
                 # END PERMA CUSTOMIZATION
 
                 diff = info['offset'] - last_end
@@ -406,7 +406,7 @@ class BaseImporter(ImportStatusChecker):
                 count += 1
                 #yield collection, recording
 
-                logger.debug('Processing Upload Rec {0} of {1}'.format(count, num_recs))
+                logger.debug(f'Processing Upload Rec {count} of {num_recs}')
 
                 rec_infos.append({'coll': collection.my_id,
                                   'rec': recording.my_id,
@@ -758,7 +758,7 @@ class UploadImporter(BaseImporter):
         """
         stream.seek(offset)
 
-        logger.debug('do_upload(): {0} offset: {1}: len: {2}'.format(rec, offset, length))
+        logger.debug(f'do_upload(): {rec} offset: {offset}: len: {length}')
 
         stream = LimitReader(stream, length)
         headers = {'Content-Length': str(length)}
