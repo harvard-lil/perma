@@ -32,7 +32,7 @@ services:
       dockerfile: ./perma_web/Dockerfile
       args:
         chrome-layer-cache-buster: a7e9520f-2f1d-4ac6-a1b2-b7d84a00cca3
-    image: perma3:0.125
+    image: perma3:0.126
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -102,7 +102,7 @@ services:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:0.35
+    image: registry.lil.tools/harvardlil/perma-payments:0.36
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && fab run"
