@@ -34,7 +34,7 @@ class TaskTestCase(TestCase):
         response = send_js_errors()
         self.assertFalse(response)
         self.assertEqual(len(mail.outbox), 0)
-        unruly_stack_trace = u'[{"function": "getNextContents", "column": 6, "line": 304, "file": "static/bundles/create.js"}, {"function": "showFolderContents", "column": 4, "line": 335, "file": "static/bundles/create.js"}]'
+        unruly_stack_trace = '[{"function": "getNextContents", "column": 6, "line": 304, "file": "static/bundles/create.js"}, {"function": "showFolderContents", "column": 4, "line": 335, "file": "static/bundles/create.js"}]'
         err = UncaughtError.objects.create(
             message="oh no!",
             current_url="perma.cc/about",

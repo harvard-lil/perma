@@ -507,7 +507,7 @@ class AuthenticatedLinkListExportView(BaseView):
             filename = "perma-archives.csv"
         response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
         if formatted_data:
-            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer = csv.DictWriter(response, fieldnames=list(formatted_data[0].keys()))
             writer.writeheader()
             writer.writerows(formatted_data)
         return response
@@ -735,7 +735,7 @@ class LinkBatchesDetailExportView(BaseView):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
         if formatted_data:
-            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer = csv.DictWriter(response, fieldnames=list(formatted_data[0].keys()))
             writer.writeheader()
             writer.writerows(formatted_data)
         return response

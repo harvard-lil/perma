@@ -795,7 +795,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         max_length=255,
         unique=True,
         db_index=True,
-        error_messages={'unique': u"A user with that email address already exists.",}
+        error_messages={'unique': "A user with that email address already exists.",}
     )
 
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
@@ -888,10 +888,10 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return
         try:
             # this branch only used during transition to root folders -- should be removed eventually
-            root_folder = Folder.objects.filter(created_by=self, name=u"Personal Links", parent=None)[0]
+            root_folder = Folder.objects.filter(created_by=self, name="Personal Links", parent=None)[0]
             root_folder.is_root_folder = True
         except IndexError:
-            root_folder = Folder(name=u'Personal Links', created_by=self, is_root_folder=True)
+            root_folder = Folder(name='Personal Links', created_by=self, is_root_folder=True)
         root_folder.save()
         self.root_folder = root_folder
         self.save()
@@ -899,7 +899,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def create_sponsored_root_folder(self):
         if self.sponsored_root_folder:
             return
-        sponsored_root_folder = Folder(name=u'Sponsored Links', created_by=self, is_sponsored_root_folder=True)
+        sponsored_root_folder = Folder(name='Sponsored Links', created_by=self, is_sponsored_root_folder=True)
         sponsored_root_folder.save()
         self.sponsored_root_folder = sponsored_root_folder
         self.save()
@@ -1109,7 +1109,7 @@ class ApiKey(models.Model):
     created = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return u"%s for %s" % (self.key, self.user)
+        return "%s for %s" % (self.key, self.user)
 
     def save(self, *args, **kwargs):
         if not self.key:
@@ -1967,7 +1967,7 @@ class CaptureJob(models.Model):
     TEST_ALLOW_RACE = False
 
     def __str__(self):
-        return u"CaptureJob %s: %s" % (self.pk, self.link_id)
+        return "CaptureJob %s: %s" % (self.pk, self.link_id)
 
     def save(self, *args, **kwargs):
 
@@ -2098,7 +2098,7 @@ class LinkBatch(models.Model):
 
     # In Python 3: def __str__(self):
     def __unicode__(self):
-        return u"LinkBatch %s" % (self.pk,)
+        return "LinkBatch %s" % (self.pk,)
 
 
 #########################

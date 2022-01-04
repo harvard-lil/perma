@@ -47,4 +47,4 @@ def import_environmental_settings(settings):
                     pass
                 target[path[0]] = value
             except Exception as e:
-                print("WARNING: Can't import environmental setting %s: %s" % (key, e))
+                print(f"WARNING: Can't import environmental setting {key}: {e}")

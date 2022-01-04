@@ -5,6 +5,7 @@ from django.test import LiveServerTestCase
 
 import perma.settings
 import perma.wsgi
+import importlib
 
 
 class WsgiTestCase(LiveServerTestCase):
@@ -15,7 +16,7 @@ class WsgiTestCase(LiveServerTestCase):
         # because wsgi.py is designed to run before django is loaded.
         self.orig_TRUSTED_PROXIES = perma.settings.TRUSTED_PROXIES
         perma.settings.TRUSTED_PROXIES = [["1.2.0.0/16", "3.4.0.0/16"],["127.0.0.1"]]
-        reload(perma.wsgi)
+        importlib.reload(perma.wsgi)
 
         # use full wsgi app in test server
         self.server_thread.httpd.set_app(self.server_thread.static_handler(perma.wsgi.application))
@@ -23,7 +24,7 @@ class WsgiTestCase(LiveServerTestCase):
     def tearDown(self):
         # Make sure we leave everything like we found it.
         perma.settings.TRUSTED_PROXIES = self.orig_TRUSTED_PROXIES
-        reload(perma.wsgi)
+        importlib.reload(perma.wsgi)
 
     def test_get_client_ip_no_proxy(self):
         # No X-Forwarded-For header:

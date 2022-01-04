@@ -160,7 +160,7 @@ class FunctionalTest(BaseTestCase):
         else:
             cls.setUpRemoteSelenium()
         cls.driver.implicitly_wait(5)
-        print("Using %s for integration tests." % (type(cls.driver)))
+        print(f"Using {type(cls.driver)} for integration tests.")
 
     @classmethod
     def tearDownClass(cls):
@@ -196,7 +196,7 @@ class FunctionalTest(BaseTestCase):
 
     @classmethod
     def tearDownSauce(cls):
-        print("Link to your job: https://saucelabs.com/jobs/%s" % cls.driver.session_id)
+        print(f"Link to your job: https://saucelabs.com/jobs/{cls.driver.session_id}")
         try:
             if sys.exc_info() == (None, None, None):
                 sauce.jobs.update_job(cls.driver.session_id, passed=True)
@@ -249,11 +249,7 @@ class FunctionalTest(BaseTestCase):
                 infoLocal(*args)
 
         def infoSauce(*args):
-            print("%s %s %s:" % (
-                self.desired_capabilities['platform'],
-                self.desired_capabilities['browserName'],
-                self.desired_capabilities['version'],
-            ), *args)
+            print(f"{self.desired_capabilities['platform']} {self.desired_capabilities['browserName']} {self.desired_capabilities['version']}:", *args)
 
         def infoLocal(*args):
             print(*args)

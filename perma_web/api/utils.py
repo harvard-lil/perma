@@ -1,6 +1,7 @@
 import unicodedata
 import imghdr
-from collections import OrderedDict, Mapping
+from collections import OrderedDict
+from collections.abc import Mapping
 from functools import wraps
 import json
 

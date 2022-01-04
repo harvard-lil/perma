@@ -84,13 +84,13 @@ def celery_task_failure_email(**kwargs):
     From https://github.com/celery/celery/issues/3389
     """
 
-    subject = u"[Django][{queue_name}@{host}] Error: Task {sender.name} ({task_id}): {exception}".format(
-        queue_name=u'celery',
+    subject = "[Django][{queue_name}@{host}] Error: Task {sender.name} ({task_id}): {exception}".format(
+        queue_name='celery',
         host=socket.gethostname(),
         **kwargs
     )
 
-    message = u"""Task {sender.name} with id {task_id} raised exception:
+    message = """Task {sender.name} with id {task_id} raised exception:
 {exception!r}
 
 
@@ -222,7 +222,7 @@ def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
 
     display = None
-    print("Using browser: %s" % settings.CAPTURE_BROWSER)
+    print(f"Using browser: {settings.CAPTURE_BROWSER}")
 
     # Firefox
     if settings.CAPTURE_BROWSER == 'Firefox':
@@ -449,7 +449,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
     delta = time.time() - start_time
     if delta < seconds:
         wait = seconds - delta
-        print("Sleeping for {}s".format(wait))
+        print(f"Sleeping for {wait}s")
         time.sleep(wait)
 
 
@@ -457,7 +457,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
 
 def inc_progress(capture_job, inc, description):
     capture_job.inc_progress(inc, description)
-    print("%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description))
+    print(f"{capture_job.link.guid} step {capture_job.step_count}: {capture_job.step_description}")
 
 def capture_current_size(thread_list, recorded):
     """
@@ -646,7 +646,7 @@ def favicon_get_urls(dom_tree, content_url):
     return urls
 
 def favicon_fetch(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
-    print("Fetching favicon from %s ..." % url)
+    print(f"Fetching favicon from {url} ...")
     response, e = get_url(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent)
     if e or not response or not response.ok:
         print("Favicon failed:", e, response)
@@ -728,7 +728,7 @@ def get_screenshot(link, browser):
 
         return browser.get_screenshot_as_png()
     else:
-        print("Not taking screenshot! %s" % ("Page size is %s." % (page_size,)))
+        print(f"Not taking screenshot! Page size is {page_size}")
         safe_save_fields(link.screenshot_capture, status='failed')
 
 def get_page_size(browser):
@@ -800,7 +800,7 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
         if time.time() - shutdown_time > SHUTDOWN_GRACE_PERIOD:
             break
         threads = threading.enumerate()
-        print("{} active threads.".format(len(threads)))
+        print(f"{len(threads)} active threads.")
         if not any('MitmProxyHandler' in thread.name for thread in threads):
             break
         print("Waiting for MitmProxyHandler")
@@ -873,7 +873,7 @@ def save_favicons(link, successful_favicon_urls):
             url=successful_favicon_urls[0][0],
             content_type=successful_favicon_urls[0][1].lower()
         ).save()
-        print("Saved favicons %s" % successful_favicon_urls)
+        print(f"Saved favicons {successful_favicon_urls}")
 
 def clean_up_failed_captures():
     """
@@ -947,7 +947,7 @@ def run_next_capture():
         proxy = False
 
         capture_user_agent = user_agent_for_domain(link.url_details.netloc)
-        print("Using user-agent: %s" % capture_user_agent)
+        print(f"Using user-agent: {capture_user_agent}")
 
         if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
             proxy = True
@@ -1142,7 +1142,7 @@ def run_next_capture():
                 # remove the proxied pair so that it doesn't keep trying and
                 # the capture process can proceed
                 proxied_pairs.remove(proxied_pair)
-                print("WarcProx exception: %s proxying %s" % (e.__class__.__name__, proxied_pair[0]))
+                print(f"WarcProx exception: {e.__class__.__name__} proxying {proxied_pair[0]}")
                 return  # swallow exception
             with tracker_lock:
                 if response:
@@ -1375,12 +1375,12 @@ def run_next_capture():
                     print("Size limit reached: not waiting for additional pending requests.")
                     break
 
-                print("Waiting for %s pending requests" % len(unfinished_proxied_pairs))
+                print(f"Waiting for {len(unfinished_proxied_pairs)} pending requests")
                 # give up after AFTER_LOAD_TIMEOUT seconds
                 wait_time = time.time() - load_time
                 if wait_time > AFTER_LOAD_TIMEOUT:
                     stop = True
-                    print("Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT)
+                    print(f"Waited {AFTER_LOAD_TIMEOUT} seconds to finish post-load requests -- giving up.")
                     break
 
                 # Show progress to user
@@ -1418,9 +1418,9 @@ def run_next_capture():
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
                 save_warc(warcprox_controller, capture_job, link, content_type, screenshot, successful_favicon_urls)
-                print("%s capture succeeded." % link.guid)
+                print(f"{link.guid} capture succeeded.")
             else:
-                print("%s capture failed." % link.guid)
+                print(f"{link.guid} capture failed.")
 
 
         except:  # noqa
@@ -1678,7 +1678,7 @@ def send_js_errors():
         resolved=False)
 
     if errors:
-        formatted_errors = map(lambda err: err.format_for_reading(), errors)
+        formatted_errors = [err.format_for_reading() for err in errors]
         send_self_email("Uncaught Javascript errors",
                          HttpRequest(),
                          'email/admin/js_errors.txt',

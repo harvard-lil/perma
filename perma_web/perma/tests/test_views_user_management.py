@@ -1755,16 +1755,16 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_lib(self):
         rand = random()
-        return { 'email': u'library{}@university.org'.format(rand),
-                 'name': u'University Library {}'.format(rand),
-                 'website': u'http://website{}.org'.format(rand),
-                 'address': u'{} Main St., Boston MA 02144'.format(rand)}
+        return { 'email': 'library{}@university.org'.format(rand),
+                 'name': 'University Library {}'.format(rand),
+                 'website': 'http://website{}.org'.format(rand),
+                 'address': '{} Main St., Boston MA 02144'.format(rand)}
 
     def new_lib_user(self):
         rand = random()
-        return { 'email': u'user{}@university.org'.format(rand),
-                 'first': u'Joe',
-                 'last': u'Yacobówski' }
+        return { 'email': 'user{}@university.org'.format(rand),
+                 'first': 'Joe',
+                 'last': 'Yacobówski' }
 
     def check_library_labels(self, soup):
         name_label = soup.find('label', {'for': 'id_b-name'})
@@ -1820,14 +1820,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         session = self.client.session
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
-        session['request_data'] = { u'b-email': new_lib['email'],
-                                    u'b-website': new_lib['website'],
-                                    u'b-name': new_lib['name'],
-                                    u'b-address': new_lib['address'],
-                                    u'a-e-address': new_lib_user['email'],
-                                    u'a-first_name': new_lib_user['first'],
-                                    u'a-last_name': new_lib_user['last'],
-                                    u'csrfmiddlewaretoken': u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
+        session['request_data'] = { 'b-email': new_lib['email'],
+                                    'b-website': new_lib['website'],
+                                    'b-name': new_lib['name'],
+                                    'b-address': new_lib['address'],
+                                    'a-e-address': new_lib_user['email'],
+                                    'a-first_name': new_lib_user['first'],
+                                    'a-last_name': new_lib_user['last'],
+                                    'csrfmiddlewaretoken': '11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
         session.save()
         response = self.get('libraries').content
         soup = BeautifulSoup(response, 'html.parser')
@@ -1875,10 +1875,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
         self.submit_form('libraries',
-                          data = { u'b-email': new_lib['email'],
-                                   u'b-website': new_lib['website'],
-                                   u'b-name': new_lib['name'],
-                                   u'a-e-address': new_lib_user['email'] },
+                          data = { 'b-email': new_lib['email'],
+                                   'b-website': new_lib['website'],
+                                   'b-name': new_lib['name'],
+                                   'a-e-address': new_lib_user['email'] },
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
@@ -1889,12 +1889,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
         self.submit_form('libraries',
-                          data = { u'b-email': new_lib['email'],
-                                   u'b-website': new_lib['website'],
-                                   u'b-name': new_lib['name'],
-                                   u'a-e-address': new_lib_user['email'],
-                                   u'a-first_name': new_lib_user['first'],
-                                   u'a-last_name': new_lib_user['last']},
+                          data = { 'b-email': new_lib['email'],
+                                   'b-website': new_lib['website'],
+                                   'b-name': new_lib['name'],
+                                   'a-e-address': new_lib_user['email'],
+                                   'a-first_name': new_lib_user['first'],
+                                   'a-last_name': new_lib_user['last']},
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
@@ -1905,9 +1905,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         existing_lib_user = { 'email': 'test_user@example.com'}
         self.submit_form('libraries',
-                          data = { u'b-email': new_lib['email'],
-                                   u'b-website': new_lib['website'],
-                                   u'b-name': new_lib['name'] },
+                          data = { 'b-email': new_lib['email'],
+                                   'b-website': new_lib['website'],
+                                   'b-name': new_lib['name'] },
                           success_url=reverse('user_management_settings_affiliations'),
                           user=existing_lib_user['email'])
         expected_emails_sent += 1
@@ -1918,13 +1918,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
         self.submit_form('libraries',
-                          data = { u'b-email': new_lib['email'],
-                                   u'b-website': new_lib['website'],
-                                   u'b-name': new_lib['name'],
-                                   u'a-e-address': new_lib_user['email'],
-                                   u'a-first_name': new_lib_user['first'],
-                                   u'a-last_name': new_lib_user['last'],
-                                   u'a-telephone': "I'm a bot."},
+                          data = { 'b-email': new_lib['email'],
+                                   'b-website': new_lib['website'],
+                                   'b-name': new_lib['name'],
+                                   'a-e-address': new_lib_user['email'],
+                                   'a-first_name': new_lib_user['first'],
+                                   'a-last_name': new_lib_user['last'],
+                                   'a-telephone': "I'm a bot."},
                           success_url=reverse('register_library_instructions'))
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(Registrar.objects.filter(name=new_lib['name']).exists())
@@ -1947,18 +1947,18 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # (checking user email missing separately)
         self.submit_form('libraries',
-                          data = {u'b-email': new_lib['email'],
-                                  u'b-website': new_lib['website'],
-                                  u'b-name': new_lib['name']},
+                          data = {'b-email': new_lib['email'],
+                                  'b-website': new_lib['website'],
+                                  'b-name': new_lib['name']},
                           form_keys = ['registrar_form', 'user_form'],
                           error_keys = ['email'])
         self.assertEqual(len(mail.outbox), 0)
 
         # Not logged in, user appears to have already registered
-        data = {u'b-email': new_lib['email'],
-                u'b-website': new_lib['website'],
-                u'b-name': new_lib['name'],
-                u'a-e-address': existing_lib_user['email']}
+        data = {'b-email': new_lib['email'],
+                'b-website': new_lib['website'],
+                'b-name': new_lib['name'],
+                'a-e-address': existing_lib_user['email']}
         self.submit_form('libraries',
                           data = data,
                           form_keys = ['registrar_form', 'user_form'],
@@ -1983,13 +1983,13 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_court(self):
         rand = random()
-        return { 'requested_account_note': u'Court {}'.format(rand) }
+        return { 'requested_account_note': 'Court {}'.format(rand) }
 
     def new_court_user(self):
         rand = random()
-        return { 'email': u'user{}@university.org'.format(rand),
-                 'first': u'Joe',
-                 'last': u'Yacobówski' }
+        return { 'email': 'user{}@university.org'.format(rand),
+                 'first': 'Joe',
+                 'last': 'Yacobówski' }
 
     def check_court_email(self, message, court_email):
         our_address = settings.DEFAULT_FROM_EMAIL
@@ -2113,13 +2113,13 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_firm(self):
         rand = random()
-        return {'requested_account_note': u'Firm {}'.format(rand)}
+        return {'requested_account_note': 'Firm {}'.format(rand)}
 
     def new_firm_user(self):
         rand = random()
-        return {'email': u'user{}@university.org'.format(rand),
-                'first': u'Joe',
-                'last': u'Yacobówski'}
+        return {'email': 'user{}@university.org'.format(rand),
+                'first': 'Joe',
+                'last': 'Yacobówski'}
 
     def check_firm_email(self, message, firm_email):
         our_address = settings.DEFAULT_FROM_EMAIL
@@ -2242,13 +2242,13 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_journal(self):
         rand = random()
-        return { 'requested_account_note': u'Journal {}'.format(rand)}
+        return { 'requested_account_note': 'Journal {}'.format(rand)}
 
     def new_journal_user(self):
         rand = random()
-        return { 'email': u'user{}@university.org'.format(rand),
-                 'first': u'Joe',
-                 'last': u'Yacobówski' }
+        return { 'email': 'user{}@university.org'.format(rand),
+                 'first': 'Joe',
+                 'last': 'Yacobówski' }
 
     def test_new_journal_success(self):
         '''
@@ -2338,10 +2338,10 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_faculty_user(self):
         rand = random()
-        return { 'email': u'user{}@university.org'.format(rand),
-                 'first': u'Joe',
-                 'last': u'Yacobówski',
-                 'requested_account_note': u'Journal {}'.format(rand) }
+        return { 'email': 'user{}@university.org'.format(rand),
+                 'first': 'Joe',
+                 'last': 'Yacobówski',
+                 'requested_account_note': 'Journal {}'.format(rand) }
 
     def test_new_faculty_success(self):
         '''

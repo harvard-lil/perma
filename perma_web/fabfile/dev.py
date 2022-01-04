@@ -185,7 +185,7 @@ def init_db():
 
 @task
 def screenshots(base_url='http://perma.test:8000'):
-    import StringIO
+    import io
     from PIL import Image
     from selenium import webdriver
 
@@ -195,7 +195,7 @@ def screenshots(base_url='http://perma.test:8000'):
     base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
 
     def screenshot(upper_left_selector, lower_right_selector, output_path, upper_left_offset=(0,0), lower_right_offset=(0,0)):
-        print("Capturing %s" % output_path)
+        print(f"Capturing {output_path}")
 
         upper_left_el = browser.find_element_by_css_selector(upper_left_selector)
         lower_right_el = browser.find_element_by_css_selector(lower_right_selector)
@@ -204,7 +204,7 @@ def screenshots(base_url='http://perma.test:8000'):
         lower_right_loc = lower_right_el.location
         lower_right_size = lower_right_el.size
 
-        im = Image.open(StringIO.StringIO(browser.get_screenshot_as_png()))
+        im = Image.open(io.StringIO(browser.get_screenshot_as_png()))
         im = im.crop((
             upper_left_loc['x']+upper_left_offset[0],
             upper_left_loc['y']+upper_left_offset[1],
@@ -388,13 +388,13 @@ def regenerate_urlkeys(urlkey_prefix='file'):
 
     for i, cdxline in enumerate(target_cdxlines):
         if not (i%1000):
-            print("%s records done -- next is %s." % (i, cdxline.link_id))
+            print(f"{i} records done -- next is {cdxline.link_id}.")
         new_surt = surt(cdxline.parsed['url'])
         if new_surt != cdxline.urlkey:
             try:
                 cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
             except UnicodeDecodeError:
-                print("Skipping unicode for %s" % cdxline.link_id)
+                print(f"Skipping unicode for {cdxline.link_id}")
                 continue
             cdxline.urlkey = new_surt
             cdxline.save()
@@ -406,12 +406,12 @@ def rebuild_folder_trees():
 
     for o in Organization.objects.all():
         if set(o.folders.all()) != set(o.shared_folder.get_descendants(include_self=True)):
-            print("Tree corruption found for org: %s" % o)
+            print(f"Tree corruption found for org: {o}")
             Folder._tree_manager.partial_rebuild(o.shared_folder.tree_id)
 
     for u in LinkUser.objects.all():
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
-            print("Tree corruption found for user: %s" % u)
+            print(f"Tree corruption found for user: {u}")
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
 
 
@@ -460,15 +460,15 @@ def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
                 continue
             raise
         except Exception as e:
-            print("%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.args)
+            print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tEXCEPTION\t", e.args)
             traceback.print_exc()
             continue
 
         if 'Link' not in replay_response.headers:
-            print("%s\t%s\tWARNING\t%s" % (capture.link_id, capture.link.creation_timestamp, "Link header not found"))
+            print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tWARNING\tLink header not found")
             continue
 
-        print("%s\t%s\tOK" % (capture.link_id, capture.link.creation_timestamp))
+        print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tOK")
 
 @task
 def read_playback_tests(*filepaths):
@@ -500,9 +500,9 @@ def read_playback_tests(*filepaths):
             errs[key].append(parts)
 
     err_count = 0
-    for err_type, sub_errs in errs.iteritems():
+    for err_type, sub_errs in errs.items():
         err_count += len(sub_errs)
-        print("%s: %s" % (err_type, len(sub_errs)))
+        print(f"{err_type}: {len(sub_errs)}")
     print("Total:", err_count)
 
 
@@ -689,7 +689,7 @@ def fix_ia_metadata():
                                      secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY)
         except Exception as e:
             result = str(e)
-        print("%s\t%s" % (link['guid'], result))
+        print(f"{link['guid']}\t{result}")
 
 
 @task
@@ -716,7 +716,7 @@ def check_s3_hashes():
                 for f in files:
                     tmp_file.write(os.path.join(root, f)[remove_char_count:]+"\n")
     else:
-        print("Using cached local state from %s" % local_cache_path)
+        print(f"Using cached local state from {local_cache_path}")
 
     if not os.path.exists(remote_cache_path):
         print("Building remote state ...")
@@ -728,7 +728,7 @@ def check_s3_hashes():
                 tmp_file.write("%s\t%s\n" % (key, val))
                 remote_paths[key] = val
     else:
-        print("Using cached remote state from %s" % remote_cache_path)
+        print(f"Using cached remote state from {remote_cache_path}")
         for line in open(remote_cache_path):
             key, val = line[:-1].split("\t")
             remote_paths[key] = val
@@ -748,7 +748,7 @@ def check_s3_hashes():
                     break
                 m.update(buf)
         if m.hexdigest() != remote_paths[local_path]:
-            print("Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path]))
+            print(f"Hash mismatch! Local: {m.hexdigest()} Remote: {remote_paths[local_path]}")
 
 
 @task
@@ -868,7 +868,7 @@ def check_storage(start_date=None):
             file_present = True
             for key in storages:
                 if path not in storages[key]['lookup']:
-                    print("{0} not in {1}".format(path, key))
+                    print(f"{path} not in {key}")
                     file_present = False
             if file_present and len(storages) > 1:
                 hashes = []
@@ -916,7 +916,7 @@ def test_db_connection(connection):
     while [ 1 ] ; do date ; fab dev.test_db_connection:some-connection ; sleep 1 ; done
     """
     from django.db import connections
-    print("Attempting connection to %s ..." % connection)
+    print(f"Attempting connection to {connection} ...")
     cursor = connections[connection].cursor()
     print("Succeeded.")
     cursor.close()
@@ -981,7 +981,7 @@ def clear_wr_session_for_user(target_email):
                     if key.startswith('wr_'):
                         del loaded[key]
                 loaded.save()
-                print("Cleared session for user {} ({})".format(target_user_id, target_email))
+                print(f"Cleared session for user {target_user_id} ({target_email})")
         except KeyError:
             pass
 
