@@ -76,5 +76,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(rename_test_accounts),
+        migrations.RunPython(rename_test_accounts, elidable=True),
     ]

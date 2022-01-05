@@ -37,6 +37,6 @@ class Migration(migrations.Migration):
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='api_key', to=settings.AUTH_USER_MODEL)),
             ],
         ),
-        migrations.RunPython(copy_keys),
+        migrations.RunPython(copy_keys, elidable=True),
     ]
 

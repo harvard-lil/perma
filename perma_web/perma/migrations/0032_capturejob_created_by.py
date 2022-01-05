@@ -41,9 +41,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             'UPDATE perma_capturejob c JOIN perma_link l ON c.link_id=l.guid SET c.created_by_id=l.created_by_id',
-            migrations.RunSQL.noop
+            migrations.RunSQL.noop,
+            elidable=True
         ),
-        migrations.RunPython(handle_linkless_capture_jobs, migrations.RunPython.noop),
+        migrations.RunPython(handle_linkless_capture_jobs, migrations.RunPython.noop, elidable=True),
         migrations.AlterField(
             model_name='capturejob',
             name='created_by',

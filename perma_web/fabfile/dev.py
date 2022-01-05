@@ -123,7 +123,8 @@ def test_python(apps=_default_tests):
         }
         with shell_env(**shell_envs):
             # NB: all arguments to Fabric tasks are interpreted as strings
-            local("pytest %s --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
+            local("pytest %s --ds=perma.settings.deployments.settings_testing --cov --cov-report= " % (apps))
+
     finally:
         # clean up after ourselves
         shutil.rmtree(tmp)

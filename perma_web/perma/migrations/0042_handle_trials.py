@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(premium_registrars_are_not_in_trial, revert_premium_registrars_to_default),
-        migrations.RunPython(current_premium_users_are_not_in_trial, revert_premium_users_to_default),
-        migrations.RunPython(grant_trial_users_ten_links, reset_trial_users_link_limits),
+        migrations.RunPython(premium_registrars_are_not_in_trial, revert_premium_registrars_to_default, elidable=True),
+        migrations.RunPython(current_premium_users_are_not_in_trial, revert_premium_users_to_default, elidable=True),
+        migrations.RunPython(grant_trial_users_ten_links, reset_trial_users_link_limits, elidable=True),
     ]

@@ -54,8 +54,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(handle_premium_users, migrations.RunPython.noop),
-        migrations.RunPython(ensure_all_users_have_nonzero_price, migrations.RunPython.noop),
-        migrations.RunPython(ensure_all_registrars_have_nonzero_price, migrations.RunPython.noop),
-        migrations.RunPython(ensure_all_users_can_subscribe, migrations.RunPython.noop)
+        migrations.RunPython(handle_premium_users, migrations.RunPython.noop, elidable=True),
+        migrations.RunPython(ensure_all_users_have_nonzero_price, migrations.RunPython.noop, elidable=True),
+        migrations.RunPython(ensure_all_registrars_have_nonzero_price, migrations.RunPython.noop, elidable=True),
+        migrations.RunPython(ensure_all_users_can_subscribe, migrations.RunPython.noop, elidable=True)
     ]
