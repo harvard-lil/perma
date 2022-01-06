@@ -182,7 +182,7 @@ def single_permalink(request, guid):
     max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
 
     if not link.submitted_description:
-        link.submitted_description = "This is an archive of %s from %s" % (link.submitted_url, link.creation_timestamp.strftime("%A %d, %B %Y"))
+        link.submitted_description = f"This is an archive of {link.submitted_url} from {link.creation_timestamp.strftime('%A %d, %B %Y')}"
 
     logger.debug(f"Preparing context for {link.guid}")
     context = {
@@ -392,7 +392,7 @@ def timegate(request, url):
         accept_datetime = timezone.now()
     accept_datetime = accept_datetime.replace(tzinfo=tzutc())
 
-    target, target_datetime = closest(map(lambda m: m.values(), data['mementos']['list']), accept_datetime)
+    target, target_datetime = closest([m.values() for m in data['mementos']['list']], accept_datetime)
 
     response = redirect(target)
     response['Vary'] = 'accept-datetime'
@@ -428,22 +428,22 @@ def contact(request):
         affiliation_string = ''
         if request.user.is_authenticated:
             if request.user.registrar:
-                affiliation_string = u"{} (Registrar)".format(request.user.registrar.name)
+                affiliation_string = f"{request.user.registrar.name} (Registrar)"
             else:
-                affiliations = [u"{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                affiliations = [f"{org.name} ({org.registrar.name})" for org in request.user.organizations.all().order_by('registrar')]
                 if affiliations:
-                    affiliation_string = u', '.join(affiliations)
+                    affiliation_string = ', '.join(affiliations)
         return affiliation_string
 
     def formatted_organization_list(registrar):
-        organization_string = u''
+        organization_string = ''
         if request.user.is_organization_user:
             orgs = [org.name for org in request.user.organizations.filter(registrar=registrar)]
             org_count = len(orgs)
             if org_count > 2:
-                organization_string = u", ".join(orgs[:-1]) + u" and " + orgs[-1]
+                organization_string = ", ".join(orgs[:-1]) + " and " + orgs[-1]
             elif org_count == 2:
-                organization_string = u"{} and {}".format(orgs[0], orgs[1])
+                organization_string = f"{orgs[0]} and {orgs[1]}"
             elif org_count == 1:
                 organization_string = orgs[0]
             else:
@@ -539,7 +539,7 @@ def contact(request):
         flagged_archive_guid = request.GET.get('flag', '')
         if flagged_archive_guid:
             subject = 'Reporting Inappropriate Content'
-            message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
+            message = f'http://perma.cc/{flagged_archive_guid} contains material that is inappropriate.'
 
         form = handle_registrar_fields(
             ContactForm(

@@ -100,7 +100,7 @@ urlpatterns = [
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', link_management.create_link, name='create_link'),
     url(r'^manage/create/(?P<org_id>\d+)/?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='create_link_with_org'),
-    url(r'^manage/delete-link/%s/?$' % guid_pattern, link_management.user_delete_link, name='user_delete_link'),
+    url(fr'^manage/delete-link/{guid_pattern}/?$', link_management.user_delete_link, name='user_delete_link'),
     # we used to serve an important page here. No longer. Redirect in case anyone has this bookmarked.
     url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'),
 

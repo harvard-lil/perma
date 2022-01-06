@@ -84,13 +84,13 @@ def celery_task_failure_email(**kwargs):
     From https://github.com/celery/celery/issues/3389
     """
 
-    subject = u"[Django][{queue_name}@{host}] Error: Task {sender.name} ({task_id}): {exception}".format(
-        queue_name=u'celery',
+    subject = "[Django][{queue_name}@{host}] Error: Task {sender.name} ({task_id}): {exception}".format(
+        queue_name='celery',
         host=socket.gethostname(),
         **kwargs
     )
 
-    message = u"""Task {sender.name} with id {task_id} raised exception:
+    message = """Task {sender.name} with id {task_id} raised exception:
 {exception!r}
 
 
@@ -222,7 +222,7 @@ def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
 
     display = None
-    print("Using browser: %s" % settings.CAPTURE_BROWSER)
+    print(f"Using browser: {settings.CAPTURE_BROWSER}")
 
     # Firefox
     if settings.CAPTURE_BROWSER == 'Firefox':
@@ -251,7 +251,7 @@ def get_browser(user_agent, proxy_address, cert_path):
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument(f'user-agent={user_agent}')
-        chrome_options.add_argument('proxy-server=%s' % proxy_address)
+        chrome_options.add_argument(f'proxy-server={proxy_address}')
         chrome_options.add_argument('headless')
         chrome_options.add_argument('disable-gpu')
         chrome_options.add_argument('no-sandbox')
@@ -449,7 +449,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
     delta = time.time() - start_time
     if delta < seconds:
         wait = seconds - delta
-        print("Sleeping for {}s".format(wait))
+        print(f"Sleeping for {wait}s")
         time.sleep(wait)
 
 
@@ -457,7 +457,7 @@ def sleep_unless_seconds_passed(seconds, start_time):
 
 def inc_progress(capture_job, inc, description):
     capture_job.inc_progress(inc, description)
-    print("%s step %s: %s" % (capture_job.link.guid, capture_job.step_count, capture_job.step_description))
+    print(f"{capture_job.link.guid} step {capture_job.step_count}: {capture_job.step_description}")
 
 def capture_current_size(thread_list, recorded):
     """
@@ -646,7 +646,7 @@ def favicon_get_urls(dom_tree, content_url):
     return urls
 
 def favicon_fetch(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent):
-    print("Fetching favicon from %s ..." % url)
+    print(f"Fetching favicon from {url} ...")
     response, e = get_url(url, thread_list, proxy_address, requested_urls, proxied_responses, user_agent)
     if e or not response or not response.ok:
         print("Favicon failed:", e, response)
@@ -728,7 +728,7 @@ def get_screenshot(link, browser):
 
         return browser.get_screenshot_as_png()
     else:
-        print("Not taking screenshot! %s" % ("Page size is %s." % (page_size,)))
+        print(f"Not taking screenshot! Page size is {page_size}")
         safe_save_fields(link.screenshot_capture, status='failed')
 
 def get_page_size(browser):
@@ -800,7 +800,7 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
         if time.time() - shutdown_time > SHUTDOWN_GRACE_PERIOD:
             break
         threads = threading.enumerate()
-        print("{} active threads.".format(len(threads)))
+        print(f"{len(threads)} active threads.")
         if not any('MitmProxyHandler' in thread.name for thread in threads):
             break
         print("Waiting for MitmProxyHandler")
@@ -833,7 +833,7 @@ def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, 
     recorded_warc_path = os.path.join(
         os.getcwd(),
         warcprox_controller.options.directory,
-        "{}.warc.gz".format(warcprox_controller.options.warc_filename)
+        f"{warcprox_controller.options.warc_filename}.warc.gz"
     )
     warc_size = []  # pass a mutable container to the context manager, so that it can populate it with the size of the finished warc
     with open(recorded_warc_path, 'rb') as recorded_warc_records, \
@@ -873,7 +873,7 @@ def save_favicons(link, successful_favicon_urls):
             url=successful_favicon_urls[0][0],
             content_type=successful_favicon_urls[0][1].lower()
         ).save()
-        print("Saved favicons %s" % successful_favicon_urls)
+        print(f"Saved favicons {successful_favicon_urls}")
 
 def clean_up_failed_captures():
     """
@@ -882,7 +882,7 @@ def clean_up_failed_captures():
     """
     # use database time with a custom where clause to ensure consistent time across workers
     for capture_job in CaptureJob.objects.filter(status='in_progress').select_related('link').extra(
-            where=["capture_start_time < now() - INTERVAL %s second" % settings.CELERY_TASK_TIME_LIMIT]
+            where=[f"capture_start_time < now() - INTERVAL {settings.CELERY_TASK_TIME_LIMIT} second"]
     ):
         capture_job.mark_failed("Timed out.")
         capture_job.link.captures.filter(status='pending').update(status='failed')
@@ -947,7 +947,7 @@ def run_next_capture():
         proxy = False
 
         capture_user_agent = user_agent_for_domain(link.url_details.netloc)
-        print("Using user-agent: %s" % capture_user_agent)
+        print(f"Using user-agent: {capture_user_agent}")
 
         if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):
             proxy = True
@@ -995,8 +995,7 @@ def run_next_capture():
             are written in the WARC record for this request.
             '''
             # Build request
-            req_str = '{} {} {}\r\n'.format(
-                    self.command, self.path, self.request_version)
+            req_str = f'{self.command} {self.path} {self.request_version}\r\n'
 
             # Swallow headers that don't make sense to forward on, i.e. most
             # hop-by-hop headers. http://tools.ietf.org/html/rfc2616#section-13.5.
@@ -1013,8 +1012,7 @@ def run_next_capture():
 
             # Add headers to the request
             # XXX in at least python3.3 str(self.headers) uses \n not \r\n :(
-            req_str += '\r\n'.join(
-                    '{}: {}'.format(k,v) for (k,v) in self.headers.items())
+            req_str += '\r\n'.join(f'{k}: {v}' for (k,v) in self.headers.items())
 
             req = req_str.encode('latin1') + b'\r\n\r\n'
 
@@ -1025,7 +1023,7 @@ def run_next_capture():
             prox_rec_res = None
             start = time.time()
             try:
-                self.logger.debug('sending to remote server req=%r' % req)
+                self.logger.debug(f'sending to remote server req={req}')
 
                 # Send it down the pipe!
                 self._remote_server_conn.sock.sendall(req)
@@ -1042,7 +1040,7 @@ def run_next_capture():
                     try:
                         buf = prox_rec_res.read(65536)
                     except http_client.IncompleteRead as e:
-                        self.logger.warn('%s from %s' %(e, self.url))
+                        self.logger.warn(f'{e} from {self.url}')
                         buf = e.partial
 
                     if buf:
@@ -1053,19 +1051,14 @@ def run_next_capture():
                         prox_rec_res.truncated = b'length'
                         self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                         self._remote_server_conn.sock.close()
-                        self.logger.info(
-                                'truncating response because max resource size %d '
-                                'bytes exceeded for URL %s' %
-                                (self._max_resource_size, self.url))
+                        self.logger.info(f'truncating response because max resource size {self._max_resource_size} bytes exceeded for URL {self.url}')
                         break
                     elif ('content-length' not in self.headers and
                            time.time() - start > 3 * 60 * 60):
                         prox_rec_res.truncated = b'time'
                         self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                         self._remote_server_conn.sock.close()
-                        self.logger.info(
-                                'reached hard timeout of 3 hours fetching url '
-                                'without content-length: %s' % self.url)
+                        self.logger.info(f'reached hard timeout of 3 hours fetching url without content-length: {self.url}')
                         break
 
                     # begin Perma changes #
@@ -1073,10 +1066,7 @@ def run_next_capture():
                         prox_rec_res.truncated = b'length'
                         self._remote_server_conn.sock.shutdown(socket.SHUT_RDWR)
                         self._remote_server_conn.sock.close()
-                        self.logger.info(
-                                'truncating response because stop signal received '
-                                'while recording %s' %
-                                self.url)
+                        self.logger.info(f'truncating response because stop signal received while recording {self.url}')
                         break
                     # end Perma changes #
 
@@ -1102,8 +1092,7 @@ def run_next_capture():
                     host_port = self._hostname_port_cache_key()
                     with self.server.bad_hostnames_ports_lock:
                         self.server.bad_hostnames_ports[host_port] = 502
-                    self.logger.info('bad_hostnames_ports cache size: %d' %
-                                     len(self.server.bad_hostnames_ports))
+                    self.logger.info(f'bad_hostnames_ports cache size: {len(self.server.bad_hostnames_ports)}')
 
                 # Close the connection only if its still open. If its already
                 # closed, an `OSError` "([Errno 107] Transport endpoint is not
@@ -1142,7 +1131,7 @@ def run_next_capture():
                 # remove the proxied pair so that it doesn't keep trying and
                 # the capture process can proceed
                 proxied_pairs.remove(proxied_pair)
-                print("WarcProx exception: %s proxying %s" % (e.__class__.__name__, proxied_pair[0]))
+                print(f"WarcProx exception: {e.__class__.__name__} proxying {proxied_pair[0]}")
                 return  # swallow exception
             with tracker_lock:
                 if response:
@@ -1165,10 +1154,7 @@ def run_next_capture():
             self._remote_server_conn = self._conn_pool._get_conn()
             if is_connection_dropped(self._remote_server_conn):
                 if self.onion_tor_socks_proxy_host:  # Perma removed `and self.hostname.endswith('.onion')`
-                    self.logger.info(
-                            "using tor socks proxy at %s:%s to connect to %s",
-                            self.onion_tor_socks_proxy_host,
-                            self.onion_tor_socks_proxy_port or 1080, self.hostname)
+                    self.logger.info(f"using tor socks proxy at {self.onion_tor_socks_proxy_host}:{self.onion_tor_socks_proxy_port or 1080} to connect to {self.hostname}")
                     self._remote_server_conn.sock = socks.socksocket()
                     self._remote_server_conn.sock.set_proxy(
                             socks.SOCKS5, addr=self.onion_tor_socks_proxy_host,
@@ -1194,16 +1180,10 @@ def run_next_capture():
                             self._remote_server_conn.sock = ssl.wrap_socket(
                                     self._remote_server_conn.sock)
                         except ssl.SSLError:
-                            self.logger.warning(
-                                    "failed to establish ssl connection to %s; "
-                                    "python ssl library does not support SNI, "
-                                    "consider upgrading to python 2.7.9+ or 3.4+",
-                                    self.hostname)
+                            self.logger.warning(f"failed to establish ssl connection to {self.hostname}; python ssl library does not support SNI,consider upgrading to python 2.7.9+ or 3.4+")
                         raise
                     except ssl.SSLError as e:
-                        self.logger.error(
-                                'error connecting to %s (%s) port %s: %s',
-                                self.hostname, remote_ip, self.port, e)
+                        self.logger.error(f'error connecting to {self.hostname} ({remote_ip}) port {self.port}: {e}')
                         raise
             return self._remote_server_conn.sock
         MitmProxyHandler._connect_to_remote_server = _connect_to_remote_server
@@ -1233,7 +1213,7 @@ def run_next_capture():
             warcprox_port += 1
         else:
             raise Exception("WarcProx couldn't find an open port.")
-        proxy_address = "127.0.0.1:%s" % warcprox_port
+        proxy_address = f"127.0.0.1:{warcprox_port}"
 
         # start warcprox in the background
         warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
@@ -1375,12 +1355,12 @@ def run_next_capture():
                     print("Size limit reached: not waiting for additional pending requests.")
                     break
 
-                print("Waiting for %s pending requests" % len(unfinished_proxied_pairs))
+                print(f"Waiting for {len(unfinished_proxied_pairs)} pending requests")
                 # give up after AFTER_LOAD_TIMEOUT seconds
                 wait_time = time.time() - load_time
                 if wait_time > AFTER_LOAD_TIMEOUT:
                     stop = True
-                    print("Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT)
+                    print(f"Waited {AFTER_LOAD_TIMEOUT} seconds to finish post-load requests -- giving up.")
                     break
 
                 # Show progress to user
@@ -1418,9 +1398,9 @@ def run_next_capture():
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
                 save_warc(warcprox_controller, capture_job, link, content_type, screenshot, successful_favicon_urls)
-                print("%s capture succeeded." % link.guid)
+                print(f"{link.guid} capture succeeded.")
             else:
-                print("%s capture failed." % link.guid)
+                print(f"{link.guid} capture failed.")
 
 
         except:  # noqa
@@ -1678,7 +1658,7 @@ def send_js_errors():
         resolved=False)
 
     if errors:
-        formatted_errors = map(lambda err: err.format_for_reading(), errors)
+        formatted_errors = [err.format_for_reading() for err in errors]
         send_self_email("Uncaught Javascript errors",
                          HttpRequest(),
                          'email/admin/js_errors.txt',

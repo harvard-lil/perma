@@ -307,7 +307,7 @@ def get_lat_long(address):
     try:
         r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
     except Exception as e:
-        warn("Error connecting to geocoding API: {}".format(e))
+        warn(f"Error connecting to geocoding API: {e}")
     if r and r.status_code == 200:
         rj = r.json()
         status = rj['status']
@@ -325,9 +325,9 @@ def get_lat_long(address):
         elif status == 'OVER_QUERY_LIMIT':
             warn("Geocoding API request over query limit.")
         else:
-            warn("Unknown response from geocoding API: {}".format(status))
+            warn(f"Unknown response from geocoding API: {status}")
     else:
-        warn("Error connecting to geocoding API: {}".format(r.status_code))
+        warn(f"Error connecting to geocoding API: {r.status_code}")
 
 
 def parse_user_agent(user_agent_str):
@@ -440,7 +440,7 @@ def process_perma_payments_transmission(transmitted_data, fields):
     try:
         post_data = unstringify_data(decrypt_from_perma_payments(encrypted_data))
     except Exception as e:
-        logger.warning('Problem with transmitted data. {}'.format(format_exception(e)))
+        logger.warning(f'Problem with transmitted data. {format_exception(e)}')
         raise InvalidTransmissionException(format_exception(e))
 
     # The encrypted data must include a valid timestamp.
@@ -465,7 +465,7 @@ def pp_date_from_post(posted_value):
 
 
 def format_exception(e):
-    return "{}: {}".format(type(e).__name__, e)
+    return f"{type(e).__name__}: {e}"
 
 
 @sensitive_variables()
@@ -475,7 +475,7 @@ def retrieve_fields(transmitted_data, fields):
         for field in fields:
             data[field] = transmitted_data[field]
     except KeyError as e:
-        msg = 'Incomplete data received: missing {}'.format(e)
+        msg = f'Incomplete data received: missing {e}'
         logger.warning(msg)
         raise InvalidTransmissionException(msg)
     return data
@@ -564,7 +564,7 @@ def write_perma_warc_header(out_file, guid, timestamp):
     warcinfo_fields = [
         b'operator: Perma.cc',
         b'format: WARC File Format 1.0',
-        bytes('Perma-GUID: {}'.format(guid), 'utf-8')
+        bytes(f'Perma-GUID: {guid}', 'utf-8')
     ]
     data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
     warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
@@ -621,7 +621,7 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
         (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
         (warctools.WarcRecord.DATE, warc_date),
         (warctools.WarcRecord.URL, bytes(url, 'utf-8')),
-        (warctools.WarcRecord.BLOCK_DIGEST, bytes('sha1:{}'.format(hashlib.sha1(data).hexdigest()), 'utf-8'))
+        (warctools.WarcRecord.BLOCK_DIGEST, bytes(f'sha1:{hashlib.sha1(data).hexdigest()}', 'utf-8'))
     ]
     if extra_headers:
         headers.extend(extra_headers)
@@ -629,16 +629,16 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
     record.write_to(out_file, gzip=True)
 
 def get_warc_stream(link, stream=True):
-    filename = "%s.warc.gz" % link.guid
+    filename = f"{link.guid}.warc.gz"
 
     timestamp = link.creation_timestamp.strftime('%Y%m%d%H%M%S')
 
     warcinfo = make_detailed_warcinfo(
         filename = filename,
         guid = link.guid,
-        coll_title = 'Perma Archive, %s' % link.submitted_title,
+        coll_title = f'Perma Archive, {link.submitted_title}',
         coll_desc = link.submitted_description,
-        rec_title = 'Perma Archive of %s' % link.submitted_title,
+        rec_title = f'Perma Archive of {link.submitted_title}',
         pages= [{
             'title': link.submitted_title,
             'url': link.submitted_url,
@@ -652,7 +652,7 @@ def get_warc_stream(link, stream=True):
         response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
     else:
         response = HttpResponse(warc_stream, content_type="application/gzip")
-    response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     return response
 
@@ -690,13 +690,13 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
     try:
         response, _  = query_wr_api(
             method='delete',
-            path='/user/{user}'.format(user=wr_temp_username),
+            path=f'/user/{wr_temp_username}',
             cookie=wr_private_session_cookie,
             valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') in ['not_found', 'no_such_user'])
         )
     except WebrecorderException:
         # Record the exception, but don't halt execution: this should be non-fatal
-        logger.exception('Unexpected response from DELETE /user/{user}'.format(user=wr_temp_username))
+        logger.exception(f'Unexpected response from DELETE /user/{wr_temp_username}')
         return
 
     if response.status_code == 404:
@@ -704,7 +704,7 @@ def clear_wr_session(request, error_if_wr_user_not_found=False):
             log_level = logging.ERROR
         else:
             log_level = logging.INFO
-        logger.log(log_level, 'Attempt to delete {} from WR failed: already expired?'.format(wr_temp_username))
+        logger.log(log_level, f'Attempt to delete {wr_temp_username} from WR failed: already expired?')
 
 
 def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
@@ -727,10 +727,7 @@ def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
         data = safe_get_response_json(response)
         assert valid_if(response.status_code, data)
     except AssertionError:
-        raise WebrecorderException("{code}: {message}".format(
-            code=response.status_code,
-            message=str(data)
-        ))
+        raise WebrecorderException(f"{response.status_code}: {str(data)}")
 
     return response, data
 

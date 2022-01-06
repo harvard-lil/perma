@@ -331,9 +331,9 @@ def approve_pending_registrar(request, registrar_id):
                 target_registrar_user.save()
                 email_approved_registrar_user(request, target_registrar_user)
 
-                messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_user.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, f'<h4>Registrar approved!</h4> <strong>{target_registrar_user.email}</strong> will receive a notification email with further instructions.', extra_tags='safe')
             else:
-                messages.add_message(request, messages.SUCCESS, 'Registrar request for <strong>%s</strong> denied. Please inform %s if appropriate.' % (target_registrar, target_registrar_user.email), extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, f'Registrar request for <strong>{target_registrar}</strong> denied. Please inform {target_registrar_user.email} if appropriate.', extra_tags='safe')
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
@@ -627,7 +627,7 @@ def list_users_in_group(request, group_name):
     users = apply_pagination(request, users)
 
     context = {
-        'this_page': 'users_{group_name}s'.format(group_name=group_name),
+        'this_page': f'users_{group_name}s',
         'users': users,
         'active_users': active_users,
         'deactivated_users': deactivated_users,
@@ -637,11 +637,11 @@ def list_users_in_group(request, group_name):
         'registrars': registrars,
         'group_name':group_name,
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
-        'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
-        'reactivate_user_url':'user_management_manage_single_{group_name}_reactivate'.format(group_name=group_name),
-        'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
-        'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
-        'add_user_url':'user_management_{group_name}_add_user'.format(group_name=group_name),
+        'user_list_url':f'user_management_manage_{group_name}',
+        'reactivate_user_url':f'user_management_manage_single_{group_name}_reactivate',
+        'single_user_url':f'user_management_manage_single_{group_name}',
+        'delete_user_url':f'user_management_manage_single_{group_name}_delete',
+        'add_user_url':f'user_management_{group_name}_add_user',
 
         'sort': sort,
         'search_query': search_query,
@@ -686,10 +686,10 @@ def edit_user_in_group(request, user_id, group_name):
 
     context = {
         'target_user': target_user, 'group_name':group_name,
-        'this_page': 'users_{group_name}s'.format(group_name=group_name),
+        'this_page': f'users_{group_name}s',
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
-        'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
-        'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
+        'user_list_url':f'user_management_manage_{group_name}',
+        'delete_user_url':f'user_management_manage_single_{group_name}_delete',
         'sponsorships':sponsorships,
         'orgs': orgs,
     }
@@ -761,17 +761,17 @@ class BaseAddUserToGroup(UpdateView):
                 { 'form': form }
             )
             messages.add_message(self.request, messages.SUCCESS,
-                                 '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % self.object.email,
+                                 f'<h4>Account created!</h4> <strong>{self.object.email}</strong> will receive an email with instructions on how to activate the account and create a password.',
                                  extra_tags='safe')
         else:
             send_user_email(
                 self.object.email,
                 self.confirmation_email_template,
-                { 'account_settings_page': "https://%s%s" % (self.request.get_host(), reverse('user_management_settings_profile')),
+                { 'account_settings_page': f"https://{self.request.get_host()}{reverse('user_management_settings_profile')}",
                   'form': form }
             )
             messages.add_message(self.request, messages.SUCCESS,
-                                 '<h4>Success!</h4> <strong>%s</strong> added.' % (self.object.email,),
+                                 f'<h4>Success!</h4> <strong>{self.object.email}</strong> added.',
                                  extra_tags='safe')
 
         return response
@@ -796,9 +796,9 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
         if self.is_new:
             return True, ""
         if self.object.is_staff:
-            return False, "%s is an admin user and cannot be added to individual organizations." % self.object
+            return False, f"{self.object} is an admin user and cannot be added to individual organizations."
         if self.object.is_registrar_user():
-            return False, "%s is already a registrar user and cannot be added to individual organizations." % self.object
+            return False, f"{self.object} is already a registrar user and cannot be added to individual organizations."
         return True, ""
 
 
@@ -821,17 +821,17 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
         if self.is_new:
             return True, ""
         if self.object.is_staff:
-            return False, "%s is an admin user and cannot be added to individual registrars." % self.object
+            return False, f"{self.object} is an admin user and cannot be added to individual registrars."
 
         # limits that apply just if the current user is a registrar rather than staff
         if self.request.user.is_registrar_user():
             if self.object.is_registrar_user():
                 if self.object.registrar == self.request.user.registrar:
-                    return False, "%s is already a registrar user for your registrar." % self.object
+                    return False, f"{self.object} is already a registrar user for your registrar."
                 else:
-                    return False, "%s is already a member of another registrar and cannot be added to your registrar." % self.object
+                    return False, f"{self.object} is already a member of another registrar and cannot be added to your registrar."
             if self.object.organizations.exclude(registrar=self.request.user.registrar).exists():
-                return False, "%s belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations." % self.object
+                return False, f"{self.object} belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations."
         return True, ""
 
 
@@ -856,7 +856,7 @@ class AddSponsoredUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
 
         if self.request.user.is_registrar_user():
             if self.request.user.registrar in self.object.sponsoring_registrars.all():
-                return False, "%s is already sponsored by your registrar." % self.object
+                return False, f"{self.object} is already sponsored by your registrar."
         return True, ""
 
 
@@ -898,7 +898,7 @@ def organization_user_leave_organization(request, org_id):
         request.user.organizations.remove(org)
         request.user.save()
 
-        messages.add_message(request, messages.SUCCESS, '<h4>Success.</h4> You are no longer a member of <strong>%s</strong>.' % org.name, extra_tags='safe')
+        messages.add_message(request, messages.SUCCESS, f'<h4>Success.</h4> You are no longer a member of <strong>{org.name}</strong>.', extra_tags='safe')
 
         if request.user.organizations.exists():
             return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
@@ -918,7 +918,7 @@ def delete_user_in_group(request, user_id, group_name):
 
     context = {'target_user': target_user,
                'action': 'deactivate' if target_user.is_confirmed else 'delete',
-               'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+               'this_page': f'users_{group_name}s'}
 
     if request.method == 'POST':
         if target_user.is_confirmed:
@@ -929,7 +929,7 @@ def delete_user_in_group(request, user_id, group_name):
         else:
             target_user.delete()
 
-        return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+        return HttpResponseRedirect(reverse(f'user_management_manage_{group_name}'))
 
     return render(request, 'user_management/user_delete_confirm.html', context)
 
@@ -1076,13 +1076,13 @@ def reactive_user_in_group(request, user_id, group_name):
     target_user = get_object_or_404(LinkUser, id=user_id)
 
     context = {'target_user': target_user,
-               'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+               'this_page': f'users_{group_name}s'}
 
     if request.method == 'POST':
         target_user.is_active = True
         target_user.save()
 
-        return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+        return HttpResponseRedirect(reverse(f'user_management_manage_{group_name}'))
 
     return render(request, 'user_management/user_reactivate_confirm.html', context)
 
@@ -1113,7 +1113,7 @@ def delete_account(request):
     Generate or regenerate an API key for the user
     """
     if request.method == "POST":
-        request.user.notes = "Requested account deletion {}\n".format(timezone.now()) + request.user.notes
+        request.user.notes = f"Requested account deletion {timezone.now()}\n" + request.user.notes
         request.user.save()
         email_deletion_request(request)
     return HttpResponseRedirect(reverse('user_management_settings_profile'))

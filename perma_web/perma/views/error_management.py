@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Mapping
 import json
 
 from django.views.decorators.csrf import csrf_exempt
@@ -31,7 +31,7 @@ def post_new(request):
         body = ''
     e = {}
     context = {}
-    if isinstance(body, collections.Mapping):
+    if isinstance(body, Mapping):
         e = body.get("errors", [{}])[0]
         context = body.get("context", {})
     error = UncaughtError(

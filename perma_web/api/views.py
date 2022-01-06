@@ -401,12 +401,12 @@ class AuthenticatedLinkListView(BaseView):
                 registrar_users = [user.email for user in registrar.active_registrar_users()]
                 msg = f"Your registrar has made this folder read-only. For assistance, contact: {', '.join(registrar_users)}."
             if not registrar.link_creation_allowed():
-                error = 'Perma.cc cannot presently make links on behalf of {}. '.format(registrar.name)
+                error = f'Perma.cc cannot presently make links on behalf of {registrar.name}. '
                 if request.user.registrar:
                     contact = 'Visit your settings for subscription information.'
                 else:
                     registrar_users = [user.email for user in registrar.active_registrar_users()]
-                    contact = 'For assistance with your subscription, contact:  {}.'.format(", ".join(registrar_users))
+                    contact = f'For assistance with your subscription, contact:  {", ".join(registrar_users)}.'
                 msg = error + contact
             if msg:
                 raise_invalid_capture_job(capture_job, msg)
@@ -462,7 +462,7 @@ class AuthenticatedLinkListView(BaseView):
                     role='screenshot',
                     status='pending',
                     record_type='resource',
-                    url="file:///%s/cap.png" % link.guid,
+                    url=f"file:///{link.guid}/cap.png",
                     content_type='image/png',
                 ).save()
 
@@ -502,12 +502,12 @@ class AuthenticatedLinkListExportView(BaseView):
         ]
         response = HttpResponse(content_type='text/csv')
         if request.parent:
-            filename = "perma-folder-{}-archives.csv".format(request.parent.id)
+            filename = f"perma-folder-{request.parent.id}-archives.csv"
         else:
             filename = "perma-archives.csv"
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         if formatted_data:
-            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer = csv.DictWriter(response, fieldnames=list(formatted_data[0].keys()))
             writer.writeheader()
             writer.writerows(formatted_data)
         return response
@@ -722,7 +722,7 @@ class LinkBatchesDetailExportView(BaseView):
                 'status': "success",
                 'error_message': "",
                 'title': job['title'],
-                'perma_link': "{}://{}/{}".format(request.scheme, request.get_host(), job['guid'])
+                'perma_link': f"{request.scheme}://{request.get_host()}/{job['guid']}"
             } if job['status'] == "completed" else {
                 'url': job['submitted_url'],
                 'status': "error",
@@ -733,9 +733,9 @@ class LinkBatchesDetailExportView(BaseView):
             for job in api_response.data['capture_jobs']
         ]
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="perma-batch-{}.csv"'.format(pk)
+        response['Content-Disposition'] = f'attachment; filename="perma-batch-{pk}.csv"'
         if formatted_data:
-            writer = csv.DictWriter(response, fieldnames=formatted_data[0].keys())
+            writer = csv.DictWriter(response, fieldnames=list(formatted_data[0].keys()))
             writer.writeheader()
             writer.writerows(formatted_data)
         return response

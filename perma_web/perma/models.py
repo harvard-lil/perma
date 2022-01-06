@@ -220,7 +220,7 @@ class CustomerModel(models.Model):
             )
             assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
-            msg = "Communication with Perma-Payments failed: {}".format(str(e))
+            msg = f"Communication with Perma-Payments failed: {e}"
             if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
                 logger.info(msg)
             else:
@@ -264,7 +264,7 @@ class CustomerModel(models.Model):
             )
             assert r.ok, r.status_code
         except (requests.RequestException, AssertionError) as e:
-            msg = "Communication with Perma-Payments failed: {}".format(str(e))
+            msg = f"Communication with Perma-Payments failed: {e}"
             if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
                 logger.info(msg)
             else:
@@ -359,7 +359,7 @@ class CustomerModel(models.Model):
                 next_payment = next_year
                 prorated_ratio  = Decimal(1)
         else:
-            raise NotImplementedError('Paid "{}" tiers not yet supported'.format(tier['frequency']))
+            raise NotImplementedError(f'Paid "{tier["frequency"]}" tiers not yet supported')
 
         # Customers without subscriptions may upgrade to any tier.
         #
@@ -403,7 +403,7 @@ class CustomerModel(models.Model):
                     # We should not let this happen: solve by granting the user
                     # more links for their money, via the Perma Payments admin,
                     # when we lower our tier prices.
-                    logger.error("{} is being overcharged subsequent to new Perma subscription tiers.".format(str(self)))
+                    logger.error(f"{str(self)} is being overcharged subsequent to new Perma subscription tiers.")
                     tier_type = 'unavailable'
                     todays_charge = Decimal(0)
                 else:
@@ -514,7 +514,7 @@ class CustomerModel(models.Model):
                         )
                         assert r.ok, r.status_code
                     except (requests.RequestException, AssertionError) as e:
-                        msg = "Communication with Perma-Payments failed: {}".format(str(e))
+                        msg = f"Communication with Perma-Payments failed: {str(e)}"
                         if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
                             logger.info(msg)
                         else:
@@ -795,7 +795,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         max_length=255,
         unique=True,
         db_index=True,
-        error_messages={'unique': u"A user with that email address already exists.",}
+        error_messages={'unique': "A user with that email address already exists.",}
     )
 
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
@@ -844,8 +844,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
     def get_full_name(self):
         """ Use either First Last or first half of email address as user's name. """
-        return "%s %s" % (self.first_name, self.last_name) if self.first_name or self.last_name else \
-            self.email.split('@')[0]
+        return f"{self.first_name} {self.last_name}" if self.first_name or self.last_name else self.email.split('@')[0]
 
     def get_short_name(self):
         """ Use either First or Last or first half of email address as user's short name. """
@@ -888,10 +887,10 @@ class LinkUser(CustomerModel, AbstractBaseUser):
             return
         try:
             # this branch only used during transition to root folders -- should be removed eventually
-            root_folder = Folder.objects.filter(created_by=self, name=u"Personal Links", parent=None)[0]
+            root_folder = Folder.objects.filter(created_by=self, name="Personal Links", parent=None)[0]
             root_folder.is_root_folder = True
         except IndexError:
-            root_folder = Folder(name=u'Personal Links', created_by=self, is_root_folder=True)
+            root_folder = Folder(name='Personal Links', created_by=self, is_root_folder=True)
         root_folder.save()
         self.root_folder = root_folder
         self.save()
@@ -899,7 +898,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def create_sponsored_root_folder(self):
         if self.sponsored_root_folder:
             return
-        sponsored_root_folder = Folder(name=u'Sponsored Links', created_by=self, is_sponsored_root_folder=True)
+        sponsored_root_folder = Folder(name='Sponsored Links', created_by=self, is_sponsored_root_folder=True)
         sponsored_root_folder.save()
         self.sponsored_root_folder = sponsored_root_folder
         self.save()
@@ -1109,7 +1108,7 @@ class ApiKey(models.Model):
     created = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return u"%s for %s" % (self.key, self.user)
+        return f"{self.key} for {self.user}"
 
     def save(self, *args, **kwargs):
         if not self.key:
@@ -1579,7 +1578,7 @@ class Link(DeletableModel):
         return '/'.join(guid_parts[:-1])
 
     def warc_storage_file(self):
-        return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), '%s.warc.gz' % self.guid)
+        return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.warc.gz')
 
     # def get_thumbnail(self, image_data=None):
     #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
@@ -1676,13 +1675,13 @@ class Link(DeletableModel):
 
         # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
         mime_type = get_mime_type(uploaded_file.name)
-        file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
-        warc_url = "file:///%s/%s" % (self.guid, file_name)
+        file_name = f'upload.{mime_type_lookup[mime_type]["new_extension"]}'
+        warc_url = f"file:///{self.guid}/{file_name}"
 
         # append a random number to warc_url if we're replacing a file, to avoid browser cache
         if cache_break:
             r = random.SystemRandom()
-            warc_url += "?version=%s" % (str(r.random()).replace('.', ''))
+            warc_url += f"?version={str(r.random()).replace('.', '')}"
 
         capture = Capture(link=self,
                           role='primary',
@@ -1702,7 +1701,7 @@ class Link(DeletableModel):
     def safe_delete_warc(self):
         old_name = self.warc_storage_file()
         if default_storage.exists(old_name):
-            new_name = old_name.replace('.warc.gz', '_replaced_%d.warc.gz' % timezone.now().timestamp())
+            new_name = old_name.replace('.warc.gz', f'_replaced_{timezone.now().timestamp()}.warc.gz')
             with default_storage.open(old_name) as old_file:
                 default_storage.store_file(old_file, new_name)
             default_storage.delete(old_name)
@@ -1756,7 +1755,7 @@ class Link(DeletableModel):
         return self.guid.lower()
 
     def wr_iframe_prefix(self, wr_username):
-        return "{}/{}/{}/".format(settings.PLAYBACK_HOST, wr_username, self.wr_collection_slug)
+        return f"{settings.PLAYBACK_HOST}/{wr_username}/{self.wr_collection_slug}/"
 
     def init_replay_for_user(self, request):
         """
@@ -1846,7 +1845,7 @@ class Link(DeletableModel):
 
             _, upload_data = query_wr_api(
                 method='get',
-                path='/upload/{upload_id}?user={user}'.format(user=wr_username, upload_id=upload_data.get('upload_id')),
+                path=f'/upload/{upload_data.get("upload_id")}?user={wr_username}',
                 cookie=wr_session_cookie,
                 valid_if=lambda code, data: code == 200)
 
@@ -1869,7 +1868,7 @@ class Link(DeletableModel):
             cookie = request.session.get('wr_private_session_cookie')
             response, data = query_wr_api(
                 method='delete',
-                path='/collection/{}?user={}'.format(self.wr_collection_slug, user),
+                path=f'/collection/{self.wr_collection_slug}?user={user}',
                 cookie=cookie,
                 valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') in ['no_such_collection', 'no_such_user']
             )
@@ -1887,7 +1886,7 @@ class Link(DeletableModel):
             cookie = response.cookies.get('__wr_sesh')
             response, data = query_wr_api(
                 method='delete',
-                path='/collection/{}?user={}'.format(self.wr_collection_slug, settings.WR_PERMA_USER),
+                path=f'/collection/{self.wr_collection_slug}?user={settings.WR_PERMA_USER}',
                 cookie=cookie,
                 valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') == 'no_such_collection'
             )
@@ -1907,7 +1906,7 @@ class Capture(models.Model):
     CAN_PLAY_BACK_FILTER = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
 
     def __str__(self):
-        return "%s %s" % (self.role, self.status)
+        return f"{self.role} {self.status}"
 
     def mime_type(self):
         """
@@ -1967,7 +1966,7 @@ class CaptureJob(models.Model):
     TEST_ALLOW_RACE = False
 
     def __str__(self):
-        return u"CaptureJob %s: %s" % (self.pk, self.link_id)
+        return f"CaptureJob {self.pk}: {self.link_id}"
 
     def save(self, *args, **kwargs):
 
@@ -2071,7 +2070,7 @@ class CaptureJob(models.Model):
             Record completion time and status for this job.
         """
         if status == 'completed' and self.link and self.link.captures.count() == 0:
-            logger.error("To investigate: {} has no captures, but was being marked complete".format(self.link.guid))
+            logger.error(f"To investigate: {self.link.guid} has no captures, but was being marked complete")
             status = 'failed'
         self.status = status
         self.capture_end_time = timezone.now()
@@ -2096,9 +2095,8 @@ class LinkBatch(models.Model):
     def accessible_to(self, user):
         return user.is_staff or self.created_by == user
 
-    # In Python 3: def __str__(self):
-    def __unicode__(self):
-        return u"LinkBatch %s" % (self.pk,)
+    def __str__(self):
+        return f"LinkBatch {self.pk}"
 
 
 #########################
@@ -2145,9 +2143,8 @@ class UncaughtError(models.Model):
     resolved = models.BooleanField(default=False)
     resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved", on_delete=models.CASCADE)
 
-    # In Python 3: def __str__(self):
-    def __unicode__(self):
-        return "%s: %s" % (self.id, self.message)
+    def __str__(self):
+        return f"{self.id}: {self.message}"
 
     def format_for_reading(self):
         formatted = {
@@ -2162,9 +2159,9 @@ class UncaughtError(models.Model):
             try:
                 formatted['stack'] = json.loads(self.stack)[0]
             except IndexError:
-                logger.warn("No stacktrace for js error {}".format(self.id))
+                logger.warn(f"No stacktrace for js error {self.id}")
             except ValueError:
-                logger.warn("Stacktrace for js error {} is invalid json".format(self.id))
+                logger.warn(f"Stacktrace for js error {self.id} is invalid json")
         if self.user:
             formatted['user'] = self.user.id
 

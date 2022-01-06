@@ -1,10 +1,10 @@
 import requests
-from importlib import reload
 
 from django.test import LiveServerTestCase
 
 import perma.settings
 import perma.wsgi
+from importlib import reload
 
 
 class WsgiTestCase(LiveServerTestCase):

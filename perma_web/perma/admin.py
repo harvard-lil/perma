@@ -228,7 +228,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
         return obj.orgs_count
 
     def tag_list(self, obj):
-        return u", ".join(o.name for o in obj.tags.all())
+        return ", ".join(o.name for o in obj.tags.all())
 
 class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
@@ -373,7 +373,7 @@ class LinkAdmin(SimpleHistoryAdmin):
         return qs
 
     def tag_list(self, obj):
-        return u", ".join(o.name for o in obj.tags.all())
+        return ", ".join(o.name for o in obj.tags.all())
 
     def file_size(self, obj):
         return filesizeformat(obj.warc_size)
@@ -412,7 +412,7 @@ class CaptureJobAdmin(admin.ModelAdmin):
 
     def link_taglist(self, obj):
         if obj.link:
-            return u", ".join(o.name for o in obj.link.tags.all())
+            return ", ".join(o.name for o in obj.link.tags.all())
         return None
 
 
