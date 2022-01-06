@@ -33,7 +33,7 @@ ENCODE_HEADER_RX = re.compile(r'[=]["\']?([^;"]+)["\']?(?=[;]?)')
 # https://github.com/webrecorder/warcio/blob/master/warcio/statusandheaders.py#L189
 from warcio.utils import to_native_str
 def do_encode(m, encoding='UTF-8'):
-    return f"*={encoding}''" + quote(to_native_str(m.group(1)))
+    return "*={0}''".format(encoding) + quote(to_native_str(m.group(1)))
 
 #
 # END PERMA CUSTOMIZATION
@@ -468,7 +468,7 @@ class ContentController(BaseController, RewriterApp):
                 if not redir_url:
                     url += '/_set_session'
 
-                url += f'?{request.environ["QUERY_STRING"]}&cookie={cookie}'
+                url += '?{0}&cookie={1}'.format(request.environ['QUERY_STRING'], cookie)
                 redirect(url)
 
         # OPTIONS
@@ -674,7 +674,11 @@ class ContentController(BaseController, RewriterApp):
         else:
             patch_rec_name = ''
 
-        new_url = f'/{user.my_id}/{collection.name}/{recording.name}/{mode}/{wb_url}'
+        new_url = '/{user}/{coll}/{rec}/{mode}/{url}'.format(user=user.my_id,
+                                                             coll=collection.name,
+                                                             rec=recording.name,
+                                                             mode=mode,
+                                                             url=wb_url)
         return new_url, recording.my_id, patch_rec_name
 
     def redir_set_session(self):
@@ -786,7 +790,11 @@ class ContentController(BaseController, RewriterApp):
             result = self.check_remote_archive(wb_url, type, wb_url_obj)
             if result:
                 mode, wb_url = result
-                new_url = f'/{user}/{coll_name}/{rec_name}/{mode}/{wb_url}'
+                new_url = '/{user}/{coll}/{rec}/{mode}/{url}'.format(user=user,
+                                                                     coll=coll_name,
+                                                                     rec=rec_name,
+                                                                     mode=mode,
+                                                                     url=wb_url)
                 return self.redirect(new_url)
 
         elif type == 'replay-coll' and not is_top_frame:

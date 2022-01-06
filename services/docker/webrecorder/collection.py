@@ -721,11 +721,11 @@ class Collection(PagesMixin, RedisUniqueComponent):
 
         # not a local filename
         if '://' in full_filename and not full_filename.startswith('local'):
-            logger.debug(f'Skip File Commit: Not Local Filename: {full_filename}')
+            logger.debug('Skip File Commit: Not Local Filename: {0}'.format(full_filename))
             return True
 
         if not os.path.isfile(full_filename):
-            logger.debug(f'Fail File Commit: Not Found: {full_filename}')
+            logger.debug('Fail File Commit: Not Found: {0}'.format(full_filename))
             return False
 
         commit_wait = self.COMMIT_WAIT_KEY.format(filename=full_filename)
@@ -741,7 +741,7 @@ class Collection(PagesMixin, RedisUniqueComponent):
         # if so, finalize and delete original
         remote_url = storage.get_upload_url(filename)
         if not remote_url:
-            logger.debug(f'File Commit: Not Yet Available: {full_filename}')
+            logger.debug('File Commit: Not Yet Available: {0}'.format(full_filename))
             return False
 
         if update_key:
@@ -750,7 +750,7 @@ class Collection(PagesMixin, RedisUniqueComponent):
 
         # just in case, if remote_url is actually same as original (local file double-commit?), just return
         if remote_url == orig_full_filename:
-            logger.debug(f'File Already Committed: {remote_url}')
+            logger.debug('File Already Committed: {0}'.format(remote_url))
             return True
 
         # if direct delete, call os.remove directly
@@ -765,7 +765,7 @@ class Collection(PagesMixin, RedisUniqueComponent):
              if self.redis.publish('handle_delete_file', full_filename) < 1:
                 logger.debug('No Delete Listener!')
 
-        logger.debug(f'File Committed {full_filename} -> {remote_url}')
+        logger.debug('File Committed {0} -> {1}'.format(full_filename, remote_url))
         return True
 
     def has_cdxj(self):
@@ -813,11 +813,11 @@ class Collection(PagesMixin, RedisUniqueComponent):
                 return
 
             lock_key = cdxj_key + ':_'
-            logger.debug(f'CDX Sync: Downloading for {rec_info_key} file {cdxj_filename}')
+            logger.debug('CDX Sync: Downloading for {0} file {1}'.format(rec_info_key, cdxj_filename))
             attempts = 0
 
             if not self.redis.set(lock_key, 1, ex=self.COMMIT_WAIT_SECS, nx=True):
-                logger.warning(f'CDX Sync: Already downloading, skipping: {cdxj_filename}')
+                logger.warning('CDX Sync: Already downloading, skipping: {0}'.format(cdxj_filename))
                 lock_key = None
                 return
 

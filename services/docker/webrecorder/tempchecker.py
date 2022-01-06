@@ -171,7 +171,7 @@ class TempChecker(object):
             if temp_user not in all_temps:
                 all_temps.add((temp_user, os.path.join(self.record_root_dir, temp_user)))
 
-        logger.debug(f'TempChecker: Temp User Count: {len(all_temps)}')
+        logger.debug('TempChecker: Temp User Count: {0}'.format(len(all_temps)))
 
         # remove if expired
         for temp_user, temp_dir in all_temps:

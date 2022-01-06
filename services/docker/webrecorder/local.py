@@ -146,7 +146,7 @@ class LocalFileStorage(DirectLocalFileStorage):
                 dirpath = os.path.join(self.storage_root, path)
                 return (self.redis.publish('handle_delete_dir', dirpath) > 0)
             except Exception:
-                logger.error(f"Failed attempt to delete collection {collection}", exc_info=True)
+                logger.error("Failed attempt to delete collection {}".format(collection), exc_info=True)
                 return False
         return False
     ### END PERMA CUSTOMIZATIONS
