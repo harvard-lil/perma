@@ -13,7 +13,7 @@ services:
     volumes:
       - redis_data:/data:delegated
   db:
-    image: registry.lil.tools/library/postgres:11.11
+    image: registry.lil.tools/library/postgres:12.8
     environment:
       POSTGRES_PASSWORD: password
     volumes:
