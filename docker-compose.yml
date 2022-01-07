@@ -16,6 +16,8 @@ services:
     image: registry.lil.tools/library/postgres:12.8
     environment:
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: perma
+      POSTGRES_USER: perma
     volumes:
       - postgres_data:/var/lib/postgresql/data:delegated
     networks:

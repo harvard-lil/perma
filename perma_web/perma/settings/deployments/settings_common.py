@@ -11,8 +11,8 @@ SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
+        'NAME': 'perma',
+        'USER': 'perma',
         'PASSWORD': 'password',
         'HOST': 'db',
         'PORT': 5432,
