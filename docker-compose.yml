@@ -90,6 +90,8 @@ services:
   #
   pp_db:
     image: registry.lil.tools/library/postgres:12.8
+    environment:
+      POSTGRES_PASSWORD: example
     volumes:
       - pp_db_data:/var/lib/postgresql/data:delegated
     networks:
