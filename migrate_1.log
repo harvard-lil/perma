@@ -1,0 +1,75 @@
+2022-01-07T21:46:09.022000Z LOG pgloader version "3.6.3~devel"
+2022-01-07T21:46:09.058000Z LOG Migrating from #<MYSQL-CONNECTION mysql://root@mysqldb:3306/perma {1005E863E3}>
+2022-01-07T21:46:09.058000Z LOG Migrating into #<PGSQL-CONNECTION pgsql://postgres@db:5432/postgres {1005FC9A53}>
+2022-01-07T21:52:54.769000Z WARNING PostgreSQL warning: identifier "idx_16507_perma_historicallinkuser_sponsored_root_folder_id_a83fef7e" will be truncated to "idx_16507_perma_historicallinkuser_sponsored_root_folder_id_a83"
+2022-01-07T21:52:54.814000Z WARNING PostgreSQL warning: identifier "idx_16507_perma_historicallinku_pending_registrar_id_7c33fc376c6bccd5_uniq" will be truncated to "idx_16507_perma_historicallinku_pending_registrar_id_7c33fc376c"
+2022-01-07T21:54:50.463000Z WARNING PostgreSQL warning: identifier "idx_16483_perma_capturejob_created_by_id_28ab42a6_fk_perma_linkuser_id" will be truncated to "idx_16483_perma_capturejob_created_by_id_28ab42a6_fk_perma_link"
+2022-01-07T21:54:50.466000Z WARNING PostgreSQL warning: identifier "idx_16483_perma_capturejob_link_batch_id_376ac3f7_fk_perma_linkbatch_id" will be truncated to "idx_16483_perma_capturejob_link_batch_id_376ac3f7_fk_perma_link"
+2022-01-07T21:56:32.073000Z WARNING PostgreSQL warning: identifier "idx_16546_perma_linkuser_pending_registrar_id_78efd14c078d4f4b_uniq" will be truncated to "idx_16546_perma_linkuser_pending_registrar_id_78efd14c078d4f4b_"
+2022-01-07T21:56:33.308000Z WARNING PostgreSQL warning: identifier "idx_16501_perma_generic_content_type_id_7808e6af_fk_django_content_type_id" will be truncated to "idx_16501_perma_generic_content_type_id_7808e6af_fk_django_cont"
+2022-01-07T21:56:33.325000Z WARNING PostgreSQL warning: identifier "idx_16501_perma_genericstringtaggeditem_tag_id_859dfb15_fk_taggit_tag_id" will be truncated to "idx_16501_perma_genericstringtaggeditem_tag_id_859dfb15_fk_tagg"
+2022-01-07T21:56:34.529000Z WARNING PostgreSQL warning: identifier "idx_16540_perma_linkbatch_created_by_id_f5908521_fk_perma_linkuser_id" will be truncated to "idx_16540_perma_linkbatch_created_by_id_f5908521_fk_perma_linku"
+2022-01-07T21:56:34.606000Z WARNING PostgreSQL warning: identifier "idx_16540_perma_linkbatch_target_folder_id_8b403a0c_fk_perma_folder_id" will be truncated to "idx_16540_perma_linkbatch_target_folder_id_8b403a0c_fk_perma_fo"
+2022-01-07T21:56:35.014000Z WARNING PostgreSQL warning: identifier "idx_16615_taggit_taggeditem_content_type_id_object_id_tag_id_4bb97a8e_uniq" will be truncated to "idx_16615_taggit_taggeditem_content_type_id_object_id_tag_id_4b"
+2022-01-07T21:56:35.086000Z WARNING PostgreSQL warning: identifier "idx_16588_perma_sponsorship_created_by_id_837d3014_fk_perma_linkuser_id" will be truncated to "idx_16588_perma_sponsorship_created_by_id_837d3014_fk_perma_lin"
+2022-01-07T21:56:35.086000Z WARNING PostgreSQL warning: identifier "idx_16588_perma_sponsorship_user_id_a83fd48c_fk_perma_linkuser_id" will be truncated to "idx_16588_perma_sponsorship_user_id_a83fd48c_fk_perma_linkuser_"
+2022-01-07T21:57:13.309000Z WARNING PostgreSQL warning: identifier "idx_16492_perma_folder_sponsored_by_id_0328a0ef_fk_perma_registrar_id" will be truncated to "idx_16492_perma_folder_sponsored_by_id_0328a0ef_fk_perma_regist"
+2022-01-07T21:57:15.327000Z WARNING PostgreSQL warning: identifier "idx_16405_axes_accessattempt_username_ip_address_user_agent_8ea22282_uniq" will be truncated to "idx_16405_axes_accessattempt_username_ip_address_user_agent_8ea"
+2022-01-07T21:57:27.123000Z WARNING PostgreSQL warning: identifier "perma__organization_id_35ecbcbadca23b5b_fk_perma_organization_id" will be truncated to "perma__organization_id_35ecbcbadca23b5b_fk_perma_organization_i"
+2022-01-07T21:57:28.121000Z WARNING PostgreSQL warning: identifier "perma_l_organization_id_22f7770040eab4d_fk_perma_organization_id" will be truncated to "perma_l_organization_id_22f7770040eab4d_fk_perma_organization_i"
+2022-01-07T21:57:28.977000Z WARNING PostgreSQL warning: identifier "perm_pending_registrar_id_78efd14c078d4f4b_fk_perma_registrar_id" will be truncated to "perm_pending_registrar_id_78efd14c078d4f4b_fk_perma_registrar_i"
+2022-01-07T21:57:29.087000Z WARNING PostgreSQL warning: identifier "perma_link_folders_folder_id_3990585c41a8789e_fk_perma_folder_id" will be truncated to "perma_link_folders_folder_id_3990585c41a8789e_fk_perma_folder_i"
+2022-01-07T21:57:32.627000Z WARNING PostgreSQL warning: identifier "perma_organi_registrar_id_7fbd00eaad6de725_fk_perma_registrar_id" will be truncated to "perma_organi_registrar_id_7fbd00eaad6de725_fk_perma_registrar_i"
+2022-01-07T21:57:32.671000Z LOG report summary reset
+                         table name     errors       rows      bytes      total time
+-----------------------------------  ---------  ---------  ---------  --------------
+                    fetch meta data          0        182                     0.216s
+                     Create Schemas          0          0                     0.005s
+                   Create SQL Types          0          0                     0.005s
+                      Create tables          0         64                     0.197s
+                     Set Table OIDs          0         32                     0.006s
+-----------------------------------  ---------  ---------  ---------  --------------
+                perma.perma_capture          0    5735284   638.5 MB       3m50.466s
+               perma.django_session          0    2954921   958.2 MB       2m41.908s
+           perma.perma_link_folders          0    2271629    51.0 MB       1m38.809s
+     perma.perma_historicallinkuser          0    2954328   749.8 MB       2m54.436s
+                   perma.perma_link          0    2263858   830.9 MB       2m24.486s
+            perma.perma_minutestats          0    2269812    76.9 MB       1m38.744s
+             perma.perma_capturejob          0    2033842   360.6 MB       1m55.743s
+    perma.perma_historicalregistrar          0    1954052   509.1 MB       1m42.596s
+          perma.perma_uncaughterror          0     819810   929.4 MB       1m36.216s
+ perma.perma_historicalorganization          0    1790965   185.5 MB         53.954s
+               perma.perma_linkuser          0      55266    11.1 MB          5.516s
+perma.perma_genericstringtaggeditem          0      18374   348.0 kB          1.461s
+              perma.perma_linkbatch          0      16603   716.9 kB          1.560s
+           perma.perma_organization          0       2247   151.8 kB          0.475s
+                 perma.perma_apikey          0        630    43.4 kB          0.241s
+            perma.taggit_taggeditem          0        197     2.1 kB          0.197s
+            perma.django_migrations          0        107     5.6 kB          0.223s
+            perma.perma_sponsorship          0         35     2.7 kB          0.198s
+                   perma.auth_group          0          4     0.1 kB          0.195s
+       perma.auth_group_permissions          0          0                     0.199s
+                  perma.django_site          0          1     0.0 kB          0.212s
+                 perma.perma_folder          0      95644     8.5 MB          3.383s
+ perma.perma_linkuser_organizations          0      19825   302.7 kB          0.748s
+               perma.axes_accesslog          0      17502     5.3 MB          1.105s
+             perma.django_admin_log          0       3599   307.8 kB          0.146s
+              perma.perma_registrar          0        684   147.7 kB          0.069s
+              perma.perma_weekstats          0        343    18.9 kB          0.038s
+              perma.auth_permission          0        162     7.1 kB          0.077s
+          perma.django_content_type          0         44     0.9 kB          0.043s
+                   perma.taggit_tag          0         23     0.6 kB          0.057s
+                perma.lockss_mirror          0          4     0.4 kB          0.067s
+           perma.axes_accessattempt          0          1     0.5 kB          0.047s
+-----------------------------------  ---------  ---------  ---------  --------------
+            COPY Threads Completion          0          4                  11m5.288s
+                     Create Indexes          0        118                 14m25.775s
+             Index Build Completion          0        118                     0.803s
+                    Reset Sequences          0         30                     0.143s
+                       Primary Keys          0         32                     1.043s
+                Create Foreign Keys          0         32                    15.355s
+                    Create Triggers          0          0                     0.001s
+                    Set Search Path          0          1                     0.006s
+                   Install Comments          0          0                     0.000s
+-----------------------------------  ---------  ---------  ---------  --------------
+                  Total import time          ?   25279796     5.2 GB      25m48.414s
