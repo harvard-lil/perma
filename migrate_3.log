@@ -1,0 +1,212 @@
+2022-01-07T23:37:59.021000Z LOG pgloader version "3.6.3~devel"
+2022-01-07T23:37:59.063000Z LOG Migrating from #<MYSQL-CONNECTION mysql://root@mysqldb:3306/perma {1005E84B93}>
+2022-01-07T23:37:59.067000Z LOG Migrating into #<PGSQL-CONNECTION pgsql://perma@db:5432/perma {1005FC7303}>
+
+2022-01-07T23:37:59.644000Z WARNING Source column "perma"."auth_group"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."auth_group"."id".
+2022-01-07T23:37:59.644000Z WARNING Source column "perma"."auth_group_permissions"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."auth_group_permissions"."id".
+2022-01-07T23:37:59.645000Z WARNING Source column "perma"."auth_group_permissions"."group_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."auth_group_permissions"."group_id".
+2022-01-07T23:37:59.645000Z WARNING Source column "perma"."auth_group_permissions"."permission_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."auth_group_permissions"."permission_id".
+2022-01-07T23:37:59.646000Z WARNING Source column "perma"."auth_permission"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."auth_permission"."id".
+2022-01-07T23:37:59.646000Z WARNING Source column "perma"."auth_permission"."content_type_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."auth_permission"."content_type_id".
+2022-01-07T23:37:59.647000Z WARNING Source column "perma"."axes_accessattempt"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."axes_accessattempt"."id".
+2022-01-07T23:37:59.648000Z WARNING Source column "perma"."axes_accessattempt"."ip_address" is casted to type "char" which is not the same as "inet", the type of current target database column "perma"."axes_accessattempt"."ip_address".
+2022-01-07T23:37:59.649000Z WARNING Source column "perma"."axes_accessattempt"."failures_since_start" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."axes_accessattempt"."failures_since_start".
+2022-01-07T23:37:59.649000Z WARNING Source column "perma"."axes_accesslog"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."axes_accesslog"."id".
+2022-01-07T23:37:59.649000Z WARNING Source column "perma"."axes_accesslog"."ip_address" is casted to type "char" which is not the same as "inet", the type of current target database column "perma"."axes_accesslog"."ip_address".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_admin_log"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."django_admin_log"."id".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_admin_log"."user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."django_admin_log"."user_id".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_admin_log"."content_type_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."django_admin_log"."content_type_id".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_admin_log"."action_flag" is casted to type "integer" which is not the same as "smallint", the type of current target database column "perma"."django_admin_log"."action_flag".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_content_type"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."django_content_type"."id".
+2022-01-07T23:37:59.650000Z WARNING Source column "perma"."django_migrations"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."django_migrations"."id".
+2022-01-07T23:37:59.651000Z WARNING Source column "perma"."django_site"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."django_site"."id".
+2022-01-07T23:37:59.651000Z WARNING Source column "perma"."lockss_mirror"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."lockss_mirror"."id".
+2022-01-07T23:37:59.651000Z WARNING Source column "perma"."lockss_mirror"."peer_port" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."lockss_mirror"."peer_port".
+2022-01-07T23:37:59.652000Z WARNING Source column "perma"."perma_apikey"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_apikey"."id".
+2022-01-07T23:37:59.652000Z WARNING Source column "perma"."perma_apikey"."user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_apikey"."user_id".
+2022-01-07T23:37:59.652000Z WARNING Source column "perma"."perma_capture"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_capture"."id".
+2022-01-07T23:37:59.653000Z WARNING Source column "perma"."perma_capturejob"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_capturejob"."id".
+2022-01-07T23:37:59.653000Z WARNING Source column "perma"."perma_capturejob"."link_batch_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_capturejob"."link_batch_id".
+2022-01-07T23:37:59.653000Z WARNING Source column "perma"."perma_capturejob"."created_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_capturejob"."created_by_id".
+2022-01-07T23:37:59.654000Z WARNING Source column "perma"."perma_folder"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."id".
+2022-01-07T23:37:59.654000Z WARNING Source column "perma"."perma_folder"."parent_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."parent_id".
+2022-01-07T23:37:59.655000Z WARNING Source column "perma"."perma_folder"."created_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."created_by_id".
+2022-01-07T23:37:59.655000Z WARNING Source column "perma"."perma_folder"."lft" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."lft".
+2022-01-07T23:37:59.655000Z WARNING Source column "perma"."perma_folder"."rght" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."rght".
+2022-01-07T23:37:59.656000Z WARNING Source column "perma"."perma_folder"."tree_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."tree_id".
+2022-01-07T23:37:59.656000Z WARNING Source column "perma"."perma_folder"."level" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."level".
+2022-01-07T23:37:59.657000Z WARNING Source column "perma"."perma_folder"."owned_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."owned_by_id".
+2022-01-07T23:37:59.657000Z WARNING Source column "perma"."perma_folder"."organization_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."organization_id".
+2022-01-07T23:37:59.657000Z WARNING Source column "perma"."perma_folder"."sponsored_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_folder"."sponsored_by_id".
+2022-01-07T23:37:59.657000Z WARNING Source column "perma"."perma_genericstringtaggeditem"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_genericstringtaggeditem"."id".
+2022-01-07T23:37:59.658000Z WARNING Source column "perma"."perma_genericstringtaggeditem"."content_type_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_genericstringtaggeditem"."content_type_id".
+2022-01-07T23:37:59.658000Z WARNING Source column "perma"."perma_genericstringtaggeditem"."tag_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_genericstringtaggeditem"."tag_id".
+2022-01-07T23:37:59.659000Z WARNING Source column "perma"."perma_historicallinkuser"."id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."id".
+2022-01-07T23:37:59.659000Z WARNING Source column "perma"."perma_historicallinkuser"."pending_registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."pending_registrar_id".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."history_id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."history_id".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."history_user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."history_user_id".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."registrar_id".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."root_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."root_folder_id".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."link_count".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."link_limit" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."link_limit".
+2022-01-07T23:37:59.660000Z WARNING Source column "perma"."perma_historicallinkuser"."sponsored_root_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."sponsored_root_folder_id".
+2022-01-07T23:37:59.661000Z WARNING Source column "perma"."perma_historicallinkuser"."bonus_links" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicallinkuser"."bonus_links".
+2022-01-07T23:37:59.661000Z WARNING Source column "perma"."perma_historicalorganization"."id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."id".
+2022-01-07T23:37:59.661000Z WARNING Source column "perma"."perma_historicalorganization"."history_id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."history_id".
+2022-01-07T23:37:59.661000Z WARNING Source column "perma"."perma_historicalorganization"."history_user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."history_user_id".
+2022-01-07T23:37:59.661000Z WARNING Source column "perma"."perma_historicalorganization"."registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."registrar_id".
+2022-01-07T23:37:59.662000Z WARNING Source column "perma"."perma_historicalorganization"."shared_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."shared_folder_id".
+2022-01-07T23:37:59.662000Z WARNING Source column "perma"."perma_historicalorganization"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalorganization"."link_count".
+2022-01-07T23:37:59.663000Z WARNING Source column "perma"."perma_historicalregistrar"."id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."id".
+2022-01-07T23:37:59.663000Z WARNING Source column "perma"."perma_historicalregistrar"."history_id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."history_id".
+2022-01-07T23:37:59.664000Z WARNING Source column "perma"."perma_historicalregistrar"."history_user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."history_user_id".
+2022-01-07T23:37:59.664000Z WARNING Source column "perma"."perma_historicalregistrar"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."link_count".
+2022-01-07T23:37:59.664000Z WARNING Source column "perma"."perma_historicalregistrar"."link_limit" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."link_limit".
+2022-01-07T23:37:59.664000Z WARNING Source column "perma"."perma_historicalregistrar"."bonus_links" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_historicalregistrar"."bonus_links".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_link"."created_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_link"."created_by_id".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_link"."organization_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_link"."organization_id".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_link"."warc_size" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_link"."warc_size".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_linkbatch"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_linkbatch"."id".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_linkbatch"."created_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkbatch"."created_by_id".
+2022-01-07T23:37:59.665000Z WARNING Source column "perma"."perma_linkbatch"."target_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkbatch"."target_folder_id".
+2022-01-07T23:37:59.666000Z WARNING Source column "perma"."perma_linkuser"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."id".
+2022-01-07T23:37:59.666000Z WARNING Source column "perma"."perma_linkuser"."registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."registrar_id".
+2022-01-07T23:37:59.666000Z WARNING Source column "perma"."perma_linkuser"."root_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."root_folder_id".
+2022-01-07T23:37:59.667000Z WARNING Source column "perma"."perma_linkuser"."pending_registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."pending_registrar_id".
+2022-01-07T23:37:59.667000Z WARNING Source column "perma"."perma_linkuser"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."link_count".
+2022-01-07T23:37:59.667000Z WARNING Source column "perma"."perma_linkuser"."link_limit" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."link_limit".
+2022-01-07T23:37:59.667000Z WARNING Source column "perma"."perma_linkuser"."sponsored_root_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."sponsored_root_folder_id".
+2022-01-07T23:37:59.668000Z WARNING Source column "perma"."perma_linkuser"."bonus_links" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser"."bonus_links".
+2022-01-07T23:37:59.668000Z WARNING Source column "perma"."perma_linkuser_organizations"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser_organizations"."id".
+2022-01-07T23:37:59.668000Z WARNING Source column "perma"."perma_linkuser_organizations"."linkuser_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser_organizations"."linkuser_id".
+2022-01-07T23:37:59.669000Z WARNING Source column "perma"."perma_linkuser_organizations"."organization_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_linkuser_organizations"."organization_id".
+2022-01-07T23:37:59.669000Z WARNING Source column "perma"."perma_link_folders"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_link_folders"."id".
+2022-01-07T23:37:59.669000Z WARNING Source column "perma"."perma_link_folders"."folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_link_folders"."folder_id".
+2022-01-07T23:37:59.670000Z WARNING Source column "perma"."perma_minutestats"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_minutestats"."id".
+2022-01-07T23:37:59.670000Z WARNING Source column "perma"."perma_minutestats"."links_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_minutestats"."links_sum".
+2022-01-07T23:37:59.671000Z WARNING Source column "perma"."perma_minutestats"."users_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_minutestats"."users_sum".
+2022-01-07T23:37:59.671000Z WARNING Source column "perma"."perma_minutestats"."organizations_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_minutestats"."organizations_sum".
+2022-01-07T23:37:59.671000Z WARNING Source column "perma"."perma_minutestats"."registrars_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_minutestats"."registrars_sum".
+2022-01-07T23:37:59.671000Z WARNING Source column "perma"."perma_organization"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_organization"."id".
+2022-01-07T23:37:59.672000Z WARNING Source column "perma"."perma_organization"."registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_organization"."registrar_id".
+2022-01-07T23:37:59.672000Z WARNING Source column "perma"."perma_organization"."shared_folder_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_organization"."shared_folder_id".
+2022-01-07T23:37:59.672000Z WARNING Source column "perma"."perma_organization"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_organization"."link_count".
+2022-01-07T23:37:59.672000Z WARNING Source column "perma"."perma_registrar"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_registrar"."id".
+2022-01-07T23:37:59.673000Z WARNING Source column "perma"."perma_registrar"."link_count" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_registrar"."link_count".
+2022-01-07T23:37:59.673000Z WARNING Source column "perma"."perma_registrar"."link_limit" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_registrar"."link_limit".
+2022-01-07T23:37:59.673000Z WARNING Source column "perma"."perma_registrar"."bonus_links" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_registrar"."bonus_links".
+2022-01-07T23:37:59.674000Z WARNING Source column "perma"."perma_sponsorship"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_sponsorship"."id".
+2022-01-07T23:37:59.674000Z WARNING Source column "perma"."perma_sponsorship"."created_by_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_sponsorship"."created_by_id".
+2022-01-07T23:37:59.674000Z WARNING Source column "perma"."perma_sponsorship"."registrar_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_sponsorship"."registrar_id".
+2022-01-07T23:37:59.674000Z WARNING Source column "perma"."perma_sponsorship"."user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_sponsorship"."user_id".
+2022-01-07T23:37:59.674000Z WARNING Source column "perma"."perma_uncaughterror"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_uncaughterror"."id".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_uncaughterror"."resolved_by_user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_uncaughterror"."resolved_by_user_id".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_uncaughterror"."user_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_uncaughterror"."user_id".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_weekstats"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."perma_weekstats"."id".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_weekstats"."links_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_weekstats"."links_sum".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_weekstats"."users_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_weekstats"."users_sum".
+2022-01-07T23:37:59.675000Z WARNING Source column "perma"."perma_weekstats"."organizations_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_weekstats"."organizations_sum".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."perma_weekstats"."registrars_sum" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."perma_weekstats"."registrars_sum".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."taggit_tag"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."taggit_tag"."id".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."taggit_taggeditem"."id" is casted to type "bigserial" which is not the same as "integer", the type of current target database column "perma"."taggit_taggeditem"."id".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."taggit_taggeditem"."object_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."taggit_taggeditem"."object_id".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."taggit_taggeditem"."content_type_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."taggit_taggeditem"."content_type_id".
+2022-01-07T23:37:59.676000Z WARNING Source column "perma"."taggit_taggeditem"."tag_id" is casted to type "bigint" which is not the same as "integer", the type of current target database column "perma"."taggit_taggeditem"."tag_id".
+
+
+2022-01-07T23:37:59.677000Z WARNING PostgreSQL warning: constraint "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id" of relation "auth_group_permissions" does not exist, skipping
+2022-01-07T23:37:59.677000Z WARNING PostgreSQL warning: constraint "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm" of relation "auth_group_permissions" does not exist, skipping
+2022-01-07T23:37:59.678000Z WARNING PostgreSQL warning: constraint "django_admin_log_content_type_id_c4bce8eb_fk_django_co" of relation "django_admin_log" does not exist, skipping
+2022-01-07T23:37:59.678000Z WARNING PostgreSQL warning: constraint "auth_permission_content_type_id_2f476e4b_fk_django_co" of relation "auth_permission" does not exist, skipping
+2022-01-07T23:37:59.688000Z WARNING PostgreSQL warning: constraint "perma_folder_parent_id_8cba8e95_fk_perma_folder_id" of relation "perma_folder" does not exist, skipping
+2022-01-07T23:37:59.693000Z WARNING PostgreSQL warning: constraint "perma_genericstringt_content_type_id_7808e6af_fk_django_co" of relation "perma_genericstringtaggeditem" does not exist, skipping
+2022-01-07T23:37:59.702000Z WARNING PostgreSQL warning: constraint "perma_link_replacement_link_id_bfb95319_fk_perma_link_guid" of relation "perma_link" does not exist, skipping
+2022-01-07T23:37:59.703000Z WARNING PostgreSQL warning: constraint "perma_capture_link_id_bfbd27e1_fk_perma_link_guid" of relation "perma_capture" does not exist, skipping
+2022-01-07T23:37:59.704000Z WARNING PostgreSQL warning: constraint "perma_capturejob_link_id_2afe3fea_fk_perma_link_guid" of relation "perma_capturejob" does not exist, skipping
+2022-01-07T23:37:59.707000Z WARNING PostgreSQL warning: constraint "perma_linkbatch_target_folder_id_8b403a0c_fk_perma_folder_id" of relation "perma_linkbatch" does not exist, skipping
+2022-01-07T23:37:59.708000Z WARNING PostgreSQL warning: constraint "perma_capturejob_link_batch_id_376ac3f7_fk_perma_linkbatch_id" of relation "perma_capturejob" does not exist, skipping
+2022-01-07T23:37:59.714000Z WARNING PostgreSQL warning: constraint "perma_linkuser_sponsored_root_folde_4c6dce20_fk_perma_fol" of relation "perma_linkuser" does not exist, skipping
+2022-01-07T23:37:59.715000Z WARNING PostgreSQL warning: constraint "perma_linkuser_root_folder_id_84acaf60_fk_perma_folder_id" of relation "perma_linkuser" does not exist, skipping
+2022-01-07T23:37:59.719000Z WARNING PostgreSQL warning: constraint "perma_folder_created_by_id_52c849a7_fk_perma_linkuser_id" of relation "perma_folder" does not exist, skipping
+2022-01-07T23:37:59.720000Z WARNING PostgreSQL warning: constraint "perma_folder_owned_by_id_fabda8d2_fk_perma_linkuser_id" of relation "perma_folder" does not exist, skipping
+2022-01-07T23:37:59.721000Z WARNING PostgreSQL warning: constraint "perma_apikey_user_id_9a2e60cd_fk_perma_linkuser_id" of relation "perma_apikey" does not exist, skipping
+2022-01-07T23:37:59.722000Z WARNING PostgreSQL warning: constraint "perma_link_created_by_id_95ce1ebe_fk_perma_linkuser_id" of relation "perma_link" does not exist, skipping
+2022-01-07T23:37:59.724000Z WARNING PostgreSQL warning: constraint "perma_linkbatch_created_by_id_f5908521_fk_perma_linkuser_id" of relation "perma_linkbatch" does not exist, skipping
+2022-01-07T23:37:59.725000Z WARNING PostgreSQL warning: constraint "perma_capturejob_created_by_id_28ab42a6_fk_perma_linkuser_id" of relation "perma_capturejob" does not exist, skipping
+2022-01-07T23:37:59.730000Z WARNING PostgreSQL warning: constraint "perma_historicalorga_history_user_id_227b3d3b_fk_perma_lin" of relation "perma_historicalorganization" does not exist, skipping
+2022-01-07T23:37:59.731000Z WARNING PostgreSQL warning: constraint "perma_historicallink_history_user_id_98f8158a_fk_perma_lin" of relation "perma_historicallinkuser" does not exist, skipping
+2022-01-07T23:37:59.733000Z WARNING PostgreSQL warning: constraint "perma_historicalregi_history_user_id_8ab6540c_fk_perma_lin" of relation "perma_historicalregistrar" does not exist, skipping
+2022-01-07T23:37:59.735000Z WARNING PostgreSQL warning: constraint "django_admin_log_user_id_c564eba6_fk_perma_linkuser_id" of relation "django_admin_log" does not exist, skipping
+2022-01-07T23:37:59.738000Z WARNING PostgreSQL warning: constraint "perma_linkuser_organ_linkuser_id_265dbc86_fk_perma_lin" of relation "perma_linkuser_organizations" does not exist, skipping
+2022-01-07T23:37:59.741000Z WARNING PostgreSQL warning: constraint "perma_link_folders_link_id_202bf738_fk_perma_link_guid" of relation "perma_link_folders" does not exist, skipping
+2022-01-07T23:37:59.743000Z WARNING PostgreSQL warning: constraint "perma_link_folders_folder_id_d047e1b1_fk_perma_folder_id" of relation "perma_link_folders" does not exist, skipping
+2022-01-07T23:37:59.746000Z WARNING PostgreSQL warning: constraint "perma_organization_shared_folder_id_a5ab9036_fk_perma_folder_id" of relation "perma_organization" does not exist, skipping
+2022-01-07T23:37:59.748000Z WARNING PostgreSQL warning: constraint "perma_linkuser_organ_organization_id_b2be4a6c_fk_perma_org" of relation "perma_linkuser_organizations" does not exist, skipping
+2022-01-07T23:37:59.750000Z WARNING PostgreSQL warning: constraint "perma_folder_organization_id_68f9c12f_fk_perma_organization_id" of relation "perma_folder" does not exist, skipping
+2022-01-07T23:37:59.752000Z WARNING PostgreSQL warning: constraint "perma_link_organization_id_6ef8f08f_fk_perma_organization_id" of relation "perma_link" does not exist, skipping
+2022-01-07T23:37:59.754000Z WARNING PostgreSQL warning: constraint "perma_organization_registrar_id_08ce345c_fk_perma_registrar_id" of relation "perma_organization" does not exist, skipping
+2022-01-07T23:37:59.756000Z WARNING PostgreSQL warning: constraint "perma_linkuser_pending_registrar_id_19eab8c4_fk_perma_reg" of relation "perma_linkuser" does not exist, skipping
+2022-01-07T23:37:59.757000Z WARNING PostgreSQL warning: constraint "perma_linkuser_registrar_id_bb68693b_fk_perma_registrar_id" of relation "perma_linkuser" does not exist, skipping
+2022-01-07T23:37:59.761000Z WARNING PostgreSQL warning: constraint "perma_folder_sponsored_by_id_0328a0ef_fk_perma_registrar_id" of relation "perma_folder" does not exist, skipping
+2022-01-07T23:37:59.762000Z WARNING PostgreSQL warning: constraint "perma_sponsorship_created_by_id_837d3014_fk_perma_linkuser_id" of relation "perma_sponsorship" does not exist, skipping
+2022-01-07T23:37:59.763000Z WARNING PostgreSQL warning: constraint "perma_sponsorship_registrar_id_99baf64f_fk_perma_registrar_id" of relation "perma_sponsorship" does not exist, skipping
+2022-01-07T23:37:59.764000Z WARNING PostgreSQL warning: constraint "perma_sponsorship_user_id_a83fd48c_fk_perma_linkuser_id" of relation "perma_sponsorship" does not exist, skipping
+2022-01-07T23:37:59.765000Z WARNING PostgreSQL warning: constraint "perma_uncaughterror_resolved_by_user_id_c2a9e2f1_fk_perma_lin" of relation "perma_uncaughterror" does not exist, skipping
+2022-01-07T23:37:59.765000Z WARNING PostgreSQL warning: constraint "perma_uncaughterror_user_id_9ad05708_fk_perma_linkuser_id" of relation "perma_uncaughterror" does not exist, skipping
+2022-01-07T23:37:59.767000Z WARNING PostgreSQL warning: constraint "perma_genericstringtaggeditem_tag_id_859dfb15_fk_taggit_tag_id" of relation "perma_genericstringtaggeditem" does not exist, skipping
+2022-01-07T23:37:59.768000Z WARNING PostgreSQL warning: constraint "taggit_taggeditem_content_type_id_9957a03c_fk_django_co" of relation "taggit_taggeditem" does not exist, skipping
+2022-01-07T23:37:59.769000Z WARNING PostgreSQL warning: constraint "taggit_taggeditem_tag_id_f4f5b767_fk_taggit_tag_id" of relation "taggit_taggeditem" does not exist, skipping
+
+
+2022-01-07T23:48:18.906000Z ERROR PostgreSQL Database error 23503: insert or update on table "perma_historicalorganization" violates foreign key constraint "perma_historicalorga_history_user_id_227b3d3b_fk_perma_lin"
+DETAIL: Key (history_user_id)=(7918) is not present in table "perma_linkuser".
+QUERY: ALTER TABLE "perma"."perma_historicalorganization" ADD CONSTRAINT "perma_historicalorga_history_user_id_227b3d3b_fk_perma_lin" FOREIGN KEY (history_user_id) REFERENCES perma_linkuser(id) DEFERRABLE INITIALLY DEFERRED
+2022-01-07T23:48:18.925000Z ERROR PostgreSQL Database error 23503: insert or update on table "perma_historicalregistrar" violates foreign key constraint "perma_historicalregi_history_user_id_8ab6540c_fk_perma_lin"
+DETAIL: Key (history_user_id)=(7918) is not present in table "perma_linkuser".
+QUERY: ALTER TABLE "perma"."perma_historicalregistrar" ADD CONSTRAINT "perma_historicalregi_history_user_id_8ab6540c_fk_perma_lin" FOREIGN KEY (history_user_id) REFERENCES perma_linkuser(id) DEFERRABLE INITIALLY DEFERRED
+2022-01-07T23:48:35.961000Z LOG report summary reset
+                         table name     errors       rows      bytes      total time
+-----------------------------------  ---------  ---------  ---------  --------------
+                    fetch meta data          0         64                     0.205s
+                  Drop Foreign Keys          0         85                     0.127s
+                           Truncate          0         32                     0.275s
+-----------------------------------  ---------  ---------  ---------  --------------
+                perma.perma_capture          0    5735284   638.5 MB       3m31.753s
+               perma.django_session          0    2954921   958.2 MB       2m26.028s
+           perma.perma_link_folders          0    2271629    51.0 MB       1m13.576s
+     perma.perma_historicallinkuser          0    2954328   749.8 MB       2m49.658s
+                   perma.perma_link          0    2263858   830.9 MB       2m33.011s
+             perma.perma_capturejob          0    2033842   360.6 MB       1m22.445s
+            perma.perma_minutestats          0    2269812    76.9 MB       1m11.434s
+    perma.perma_historicalregistrar          0    1954052   509.1 MB       1m32.871s
+          perma.perma_uncaughterror          0     819810   929.4 MB       1m27.009s
+               perma.perma_linkuser          0      55266    11.1 MB          2.941s
+perma.perma_genericstringtaggeditem          0      18374   348.0 kB          0.567s
+              perma.perma_linkbatch          0      16603   716.9 kB          0.612s
+ perma.perma_historicalorganization          0    1790965   185.5 MB         40.964s
+           perma.perma_organization          0       2247   151.8 kB          0.146s
+                 perma.perma_apikey          0        630    43.4 kB          0.082s
+            perma.taggit_taggeditem          0        197     2.1 kB          0.109s
+            perma.django_migrations          0        107     5.6 kB          0.123s
+            perma.perma_sponsorship          0         35     2.7 kB          0.138s
+                   perma.auth_group          0          4     0.1 kB          0.154s
+       perma.auth_group_permissions          0          0                     0.166s
+                  perma.django_site          0          1     0.0 kB          0.179s
+                 perma.perma_folder          0      95644     8.5 MB          2.230s
+ perma.perma_linkuser_organizations          0      19825   302.7 kB          0.424s
+               perma.axes_accesslog          0      17502     5.3 MB          0.654s
+             perma.django_admin_log          0       3599   307.8 kB          0.147s
+              perma.perma_registrar          0        684   147.7 kB          0.036s
+              perma.perma_weekstats          0        343    18.9 kB          0.021s
+              perma.auth_permission          0        162     7.1 kB          0.028s
+          perma.django_content_type          0         44     0.9 kB          0.027s
+                   perma.taggit_tag          0         23     0.6 kB          0.034s
+                perma.lockss_mirror          0          4     0.4 kB          0.025s
+           perma.axes_accessattempt          0          1     0.5 kB          0.028s
+-----------------------------------  ---------  ---------  ---------  --------------
+            COPY Threads Completion          0          4                  9m49.515s
+                    Reset Sequences          0         30                     0.114s
+                Create Foreign Keys          2         40                    46.234s
+                   Install Comments          0          0                     0.001s
+-----------------------------------  ---------  ---------  ---------  --------------
+                  Total import time          ?   25279796     5.2 GB      10m35.864s

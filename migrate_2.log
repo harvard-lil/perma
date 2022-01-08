@@ -1,5 +1,3 @@
-HLSC02VK05ZHTDG:perma rcremona$ docker-compose exec pgloader pgloader --with "prefetch rows = 1000" --with "create no tables" --with "include no drop" --with "truncate" mysql://root:password@mysqldb/perma postgresql://perma:password@db/perma
-WARN[0000] The "REFUSE_PLAYBACK" variable is not set. Defaulting to a blank string.
 2022-01-07T23:05:24.022000Z LOG pgloader version "3.6.3~devel"
 2022-01-07T23:05:24.053000Z LOG Migrating from #<MYSQL-CONNECTION mysql://root@mysqldb:3306/perma {1005E863E3}>
 2022-01-07T23:05:24.053000Z LOG Migrating into #<PGSQL-CONNECTION pgsql://perma@db:5432/perma {1005FC7CD3}>
