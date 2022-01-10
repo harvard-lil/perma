@@ -1,0 +1,6 @@
+LOAD DATABASE
+    FROM mysql://root:password@mysqldb/perma
+    INTO postgresql://perma:password@db/perma
+
+    WITH data only, truncate,
+        prefetch rows = 1000;

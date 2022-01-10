@@ -250,6 +250,8 @@ services:
       context: ./services/docker/pgloader
     image: perma-pgloader:0.1
     tty: true
+    volumes:
+      - ./services/docker/pgloader/perma.load:/tmp/perma.load
     command: bash
 
 volumes:
