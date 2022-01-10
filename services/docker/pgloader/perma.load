@@ -3,4 +3,8 @@ LOAD DATABASE
     INTO postgresql://perma:password@db/perma
 
     WITH data only, truncate,
-        prefetch rows = 1000;
+        prefetch rows = 1000
+
+   INCLUDING ONLY TABLE NAMES MATCHING ~/.*/
+   EXCLUDING TABLE NAMES MATCHING 'django_migrations'
+;
