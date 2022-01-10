@@ -2,9 +2,15 @@ LOAD DATABASE
     FROM mysql://root:password@mysqldb/perma
     INTO postgresql://perma:password@db/perma
 
-    WITH data only, truncate,
+    WITH data only, truncate, reset sequences
         prefetch rows = 1000
 
    INCLUDING ONLY TABLE NAMES MATCHING ~/.*/
    EXCLUDING TABLE NAMES MATCHING 'django_migrations'
+
+CAST column axes_accessattempt.ip_address to inet,
+     column axes_accesslog.ip_address to inet,
+     column django_admin_log.action_flag to smallint,
+     type int with extra auto_increment to integer,
+     type int to integer
 ;
