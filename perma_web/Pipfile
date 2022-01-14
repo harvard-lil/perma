@@ -21,7 +21,7 @@ uwsgitop = "*"                              # uWSGI monitoring
 
 
 # databases
-psycopg2 = ">2.7"
+psycopg2 = ">2.7, <2.9"
 django-redis = "*"                          # use redis as django's cache backend
 redis = "*"                                 # Needed to bind with Redis.
 
