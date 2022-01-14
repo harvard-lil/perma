@@ -13,17 +13,13 @@ services:
     volumes:
       - redis_data:/data:delegated
   db:
-    image: registry.lil.tools/library/mysql:5.6
+    image: registry.lil.tools/library/postgres:12.8
     environment:
-        MYSQL_ROOT_PASSWORD: password
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: perma
+      POSTGRES_USER: perma
     volumes:
-      # NAMED VOLUMES
-      # If the volume contains a database (a subdirectory named mysql)
-      # when you start the container, it will be left untouched and unaffected
-      # by config environment variables like $MYSQL_ROOT_PASSWORD.
-      - db3_data:/var/lib/mysql:delegated
-      # BIND MOUNTS
-      - ./services/mysql/conf.d:/etc/mysql/conf.d
+      - postgres_data:/var/lib/postgresql/data:delegated
     networks:
       - default
   web:
@@ -32,7 +28,7 @@ services:
       dockerfile: ./perma_web/Dockerfile
       args:
         chrome-layer-cache-buster: 2ef978cc-0afe-4fb1-9239-50d3b77e5ba1
-    image: perma3:0.127
+    image: perma3:0.128
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -235,7 +231,7 @@ services:
 
 volumes:
   node_modules:
-  db3_data:
+  postgres_data:
   redis_data:
   pp_db_data:
   wr_warcs:

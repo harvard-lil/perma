@@ -47,7 +47,6 @@ jobs:
             docker-compose up -d
             sleep 15
             docker-compose exec web pipenv run flake8 .
-            docker-compose exec web pipenv run fab dev.create_db
             docker-compose exec web pipenv run fab dev.init_db
             docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
             docker-compose exec web pipenv run pytest \

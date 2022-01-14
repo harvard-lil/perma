@@ -224,7 +224,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
         # Make sure it's listed in the folder
         obj = self.successful_get("{0}/{1}".format(self.list_url, link.pk), user=user)
         data = self.successful_get(archives_url, user=user)
-        self.assertIn(obj, data['objects'])
+        self.assertIn(obj['guid'], [obj['guid'] for obj in data['objects']])
 
     def rejected_link_move(self, user, link, folder, expected_status_code=401):
         folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)

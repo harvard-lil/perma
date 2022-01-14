@@ -22,8 +22,8 @@ RUN apt-get update \
     && apt-get install -y virtualenv \
     && apt-get install -y git \
     \
-    && apt-get install -y default-mysql-client \
-    && apt-get install -y default-libmysqlclient-dev \
+    && apt-get install -y postgresql-client \
+    && apt-get install -y libpq-dev \
     && apt-get install -y xvfb \
     && apt-get install -y libffi-dev \
     && apt-get install -y libjpeg62-turbo-dev \

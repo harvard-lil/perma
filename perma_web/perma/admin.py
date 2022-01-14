@@ -159,7 +159,7 @@ class FasterAdminPaginator(Paginator):
     @cached_property
     def count(self):
         cursor = connection.cursor()
-        cursor.execute(f"SELECT table_rows FROM information_schema.tables WHERE table_name = '{self.object_list.query.model._meta.db_table}'")
+        cursor.execute(f"SELECT reltuples AS estimate FROM pg_class WHERE relname = '{self.object_list.query.model._meta.db_table}';")
         estimate = int(cursor.fetchone()[0])
         if estimate > 10000:
             self.estimated_count = True
