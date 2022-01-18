@@ -822,7 +822,7 @@ def process_metadata(metadata, link):
     ## Page Description ##
     description_meta_tag = metadata['meta_tags'].get('description')
     if description_meta_tag:
-        safe_save_fields(link, submitted_description=description_meta_tag)
+        safe_save_fields(link, submitted_description=description_meta_tag[:300])
 
     ## Page Title
     safe_save_fields(link, submitted_title=metadata['title'])
