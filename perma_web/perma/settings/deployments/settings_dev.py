@@ -39,7 +39,7 @@ CELERY_RESULT_BACKEND = None
 
 # django-debug-toolbar
 if os.environ.get('DEBUG_TOOLBAR'):
-    import debug_toolbar  # noqa
+    # import debug_toolbar  # noqa
     INSTALLED_APPS += (
         'debug_toolbar',
     )

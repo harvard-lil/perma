@@ -1398,6 +1398,7 @@ class Link(DeletableModel):
     class Meta:
         indexes = [
             models.Index(fields=['user_deleted', 'is_private', 'is_unlisted', 'cached_can_play_back', 'internet_archive_upload_status']),
+            models.Index(fields=['creation_timestamp']),
         ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
