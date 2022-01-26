@@ -393,8 +393,8 @@ class AuthenticatedLinkListView(BaseView):
         # Disallow creation of links in top-level sponsored folder
         if folder.is_sponsored_root_folder:
             message = message_template.format_map({
-                'error': 'Your Sponsored Link folder is read only.',
-                'resolution': 'Select a folder belonging to a sponsor.'
+                'error': 'This folder is no longer sponsored by a Registrar and is read only. ',
+                'resolution': 'Select a folder that is currently sponsored.'
             })
             raise_invalid_capture_job(capture_job, message)
 
