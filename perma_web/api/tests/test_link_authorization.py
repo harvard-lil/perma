@@ -303,17 +303,17 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
                       folder=self.firm_folder.pk)
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
-        self.assertIn(b"subscription", response.content)
+        self.assertIn(b"account needs attention", response.content)
 
     def test_should_reject_create_if_sponsorship_deactivated(self):
         sponsored_folder = self.inactive_sponsored_user.sponsorships.first().folders.first()
         response = self.rejected_post(self.list_url, expected_status_code=400, user=self.inactive_sponsored_user, data=dict(self.post_data, folder=sponsored_folder.pk))
-        self.assertIn(b"Your registrar has made this folder read-only.", response.content)
+        self.assertIn(b"set this folder to read-only.", response.content)
 
     def test_should_reject_create_if_sponsored_root_folder(self):
         sponsored_root_folder = self.sponsored_user.sponsored_root_folder
         response = self.rejected_post(self.list_url, expected_status_code=400, user=self.sponsored_user, data=dict(self.post_data, folder=sponsored_root_folder.pk))
-        self.assertIn(b"You can't make links directly in your Sponsored Links folder. Select a folder belonging to a sponsor", response.content)
+        self.assertIn(b"Folders no longer sponsored by a registrar are read-only", response.content)
 
     # tests for permitted creations in test_link_resource, where the
     # to-be-captured url is actually being served up.
