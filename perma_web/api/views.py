@@ -388,35 +388,47 @@ class AuthenticatedLinkListView(BaseView):
         except ValidationError as e:
             raise_invalid_capture_job(capture_job, e.detail)
 
+        message_template = "Perma can't create this link: {error} {resolution}"
+
         # Disallow creation of links in top-level sponsored folder
         if folder.is_sponsored_root_folder:
-            error = "You can't make links directly in your Sponsored Links folder. Select a folder belonging to a sponsor."
-            raise_invalid_capture_job(capture_job, error)
+            message = message_template.format_map({
+                'error': 'Your Sponsored Link folder is read only.',
+                'resolution': 'Select a folder belonging to a sponsor.'
+            })
+            raise_invalid_capture_job(capture_job, message)
 
         # Make sure a limited user has links left to create
         if not folder.organization and not folder.sponsored_by:
             if not request.user.link_creation_allowed():
-                if request.user.nonpaying:
-                    raise_invalid_capture_job(capture_job, "You've already reached your limit.")
-                error = "Perma.cc cannot presently make additional Perma Links on your behalf. Visit your subscription settings page for more information."
-                raise_invalid_capture_job(capture_job, error)
+                error = 'Your account needs attention.'
+                resolution = 'See your usage plans for details.'
+
+                if request.user.in_trial:
+                    error = 'You already created every link allotted for your trial.',
+                    resolution = 'See our usage plans page to get more links.'
+                elif request.user.nonpaying:
+                    resolution = 'Contact Perma support at info@perma.cc with this error and your account information.'
+
+                message = message_template.format_map({'error': error, 'resolution': resolution})
+                raise_invalid_capture_job(capture_job, message)
         else:
             registrar = folder.sponsored_by if folder.sponsored_by else folder.organization.registrar
+            registrar_contact_string = ', '.join([user.email for user in registrar.active_registrar_users()])
 
-            msg = None
-            if folder.read_only:
-                registrar_users = [user.email for user in registrar.active_registrar_users()]
-                msg = f"Your registrar has made this folder read-only. For assistance, contact: {', '.join(registrar_users)}."
+            resolution = 'See your account settings for details.' if request.user.registrar else \
+                f"For assistance, contact: {registrar_contact_string}."
+
             if not registrar.link_creation_allowed():
-                error = f'Perma.cc cannot presently make links on behalf of {registrar.name}. '
-                if request.user.registrar:
-                    contact = 'Visit your settings for subscription information.'
-                else:
-                    registrar_users = [user.email for user in registrar.active_registrar_users()]
-                    contact = f'For assistance with your subscription, contact:  {", ".join(registrar_users)}.'
-                msg = error + contact
-            if msg:
-                raise_invalid_capture_job(capture_job, msg)
+                message = message_template.format_map({'error': f"The {registrar.name} account needs attention.",
+                                                       'resolution': resolution})
+                raise_invalid_capture_job(capture_job, message)
+
+            if folder.read_only:
+                message = message_template.format_map({'error': f"{registrar.name} set this folder to read-only.",
+                                                       'resolution': resolution})
+                raise_invalid_capture_job(capture_job, message)
+
 
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
