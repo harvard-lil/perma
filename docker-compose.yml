@@ -90,6 +90,26 @@ services:
     networks:
       - default
 
+    #
+  # Perma Functional Tests
+  #
+  playwright:
+    build:
+      context: .
+      dockerfile: ./playwright/Dockerfile
+    image: perma-playwright:0.00314
+    volumes:
+      - ./playwright:/playwright:delegated
+    environment:
+      - START_XVFB=false
+    command: bash
+    tty: true
+    links:
+      - "web:perma.test"
+      - "nginx:perma-archives.test"
+    networks:
+      - default
+      - webrecorder
 
   #
   # Perma Payments
