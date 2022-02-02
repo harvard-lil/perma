@@ -1,7 +1,5 @@
-FROM mcr.microsoft.com/playwright:v1.18.1-focal-amd64
-
-ARG DEBIAN_FRONTEND=noninteractive
-ARG TZ=America/Los_Angeles
+ARG BUILDARCH=amd64
+FROM mcr.microsoft.com/playwright:v1.18.1-focal-${BUILDARCH}
 
 RUN apt-get update \
     && apt-get install -y python3.8 python3-pip \

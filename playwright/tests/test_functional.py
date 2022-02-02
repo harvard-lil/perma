@@ -1,7 +1,5 @@
 import pytest
 import re
-from settings import urls, logins
-
 
 two_minutes = 120*1000
 
@@ -32,5 +30,3 @@ def test_example_dot_com(logged_in_user):
     replay_frame = logged_in_user.frame('https://example.com/')
     assert logged_in_user.title() == 'Perma | Example Domain'
     assert "Example Domain" in replay_frame.locator('h1').text_content()
-
-
