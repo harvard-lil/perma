@@ -97,7 +97,7 @@ services:
     build:
       context: .
       dockerfile: ./playwright/Dockerfile
-    image: perma-playwright:0.003141592
+    image: perma-playwright:0.00314159
     volumes:
       - ./playwright:/playwright:delegated
     environment:
