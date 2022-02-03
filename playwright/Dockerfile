@@ -1,4 +1,4 @@
-ARG BUILDARCH=amd64
+ARG BUILDARCH
 FROM mcr.microsoft.com/playwright:v1.18.1-focal-${BUILDARCH}
 
 RUN apt-get update \
