@@ -1,5 +1,5 @@
-ARG BUILDARCH=amd64
-FROM mcr.microsoft.com/playwright:v1.18.1-focal-${BUILDARCH}
+ARG BUILDARCH
+FROM mcr.microsoft.com/playwright:v1.18.1-focal-${BUILDARCH:-amd64}
 
 RUN apt-get update \
     && apt-get install -y python3.8 python3-pip \
