@@ -85,7 +85,27 @@ services:
       - "127.0.0.1:4444:4444"
     networks:
       - default
-
+      
+  #
+  # Perma Functional Tests
+  #
+  playwright:
+    build:
+      context: .
+      dockerfile: ./playwright/Dockerfile
+    image: perma-playwright:0.00314159
+    volumes:
+      - ./playwright:/playwright:delegated
+    environment:
+      - START_XVFB=false
+    command: bash
+    tty: true
+    links:
+      - "web:perma.test"
+      - "nginx:perma-archives.test"
+    networks:
+      - default
+      - webrecorder
 
   #
   # Perma Payments

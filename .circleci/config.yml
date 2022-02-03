@@ -51,7 +51,10 @@ jobs:
             docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
             docker-compose exec web pipenv run pytest \
               --junitxml=junit/pytest/test-results.xml       `# write test results so they can be displayed by circleci` \
-              --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to coverage.xml for upload by codecov` \
+              --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to coverage.xml for upload by codecov` 
+            docker-compose exec -d web pipenv run fab run
+            sleep 10
+            docker-compose exec playwright pipenv run pytest --browser chromium --browser firefox --browser webkit            
 
       # Upload test details to circleci
       - store_test_results:
