@@ -221,6 +221,15 @@ def single_permalink(request, guid):
                                               request.user.offer_client_side_playback
                                           ) else ''
         if context['client_side_playback']:
+            if context['client_side_playback'] == 'compare':
+                context['client_side_playback'] = 'replay'
+                context['compare_replays'] = True
+                context.update({
+                    'wr_host': settings.PLAYBACK_HOST,
+                    'wr_prefix': link.wr_iframe_prefix(link.init_replay_for_user(request)),
+                    'wr_url': capture.url,
+                    'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
+                })
             logger.info(f'Using client-side playback for {link.guid}')
         else:
             # Play back using Webrecorder
