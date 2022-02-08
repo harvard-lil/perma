@@ -31,9 +31,34 @@
         {% endif %}
       {% else %}
         {% if client_side_playback %}
-          <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
-          <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
-          url="{{ link.submitted_url }}" view="{{ client_side_playback }}"></replay-web-page>
+          {% if compare_replays %}
+          <div class="client-side-compare">
+              <div class="server-side">
+                   <iframe name="{{ link.submitted_url }}"
+                   class="archive-iframe"
+                   src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+                   </iframe>
+                   <script src="{% firstof protocol 'http://' %}{% firstof wr_host 'perma-archives.test:8092' %}/static/bundle/wb_frame.js"></script>
+                   <script>
+                   var cframe = new ContentFrame({"url": "{{ wr_url | escapejs }}",
+                   "prefix": "{{ protocol}}{{ wr_prefix }}",
+                   "request_ts": "{{ wr_timestamp }}",
+                   "iframe": ".archive-iframe"});
+                   </script>
+              </div>
+              <div class="client-side">
+                <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
+                <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
+                                 url="{{ link.submitted_url }}"
+                                 embed="replayonly"
+                                 view="{{ client_side_playback }}"></replay-web-page>
+              </div>
+            </div>
+          {% else %}
+            <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
+            <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
+                             url="{{ link.submitted_url }}" view="{{ client_side_playback }}"></replay-web-page>
+            {% endif %}
         {% else %}
           <iframe name="{{ link.submitted_url }}" class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
           </iframe>
