@@ -393,22 +393,23 @@ class AuthenticatedLinkListView(BaseView):
         # Disallow creation of links in top-level sponsored folder
         if folder.is_sponsored_root_folder:
             message = message_template.format_map({
-                'error': 'Folders no longer sponsored by a registrar are read-only.',
-                'resolution': 'Select a folder that is currently sponsored.'
+                'error': 'Registrar root folders are read-only.',
+                'resolution': "Select a different folder."
             })
             raise_invalid_capture_job(capture_job, message)
 
         # Make sure a limited user has links left to create
         if not folder.organization and not folder.sponsored_by:
             if not request.user.link_creation_allowed():
-                error = 'Your account needs attention—'
-                resolution = 'see your usage plan for details.'
 
-                if request.user.in_trial:
-                    error = 'You already created every link allotted to your trial plan.',
-                    resolution = 'Our Usage Plans page explains how you can get more.'
+                error = "You've reached your usage limit."
+                resolution = "Visit your Usage Plan page for information and plan options."
+
+                if request.user.cached_subscription_status == 'Hold':  # generally for users with CC issues
+                    error = 'Your account needs attention—'
+                    resolution = 'see your usage plan page for details.'
                 elif request.user.nonpaying:
-                    resolution = 'Contact Perma support at info@perma.cc with this error and your account information.'
+                    resolution = 'Get in touch if you need more.'
 
                 message = message_template.format_map({'error': error, 'resolution': resolution})
                 raise_invalid_capture_job(capture_job, message)

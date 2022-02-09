@@ -313,7 +313,7 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
     def test_should_reject_create_if_sponsored_root_folder(self):
         sponsored_root_folder = self.sponsored_user.sponsored_root_folder
         response = self.rejected_post(self.list_url, expected_status_code=400, user=self.sponsored_user, data=dict(self.post_data, folder=sponsored_root_folder.pk))
-        self.assertIn(b"Folders no longer sponsored by a registrar are read-only", response.content)
+        self.assertIn(b"Registrar root folders are read-only.", response.content)
 
     # tests for permitted creations in test_link_resource, where the
     # to-be-captured url is actually being served up.
