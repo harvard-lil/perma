@@ -3,7 +3,8 @@ orbs:
   codecov: codecov/codecov@1.1.1
 jobs:
   build:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     working_directory: ~/project
     steps:
 
