@@ -2030,6 +2030,8 @@
       "version": "1.5.0",
       "resolved": "https://registry.npmjs.org/bindings/-/bindings-1.5.0.tgz",
       "integrity": "sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==",
+      "dev": true,
+      "optional": true,
       "requires": {
         "file-uri-to-path": "1.0.0"
       }
@@ -2490,6 +2492,7 @@
       "requires": {
         "anymatch": "^1.3.0",
         "async-each": "^1.0.0",
+        "fsevents": "^1.0.0",
         "glob-parent": "^2.0.0",
         "inherits": "^2.0.1",
         "is-binary-path": "^1.0.0",
@@ -3892,7 +3895,9 @@
     "file-uri-to-path": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz",
-      "integrity": "sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw=="
+      "integrity": "sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==",
+      "dev": true,
+      "optional": true
     },
     "filename-regex": {
       "version": "2.0.1",
@@ -4400,6 +4405,17 @@
       "resolved": "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz",
       "integrity": "sha1-FQStJSMVjKpA20onh8sBQRmU6k8=",
       "dev": true
+    },
+    "fsevents": {
+      "version": "1.2.13",
+      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-1.2.13.tgz",
+      "integrity": "sha512-oWb1Z6mkHIskLzEJ/XWX0srkpkTQ7vaopMQkyaEIoq0fmtFVxOthb8cCxeT+p3ynTdkk/RZwbgG4brR5BeWECw==",
+      "dev": true,
+      "optional": true,
+      "requires": {
+        "bindings": "^1.5.0",
+        "nan": "^2.12.1"
+      }
     },
     "fstream": {
       "version": "1.0.12",
@@ -7270,6 +7286,7 @@
       "version": "7.0.39",
       "resolved": "https://registry.npmjs.org/postcss/-/postcss-7.0.39.tgz",
       "integrity": "sha512-yioayjNbHn6z1/Bywyb2Y4s3yvDAeXGOyxqD+LnVOinq6Mdmd++SW2wUNVzavyyHxd6+DxzWGIuosg6P1Rj8uA==",
+      "dev": true,
       "requires": {
         "picocolors": "^0.2.1",
         "source-map": "^0.6.1"
@@ -7278,12 +7295,14 @@
         "picocolors": {
           "version": "0.2.1",
           "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-0.2.1.tgz",
-          "integrity": "sha512-cMlDqaLEqfSaW8Z7N5Jw+lyIW869EzT73/F5lhtY9cLGoVxSXznfgfXMO0Z5K0o0Q2TkTXq+0KFsdnSe3jDViA=="
+          "integrity": "sha512-cMlDqaLEqfSaW8Z7N5Jw+lyIW869EzT73/F5lhtY9cLGoVxSXznfgfXMO0Z5K0o0Q2TkTXq+0KFsdnSe3jDViA==",
+          "dev": true
         },
         "source-map": {
           "version": "0.6.1",
           "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",
-          "integrity": "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="
+          "integrity": "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==",
+          "dev": true
         }
       }
     },
@@ -10305,6 +10324,7 @@
           "requires": {
             "anymatch": "~3.1.2",
             "braces": "~3.0.2",
+            "fsevents": "~2.3.2",
             "glob-parent": "~5.1.2",
             "is-binary-path": "~2.1.0",
             "is-glob": "~4.0.1",
@@ -10321,6 +10341,13 @@
           "requires": {
             "to-regex-range": "^5.0.1"
           }
+        },
+        "fsevents": {
+          "version": "2.3.2",
+          "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz",
+          "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
+          "dev": true,
+          "optional": true
         },
         "glob-parent": {
           "version": "5.1.2",
@@ -10476,6 +10503,7 @@
             "anymatch": "^2.0.0",
             "async-each": "^1.0.1",
             "braces": "^2.3.2",
+            "fsevents": "^1.2.7",
             "glob-parent": "^3.1.0",
             "inherits": "^2.0.3",
             "is-binary-path": "^1.0.0",

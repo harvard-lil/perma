@@ -47,6 +47,7 @@
     "node-gyp": "^8.4.1",
     "node-sass": "^4.14.1",
     "p5": "^0.5.16",
+    "postcss": "*",
     "postcss-loader": "*",
     "resolve-url-loader": "*",
     "sass-loader": "^9.0.2",
