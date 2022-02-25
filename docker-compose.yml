@@ -28,7 +28,7 @@ services:
       dockerfile: ./perma_web/Dockerfile
       args:
         chrome-layer-cache-buster: 6de682c7-1f61-4e19-a414-ccbe3eccc1a6
-    image: perma3:0.132
+    image: perma3:0.133
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -112,6 +112,8 @@ services:
   #
   pp_db:
     image: registry.lil.tools/library/postgres:12.8
+    environment:
+      - POSTGRES_PASSWORD=example
     volumes:
       - pp_db_data:/var/lib/postgresql/data:delegated
     networks:
