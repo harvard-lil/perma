@@ -50,7 +50,9 @@ RUN apt-get update && apt-get install -y libnss3-tools \
 RUN apt-get update && apt-get install -y tor
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
-RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.0-deb-1nodesource1_amd64.deb \
+ARG BUILDARCH
+ENV BUILDARCH=${BUILDARCH:-amd64}
+RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.0-deb-1nodesource1_${BUILDARCH}.deb \
     && dpkg -i ./nodejs.deb \
     && rm nodejs.deb
 
@@ -73,17 +75,30 @@ RUN pip3 install -U pip \
 
 # Install Chrome
 # technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
-ARG chrome-layer-cache-buster
-RUN apt-get --allow-releaseinfo-change update \
-    && apt-get install -y unzip libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
-    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome*.deb \
-    && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
-    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
-    && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip \
-    && mv chromedriver /usr/bin/chromedriver \
-    && chmod +x /usr/bin/chromedriver
+# ARG chrome-layer-cache-buster
+# RUN apt-get --allow-releaseinfo-change update \
+#     && apt-get install -y unzip libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
+#     && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+#     && dpkg -i google-chrome*.deb \
+#     && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
+#     && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
+#     && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+#     && unzip chromedriver_linux64.zip \
+#     && mv chromedriver /usr/bin/chromedriver \
+#     && chmod +x /usr/bin/chromedriver
+
+# Install Chromium dependencies
+RUN apt-get install -y unzip libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils
+
+# Install Chromium and driver
+RUN export LOC="http://ports.ubuntu.com/pool/universe/c/chromium-browser" \
+    && export VER="97.0.4692.71-0ubuntu0.18.04.1_${BUILDARCH}" \
+    && wget ${LOC}/chromium-codecs-ffmpeg-extra_${VER}.deb \
+    && wget ${LOC}/chromium-browser_${VER}.deb \
+    && wget ${LOC}/chromium-chromedriver_${VER}.deb \
+    && dpkg -i ./chromium-codecs-ffmpeg-extra_${VER}.deb \
+    && dpkg -i ./chromium-browser_${VER}.deb \
+    && dpkg -i ./chromium-chromedriver_${VER}.deb
 
 # dev personalizations / try installing packages without rebuilding everything
-RUN apt-get update && apt-get install -y nano
+# RUN apt-get update && apt-get install -y nano

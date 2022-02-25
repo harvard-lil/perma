@@ -777,7 +777,7 @@ a.action {
   }
 }
 
-p a.perma { @extend a.perma }
+p a.perma { @extend a, .perma }
 
 a.cc {
   @extend .style-button-hover;
