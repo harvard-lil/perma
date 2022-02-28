@@ -53,8 +53,8 @@ jobs:
             docker-compose exec web pipenv run pytest \
               --junitxml=junit/pytest/test-results.xml       `# write test results so they can be displayed by circleci` \
               --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to coverage.xml for upload by codecov`
-            echo -e "from .deployments.settings_dev import *\nDEBUG = False\nRUN_TASKS_ASYNC = False" >> perma_web/perma/settings/settings.py
-            docker-compose exec web pipenv run ./manage.py collectstatic
+            cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
+            docker-compose exec web pipenv run ./manage.py collectstatic --noinput
             docker-compose exec -d web pipenv run fab run
             sleep 10
             docker-compose exec playwright pipenv run pytest --browser chromium --browser firefox --browser webkit            
