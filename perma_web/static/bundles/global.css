@@ -1475,8 +1475,7 @@ label {
 input[type="search"] {
   box-sizing: border-box;
   -webkit-appearance: none;
-  -moz-appearance: none;
-       appearance: none; }
+  appearance: none; }
 
 input[type="radio"],
 input[type="checkbox"] {
@@ -4200,8 +4199,7 @@ button.close {
   background: transparent;
   border: 0;
   -webkit-appearance: none;
-  -moz-appearance: none;
-       appearance: none; }
+  appearance: none; }
 
 .modal-open {
   overflow: hidden; }
@@ -5241,8 +5239,7 @@ body {
   text-rendering: optimizeLegibility;
   font-variant-ligatures: common-ligatures;
   font-feature-settings: "kern";
-  -webkit-font-kerning: normal;
-          font-kerning: normal;
+  font-kerning: normal;
   overflow: visible;
   position: relative; }
 

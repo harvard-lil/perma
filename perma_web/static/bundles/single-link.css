@@ -1194,8 +1194,7 @@ label {
 input[type="search"] {
   box-sizing: border-box;
   -webkit-appearance: none;
-  -moz-appearance: none;
-       appearance: none; }
+  appearance: none; }
 
 input[type="radio"],
 input[type="checkbox"] {

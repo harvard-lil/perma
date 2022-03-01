@@ -497,7 +497,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                              user=self.admin_user).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
-        self.assertEqual("Found: 6 users", count)
+        self.assertEqual("Found: 7 users", count)
         self.assertEqual(response.count(b'Interested in a court account'), 1)
         self.assertEqual(response.count(b'Interested in a journal account'), 1)
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)

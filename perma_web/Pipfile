@@ -21,7 +21,7 @@ uwsgitop = "*"                              # uWSGI monitoring
 
 
 # databases
-psycopg2 = ">2.7, <2.9"
+psycopg2 = "==2.8.6"
 django-redis = "*"                          # use redis as django's cache backend
 redis = "*"                                 # Needed to bind with Redis.
 
@@ -45,7 +45,7 @@ whitenoise = "*"                            # serve static assets
 
 # thumbnails (carousel? anything else?)
 sorl-thumbnail = "==12.3"
-Wand = "==0.4.4"
+Wand = ">=0.4.4"
 
 
 # capture related stuff
@@ -99,7 +99,7 @@ django-debug-toolbar = "*"                  # see SQL queries, monitor signals, 
 ipdb = "*"                                  # improved debugger and interactive shell
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true

@@ -20,4 +20,4 @@ def urls():
 
 @pytest.fixture
 def user():
-    return Login("test_user@example.com", "pass")
+    return Login("functional_test_user@example.com", "pass")
