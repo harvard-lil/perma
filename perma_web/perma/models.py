@@ -1031,9 +1031,14 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def can_edit_organization(self, organization):
         return self.organizations.filter(pk=organization.pk).exists()
 
+    # sspbdefault remove offer_client_side_playback() when client_side_playback is the default
     @property
     def offer_client_side_playback(self):
         return self.is_staff or self.id in settings.USERS_WITH_CLIENT_SIDE_PLAYBACK
+
+    @property
+    def offer_compare_playback(self):
+        return self.is_staff or self.id in settings.PLAYBACK_COMPARE_USERS
 
     ### subscriptions ###
 

@@ -15,7 +15,13 @@
     {# Python variables for use in Javascript #}
     {% include 'js_config.html' %}
 
-    {% render_bundle 'single-link' 'css' %}
+    {# sspbdefault: remove everything in the following four lines except the render_bundle 'single-link' 'css' call
+       when client-side playback becomes the default #}
+    {% if sspbdefault %}
+      {% render_bundle 'single-link' 'css' %}
+    {% else %}
+      {% render_bundle 'single-link-sspbdefault' 'css' %}
+    {% endif %}
 
     {% block header_scripts %}{% endblock %}
     {% block styles %}{% endblock %}

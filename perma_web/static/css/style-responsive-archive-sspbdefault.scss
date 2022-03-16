@@ -608,6 +608,28 @@ a.about {
 }
 
 
+.view-mode .btn-toggle {
+  border-radius: 0;
+  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0);
+  padding: 1px 6px 2px 6px;
+  margin-right: -1px;
+  &.active {
+    background-color: $color-white;
+    color: $color-blue;
+  }
+  &:hover:not(.active) {
+    border-color: $color-white;
+    color: $color-white;
+  }
+}
+
+
+.view-mode {
+  padding: 6px 0;
+}
+
 .title {
   font-size: 17px;
   font-weight: 700;
@@ -825,29 +847,6 @@ li.dropdown {
     white-space: nowrap;
   }
 }
-
-.view-mode .btn-toggle {
-  border-radius: 0;
-  box-shadow: none;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0);
-  padding: 1px 6px 2px 6px;
-  margin-right: -1px;
-  &.active {
-    background-color: $color-white;
-    color: $color-blue;
-  }
-  &:hover:not(.active) {
-    border-color: $color-white;
-    color: $color-white;
-  }
-}
-
-
-.view-mode {
-  padding: 6px 0;
-}
-
 
 /*
 ._expanded .navbar-nav { // review

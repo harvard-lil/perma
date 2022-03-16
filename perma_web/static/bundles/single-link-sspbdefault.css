@@ -3365,6 +3365,23 @@ a.about {
     .col._user._unauthenticated {
       text-align: center; } }
 
+.view-mode .btn-toggle {
+  border-radius: 0;
+  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0);
+  padding: 1px 6px 2px 6px;
+  margin-right: -1px; }
+  .view-mode .btn-toggle.active {
+    background-color: white;
+    color: #2D76EE; }
+  .view-mode .btn-toggle:hover:not(.active) {
+    border-color: white;
+    color: white; }
+
+.view-mode {
+  padding: 6px 0; }
+
 .title {
   font-size: 17px;
   font-weight: 700;
@@ -3551,23 +3568,6 @@ li.dropdown {
     line-height: 1.42857143;
     color: #333333;
     white-space: nowrap; }
-
-.view-mode .btn-toggle {
-  border-radius: 0;
-  box-shadow: none;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0);
-  padding: 1px 6px 2px 6px;
-  margin-right: -1px; }
-  .view-mode .btn-toggle.active {
-    background-color: white;
-    color: #2D76EE; }
-  .view-mode .btn-toggle:hover:not(.active) {
-    border-color: white;
-    color: white; }
-
-.view-mode {
-  padding: 6px 0; }
 
 /*
 ._expanded .navbar-nav { // review
@@ -4176,4 +4176,4 @@ body.modal-open {
       margin: 0px auto; }
 
 
-/*# sourceMappingURL=single-link.css.map*/
+/*# sourceMappingURL=single-link-sspbdefault.css.map*/

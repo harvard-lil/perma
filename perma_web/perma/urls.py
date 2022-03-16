@@ -155,14 +155,15 @@ urlpatterns = [
     url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
     # display custom template when WR reports a replay error
     url(r'^archive-error/?$', common.archive_error, name='archive_error'),
+    url(r'^archive-error/?$', common.archive_error, name='archive_error'),
 
     # memento support
     url(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
     url(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
 
-
+    # sspbdefault remove common.single_permalink_sspbdefault and condition when client_side_playback is the default
     # Our Perma ID catchall
-    url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
+    url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink_sspbdefault if settings.SSPB_DEFAULT else common.single_permalink, name='single_permalink'),
 
     # robots.txt
     url(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
@@ -180,7 +181,8 @@ if settings.ENABLE_SPONSORED_USERS:
         url(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
     ]
 
-if settings.OFFER_CLIENT_SIDE_PLAYBACK:
+# sspbdefault remove conditionality of the client side playback urls when client_side_playback is the default
+if settings.OFFER_CLIENT_SIDE_PLAYBACK or not settings.SSPB_DEFAULT:
     urlpatterns += [
         url(r'^replay/sw.js?$', common.replay_service_worker, name='replay_service_worker'),
         url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),

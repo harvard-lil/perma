@@ -29,17 +29,9 @@
         {% else %}
           <img src="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
         {% endif %}
-      {% elif view_mode == 'server-side' %}
-          <iframe name="{{ link.submitted_url }}" class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
-          </iframe>
-          <script src="{{ protocol}}{{ wr_host }}/static/bundle/wb_frame.js"></script>
-          <script>
-          var cframe = new ContentFrame({"url": "{{ wr_url | escapejs }}",
-                                         "prefix": "{{ protocol}}{{ wr_prefix }}",
-                                         "request_ts": "{{ wr_timestamp }}",
-                                         "iframe": ".archive-iframe"});
-          </script>
-      {% elif view_mode == 'compare' %}
+      {% else %}
+        {% if client_side_playback %}
+          {% if compare_replays %}
           <div class="client-side-compare">
               <div class="server-side">
                    <iframe name="{{ link.submitted_url }}"
@@ -59,13 +51,25 @@
                 <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
                                  url="{{ link.submitted_url }}"
                                  embed="replayonly"
-                                 view="{{ view_action }}"></replay-web-page>
+                                 view="{{ client_side_playback }}"></replay-web-page>
               </div>
             </div>
           {% else %}
             <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
             <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
-                             url="{{ link.submitted_url }}" view="{{ view_action }}"></replay-web-page>
+                             url="{{ link.submitted_url }}" view="{{ client_side_playback }}"></replay-web-page>
+            {% endif %}
+        {% else %}
+          <iframe name="{{ link.submitted_url }}" class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+          </iframe>
+          <script src="{{ protocol}}{{ wr_host }}/static/bundle/wb_frame.js"></script>
+          <script>
+          var cframe = new ContentFrame({"url": "{{ wr_url | escapejs }}",
+                                         "prefix": "{{ protocol}}{{ wr_prefix }}",
+                                         "request_ts": "{{ wr_timestamp }}",
+                                         "iframe": ".archive-iframe"});
+          </script>
+        {% endif %}
       {% endif %}
     </div>
   </div>

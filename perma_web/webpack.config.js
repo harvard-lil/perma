@@ -13,7 +13,10 @@ module.exports = {
       './static/js/single-link.module.js',
       './static/css/style-responsive-archive.scss'
     ],
-
+    'single-link-sspbdefault': [ // sspbdefault remove when client side playback is the default
+      './static/js/single-link.module.js',
+      './static/css/style-responsive-archive-sspbdefault.scss'
+    ],
     'global': [
       './static/js/global.js',
       './static/css/style-responsive.scss',

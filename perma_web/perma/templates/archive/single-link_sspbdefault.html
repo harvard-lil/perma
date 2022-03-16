@@ -80,26 +80,32 @@
       </div>
       <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
-          <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record
-             {% if not request.user.is_authenticated %} <a href="{% url 'about' %}" target="_blank"><img alt="What is Perma.cc?" height="12" src="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/ui/perma-ui-info.svg"></a> {% endif %}
-          </p>
-          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}</p>
-          {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-            <div class="view-mode">
-              <div class="server-client-toggle toggle-btn-group pt-3">
-                <strong>View<span class="_verbose"> Mode</span>:</strong>
+          <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
+          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
+            {% if serve_type != 'image' %}
+              {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                <span class="action">
+                  <span class="_verbose">
+                    Looks wrong?
+                    <a href="{% url 'single_permalink' link.guid %}?type=image">
+                    See the Screenshot View
+                    </a>
+                  </span>
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="action">
+                <span class="_verbose">This is a screenshot. </span>
                 {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}">Standard</a>
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Legacy</a>
+                  <a href="{% url 'single_permalink' link.guid %}">See the Capture View</a>
                 {% endif %}
-                {% if request.user.offer_compare_playback %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
-                {% endif %}
-                <a class="btn btn-ui-small btn-toggle {% if serve_type == 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?type=image">Screenshot</a>
-              </div>
-            </div>
-          {% endif %}
-
+              </span>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+            {% else %}
+              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+            {% endif %}
+          </p>
         </div>
       </div>
       <div class="col col-sm-2 _livepage">
@@ -190,7 +196,7 @@
           <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
         {% endif %}
         {# user edit buttons #}
-        {% if true %}
+        {% if can_toggle_private %}
           <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
           {% if request.user.is_staff %}
             {% if link.is_private %}
@@ -206,17 +212,17 @@
           {% endif %}
         {% endif %}
       </div>
+      {% if request.user.offer_client_side_playback %}
         <div class="tray-actions col-xs-12">
           <dt class="tray-detail-title">Client-Side Playback</dt>
           <dd class="tray-detail-entry">
-            <a class="btn btn-ui-small btn-dashboard" href="?view-action=replay">Replay</a>
-            {% if request.user.allow_compare %}
-              <a class="btn btn-ui-small btn-dashboard" href="?view-action=compare">Compare</a>
-            {% endif %}
-            <a class="btn btn-ui-small btn-dashboard" href="?view-action=resources">Explore contents</a>
-            <a class="btn btn-ui-small btn-dashboard" href="?view-action=pages">List pages</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=replay">Replay</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=compare">Compare</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=resources">Explore contents</a>
+            <a class="btn btn-ui-small btn-dashboard" href="?client-side=pages">List pages</a>
           </dd>
         </div>
+      {% endif %}
 
       {# In IE, our tray shows behind iframes containing PDFs. Adding a blank iframe at z-index -1 fixes the problem. Via https://stackoverflow.com/a/12977151/307769 #}
       <script type="text/javascript">
@@ -258,10 +264,10 @@
     {% if redirect_to_download_view %}
       {% include "archive/download_to_view_pdf.html" %}
     {% else %}
-      {% include "archive/iframe.html" %}
+      {% include "archive/iframe_sspbdefault.html" %}
     {% endif %}
   {% elif link.is_private %}
-    {% include "archive/dark-archive.html" %}
+    {% include "archive/dark-archive.html" %} #TODOTODO: make corrector
   {% endif %}
 
 {% endblock %}
