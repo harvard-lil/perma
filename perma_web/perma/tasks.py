@@ -1560,13 +1560,19 @@ def delete_all_from_internet_archive(guids=None, limit=None):
 
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def upload_all_to_internet_archive(limit=None):
+def upload_all_to_internet_archive(limit=None, max_size=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
+
+    max_size = max_size or settings.INTERNET_ARCHIVE_MAX_UPLOAD_SIZE
 
     links = Link.objects.visible_to_ia().filter(
         internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
     )
+
+    if max_size:
+        links = links.filter(warc_size__lte=max_size)
+
     if limit:
         links = links[:limit]
     queued = 0
