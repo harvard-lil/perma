@@ -476,6 +476,7 @@ API_SUBDOMAIN = 'api'
 
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
+INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 # Find these at https://archive.org/account/s3.php :
