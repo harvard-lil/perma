@@ -31675,25 +31675,22 @@ function set_folder_from_dropdown(new_folder_id) {
 
 function populate_link_batch_list() {
   var limit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 7;
-
-  if (settings.ENABLE_BATCH_LINKS) {
-    APIModule.request('GET', '/archives/batches/', {
-      'limit': limit
-    }).then(function (data) {
-      if (data.objects.length > 0) {
-        var template = batchHistoryTemplate({
-          'link_batches': data.objects,
-          'next': data.meta.next
-        });
-        $batch_history.html(template);
-        $batch_list_container.removeClass('_hide');
-        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
-      }
-    }).catch(function (e) {
-      console.log(e);
-      $batch_history.html('<p>(unavailable)</p>');
-    });
-  }
+  APIModule.request('GET', '/archives/batches/', {
+    'limit': limit
+  }).then(function (data) {
+    if (data.objects.length > 0) {
+      var template = batchHistoryTemplate({
+        'link_batches': data.objects,
+        'next': data.meta.next
+      });
+      $batch_history.html(template);
+      $batch_list_container.removeClass('_hide');
+      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
+    }
+  }).catch(function (e) {
+    console.log(e);
+    $batch_history.html('<p>(unavailable)</p>');
+  });
 }
 
 function setup_handlers() {

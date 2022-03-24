@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import csv
 import django_filters
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Prefetch
@@ -383,13 +382,12 @@ class AuthenticatedLinkListView(BaseView):
             submitted_url=submitted_url,
             created_by=request.user
         )
-        if settings.ENABLE_BATCH_LINKS:
-            # Batch is set directly on the request object by the LinkBatch api,
-            # to prevent abuse of this feature by those POSTing directly to this route.
-            if getattr(request, 'batch', None):
-                capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
-        capture_job.save()
 
+        # Batch is set directly on the request object by the LinkBatch api,
+        # to prevent abuse of this feature by those POSTing directly to this route.
+        if getattr(request, 'batch', None):
+            capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
+        capture_job.save()
 
         # Set target folder, in order of preference:
         # - 'folder' key in data
@@ -685,47 +683,49 @@ class LinkBatchesListView(BaseView):
 
     def post(self, request, format=None):
         """ Create link batch. """
-        if settings.ENABLE_BATCH_LINKS:
-            request.data['created_by'] = request.user.pk
-            serializer = self.serializer_class(data=request.data, context={'request': self.request})
-            if serializer.is_valid():
+        # mark batch with user
+        if not request.user.is_authenticated:
+            raise PermissionDenied()
+        request.data['created_by'] = request.user.pk
 
-                serializer.save(created_by=request.user)
-
-                # Attempt creation of Perma Links
-                path = reverse_api_view_relative('archives')
-                batch_id = serializer.data['id']
-                call_list = [
-                    {
-                        'path': path,
-                        'verb': 'POST',
-                        'data': {
-                            'url': url,
-                            'folder': request.data['target_folder'],
-                            'human': request.data.get('human', False)
-                        }
-                    } for url in request.data.get('urls', [])
-                ]
-                dispatch_multiple_requests(request, call_list, {"batch": batch_id})
-                # TODO: how can we communicate these errors to the user?
-                # if dispatch_multiple_requests returns to "responses"
-                # internal_server_errors = [
-                #     response['data']['data']['url'] for response in responses if response['status_code'] == 500
-                # ]
-                # Get an up-to-date version of this LinkBatch's data,
-                # formatted by the LinkBatch serializer
-                call_for_fresh_serializer_data = [{
-                    'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
-                    'verb': 'GET'
-                }]
-                response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
-                data = response[0]['data'].copy()
-                links_remaining = request.user.get_links_remaining()
-                data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
-                data['links_remaining_period'] = links_remaining[1]
-                return Response(data, status=status.HTTP_201_CREATED)
+        # save batch
+        serializer = self.serializer_class(data=request.data, context={'request': self.request})
+        if not serializer.is_valid():
             raise ValidationError(serializer.errors)
-        raise PermissionDenied()
+        serializer.save(created_by=request.user)
+
+        # Attempt creation of Perma Links
+        path = reverse_api_view_relative('archives')
+        batch_id = serializer.data['id']
+        call_list = [
+            {
+                'path': path,
+                'verb': 'POST',
+                'data': {
+                    'url': url,
+                    'folder': request.data['target_folder'],
+                    'human': request.data.get('human', False)
+                }
+            } for url in request.data.get('urls', [])
+        ]
+        dispatch_multiple_requests(request, call_list, {"batch": batch_id})
+        # TODO: how can we communicate these errors to the user?
+        # if dispatch_multiple_requests returns to "responses"
+        # internal_server_errors = [
+        #     response['data']['data']['url'] for response in responses if response['status_code'] == 500
+        # ]
+        # Get an up-to-date version of this LinkBatch's data,
+        # formatted by the LinkBatch serializer
+        call_for_fresh_serializer_data = [{
+            'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
+            'verb': 'GET'
+        }]
+        response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
+        data = response[0]['data'].copy()
+        links_remaining = request.user.get_links_remaining()
+        data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
+        data['links_remaining_period'] = links_remaining[1]
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 # /batches/:id
