@@ -4,6 +4,7 @@ import django_filters
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from mptt.exceptions import InvalidMove
 from rest_framework import status
@@ -29,6 +30,7 @@ from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer,
 class BaseView(APIView):
     permission_classes = (IsAuthenticated,)  # by default all users must be authenticated
     serializer_class = None  # overridden for each subclass
+    queryset = None  # override to provide queryset for list and detail views
 
     # configure filtering of list endpoints by query string
     filter_backends = (
@@ -40,6 +42,15 @@ class BaseView(APIView):
 
 
     ### helpers ###
+
+    def get_queryset(self, queryset=None):
+        """Return queryset, or self.queryset, or raise config error."""
+        if queryset is None:
+            if self.queryset is None:
+                raise NotImplementedError("No queryset configured on subclass.")
+            queryset = self.queryset
+        return queryset
+
 
     def filter_queryset(self, queryset):
         """
@@ -70,16 +81,17 @@ class BaseView(APIView):
         """
             Get single object by primary key, based on our serializer_class.
         """
-        ModelClass = self.serializer_class.Meta.model
-        return self.get_object_for_user(user, ModelClass.objects.filter(pk=pk))
+        queryset = self.queryset.all() if self.queryset is not None else self.serializer_class.Meta.model.objects.all()
+        return self.get_object_for_user(user, queryset.filter(pk=pk))
 
 
     ### basic views ###
 
-    def simple_list(self, request, queryset, serializer_class=None):
+    def simple_list(self, request, queryset=None, serializer_class=None):
         """
             Paginate and return a list of objects from given queryset.
         """
+        queryset = self.get_queryset(queryset)
         queryset = self.filter_queryset(queryset)
         paginator = TastypiePagination()
         items = paginator.paginate_queryset(queryset, request)
@@ -657,11 +669,19 @@ class LinkUserView(BaseView):
 # /batches
 class LinkBatchesListView(BaseView):
     serializer_class = LinkBatchSerializer
+    queryset = (LinkBatch.objects
+        # order capture_jobs for each batch by order they were run
+        .prefetch_related(
+            Prefetch(
+                'capture_jobs',
+                queryset=CaptureJob.objects.order_by('-human', 'order', 'pk').select_related('link')
+            ))
+        # order batches by most recent first
+        .order_by('-started_on'))
 
     def get(self, request, format=None):
         """ List link batches for user. """
-        queryset = LinkBatch.objects.filter(created_by=request.user).order_by('-started_on')
-        return self.simple_list(request, queryset, serializer_class=DetailedLinkBatchSerializer)
+        return self.simple_list(request, serializer_class=DetailedLinkBatchSerializer)
 
     def post(self, request, format=None):
         """ Create link batch. """
@@ -669,6 +689,7 @@ class LinkBatchesListView(BaseView):
             request.data['created_by'] = request.user.pk
             serializer = self.serializer_class(data=request.data, context={'request': self.request})
             if serializer.is_valid():
+
                 serializer.save(created_by=request.user)
 
                 # Attempt creation of Perma Links
@@ -710,6 +731,7 @@ class LinkBatchesListView(BaseView):
 # /batches/:id
 class LinkBatchesDetailView(BaseView):
     serializer_class = DetailedLinkBatchSerializer
+    queryset = LinkBatchesListView.queryset.select_related('target_folder')
 
     def get(self, request, pk, format=None):
         """ Single link batch details. """
@@ -717,9 +739,7 @@ class LinkBatchesDetailView(BaseView):
 
 
 # /batches/:id/export
-class LinkBatchesDetailExportView(BaseView):
-    serializer_class = DetailedLinkBatchSerializer
-
+class LinkBatchesDetailExportView(LinkBatchesDetailView):
     def get(self, request, pk, format=None):
         """ Single link batch details. """
         api_response = self.simple_get(request, pk)
