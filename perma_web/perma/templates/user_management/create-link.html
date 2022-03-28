@@ -39,10 +39,7 @@
                     type="submit">
                 Create Perma Link
             </button>
-
-            {% if ENABLE_BATCH_LINKS %}
             <p id="create-batch-links">or <a id="create-batch" data-toggle="modal" href="#batch-modal">create multiple links</a></p>
-            {% endif %}
           </div>
 
           {% if request.user.is_individual %}
@@ -115,7 +112,6 @@
 <div class="container cont-fixed manage-links">
   <div class="row">
     <div class="col-md-3 col-folders">
-      {% if ENABLE_BATCH_LINKS %}
       <div id="batch-list-container" class="_hide">
         <div id="batch-list-toggle">
           <a role="button" class="dropdown" data-toggle="collapse" href="#batch-history" aria-expanded="false" aria-controls="batch-history">
@@ -125,7 +121,6 @@
         <div id="batch-history" class="collapse">
         </div>
       </div>
-      {% endif %}
       <div class="panel-heading">
         Folders
         <span class="buttons">
@@ -173,7 +168,5 @@
 
 {% block modals %}
   {% include "archive/includes/upload_your_own.html" %}
-  {% if ENABLE_BATCH_LINKS %}
-    {% include "archive/includes/link_batch_modal.html" %}
-  {% endif %}
+  {% include "archive/includes/link_batch_modal.html" %}
 {% endblock modals %}

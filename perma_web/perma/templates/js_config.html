@@ -3,8 +3,7 @@
     API_VERSION: {{ API_VERSION }},
     STATIC_URL: "{{ STATIC_URL }}",
     MEDIA_URL: "{{ MEDIA_URL }}",
-    DEBUG: {{ DEBUG|lower }},
-    ENABLE_BATCH_LINKS: {{ ENABLE_BATCH_LINKS|lower }}
+    DEBUG: {{ DEBUG|lower }}
   },
   api_path = "/api/v" + settings.API_VERSION
 </script>
