@@ -476,9 +476,9 @@ def contact(request):
 
     if request.method == 'POST':
         form = handle_registrar_fields(ContactForm(request.POST))
-        # Only send email if box2 is filled out and box1 is not.
-        # box1 is display: none, so should never be filled out except by spam bots.
-        if form.data.get('box1'):
+
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
             user_ip = get_client_ip(request)
             logger.info(f"Suppressing invalid contact email from {user_ip}: {form.data}")
             return HttpResponseRedirect(reverse('contact_thanks'))

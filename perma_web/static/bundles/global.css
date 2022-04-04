@@ -7692,10 +7692,10 @@ button#addlink,
   .col-sm-6.contact-form {
     width: 50%; } }
 
-.contact-form label[for="id_box1"] {
+.contact-form label[for="id_telephone"] {
   display: none; }
 
-.contact-form textarea[name="box1"] {
+.contact-form textarea[name="telephone"] {
   display: none; }
 
 .signup-learnMore-form label[for="id_telephone"], .signup-learnMore-form label[for="id_a-telephone"], .add-user label[for="id_telephone"], .add-user label[for="id_a-telephone"], .change-user label[for="id_telephone"], .change-user label[for="id_a-telephone"] {
