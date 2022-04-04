@@ -388,13 +388,13 @@ class AuthenticatedLinkListView(BaseView):
         except ValidationError as e:
             raise_invalid_capture_job(capture_job, e.detail)
 
-        message_template = "Perma can't create this link: {error} {resolution}"
+        message_template = "Perma can't create this link. {error} {resolution}"
 
         # Disallow creation of links in top-level sponsored folder
         if folder.is_sponsored_root_folder:
             message = message_template.format_map({
-                'error': 'Registrar root folders are read-only.',
-                'resolution': "Select a different folder."
+                'error': "You can't make links directly in your Sponsored Links folder.",
+                'resolution': "Select a folder belonging to a sponsor."
             })
             raise_invalid_capture_job(capture_job, message)
 
@@ -406,8 +406,8 @@ class AuthenticatedLinkListView(BaseView):
                 resolution = "Visit your Usage Plan page for information and plan options."
 
                 if request.user.cached_subscription_status == 'Hold':  # generally for users with CC issues
-                    error = 'Your account needs attention—'
-                    resolution = 'see your usage plan page for details.'
+                    error = 'Your account needs attention —'
+                    resolution = 'see your Usage Plan page for details.'
                 elif request.user.nonpaying:
                     resolution = 'Get in touch if you need more.'
 
@@ -417,7 +417,7 @@ class AuthenticatedLinkListView(BaseView):
             registrar = folder.sponsored_by if folder.sponsored_by else folder.organization.registrar
             registrar_contact_string = ', '.join([user.email for user in registrar.active_registrar_users()])
 
-            resolution = 'See your account settings for details.' if request.user.registrar else \
+            resolution = 'See your Usage Plan page for details.' if request.user.registrar else \
                 f"For assistance, contact: {registrar_contact_string}."
 
             if not registrar.link_creation_allowed():
