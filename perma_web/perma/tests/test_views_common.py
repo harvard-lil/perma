@@ -284,7 +284,7 @@ class CommonViewsTestCase(PermaTestCase):
         textareas = soup.select('textarea')
         self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['box1', 'box2'])
+            self.assertIn(textarea['name'],['telephone', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_regular(self):
@@ -305,7 +305,7 @@ class CommonViewsTestCase(PermaTestCase):
         textareas = soup.select('textarea')
         self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['box1', 'box2'])
+            self.assertIn(textarea['name'],['telephone', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_registrar(self):
@@ -326,7 +326,7 @@ class CommonViewsTestCase(PermaTestCase):
         textareas = soup.select('textarea')
         self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['box1', 'box2'])
+            self.assertIn(textarea['name'],['telephone', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_single_reg_org_user(self):
@@ -347,7 +347,7 @@ class CommonViewsTestCase(PermaTestCase):
         textareas = soup.select('textarea')
         self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['box1', 'box2'])
+            self.assertIn(textarea['name'],['telephone', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
 
     def test_contact_blank_multi_reg_org_user(self):
@@ -368,7 +368,7 @@ class CommonViewsTestCase(PermaTestCase):
         textareas = soup.select('textarea')
         self.assertEqual(len(textareas), 2)
         for textarea in textareas:
-            self.assertIn(textarea['name'],['box1', 'box2'])
+            self.assertIn(textarea['name'],['telephone', 'box2'])
             self.assertEqual(textarea.text.strip(), "")
         selects = soup.select('select')
         self.assertEqual(len(selects), 1)
@@ -467,7 +467,7 @@ class CommonViewsTestCase(PermaTestCase):
         '''
         self.submit_form('contact',
                           data = { 'email': self.from_email,
-                                   'box1': "I'm a bot",
+                                   'telephone': "I'm a bot",
                                    'box2': self.message_text,
                                    'subject': self.custom_subject,
                                    'referer': self.refering_page },
