@@ -809,5 +809,41 @@
       "level": 2,
       "read_only": true
     }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 66,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2002-02-28T00:00:00Z",
+      "created_by": 24,
+      "owned_by": 24,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 51,
+      "level": 0
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 67,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2002-02-28T00:00:00Z",
+      "created_by": 25,
+      "owned_by": 25,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 52,
+      "level": 0
+    }
   }
 ]

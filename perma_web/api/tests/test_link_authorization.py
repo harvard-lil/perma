@@ -27,9 +27,11 @@ class LinkAuthorizationMixin():
         self.regular_user = LinkUser.objects.get(pk=4)
         self.related_org_user = LinkUser.objects.get(pk=5) # belongs to the same org as the one that created the link
         self.unrelated_org_user = LinkUser.objects.get(pk=6)  # belongs to a different org than the one that created the link
+        self.firm_registrar_user = LinkUser.objects.get(email="registrar_user@firm.com")
         self.firm_user = LinkUser.objects.get(email="case_one_lawyer@firm.com")
         self.sponsored_user = LinkUser.objects.get(email="test_sponsored_user@example.com")
         self.inactive_sponsored_user = LinkUser.objects.get(email="inactive_sponsored_user@example.com")
+        self.over_limit_user = LinkUser.objects.get(email="over_limit_user@example.com")
 
         self.regular_user_empty_child_folder = Folder.objects.get(pk=29)
         self.firm_folder = Folder.objects.get(name="Some Case")
@@ -293,7 +295,21 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
         self.rejected_post(self.list_url, data=self.post_data)
 
     @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
-    def test_should_reject_create_if_folder_registrar_bad_standing(self, allowed):
+    def test_should_reject_create_if_folder_registrar_bad_standing_registrar(self, allowed):
+        allowed.return_value = False
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.firm_registrar_user,
+            data=dict(self.post_data,
+                      folder=self.firm_folder.pk)
+        )
+        allowed.assert_called_once_with(self.firm_folder.organization.registrar)
+        self.assertIn(b"account needs attention", response.content)
+        self.assertIn(b"See your Usage Plan", response.content)
+
+    @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
+    def test_should_reject_create_if_folder_registrar_bad_standing_regular(self, allowed):
         allowed.return_value = False
         response = self.rejected_post(
             self.list_url,
@@ -304,6 +320,56 @@ class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTra
         )
         allowed.assert_called_once_with(self.firm_folder.organization.registrar)
         self.assertIn(b"account needs attention", response.content)
+        self.assertIn(b"For assistance, contact: registrar_user@firm.com", response.content)
+  
+    def test_should_reject_if_over_link_limit_regular(self):
+        self.assertEqual(self.over_limit_user.link_limit, 0)
+        self.assertFalse(self.over_limit_user.nonpaying)
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.over_limit_user,
+            data=dict(self.post_data)
+        )
+        self.assertIn(b"Visit your Usage Plan page for information and plan options", response.content)
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    def test_should_reject_if_over_link_limit_nonpaying(self, remaining):
+        # fix up the fixture (oh how i long for thee, pytest factoryboy!)
+        self.assertEqual(self.over_limit_user.link_limit, 0)
+        self.over_limit_user.nonpaying = True
+        self.over_limit_user.save()
+        self.over_limit_user.refresh_from_db()
+        self.assertTrue(self.over_limit_user.nonpaying)
+        # set the mock
+        remaining.return_value = (0, 'monthly', 0)
+        
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.over_limit_user,
+            data=dict(self.post_data)
+        )
+        self.assertIn(b"Get in touch if you need more", response.content)
+
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    def test_should_reject_if_over_link_limit_subscription_on_hold(self, remaining):
+        # fix up the fixture (oh how i long for thee, pytest factoryboy!)
+        self.assertEqual(self.over_limit_user.link_limit, 0)
+        self.over_limit_user.cached_subscription_status = 'Hold'
+        self.over_limit_user.save()
+        self.over_limit_user.refresh_from_db()
+        self.assertEqual(self.over_limit_user.cached_subscription_status, 'Hold')
+        # set the mock
+        remaining.return_value = (0, 'monthly', 0)
+        
+        response = self.rejected_post(
+            self.list_url,
+            expected_status_code=400,
+            user=self.over_limit_user,
+            data=dict(self.post_data)
+        )
+        self.assertIn(b"Your account needs attention", response.content)
 
     def test_should_reject_create_if_sponsorship_deactivated(self):
         sponsored_folder = self.inactive_sponsored_user.sponsorships.first().folders.first()
