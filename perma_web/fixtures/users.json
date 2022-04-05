@@ -800,5 +800,31 @@
       "nonpaying": true,
       "unlimited": true
     }
+  },
+  {
+    "model": "perma.linkuser",
+    "pk": 25,
+    "fields": {
+      "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+      "last_login": "2002-02-28T00:00:00Z",
+      "email": "over_limit_user@example.com",
+      "registrar": null,
+      "pending_registrar": null,
+      "is_active": true,
+      "is_confirmed": true,
+      "is_staff": false,
+      "date_joined": "2002-02-28T00:00:00Z",
+      "first_name": "Over Limit",
+      "last_name": "User",
+      "root_folder": 67,
+      "requested_account_type": null,
+      "requested_account_note": null,
+      "link_count": 0,
+      "link_limit": 0,
+      "organizations": [],
+      "nonpaying": false,
+      "unlimited": false,
+      "in_trial": true
+    }
   }
 ]
