@@ -1,0 +1,17 @@
+[[source]]
+verify_ssl = true
+url = "https://pypi.org/simple"
+name = "pypi"
+
+[packages]
+# general
+"Fabric3" = "*"                             # task automation
+tqdm = "*"                                  # progress bar in dev fab tasks
+requests = "*"
+pyquery = "*"
+pytest = "*" 
+playwright = ">=1.18"
+pytest-playwright = "*"
+
+[requires]
+python_version = "3.8"

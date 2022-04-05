@@ -27,8 +27,8 @@ services:
       context: .
       dockerfile: ./perma_web/Dockerfile
       args:
-        chrome-layer-cache-buster: 120070d7-0ce4-47f9-8afe-5f7f3e443dcc
-    image: perma3:0.129
+        chrome-layer-cache-buster: 1B007419-829B-4097-89B5-E6703F3A7737
+    image: perma3:0.142
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -85,20 +85,42 @@ services:
       - "127.0.0.1:4444:4444"
     networks:
       - default
-
+      
+  #
+  # Perma Functional Tests
+  #
+  playwright:
+    build:
+      context: .
+      dockerfile: ./playwright/Dockerfile
+    image: perma-playwright:0.003141592
+    volumes:
+      - ./playwright:/playwright:delegated
+    environment:
+      - START_XVFB=false
+    command: bash
+    tty: true
+    links:
+      - "web:perma.test"
+      - "nginx:perma-archives.test"
+    networks:
+      - default
+      - webrecorder
 
   #
   # Perma Payments
   #
   pp_db:
     image: registry.lil.tools/library/postgres:12.8
+    environment:
+      - POSTGRES_PASSWORD=example
     volumes:
       - pp_db_data:/var/lib/postgresql/data:delegated
     networks:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:0.36
+    image: registry.lil.tools/harvardlil/perma-payments:0.37
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && fab run"
@@ -124,7 +146,7 @@ services:
   # Upload scanning
   #
   filecheck:
-    image: registry.lil.tools/harvardlil/perma-filecheck:0.7
+    image: registry.lil.tools/harvardlil/perma-filecheck:0.92
     environment:
       - UVICORN_PORT=8888
     ports:
@@ -136,7 +158,7 @@ services:
   # Webrecorder
   #
   app:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     command: uwsgi --need-app /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -157,7 +179,7 @@ services:
       - webrecorder
 
   recorder:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     user: root
     entrypoint:
       - "/docker-entrypoint.sh"
@@ -188,7 +210,7 @@ services:
       - webrecorder
 
   warcserver:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     command: uwsgi --need-app /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -201,7 +223,7 @@ services:
       - webrecorder
 
   nginx:
-    image: registry.lil.tools/harvardlil/nginx:0.02
+    image: registry.lil.tools/harvardlil/nginx:0.03
     depends_on:
       - app
     volumes:

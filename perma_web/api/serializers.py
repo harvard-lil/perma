@@ -319,10 +319,5 @@ class LinkBatchSerializer(BaseSerializer):
         fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'target_folder')
 
 
-class DetailedLinkBatchSerializer(BaseSerializer):
-    capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+class DetailedLinkBatchSerializer(LinkBatchSerializer):
     target_folder = FolderSerializer(read_only=True)
-
-    class Meta:
-        model = LinkBatch
-        fields = ('id', 'started_on', 'created_by', 'capture_jobs', 'target_folder')

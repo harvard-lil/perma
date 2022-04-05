@@ -476,6 +476,7 @@ API_SUBDOMAIN = 'api'
 
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
+INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 # Find these at https://archive.org/account/s3.php :
@@ -554,7 +555,6 @@ THUMBNAIL_STORAGE_PATH = 'thumbnails'
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
-ENABLE_BATCH_LINKS = False
 # N.B. If True, requires RUN_TASKS_ASYNC = True
 
 # security settings -- set these to true if SSL is available
@@ -591,7 +591,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
     'DEBUG',
-    'ENABLE_BATCH_LINKS',
     'ENABLE_SPONSORED_USERS',
     'ENABLE_BONUS_LINKS',
     'PLAYBACK_HOST',
@@ -604,7 +603,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
 DISABLE_DEV_SHM = False
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 PERMABOT_USER_AGENT_SUFFIX = "(Perma.cc bot)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []

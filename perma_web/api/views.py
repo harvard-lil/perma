@@ -1,9 +1,9 @@
 from collections import OrderedDict
 import csv
 import django_filters
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from mptt.exceptions import InvalidMove
 from rest_framework import status
@@ -29,6 +29,7 @@ from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer,
 class BaseView(APIView):
     permission_classes = (IsAuthenticated,)  # by default all users must be authenticated
     serializer_class = None  # overridden for each subclass
+    queryset = None  # override to provide queryset for list and detail views
 
     # configure filtering of list endpoints by query string
     filter_backends = (
@@ -40,6 +41,15 @@ class BaseView(APIView):
 
 
     ### helpers ###
+
+    def get_queryset(self, queryset=None):
+        """Return queryset, or self.queryset, or raise config error."""
+        if queryset is None:
+            if self.queryset is None:
+                raise NotImplementedError("No queryset configured on subclass.")
+            queryset = self.queryset
+        return queryset
+
 
     def filter_queryset(self, queryset):
         """
@@ -70,16 +80,17 @@ class BaseView(APIView):
         """
             Get single object by primary key, based on our serializer_class.
         """
-        ModelClass = self.serializer_class.Meta.model
-        return self.get_object_for_user(user, ModelClass.objects.filter(pk=pk))
+        queryset = self.queryset.all() if self.queryset is not None else self.serializer_class.Meta.model.objects.all()
+        return self.get_object_for_user(user, queryset.filter(pk=pk))
 
 
     ### basic views ###
 
-    def simple_list(self, request, queryset, serializer_class=None):
+    def simple_list(self, request, queryset=None, serializer_class=None):
         """
             Paginate and return a list of objects from given queryset.
         """
+        queryset = self.get_queryset(queryset)
         queryset = self.filter_queryset(queryset)
         paginator = TastypiePagination()
         items = paginator.paginate_queryset(queryset, request)
@@ -371,13 +382,12 @@ class AuthenticatedLinkListView(BaseView):
             submitted_url=submitted_url,
             created_by=request.user
         )
-        if settings.ENABLE_BATCH_LINKS:
-            # Batch is set directly on the request object by the LinkBatch api,
-            # to prevent abuse of this feature by those POSTing directly to this route.
-            if getattr(request, 'batch', None):
-                capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
-        capture_job.save()
 
+        # Batch is set directly on the request object by the LinkBatch api,
+        # to prevent abuse of this feature by those POSTing directly to this route.
+        if getattr(request, 'batch', None):
+            capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
+        capture_job.save()
 
         # Set target folder, in order of preference:
         # - 'folder' key in data
@@ -670,59 +680,71 @@ class LinkUserView(BaseView):
 # /batches
 class LinkBatchesListView(BaseView):
     serializer_class = LinkBatchSerializer
+    queryset = (LinkBatch.objects
+        # order capture_jobs for each batch by order they were run
+        .prefetch_related(
+            Prefetch(
+                'capture_jobs',
+                queryset=CaptureJob.objects.order_by('-human', 'order', 'pk').select_related('link')
+            ))
+        # order batches by most recent first
+        .order_by('-started_on'))
 
     def get(self, request, format=None):
         """ List link batches for user. """
-        queryset = LinkBatch.objects.filter(created_by=request.user).order_by('-started_on')
-        return self.simple_list(request, queryset, serializer_class=DetailedLinkBatchSerializer)
+        return self.simple_list(request, serializer_class=DetailedLinkBatchSerializer)
 
     def post(self, request, format=None):
         """ Create link batch. """
-        if settings.ENABLE_BATCH_LINKS:
-            request.data['created_by'] = request.user.pk
-            serializer = self.serializer_class(data=request.data, context={'request': self.request})
-            if serializer.is_valid():
-                serializer.save(created_by=request.user)
+        # mark batch with user
+        if not request.user.is_authenticated:
+            raise PermissionDenied()
+        request.data['created_by'] = request.user.pk
 
-                # Attempt creation of Perma Links
-                path = reverse_api_view_relative('archives')
-                batch_id = serializer.data['id']
-                call_list = [
-                    {
-                        'path': path,
-                        'verb': 'POST',
-                        'data': {
-                            'url': url,
-                            'folder': request.data['target_folder'],
-                            'human': request.data.get('human', False)
-                        }
-                    } for url in request.data.get('urls', [])
-                ]
-                dispatch_multiple_requests(request, call_list, {"batch": batch_id})
-                # TODO: how can we communicate these errors to the user?
-                # if dispatch_multiple_requests returns to "responses"
-                # internal_server_errors = [
-                #     response['data']['data']['url'] for response in responses if response['status_code'] == 500
-                # ]
-                # Get an up-to-date version of this LinkBatch's data,
-                # formatted by the LinkBatch serializer
-                call_for_fresh_serializer_data = [{
-                    'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
-                    'verb': 'GET'
-                }]
-                response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
-                data = response[0]['data'].copy()
-                links_remaining = request.user.get_links_remaining()
-                data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
-                data['links_remaining_period'] = links_remaining[1]
-                return Response(data, status=status.HTTP_201_CREATED)
+        # save batch
+        serializer = self.serializer_class(data=request.data, context={'request': self.request})
+        if not serializer.is_valid():
             raise ValidationError(serializer.errors)
-        raise PermissionDenied()
+        serializer.save(created_by=request.user)
+
+        # Attempt creation of Perma Links
+        path = reverse_api_view_relative('archives')
+        batch_id = serializer.data['id']
+        call_list = [
+            {
+                'path': path,
+                'verb': 'POST',
+                'data': {
+                    'url': url,
+                    'folder': request.data['target_folder'],
+                    'human': request.data.get('human', False)
+                }
+            } for url in request.data.get('urls', [])
+        ]
+        dispatch_multiple_requests(request, call_list, {"batch": batch_id})
+        # TODO: how can we communicate these errors to the user?
+        # if dispatch_multiple_requests returns to "responses"
+        # internal_server_errors = [
+        #     response['data']['data']['url'] for response in responses if response['status_code'] == 500
+        # ]
+        # Get an up-to-date version of this LinkBatch's data,
+        # formatted by the LinkBatch serializer
+        call_for_fresh_serializer_data = [{
+            'path': reverse_api_view_relative('link_batch', kwargs={"pk": batch_id}),
+            'verb': 'GET'
+        }]
+        response = dispatch_multiple_requests(request, call_for_fresh_serializer_data)
+        data = response[0]['data'].copy()
+        links_remaining = request.user.get_links_remaining()
+        data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
+        data['links_remaining_period'] = links_remaining[1]
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 # /batches/:id
 class LinkBatchesDetailView(BaseView):
     serializer_class = DetailedLinkBatchSerializer
+    queryset = LinkBatchesListView.queryset.select_related('target_folder')
 
     def get(self, request, pk, format=None):
         """ Single link batch details. """
@@ -730,9 +752,7 @@ class LinkBatchesDetailView(BaseView):
 
 
 # /batches/:id/export
-class LinkBatchesDetailExportView(BaseView):
-    serializer_class = DetailedLinkBatchSerializer
-
+class LinkBatchesDetailExportView(LinkBatchesDetailView):
     def get(self, request, pk, format=None):
         """ Single link batch details. """
         api_response = self.simple_get(request, pk)

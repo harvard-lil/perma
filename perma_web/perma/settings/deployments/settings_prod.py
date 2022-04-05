@@ -48,6 +48,7 @@ CACHES["default"] = {
 # security settings
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_NAME = '__Host-sessionid'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # subscription packages

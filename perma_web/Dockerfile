@@ -1,4 +1,4 @@
-FROM registry.lil.tools/library/debian:buster
+FROM registry.lil.tools/library/debian:bullseye
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -32,8 +32,8 @@ RUN apt-get update \
     && apt-get install -y libmagickwand-dev
 
 # Install commonly used web fonts for better screen shots.
-RUN echo "deb http://httpredir.debian.org/debian buster main contrib" > /etc/apt/sources.list \
-    && echo "deb http://security.debian.org/ buster/updates main contrib" >> /etc/apt/sources.list \
+RUN echo "deb http://deb.debian.org/debian bullseye main contrib" > /etc/apt/sources.list \
+    && echo "deb https://deb.debian.org/debian-security bullseye-security main contrib" >> /etc/apt/sources.list \
     && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
     && apt-get update \
     && apt-get install -y ttf-mscorefonts-installer \
@@ -50,8 +50,9 @@ RUN apt-get update && apt-get install -y libnss3-tools \
 RUN apt-get update && apt-get install -y tor
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
-RUN apt-get update && apt-get install -y python-minimal
-RUN curl -o nodejs.deb https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.13.1-1nodesource1_amd64.deb \
+ARG BUILDARCH
+ENV BUILDARCH=${BUILDARCH:-amd64}
+RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.0-deb-1nodesource1_${BUILDARCH}.deb \
     && dpkg -i ./nodejs.deb \
     && rm nodejs.deb
 
@@ -69,22 +70,12 @@ COPY perma_web/Pipfile /perma/perma_web
 COPY perma_web/Pipfile.lock /perma/perma_web
 RUN pip3 install -U pip \
     && pip install pipenv \
-    && pipenv --python 3.7 install --ignore-pipfile --dev \
+    && pipenv --python 3.9 install --ignore-pipfile --dev \
     && rm Pipfile.lock
 
-# Install Chrome
-# technique from https://github.com/SeleniumHQ/docker-selenium/blob/master/NodeChrome/Dockerfile.txt
+# Install Chromium and driver
 ARG chrome-layer-cache-buster
-RUN apt-get --allow-releaseinfo-change update \
-    && apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 libnspr4 libnss3 libxcomposite1 libxcursor1 libxi6 libxrandr2 libxss1 libxtst6 xdg-utils \
-    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome*.deb \
-    && CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
-    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
-    && wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip \
-    && mv chromedriver /usr/bin/chromedriver \
-    && chmod +x /usr/bin/chromedriver
+RUN apt-get update && apt-get install -y chromium chromium-driver chromium-l10n chromium-sandbox
 
 # dev personalizations / try installing packages without rebuilding everything
 RUN apt-get update && apt-get install -y nano

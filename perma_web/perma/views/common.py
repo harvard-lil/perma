@@ -221,6 +221,15 @@ def single_permalink(request, guid):
                                               request.user.offer_client_side_playback
                                           ) else ''
         if context['client_side_playback']:
+            if context['client_side_playback'] == 'compare':
+                context['client_side_playback'] = 'replay'
+                context['compare_replays'] = True
+                context.update({
+                    'wr_host': settings.PLAYBACK_HOST,
+                    'wr_prefix': link.wr_iframe_prefix(link.init_replay_for_user(request)),
+                    'wr_url': capture.url,
+                    'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
+                })
             logger.info(f'Using client-side playback for {link.guid}')
         else:
             # Play back using Webrecorder
@@ -467,9 +476,9 @@ def contact(request):
 
     if request.method == 'POST':
         form = handle_registrar_fields(ContactForm(request.POST))
-        # Only send email if box2 is filled out and box1 is not.
-        # box1 is display: none, so should never be filled out except by spam bots.
-        if form.data.get('box1'):
+
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
             user_ip = get_client_ip(request)
             logger.info(f"Suppressing invalid contact email from {user_ip}: {form.data}")
             return HttpResponseRedirect(reverse('contact_thanks'))

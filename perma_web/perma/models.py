@@ -2095,7 +2095,7 @@ class LinkBatch(models.Model):
         verbose_name_plural = "link batches"
 
     def accessible_to(self, user):
-        return user.is_staff or self.created_by == user
+        return user.is_staff or self.created_by_id == user.pk
 
     def __str__(self):
         return f"LinkBatch {self.pk}"

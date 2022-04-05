@@ -24,7 +24,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
 
     commands = []
 
-    if settings.ENABLE_BATCH_LINKS and not settings.RUN_TASKS_ASYNC:
+    if not settings.RUN_TASKS_ASYNC:
         print("\nWarning! Batch Link creation will not work as expected:\n" +
               "to create new batches you must run with settings.RUN_TASKS_ASYNC = True\n")
 

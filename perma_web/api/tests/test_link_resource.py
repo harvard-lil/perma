@@ -684,7 +684,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             # test_media_b.html
             ("test.mp4", "video/mp4"), ("test2.mp4", "video/mp4"),
             # test_media_c.html
-            ("test.swf", "application/x-shockwave-flash"), ("test2.swf", "application/x-shockwave-flash"), ("test3.swf", "application/x-shockwave-flash"),
+            ("test.swf", "application/vnd.adobe.flash.movie"), ("test2.swf", "application/vnd.adobe.flash.movie"), ("test3.swf", "application/vnd.adobe.flash.movie"),
             ("test1.jpg", "image/jpeg"), ("test2.png", "image/png"), ("test_fallback.jpg", "image/jpeg"),
             ("wide1.png", "image/png"), ("wide2.png", "image/png"), ("narrow.png", "image/png")
         )

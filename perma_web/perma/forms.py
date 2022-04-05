@@ -371,6 +371,6 @@ class ContactForm(forms.Form):
     email = forms.EmailField(label="Your email address")
     registrar = forms.ChoiceField(choices = (), label = 'Your library')
     subject = forms.CharField(widget=forms.HiddenInput, required=False)
-    box1 = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
+    telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
     box2 = forms.CharField(label="Message", widget=forms.Textarea)
     referer = forms.URLField(widget=forms.HiddenInput, required=False)

@@ -1484,11 +1484,13 @@ def sign_up(request):
     """
     if request.method == 'POST':
         form = UserForm(request.POST)
+
         # telephone is display: none, so should never be filled out except by spam bots.
         if form.data.get('telephone'):
             user_ip = get_client_ip(request)
             logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
             return HttpResponseRedirect(reverse('register_email_instructions'))
+
         if form.is_valid():
             new_user = form.save()
             email_new_user(request, new_user)
@@ -1507,10 +1509,18 @@ def sign_up_courts(request):
     if request.method == 'POST':
         form = CreateUserFormWithCourt(request.POST)
         submitted_email = request.POST.get('e-address', None)
+
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
+
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
         except LinkUser.DoesNotExist:
             target_user = None
+
         if target_user:
             requested_account_note = request.POST.get('requested_account_note', None)
             target_user.requested_account_type = 'court'
@@ -1519,11 +1529,6 @@ def sign_up_courts(request):
             email_court_request(request, target_user)
             return HttpResponseRedirect(reverse('court_request_response'))
 
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'court'
@@ -1551,11 +1556,13 @@ def sign_up_faculty(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithUniversity(request.POST)
+
         # telephone is display: none, so should never be filled out except by spam bots.
         if form.data.get('telephone'):
             user_ip = get_client_ip(request)
             logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
             return HttpResponseRedirect(reverse('register_email_instructions'))
+
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'faculty'
@@ -1578,6 +1585,13 @@ def sign_up_firm(request):
     if request.method == 'POST':
         form = CreateUserFormWithFirm(request.POST)
         user_email = request.POST.get('e-address', None)
+
+        # telephone is display: none, so should never be filled out except by spam bots.
+        if form.data.get('telephone'):
+            user_ip = get_client_ip(request)
+            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
+
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1590,11 +1604,6 @@ def sign_up_firm(request):
             email_firm_request(request, target_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'firm'
@@ -1622,11 +1631,13 @@ def sign_up_journals(request):
     """
     if request.method == 'POST':
         form = CreateUserFormWithUniversity(request.POST)
+
         # telephone is display: none, so should never be filled out except by spam bots.
         if form.data.get('telephone'):
             user_ip = get_client_ip(request)
             logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
             return HttpResponseRedirect(reverse('register_email_instructions'))
+
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'journal'

@@ -54,7 +54,7 @@ Remember to set `SECURE_SSL_REDIRECT = False` when you go back to
 running without SSL. Note also that if you run with SSL against a
 local (non-SSL) webrecorder, playback will fail silently.
 
-### Run all the tests
+### Run the tests
 
 `d fab test`
 
@@ -73,6 +73,16 @@ including a super-convenient keyword-matching option:
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
+
+### Run the playback tests
+
+First, spin up your development instance of Perma:
+
+`d fab run`
+
+Then, in a new terminal window:
+
+`docker-compose exec playwright pipenv run pytest --browser chromium --browser firefox --browser webkit`
 
 ### Update the python dependencies
 
@@ -94,10 +104,10 @@ N.B. To ensure that other Perma developers are prompted to install
 your changes, please increment the image version number for "web"
 in `docker-compose.yml`. This is not yet managed programmatically.
 
-### Update Chrome
+### Update Chromium
 
-If there's an [update to Google Chrome](https://chromereleases.googleblog.com/),
-run `bash update_chrome.sh` to rebuild the containers, install the new browser,
+If there's an update to Chromium,
+run `bash update_chromium.sh` to rebuild the containers, install the new browser,
 increment the Docker image version, and update the capture user agent.
 
 ### Migrate the database
@@ -284,6 +294,8 @@ Python unit tests live in `perma/tests`, `api/tests`, etc.
 Functional tests live in `functional_tests/`.
 
 Javascript tests live in `spec/`.
+
+Playback tests live in `playwright/`.
 
 See the [Common tasks and commands](#common-tasks-and-commands) for the
 common techniques for running the tests.
