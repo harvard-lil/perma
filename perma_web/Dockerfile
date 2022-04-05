@@ -78,4 +78,4 @@ ARG chrome-layer-cache-buster
 RUN apt-get update && apt-get install -y chromium chromium-driver chromium-l10n chromium-sandbox
 
 # dev personalizations / try installing packages without rebuilding everything
-# RUN apt-get update && apt-get install -y nano
+RUN apt-get update && apt-get install -y nano
