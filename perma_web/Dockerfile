@@ -1,4 +1,4 @@
-FROM registry.lil.tools/library/debian:bullseye
+FROM registry.lil.tools/library/debian:11.3
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
