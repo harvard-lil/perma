@@ -3,7 +3,7 @@ import itertools
 
 from datetime import timedelta
 
-from celery.task.control import inspect as celery_inspect
+import celery
 import redis
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.cache import never_cache
@@ -180,7 +180,7 @@ def stats(request, stat_type=None):
 
 
     elif stat_type == "celery":
-        inspector = celery_inspect()
+        inspector = celery.current_app.control.inspect()
         active = inspector.active()
         reserved = inspector.reserved()
         stats = inspector.stats()
