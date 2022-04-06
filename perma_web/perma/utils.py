@@ -72,18 +72,6 @@ class Sec1TLSAdapter(requests.adapters.HTTPAdapter):
     def cert_verify(self, conn, url, verify, cert):
         super().cert_verify(conn, url, False, cert)
 
-### celery helpers ###
-
-
-def run_task(task, *args, **kwargs):
-    """
-        Run a celery task either async or directly, depending on settings.RUN_TASKS_ASYNC.
-    """
-    options = kwargs.pop('options', {})
-    if settings.RUN_TASKS_ASYNC:
-        return task.apply_async(args, kwargs, **options)
-    else:
-        return task.apply(args, kwargs, **options)
 
 ### login helpers ###
 

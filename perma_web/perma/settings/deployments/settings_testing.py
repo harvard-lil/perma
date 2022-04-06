@@ -15,8 +15,6 @@ FIXTURE_DIRS = (
 # Overrides #
 #############
 
-RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inline
-
 SUBDOMAIN_URLCONFS = {}
 
 DEBUG = False

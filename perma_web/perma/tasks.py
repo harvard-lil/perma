@@ -52,7 +52,7 @@ from django.http import HttpRequest
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
-from perma.utils import (run_task, url_in_allowed_ip_range,
+from perma.utils import (url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset, protocol, remove_control_characters,
     user_agent_for_domain, Sec1TLSAdapter)
@@ -1409,7 +1409,7 @@ def run_next_capture():
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
                 capture_job.mark_failed('Failed during capture.')
-    run_task(run_next_capture.s())
+    run_next_capture.delay()
 
 
 @shared_task()
