@@ -95,7 +95,8 @@ TEMPLATES = [
 MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'api.middleware.APISubdomainMiddleware',
+    'perma.middleware.APISubdomainMiddleware',
+    'perma.middleware.ReplaySubdomainMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -144,6 +145,7 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
+    'replay',
     'lockss',
 
     # third party apps
@@ -469,8 +471,9 @@ CELERY_TASK_ROUTES = {
 }
 
 HOST = 'perma.test:8000'
-ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
+ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
 API_SUBDOMAIN = 'api'
+REPLAY_SUBDOMAIN = 'replay'
 
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
