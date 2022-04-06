@@ -96,6 +96,7 @@ sauceclient = "*"                           # run functional tests in many brows
 django-extensions = "*"                     # runserver_plus for SSL
 django-debug-toolbar = "*"                  # see SQL queries, monitor signals, etc.
 ipdb = "*"                                  # improved debugger and interactive shell
+watchdog = "*"                              # watch for file changes
 
 [requires]
 python_version = "3.9"

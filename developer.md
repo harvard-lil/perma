@@ -347,8 +347,6 @@ Celery worker adds. By default Perma will run celery tasks synchronously. To run
 in settings.py. `CELERY_TASK_ALWAYS_EAGER` must be `False` if you are specifically testing or setting up a new a Celery <-> Django 
 interaction or if you are working with LinkBatches (otherwise subtle bugs may not surface).
 
-If you make changes to a Perma.cc Celery task while `CELERY_TASK_ALWAYS_EAGER = False`, you'll need to stop and start 
-the Celery server. This is true even when the Django development server restarts by itself.
 
 ## Working with Redis
 

@@ -30,7 +30,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
     else:
         print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
               " CELERY_TASK_ALWAYS_EAGER=True is usually easier unless you're specifically testing a Django <-> Celery interaction.")
-        commands.append('celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h')
+        commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h")
 
     if settings.PROXY_CAPTURES:
         print("\nStarting Tor service in the background.")
