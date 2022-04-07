@@ -76,8 +76,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
 
                         local(f"python manage.py runserver_plus {port} {options}")
                 except ImportError:
-                    print("\nWarning! We can't serve via SSL, as django-extensions is not\n" +
-                          "installed. You may wish to run `pipenv install --dev`.\n")
+                    print("\nWarning! We can't serve via SSL, as django-extensions is not installed.\n")
             else:
                 if settings.SECURE_SSL_REDIRECT:
                     print("\nError! When *not* using SSL, you must run with settings.SECURE_SSL_REDIRECT = False\n")
@@ -160,6 +159,18 @@ def sauce_tunnel():
     if subprocess.call(['which','sc']) == 1: # error return code -- program not found
         sys.exit("Please check that the `sc` program is installed and in your path. To install: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy")
     local(f"sc -u {settings.SAUCE_USERNAME} -k {settings.SAUCE_ACCESS_KEY}")
+
+
+@task(alias='pip-compile')
+def pip_compile(args=''):
+    import subprocess
+
+    # run pip-compile
+    # Use --allow-unsafe because pip --require-hashes needs all requirements to be pinned, including those like
+    # setuptools that pip-compile leaves out by default.
+    command = ['pip-compile', '--generate-hashes', '--allow-unsafe']+args.split()
+    print("Calling %s" % " ".join(command))
+    subprocess.check_call(command, env=dict(os.environ, CUSTOM_COMPILE_COMMAND='fab pip-compile'))
 
 
 @task
