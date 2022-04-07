@@ -28,7 +28,7 @@ services:
       dockerfile: ./perma_web/Dockerfile
       args:
         chrome-layer-cache-buster: 1B007419-829B-4097-89B5-E6703F3A7737
-    image: perma3:0.144
+    image: perma3:0.145
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -92,7 +92,7 @@ services:
     build:
       context: .
       dockerfile: ./playwright/Dockerfile
-    image: perma-playwright:0.003141592
+    image: perma-playwright:0.0031415926
     volumes:
       - ./playwright:/playwright:delegated
     environment:
