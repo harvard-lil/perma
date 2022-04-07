@@ -342,24 +342,10 @@ kicked off by `d fab dev.test_sauce`.
 
 Celery does two things in Perma.cc: it runs the capture tasks and it runs scheduled jobs (to gather things nightly like statistics, just like cron might).
 
-In development, it's sometimes easier to run everything synchronously, without the additional layer of complexity a Celery worker adds. To run synchronously, set `RUN_TASKS_ASYNC = False` in settings.py. `RUN_TASKS_ASYNC` must be true if you are specifically testing or setting up a new a Celery-Django interaction, and must be true when working with LinkBatches (otherwise subtle bugs may not surface).
-
-In your development environment (if you are not using Docker, where the celery service should be running by default), you probably want to start a dev version of Celery like this:
-
-    $ celery -A perma worker --loglevel=info -B
-
-The -B option also starts the Beat server. The Beat server is the thing that runs the scheduled jobs. You don't need the -B if you don't want to run the nightly scheduled jobs.
-
-If you make changes to a Perma.cc Celery task, you'll need to stop and start the Celery server. This is true even when the Django development server restarts by itself.
-
-If you want to run Celery as a daemon (like you might in prod), there is an example upstart script in services/celery/celery.conf.
-This is the script that is used to run the daemon for Vagrant.
-
-Once installed in /etc/init/, you can start and stop Celery as a service. Something like,
-
-    $ sudo stop celery; sudo start celery
-
-Find more about daemonizing Celery in the [in the Celery docs](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
+In development, it's sometimes easier to run everything synchronously, without the additional layer of complexity a 
+Celery worker adds. By default Perma will run celery tasks synchronously. To run asynchronously, set `CELERY_TASK_ALWAYS_EAGER = False`
+in settings.py. `CELERY_TASK_ALWAYS_EAGER` must be `False` if you are specifically testing or setting up a new a Celery <-> Django 
+interaction or if you are working with LinkBatches (otherwise subtle bugs may not surface).
 
 
 ## Working with Redis

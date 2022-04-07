@@ -468,10 +468,6 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.populate_warc_size': {'queue': 'background'},
 }
 
-# Control whether Celery tasks should be run in the background or during a request.
-# This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
-RUN_TASKS_ASYNC = True
-
 API_SUBDOMAIN = 'api'
 
 # internet archive stuff
@@ -552,10 +548,6 @@ TEMPLATE_DEBUG = False
 
 # Relative to MEDIA_ROOT
 THUMBNAIL_STORAGE_PATH = 'thumbnails'
-
-# feature flags
-SINGLE_LINK_HEADER_TEST = False
-# N.B. If True, requires RUN_TASKS_ASYNC = True
 
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False

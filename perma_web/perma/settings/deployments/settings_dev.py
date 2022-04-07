@@ -34,6 +34,10 @@ GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 CELERY_RESULT_BACKEND = None
+# don't require celery listener
+CELERY_TASK_ALWAYS_EAGER = True
+# propagate exceptions from eager tasks for easier debugging
+CELERY_TASK_EAGER_PROPAGATES = True
 
 ### optional dev packages ###
 

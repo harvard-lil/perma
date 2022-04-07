@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from perma.utils import run_task, stream_warc, stream_warc_if_permissible, clear_wr_session
+from perma.utils import stream_warc, stream_warc_if_permissible, clear_wr_session
 from perma.tasks import run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
@@ -501,7 +501,7 @@ class AuthenticatedLinkListView(BaseView):
                 capture_job.status = 'pending'
                 capture_job.link = link
                 capture_job.save(update_fields=['status', 'link'])
-                run_task(run_next_capture.s())
+                run_next_capture.delay()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

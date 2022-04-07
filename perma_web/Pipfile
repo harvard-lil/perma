@@ -6,8 +6,7 @@ name = "pypi"
 [packages]
 
 # general
-celery = {version = "~=4.0", extras =["redis"]} # task queue
-future = ">=0.18.0"                         # undeclared dependency of celery 4.4.4; remove after next celery update
+celery = "*"                                # task queue
 Django = "~=2.2"
 django-ratelimit = "*"                      # IP-based rate-limiting
 django-axes = "*"                           # limit login attempts
@@ -97,6 +96,7 @@ sauceclient = "*"                           # run functional tests in many brows
 django-extensions = "*"                     # runserver_plus for SSL
 django-debug-toolbar = "*"                  # see SQL queries, monitor signals, etc.
 ipdb = "*"                                  # improved debugger and interactive shell
+watchdog = "*"                              # watch for file changes
 
 [requires]
 python_version = "3.9"

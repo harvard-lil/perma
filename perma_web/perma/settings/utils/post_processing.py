@@ -3,7 +3,7 @@
 # this is called by __init__.py
 
 from celery.schedules import crontab
-from celery.task.control import inspect as celery_inspect
+import celery
 
 def post_process_settings(settings):
 
@@ -66,7 +66,7 @@ def post_process_settings(settings):
     # start-up rather than at each load of the /manage/create page.
     # The call to inspector.active() takes almost two seconds.
     try:
-        inspector = celery_inspect()
+        inspector = celery.current_app.control.inspect()
         active = inspector.active()
         settings['WORKER_COUNT'] = len([key for key in active.keys() if key.split('@')[0][0] == 'w']) if active else 0
     except TimeoutError:

@@ -24,14 +24,13 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
 
     commands = []
 
-    if not settings.RUN_TASKS_ASYNC:
+    if settings.CELERY_TASK_ALWAYS_EAGER:
         print("\nWarning! Batch Link creation will not work as expected:\n" +
-              "to create new batches you must run with settings.RUN_TASKS_ASYNC = True\n")
-
-    if settings.RUN_TASKS_ASYNC:
+              "to create new batches you should run with settings.CELERY_TASK_ALWAYS_EAGER = False\n")
+    else:
         print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
-              " RUN_TASKS_ASYNC=False is usually easier unless you're specifically testing a Django-Celery interaction.")
-        commands.append('celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h')
+              " CELERY_TASK_ALWAYS_EAGER=True is usually easier unless you're specifically testing a Django <-> Celery interaction.")
+        commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h")
 
     if settings.PROXY_CAPTURES:
         print("\nStarting Tor service in the background.")
