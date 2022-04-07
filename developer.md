@@ -82,13 +82,19 @@ First, spin up your development instance of Perma:
 
 Then, in a new terminal window:
 
-`docker-compose exec playwright pipenv run pytest --browser chromium --browser firefox --browser webkit`
+`docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit`
 
 ### Update the python dependencies
 
-Make your changes in `Pipfile`. Then run `update.sh`, a convenience
-script that will create a new `Pipfile.lock` and will rebuild the
-Docker image with the new dependencies installed.
+Top-level requirements are stored in `requirements.in`. After updating that file, you should run
+
+`d fab pip-compile`
+
+to freeze all subdependencies into `requirements.txt`.
+
+To upgrade a single requirement to the latest version:
+
+`d fab pip-compile:"-P package_name"`
 
 N.B. To ensure that other Perma developers are prompted to install
 your changes, please increment the image version number for "web"
@@ -312,7 +318,7 @@ Flake8 settings are configured in `perma_web/.pep8`
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-commit` or `.git/hooks/pre-push`:
 
     #!/usr/bin/env bash
-    docker-compose exec -T web pipenv run flake8 .
+    docker-compose exec -T web flake8 .
     exit $?
 
 Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-commit` or `chmod u+x .git/hooks/pre-push`.

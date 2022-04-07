@@ -5,8 +5,6 @@ ENV LANG=C.UTF-8 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_SRC=/usr/local/src \
-    PIPENV_HIDE_EMOJIS=true \
-    PIPENV_NOSPIN=true \
     OPENSSL_CONF=/etc/ssl
 RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web
@@ -19,6 +17,7 @@ RUN apt-get update \
     && apt-get install -y gnupg \
     && apt-get install -y python3-pip \
     && apt-get install -y python3-dev \
+    && apt-get install -y python-is-python3 \
     && apt-get install -y virtualenv \
     && apt-get install -y git \
     \
@@ -63,15 +62,11 @@ RUN npm install \
     && rm package.json \
     && rm npm-shrinkwrap.json
 
-# python requirements via pipenv.
-# to access the virtualenv, invoke python like this: `pipenv run python`
-# COPY Pipfile though it is ignored, per https://github.com/pypa/pipenv/issues/2834
-COPY perma_web/Pipfile /perma/perma_web
-COPY perma_web/Pipfile.lock /perma/perma_web
-RUN pip3 install -U pip \
-    && pip install pipenv \
-    && pipenv --python 3.9 install --ignore-pipfile --dev \
-    && rm Pipfile.lock
+# python requirements
+COPY perma_web/requirements.txt /perma/perma_web
+RUN pip install pip==22.0.4 \
+    && pip install -r /perma/perma_web/requirements.txt \
+    && rm /perma/perma_web/requirements.txt
 
 # Install Chromium and driver
 ARG chrome-layer-cache-buster

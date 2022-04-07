@@ -1,0 +1,96 @@
+# After updating this file, run `fab pip-compile` to update requirements.txt.
+# To update a single dependency, pass pip-compile args to fab. For example: fab 'pip-compile:-P django'
+
+# general
+celery                                  # task queue
+Django==2.2.27
+django-ratelimit                        # IP-based rate-limiting
+django-axes==5.27.0                     # limit login attempts
+Fabric3                                 # task automation
+netaddr                                 # to check archive IPs against banned ranges
+pytz                                    # timezone helper
+requests[security]==2.27.1
+tqdm                                    # progress bar in dev fab tasks
+Werkzeug
+uwsgitop                                # uWSGI monitoring
+
+
+# databases
+psycopg2==2.8.6
+django-redis                            # use redis as django's cache backend
+redis                                   # Needed to bind with Redis.
+
+
+# models
+django-model-utils                      # soft deletion and other nice things
+django-mptt                             # trees (like our folder tree)
+django-simple-history                   # track changes to certain models
+django-taggit                           # add tags to model instances
+
+
+# templates
+django-settings-context-processor       # make settings available in templates
+
+
+# assets
+django-webpack-loader<1.0.0             # frontend assets building
+Pillow                                  # Used by the Django admin for ImageField display
+whitenoise                              # serve static assets
+
+
+# thumbnails (carousel? anything else?)
+sorl-thumbnail==12.3
+Wand
+
+
+# capture related stuff
+pyquery                                 # extract data from HTML in capture task
+PyVirtualDisplay                        # for capturing with non-headless browsers
+selenium==2.47.3                        # drive headless browsers. pinned after IOErrors on deployment; unpin and upgrade after assessment, testing
+tempdir                                 # create temp dirs to be deleted at end of function -- handy for archive creation
+ua-parser                               # user agent parsing to detect mobile browsers during playbacks
+warcio                                  # helps us write metadata and inspect our WARCs
+warcprox
+
+
+# alternate storages
+django-storages[azure]                  # custom storage backends for Django (including Azure)
+boto3                                   # required for django-storages to use s3 backend
+
+
+# api
+djangorestframework                     # toolkit for building apis
+django-filter                           # searching
+
+
+# link preservation
+internetarchive                         # upload warcs to internet archive
+
+# memento support
+surt                                    # canonicalizes URLs for sorting and comparing
+#timegate = "0.5.0.dev20160000"         # find the closest PermaLink to a datetime
+https://github.com/mementoweb/timegate/archive/6810fbc873b84f6af8e78e89fc8515f21b695cae.zip#egg=timegate
+
+# perma payments
+PyNaCl                                  # encryption
+
+
+# development
+beautifulsoup4                          # parses html of responses
+coverage                                # record code coverage
+django-admin-smoke-tests                # basic tests for the Django admin
+fakeredis[lua]                          # simulate redis backend for tests
+flake8                                  # code linting
+hypothesis                              # run tests with lots of generated input
+mock                                    # safe monkey patching
+pytest-cov                              # integrate coverage w/ pytest
+pytest-django                           # tools for django in pytest
+pytest-django-ordering                  # runs transaction-wrapped tests before table truncating tests
+pytest-xdist                            # run tests in parallel
+pytest                                  # test runner
+sauceclient                             # run functional tests in many browsers online
+django-extensions                       # runserver_plus for SSL
+django-debug-toolbar                    # see SQL queries, monitor signals, etc.
+ipdb                                    # improved debugger and interactive shell
+watchdog                                # watch for file changes
+pip-tools

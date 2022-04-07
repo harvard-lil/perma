@@ -13,8 +13,8 @@ RUN apt-get update \
 RUN mkdir -p /playwright
 WORKDIR /playwright
 
-COPY playwright/Pipfile /playwright/Pipfile
-COPY playwright/Pipfile.lock /playwright/Pipfile.lock
-RUN pip3 install -U pip \
-    && pip install pipenv \
-    && pipenv --python 3.8 install --ignore-pipfile
+# python requirements
+COPY playwright/requirements.txt .
+RUN pip install pip==22.0.4 \
+    && pip install -r requirements.txt \
+    && rm requirements.txt
