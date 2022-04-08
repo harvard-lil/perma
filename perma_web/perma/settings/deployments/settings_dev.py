@@ -4,6 +4,12 @@ import os
 
 DEBUG = True
 
+if os.environ.get('USE_SSL'):
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_NAME = '__Host-sessionid'
+    PLAYBACK_HOST = 'perma-archives.test:8093'
+
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')

@@ -22,6 +22,7 @@ Dependencies
 
 * [Git](http://git-scm.com/downloads)
 * [Docker](https://docs.docker.com/install/)
+* [mkcert](https://github.com/FiloSottile/mkcert)
 
 
 Hosts
@@ -66,10 +67,9 @@ Start up the Docker containers in the background:
 The first time this runs, it may take several minutes. With up-to-date docker images,
 it should only take a few seconds.
 
-Finally, initialize the databases:
+Finally, initialize the databases and generate the SSL certificates and keys required to access your local Perma over SSL:
 
-    $ bash init_perma.sh
-    $ bash init_wr.sh
+    $ bash init.sh
 
 You should now have a working installation of Perma! See [common commands](./developer.md#common-tasks-and-commands) to explore what you can do, like [running
 the application](./developer.md#run-perma) and [running the tests](/developer.md#run-all-the-tests).

@@ -34,25 +34,29 @@ The server will automatically reload any time you made a change to the
 
 Press `CONTROL-C` to stop the server.
 
-To run with SSL (for instance, to test locally against a remote
-instance of webrecorder that is behind SSL), set `SECURE_SSL_REDIRECT
-= True`, try
+#### SSL
 
-`d fab run:use_ssl=True`
+Perma presently offers two separate mechanisms for playing back its archives. The default is a
+server-side playback mediated by [Webrecorder](https://github.com/harvard-lil/perma/blob/baedc060141819715c1611d59ecacb944bd669cb/docker-compose.yml#L156-L251).
+Beta testers additionally have access to a client-side playback mediated by the `replay` app.
 
-and visit `https://perma.test:8000/` -- you'll need to make an
-exception for the self-signed certificate in your
-browser. Alternatively, you can supply your own certificate with
-something like
+To test client-side playback, you will need to run your local Perma with SSL.
 
-`d fab run:use_ssl=True,cert_file=myfile.crt`
+If you ran `init.sh` when setting up this instance of Perma, the necessary
+SSL certs and keys should already be present. If they are not, or if they have
+expired, you can run `bash make_cert.sh` to generate new files.
 
-(See `run_django` in `perma_web/fabfile/dev.py` for how the
-self-signed certificate is created.)
+If you only plan to test client-side playback, there's nothing else to do: run `d fab run:use_ssl=True` and visit `https://perma.test:8000/`.
 
-Remember to set `SECURE_SSL_REDIRECT = False` when you go back to
-running without SSL. Note also that if you run with SSL against a
-local (non-SSL) webrecorder, playback will fail silently.
+If you want to test server-side and client-side playback simultaneously, there are a few changes to make, to serve Webrecorder over SSL as well. (If you run Perma with SSL against a non-SSL Webrecorder, server-side playback will fail silently.)
+
+- Run `docker compose down` to spin down your containers.
+- Comment in the SSL cert and key in the `nginx` service's `volumes` stanza in `docker-compose.yml`
+- Comment out the "if over HTTP" lines in `services/docker/webrecorder/wr.env`, and comment in the "if over HTTPS" lines
+- Comment in the "if over HTTPS" lines in `services/docker/webrecorder/nginx.conf`
+- Run `docker compose up -d` to start the containers with this tweaked setup
+
+Then run `d fab run:use_ssl=True` and visit `https://perma.test:8000/`: both client-side and server-side playbacks should work!
 
 ### Run the tests
 

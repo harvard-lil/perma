@@ -14,7 +14,7 @@ from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
-def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', host='perma.test', debug_toolbar=''):
+def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=''):
     """
         Run django test server on open port, so it's accessible outside Docker.
 
@@ -28,8 +28,7 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
         print("\nWarning! Batch Link creation will not work as expected:\n" +
               "to create new batches you should run with settings.CELERY_TASK_ALWAYS_EAGER = False\n")
     else:
-        print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
-              " CELERY_TASK_ALWAYS_EAGER=True is usually easier unless you're specifically testing a Django <-> Celery interaction.")
+        print("\nStarting background celery process.")
         commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h")
 
     if settings.PROXY_CAPTURES:
@@ -48,40 +47,17 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
         try:
             if use_ssl:
                 try:
-                    # use runserver_plus if installed
+                    # use runserver_plus
                     import django_extensions  # noqa
-
-                    if not settings.SECURE_SSL_REDIRECT:
-                        print("\nError! When using SSL, you must run with settings.SECURE_SSL_REDIRECT = True\n")
-                    else:
-                        ## The following comment and line are from the Vagrant era, and may
-                        ## need amendment for Docker.
-                        # use --reloader-type stat because:
-                        #  (1) we have to have watchdog installed for pywb, which causes
-                        # runserver_plus to attempt to use it as the reloader, which depends
-                        # on inotify, but
-                        #  (2) we are using a Vagrant NFS mount, which does not support inotify
-                        # see https://github.com/django-extensions/django-extensions/pull/1041
-                        options = '--threaded --reloader-type stat'
-
-                        # create a cert if necessary or supply your own; we assume perma.test
-                        # is in your /etc/hosts
-                        cert_file_name = os.path.splitext(cert_file)[0]
-                        conf_file = f"{cert_file_name}.conf"
-                        with open(conf_file, "w") as f:
-                            f.write(f"[dn]\nCN={host}\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:{host}\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-                        if not os.path.exists(cert_file):
-                            local(f"openssl req -x509 -out {cert_file} -keyout {cert_file_name}.key -newkey rsa:2048 -nodes -sha256 -subj '/CN={host}' -extensions EXT -config {conf_file}")
-                        options += f' --cert-file {cert_file}'
-
+                    with shell_env(USE_SSL='True'):
+                        if not os.path.exists(os.path.join(settings.PROJECT_ROOT, cert_file)) or not os.path.exists(os.path.join(settings.PROJECT_ROOT, key_file)):
+                            return("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
+                        options = f'--cert-file {cert_file} --key-file {key_file}'
                         local(f"python manage.py runserver_plus {port} {options}")
                 except ImportError:
                     print("\nWarning! We can't serve via SSL, as django-extensions is not installed.\n")
             else:
-                if settings.SECURE_SSL_REDIRECT:
-                    print("\nError! When *not* using SSL, you must run with settings.SECURE_SSL_REDIRECT = False\n")
-                else:
-                    local(f"python manage.py runserver {port}")
+                local(f"python manage.py runserver {port}")
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
