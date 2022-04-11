@@ -3,7 +3,7 @@
 
 # general
 celery                                  # task queue
-Django==2.2.27
+Django==2.2.28
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
 Fabric3                                 # task automation
