@@ -146,7 +146,7 @@ def single_permalink(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        return stream_warc_if_permissible(link, request.user)
+        return stream_warc_if_permissible(request, link, request.user)
 
     # handle requested capture type
     if serve_type == 'image':
@@ -334,7 +334,7 @@ def serve_warc(request, guid):
 
     canonical_guid = Link.get_canonical_guid(guid)
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-    return stream_warc_if_permissible(link, request.user, stream=False)
+    return stream_warc_if_permissible(request, link, request.user, stream=False)
 
 
 def replay_service_worker(request):

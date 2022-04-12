@@ -70,5 +70,5 @@ class APISubdomainMiddleware(BaseSubdomainMiddleware):
 
 
 class ReplaySubdomainMiddleware(BaseSubdomainMiddleware):
-    subdomain = settings.REPLAY_SUBDOMAIN
+    subdomain = settings.PLAYBACK_SUBDOMAIN
     urlconf = 'replay.urls'

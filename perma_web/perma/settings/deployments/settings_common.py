@@ -470,11 +470,6 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.populate_warc_size': {'queue': 'background'},
 }
 
-HOST = 'perma.test:8000'
-ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
-API_SUBDOMAIN = 'api'
-REPLAY_SUBDOMAIN = 'replay'
-
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
@@ -487,12 +482,22 @@ INTERNET_ARCHIVE_SECRET_KEY = ''
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
 
+
+#
+# Hosts
+#
+
+HOST = 'perma.test:8000'
+ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
+API_SUBDOMAIN = 'api'
+PLAYBACK_SUBDOMAIN = 'replay'
+## the setting 'CLIENT_SIDE_PLAYBACK_HOST' will be dynamically populated from these values during post-processing
+
 #
 # Playback
 #
 
-# The host and port loaded by Perma's iframe during playback.
-# In production, this is highly recommended to be different from HOST.
+# The host and port loaded by Perma's iframe during (server-side) playback
 # Must be publicly available.
 PLAYBACK_HOST = 'perma-archives.test:8092'
 

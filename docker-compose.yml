@@ -53,6 +53,7 @@ services:
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
+      - "replay.perma.test:127.0.0.1"
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -62,6 +63,7 @@ services:
         aliases:
           - 'perma.test'
           - 'api.perma.test'
+          - 'replay.perma.test'
       webrecorder:
 
 
