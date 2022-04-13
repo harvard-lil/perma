@@ -69,8 +69,9 @@ RUN pip install pip==22.0.4 \
     && rm /perma/perma_web/requirements.txt
 
 # Install Chromium and driver
-ARG chrome-layer-cache-buster
-RUN apt-get update && apt-get install -y chromium chromium-driver chromium-l10n chromium-sandbox
+ENV CHROMIUM_VERSION=100.0.4896.88-1~deb11u1
+RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
+    chromium-driver chromium-l10n chromium-sandbox
 
 # dev personalizations / try installing packages without rebuilding everything
 RUN apt-get update && apt-get install -y nano
