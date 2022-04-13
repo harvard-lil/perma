@@ -182,7 +182,6 @@ if settings.ENABLE_SPONSORED_USERS:
 
 if settings.OFFER_CLIENT_SIDE_PLAYBACK:
     urlpatterns += [
-        url(r'^replay/sw.js?$', common.replay_service_worker, name='replay_service_worker'),
         url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
     ]
 

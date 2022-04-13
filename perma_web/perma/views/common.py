@@ -221,6 +221,7 @@ def single_permalink(request, guid):
                                               request.user.offer_client_side_playback
                                           ) else ''
         if context['client_side_playback']:
+            context['client_side_playback_host'] = settings.CLIENT_SIDE_PLAYBACK_HOST
             if context['client_side_playback'] == 'compare':
                 context['client_side_playback'] = 'replay'
                 context['compare_replays'] = True

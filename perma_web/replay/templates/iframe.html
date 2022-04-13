@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html style="height:100%">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perma.cc + Replayweb.page</title>
+</head>
+<body style="height:100%; margin: 0">
+
+  <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
+  <script>
+
+    const guid = "{{ guid }}";
+
+    if (guid && window.location != window.parent.location){
+
+      //
+      // If we are in an iframe: attempt a replay
+      //
+      const url = "{{ target_url | escapejs }}";
+      const warc_source = "{{ warc_source | escapejs }}";
+      const embed_style = "{{ embed_style }}";
+      console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source}`)
+
+      const replay = document.createElement('replay-web-page');
+      replay.setAttribute('source', warc_source);
+      replay.setAttribute('url', url);
+      replay.setAttribute('view', 'replay');
+      replay.setAttribute('embed', embed_style);
+      document.body.appendChild(replay);
+
+    } else {
+
+      //
+      // Otherwise, display a simple landing page
+      //
+      const content = document.createElement('div');
+      content.style = "height:100%; display:flex; align-items:center; justify-content:center;";
+      content.innerHTML = `
+      <div>
+        Welcome.
+      </div>
+      `;
+      document.body.appendChild(content);
+
+    }
+  </script>
+</body>
+</html>

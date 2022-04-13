@@ -23,9 +23,7 @@
     <div class="h_iframe">
       {% if capture.role == 'screenshot' %}
         {% if client_side_playback %}
-          <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
-          <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
-          url="file:///{{ link.guid }}/cap.png" view="{{ client_side_playback }}"></replay-web-page>
+         {% include "archive/includes/client_side_iframe.html" with screenshot=True %}
         {% else %}
           <img src="{{ protocol}}{{ wr_prefix }}im_/{{ wr_url }}" style="display:block; margin: 0 auto;" alt="screenshot">
         {% endif %}
@@ -37,18 +35,12 @@
                 {% include "archive/includes/server_side_iframe.html" %}
               </div>
               <div class="client-side">
-                <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
-                <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
-                                 url="{{ link.submitted_url }}"
-                                 embed="replayonly"
-                                 view="{{ client_side_playback }}"></replay-web-page>
+                {% include "archive/includes/client_side_iframe.html" %}
               </div>
             </div>
           {% else %}
-            <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
-            <replay-web-page source="{% url 'serve_warc' guid=link.guid %}"
-                             url="{{ link.submitted_url }}" view="{{ client_side_playback }}"></replay-web-page>
-            {% endif %}
+            {% include "archive/includes/client_side_iframe.html" %}
+          {% endif %}
         {% else %}
           {% include "archive/includes/server_side_iframe.html" %}
         {% endif %}

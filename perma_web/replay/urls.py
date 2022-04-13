@@ -7,7 +7,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.hello, name='hello'),
+    path('', views.iframe, name='iframe'),
+    path('replay/sw.js', views.replay_service_worker, name='replay_service_worker'),
 ]
 
 ### error handlers ###
