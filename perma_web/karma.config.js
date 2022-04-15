@@ -12,10 +12,10 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     usePolling: true,
-    browsers: ['chrome_with_flags'],
+    browsers: ['chromium_with_flags'],
     customLaunchers: {
-      chrome_with_flags: {
-        base: 'ChromeHeadless',
+      chromium_with_flags: {
+        base: 'ChromiumHeadless',
         flags: ['--disable-web-security', '--disable-site-isolation-trials', '--no-sandbox']
       }
     },
