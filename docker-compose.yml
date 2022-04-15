@@ -56,17 +56,16 @@ services:
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
-      # N.B. the "perma-archives.test" host is unnecessary if playback is handled by WR
-      - "perma-archives.test:127.0.0.1"
-      # N.B. the "web" host is required for functional tests if playback is handled by WR
-      - "web:127.0.0.1"
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       - db
     networks:
-      - default
-      - webrecorder
+      default:
+        aliases:
+          - 'perma.test'
+          - 'api.perma.test'
+      webrecorder:
 
 
   #
@@ -237,6 +236,8 @@ services:
       - "perma-archives.test:127.0.0.1"
     networks:
       default:
+        aliases:
+          - 'perma-archives.test'
       webrecorder:
 
   redis:

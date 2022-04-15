@@ -100,10 +100,6 @@ def test(apps=_default_tests):
 @task
 def test_python(apps=_default_tests):
     """ Run Python tests. """
-    if os.environ.get('DOCKERIZED'):
-        print("\n\n\n!!!!!!\n!!!!!!\nWarning! Webrecorder requires test-specific settings in this context.\n" +
-              "Be sure to edit services/docker/webrecorder/wr.env appropriately and\n" +
-              "reload the WR containers by re-running `docker-compose up` before running tests.\n!!!!!!\n!!!!!!\n\n\n")
 
     # .pyc files can contain filepaths; this permits easy switching
     # between a Vagrant- and Docker-based dev environment
