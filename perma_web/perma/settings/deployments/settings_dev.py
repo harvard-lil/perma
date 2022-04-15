@@ -4,15 +4,6 @@ import os
 
 DEBUG = True
 
-#
-# HOSTS
-#
-HOST = 'perma.test:8000'
-PLAYBACK_HOST = 'perma-archives.test:8092'
-# Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
-
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')

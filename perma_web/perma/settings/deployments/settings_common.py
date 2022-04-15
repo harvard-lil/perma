@@ -468,6 +468,8 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.populate_warc_size': {'queue': 'background'},
 }
 
+HOST = 'perma.test:8000'
+ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
 API_SUBDOMAIN = 'api'
 
 # internet archive stuff
@@ -485,24 +487,22 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 #
 # Playback
 #
-# If set, playbacks must be served from PLAYBACK_HOST.
-# On production, this is highly recommended to be different from HOST
-HOST = 'localhost'
 
-# The host and port loaded by Perma's iframe during playback
-# Must be publicly available
-PLAYBACK_HOST = HOST
+# The host and port loaded by Perma's iframe during playback.
+# In production, this is highly recommended to be different from HOST.
+# Must be publicly available.
+PLAYBACK_HOST = 'perma-archives.test:8092'
 
 # The Webrecorder API, used internally by Perma to create WR sessions and upload
 # warcs for playback. Not in use if ENABLE_WR_PLAYBACK = False
 #
-# Use 'http://nginx' and port 80 if running on same docker instance
+# Use port 80 if running on same docker instance
 #
 # Or, if WR is on remote machine and/or not running Perma in Docker,
 # use the remote host and the port that is being publicly exposed
 # and mapped to port 80 on the nginx container by docker-compose. E.g.
 # http://remote-webrecorder-host:8089
-WR_API = 'http://nginx/api/v1'
+WR_API = 'http://perma-archives.test/api/v1'
 
 # WR Credentials for the public user that stores all public collections.
 # Change init_wr.sh if you change these.

@@ -141,19 +141,8 @@ TIERS = {
     ]
 }
 
-if os.environ.get('DOCKERIZED'):
-    HOST = 'web:8000'
-    PLAYBACK_HOST = 'web:8000'
-    ALLOWED_HOSTS.append('web')
-    REMOTE_SELENIUM_HOST = 'selenium'
-    WR_API = 'http://nginx/api/v1'
-    PLAYBACK_HOST = 'nginx:81'
-else:
-    HOST = 'perma.test:8000'
-    PLAYBACK_HOST = 'perma-archives.test:8000'
-    REMOTE_SELENIUM_HOST = 'localhost'
-    WR_API = 'http://perma-archives.test:8089/api/v1'
-    PLAYBACK_HOST = 'perma-archives.test:8092'
+REMOTE_SELENIUM_HOST = 'selenium'
+PLAYBACK_HOST = 'perma-archives.test:81'
 
 ENABLE_SPONSORED_USERS = True
 ENABLE_BONUS_LINKS = True
