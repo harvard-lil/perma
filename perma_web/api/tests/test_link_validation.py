@@ -125,13 +125,14 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
                                      'file': test_file})
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestCase):
 
     def test_should_reject_file_redirecting_url_without_exception(self):
         url = f'{self.live_server_url}/api/tests/redirect-to-file'
 
         # verify that the test route redirects as expected
-        redirects = self.client.get(url, secure=True)
+        redirects = self.client.get(url)
         self.assertEqual(redirects.status_code, 301)
         self.assertRegex(redirects.url, r'^file:///')
 
