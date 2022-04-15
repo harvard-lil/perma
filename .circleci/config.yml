@@ -53,6 +53,8 @@ jobs:
             docker-compose exec web pytest \
               --junitxml=junit/pytest/test-results.xml       `# write test results so they can be displayed by circleci` \
               --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to coverage.xml for upload by codecov`
+            docker-compose exec web npm test
+            git checkout -- perma_web/webpack-stats.json     `# reset webpack-stats.json to committed version before running functional tests`
             cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
             docker-compose exec web ./manage.py collectstatic --noinput
             docker-compose exec -d web fab run
