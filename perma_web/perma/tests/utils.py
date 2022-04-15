@@ -39,7 +39,7 @@ class PermaTestCase(TestCase):
             user = user.email
         else:
             self.logged_in_user = LinkUser.objects.get(email=user)
-        return self.client.post(reverse('user_management_limited_login'), {'username': user, 'password': password})
+        return self.client.post(reverse('user_management_limited_login'), {'username': user, 'password': password}, secure=True)
 
     def do_request(self,
                    view_name,
@@ -59,7 +59,7 @@ class PermaTestCase(TestCase):
         url = reverse(view_name, *reverse_args, **reverse_kwargs)
         if query_params:
             url += '?' + urlencode(query_params)
-        resp = getattr(self.client, method.lower())(url, *request_args, **request_kwargs)
+        resp = getattr(self.client, method.lower())(url, *request_args, secure=True, **request_kwargs)
         if require_status_code:
             self.assertEqual(resp.status_code, require_status_code)
         return resp

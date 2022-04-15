@@ -170,7 +170,7 @@ INSTALLED_APPS = (
 AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage/create/'
-LOGIN_URL = '/login'
+LOGIN_URL = 'user_management_limited_login'
 
 
 # Axes, fundamental integration
@@ -541,11 +541,6 @@ WARC_AVAILABLE_RETRIES = 9
 
 CHECK_WARC_BEFORE_PLAYBACK = False
 
-# Disable SameSite protection (https://www.owasp.org/index.php/SameSite)
-# So that we can set iframe cookies properly, when we receive the redirect from Webrecorder
-# https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-SESSION_COOKIE_SAMESITE
-SESSION_COOKIE_SAMESITE = None
-
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
@@ -557,9 +552,16 @@ TEMPLATE_DEBUG = False
 # Relative to MEDIA_ROOT
 THUMBNAIL_STORAGE_PATH = 'thumbnails'
 
-# security settings -- set these to true if SSL is available
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
+# security settings
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_NAME = '__Host-sessionid'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Disable SameSite protection (https://www.owasp.org/index.php/SameSite)
+# So that we can set iframe cookies properly, when we receive the redirect from Webrecorder
+# https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-SESSION_COOKIE_SAMESITE
+SESSION_COOKIE_SAMESITE = None
 
 API_VERSION = 1
 

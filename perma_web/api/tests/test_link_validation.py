@@ -131,7 +131,7 @@ class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestC
         url = f'{self.live_server_url}/api/tests/redirect-to-file'
 
         # verify that the test route redirects as expected
-        redirects = self.client.get(url)
+        redirects = self.client.get(url, secure=True)
         self.assertEqual(redirects.status_code, 301)
         self.assertRegex(redirects.url, r'^file:///')
 

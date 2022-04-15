@@ -98,19 +98,19 @@ class LoggingAPIClient(APIClient):
     """
     @log_api_call
     def get(self, *args, **kwargs):
-        return super(LoggingAPIClient, self).get(*args, **kwargs)
+        return super(LoggingAPIClient, self).get(*args, **kwargs, secure=True)
     @log_api_call
     def post(self, *args, **kwargs):
-        return super(LoggingAPIClient, self).post(*args, **kwargs)
+        return super(LoggingAPIClient, self).post(*args, **kwargs, secure=True)
     @log_api_call
     def put(self, *args, **kwargs):
-        return super(LoggingAPIClient, self).put(*args, **kwargs)
+        return super(LoggingAPIClient, self).put(*args, **kwargs, secure=True)
     @log_api_call
     def patch(self, *args, **kwargs):
-        return super(LoggingAPIClient, self).patch(*args, **kwargs)
+        return super(LoggingAPIClient, self).patch(*args, **kwargs, secure=True)
     @log_api_call
     def delete(self, *args, **kwargs):
-        return super(LoggingAPIClient, self).delete(*args, **kwargs)
+        return super(LoggingAPIClient, self).delete(*args, **kwargs, secure=True)
 
 
 @override_settings(BANNED_IP_RANGES=[])

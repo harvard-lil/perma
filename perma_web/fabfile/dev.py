@@ -14,14 +14,12 @@ from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
-def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=''):
+def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=''):
     """
         Run django test server on open port, so it's accessible outside Docker.
 
-        Use runserver_plus for SSL; runserver otherwise.
+        Use runserver_plus for SSL.
     """
-    use_ssl = True if use_ssl else False
-
     commands = []
 
     if settings.CELERY_TASK_ALWAYS_EAGER:
@@ -45,25 +43,19 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', k
     with shell_env(DEBUG_TOOLBAR=debug_toolbar):
 
         try:
-            if use_ssl:
-                try:
-                    # use runserver_plus
-                    import django_extensions  # noqa
-                    with shell_env(USE_SSL='True'):
-                        if not os.path.exists(os.path.join(settings.PROJECT_ROOT, cert_file)) or not os.path.exists(os.path.join(settings.PROJECT_ROOT, key_file)):
-                            return("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
-                        options = f'--cert-file {cert_file} --key-file {key_file}'
-                        local(f"python manage.py runserver_plus {port} {options}")
-                except ImportError:
-                    print("\nWarning! We can't serve via SSL, as django-extensions is not installed.\n")
-            else:
-                local(f"python manage.py runserver {port}")
+            # use runserver_plus
+            import django_extensions  # noqa
+            if not os.path.exists(os.path.join(settings.PROJECT_ROOT, cert_file)) or not os.path.exists(os.path.join(settings.PROJECT_ROOT, key_file)):
+                return("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
+            options = f'--cert-file {cert_file} --key-file {key_file}'
+            local(f"python manage.py runserver_plus {port} {options}")
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
 
 
 _default_tests = "functional_tests perma api lockss"
+
 
 @task
 def test(apps=_default_tests):

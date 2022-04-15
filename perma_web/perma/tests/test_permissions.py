@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import reverse
 
 from perma.urls import urlpatterns
@@ -110,13 +109,13 @@ class PermissionsTestCase(PermaTestCase):
 
                 # try while logged out
                 self.client.logout()
-                resp = self.client.get(url)
-                self.assertRedirects(resp, settings.LOGIN_URL+"?next="+url)
+                resp = self.client.get(f"https://testserver{url}", secure=True)
+                self.assertRedirects(resp, f"https://testserver{reverse('user_management_limited_login')}?next={url}")
 
                 # try with valid users
                 for user in view['allowed']:
                     self.log_in_user(user)
-                    resp = self.client.get(url)
+                    resp = self.client.get(url, secure=True)
                     if success_test:
                         success_test(resp)
                     else:
@@ -126,7 +125,7 @@ class PermissionsTestCase(PermaTestCase):
                 # try with invalid users
                 for user in view.get('disallowed', all_users - view['allowed']):
                     self.log_in_user(user)
-                    resp = self.client.get(url)
+                    resp = self.client.get(url, secure=True)
                     self.assertEqual(resp.status_code, 403,
                                          "View %s returned status %s for user %s; expected %s." % (view_name, resp.status_code, user, success_status))
                     # self.assertRedirects(resp, settings.LOGIN_URL+"?next="+url, target_status_code=302,

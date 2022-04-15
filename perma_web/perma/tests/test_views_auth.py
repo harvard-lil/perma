@@ -25,7 +25,7 @@ class AuthViewsTestCase(PermaTestCase):
         reset_login_attempts(username=self.email)
 
     def make_bad_attempt(self):
-        response = self.client.post(self.login_url, {'username': self.email, 'password': self.wrong_password})
+        response = self.client.post(self.login_url, {'username': self.email, 'password': self.wrong_password}, secure=True)
         self.assertNotIn('_auth_user_id', self.client.session)
         self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
         return response
@@ -37,7 +37,7 @@ class AuthViewsTestCase(PermaTestCase):
         """
 
         # Login through our form and make sure we get redirected to our create page
-        response = self.client.post(self.login_url, {'username': self.email, 'password': self.password})
+        response = self.client.post(self.login_url, {'username': self.email, 'password': self.password}, secure=True)
         create_url = 'login' not in response['Location']
         self.assertEqual(create_url, True)
         self.assertEqual(response.status_code, 302)
@@ -83,7 +83,8 @@ class AuthViewsTestCase(PermaTestCase):
 
         self.client.post(reverse('password_change'),
             {'old_password':'pass', 'new_password1':'Changed-password1',
-            'new_password2':'Changed-password1'})
+            'new_password2':'Changed-password1'},
+            secure=True)
 
         self.client.logout()
 
@@ -129,14 +130,14 @@ class AuthViewsTestCase(PermaTestCase):
         self.assertEqual(aa.failures_since_start, 2)
 
         # get the reset password email/link
-        self.client.post(reverse('password_reset'), {"email": self.email})
+        self.client.post(reverse('password_reset'), {"email": self.email}, secure=True)
         message = mail.outbox[0]
         reset_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
 
         # go through with the reset
-        response = self.client.get(reset_url, follow=True)
+        response = self.client.get(reset_url, follow=True, secure=True)
         post_url = response.redirect_chain[0][0]
-        response = self.client.post(post_url, {'new_password1': self.new_password, 'new_password2': self.new_password}, follow=True)
+        response = self.client.post(post_url, {'new_password1': self.new_password, 'new_password2': self.new_password}, follow=True, secure=True)
         self.assertContains(response, 'Your password has been set')
         self.assertFalse(AccessAttempt.objects.filter(username=self.email).exists())
 
