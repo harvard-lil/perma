@@ -69,7 +69,7 @@ RUN pip install pip==22.0.4 \
     && rm /perma/perma_web/requirements.txt
 
 # Install Chromium and driver
-ENV CHROMIUM_VERSION=100.0.4896.88-1~deb11u1
+ENV CHROMIUM_VERSION=100.0.4896.127-1~deb11u1
 RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
     chromium-driver chromium-l10n chromium-sandbox
 
