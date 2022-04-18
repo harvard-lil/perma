@@ -5,8 +5,8 @@ Perma - indelible links
 
 Perma.cc helps authors and journals create permanent archived citations in their published work.
 
-
-[![CircleCI](https://circleci.com/gh/harvard-lil/perma.svg?style=svg)](https://circleci.com/gh/harvard-lil/perma) [![codecov](https://codecov.io/gh/harvard-lil/perma/branch/develop/graph/badge.svg?token=PmUtgx6QFh)](https://codecov.io/gh/harvard-lil/perma)
+[![test status](https://github.com/harvard-lil/perma/actions/workflows/tests.yml/badge.svg)](https://github.com/harvard-lil/capstone/actions)
+[![codecov](https://codecov.io/gh/harvard-lil/perma/branch/develop/graph/badge.svg?token=PmUtgx6QFh)](https://codecov.io/gh/harvard-lil/perma)
 
 ## Connect with Perma.cc
 

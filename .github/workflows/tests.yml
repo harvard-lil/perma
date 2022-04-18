@@ -1,0 +1,100 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    # don't run on pushes to forks
+    if: github.event_name == 'pull_request' || github.repository == 'harvard-lil/perma'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      ### build docker images locally ###
+
+      - name: Rebuild docker images
+        id: rebuild
+        uses: harvard-lil/docker-compose-update-action@main
+
+      ### run tests ###
+
+      - name: docker-compose up
+        run: |
+          # separate pull so downloads run in parallel, with
+          # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
+          docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
+          docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
+          docker ps -a                                      # show running containers
+          docker-compose logs                               # show logs
+
+      - name: Collect static files
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
+
+      - name: Python tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          # web tests
+          docker-compose exec web fab dev.init_db
+          docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
+          docker-compose exec web pytest \
+            --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
+            -vv
+
+          # playwright tests
+          cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
+          docker-compose exec -d web fab run  # start web server for playwright tests
+          wget --waitretry=1 -t 10 -O /dev/null --header="Host: perma.test" http://127.0.0.1:8000/  # wait 10 seconds for server to start
+          docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
+          docker-compose exec web pkill -f python  # stop web server
+
+      - name: Javascript tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker-compose exec web npm run build
+          docker-compose exec web npm run test
+
+      ### codecov ###
+      # https://github.com/codecov/codecov-action
+      - name: Codecov
+        uses: codecov/codecov-action@v1
+
+      # Commit built assets if necessary, then deploy via Salt reactor
+      - name: Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- https://github.com/actions/runner/issues/241#issuecomment-842566950
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+          DEPLOY_HEADER: ${{ secrets.DEPLOY_HEADER }}
+        run: |
+          set -x
+          git config user.email "lil@law.harvard.edu"
+          git config user.name "Github Actions"
+          if [[ `git status docker-compose.yml docker-compose.override.yml --porcelain` ]] ; then
+            git add docker-compose.yml docker-compose.override.yml
+            git commit -m "Bump image version"
+            git push origin develop || exit 1
+          fi
+          if [[ `git status perma_web/static/bundles/ perma_web/webpack-stats.json --porcelain` ]] ; then
+              git add perma_web/static/bundles/ perma_web/webpack-stats.json
+              git commit -m "Add built JS"
+              git push origin develop || exit 1
+          fi
+          export DEPLOY_CONTENT='{"GITHUB_RUN_NUMBER":"'$GITHUB_RUN_NUMBER'","GITHUB_SHA":"'$GITHUB_SHA'","GITHUB_REF":"'$GITHUB_REF'","GITHUB_REPOSITORY":"'$GITHUB_REPOSITORY'","GITHUB_ACTOR":"'$GITHUB_ACTOR'"}' ;
+          export DEPLOY_SIG="sha1=`echo -n "$DEPLOY_CONTENT" | openssl sha1 -hmac $DEPLOY_KEY | sed 's/^.* //'`" ;
+          curl -X POST "$DEPLOY_URL" --data "$DEPLOY_CONTENT" -H "Content-Type: application/json" -H "$DEPLOY_HEADER: $DEPLOY_SIG"
+
+      ### push docker images to registry, from main branch, once tests pass ###
+
+      - name: Push docker images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        uses: harvard-lil/docker-compose-update-action@main
+        with:
+          registry: "registry.lil.tools"
+          registry-user: ${{ secrets.REPOSITORY_USER }}
+          registry-pass: ${{ secrets.REPOSITORY_TOKEN }}
+          bake-action: "push"
