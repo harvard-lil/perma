@@ -216,7 +216,6 @@ def single_permalink(request, guid):
 
         context['client_side_playback'] = request.GET.get('client-side') if (
                                               request.GET.get('client-side') and
-                                              settings.OFFER_CLIENT_SIDE_PLAYBACK and
                                               not request.user.is_anonymous and
                                               request.user.offer_client_side_playback
                                           ) else ''
