@@ -64,6 +64,3 @@ npm-debug.log
 perma_web/*.crt
 perma_web/*.key
 perma_web/*.conf
-services/docker/webrecorder/nginx/*.crt
-services/docker/webrecorder/nginx/*.key
-services/docker/webrecorder/nginx/*.conf
