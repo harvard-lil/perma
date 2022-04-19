@@ -92,9 +92,6 @@ services:
       - START_XVFB=false
     command: bash
     tty: true
-    links:
-      - "web:perma.test"
-      - "nginx:perma-archives.test"
     networks:
       - default
       - webrecorder

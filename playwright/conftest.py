@@ -15,9 +15,17 @@ class URLs:
 
 @pytest.fixture
 def urls():
-    return URLs("http://perma.test:8000")
+    return URLs("https://perma.test:8000")
 
 
 @pytest.fixture
 def user():
     return Login("functional_test_user@example.com", "pass")
+
+
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    return {
+        **browser_context_args,
+        "ignore_https_errors": True
+    }

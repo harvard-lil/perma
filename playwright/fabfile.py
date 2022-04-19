@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 from fabric.decorators import task
 
 @task
-def screenshots(base_url='http://perma.test:8000', output_path='/playwright/screenshots', browser='chrome'):
+def screenshots(base_url='https://perma.test:8000', output_path='/playwright/screenshots', browser='chrome'):
     async def screenshot(page, upper_left_selector, lower_right_selector, file_name, upper_left_offset=(0,0), lower_right_offset=(0,0)):
         print(f"Capturing {file_name}")
         upper_left_locator = page.locator(upper_left_selector)
