@@ -711,8 +711,8 @@ PERMA_PAYMENTS_IN_MAINTENANCE = False
 ENABLE_SPONSORED_USERS = False
 
 USERS_WITH_CLIENT_SIDE_PLAYBACK = []
-PLAYBACK_UI_JS_URL = 'https://unpkg.com/replaywebpage@1.0.2/ui.js'
-SERVICE_WORKER_URL = 'https://unpkg.com/replaywebpage@1.0.2/sw.js'
+PLAYBACK_UI_JS_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage@1.5.11/ui.js'
+SERVICE_WORKER_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage@1.5.11/sw.js'
 
 ENABLE_BONUS_LINKS = False
 

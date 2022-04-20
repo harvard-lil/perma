@@ -20,6 +20,7 @@
       const url = "{{ target_url | escapejs }}";
       const warc_source = "{{ warc_source | escapejs }}";
       const embed_style = "{{ embed_style }}";
+      const sandbox = {{ sandbox|yesno:"true,false"}}
       console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source}`)
 
       const replay = document.createElement('replay-web-page');
@@ -27,6 +28,7 @@
       replay.setAttribute('url', url);
       replay.setAttribute('view', 'replay');
       replay.setAttribute('embed', embed_style);
+      replay.setAttribute('noSandbox', !sandbox);
       document.body.appendChild(replay);
 
     } else {
