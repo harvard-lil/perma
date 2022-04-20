@@ -1,11 +1,23 @@
 <!DOCTYPE html>
-<html style="height:100%">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Perma.cc + Replayweb.page</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    .welcome {
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+  </style>
 </head>
-<body style="height:100%; margin: 0">
+<body>
 
   <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
   <script>
@@ -37,12 +49,8 @@
       // Otherwise, display a simple landing page
       //
       const content = document.createElement('div');
-      content.style = "height:100%; display:flex; align-items:center; justify-content:center;";
-      content.innerHTML = `
-      <div>
-        Welcome.
-      </div>
-      `;
+      content.className = 'welcome'
+      content.innerHTML = "<div>Welcome.</div>";
       document.body.appendChild(content);
 
     }
