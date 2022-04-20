@@ -76,6 +76,12 @@ iframe.archive-iframe {
   margin:0px auto;
 }
 
+iframe.interstitial {
+  border: 0;
+  display:block;
+  margin: 16px auto;
+}
+
 header {
   position: fixed;
   z-index: 99;

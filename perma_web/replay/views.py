@@ -11,6 +11,9 @@ def iframe(request):
     guid = request.GET.get('guid')
     replay_only = request.GET.get('embed', '') == 'replayonly'
     screenshot = request.GET.get('type', '') == 'screenshot'
+    hidden = request.GET.get('hidden', '') == 'true'
+    ondemand = request.GET.get('ondemand', '') == 'true'
+    target = 'blank' if request.GET.get('target', '') == 'blank' else ''
     context = {}
     if guid:
         link = get_object_or_404(Link.objects.all_with_deleted().prefetch_related('captures'), guid=guid)
@@ -19,6 +22,9 @@ def iframe(request):
         context['target_url'] = link.screenshot_capture.url if screenshot else link.submitted_url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['sandbox'] = link.primary_capture.use_sandbox()
+        context['hidden'] = hidden
+        context['ondemand'] = ondemand
+        context['target'] = target
     return render(request, 'iframe.html', context)
 
 def replay_service_worker(request):
