@@ -30,9 +30,11 @@
       margin: auto;
       text-align: center;
     }
+    replay-web-page {
+      display: block;
+    }
     .hidden {
       visibility: hidden;
-      display: block;
       height: 10px;
       min-width: 10px;
       width: 10px
@@ -57,6 +59,8 @@
       // If we are in an iframe: offer a replay
       //
 
+      // Helpers
+
       const launch_playback = () => {
         const url = "{{ target_url | escapejs }}";
         const warc_source = "{{ warc_source | escapejs }}";
@@ -79,6 +83,64 @@
         return replay;
       }
 
+      const wait_for_element = async (selector_function) => {
+        const maxPauseSeconds = 60
+        let tries = maxPauseSeconds * 60;  // we expect a repaint rate of ~60 times a second, per https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+        let elem = null;
+        while ( !elem && tries > 0) {
+          // sleep efficiently until the next repaint
+          const pause = await new Promise(resolve => requestAnimationFrame(resolve));
+          cancelAnimationFrame(pause);
+          // look for the target element
+          try {
+            elem = selector_function();
+          } catch (err) {
+            if ( !(err.message.includes('is null') || err.message.includes('of null')) ) {
+              throw err;
+            }
+            tries -= 1
+          }
+        }
+        if (elem) {
+          return elem;
+        }
+        throw 'Timed out.'
+      }
+
+      const wait_for_replay = async (replay_elem) => {
+        return await wait_for_element(() => {
+          return replay_elem.shadowRoot.querySelector('iframe').contentDocument.querySelector('replay-app-main').shadowRoot.querySelector('wr-coll').shadowRoot.querySelector('wr-coll-replay').shadowRoot.querySelector('iframe')
+        })
+      }
+
+      const handle_target = async (elem) => {
+        const target = "{{ target }}";
+        if (target==='blank'){
+          // inject a download link and click it
+          console.log(`Opening ${elem.src} in a new window`)
+          const download = document.createElement('a');
+          download.href = elem.src
+          download.target = '_blank'
+          download.click()
+        } else if (target==='img'){
+          // set alt text and style the loaded image for cross-browser consistency
+          console.log("Formatting image")
+          const img = await wait_for_element(() => {
+            return elem.contentDocument.querySelector('img')
+          })
+          img.style = "display: block; margin: auto; width: auto; height: auto;";
+          img.alt = "screenshot"
+        }
+      }
+
+      const replay = async () => {
+        const replay_elem = launch_playback();
+        const internal_elem = await wait_for_replay(replay_elem);
+        await handle_target(internal_elem);
+      }
+
+      // Do the replay
+
       const ondemand = {{ ondemand|yesno:'true, false' }};
       if (ondemand){
 
@@ -87,51 +149,14 @@
         button.className = 'button-wrapper'
         button.innerHTML = '<button id="download-interstitial">View/Download File</button>';
         document.body.appendChild(button);
-
         // On-click, trigger replay in a hidden iframe
         const downloadButton = document.getElementById("download-interstitial");
-        downloadButton.onclick = async function () {
+        downloadButton.onclick = replay;
 
-          const replay = launch_playback();
-
-          // wait until playback is ready and trigger download in a new tab.
-          // useful for forcing download when browser behavior is undesirable,
-          // for instance, https://github.com/harvard-lil/perma/issues/2056
-          const waitForPlayback = async () => {
-            const maxPauseSeconds = 60
-            let tries = maxPauseSeconds * 60;  // we expect a repaint rate of ~60 times a second, per https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
-            let elem = null;
-            while ( !elem && tries > 0) {
-              // sleep efficiently until the next repaint
-              const pause = await new Promise(resolve => requestAnimationFrame(resolve));
-              cancelAnimationFrame(pause);
-              // look for the played-back target
-              try {
-                elem = replay.shadowRoot.querySelector('iframe').contentDocument.querySelector('replay-app-main').shadowRoot.querySelector('wr-coll').shadowRoot.querySelector('wr-coll-replay').shadowRoot.querySelector('iframe')
-              } catch (err) {
-                if ( !(err.message.includes('is null') || err.message.includes('of null')) ) {
-                  throw err;
-                }
-                tries -= 1
-              }
-            }
-            if (elem) {
-              return elem.src;
-            }
-            throw 'Playback timed out'
-          };
-
-          const target = "{{ target }}";
-          if (target==='blank'){
-            // inject a download link and click it
-            const download = document.createElement('a');
-            download.href = await waitForPlayback();
-            download.target = '_blank'
-            download.click()
-          }
-        }
       } else {
-        launch_playback();
+        (async() => {
+          await replay();
+        })()
       }
 
     } else {

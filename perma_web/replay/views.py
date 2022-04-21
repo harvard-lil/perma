@@ -9,11 +9,16 @@ from perma.models import Link
 @xframe_options_exempt
 def iframe(request):
     guid = request.GET.get('guid')
-    replay_only = request.GET.get('embed', '') == 'replayonly'
     screenshot = request.GET.get('type', '') == 'screenshot'
+    replay_only = request.GET.get('embed', '') == 'replayonly' or screenshot
     hidden = request.GET.get('hidden', '') == 'true'
     ondemand = request.GET.get('ondemand', '') == 'true'
-    target = 'blank' if request.GET.get('target', '') == 'blank' else ''
+    if request.GET.get('target', '') == 'blank':
+        target = 'blank'
+    elif screenshot:
+        target = 'img'
+    else:
+        target = ''
     context = {}
     if guid:
         link = get_object_or_404(Link.objects.all_with_deleted().prefetch_related('captures'), guid=guid)
