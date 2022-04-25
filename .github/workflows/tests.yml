@@ -32,10 +32,18 @@ jobs:
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
 
+      - name: Javascript tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker-compose exec web npm run test
+
       - name: Python tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
+          # compile fresh bundles
+          docker-compose exec web npm run build
           # web tests
           docker-compose exec web fab dev.init_db
           docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
@@ -50,12 +58,6 @@ jobs:
           docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
           docker-compose exec web pkill -f python  # stop web server
 
-      - name: Javascript tests
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        run: |
-          set -x
-          docker-compose exec web npm run test
-
       ### codecov ###
       # https://github.com/codecov/codecov-action
       - name: Codecov
@@ -69,7 +71,6 @@ jobs:
           set -x
           git config user.email "lil@law.harvard.edu"
           git config user.name "Github Actions"
-          docker-compose exec web npm run build
           if [[ `git status docker-compose.yml docker-compose.override.yml --porcelain` ]] ; then
             git add docker-compose.yml docker-compose.override.yml
             git commit -m "Bump image version"
