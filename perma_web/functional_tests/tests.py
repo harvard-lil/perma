@@ -9,6 +9,7 @@ import time
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test.utils import override_settings
 from django.urls import reverse
 
 from perma.urls import urlpatterns
@@ -125,6 +126,9 @@ def on_platforms(platforms):
 ## the actual tests!
 
 @on_platforms(browsers)
+@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(SESSION_COOKIE_SECURE=False)
+@override_settings(SESSION_COOKIE_NAME='sessionid')
 class FunctionalTest(BaseTestCase):
     fixtures = ['fixtures/sites.json',
                 'fixtures/users.json',

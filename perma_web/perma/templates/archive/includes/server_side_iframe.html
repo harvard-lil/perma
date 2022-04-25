@@ -1,8 +1,8 @@
 <iframe name="{{ link.submitted_url }}" class="archive-iframe" src="" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}></iframe>
-<script src="{{ protocol}}{{ wr_host }}/static/bundle/wb_frame.js"></script>
+<script src="https://{{ wr_host }}/static/bundle/wb_frame.js"></script>
 <script>
   var cframe = new ContentFrame({"url": "{{ wr_url | escapejs }}",
-                                 "prefix": "{{ protocol}}{{ wr_prefix }}",
+                                 "prefix": "https://{{ wr_prefix }}",
                                  "request_ts": "{{ wr_timestamp }}",
                                  "iframe": ".archive-iframe"});
 </script>
