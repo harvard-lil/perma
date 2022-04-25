@@ -14,7 +14,7 @@ RUN mkdir -p /playwright
 WORKDIR /playwright
 
 # python requirements
-COPY playwright/requirements.txt .
+COPY requirements.txt .
 RUN pip install pip==22.0.4 \
     && pip install -r requirements.txt \
     && rm requirements.txt

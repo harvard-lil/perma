@@ -23,10 +23,7 @@ services:
     networks:
       - default
   web:
-    build:
-      context: .
-      dockerfile: ./perma_web/Dockerfile
-    image: perma3:0.149
+    image: registry.lil.tools/harvardlil/perma-web:1-nohash
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -86,10 +83,7 @@ services:
   # Perma Functional Tests
   #
   playwright:
-    build:
-      context: .
-      dockerfile: ./playwright/Dockerfile
-    image: perma-playwright:0.0031415926
+    image: registry.lil.tools/harvardlil/perma-playwright:1-nohash
     volumes:
       - ./playwright:/playwright:delegated
     environment:

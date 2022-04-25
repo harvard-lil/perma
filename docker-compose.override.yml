@@ -1,0 +1,29 @@
+# overrides for local development, not used in CI
+version: '3'
+services:
+  playwright:
+    build:
+      context: playwright
+      x-bake:
+        tags:
+          - registry.lil.tools/harvardlil/perma-playwright:1-nohash
+        platforms:
+          - linux/amd64
+          - linux/arm64
+      x-hash-paths:
+        - requirements.txt
+  web:
+    build:
+      context: .
+      dockerfile: perma_web/Dockerfile
+      x-bake:
+        tags:
+          - registry.lil.tools/harvardlil/perma-web:1-nohash
+        platforms:
+          - linux/amd64
+          - linux/arm64
+      x-hash-paths:
+        - perma_web/requirements.txt
+        - perma_web/npm-shrinkwrap.json
+        - perma_web/package.json
+        - services/warcprox/perma-warcprox-ca.pem

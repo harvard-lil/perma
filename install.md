@@ -55,13 +55,16 @@ Then check out the code:
     $ git clone https://github.com/harvard-lil/perma.git
     $ cd perma
 
+Using `pull` first after fetching new code will avoid rebuilding images locally:
+
+    $ docker-compose pull
+
 Start up the Docker containers in the background:
 
     $ docker-compose up -d
 
-The first time this runs, it will build the 1.4GB Docker image, which
-may take several minutes. (After the first time, it should only take
-1-3 seconds.)
+The first time this runs, it may take several minutes. With up-to-date docker images,
+it should only take a few seconds.
 
 Finally, initialize the databases:
 
