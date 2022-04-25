@@ -54,7 +54,6 @@ jobs:
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          docker-compose exec web npm run build
           docker-compose exec web npm run test
 
       ### codecov ###
@@ -70,6 +69,7 @@ jobs:
           set -x
           git config user.email "lil@law.harvard.edu"
           git config user.name "Github Actions"
+          docker-compose exec web npm run build
           if [[ `git status docker-compose.yml docker-compose.override.yml --porcelain` ]] ; then
             git add docker-compose.yml docker-compose.override.yml
             git commit -m "Bump image version"
