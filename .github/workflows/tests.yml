@@ -39,8 +39,8 @@ jobs:
 
           # playwright tests
           cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
-          docker-compose exec -d web fab run  # start web server for playwright tests
+          docker-compose exec -d web fab run:ssl=True  # start web server for playwright tests
           echo "127.0.0.1 perma.test" | sudo tee -a /etc/hosts  # make localhost available at perma.test, so that we can curl the dev server from here
-          wget --waitretry=1 -t 10 -O /dev/null http://perma.test:8000/  # wait 10 seconds for server to start
+          wget --no-check-certificate --waitretry=1 -t 10 -O /dev/null https://perma.test:8000/  # wait 10 seconds for server to start
           docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
           docker-compose exec web pkill -f python  # stop web server
