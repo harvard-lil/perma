@@ -17,14 +17,29 @@ jobs:
         id: rebuild
         uses: harvard-lil/docker-compose-update-action@main
 
+      ### prepare to install trusted self-signed SSL certs
+
+      - name: Install mkcert
+        # from https://computingforgeeks.com/create-locally-trusted-ssl-certificates-on-linux-macos-using-mkcert/
+        run: |
+          sudo apt-get update
+          sudo apt install wget libnss3-tools
+          curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+          mv mkcert-v*-linux-amd64 mkcert
+          chmod a+x mkcert
+          sudo mv mkcert /usr/local/bin/
+          mkcert -install
+
       ### run tests ###
 
       - name: docker-compose up
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           # separate pull so downloads run in parallel, with
           # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
           docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
           docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
+          bash make_cert.sh                                 # install SSL certs and restart the nginx container
           docker ps -a                                      # show running containers
           docker-compose logs                               # show logs
 
