@@ -24,7 +24,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt install wget libnss3-tools
-          curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+          curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest | grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
           mv mkcert-v*-linux-amd64 mkcert
           chmod a+x mkcert
           sudo mv mkcert /usr/local/bin/
@@ -66,7 +66,7 @@ jobs:
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv
 
-      - name: set up for Playwright tests
+      - name: Set up for Playwright tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         timeout-minutes: 1
         run: |
