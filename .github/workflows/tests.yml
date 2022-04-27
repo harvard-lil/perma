@@ -17,7 +17,7 @@ jobs:
         run: |
           # separate pull so downloads run in parallel, with
           # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
-          docker-compose -f docker-compose.yml pull --ignore-pull-failures --quiet || true
+          docker-compose -f docker-compose.yml pull --ignore-pull-failures | cat || true
       #     docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
       #     docker ps -a                                      # show running containers
       #     docker-compose logs                               # show logs
