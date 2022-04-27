@@ -12,35 +12,40 @@ jobs:
       - uses: actions/checkout@v2
 
       ### run tests ###
-
       - name: docker-compose up
         run: |
-          # separate pull so downloads run in parallel, with
-          # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
-          docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
-          docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
-          docker ps -a                                      # show running containers
-          docker-compose logs                               # show logs
+          cat /etc/hosts
+          openssl version
 
-      - name: Collect static files
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        run: |
-          # compile fresh bundles
-          docker-compose exec web npm run build
-          docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
 
-      - name: Python tests
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        run: |
-          set -x
-          # web tests
-          docker-compose exec web fab dev.init_db
-          docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
+      # - name: docker-compose up
+      #   run: |
+      #     # separate pull so downloads run in parallel, with
+      #     # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
+      #     docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
+      #     docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
+      #     docker ps -a                                      # show running containers
+      #     docker-compose logs                               # show logs
 
-          # playwright tests
-          cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
-          docker-compose exec -d web fab run:ssl=True  # start web server for playwright tests
-          echo "127.0.0.1 perma.test" | sudo tee -a /etc/hosts  # make localhost available at perma.test, so that we can curl the dev server from here
-          wget --no-check-certificate --waitretry=1 -t 10 -O /dev/null https://perma.test:8000/  # wait 10 seconds for server to start
-          docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
-          docker-compose exec web pkill -f python  # stop web server
+      # - name: Collect static files
+      #   shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+      #   run: |
+      #     # compile fresh bundles
+      #     docker-compose exec web npm run build
+      #     docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
+
+      # - name: Python tests
+      #   shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+      #   run: |
+      #     set -x
+      #     # web tests
+      #     docker-compose exec web fab dev.init_db
+      #     docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
+
+      #     # playwright tests
+      #     cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
+      #     docker-compose exec -d web fab run:ssl=True  # start web server for playwright tests
+      #     echo "127.0.0.1 perma.test" | sudo tee -a /etc/hosts  # make localhost available at perma.test, so that we can curl the dev server from here
+      #     wget --no-check-certificate --waitretry=1 -t 10 -O /dev/null https://perma.test:8000/  # wait 10 seconds for server to start
+      #     docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
+      #     docker-compose exec web pkill -f python  # stop web server
