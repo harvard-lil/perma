@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -49,7 +50,7 @@
 </head>
 <body>
 
-  <script src="{{ PLAYBACK_UI_JS_URL }}"></script>
+  <script src="{% static "vendors/replay-web-page/ui.js" %}"></script>
   <script>
 
     const guid = "{{ guid }}";
@@ -75,6 +76,7 @@
         replay.setAttribute('view', 'replay');
         replay.setAttribute('embed', embed_style);
         replay.setAttribute('noSandbox', !sandbox);
+        replay.setAttribute('replayBase', "{% static "vendors/replay-web-page" %}/");
         const hidden = {{ hidden|yesno:'true, false' }};
         if (hidden){
           replay.className = 'hidden';

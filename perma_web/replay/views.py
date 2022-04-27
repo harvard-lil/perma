@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -31,9 +30,3 @@ def iframe(request):
         context['ondemand'] = ondemand
         context['target'] = target
     return render(request, 'iframe.html', context)
-
-def replay_service_worker(request):
-    """
-    The service worker required for client-side playback:
-    """
-    return HttpResponse(f'importScripts("{ settings.SERVICE_WORKER_URL }");\n', content_type='application/x-javascript')

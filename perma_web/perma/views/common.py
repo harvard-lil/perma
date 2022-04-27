@@ -337,13 +337,6 @@ def serve_warc(request, guid):
     return stream_warc_if_permissible(request, link, request.user, stream=False)
 
 
-def replay_service_worker(request):
-    """
-    The service worker required for client-side playback:
-    """
-    return HttpResponse(f'importScripts("{ settings.SERVICE_WORKER_URL }");\n', content_type='application/x-javascript')
-
-
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)

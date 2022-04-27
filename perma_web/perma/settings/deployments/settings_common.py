@@ -599,7 +599,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'HOST',
     'USE_ANALYTICS',
     'USE_ANALYTICS_VIEWS',
-    'PLAYBACK_UI_JS_URL'
 )
 
 
@@ -711,8 +710,8 @@ PERMA_PAYMENTS_IN_MAINTENANCE = False
 ENABLE_SPONSORED_USERS = False
 
 USERS_WITH_CLIENT_SIDE_PLAYBACK = []
-PLAYBACK_UI_JS_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage@1.5.11/ui.js'
-SERVICE_WORKER_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage@1.5.11/sw.js'
+REPLAYWEBPAGE_VERSION = '1.5.11'
+REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
 
 ENABLE_BONUS_LINKS = False
 
