@@ -12,17 +12,12 @@ jobs:
       - uses: actions/checkout@v2
 
       ### run tests ###
+
       - name: docker-compose up
         run: |
-          cat /etc/hosts
-          openssl version
-
-
-      # - name: docker-compose up
-      #   run: |
-      #     # separate pull so downloads run in parallel, with
-      #     # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
-      #     docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
+          # separate pull so downloads run in parallel, with
+          # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
+          docker-compose -f docker-compose.yml pull --ignore-pull-failures --quiet || true
       #     docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
       #     docker ps -a                                      # show running containers
       #     docker-compose logs                               # show logs
