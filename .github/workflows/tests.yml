@@ -17,20 +17,31 @@ jobs:
         id: rebuild
         uses: harvard-lil/docker-compose-update-action@main
 
+      ### prepare to install trusted self-signed SSL certs
+
+      - name: Install mkcert
+        # from https://computingforgeeks.com/create-locally-trusted-ssl-certificates-on-linux-macos-using-mkcert/
+        run: |
+          sudo apt-get update
+          sudo apt install wget libnss3-tools
+          curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest | grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+          mv mkcert-v*-linux-amd64 mkcert
+          chmod a+x mkcert
+          sudo mv mkcert /usr/local/bin/
+          mkcert -install
+
       ### run tests ###
 
       - name: docker-compose up
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           # separate pull so downloads run in parallel, with
           # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
           docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
           docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
+          bash make_cert.sh                                 # install SSL certs and restart the nginx container
           docker ps -a                                      # show running containers
           docker-compose logs                               # show logs
-
-      - name: Collect static files
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        run: docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
 
       - name: Javascript tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
@@ -38,23 +49,35 @@ jobs:
           set -x
           docker-compose exec web npm run test
 
+      - name: Build and collect static files
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker-compose exec web npm run build                         # compile fresh bundles
+          docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
+
       - name: Python tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          # compile fresh bundles
-          docker-compose exec web npm run build
-          # web tests
           docker-compose exec web fab dev.init_db
           docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
           docker-compose exec web pytest \
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv
 
-          # playwright tests
+      - name: Set up for Playwright tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        timeout-minutes: 1
+        run: |
           cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
           docker-compose exec -d web fab run  # start web server for playwright tests
-          wget --waitretry=1 -t 10 -O /dev/null --header="Host: perma.test" http://127.0.0.1:8000/  # wait 10 seconds for server to start
+          echo "127.0.0.1 perma.test" | sudo tee -a /etc/hosts  # make localhost available at perma.test, so that we can curl the dev server from here
+          until wget -O /dev/null https://perma.test:8000/ ; do sleep 1 ; done  # try until server is ready
+
+      - name: Playwright tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
           docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
           docker-compose exec web pkill -f python  # stop web server
 

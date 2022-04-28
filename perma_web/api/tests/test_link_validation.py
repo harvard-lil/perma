@@ -125,6 +125,7 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
                                      'file': test_file})
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestCase):
 
     def test_should_reject_file_redirecting_url_without_exception(self):

@@ -1,12 +1,12 @@
 import requests
 
-from django.test import LiveServerTestCase
+from django.test import LiveServerTestCase, override_settings
 
 import perma.settings
 import perma.wsgi
 from importlib import reload
 
-
+@override_settings(SECURE_SSL_REDIRECT=False)
 class WsgiTestCase(LiveServerTestCase):
 
     def setUp(self):

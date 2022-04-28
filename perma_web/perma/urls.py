@@ -160,6 +160,8 @@ urlpatterns = [
     url(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
     url(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
 
+    # serve warcs with .warc file extension for use in client-side playback
+    url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
 
     # Our Perma ID catchall
     url(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
@@ -178,12 +180,6 @@ if settings.ENABLE_SPONSORED_USERS:
         url(r'^manage/sponsored-users/(?P<user_id>\d+)/remove/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_remove, name='user_management_manage_single_sponsored_user_remove'),
         url(r'^manage/sponsored-users/(?P<user_id>\d+)/readd/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_readd, name='user_management_manage_single_sponsored_user_readd'),
         url(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
-    ]
-
-if settings.OFFER_CLIENT_SIDE_PLAYBACK:
-    urlpatterns += [
-        url(r'^replay/sw.js?$', common.replay_service_worker, name='replay_service_worker'),
-        url(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
     ]
 
 if settings.DEBUG:

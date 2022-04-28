@@ -142,7 +142,6 @@ TIERS = {
 }
 
 REMOTE_SELENIUM_HOST = 'selenium'
-PLAYBACK_HOST = 'perma-archives.test:81'
 
 ENABLE_SPONSORED_USERS = True
 ENABLE_BONUS_LINKS = True

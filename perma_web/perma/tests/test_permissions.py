@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.urls import reverse
+from django.test.utils import override_settings
 
 from perma.urls import urlpatterns
 
@@ -8,6 +8,7 @@ from .utils import PermaTestCase
 
 class PermissionsTestCase(PermaTestCase):
 
+    @override_settings(SECURE_SSL_REDIRECT=False)
     def test_permissions(self):
         """Test who can log into restricted pages."""
         all_users = {
@@ -111,12 +112,12 @@ class PermissionsTestCase(PermaTestCase):
                 # try while logged out
                 self.client.logout()
                 resp = self.client.get(url)
-                self.assertRedirects(resp, settings.LOGIN_URL+"?next="+url)
+                self.assertRedirects(resp, f"{reverse('user_management_limited_login')}?next={url}")
 
                 # try with valid users
                 for user in view['allowed']:
                     self.log_in_user(user)
-                    resp = self.client.get(url)
+                    resp = self.client.get(url, secure=True)
                     if success_test:
                         success_test(resp)
                     else:

@@ -10,26 +10,26 @@ class LockssTestCase(PermaTestCase):
 
     def test_daemon_settings(self):
         for (client, status_code) in self.clients:
-            response = client.get('/lockss/daemon_settings.txt')
+            response = client.get('/lockss/daemon_settings.txt', secure=True)
             self.assertEqual(response.status_code, status_code)
 
     def test_titledb_and_search(self):
-        response = self.clients[0][0].get('/lockss/titledb.xml')
+        response = self.clients[0][0].get('/lockss/titledb.xml', secure=True)
         self.assertEqual(response.status_code, self.clients[0][1])
         for ym in [ym[0:7] for ym in str(response.content, 'utf-8').split('Perma.cc Captures For ')][1:]:
             (year, month) = ym.split('-')
             for (client, status_code) in self.clients:
-                response = client.get('/lockss/search/?creation_year={0}&creation_month={1}'.format(year, month))
+                response = client.get('/lockss/search/?creation_year={0}&creation_month={1}'.format(year, month), secure=True)
                 self.assertEqual(response.status_code, status_code)
-        response = self.clients[1][0].get('/lockss/titledb.xml')
+        response = self.clients[1][0].get('/lockss/titledb.xml', secure=True)
         self.assertEqual(response.status_code, self.clients[1][1])
 
     def test_permission(self):
         for (client, status_code) in self.clients:
-            response = client.get('/lockss/permission/')
+            response = client.get('/lockss/permission/', secure=True)
             self.assertEqual(response.status_code, status_code)
 
     def test_fetch(self):
         for (client, status_code) in self.clients:
-            response = client.get('/lockss/fetch/3S/LN/JH/3SLN-JHX9.warc.gz')
+            response = client.get('/lockss/fetch/3S/LN/JH/3SLN-JHX9.warc.gz', secure=True)
             self.assertEqual(response.status_code, status_code)

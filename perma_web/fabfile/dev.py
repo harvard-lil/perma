@@ -14,22 +14,19 @@ from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
-def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', host='perma.test', debug_toolbar=''):
+def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=''):
     """
         Run django test server on open port, so it's accessible outside Docker.
 
-        Use runserver_plus for SSL; runserver otherwise.
+        Use runserver_plus for SSL.
     """
-    use_ssl = True if use_ssl else False
-
     commands = []
 
     if settings.CELERY_TASK_ALWAYS_EAGER:
         print("\nWarning! Batch Link creation will not work as expected:\n" +
               "to create new batches you should run with settings.CELERY_TASK_ALWAYS_EAGER = False\n")
     else:
-        print("Starting background celery process. Warning: this has a documented memory leak, and developing with"
-              " CELERY_TASK_ALWAYS_EAGER=True is usually easier unless you're specifically testing a Django <-> Celery interaction.")
+        print("\nStarting background celery process.")
         commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h")
 
     if settings.PROXY_CAPTURES:
@@ -38,56 +35,30 @@ def run_django(port="0.0.0.0:8000", use_ssl=False, cert_file='perma-test.crt', h
 
     # Only run the webpack background process in debug mode -- with debug False, dev server uses static assets,
     # and running webpack just messes up the webpack stats file.
+    # Similarly, don't download fresh replayweb.page assets, to avoid confusion.
     if settings.DEBUG:
         commands.append('npm start')
+        commands.append("watchmedo auto-restart -d ./perma/settings/ -p '*.py' -R -- fab dev.get_replay_assets")
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
 
     with shell_env(DEBUG_TOOLBAR=debug_toolbar):
 
         try:
-            if use_ssl:
-                try:
-                    # use runserver_plus if installed
-                    import django_extensions  # noqa
-
-                    if not settings.SECURE_SSL_REDIRECT:
-                        print("\nError! When using SSL, you must run with settings.SECURE_SSL_REDIRECT = True\n")
-                    else:
-                        ## The following comment and line are from the Vagrant era, and may
-                        ## need amendment for Docker.
-                        # use --reloader-type stat because:
-                        #  (1) we have to have watchdog installed for pywb, which causes
-                        # runserver_plus to attempt to use it as the reloader, which depends
-                        # on inotify, but
-                        #  (2) we are using a Vagrant NFS mount, which does not support inotify
-                        # see https://github.com/django-extensions/django-extensions/pull/1041
-                        options = '--threaded --reloader-type stat'
-
-                        # create a cert if necessary or supply your own; we assume perma.test
-                        # is in your /etc/hosts
-                        cert_file_name = os.path.splitext(cert_file)[0]
-                        conf_file = f"{cert_file_name}.conf"
-                        with open(conf_file, "w") as f:
-                            f.write(f"[dn]\nCN={host}\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:{host}\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-                        if not os.path.exists(cert_file):
-                            local(f"openssl req -x509 -out {cert_file} -keyout {cert_file_name}.key -newkey rsa:2048 -nodes -sha256 -subj '/CN={host}' -extensions EXT -config {conf_file}")
-                        options += f' --cert-file {cert_file}'
-
-                        local(f"python manage.py runserver_plus {port} {options}")
-                except ImportError:
-                    print("\nWarning! We can't serve via SSL, as django-extensions is not installed.\n")
-            else:
-                if settings.SECURE_SSL_REDIRECT:
-                    print("\nError! When *not* using SSL, you must run with settings.SECURE_SSL_REDIRECT = False\n")
-                else:
-                    local(f"python manage.py runserver {port}")
+            # use runserver_plus
+            import django_extensions  # noqa
+            if not os.path.exists(os.path.join(settings.PROJECT_ROOT, cert_file)) or not os.path.exists(os.path.join(settings.PROJECT_ROOT, key_file)):
+                print("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
+                return
+            options = f'--cert-file {cert_file} --key-file {key_file}'
+            local(f"python manage.py runserver_plus {port} {options}")
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
 
 
 _default_tests = "functional_tests perma api lockss"
+
 
 @task
 def test(apps=_default_tests):
@@ -167,6 +138,19 @@ def pip_compile(args=''):
     command = ['pip-compile', '--generate-hashes', '--allow-unsafe']+args.split()
     print("Calling %s" % " ".join(command))
     subprocess.check_call(command, env=dict(os.environ, CUSTOM_COMPILE_COMMAND='fab pip-compile'))
+
+
+@task()
+def get_replay_assets():
+    import requests
+
+    for asset in ['sw.js', 'ui.js', 'ruffle/ruffle.js']:
+        dest = os.path.join(settings.PROJECT_ROOT, f'static/vendors/replay-web-page/{asset}')
+        with open(dest, 'wb') as file:
+            url = f'{settings.REPLAYWEBPAGE_SOURCE_URL}@{settings.REPLAYWEBPAGE_VERSION}/{asset}'
+            print(f'Downloading {url} to {dest}')
+            response = requests.get(url)
+            file.write(response.content)
 
 
 @task

@@ -1,0 +1,1 @@
+<iframe class="{{ interstitial|yesno:'interstitial,archive-iframe'}}" src="{{ protocol }}{{ client_side_playback_host }}?guid={{ link.guid }}{{ compare_replays|yesno:'&embed=replayonly,'}}{{ screenshot|yesno:'&type=screenshot,'}}{{ interstitial|yesno:'&hidden=true&ondemand=true,'}}{% if target %}&target={{target}}{% endif %}"></iframe>

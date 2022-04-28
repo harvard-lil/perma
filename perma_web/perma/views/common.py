@@ -146,7 +146,7 @@ def single_permalink(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        return stream_warc_if_permissible(link, request.user)
+        return stream_warc_if_permissible(request, link, request.user)
 
     # handle requested capture type
     if serve_type == 'image':
@@ -216,11 +216,11 @@ def single_permalink(request, guid):
 
         context['client_side_playback'] = request.GET.get('client-side') if (
                                               request.GET.get('client-side') and
-                                              settings.OFFER_CLIENT_SIDE_PLAYBACK and
                                               not request.user.is_anonymous and
                                               request.user.offer_client_side_playback
                                           ) else ''
         if context['client_side_playback']:
+            context['client_side_playback_host'] = settings.CLIENT_SIDE_PLAYBACK_HOST
             if context['client_side_playback'] == 'compare':
                 context['client_side_playback'] = 'replay'
                 context['compare_replays'] = True
@@ -334,14 +334,7 @@ def serve_warc(request, guid):
 
     canonical_guid = Link.get_canonical_guid(guid)
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-    return stream_warc_if_permissible(link, request.user, stream=False)
-
-
-def replay_service_worker(request):
-    """
-    The service worker required for client-side playback:
-    """
-    return HttpResponse(f'importScripts("{ settings.SERVICE_WORKER_URL }");\n', content_type='application/x-javascript')
+    return stream_warc_if_permissible(request, link, request.user, stream=False)
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
