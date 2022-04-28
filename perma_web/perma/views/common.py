@@ -214,8 +214,9 @@ def single_permalink(request, guid):
                 # Let's consider this a HTTP 200, I think...
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
-        context['client_side_playback'] = request.GET.get('client-side') if (
-                                              request.GET.get('client-side') and
+        client_param = request.GET.get('client-side')
+        context['client_side_playback'] = client_param if (
+                                              client_param in ['replay', 'compare'] and
                                               not request.user.is_anonymous and
                                               request.user.offer_client_side_playback
                                           ) else ''
