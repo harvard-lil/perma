@@ -96,12 +96,12 @@ jobs:
           git config user.name "Github Actions"
           if [[ `git status docker-compose.yml docker-compose.override.yml --porcelain` ]] ; then
             git add docker-compose.yml docker-compose.override.yml
-            git commit -m "Bump image version"
+            git commit -m "Bump image version [skip ci]"
             git push origin develop || exit 1
           fi
           if [[ `git status perma_web/static/bundles/ perma_web/webpack-stats.json --porcelain` ]] ; then
               git add perma_web/static/bundles/ perma_web/webpack-stats.json
-              git commit -m "Add built JS"
+              git commit -m "Add built JS [skip ci]"
               git push origin develop || exit 1
           fi
 
