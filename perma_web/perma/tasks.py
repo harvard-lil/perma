@@ -1575,6 +1575,11 @@ def upload_all_to_internet_archive(limit=None, max_size=None):
 
     if limit:
         links = links[:limit]
+
+    # upload smallest WARCs first, so large ones don't clog
+    # the pipeline when the network is slow
+    links = links.order_by('warc_size')
+
     queued = 0
     for link_guid in links.values_list('guid', flat=True):
         upload_to_internet_archive.delay(link_guid)
