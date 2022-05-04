@@ -128,19 +128,6 @@ Fork our repo, then make a feature branch on your fork. Issue a pull request to 
 
 Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
 
-## Optional developer packages
-
-You can install some handy developer packages with `d pip install -r dev_requirements.txt`:
-
-* `ipdb` is a nice drop-in replacement for `pdb`.
-* `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html).
-  Particularly useful are `runserver_plus` and `shell_plus`. If installed, this will be automatically enabled by `settings_dev.py`,
-  and`fab run` will use `runserver_plus` instead of `runserver`.
-* `django-debug-toolbar` includes a handy debug toolbar in frontend pages. Use it by running `docker compose exec web fab run:debug_toolbar=True`.
-
-`django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
-if you run into something odd.
-
 
 ## Logs
 

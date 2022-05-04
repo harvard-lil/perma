@@ -64,9 +64,14 @@
 
       const launch_playback = () => {
         const url = "{{ target_url | escapejs }}";
-        const warc_source = "{{ warc_source | escapejs }}";
         const embed_style = "{{ embed_style }}";
-        const sandbox = {{ sandbox|yesno:"true,false" }}
+        const sandbox = {{ sandbox|yesno:"true,false" }};
+
+        const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
+        const warc_source = new URL(window.name);
+        if (warc_source.host != warc_source_allowed_host) {
+          throw `Forbidden warc source: ${warc_source}`
+        }
 
         console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source}`)
 

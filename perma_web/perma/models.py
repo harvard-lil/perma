@@ -1582,6 +1582,9 @@ class Link(DeletableModel):
     def warc_storage_file(self):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.warc.gz')
 
+    def warc_presigned_url(self):
+        return default_storage.url(self.warc_storage_file())
+
     # def get_thumbnail(self, image_data=None):
     #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
     #         return None

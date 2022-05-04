@@ -66,6 +66,44 @@ services:
           - 'replay.perma.test'
       webrecorder:
 
+  #
+  # Minio
+  #
+  minio:
+    image: minio/minio:RELEASE.2022-05-03T20-36-08Z
+    entrypoint:
+      - "/entrypoint.sh"
+    command:
+      - "server"
+      - "--address"
+      - ":9000"
+      - "--console-address"
+      - ":9001"
+      - " --certs-dir"
+      - "/ssl"
+      - "/data"
+    environment:
+      - MINIO_SERVER_URL=https://perma.minio.test:9000
+      # synonym for old MINIO_ACCESS_KEY
+      - MINIO_ROOT_USER=accesskey
+      # synonym for old MINIO_SECRET_KEY
+      - MINIO_ROOT_PASSWORD=secretkey
+      - DATA_DIR=/data
+      - BUCKET=perma-storage
+      - MINIO_API_CORS_ALLOW_ORIGIN=https://replay.perma.test:8000
+    volumes:
+      - ./services/docker/minio/entrypoint.sh:/entrypoint.sh
+      - ./services/docker/minio/ssl:/ssl
+      - minio_data:/data:delegated
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    extra_hosts:
+      - "perma.minio.test:127.0.0.1"
+    networks:
+      default:
+        aliases:
+          - 'perma.minio.test'
 
   #
   # Perma Functional Tests
@@ -251,6 +289,7 @@ volumes:
   pp_db_data:
   wr_warcs:
   wr_redis_data:
+  minio_data:
 
 networks:
   default:
@@ -267,3 +306,4 @@ networks:
   webrecorder:
   #   external:
   #     name: webrecorder_default
+  minio:

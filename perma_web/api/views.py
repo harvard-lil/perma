@@ -318,7 +318,7 @@ class PublicLinkDownloadView(BaseView):
             raise Http404
         if link.replacement_link_id:
             return HttpResponseRedirect(reverse_api_view_relative('public_archives_download', kwargs={'guid': link.replacement_link_id}))
-        return stream_warc(request, link)
+        return stream_warc(link)
 
 
 # /archives
@@ -642,7 +642,7 @@ class AuthenticatedLinkDownloadView(BaseView):
         link = self.get_object_for_user_by_pk(request.user, guid)
         if link.replacement_link_id:
             return HttpResponseRedirect(reverse_api_view_relative('archives_download', kwargs={'guid': link.replacement_link_id}))
-        return stream_warc_if_permissible(request, link, request.user)
+        return stream_warc_if_permissible(link, request.user)
 
 
 # /folders/:parent_id/archives/:guid
