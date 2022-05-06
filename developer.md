@@ -88,8 +88,9 @@ Docker image with the new dependencies installed.
 
 ### Update Chromium
 
-If there's an update to Chromium,
-run `bash update_chromium.sh` to rebuild the containers, install the new browser,
+If there's an update to Chromium, set the new version in the
+`ENV CHROMIUM_VERSION` line in `perma_web/Dockerfile` and run
+`bash update_chromium.sh` to rebuild the containers, install the new browser,
 and update the capture user agent.
 
 ### Migrate the database
@@ -103,9 +104,9 @@ For more information on migrations, see [Schema and data migrations](#schema-and
 ### Reset the database
 
 1) `docker-compose down` to delete your existing containers.
-2) `docker volume rm perma_db3_data` to delete the database.
+2) `docker volume rm perma_postgres_data` to delete the database.
 3) `docker-compose up -d` to spin up new containers.
-4) `bash init_perma.sh` to create a fresh database, pre-populated with test fixtures.
+4) `docker-compose exec web fab dev.init_db` to create a fresh database, pre-populated with test fixtures.
 
 ### Run arbitrary commands
 
@@ -135,7 +136,7 @@ You can install some handy developer packages with `d pip install -r dev_require
 * `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html).
   Particularly useful are `runserver_plus` and `shell_plus`. If installed, this will be automatically enabled by `settings_dev.py`,
   and`fab run` will use `runserver_plus` instead of `runserver`.
-* `django-debug-toolbar` includes a handy debug toolbar in frontend pages. If installed, this will be automatically enabled by `settings_dev.py`.
+* `django-debug-toolbar` includes a handy debug toolbar in frontend pages. Use it by running `docker compose exec web fab run:debug_toolbar=True`.
 
 `django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
 if you run into something odd.
