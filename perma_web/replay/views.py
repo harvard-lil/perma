@@ -29,4 +29,6 @@ def iframe(request):
         context['hidden'] = hidden
         context['ondemand'] = ondemand
         context['target'] = target
-    return render(request, 'iframe.html', context)
+    response = render(request, 'iframe.html', context)
+    response['Clear-Site-Data'] = '"cache", "cookies", "storage"'
+    return response
