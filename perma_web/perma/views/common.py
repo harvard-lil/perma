@@ -215,11 +215,7 @@ def single_permalink(request, guid):
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
         client_param = request.GET.get('client-side')
-        context['client_side_playback'] = client_param if (
-                                              client_param in ['replay', 'compare'] and
-                                              not request.user.is_anonymous and
-                                              request.user.offer_client_side_playback
-                                          ) else ''
+        context['client_side_playback'] = client_param if client_param in ['replay', 'compare'] else ''
         if context['client_side_playback']:
             context['client_side_playback_host'] = settings.CLIENT_SIDE_PLAYBACK_HOST
             if context['client_side_playback'] == 'compare':
