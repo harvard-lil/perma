@@ -604,7 +604,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
 DISABLE_DEV_SHM = False
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 PERMABOT_USER_AGENT_SUFFIX = "(Perma.cc bot)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
