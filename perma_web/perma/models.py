@@ -1583,7 +1583,12 @@ class Link(DeletableModel):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.warc.gz')
 
     def warc_presigned_url(self):
-        return default_storage.url(self.warc_storage_file())
+        # Specify that warcs should have content-type 'application/gzip' so that archives are fetched correctly by the playback service worker.
+        # (All warcs from before summer 2022 were uploaded with content-type 'application/octet-stream' and content-encoding 'gzip')
+        return default_storage.url(self.warc_storage_file(), parameters={
+                'ResponseContentType': 'application/x-gzip',
+                'ResponseContentEncoding': ''
+        })
 
     # def get_thumbnail(self, image_data=None):
     #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
