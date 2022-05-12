@@ -66,7 +66,7 @@ MEDIA_ROOT ='generated/'
 DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_DEFAULT_ACL = 'private'
-
+WARC_PRESIGNED_URL_EXPIRES = 15 * 60
 
 TEMPLATES = [
     {

@@ -1585,7 +1585,7 @@ class Link(DeletableModel):
     def warc_presigned_url(self):
         # Specify that warcs should have content-type 'application/gzip' so that archives are fetched correctly by the playback service worker.
         # (All warcs from before summer 2022 were uploaded with content-type 'application/octet-stream' and content-encoding 'gzip')
-        return default_storage.url(self.warc_storage_file(), parameters={
+        return default_storage.url(self.warc_storage_file(), expire=settings.WARC_PRESIGNED_URL_EXPIRES, parameters={
                 'ResponseContentType': 'application/x-gzip',
                 'ResponseContentEncoding': ''
         })

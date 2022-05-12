@@ -306,4 +306,3 @@ networks:
   webrecorder:
   #   external:
   #     name: webrecorder_default
-  minio:
