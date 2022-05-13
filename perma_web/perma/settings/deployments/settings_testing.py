@@ -24,6 +24,7 @@ ADMINS = (
     ("Admin's Name", 'admin@example.com'),
 )
 
+AWS_STORAGE_BUCKET_NAME += '-test'
 
 ###############
 # Speed Hacks #
