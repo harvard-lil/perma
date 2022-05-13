@@ -7,7 +7,7 @@ from perma.models import Registrar
 
 from .utils import PermaTestCase
 
-from io import StringIO, BytesIO
+from io import BytesIO
 from PIL import Image
 
 class TemplateTagsTestCase(PermaTestCase):
@@ -45,7 +45,7 @@ class TemplateTagsTestCase(PermaTestCase):
 
     def test_logo_carousel_corrupted(self):
         r = Registrar()
-        r.logo = File(StringIO(), "empty_file")
+        r.logo = File(BytesIO(), "empty_file")
         r.save()
         context = {'partners': [r]}
         set_carousel_partners(context)
