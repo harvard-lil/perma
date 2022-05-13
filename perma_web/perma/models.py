@@ -576,6 +576,9 @@ class RegistrarQuerySet(QuerySet):
     def approved(self):
         return self.filter(status="approved")
 
+def logo_file_path(instance, filename):
+    return f"registrar_logos/{instance.id}/{filename}"
+
 class Registrar(CustomerModel):
     """
     This is a library, a court, a firm, or similar.
@@ -589,7 +592,7 @@ class Registrar(CustomerModel):
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
     partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
-    logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
+    logo = models.ImageField(upload_to=logo_file_path, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)

@@ -29,6 +29,7 @@ class TemplateTagsTestCase(PermaTestCase):
 
     def new_registrar_with_logo(self, width, height):
         r = Registrar()
+        r.save()
         r.logo = self.get_image_file(size=(width, height))
         r.save()
         return r
