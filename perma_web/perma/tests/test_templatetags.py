@@ -69,7 +69,7 @@ class TemplateTagsTestCase(PermaTestCase):
         self.assertEqual(len(squares), 1)
         self.assertEqual(squares[0].logo_class, "square")
 
-    def test_logo_carousel_one_row_rectanges(self):
+    def test_logo_carousel_one_row_rectangles(self):
         '''
            In one row up to 50 times as wide as tall
         '''
@@ -85,7 +85,7 @@ class TemplateTagsTestCase(PermaTestCase):
         self.assertEqual(rectangles[1].logo_class, "")
         self.assertEqual(len(squares), 0)
 
-    def test_logo_carousel_two_rows_rectanges(self):
+    def test_logo_carousel_two_rows_rectangles(self):
         '''
            Add second row over 50 times as wide as tall
         '''
