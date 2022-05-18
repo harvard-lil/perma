@@ -32,3 +32,12 @@ def iframe(request):
     response = render(request, 'iframe.html', context)
     response['Clear-Site-Data'] = '"cache", "cookies", "storage"'
     return response
+
+
+@xframe_options_exempt
+def replay_fallback(request):
+    """
+    If the service worker isn't processing fetch requests at the moment that the
+    replay-web-page's internal iframe is loaded, this route will catch the requests.
+    """
+    return render(request, 'fallback.html', {})
