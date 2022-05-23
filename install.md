@@ -22,7 +22,7 @@ Dependencies
 
 * [Git](http://git-scm.com/downloads)
 * [Docker](https://docs.docker.com/install/)
-* [mkcert](https://github.com/FiloSottile/mkcert)
+* [mkcert](https://github.com/FiloSottile/mkcert) (for macOS installs, run `brew bundle`)
 
 
 Hosts
