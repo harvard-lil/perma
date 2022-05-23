@@ -8,6 +8,7 @@ from . import views
 
 urlpatterns = [
     path('', views.iframe, name='iframe'),
+    path('static/vendors/replay-web-page/', views.replay_fallback, name='replay_fallback'),
 ]
 
 ### error handlers ###

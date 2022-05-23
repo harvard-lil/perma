@@ -1,4 +1,6 @@
 from django.test import Client
+from io import BytesIO
+from mock import patch
 from perma.tests.utils import PermaTestCase
 
 class LockssTestCase(PermaTestCase):
@@ -29,7 +31,9 @@ class LockssTestCase(PermaTestCase):
             response = client.get('/lockss/permission/', secure=True)
             self.assertEqual(response.status_code, status_code)
 
-    def test_fetch(self):
+    @patch('lockss.views.default_storage.open', autospec=True)
+    def test_fetch(self, mock_open):
+        mock_open.return_value = BytesIO(b"warc placeholder")
         for (client, status_code) in self.clients:
             response = client.get('/lockss/fetch/3S/LN/JH/3SLN-JHX9.warc.gz', secure=True)
             self.assertEqual(response.status_code, status_code)

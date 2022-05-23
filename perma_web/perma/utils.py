@@ -616,7 +616,7 @@ def write_resource_record_from_asset(data, url, content_type, out_file, extra_he
     record = warctools.WarcRecord(headers=headers, content=(bytes(content_type, 'utf-8'), data))
     record.write_to(out_file, gzip=True)
 
-def get_warc_stream(request, link, stream=True):
+def get_warc_stream(link, stream=True):
     filename = f"{link.guid}.warc.gz"
 
     timestamp = link.creation_timestamp.strftime('%Y%m%d%H%M%S')
@@ -641,58 +641,21 @@ def get_warc_stream(request, link, stream=True):
     else:
         response = HttpResponse(warc_stream, content_type="application/gzip")
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    set_warc_download_cors_headers(request, response)
     return response
 
-def stream_warc(request, link, stream=True):
+def stream_warc(link, stream=True):
     # `link.user_deleted` is checked here for dev convenience:
     # it's easy to forget that deleted links/warcs aren't truly deleted,
     # and easy to accidentally permit the downloading of "deleted" warcs.
     # Users of stream_warc shouldn't have to worry about / remember this.
     if link.user_deleted or not link.can_play_back():
         raise Http404
-    return get_warc_stream(request, link, stream)
+    return get_warc_stream(link, stream)
 
-def stream_warc_if_permissible(request, link, user, stream=True):
+def stream_warc_if_permissible(link, user, stream=True):
     if user.can_view(link):
-        if request.method == 'OPTIONS':
-            response = HttpResponseNoContent()
-            set_warc_download_cors_headers(request, response)
-            return response
-        return stream_warc(request, link, stream)
+        return stream_warc(link, stream)
     return HttpResponseForbidden('Private archive.')
-
-def set_warc_download_cors_headers(request, response):
-    response['Vary'] = 'Origin'
-    response['Access-Control-Allow-Origin'] = f"{ protocol() }{settings.CLIENT_SIDE_PLAYBACK_HOST}"
-    response['Access-Control-Allow-Methods'] = 'GET, HEAD'
-    headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
-    if headers:
-        response['Access-Control-Allow-Headers'] = headers
-    # <ExposeHeader>Content-Range</ExposeHeader>
-    # <ExposeHeader>Content-Encoding</ExposeHeader>
-    # <ExposeHeader>Content-Length</ExposeHeader>
-    response['Access-Control-Allow-Credentials'] = 'true'
-
-class HttpResponseNoContent(HttpResponse):
-    """
-    Special HTTP response with no content, just headers.
-    The content operations are ignored.
-    from https://stackoverflow.com/a/62835865
-    """
-
-    def __init__(self, content="", mimetype=None, status=None, content_type=None):
-        super().__init__(status=204)
-
-        if "content-type" in self._headers:
-            del self._headers["content-type"]
-
-    def _set_content(self, value):
-        pass
-
-    def _get_content(self, value):
-        pass
-
 
 #
 # Webrecorder Helpers

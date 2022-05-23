@@ -89,5 +89,19 @@ class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
     logging.getLogger('boto3').setLevel(logging.WARNING)
     logging.getLogger('botocore').setLevel(logging.WARNING)
 
+    def get_object_parameters(self, name):
+        """
+        Upload warcs as content-type 'application/gzip' rather than
+        content-type 'application/octet-stream' and content-encoding 'gzip'
+        so that archives are fetched correctly by the playback service worker.
+        See https://github.com/jschneier/django-storages/issues/917
+        """
+        params = super().get_object_parameters(name)
+        if name.endswith('.gz'):
+            params['ContentType'] = 'application/gzip'
+            params['ContentEncoding'] = ''
+        return params
+
+
 class AzureMediaStorage(BaseMediaStorage, AzureStorage):
     location = settings.MEDIA_ROOT

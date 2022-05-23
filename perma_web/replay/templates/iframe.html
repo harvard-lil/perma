@@ -64,9 +64,14 @@
 
       const launch_playback = () => {
         const url = "{{ target_url | escapejs }}";
-        const warc_source = "{{ warc_source | escapejs }}";
         const embed_style = "{{ embed_style }}";
-        const sandbox = {{ sandbox|yesno:"true,false" }}
+        const sandbox = {{ sandbox|yesno:"true,false" }};
+
+        const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
+        const warc_source = new URL(window.name);
+        if (warc_source.host != warc_source_allowed_host) {
+          throw `Forbidden warc source: ${warc_source}`
+        }
 
         console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source}`)
 
@@ -166,11 +171,64 @@
       //
       // Otherwise, display a simple landing page
       //
+
       const content = document.createElement('div');
       content.className = 'welcome'
       content.innerHTML = "<div>Welcome.</div>";
       document.body.appendChild(content);
 
+      //
+      // And clean up after any earlier attempted playbacks.
+      // (Will be unnecessary when the 'Clear-Site-Data' header is implemented more thoroughly across browsers)
+      //
+
+      // Unregister service worker
+      navigator.serviceWorker.getRegistrations()
+        .then(registrations=>{
+          for(let registration of registrations) {
+             console.log(`Unregistering service worker from scope ${registration.scope}.`);
+             registration.unregister();
+          }
+        });
+
+      // Empty local, session, and cache storages
+      localStorage.clear()
+      sessionStorage.clear()
+      caches.keys().then(names=>{
+        for (let name of names) {
+          caches.delete(name);
+        }
+      });
+
+      // Delete IndexedDBs
+      const DBOpenRequest = indexedDB.open('collDB');
+      DBOpenRequest.onsuccess = event=> {
+      //// Try to retrieve a list of per-warc DBs...
+        const collDB = DBOpenRequest.result;
+        try {
+          const objectStore = collDB.transaction(['colls'], 'readonly').objectStore('colls').getAllKeys();
+          objectStore.onsuccess = event=>{
+            const dbIDs = objectStore.result;
+      ////...and on success delete each...
+            for(let dbID of dbIDs){
+              console.log(`Requesting deletion of db:${dbID}.`);
+              indexedDB.deleteDatabase(`db:${dbID}`);
+            }
+      ////...and then delete the collections database.
+            console.log(`Requesting deletion of collDB.`);
+            collDB.close();
+            indexedDB.deleteDatabase('collDB');
+          }
+        } catch (err) {
+      //// If there is no list of per-warc DBs, delete the collections database.
+          console.log(`Requesting deletion of collDB.`);
+          collDB.close();
+          indexedDB.deleteDatabase('collDB');
+          if ( !err.message.includes('object store') ) {
+            throw err;
+          }
+        }
+      }
     }
   </script>
 </body>

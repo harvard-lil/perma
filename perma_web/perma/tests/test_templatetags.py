@@ -7,7 +7,7 @@ from perma.models import Registrar
 
 from .utils import PermaTestCase
 
-from io import StringIO, BytesIO
+from io import BytesIO
 from PIL import Image
 
 class TemplateTagsTestCase(PermaTestCase):
@@ -29,6 +29,7 @@ class TemplateTagsTestCase(PermaTestCase):
 
     def new_registrar_with_logo(self, width, height):
         r = Registrar()
+        r.save()
         r.logo = self.get_image_file(size=(width, height))
         r.save()
         return r
@@ -45,7 +46,7 @@ class TemplateTagsTestCase(PermaTestCase):
 
     def test_logo_carousel_corrupted(self):
         r = Registrar()
-        r.logo = File(StringIO(), "empty_file")
+        r.logo = File(BytesIO(), "empty_file")
         r.save()
         context = {'partners': [r]}
         set_carousel_partners(context)
@@ -69,7 +70,7 @@ class TemplateTagsTestCase(PermaTestCase):
         self.assertEqual(len(squares), 1)
         self.assertEqual(squares[0].logo_class, "square")
 
-    def test_logo_carousel_one_row_rectanges(self):
+    def test_logo_carousel_one_row_rectangles(self):
         '''
            In one row up to 50 times as wide as tall
         '''
@@ -85,7 +86,7 @@ class TemplateTagsTestCase(PermaTestCase):
         self.assertEqual(rectangles[1].logo_class, "")
         self.assertEqual(len(squares), 0)
 
-    def test_logo_carousel_two_rows_rectanges(self):
+    def test_logo_carousel_two_rows_rectangles(self):
         '''
            Add second row over 50 times as wide as tall
         '''

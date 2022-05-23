@@ -7,9 +7,6 @@ DEBUG = False
 # Just don't leave it on!
 # DEBUG_PROPAGATE_EXCEPTIONS = True
 
-# The base location, on disk, where we want to store our generated assets
-MEDIA_ROOT = 'perma/assets/generated/'
-
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERY_BEAT_JOB_NAMES = [
@@ -25,9 +22,6 @@ CELERY_BEAT_JOB_NAMES = [
 
 # logging
 LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
-
-# use separate subdomain for user content
-MEDIA_URL = '//perma-archives.org/media/'
 
 # Our sorl thumbnail settings
 # We only use this redis config in prod. dev envs use the local db.

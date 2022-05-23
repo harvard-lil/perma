@@ -42,10 +42,6 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-# user-generated files
-MEDIA_ROOT = ''
-MEDIA_URL = '/media/'
-
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
@@ -64,8 +60,13 @@ STATICFILES_FINDERS = (         # how to look for static files
 # static files config
 STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
 
-# media storage -- default_storage config
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemMediaStorage'
+# user-generated files / default_storage config
+MEDIA_URL = '/this-setting-is-not-in-use-in-any-deployments/'
+MEDIA_ROOT ='generated/'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_DEFAULT_ACL = 'private'
+WARC_PRESIGNED_URL_EXPIRES = 15 * 60
 
 TEMPLATES = [
     {
@@ -699,9 +700,6 @@ REST_FRAMEWORK = {
 # If using geocoding
 # Via https://console.developers.google.com/apis/api/geocoding_backend/overview
 GEOCODING_KEY = None
-
-# override django-storages default
-AWS_DEFAULT_ACL = 'private'
 
 PERMA_PAYMENTS_TIMEOUT = 2
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120

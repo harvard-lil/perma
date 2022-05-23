@@ -146,7 +146,7 @@ def single_permalink(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        return stream_warc_if_permissible(request, link, request.user)
+        return stream_warc_if_permissible(link, request.user)
 
     # handle requested capture type
     if serve_type == 'image':
@@ -215,11 +215,7 @@ def single_permalink(request, guid):
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
         client_param = request.GET.get('client-side')
-        context['client_side_playback'] = client_param if (
-                                              client_param in ['replay', 'compare'] and
-                                              not request.user.is_anonymous and
-                                              request.user.offer_client_side_playback
-                                          ) else ''
+        context['client_side_playback'] = client_param if client_param in ['replay', 'compare'] else ''
         if context['client_side_playback']:
             context['client_side_playback_host'] = settings.CLIENT_SIDE_PLAYBACK_HOST
             if context['client_side_playback'] == 'compare':
@@ -335,7 +331,7 @@ def serve_warc(request, guid):
 
     canonical_guid = Link.get_canonical_guid(guid)
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-    return stream_warc_if_permissible(request, link, request.user, stream=False)
+    return stream_warc_if_permissible(link, request.user, stream=False)
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))

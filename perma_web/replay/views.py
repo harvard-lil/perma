@@ -1,6 +1,6 @@
-from django.conf import settings
+import urllib.parse
+
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 from perma.models import Link
@@ -20,13 +20,24 @@ def iframe(request):
         target = ''
     context = {}
     if guid:
-        link = get_object_or_404(Link.objects.all_with_deleted().prefetch_related('captures'), guid=guid)
+        link = get_object_or_404(Link.objects.prefetch_related('captures'), guid=guid)
         context['guid'] = link.guid
-        context['warc_source'] = f"{ request.scheme }://{ settings.HOST }{ reverse('serve_warc', args=[link.guid], urlconf='perma.urls') }"
+        context['warc_source_allowed_host'] = urllib.parse.urlparse(link.warc_presigned_url()).netloc
         context['target_url'] = link.screenshot_capture.url if screenshot else link.submitted_url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['sandbox'] = link.primary_capture.use_sandbox()
         context['hidden'] = hidden
         context['ondemand'] = ondemand
         context['target'] = target
-    return render(request, 'iframe.html', context)
+    response = render(request, 'iframe.html', context)
+    response['Clear-Site-Data'] = '"cache", "cookies", "storage"'
+    return response
+
+
+@xframe_options_exempt
+def replay_fallback(request):
+    """
+    If the service worker isn't processing fetch requests at the moment that the
+    replay-web-page's internal iframe is loaded, this route will catch the requests.
+    """
+    return render(request, 'fallback.html', {})

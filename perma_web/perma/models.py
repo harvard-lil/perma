@@ -576,6 +576,9 @@ class RegistrarQuerySet(QuerySet):
     def approved(self):
         return self.filter(status="approved")
 
+def logo_file_path(instance, filename):
+    return f"registrar_logos/{instance.id}/{filename}"
+
 class Registrar(CustomerModel):
     """
     This is a library, a court, a firm, or similar.
@@ -589,7 +592,7 @@ class Registrar(CustomerModel):
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
     partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
-    logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
+    logo = models.ImageField(upload_to=logo_file_path, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
@@ -1581,6 +1584,14 @@ class Link(DeletableModel):
 
     def warc_storage_file(self):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.warc.gz')
+
+    def warc_presigned_url(self):
+        # Specify that warcs should have content-type 'application/gzip' so that archives are fetched correctly by the playback service worker.
+        # (All warcs from before summer 2022 were uploaded with content-type 'application/octet-stream' and content-encoding 'gzip')
+        return default_storage.url(self.warc_storage_file(), expire=settings.WARC_PRESIGNED_URL_EXPIRES, parameters={
+                'ResponseContentType': 'application/x-gzip',
+                'ResponseContentEncoding': ''
+        })
 
     # def get_thumbnail(self, image_data=None):
     #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':

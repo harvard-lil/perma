@@ -9,7 +9,11 @@ LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
 
 # user-generated files
-MEDIA_ROOT = os.path.join(SERVICES_DIR, 'django/generated_assets/')
+AWS_S3_ENDPOINT_URL = 'https://perma.minio.test:9000'
+AWS_ACCESS_KEY_ID = 'accesskey'
+AWS_SECRET_ACCESS_KEY = 'secretkey'
+AWS_STORAGE_BUCKET_NAME = 'perma-storage'
+AWS_S3_VERIFY = False
 
 # static files
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
@@ -87,4 +91,3 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
 # Upload scanning
 SCAN_UPLOADS = True
 SCAN_URL = 'http://filecheck:8888/scan/'
-
