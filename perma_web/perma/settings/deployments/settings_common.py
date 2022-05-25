@@ -493,6 +493,7 @@ ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
 API_SUBDOMAIN = 'api'
 PLAYBACK_SUBDOMAIN = 'replay'
 ## the setting 'CLIENT_SIDE_PLAYBACK_HOST' will be dynamically populated from these values during post-processing
+DEFAULT_PLAYBACK_MODE = 'server'  # {'server', 'client'}
 
 #
 # Playback
@@ -600,6 +601,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'HOST',
     'USE_ANALYTICS',
     'USE_ANALYTICS_VIEWS',
+    'DEFAULT_PLAYBACK_MODE'
 )
 
 

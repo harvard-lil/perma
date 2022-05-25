@@ -11,7 +11,7 @@
 @import "~compass-mixins/lib/compass/css3/opacity";
 
 
-$height-record-hed: 97px;
+$height-record-hed: 113px;
 $color-trans-white: rgba(254,254,254,.65);
 $color-yellow: #d0a60f;
 
@@ -549,7 +549,7 @@ header .primary-segment {
     padding-left: $grid * 3;
   }
   .content {
-    padding: 12px 0;
+    padding: 12px 0 0 6px;
   }
 }
 
@@ -830,6 +830,27 @@ li.dropdown {
     color: #333333;
     white-space: nowrap;
   }
+}
+
+.view-mode .btn-toggle {
+  border-radius: 0;
+  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0);
+  padding: 1px 6px 2px 6px;
+  margin-right: -1px;
+  &.active {
+    background-color: $color-white;
+    color: $color-blue;
+  }
+  &:hover:not(.active) {
+    border-color: $color-white;
+    color: $color-white;
+  }
+}
+
+.view-mode {
+  padding: 6px 0;
 }
 
 /*

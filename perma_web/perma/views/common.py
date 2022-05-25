@@ -215,7 +215,11 @@ def single_permalink(request, guid):
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
         view_mode_param = request.GET.get('view-mode')
-        context['view_mode'] = view_mode_param if view_mode_param in ['server-side', 'client-side', 'compare'] else 'server-side'
+        context['view_mode'] = view_mode_param if view_mode_param in ['server-side', 'client-side', 'compare'] else f'{settings.DEFAULT_PLAYBACK_MODE}-side'
+        if context['view_mode'] == 'compare' and serve_type == 'image':
+            # No comparison view for screenshots; the css is too complicated to make it worth it
+            return HttpResponseRedirect(f"{reverse('single_permalink', args=[guid])}?view-mode=compare")
+
         if context['view_mode'] in ['client-side', 'compare']:
             logger.info(f'Preparing client-side playback for {link.guid}')
             context['client_side_playback_host'] = settings.CLIENT_SIDE_PLAYBACK_HOST
