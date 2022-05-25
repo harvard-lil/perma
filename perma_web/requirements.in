@@ -88,7 +88,6 @@ pytest-django                           # tools for django in pytest
 pytest-django-ordering                  # runs transaction-wrapped tests before table truncating tests
 pytest-xdist                            # run tests in parallel
 pytest                                  # test runner
-sauceclient                             # run functional tests in many browsers online
 django-extensions                       # runserver_plus for SSL
 django-debug-toolbar                    # see SQL queries, monitor signals, etc.
 ipdb                                    # improved debugger and interactive shell
