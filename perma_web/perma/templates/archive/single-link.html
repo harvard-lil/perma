@@ -82,25 +82,6 @@
         <div class="content">
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
           <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
-            {% if serve_type != 'image' %}
-              {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-                <span class="action">
-                  <span class="_verbose">
-                    Looks wrong?
-                    <a href="{% url 'single_permalink' link.guid %}?type=image">
-                    See the Screenshot View
-                    </a>
-                  </span>
-                </span>
-              {% endif %}
-            {% else %}
-              <span class="action">
-                <span class="_verbose">This is a screenshot. </span>
-                {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a href="{% url 'single_permalink' link.guid %}">See the Capture View</a>
-                {% endif %}
-              </span>
-            {% endif %}
             {% if request.user.is_authenticated %}
             {% else %}
               <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
