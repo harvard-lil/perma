@@ -4,7 +4,8 @@ import pytest
 URL_MAP = {
     'homepage': '/',
     'login': '/login',
-    'about': '/about'
+    'about': '/about',
+    'folders': '/manage/create',
 }
 @dataclass
 class User:
