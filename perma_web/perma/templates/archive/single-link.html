@@ -81,12 +81,7 @@
       <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
-            {% if request.user.is_authenticated %}
-            {% else %}
-              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-            {% endif %}
-          </p>
+          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}</p>
         </div>
       </div>
       <div class="col col-sm-2 _livepage">
