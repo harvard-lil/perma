@@ -1034,9 +1034,6 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     def can_edit_organization(self, organization):
         return self.organizations.filter(pk=organization.pk).exists()
 
-    @property
-    def offer_client_side_playback(self):
-        return self.is_staff or self.id in settings.USERS_WITH_CLIENT_SIDE_PLAYBACK
 
     ### subscriptions ###
 
