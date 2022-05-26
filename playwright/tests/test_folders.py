@@ -1,3 +1,4 @@
+import pytest
 
 def test_create_folder(logged_in_user, urls):
     """Clicking the add button should create a new folder"""
@@ -6,6 +7,8 @@ def test_create_folder(logged_in_user, urls):
     logged_in_user.locator('.new-folder').click()
     logged_in_user.locator(f":nth-match(.jstree-last, {folder_count + 1})").wait_for()
 
+
+@pytest.mark.xfail(reason="Needs more work to be reliable")
 def test_delete_folder(logged_in_user, urls):
     """Clicking the folder delete button should delete an existing empty folder"""
     logged_in_user.goto(urls.folders)
