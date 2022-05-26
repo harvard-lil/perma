@@ -5,6 +5,7 @@ tqdm                                # progress bar in dev fab tasks
 requests
 pyquery
 pytest
+pytest-cov
 playwright==1.18.2
 pytest-playwright==0.2.2
 
