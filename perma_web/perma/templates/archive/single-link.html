@@ -87,30 +87,30 @@
               <strong>View<span class="_verbose"> Mode</span>:</strong>
               {% if DEFAULT_PLAYBACK_MODE == 'client' %}
                 {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Standard</a>
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Legacy</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Standard</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Legacy</a>
                   {% if request.user.is_staff %}
-                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
                   {% endif %}
                 {% endif %}
                 {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Screenshot</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Screenshot</a>
                   {% if request.user.is_staff %}
-                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Legacy Screenshot</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Legacy Screenshot</a>
                   {% endif %}
                 {% endif %}
               {% elif DEFAULT_PLAYBACK_MODE == 'server' %}
                 {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Standard</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Standard</a>
                   {% if request.user.is_staff %}
-                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Client-side</a>
-                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" role="button"  href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Client-side</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
                   {% endif %}
                 {% endif %}
                 {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Screenshot</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Screenshot</a>
                   {% if request.user.is_staff %}
-                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" role="button" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Client-side Screenshot</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Client-side Screenshot</a>
                   {% endif %}
                 {% endif %}
               {% endif %}
