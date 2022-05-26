@@ -492,7 +492,7 @@ HOST = 'perma.test:8000'
 ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
 API_SUBDOMAIN = 'api'
 PLAYBACK_SUBDOMAIN = 'replay'
-## the setting 'CLIENT_SIDE_PLAYBACK_HOST' will be dynamically populated from these values during post-processing
+DEFAULT_PLAYBACK_MODE = 'server'  # {'server', 'client'}
 
 #
 # Playback
@@ -600,6 +600,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'HOST',
     'USE_ANALYTICS',
     'USE_ANALYTICS_VIEWS',
+    'DEFAULT_PLAYBACK_MODE'
 )
 
 
@@ -707,7 +708,6 @@ PERMA_PAYMENTS_IN_MAINTENANCE = False
 
 ENABLE_SPONSORED_USERS = False
 
-USERS_WITH_CLIENT_SIDE_PLAYBACK = []
 REPLAYWEBPAGE_VERSION = '1.5.11'
 REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
 

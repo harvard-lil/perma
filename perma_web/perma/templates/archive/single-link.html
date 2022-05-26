@@ -81,31 +81,41 @@
       <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
-            {% if serve_type != 'image' %}
-              {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-                <span class="action">
-                  <span class="_verbose">
-                    Looks wrong?
-                    <a href="{% url 'single_permalink' link.guid %}?type=image">
-                    See the Screenshot View
-                    </a>
-                  </span>
-                </span>
-              {% endif %}
-            {% else %}
-              <span class="action">
-                <span class="_verbose">This is a screenshot. </span>
+          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}</p>
+          <div class="view-mode">
+            <div class="server-client-toggle toggle-btn-group pt-3">
+              <strong>View<span class="_verbose"> Mode</span>:</strong>
+              {% if DEFAULT_PLAYBACK_MODE == 'client' %}
                 {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                  <a href="{% url 'single_permalink' link.guid %}">See the Capture View</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Standard</a>
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Legacy</a>
+                  {% if request.user.is_staff %}
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
+                  {% endif %}
                 {% endif %}
-              </span>
-            {% endif %}
-            {% if request.user.is_authenticated %}
-            {% else %}
-              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-            {% endif %}
-          </p>
+                {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Screenshot</a>
+                  {% if request.user.is_staff %}
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Legacy Screenshot</a>
+                  {% endif %}
+                {% endif %}
+              {% elif DEFAULT_PLAYBACK_MODE == 'server' %}
+                {% if link.primary_capture and link.primary_capture.status == 'success' %}
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side">Standard</a>
+                  {% if request.user.is_staff %}
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side">Client-side</a>
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'compare' and serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=compare">Compare</a>
+                  {% endif %}
+                {% endif %}
+                {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                  <a class="btn btn-ui-small btn-toggle {% if view_mode == 'server-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=server-side&type=image">Screenshot</a>
+                  {% if request.user.is_staff %}
+                    <a class="btn btn-ui-small btn-toggle {% if view_mode == 'client-side' and serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?view-mode=client-side&type=image">Client-side Screenshot</a>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
       <div class="col col-sm-2 _livepage">
@@ -212,15 +222,6 @@
           {% endif %}
         {% endif %}
       </div>
-      {% if request.user.offer_client_side_playback %}
-        <div class="tray-actions col-xs-12">
-          <dt class="tray-detail-title">Client-Side Playback</dt>
-          <dd class="tray-detail-entry">
-            <a class="btn btn-ui-small btn-dashboard" href="?client-side=replay">Replay</a>
-            <a class="btn btn-ui-small btn-dashboard" href="?client-side=compare">Compare</a>
-          </dd>
-        </div>
-      {% endif %}
 
       {# In IE, our tray shows behind iframes containing PDFs. Adding a blank iframe at z-index -1 fixes the problem. Via https://stackoverflow.com/a/12977151/307769 #}
       <script type="text/javascript">

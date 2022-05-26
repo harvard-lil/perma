@@ -132,14 +132,17 @@ class CommonViewsTestCase(PermaTestCase):
             # Give user option to download to view pdf if on mobile
             link = Link.objects.get(pk='7CF8-SS4G')
 
-            file_url = "im_/" + link.captures.filter(role='primary').get().url
-
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
             self.assertIn(b"Perma.cc can\'t display this file type on mobile", response.content)
 
-            # Make sure that we're including the archived capture url
-            self.assertIn(bytes(file_url, 'utf-8'), response.content)
+            if settings.DEFAULT_PLAYBACK_MODE == 'server':
+                # If we're doing server-side playbacks, make sure that we're including the archived capture url.
+                file_url = "im_/" + link.captures.filter(role='primary').get().url
+                self.assertIn(bytes(file_url, 'utf-8'), response.content)
+            else:
+                # Otherwise, check for the interstitial iframe: we can't check for the download link without JS
+                self.assertIn(b'class="interstitial', response.content)
 
             # If not on mobile, display link as normal
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')

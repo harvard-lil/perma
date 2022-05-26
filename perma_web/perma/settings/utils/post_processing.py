@@ -23,8 +23,6 @@ def post_process_settings(settings):
         # no custom setting for CELERY_TASK_DEFAULT_QUEUE
         pass
 
-    settings['CLIENT_SIDE_PLAYBACK_HOST'] = f"{ settings['PLAYBACK_SUBDOMAIN'] }.{ settings['HOST']}"
-
     # add the named celerybeat jobs
     celerybeat_job_options = {
         'cache_playback_status_for_new_links': {
