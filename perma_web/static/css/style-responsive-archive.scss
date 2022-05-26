@@ -164,6 +164,15 @@ header {
   }
 }
 
+.new-record-message {
+  @include respond-mobile {
+    margin-top: 230px;
+  }
+  @include respond-tablet {
+    margin-top: 195px;
+  }
+}
+
 .record-message-primary {
   font-size: 24px;
   font-weight: 300;
