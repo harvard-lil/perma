@@ -25,6 +25,7 @@ a {
   &:link { color: inherit; }
   &:visited { color: inherit; }
   &:hover { color: inherit; }
+  &:focus { color: inherit; }
   &:active { color: inherit; }
 }
 
@@ -266,7 +267,7 @@ header {
       a {
         color: $color-orange;
         text-decoration: underline;
-        &:hover {
+        &:hover, &:focus {
           color: $color-black;
         }
         &:active {
@@ -296,7 +297,7 @@ header {
     margin-top: 1px;
     margin-right: -11px;
 
-    &:hover {
+    &:hover, &:focus {
       background-color: $color-hover;
     }
     &:active {
@@ -339,7 +340,7 @@ header {
 .btn {
   background-color: transparent;
   border-radius: 0;
-  &:hover {
+  &:hover, &:focus {
     background-color: transparent;
     border-color: $color-white;
   }
@@ -414,7 +415,7 @@ header {
   color: $color-blue;
   border-color: $color-blue;
   background-color: transparent;
-  &:hover {
+  &:hover, &:focus {
     border-width: 3px;
     padding: 4px 8px;
   }
@@ -427,7 +428,7 @@ header {
   @include respond-tablet {
     padding: 7px 11px;
     border-radius: 10em;
-    &:hover {
+    &:hover, &:focus {
       border-width: 3px;
       padding: 6px 10px;
     }
@@ -454,7 +455,7 @@ header {
   span {
     vertical-align: middle;
   }
-  &:hover {
+  &:hover, &:focus {
     border: none;
     padding: 0;
     padding-left: $double;
@@ -480,7 +481,7 @@ header {
     span {
       display: inline;
     }
-    &:hover {
+    &:hover, &:focus {
       border: 3px solid $color-white;
       padding: 6px 10px;
     }
@@ -579,7 +580,7 @@ a.about {
   padding-bottom: 3px;
   border-bottom: 1px solid;
   font-weight: 200;
-  &:hover {
+  &:hover, &:focus {
     border-color: $color-hover;
   }
   &:active {
@@ -676,7 +677,7 @@ a.about {
       padding-bottom: 3px;
       border-bottom: 1px solid;
       display: inline-block;
-      &:hover {
+      &:hover, &:focus {
         border-color: $color-hover;
         text-decoration: none;
       }
@@ -747,7 +748,7 @@ a.about {
       background-position: -9px * 5;
     }
   }
-  &:hover {
+  &:hover, &:focus {
     background-color: white;
     color: $color-blue;
     span:after {
@@ -796,13 +797,13 @@ a.about {
     top: -1px;
     margin-left: $grid;
   }
-  &:hover {
+  &:hover, &:focus {
     background-color: $color-trans-lightgray;
   }
   &:active {
     border-color: $color-trans-gray;
   }
-  &:hover::after {
+  &:hover::after, &:focus::after {
   }
 }
 
@@ -814,7 +815,7 @@ a.about {
     transform: rotate(180deg);
     background-position: -17px * 0;
   }
-  &:hover {
+  &:hover, &:focus {
     color: $color-orange;
   }
   &:active {
@@ -852,7 +853,11 @@ li.dropdown {
     background-color: $color-white;
     color: $color-blue;
   }
-  &:hover:not(.active) {
+  &:hover, &:focus {
+    text-decoration: underline;
+  }
+  &:hover:not(.active), &:focus:not(.active) {
+    text-decoration: none;
     border-color: $color-white;
     color: $color-white;
   }
@@ -1118,7 +1123,7 @@ p.fp {
   padding-top: $grid * 3;
   a {
     text-decoration: underline;
-    &:hover {
+    &:hover, &:focus {
       color: $color-blue;
     }
   }
@@ -1238,7 +1243,7 @@ p.fp {
         margin-top: $half;
       }
     }
-    &:hover {
+    &:hover, &:focus {
       background-color: $color-hover;
       border-radius: 2px;
       .icon-bar {
@@ -1482,10 +1487,10 @@ body.modal-open {
   }
   .btn-file-upload {
     background-color: $color-trans-lightgray;
-    &:hover {
+    &:hover, &:focus {
       background-color: $color-trans-darkgray;
     }
-    &:hover:disabled {
+    &:hover:disabled, &:focus:disabled {
       background-color: $color-trans-lightgray;
     }
   }
@@ -1493,10 +1498,10 @@ body.modal-open {
     background: $color-blue;
     color: white;
     border: 0px;
-    &:hover {
+    &:hover, &:focus {
       background-color: $color-hover;
     }
-    &:hover:disabled {
+    &:hover:disabled, &:focus:disabled {
       background-color: $color-blue;
     }
   }
@@ -1507,7 +1512,7 @@ body.modal-open {
   .btn-delete {
     background-color: $color-error;
     color: white;
-    &:hover {
+    &:hover, &:focus {
       background-color: black;
     }
   }
