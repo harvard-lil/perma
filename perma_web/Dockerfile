@@ -42,7 +42,7 @@ RUN apt-get update \
         tor                                     `# for optional use as a proxy`
 
 # Install a cert for use by warcprox
-COPY services/warcprox/perma-warcprox-ca.pem /perma/perma_web
+COPY perma_web/perma-warcprox-ca.pem /perma/perma_web
 RUN mkdir -p $HOME/.pki/nssdb \
     && certutil -d $HOME/.pki/nssdb -N --empty-password \
     && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
