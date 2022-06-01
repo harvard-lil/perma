@@ -107,20 +107,6 @@ services:
   #
   # Perma Functional Tests
   #
-  selenium:
-    image: registry.lil.tools/selenium/standalone-chrome:3.141.59-fluorine
-    volumes:
-      - /dev/shm:/dev/shm
-    environment:
-      - START_XVFB=false
-    ports:
-      - "127.0.0.1:4444:4444"
-    networks:
-      - default
-      
-  #
-  # Perma Functional Tests
-  #
   playwright:
     image: registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
     volumes:

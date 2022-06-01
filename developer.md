@@ -288,24 +288,6 @@ Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-commit` or `ch
 
 (You have to have started the containers with `docker-compose up -d` for this to work.)
 
-### Sauce Browser Tests
-
-We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
-you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
-
-    $ d fab dev.test_sauce
-
-By default `d fab dev.test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
-up a tunnel first by running
-
-    $ d fab dev.sauce_tunnel
-
-in the background or in another terminal window.
-
-The Sauce tests live in `./services/sauce/run_tests.py`. If you are developing new tests in that file, it may be more
-convenient to change to that directory and run `d python run_tests.py`, rather than the full-blown parallel testing
-kicked off by `d fab dev.test_sauce`.
-
 
 ## Working with Celery
 

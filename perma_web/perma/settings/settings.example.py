@@ -51,10 +51,6 @@ HOST = 'perma.cc'
 # WR is listening on
 PLAYBACK_HOST = 'perma-archives.com:8092'
 
-# Sauce Labs credentials
-SAUCE_USERNAME = ''
-SAUCE_ACCESS_KEY = ''
-
 # in a dev server, if you want to use a separate subdomain for user-generated content like on prod,
 # you can do something like this (assuming *.test is mapped to localhost in /etc/hosts):
 # PLAYBACK_HOST = 'content.perma.test:8000'

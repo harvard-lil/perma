@@ -40,23 +40,6 @@ CELERY_BROKER_URL = 'memory://localhost/'
 # faster collectstatic
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-# Note: this is recommended by the Django docs but
-# currently conflicts with some of our tests
-# PASSWORD_HASHERS = (
-#     'django.contrib.auth.hashers.MD5PasswordHasher',
-# )
-
-# Using the Django SQLite in-memory DB for testing is faster,
-# but threaded tasks won't have access in Django <=1.7
-# - https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEST_NAME
-# - https://code.djangoproject.com/ticket/12118
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': None
-#     }
-# }
-
 # Work around for https://github.com/jamesls/fakeredis/issues/234
 DJANGO_REDIS_CONNECTION_FACTORY = 'perma.tests.utils.FakeConnectionFactory'
 
@@ -141,8 +124,6 @@ TIERS = {
         }
     ]
 }
-
-REMOTE_SELENIUM_HOST = 'selenium'
 
 ENABLE_SPONSORED_USERS = True
 ENABLE_BONUS_LINKS = True
