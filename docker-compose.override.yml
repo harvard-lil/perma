@@ -26,4 +26,5 @@ services:
         - perma_web/requirements.txt
         - perma_web/npm-shrinkwrap.json
         - perma_web/package.json
-        - services/warcprox/perma-warcprox-ca.pem
+        - perma_web/perma-warcprox-ca.pem
+        - perma_web/lil-archive-keyring.gpg

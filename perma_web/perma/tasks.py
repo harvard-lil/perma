@@ -1202,7 +1202,7 @@ def run_next_capture():
                     dedup_db_file="",
                     directory="./warcs", # default, included so we can retrieve from options object
                     warc_filename=link.guid,
-                    cacert=os.path.join(settings.SERVICES_DIR, 'warcprox', 'perma-warcprox-ca.pem'),
+                    cacert=os.path.join(settings.PROJECT_ROOT, 'perma-warcprox-ca.pem'),
                     onion_tor_socks_proxy=settings.PROXY_ADDRESS if proxy else None
                 )
                 warcprox_controller = WarcproxController(options)
