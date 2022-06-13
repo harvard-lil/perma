@@ -71,4 +71,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/lil-archive-keyring.gpg] https://re
 
 ENV CHROMIUM_VERSION=102.0.5005.61-1~deb11u1
 RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
-    chromium-driver chromium-l10n chromium-sandbox
+    chromium-common=${CHROMIUM_VERSION} \
+    chromium-driver=${CHROMIUM_VERSION} \
+    chromium-l10n=${CHROMIUM_VERSION} \
+    chromium-sandbox=${CHROMIUM_VERSION}
