@@ -8,7 +8,6 @@ from django.conf import settings
 import django.dispatch
 
 from storages.backends.s3boto3 import S3Boto3Storage
-from storages.backends.azure_storage import AzureStorage
 from whitenoise.storage import CompressedStaticFilesStorage
 
 # used only for suppressing INFO logging in S3Boto3Storage
@@ -101,7 +100,3 @@ class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
             params['ContentType'] = 'application/gzip'
             params['ContentEncoding'] = ''
         return params
-
-
-class AzureMediaStorage(BaseMediaStorage, AzureStorage):
-    location = settings.MEDIA_ROOT

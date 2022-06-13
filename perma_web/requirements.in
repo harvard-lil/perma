@@ -54,7 +54,7 @@ warcprox
 
 
 # alternate storages
-django-storages[azure]                  # custom storage backends for Django (including Azure)
+django-storages                         # custom storage backends for Django
 boto3                                   # required for django-storages to use s3 backend
 
 

@@ -18,14 +18,6 @@ attrs==21.4.0 \
     # via
     #   hypothesis
     #   pytest
-azure-core==1.23.1 \
-    --hash=sha256:28a01dfbaf0a6812c4e2a82d1642ea30956a9739f25bc77c9b23b91f4ea68f0f \
-    --hash=sha256:c3e8a9a3ec9d89f59b5d5b2f19d19a30d76a5b5c0cee3788ecad3cb72b9bd028
-    # via azure-storage-blob
-azure-storage-blob==12.11.0 \
-    --hash=sha256:49535b3190bb69d0d9ff7a383246b14da4d2b1bdff60cae5f9173920c67ca7ee \
-    --hash=sha256:f3dfa605aefb453e7489328b76811a937a411761d7a1613a58c3975c556ec778
-    # via django-storages
 backcall==0.2.0 \
     --hash=sha256:5cbdbf27be5e7cfadb448baf0aa95508f91f2bbc6c6437cd9cd06e2a4c215e1e \
     --hash=sha256:fbbce6a29f263178a1f7915c1940bde0ec2b2a967566fe1c65c1dfb7422bd255
@@ -75,9 +67,7 @@ certauth==1.1.6 \
 certifi==2021.10.8 \
     --hash=sha256:78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872 \
     --hash=sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569
-    # via
-    #   msrest
-    #   requests
+    # via requests
 cffi==1.15.0 \
     --hash=sha256:00c878c90cb53ccfaae6b8bc18ad05d2036553e6d9d1d9dbcf323bbe83854ca3 \
     --hash=sha256:0104fb5ae2391d46a4cb082abdd5c69ea4eab79d8d44eaaf79f1b1fd806ee4c2 \
@@ -229,7 +219,6 @@ cryptography==36.0.2 \
     --hash=sha256:ec6597aa85ce03f3e507566b8bcdf9da2227ec86c4266bd5e6ab4d9e0cc8dab2 \
     --hash=sha256:f64b232348ee82f13aac22856515ce0195837f6968aeaa94a3d0353ea2ec06a6
     # via
-    #   azure-storage-blob
     #   paramiko
     #   pyopenssl
     #   warcprox
@@ -314,7 +303,7 @@ django-simple-history==3.0.0 \
     --hash=sha256:66fe76c560054be393c52b1799661e104fbe372918d37d151e5d41c676158118 \
     --hash=sha256:a312adfe8fbec4c450b08e641b11249a8a589a7e7d1ba2404764b8b5bed53552
     # via -r requirements.in
-django-storages[azure]==1.12.3 \
+django-storages==1.12.3 \
     --hash=sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84 \
     --hash=sha256:a475edb2f0f04c4f7e548919a751ecd50117270833956ed5bd585c0575d2a5e7
     # via -r requirements.in
@@ -386,10 +375,6 @@ ipython==8.2.0 \
     --hash=sha256:1b672bfd7a48d87ab203d9af8727a3b0174a4566b4091e9447c22fb63ea32857 \
     --hash=sha256:70e5eb132cac594a34b5f799bd252589009905f05104728aea6a403ec2519dc1
     # via ipdb
-isodate==0.6.1 \
-    --hash=sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96 \
-    --hash=sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9
-    # via msrest
 jedi==0.18.1 \
     --hash=sha256:637c9635fcf47945ceb91cd7f320234a7be540ded6f3e99a50cb6febdfd1ba8d \
     --hash=sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab
@@ -560,18 +545,10 @@ mock==4.0.3 \
     --hash=sha256:122fcb64ee37cfad5b3f48d7a7d51875d7031aaf3d8be7c42e2bee25044eee62 \
     --hash=sha256:7d3fbbde18228f4ff2f1f119a45cdffa458b4c0dee32eb4d2bb2f82554bac7bc
     # via -r requirements.in
-msrest==0.6.21 \
-    --hash=sha256:72661bc7bedc2dc2040e8f170b6e9ef226ee6d3892e01affd4d26b06474d68d8 \
-    --hash=sha256:c840511c845330e96886011a236440fafc2c9aff7b2df9c0a92041ee2dee3782
-    # via azure-storage-blob
 netaddr==0.8.0 \
     --hash=sha256:9666d0232c32d2656e5e5f8d735f58fd6c7457ce52fc21c98d45f2af78f990ac \
     --hash=sha256:d6cc57c7a07b1d9d2e917aa8b36ae8ce61c35ba3fcd1b83ca31c5a0ee2b5a243
     # via -r requirements.in
-oauthlib==3.2.0 \
-    --hash=sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2 \
-    --hash=sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe
-    # via requests-oauthlib
 packaging==21.3 \
     --hash=sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb \
     --hash=sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522
@@ -828,11 +805,8 @@ requests==2.28.0 \
     --hash=sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b
     # via
     #   -r requirements.in
-    #   azure-core
     #   internetarchive
-    #   msrest
     #   requests-file
-    #   requests-oauthlib
     #   timegate
     #   tldextract
     #   warcprox
@@ -840,10 +814,6 @@ requests-file==1.5.1 \
     --hash=sha256:07d74208d3389d01c38ab89ef403af0cfec63957d53a0081d8eca738d0247d8e \
     --hash=sha256:dfe5dae75c12481f68ba353183c53a65e6044c923e64c24b2209f6c7570ca953
     # via tldextract
-requests-oauthlib==1.3.1 \
-    --hash=sha256:2577c501a2fb8d05a304c09d090d6e47c306fef15809d102b327cf8364bddab5 \
-    --hash=sha256:75beac4a47881eeb94d5ea5d6ad31ef88856affe2332b9aafb52c6452ccf0d7a
-    # via msrest
 rethinkdb==2.3.0.post6 \
     --hash=sha256:b5354ecd896b59065693e4139c067f401c9f57970268e9b93f83d869709d1c17
     # via doublethink
@@ -863,14 +833,11 @@ six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
-    #   asttokens
-    #   azure-core
     #   bcrypt
     #   click-repl
     #   django-admin-smoke-tests
     #   fabric3
     #   fakeredis
-    #   isodate
     #   paramiko
     #   python-dateutil
     #   requests-file
@@ -936,10 +903,6 @@ traitlets==5.1.1 \
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.1.1 \
-    --hash=sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42 \
-    --hash=sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2
-    # via azure-core
 ua-parser==0.10.0 \
     --hash=sha256:46ab2e383c01dbd2ab284991b87d624a26a08f72da4d7d413f5bfab8b9036f8a \
     --hash=sha256:47b1782ed130d890018d983fac37c2a80799d9e0b9c532e734c67cf70f185033
