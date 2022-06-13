@@ -69,6 +69,9 @@ RUN pip install pip==22.0.4 \
 COPY perma_web/lil-archive-keyring.gpg /usr/share/keyrings/lil-archive-keyring.gpg
 RUN echo "deb [signed-by=/usr/share/keyrings/lil-archive-keyring.gpg] https://repo.lil.tools/ bullseye-security updates/main" > /etc/apt/sources.list.d/lil-chromium.list
 
-ENV CHROMIUM_VERSION=102.0.5005.61-1~deb11u1
+ENV CHROMIUM_VERSION=102.0.5005.115-1~deb11u1
 RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
-    chromium-driver chromium-l10n chromium-sandbox
+    chromium-common=${CHROMIUM_VERSION} \
+    chromium-driver=${CHROMIUM_VERSION} \
+    chromium-l10n=${CHROMIUM_VERSION} \
+    chromium-sandbox=${CHROMIUM_VERSION}
