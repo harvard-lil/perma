@@ -110,7 +110,7 @@
           try {
             elem = selector_function();
           } catch (err) {
-            if ( !(err.message.includes('is null') || err.message.includes('of null')) ) {
+            if ( !err.message.includes('null') ) {
               throw err;
             }
             tries -= 1
