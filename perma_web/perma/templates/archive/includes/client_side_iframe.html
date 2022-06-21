@@ -1,1 +1,26 @@
-<iframe name="{{ link.warc_presigned_url }}" class="{{ interstitial|yesno:'interstitial,archive-iframe'}}" src="{{ protocol }}{{ client_side_playback_host }}?guid={{ link.guid }}{{ compare_replays|yesno:'&embed=replayonly,'}}{{ screenshot|yesno:'&type=screenshot,'}}{{ interstitial|yesno:'&hidden=true&ondemand=true,'}}{% if target %}&target={{target}}{% endif %}"></iframe>
+<div id="iframe-target"></div>
+<script>
+    // Playback details
+    const name = "{{ link.warc_presigned_url | escapejs }}";
+    const cls = "{{ interstitial|yesno:'interstitial,archive-iframe'}}";
+    const origin = "{{ protocol }}{{ client_side_playback_host }}";
+    const guid = "{{ link.guid }}";
+    const embed = {{ compare_replays|yesno:"true,false" }};
+    const screenshot = {{ screenshot|yesno:"true,false" }};
+    const interstitial = {{ interstitial|yesno:"true,false" }};
+    const target = {% if target %}"{{ target }}"{% else %}null{% endif %};
+
+    // If Safari < 16, don't use a web worker to index the warc; see https://github.com/harvard-lil/perma/issues/3101
+    let worker = true;
+    if (window.GestureEvent !== undefined && window.SharedWorker === undefined){
+        worker = false
+    }
+
+    // Add iframe
+    const frame = document.createElement('iframe');
+    frame.setAttribute('name', name);
+    frame.className = cls;
+    frame.setAttribute('src', `${origin}?guid=${guid}${embed ? "&embed=replayonly" : ""}${screenshot ? "&type=screenshot" : ""}${interstitial ? "&hidden=true&ondemand=true" : ""}${target ? "&target="+target : ""}${!worker ? "&worker=false" : ""}`)
+    const wrapper = document.getElementById("iframe-target");
+    wrapper.appendChild(frame);
+</script>
