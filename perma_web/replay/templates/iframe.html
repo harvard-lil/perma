@@ -130,7 +130,7 @@
 
       const handle_target = async (elem) => {
         const target = "{{ target }}";
-        if (target==='blank'){
+        if (target==='blank' || ondemand){
           // inject a download link and click it
           console.log(`Opening ${elem.src} in a new window`)
           const download = document.createElement('a');
