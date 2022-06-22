@@ -27,15 +27,10 @@ def iframe(request):
         context['target_url'] = link.screenshot_capture.url if screenshot else link.submitted_url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['web_worker'] = web_worker
+        context['sandbox'] = link.primary_capture.use_sandbox()
         context['hidden'] = hidden
         context['ondemand'] = ondemand
         context['target'] = target
-        # only sandbox when:
-        # a) the mime-type allows (https://github.com/harvard-lil/perma/blob/e761f4ab597c293f0fd6612e015428100899f28b/perma_web/perma/models.py#L1928)
-        # b) the playback will be inline in the browser, rather than an on-demand download mediated by an interstitial,
-        #    because some browsers (for instance, Safari) may block downloads from sandboxed iframes even when `allow-downloads` is present.
-        #    See https://perma.cc/M36S-ZLVS for `allow-downloads` support on 6/22/22.
-        context['sandbox'] = link.primary_capture.use_sandbox() and not ondemand
     response = render(request, 'iframe.html', context)
     response['Clear-Site-Data'] = '"cache", "cookies", "storage"'
     return response

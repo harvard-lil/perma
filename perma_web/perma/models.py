@@ -1928,10 +1928,13 @@ class Capture(models.Model):
     def use_sandbox(self):
         """
             Whether the iframe we use to display this capture should be sandboxed.
-            Answer is yes unless we're playing back a PDF, which currently can't
-            be sandboxed in Chrome.
+            Answer is yes, unless:
+            a) we're playing back a PDF, which currently can't be sandboxed in Chrome
+            b) the playback will be an on-demand download mediated by an interstitial,
+               because some browsers (for instance, Safari) may block downloads from sandboxed iframes even when `allow-downloads` is present.
+               See https://perma.cc/M36S-ZLVS for `allow-downloads` support on 6/22/22
         """
-        return not self.mime_type().startswith("application/pdf")
+        return not self.mime_type().startswith("application/pdf") and not self.show_interstitial()
 
     INLINE_TYPES = {'image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'text/html', 'text/plain', 'application/pdf',
                     'application/xhtml', 'application/xhtml+xml'}
