@@ -27,7 +27,7 @@ def iframe(request):
         context['target_url'] = link.screenshot_capture.url if screenshot else link.submitted_url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['web_worker'] = web_worker
-        context['sandbox'] = link.primary_capture.use_sandbox()
+        context['sandbox'] = link.primary_capture.use_sandbox() and not ondemand
         context['hidden'] = hidden
         context['ondemand'] = ondemand
         context['target'] = target
