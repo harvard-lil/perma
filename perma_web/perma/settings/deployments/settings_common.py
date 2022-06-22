@@ -115,6 +115,7 @@ MIDDLEWARE = (
     # If you do not want Axes to override the authentication response
     # you can skip installing the middleware and use your own views.
     'axes.middleware.AxesMiddleware',
+    'api.middleware.CORSMiddleware'
 )
 # This defaults to 'SAMEORIGIN' w/ Django 2, but was changed to 'DENY' in Django 3
 X_FRAME_OPTIONS = 'DENY'
