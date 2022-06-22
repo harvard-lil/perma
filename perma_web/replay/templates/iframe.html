@@ -134,8 +134,8 @@
           // inject a download link and click it
           console.log(`Opening ${elem.src} in a new window`)
           const download = document.createElement('a');
-          download.href = elem.src
-          download.target = '_blank'
+          download.href = elem.src;
+          download.setAttribute('download', '');
           download.click()
         } else if (target==='img'){
           // set alt text and style the loaded image for cross-browser consistency
