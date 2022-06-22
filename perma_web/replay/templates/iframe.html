@@ -66,6 +66,7 @@
         const url = "{{ target_url | escapejs }}";
         const embed_style = "{{ embed_style }}";
         const sandbox = {{ sandbox|yesno:"true,false" }};
+        const web_worker = {{ web_worker|yesno:"true,false" }};
 
         const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
         const warc_source = new URL(window.name);
@@ -73,15 +74,22 @@
           throw `Forbidden warc source: ${warc_source}`
         }
 
-        console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source}`)
+        console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source} with${web_worker ? '' : 'out'} a web worker`)
 
         const replay = document.createElement('replay-web-page');
+        replay.setAttribute('replayBase', "{% static "vendors/replay-web-page" %}/");
         replay.setAttribute('source', warc_source);
         replay.setAttribute('url', url);
         replay.setAttribute('view', 'replay');
         replay.setAttribute('embed', embed_style);
-        replay.setAttribute('noSandbox', !sandbox);
-        replay.setAttribute('replayBase', "{% static "vendors/replay-web-page" %}/");
+        const noSandbox = !sandbox;
+        if (noSandbox){
+          replay.setAttribute('noSandbox', '');
+        }
+        const noWebWorker = !web_worker;
+        if (noWebWorker){
+          replay.setAttribute('noWebWorker', '');
+        }
         const hidden = {{ hidden|yesno:'true, false' }};
         if (hidden){
           replay.className = 'hidden';
@@ -102,7 +110,7 @@
           try {
             elem = selector_function();
           } catch (err) {
-            if ( !(err.message.includes('is null') || err.message.includes('of null')) ) {
+            if ( !err.message.includes('null') ) {
               throw err;
             }
             tries -= 1
