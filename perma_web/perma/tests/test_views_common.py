@@ -141,8 +141,8 @@ class CommonViewsTestCase(PermaTestCase):
                 file_url = "im_/" + link.captures.filter(role='primary').get().url
                 self.assertIn(bytes(file_url, 'utf-8'), response.content)
             else:
-                # Otherwise, check for the interstitial iframe: we can't check for the download link without JS
-                self.assertIn(b'class="interstitial', response.content)
+                # Otherwise, check to see we are requesting an interstitial iframe: we can't check for the download link without JS
+                self.assertIn(b'const cls = "interstitial"', response.content)
 
             # If not on mobile, display link as normal
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
