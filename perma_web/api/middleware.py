@@ -15,7 +15,7 @@ class CORSMiddleware(DjangoCommonMiddleware):
 
         if host.startswith("api."):
             # Force HTTP 200 for preflight requests (?).
-            # This is a temporary workaround to account for the fact that the browser will not pass a `Authorization` header during preflight, which will trigger a 401.
+            # The browser doesn't pass a `Authorization` header during preflight (in most cases).
             if request.method == "OPTIONS" and response.status_code == 401:
                 response.status_code = 200
 
@@ -23,6 +23,6 @@ class CORSMiddleware(DjangoCommonMiddleware):
             response["Access-Control-Allow-Headers"] = "Authorization"
             response["Access-Control-Allow-Methods"] = "*"
             #response["Access-Control-Allow-Credentials"] = "true"
-            # ^ Uncomment if we want to allow `fetch()` / `XMLHttpRequest`` to implicitly pass credentials (i.e: HTTP auth stored in session).  
+            # ^ Uncomment if we want to allow the browser to implicitly pass stored credentials.
 
         return response
