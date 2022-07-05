@@ -93,3 +93,6 @@ django-debug-toolbar                    # see SQL queries, monitor signals, etc.
 ipdb                                    # improved debugger and interactive shell
 watchdog                                # watch for file changes
 pip-tools
+
+# instrumentation
+sentry-sdk

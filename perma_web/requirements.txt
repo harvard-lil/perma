@@ -78,6 +78,7 @@ certifi==2021.10.8 \
     # via
     #   msrest
     #   requests
+    #   sentry-sdk
 cffi==1.15.0 \
     --hash=sha256:00c878c90cb53ccfaae6b8bc18ad05d2036553e6d9d1d9dbcf323bbe83854ca3 \
     --hash=sha256:0104fb5ae2391d46a4cb082abdd5c69ea4eab79d8d44eaaf79f1b1fd806ee4c2 \
@@ -859,6 +860,10 @@ selenium==2.47.3 \
     --hash=sha256:412817c661f5261b77e31bff25744de0cf930cd2fa22fd5d6c4eb7731bf7b02f \
     --hash=sha256:74bde8f310287bbb5c404714379be1c80e2a033021cca018e50cd77c0993dc7f
     # via -r requirements.in
+sentry-sdk==1.6.0 \
+    --hash=sha256:b82ad57306d5546713f15d5d70daea0408cf7f998c7566db16e0e6257e51e561 \
+    --hash=sha256:ddbd191b6f4e696b7845b4d87389898ae1207981faf114f968a57363aa6be03c
+    # via -r requirements.in
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
@@ -954,6 +959,7 @@ urllib3==1.26.9 \
     #   botocore
     #   internetarchive
     #   requests
+    #   sentry-sdk
     #   warcprox
 uwsgitop==0.11 \
     --hash=sha256:99ca245119e4a0600840a62b7b4e020c9870fe90952b24eecfff0c9090c75d14
