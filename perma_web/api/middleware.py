@@ -7,17 +7,15 @@ class CORSMiddleware(DjangoCommonMiddleware):
     def process_response(self, request, response):
         response = super().process_response(request, response)
 
-        host = request.get_host()
-
         origin = request.headers.get("Origin")
         if not origin: # Set origin to `*` if none was provided.
             origin = "*"
 
-        if host.startswith("api."):
-            # Force HTTP 204 for preflight requests (?).
+        if "/v1/" in request.get_raw_uri(): # Applies to `/v1/` API urls.
+            # Force HTTP 200 for preflight requests (?).
             # The browser doesn't pass a `Authorization` header during preflight (in most cases), our API therefore assumes this resource can't be accessed.
             if request.method == "OPTIONS" and response.status_code == 401:
-                response.status_code = 204
+                response.status_code = 200
 
             response["Access-Control-Allow-Origin"] = origin
             response["Access-Control-Allow-Headers"] = "Authorization"
