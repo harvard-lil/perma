@@ -4,6 +4,7 @@ if (settings.USE_SENTRY) {
   Sentry.init({
     dsn: settings.SENTRY_DSN,
     environment: settings.SENTRY_ENVIRONMENT,
+    denyUrls: ['^https\:\/\/' + settings.PLAYBACK_HOST + '\/.*$'],
 
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.
