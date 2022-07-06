@@ -11,12 +11,14 @@ def post_process_settings(settings):
     if settings['USE_SENTRY']:
         import sentry_sdk
         from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
 
         sentry_sdk.init(
             environment=settings['SENTRY_ENVIRONMENT'],
             dsn=settings['SENTRY_DSN'],
             integrations=[
                 DjangoIntegration(),
+                CeleryIntegration(),
             ],
 
             # Set traces_sample_rate to 1.0 to capture 100%
