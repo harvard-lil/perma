@@ -15,7 +15,7 @@ class CORSMiddleware(DjangoCommonMiddleware):
             # Force HTTP 200 for preflight requests (?).
             # The browser doesn't pass a `Authorization` header during preflight (in most cases), our API therefore assumes this resource can't be accessed.
             if request.method == "OPTIONS" and response.status_code == 401:
-                response.status_code = 204
+                response.status_code = 200
 
             response["Access-Control-Allow-Origin"] = origin
             response["Access-Control-Allow-Headers"] = "Authorization"
