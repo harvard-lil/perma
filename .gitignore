@@ -48,8 +48,8 @@ ghostdriver.log
 # node
 node_modules
 npm-debug.log
-# ignore sourcemaps
-*.map
+# we used to ignore sourcemaps, but they're useful for Sentry
+# *.map
 
 # pytest
 .cache
