@@ -60,6 +60,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "@babel/runtime-corejs3": "^7.10.4"
+    "@babel/runtime-corejs3": "^7.10.4",
+    "@sentry/browser": "^7.5.1"
   }
 }

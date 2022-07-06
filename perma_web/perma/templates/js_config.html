@@ -3,7 +3,11 @@
     API_VERSION: {{ API_VERSION }},
     STATIC_URL: "{{ STATIC_URL }}",
     MEDIA_URL: "{{ MEDIA_URL }}",
-    DEBUG: {{ DEBUG|lower }}
+    DEBUG: {{ DEBUG|lower }},
+    USE_SENTRY: {{ USE_SENTRY|lower }},
+    SENTRY_DSN: "{{ SENTRY_DSN }}",
+    SENTRY_ENVIRONMENT: "{{ SENTRY_ENVIRONMENT }}",
+    SENTRY_TRACES_SAMPLE_RATE: {{ SENTRY_TRACES_SAMPLE_RATE }}
   },
   api_path = "/api/v" + settings.API_VERSION
 </script>

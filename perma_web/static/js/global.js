@@ -1,3 +1,18 @@
+import * as Sentry from "@sentry/browser";
+
+if (settings.USE_SENTRY) {
+  Sentry.init({
+    dsn: settings.SENTRY_DSN,
+    environment: settings.SENTRY_ENVIRONMENT,
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: settings.SENTRY_TRACES_SAMPLE_RATE,
+
+  });
+}
+
 var FastClick = require('fastclick');
 
 var ErrorHandler = require('./error-handler.js');
