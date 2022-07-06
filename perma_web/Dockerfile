@@ -48,7 +48,7 @@ RUN mkdir -p $HOME/.pki/nssdb \
     && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
-RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.0-deb-1nodesource1_$(dpkg --print-architecture).deb \
+RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.3-deb-1nodesource1_$(dpkg --print-architecture).deb \
     && dpkg -i ./nodejs.deb \
     && rm nodejs.deb
 
