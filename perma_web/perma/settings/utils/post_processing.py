@@ -7,6 +7,30 @@ import celery
 
 def post_process_settings(settings):
 
+    # Set up Sentry instrumentation
+    if settings['USE_SENTRY']:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
+
+        sentry_sdk.init(
+            environment=settings['SENTRY_ENVIRONMENT'],
+            dsn=settings['SENTRY_DSN'],
+            integrations=[
+                DjangoIntegration(),
+                CeleryIntegration(),
+            ],
+
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            # We recommend adjusting this value in production.
+            traces_sample_rate=settings['SENTRY_TRACES_SAMPLE_RATE'],
+
+            # If you wish to associate users to errors (assuming you are using
+            # django.contrib.auth) you may enable sending PII data.
+            send_default_pii=settings['SENTRY_SEND_DEFAULT_PII']
+        )
+
     # check secret key
     assert 'SECRET_KEY' in settings and settings['SECRET_KEY'] is not None, "Set DJANGO__SECRET_KEY env var!"
 
