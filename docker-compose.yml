@@ -122,7 +122,7 @@ services:
   # Perma Functional Tests
   #
   playwright:
-    image: registry.lil.tools/harvardlil/perma-playwright:2-afa23747554bc5f6419b9937cf34dd30
+    image: registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
     volumes:
       - ./playwright:/playwright:delegated
     environment:

@@ -6,7 +6,7 @@ services:
       context: playwright
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-playwright:2-afa23747554bc5f6419b9937cf34dd30
+          - registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
         platforms:
           - linux/amd64
           - linux/arm64
