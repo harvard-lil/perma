@@ -285,33 +285,6 @@ def count_links_without_cached_playback_status():
     print(count)
 
 
-
-@task
-def regenerate_urlkeys(urlkey_prefix='file'):
-    """
-        Rewrite CDXLine urlkeys using the current version of the surt library.
-    """
-
-    from perma.models import CDXLine
-    from surt import surt
-
-    target_cdxlines = CDXLine.objects.all()
-    if urlkey_prefix:
-        target_cdxlines = target_cdxlines.filter(urlkey__startswith=urlkey_prefix)
-
-    for i, cdxline in enumerate(target_cdxlines):
-        if not (i%1000):
-            print(f"{i} records done -- next is {cdxline.link_id}.")
-        new_surt = surt(cdxline.parsed['url'])
-        if new_surt != cdxline.urlkey:
-            try:
-                cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
-            except UnicodeDecodeError:
-                print(f"Skipping unicode for {cdxline.link_id}")
-                continue
-            cdxline.urlkey = new_surt
-            cdxline.save()
-
 @task
 def rebuild_folder_trees():
     from perma.models import Organization, LinkUser, Folder
