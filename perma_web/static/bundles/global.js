@@ -13418,9 +13418,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "htmlTreeAsString", function() { return _browser_js__WEBPACK_IMPORTED_MODULE_0__["htmlTreeAsString"]; });
 
 /* harmony import */ var _dsn_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(90);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dsnToString", function() { return _dsn_js__WEBPACK_IMPORTED_MODULE_1__["dsnToString"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dsnFromString", function() { return _dsn_js__WEBPACK_IMPORTED_MODULE_1__["dsnFromString"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "extensionRelayDSN", function() { return _dsn_js__WEBPACK_IMPORTED_MODULE_1__["extensionRelayDSN"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dsnToString", function() { return _dsn_js__WEBPACK_IMPORTED_MODULE_1__["dsnToString"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "makeDsn", function() { return _dsn_js__WEBPACK_IMPORTED_MODULE_1__["makeDsn"]; });
 
@@ -14435,8 +14435,8 @@ function isInstanceOf(wat, base) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dsnFromString", function() { return dsnFromString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dsnToString", function() { return dsnToString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extensionRelayDSN", function() { return extensionRelayDSN; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeDsn", function() { return makeDsn; });
 /* harmony import */ var _error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(91);
 
@@ -14544,27 +14544,6 @@ function makeDsn(from) {
   var components = typeof from === 'string' ? dsnFromString(from) : dsnFromComponents(from);
   validateDsn(components);
   return components;
-}
-
-/**
- * Changes a Dsn to point to the `relay` server running in the Lambda Extension.
- *
- * This is only used by the serverless integration for AWS Lambda.
- *
- * @param originalDsn The original Dsn of the customer.
- * @returns Dsn pointing to Lambda extension.
- */
-function extensionRelayDSN(originalDsn) {
-  if (originalDsn === undefined) {
-    return undefined;
-  }
-
-  var dsn = dsnFromString(originalDsn);
-  dsn.host = 'localhost';
-  dsn.port = '3000';
-  dsn.protocol = 'http';
-
-  return dsnToString(dsn);
 }
 
 
@@ -19882,6 +19861,9 @@ function withScope(callback) {
  * The transaction must be finished with a call to its `.finish()` method, at which point the transaction with all its
  * finished child spans will be sent to Sentry.
  *
+ * NOTE: This function should only be used for *manual* instrumentation. Auto-instrumentation should call
+ * `startTransaction` directly on the hub.
+ *
  * @param context Properties of the new `Transaction`.
  * @param customSamplingContext Information given to the transaction sampling function (along with context-dependent
  * default values). See {@link Options.tracesSampler}.
@@ -19892,7 +19874,13 @@ function startTransaction(
   context,
   customSamplingContext,
 ) {
-  return Object(_hub_js__WEBPACK_IMPORTED_MODULE_0__["getCurrentHub"])().startTransaction({ ...context }, customSamplingContext);
+  return Object(_hub_js__WEBPACK_IMPORTED_MODULE_0__["getCurrentHub"])().startTransaction(
+    {
+      metadata: { source: 'custom' },
+      ...context,
+    },
+    customSamplingContext,
+  );
 }
 
 
@@ -21055,7 +21043,7 @@ function createTransport(
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SDK_VERSION", function() { return SDK_VERSION; });
-var SDK_VERSION = '7.5.1';
+var SDK_VERSION = '7.6.0';
 
 
 //# sourceMappingURL=version.js.map
