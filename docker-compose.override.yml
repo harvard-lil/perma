@@ -4,6 +4,12 @@ services:
   playwright:
     build:
       context: playwright
+      cache_from:
+        - type: registry
+        - ref: "registry.lil.tools/harvardlil/perma-playwright:buildcache"
+      cache_to:
+        - type: registry
+        - ref: "registry.lil.tools/harvardlil/perma-playwright:buildcache,type=max"
       x-bake:
         tags:
           - registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
@@ -16,6 +22,12 @@ services:
     build:
       context: .
       dockerfile: perma_web/Dockerfile
+      cache_from:
+        - type: registry
+        - ref: "registry.lil.tools/harvardlil/perma-web:buildcache"
+      cache_to:
+        - type: registry
+        - ref: "registry.lil.tools/harvardlil/perma-web:buildcache,type=max"
       x-bake:
         tags:
           - registry.lil.tools/harvardlil/perma-web:14-d25a53cc4eb3596c7101c439cb9c7407
