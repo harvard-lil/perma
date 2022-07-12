@@ -6,6 +6,17 @@ from django.core.management import call_command
 from django.urls import reverse
 
 
+# patch Playwright's screenshot method so that we get full-page screenshots
+# when functional tests fail, which is not presently configurable in pytest-playwright
+# https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249
+from playwright.sync_api import Page
+_orig = Page.screenshot
+def full_page_screenshot(*args, **kwargs):
+    kwargs['full_page'] = True
+    return _orig(*args, **kwargs)
+Page.screenshot = full_page_screenshot
+
+
 # patch so that it doesn't request the admin client (which doesn't work with our fixture situation)
 import pytest_django_liveserver_ssl.fixtures
 @pytest.fixture()
