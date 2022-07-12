@@ -1,5 +1,4 @@
 import re
-from playwright.sync_api import expect
 
 two_minutes = 120 * 1000
 

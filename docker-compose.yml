@@ -49,6 +49,7 @@ services:
     shm_size: 2G
     environment:
       - DOCKERIZED=True
+      - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0:8000
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
@@ -103,21 +104,6 @@ services:
       default:
         aliases:
           - 'perma.minio.test'
-
-  #
-  # Perma Functional Tests
-  #
-  playwright:
-    image: registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
-    volumes:
-      - ./playwright:/playwright:delegated
-    environment:
-      - START_XVFB=false
-    command: bash
-    tty: true
-    networks:
-      - default
-      - webrecorder
 
   #
   # Perma Payments

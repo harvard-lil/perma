@@ -1,16 +1,12 @@
 import os
-import shutil
 import subprocess
 import signal
 import sys
-import tempfile
 
 from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
-
-from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
@@ -63,7 +59,6 @@ _default_tests = "functional_tests perma api lockss"
 @task
 def test(apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
-    reset_failed_test_files_folder()
     test_python(apps)
     if apps == _default_tests:
         test_js()
@@ -72,28 +67,12 @@ def test(apps=_default_tests):
 def test_python(apps=_default_tests):
     """ Run Python tests. """
 
-    # .pyc files can contain filepaths; this permits easy switching
-    # between a Vagrant- and Docker-based dev environment
-    local("find . -name '*.pyc' -delete")
-
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
+    if "functional_tests" in apps:
         local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
-    # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
-    tmp = tempfile.mkdtemp()
-    try:
-        shell_envs = {
-            'DJANGO__MEDIA_ROOT': os.path.join(tmp, '') #join ensures path ends in /
-        }
-        with shell_env(**shell_envs):
-            # NB: all arguments to Fabric tasks are interpreted as strings
-            local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= ")
-    finally:
-        # clean up after ourselves
-        shutil.rmtree(tmp)
-
+    local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
 
 @task
 def test_js():

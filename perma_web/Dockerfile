@@ -75,3 +75,7 @@ RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
     chromium-driver=${CHROMIUM_VERSION} \
     chromium-l10n=${CHROMIUM_VERSION} \
     chromium-sandbox=${CHROMIUM_VERSION}
+
+# Install Playwright browsers for integration tests
+RUN apt install --no-install-recommends libdbus-glib-1-2
+RUN playwright install chromium firefox

@@ -66,21 +66,6 @@ jobs:
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv
 
-      - name: Set up for Playwright tests
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        timeout-minutes: 1
-        run: |
-          cp perma_web/perma/settings/deployments/settings_playwright.py perma_web/perma/settings/settings.py
-          docker-compose exec -d web fab run  # start web server for playwright tests
-          echo "127.0.0.1 perma.test" | sudo tee -a /etc/hosts  # make localhost available at perma.test, so that we can curl the dev server from here
-          until wget -O /dev/null https://perma.test:8000/ ; do sleep 1 ; done  # try until server is ready
-
-      - name: Playwright tests
-        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
-        run: |
-          docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit
-          docker-compose exec web pkill -f python  # stop web server
-
       ### codecov ###
       # https://github.com/codecov/codecov-action
       - name: Codecov

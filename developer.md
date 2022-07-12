@@ -58,16 +58,6 @@ including a super-convenient keyword-matching option:
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
 
-### Run the playback tests
-
-First, spin up your development instance of Perma:
-
-`d fab run`
-
-Then, in a new terminal window:
-
-`docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit`
-
 ### Update the python dependencies
 
 Top-level requirements are stored in `requirements.in`. After updating that file, you should run
@@ -264,19 +254,17 @@ Functional tests live in `functional_tests/`.
 
 Javascript tests live in `spec/`.
 
-Playback tests live in `playwright/`.
-
 See the [Common tasks and commands](#common-tasks-and-commands) for the
 common techniques for running the tests.
 
-The `d fab test` command also generates handy coverage information. You can access it by running `d coverage`.
+The `d fab test` command also generates handy coverage information. You can access it by running `d coverage report`.
 
 
 ### Linting with flake8
 
 All code must show zero warnings or errors when running `flake8 .` in `perma_web/`.
 
-Flake8 settings are configured in `perma_web/.pep8`
+Flake8 settings are configured in `perma_web/setup.cfg`
 
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-commit` or `.git/hooks/pre-push`:
 
