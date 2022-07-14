@@ -10,6 +10,10 @@ services:
         platforms:
           - linux/amd64
           - linux/arm64
+        cache-from:
+          - type=registry,ref='registry.lil.tools/harvardlil/perma-playwright:buildcache'
+        cache-to:
+          - type=registry,ref='registry.lil.tools/harvardlil/perma-playwright:buildcache,type=max'
       x-hash-paths:
         - requirements.txt
   web:
@@ -22,6 +26,10 @@ services:
         platforms:
           - linux/amd64
           - linux/arm64
+        cache-from:
+          - type=registry,ref='registry.lil.tools/harvardlil/perma-web:buildcache'
+        cache-to:
+          - type=registry,ref='registry.lil.tools/harvardlil/perma-web:buildcache,type=max'
       x-hash-paths:
         - perma_web/requirements.txt
         - perma_web/npm-shrinkwrap.json
