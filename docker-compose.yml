@@ -23,7 +23,7 @@ services:
     networks:
       - default
   web:
-    image: registry.lil.tools/harvardlil/perma-web:16-fa4e0270c771592745474a7037ab73b0
+    image: registry.lil.tools/harvardlil/perma-web:17-6eb5a72e288f9870ccd10dc35d40253d
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -122,7 +122,7 @@ services:
   # Perma Functional Tests
   #
   playwright:
-    image: registry.lil.tools/harvardlil/perma-playwright:4-8ab77242e64440f2323b0ed4d63b8b58
+    image: registry.lil.tools/harvardlil/perma-playwright:5-41cdfea42908830b8722c550e4070ef9
     volumes:
       - ./playwright:/playwright:delegated
     environment:
