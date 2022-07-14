@@ -6,7 +6,7 @@ services:
       context: playwright
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-playwright:3-875732c19262d12a3d702955d828dfb7
+          - registry.lil.tools/harvardlil/perma-playwright:4-8ab77242e64440f2323b0ed4d63b8b58
         platforms:
           - linux/amd64
           - linux/arm64
@@ -22,7 +22,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:15-8957e87f243ecdb30ff0aca1343de521
+          - registry.lil.tools/harvardlil/perma-web:16-fa4e0270c771592745474a7037ab73b0
         platforms:
           - linux/amd64
           - linux/arm64
