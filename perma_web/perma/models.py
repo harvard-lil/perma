@@ -1978,6 +1978,11 @@ class CaptureJob(models.Model):
     TEST_PAUSE_TIME = 0
     TEST_ALLOW_RACE = False
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['human', 'order']),
+        ]
+
     def __str__(self):
         return f"CaptureJob {self.pk}: {self.link_id}"
 
