@@ -19,7 +19,7 @@ class CORSMiddleware(DjangoCommonMiddleware):
                 response.status_code = 200
 
             response["Access-Control-Allow-Origin"] = origin
-            response["Access-Control-Allow-Headers"] = "Authorization"
+            response["Access-Control-Allow-Headers"] = "Authorization,Content-Type"
             response["Access-Control-Allow-Methods"] = "*"
             #response["Access-Control-Allow-Credentials"] = "true"
             # ^ Uncomment if we want to allow the browser to implicitly pass stored credentials.
