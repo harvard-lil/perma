@@ -1658,6 +1658,67 @@ def upload_to_internet_archive(link_guid):
         temp_warc_file.close()
         link.save(update_fields=['internet_archive_upload_status'])
 
+@shared_task()
+def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
+    """
+    Call synchronously from the Django shell with the invocation:
+    >>> upload_to_internet_archive.apply(kwargs={"link_guids": ['AAAA-AAAA'], "bulk_identifier": "perma_cc_bulk_2022-07-22", "bulk_metadata": {"title": "stuff"}})
+    """
+
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
+
+    links = Link.objects.filter(guid__in=link_guids)
+
+    for link in links:
+        if not link.can_upload_to_internet_archive():
+            logger.info(f"Queued Link {link.guid} no longer eligible for upload.")
+            return
+
+        url = remove_control_characters(link.submitted_url)
+        metadata = {
+            "collection": settings.INTERNET_ARCHIVE_COLLECTION,
+            "title": f"{link.guid}: {truncatechars(link.submitted_title, 50)}",
+            "mediatype": "web",
+            "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
+            "contributor": "Perma.cc",
+            "submitted_url": url,
+            "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
+            "external-identifier": f"urn:X-perma:{link.guid}",
+        }
+
+        temp_warc_file = tempfile.TemporaryFile()
+        try:
+            # copy warc to local disk storage for upload
+            with default_storage.open(link.warc_storage_file()) as warc_file:
+                copy_file_data(warc_file, temp_warc_file)
+                temp_warc_file.seek(0)
+
+            logger.info(f"Bulk uploading Link {link.guid} to IA.")
+            warc_name = os.path.basename(link.warc_storage_file())
+            response_list = internetarchive.upload(
+                bulk_identifier,
+                {warc_name: temp_warc_file},
+                metadata=bulk_metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                retries=2,
+                retries_sleep=5,
+                verbose=True,
+                queue_derive=False
+            )
+            response_list[0].raise_for_status()
+            internetarchive.modify_metadata(
+                bulk_identifier,
+                {warc_name: metadata}
+            )
+            link.internet_archive_upload_status = 'completed'
+        except Exception:
+            logger.exception(f"Exception while uploading Link {link.guid} to IA:")
+            link.internet_archive_upload_status = 'failed'
+        finally:
+            temp_warc_file.close()
+            link.save(update_fields=['internet_archive_upload_status'])
 
 @shared_task()
 def send_js_errors():
