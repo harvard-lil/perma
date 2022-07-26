@@ -1480,6 +1480,38 @@ def cache_playback_status(link_guid):
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
 
+@shared_task(acks_late=True)
+def delete_from_internet_archive_daily_item(link_guid):
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
+
+    link = Link.objects.get(guid=link_guid)
+    item = internetarchive.get_item(link.ia_daily_item_identifier)
+
+    files = [
+        f"{link.guid}.xml",
+        f"{link.guid}.warc.gz",
+    ]
+    if not item.exists:
+        logger.info(f"Daily item {link.ia_daily_item_identifier} not present in IA: skipping.")
+        return False
+
+    link.internet_archive_upload_status = 'deleted'
+    for f in files:
+        ia_file = item.get_file(f)
+        try:
+            logger.info(f"Item {link.ia_daily_item_identifier}: deleting {f}.")
+            ia_file.delete(
+                verbose=True,
+                cascade_delete=True,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+        except Exception:
+            link.internet_archive_upload_status = 'deletion_incomplete'
+            logger.exception(f"Link {link.guid}: attempt to delete file {f} from Internet Archive failed:")
+    ia_files = [item.get_file(f) for f in files]
+    link.save(update_fields=['internet_archive_upload_status'])
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def delete_from_internet_archive(link_guid):
