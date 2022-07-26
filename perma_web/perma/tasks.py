@@ -1660,6 +1660,80 @@ def upload_to_internet_archive(link_guid):
         temp_warc_file.close()
         link.save(update_fields=['internet_archive_upload_status'])
 
+def _create_daily_metadata(timestamp):
+    iso = timestamp.isoformat().split("T")[0]
+    metadata = {
+        "mediatype": "web",
+        "title": f"{iso} Perma Captures",
+        "description": f"Captures by Perma.cc from {iso} (one WARC file and XML metadata file per webpage)",
+        "date": iso,
+    }
+    return metadata
+
+def _create_link_metadata(link):
+    url = remove_control_characters(link.submitted_url)
+    metadata = {
+        "collection": settings.INTERNET_ARCHIVE_COLLECTION,
+        "title": f"{link.guid}: {truncatechars(link.submitted_title, 50)}",
+        "mediatype": "web",
+        "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
+        "contributor": "Perma.cc",
+        "submitted_url": url,
+        "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
+        "external-identifier": f"urn:X-perma:{link.guid}",
+    }
+    return metadata
+
+@shared_task
+def upload_to_internet_archive_daily_item(link_guid):
+    link = Link.objects.get(guid=link_guid)
+    item_md = _create_daily_metadata(link.archive_timestamp)
+    identifier = f"daily_perma_cc_{item_md['date']}"
+    if not link.can_upload_to_internet_archive():
+        logger.info(f"Queued Link {link.guid} not eligible for upload.")
+        return
+    temp_warc_file = tempfile.TemporaryFile()
+    try:
+        # copy warc to local disk storage for upload
+        with default_storage.open(link.warc_storage_file()) as warc_file:
+            copy_file_data(warc_file, temp_warc_file)
+            temp_warc_file.seek(0)
+
+        logger.info(f"Bulk uploading Link {link.guid} to IA.")
+        warc_name = os.path.basename(link.warc_storage_file())
+        link_md = _create_link_metadata(link)
+        sio = StringIO(str(dict2xml(link_md, wrap="all", indent="  ")))
+        response_list = internetarchive.upload(
+            identifier,
+            files={f"{link.guid}.xml": sio},
+            metadata=item_md,
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            retries=2,
+            retries_sleep=5,
+            queue_derive=False
+        )
+        response_list[0].raise_for_status()
+        response_list = internetarchive.upload(
+            identifier,
+            files={warc_name: temp_warc_file},
+            metadata=item_md,
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            retries=2,
+            retries_sleep=5,
+            verbose=True,
+            queue_derive=False
+        )
+        response_list[0].raise_for_status()
+        link.internet_archive_upload_status = 'completed'
+    except Exception:
+        logger.exception(f"Exception while uploading Link {link.guid} to IA:")
+        link.internet_archive_upload_status = 'failed'
+    finally:
+        temp_warc_file.close()
+        link.save(update_fields=['internet_archive_upload_status'])
+
 @shared_task()
 def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
     """
@@ -1677,18 +1751,6 @@ def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
             logger.info(f"Queued Link {link.guid} no longer eligible for upload.")
             return
 
-        url = remove_control_characters(link.submitted_url)
-        metadata = {
-            "collection": settings.INTERNET_ARCHIVE_COLLECTION,
-            "title": f"{link.guid}: {truncatechars(link.submitted_title, 50)}",
-            "mediatype": "web",
-            "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
-            "contributor": "Perma.cc",
-            "submitted_url": url,
-            "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
-            "external-identifier": f"urn:X-perma:{link.guid}",
-        }
-
         temp_warc_file = tempfile.TemporaryFile()
         try:
             # copy warc to local disk storage for upload
@@ -1698,6 +1760,7 @@ def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
 
             logger.info(f"Bulk uploading Link {link.guid} to IA.")
             warc_name = os.path.basename(link.warc_storage_file())
+            metadata = _create_link_metadata(link)
             sio = StringIO(str(dict2xml(metadata, wrap="all", indent="  ")))
             response_list = internetarchive.upload(
                 bulk_identifier,
