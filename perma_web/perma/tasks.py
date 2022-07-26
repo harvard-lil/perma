@@ -1482,6 +1482,10 @@ def cache_playback_status(link_guid):
 
 @shared_task(acks_late=True)
 def delete_from_internet_archive_daily_item(link_guid):
+    """
+    This method deletes a link that is stored in a 'daily item' in the IA instead
+    of its own item.
+    """
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
 
@@ -1510,7 +1514,6 @@ def delete_from_internet_archive_daily_item(link_guid):
         except Exception:
             link.internet_archive_upload_status = 'deletion_incomplete'
             logger.exception(f"Link {link.guid}: attempt to delete file {f} from Internet Archive failed:")
-    ia_files = [item.get_file(f) for f in files]
     link.save(update_fields=['internet_archive_upload_status'])
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
@@ -1717,6 +1720,16 @@ def _create_link_metadata(link):
 
 @shared_task
 def upload_to_internet_archive_daily_item(link_guid):
+    """
+    This method is functionally similar to `upload_to_internet_archive`.
+    It is a drop-in replacement: whereever upload_to_internet_archive is run
+    as a task, this method can be run instead.
+
+    The link and some metadata are uploaded to the link's 'daily item',
+    an IA item that buckets together every perma link made in a day.
+    It does not run the (expensive) derive process, which is manually run
+    once a day.
+    """
     link = Link.objects.get(guid=link_guid)
     item_md = _create_daily_metadata(link.archive_timestamp)
     identifier = link.ia_daily_item_identifier
@@ -1767,6 +1780,11 @@ def upload_to_internet_archive_daily_item(link_guid):
 
 @shared_task
 def derive_internet_archive_daily_item(iso_date_str):
+    """
+    This method triggers an (expensive) `derive` process that generates
+    IA metadata for our daily perma item. It should be run once daily, after
+    all of the item uploads for the day are in.
+    """
     identifier = settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + iso_date_str
     try:
         # copy warc to local disk storage for upload
