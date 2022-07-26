@@ -1661,7 +1661,7 @@ def upload_to_internet_archive(link_guid):
         link.save(update_fields=['internet_archive_upload_status'])
 
 def _create_daily_metadata(timestamp):
-    iso = timestamp.isoformat().split("T")[0]
+    iso = timestamp.date().isoformat()
     metadata = {
         "mediatype": "web",
         "title": f"{iso} Perma Captures",
@@ -1688,7 +1688,7 @@ def _create_link_metadata(link):
 def upload_to_internet_archive_daily_item(link_guid):
     link = Link.objects.get(guid=link_guid)
     item_md = _create_daily_metadata(link.archive_timestamp)
-    identifier = f"daily_perma_cc_{item_md['date']}"
+    identifier = link.ia_daily_item_identifier
     if not link.can_upload_to_internet_archive():
         logger.info(f"Queued Link {link.guid} not eligible for upload.")
         return

@@ -1423,6 +1423,10 @@ class Link(DeletableModel):
         return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
     @cached_property
+    def ia_daily_item_identifier(self):
+        return settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + self.archive_timestamp.date().isoformat()
+
+    @cached_property
     def ascii_safe_url(self):
         """ Encoded URL as string rather than unicode. """
         return requests.utils.requote_uri(self.submitted_url)
