@@ -481,6 +481,8 @@ INTERNET_ARCHIVE_DAILY_ITEM_PREFIX = 'daily_perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
+INTERNET_ARCHIVE_USERNAME = ''
+INTERNET_ARCHIVE_PASSWORD = ''
 
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)

@@ -1574,7 +1574,6 @@ def delete_from_internet_archive(link_guid):
 
     link.save(update_fields=['internet_archive_upload_status'])
 
-
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def delete_all_from_internet_archive(guids=None, limit=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
@@ -1765,6 +1764,19 @@ def upload_to_internet_archive_daily_item(link_guid):
     finally:
         temp_warc_file.close()
         link.save(update_fields=['internet_archive_upload_status'])
+
+@shared_task
+def derive_internet_archive_daily_item(iso_date_str):
+    identifier = settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + iso_date_str
+    try:
+        # copy warc to local disk storage for upload
+        logger.info(f"Queueing derive for ia item {identifier}")
+        # the actual derive function on the API is super wierd
+        internetarchive.configure(username=settings.INTERNET_ARCHIVE_USERNAME, password=settings.INTERNET_ARCHIVE_PASSWORD)
+        item = internetarchive.get_item(identifier)
+        item.derive()
+    except Exception:
+        logger.exception(f"Exception while queuing derive for ia item {identifier}")
 
 @shared_task()
 def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
