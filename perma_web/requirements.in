@@ -96,3 +96,5 @@ pip-tools
 
 # instrumentation
 sentry-sdk
+
+dict2xml

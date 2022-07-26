@@ -40,6 +40,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import internetarchive
+from io import StringIO
+from dict2xml import dict2xml
 
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
@@ -1696,9 +1698,21 @@ def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
 
             logger.info(f"Bulk uploading Link {link.guid} to IA.")
             warc_name = os.path.basename(link.warc_storage_file())
+            sio = StringIO(str(dict2xml(metadata, wrap="all", indent="  ")))
             response_list = internetarchive.upload(
                 bulk_identifier,
-                {warc_name: temp_warc_file},
+                files={f"{link.guid}.xml": sio},
+                metadata=bulk_metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                retries=2,
+                retries_sleep=5,
+                queue_derive=False
+            )
+            response_list[0].raise_for_status()
+            response_list = internetarchive.upload(
+                bulk_identifier,
+                files={warc_name: temp_warc_file},
                 metadata=bulk_metadata,
                 access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                 secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
@@ -1708,10 +1722,6 @@ def bulk_upload_to_internet_archive(link_guids, bulk_identifier, bulk_metadata):
                 queue_derive=False
             )
             response_list[0].raise_for_status()
-            internetarchive.modify_metadata(
-                bulk_identifier,
-                {warc_name: metadata}
-            )
             link.internet_archive_upload_status = 'completed'
         except Exception:
             logger.exception(f"Exception while uploading Link {link.guid} to IA:")
