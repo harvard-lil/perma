@@ -1808,6 +1808,8 @@ def derive_internet_archive_daily_item(iso_date_str):
         # copy warc to local disk storage for upload
         logger.info(f"Queueing derive for ia item {identifier}")
         # the actual derive function on the API is super wierd
+        if not internetarchive.get_session().secure:
+            raise RuntimeError("Insecure internet archive session!")
         internetarchive.configure(username=settings.INTERNET_ARCHIVE_USERNAME, password=settings.INTERNET_ARCHIVE_PASSWORD)
         item = internetarchive.get_item(identifier)
         item.derive()
