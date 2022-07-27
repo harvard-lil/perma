@@ -315,22 +315,31 @@ def test_internet_archive():
 
     print(all_results)
 
-@task
-def upload_all_to_internet_archive():
+def _get_unarchived_links():
     from django.utils import timezone
-    from perma.tasks import upload_to_internet_archive
     from perma.models import Link
     from datetime import timedelta
     from django.db.models import Q
-
     links = Link.objects.filter((Q(internet_archive_upload_status='not_started') |
                                 Q(internet_archive_upload_status='failed') |
                                 Q(internet_archive_upload_status='deleted', is_private=False)) &
                                 Q(creation_timestamp__lte=timezone.now()-timedelta(days=1), is_private=False, is_unlisted=False)
                                 ).order_by('creation_timestamp')
+    return links
 
-    for link in links:
+
+@task
+def upload_all_to_internet_archive():
+    from perma.tasks import upload_to_internet_archive
+    for link in _get_unarchived_links():
         upload_to_internet_archive(link.guid)
+
+
+@task
+def upload_all_to_internet_archive_daily_item():
+    from perma.tasks import upload_to_internet_archive_daily_item
+    for link in _get_unarchived_links():
+        upload_to_internet_archive_daily_item(link.guid)
 
 
 @task
