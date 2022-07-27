@@ -1577,8 +1577,7 @@ def delete_from_internet_archive(link_guid):
 
     link.save(update_fields=['internet_archive_upload_status'])
 
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def delete_all_from_internet_archive(guids=None, limit=None):
+def _delete_all_from_internet_archive(daily_item: bool, guids=None, limit=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
 
@@ -1590,13 +1589,22 @@ def delete_all_from_internet_archive(guids=None, limit=None):
         links = links[:limit]
     queued = 0
     for link_guid in links.values_list('guid', flat=True):
-        delete_from_internet_archive.delay(link_guid)
+        if daily_item:
+            delete_from_internet_archive_daily_item.delay(link_guid)
+        else:
+            delete_from_internet_archive.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for deletion from IA.")
 
+@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def delete_all_from_internet_archive(guids=None, limit=None):
+    _delete_from_internet_archive(False, guids, limit)
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def upload_all_to_internet_archive(limit=None, max_size=None):
+def delete_all_from_internet_archive_daily_item(guids=None, limit=None):
+    _delete_from_internet_archive(True, guids, limit)
+
+def _upload_all_to_internet_archive(daily_item: bool, limit=None, max_size=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
 
@@ -1615,12 +1623,22 @@ def upload_all_to_internet_archive(limit=None, max_size=None):
     # upload smallest WARCs first, so large ones don't clog
     # the pipeline when the network is slow
     links = links.order_by('warc_size')
-
     queued = 0
     for link_guid in links.values_list('guid', flat=True):
-        upload_to_internet_archive.delay(link_guid)
+        if daily_item:
+            upload_to_internet_archive_daily_item.delay(link_guid)
+        else:
+            upload_to_internet_archive.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for upload to IA.")
+
+@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def upload_all_to_internet_archive(limit=None, max_size=None):
+    _upload_all_to_internet_archive(False, limit, max_size)
+
+@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def upload_all_to_internet_archive(limit=None, max_size=None):
+    _upload_all_to_internet_archive(True, limit, max_size)
 
 
 @shared_task()
