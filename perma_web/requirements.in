@@ -65,6 +65,7 @@ django-filter                           # searching
 
 # link preservation
 internetarchive                         # upload warcs to internet archive
+dict2xml
 
 # memento support
 surt                                    # canonicalizes URLs for sorting and comparing
@@ -97,4 +98,3 @@ pip-tools
 # instrumentation
 sentry-sdk
 
-dict2xml
