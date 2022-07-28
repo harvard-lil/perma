@@ -65,6 +65,10 @@ def post_process_settings(settings):
             'task': 'perma.tasks.delete_all_from_internet_archive_daily_item',
             'schedule': crontab(minute='0', hour='*'),
         },
+        'derive-internet-archive': {
+            'task': 'perma.tasks.derive_internet_archive_daily_item',
+            'schedule': crontab(minute='0', hour='1'),
+        },
         'send-js-errors': {
             'task': 'perma.tasks.send_js_errors',
             'schedule': crontab(hour='10', minute='0', day_of_week=1)

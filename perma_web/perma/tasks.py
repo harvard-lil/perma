@@ -11,7 +11,7 @@ import os
 import os.path
 import threading
 import time
-from datetime import timedelta
+from datetime import timedelta, datetime
 import urllib.parse
 import re
 import urllib.robotparser
@@ -1797,12 +1797,15 @@ def upload_to_internet_archive_daily_item(link_guid):
         link.save(update_fields=['internet_archive_upload_status'])
 
 @shared_task
-def derive_internet_archive_daily_item(iso_date_str):
+def derive_internet_archive_daily_item(iso_date_str: None):
     """
     This method triggers an (expensive) `derive` process that generates
     IA metadata for our daily perma item. It should be run once daily, after
     all of the item uploads for the day are in.
     """
+    if is_date_str is None:
+        # do two days before to get files that should have been in IA for a day
+        iso_date_str = (datetime.now() - timedelta(days=2)).date().isoformat()
     identifier = settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + iso_date_str
     try:
         # copy warc to local disk storage for upload
