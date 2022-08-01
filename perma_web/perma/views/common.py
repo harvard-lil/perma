@@ -223,6 +223,7 @@ def single_permalink(request, guid):
         if context['view_mode'] in ['client-side', 'compare']:
             logger.info(f'Preparing client-side playback for {link.guid}')
             context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
+            context['embed'] = False if request.GET.get('embed') == 'False' else True
         if context['view_mode'] in ['server-side', 'compare']:
             try:
                 logger.info(f"Preparing server-side play back of {link.guid}")
