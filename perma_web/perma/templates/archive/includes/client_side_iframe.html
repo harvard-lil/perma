@@ -5,7 +5,7 @@
     const cls = "{{ interstitial|yesno:'interstitial,archive-iframe'}}";
     const origin = "{{ protocol }}{{ client_side_playback_host }}";
     const guid = "{{ link.guid }}";
-    const embed = {{ compare_replays|yesno:"true,false" }};
+    const embed = {{ embed|yesno:"true,false" }};
     const screenshot = {{ screenshot|yesno:"true,false" }};
     const interstitial = {{ interstitial|yesno:"true,false" }};
     const target = {% if target %}"{{ target }}"{% else %}null{% endif %};
