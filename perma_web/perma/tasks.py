@@ -1598,11 +1598,11 @@ def _delete_all_from_internet_archive(daily_item: bool, guids=None, limit=None):
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def delete_all_from_internet_archive(guids=None, limit=None):
-    _delete_from_internet_archive(False, guids, limit)
+    _delete_all_from_internet_archive(False, guids, limit)
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def delete_all_from_internet_archive_daily_item(guids=None, limit=None):
-    _delete_from_internet_archive(True, guids, limit)
+    _delete_all_from_internet_archive(True, guids, limit)
 
 def _upload_all_to_internet_archive(daily_item: bool, limit=None, max_size=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
@@ -1637,7 +1637,7 @@ def upload_all_to_internet_archive(limit=None, max_size=None):
     _upload_all_to_internet_archive(False, limit, max_size)
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def upload_all_to_internet_archive(limit=None, max_size=None):
+def upload_all_to_internet_archive_daily_item(limit=None, max_size=None):
     _upload_all_to_internet_archive(True, limit, max_size)
 
 
@@ -1803,7 +1803,7 @@ def derive_internet_archive_daily_item(iso_date_str: None):
     IA metadata for our daily perma item. It should be run once daily, after
     all of the item uploads for the day are in.
     """
-    if is_date_str is None:
+    if iso_date_str is None:
         # do two days before to get files that should have been in IA for a day
         iso_date_str = (datetime.now() - timedelta(days=2)).date().isoformat()
     identifier = settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + iso_date_str
