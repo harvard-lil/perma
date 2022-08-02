@@ -2015,7 +2015,7 @@ class CaptureJob(models.Model):
                 if pending_jobs:
                     self.order = pending_jobs[-1].order + 1
                 else:
-                    self.order = (CaptureJob.objects.filter(human=self.human).aggregate(Max('order'))['order__max'] or 0) + 1
+                    self.order = (CaptureJob.objects.aggregate(Max('order'))['order__max'] or 0) + 1
 
         super(CaptureJob, self).save(*args, **kwargs)
 

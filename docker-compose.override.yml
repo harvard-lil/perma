@@ -7,10 +7,14 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:14-d25a53cc4eb3596c7101c439cb9c7407
+          - registry.lil.tools/harvardlil/perma-web:18-e35142d756ef6bbfc20db15d952ae10c
         platforms:
           - linux/amd64
           - linux/arm64
+        cache-from:
+          - type=registry,ref=registry.lil.tools/harvardlil/perma-web:buildcache
+        cache-to:
+          - type=registry,ref=registry.lil.tools/harvardlil/perma-web:buildcache,mode=max
       x-hash-paths:
         - perma_web/requirements.txt
         - perma_web/npm-shrinkwrap.json
