@@ -17,12 +17,18 @@ def full_page_screenshot(*args, **kwargs):
 Page.screenshot = full_page_screenshot
 
 
-# patch so that it doesn't request the admin client (which doesn't work with our fixture situation)
-import pytest_django_liveserver_ssl.fixtures
+# shadow this fixture from  pytest_django_liveserver_ssl so that it doesn't request the admin client (which doesn't work with our fixture situation)
 @pytest.fixture()
 def live_server_ssl_clients_for_patch(client):
     return [client]
-pytest_django_liveserver_ssl.fixtures.live_server_ssl_clients_for_patch = live_server_ssl_clients_for_patch
+
+
+@pytest.fixture(scope="session")
+def live_server_ssl_cert():
+    return {
+        'crt': f'{settings.PROJECT_ROOT}/perma-test.crt',
+        'key': f'{settings.PROJECT_ROOT}/perma-test.key'
+    }
 
 
 def _load_json_fixtures():
@@ -69,17 +75,6 @@ def cleanup_storage():
         verify=False
     ).Bucket(settings.AWS_STORAGE_BUCKET_NAME)
     storage.objects.delete()
-
-
-@pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
-    """
-    Ignore SSL errors when running the functional tests.
-    """
-    return {
-        **browser_context_args,
-        "ignore_https_errors": True
-    }
 
 
 URL_MAP = {
