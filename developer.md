@@ -58,16 +58,6 @@ including a super-convenient keyword-matching option:
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
 
-### Run the playback tests
-
-First, spin up your development instance of Perma:
-
-`d fab run`
-
-Then, in a new terminal window:
-
-`docker-compose exec playwright pytest --browser chromium --browser firefox --browser webkit`
-
 ### Update the python dependencies
 
 Top-level requirements are stored in `requirements.in`. After updating that file, you should run
@@ -264,19 +254,17 @@ Functional tests live in `functional_tests/`.
 
 Javascript tests live in `spec/`.
 
-Playback tests live in `playwright/`.
-
 See the [Common tasks and commands](#common-tasks-and-commands) for the
 common techniques for running the tests.
 
-The `d fab test` command also generates handy coverage information. You can access it by running `d coverage`.
+The `d fab test` command also generates handy coverage information. You can access it by running `d coverage report`.
 
 
 ### Linting with flake8
 
 All code must show zero warnings or errors when running `flake8 .` in `perma_web/`.
 
-Flake8 settings are configured in `perma_web/.pep8`
+Flake8 settings are configured in `perma_web/setup.cfg`
 
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-commit` or `.git/hooks/pre-push`:
 
@@ -287,24 +275,6 @@ If you want to automatically run flake8 before pushing your code, you can add so
 Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-commit` or `chmod u+x .git/hooks/pre-push`.
 
 (You have to have started the containers with `docker-compose up -d` for this to work.)
-
-### Sauce Browser Tests
-
-We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
-you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
-
-    $ d fab dev.test_sauce
-
-By default `d fab dev.test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
-up a tunnel first by running
-
-    $ d fab dev.sauce_tunnel
-
-in the background or in another terminal window.
-
-The Sauce tests live in `./services/sauce/run_tests.py`. If you are developing new tests in that file, it may be more
-convenient to change to that directory and run `d python run_tests.py`, rather than the full-blown parallel testing
-kicked off by `d fab dev.test_sauce`.
 
 
 ## Working with Celery

@@ -1,16 +1,12 @@
 import os
-import shutil
 import subprocess
 import signal
 import sys
-import tempfile
 
 from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
-
-from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
@@ -63,7 +59,6 @@ _default_tests = "functional_tests perma api lockss"
 @task
 def test(apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
-    reset_failed_test_files_folder()
     test_python(apps)
     if apps == _default_tests:
         test_js()
@@ -72,60 +67,17 @@ def test(apps=_default_tests):
 def test_python(apps=_default_tests):
     """ Run Python tests. """
 
-    # .pyc files can contain filepaths; this permits easy switching
-    # between a Vagrant- and Docker-based dev environment
-    local("find . -name '*.pyc' -delete")
-
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps and not os.environ.get('SERVER_URL'):
+    if "functional_tests" in apps:
         local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
-    # temporarily set MEDIA_ROOT to a tmp directory, in a way that lets us clean up after ourselves
-    tmp = tempfile.mkdtemp()
-    try:
-        shell_envs = {
-            'DJANGO__MEDIA_ROOT': os.path.join(tmp, '') #join ensures path ends in /
-        }
-        with shell_env(**shell_envs):
-            # NB: all arguments to Fabric tasks are interpreted as strings
-            local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-report= ")
-    finally:
-        # clean up after ourselves
-        shutil.rmtree(tmp)
-
+    local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
 
 @task
 def test_js():
     """ Run Javascript tests. """
     local("npm test")
-
-@task
-def test_sauce(server_url=None, test_flags=''):
-    """
-        Run functional_tests through Sauce.
-    """
-    shell_envs = {
-        'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:8000",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)
-        'DJANGO__USE_SAUCE': "True"
-    }
-    if server_url:
-        shell_envs['SERVER_URL'] = server_url
-    else:
-        print("\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n")
-
-    with shell_env(**shell_envs):
-        test("functional_tests "+test_flags)
-
-
-@task
-def sauce_tunnel():
-    """
-        Set up Sauce tunnel before running functional tests targeted at localhost.
-    """
-    if subprocess.call(['which','sc']) == 1: # error return code -- program not found
-        sys.exit("Please check that the `sc` program is installed and in your path. To install: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy")
-    local(f"sc -u {settings.SAUCE_USERNAME} -k {settings.SAUCE_ACCESS_KEY}")
 
 
 @task(alias='pip-compile')
@@ -167,51 +119,6 @@ def init_db():
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
-
-@task
-def screenshots(base_url='http://perma.test:8000'):
-    import io
-    from PIL import Image
-    from selenium import webdriver
-
-    browser = webdriver.Firefox()
-    browser.set_window_size(1300, 800)
-
-    base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
-
-    def screenshot(upper_left_selector, lower_right_selector, output_path, upper_left_offset=(0,0), lower_right_offset=(0,0)):
-        print(f"Capturing {output_path}")
-
-        upper_left_el = browser.find_element_by_css_selector(upper_left_selector)
-        lower_right_el = browser.find_element_by_css_selector(lower_right_selector)
-
-        upper_left_loc = upper_left_el.location
-        lower_right_loc = lower_right_el.location
-        lower_right_size = lower_right_el.size
-
-        im = Image.open(io.StringIO(browser.get_screenshot_as_png()))
-        im = im.crop((
-            upper_left_loc['x']+upper_left_offset[0],
-            upper_left_loc['y']+upper_left_offset[1],
-            lower_right_loc['x'] + lower_right_size['width'] + lower_right_offset[0],
-            lower_right_loc['y'] + lower_right_size['height'] + lower_right_offset[1]
-        ))
-        im.save(os.path.join(base_path, output_path))
-
-    # home page
-    browser.get(base_url)
-    screenshot('header', '#landing-introduction', 'screenshot_home.png')
-
-    # login screen
-    browser.get(base_url+'/login')
-    screenshot('header', '#main-content', 'screenshot_create_account.png')
-
-    # logged in user - drop-down menu
-    browser.find_element_by_css_selector('#id_username').send_keys('test_user@example.com')
-    browser.find_element_by_css_selector('#id_password').send_keys('pass')
-    browser.find_element_by_css_selector("button.btn.login").click()
-    browser.find_element_by_css_selector("a.navbar-link").click()
-    screenshot('header', 'ul.dropdown-menu', 'screenshot_dropdown.png', lower_right_offset=(15,15))
 
 @task
 def build_week_stats():
@@ -357,33 +264,6 @@ def count_links_without_cached_playback_status():
     print(count)
 
 
-
-@task
-def regenerate_urlkeys(urlkey_prefix='file'):
-    """
-        Rewrite CDXLine urlkeys using the current version of the surt library.
-    """
-
-    from perma.models import CDXLine
-    from surt import surt
-
-    target_cdxlines = CDXLine.objects.all()
-    if urlkey_prefix:
-        target_cdxlines = target_cdxlines.filter(urlkey__startswith=urlkey_prefix)
-
-    for i, cdxline in enumerate(target_cdxlines):
-        if not (i%1000):
-            print(f"{i} records done -- next is {cdxline.link_id}.")
-        new_surt = surt(cdxline.parsed['url'])
-        if new_surt != cdxline.urlkey:
-            try:
-                cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
-            except UnicodeDecodeError:
-                print(f"Skipping unicode for {cdxline.link_id}")
-                continue
-            cdxline.urlkey = new_surt
-            cdxline.save()
-
 @task
 def rebuild_folder_trees():
     from perma.models import Organization, LinkUser, Folder
@@ -398,97 +278,6 @@ def rebuild_folder_trees():
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
             print(f"Tree corruption found for user: {u}")
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
-
-
-@task
-def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
-    """
-        Test all primary captures and report any that throw errors when playing back in pywb.
-    """
-    from perma.models import Capture
-    import traceback
-    import types
-    from warc_server.app import application
-
-    # monkey patch the pywb application to raise all exceptions instead of catching them
-    def handle_exception(self, env, exc, print_trace):
-        raise exc
-    application.handle_exception = types.MethodType(handle_exception, application)
-
-    # either check links by guid, one per line in the supplied file ...
-    if guid_list_file:
-        def capture_iterator():
-            for guid in open(guid_list_file):
-                if guid.strip():
-                    capture = Capture.objects.select_related('link').get(link_id=guid.strip(), role='primary')
-                    # in rechecks, skip deleted links
-                    if capture.link.user_deleted:
-                        continue
-                    yield capture
-        captures = capture_iterator()
-
-    # ... or just check everything.
-    else:
-        captures = Capture.objects.filter(role='primary', status='success', link__user_deleted=False).select_related('link')
-        if min_guid:
-            captures = captures.filter(link_id__gt=min_guid)
-        if created_by:
-            captures = captures.filter(link__created_by_id=created_by)
-
-    # check each playback
-    for capture in captures:
-        try:
-            replay_response = capture.link.replay_url(capture.url, wsgi_application=application)
-        except RuntimeError as e:
-            if 'does not support redirect to external targets' in e.args:
-                # skip these for now -- relative redirects will be fixed in Werkzeug 0.12
-                continue
-            raise
-        except Exception as e:
-            print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tEXCEPTION\t", e.args)
-            traceback.print_exc()
-            continue
-
-        if 'Link' not in replay_response.headers:
-            print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tWARNING\tLink header not found")
-            continue
-
-        print(f"{capture.link_id}\t{capture.link.creation_timestamp}\tOK")
-
-@task
-def read_playback_tests(*filepaths):
-    """
-        Aggregate files from the test_playbacks() task and report count for each type of error.
-    """
-    from collections import defaultdict
-    errs = defaultdict(list)
-    prefixes = [
-        "'ascii' codec can't encode character",
-        "No Captures found for:",
-        "'ascii' codec can't decode byte",
-        "Self Redirect:",
-        "No such file or directory:",
-        "u'",
-        "Skipping Already Failed",
-        "cdx format"
-    ]
-    for filepath in filepaths:
-        for line in open(filepath):
-            parts = line.strip().split("\t", 2)
-            if len(parts) < 3:
-                continue
-            key = parts[2]
-            for prefix in prefixes:
-                if prefix in key:
-                    key = prefix
-                    break
-            errs[key].append(parts)
-
-    err_count = 0
-    for err_type, sub_errs in errs.items():
-        err_count += len(sub_errs)
-        print(f"{err_type}: {len(sub_errs)}")
-    print("Total:", err_count)
 
 
 @task

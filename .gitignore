@@ -61,6 +61,7 @@ npm-debug.log
 !.hypothesis/examples/
 
 # ignore certs/keys/confs from serving via SSL with runserver_plus
+perma_web/*.pem
 perma_web/*.crt
 perma_web/*.key
 perma_web/*.conf

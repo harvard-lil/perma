@@ -1,21 +1,6 @@
 # overrides for local development, not used in CI
 version: '3'
 services:
-  playwright:
-    build:
-      context: playwright
-      x-bake:
-        tags:
-          - registry.lil.tools/harvardlil/perma-playwright:5-41cdfea42908830b8722c550e4070ef9
-        platforms:
-          - linux/amd64
-          - linux/arm64
-        cache-from:
-          - type=registry,ref=registry.lil.tools/harvardlil/perma-playwright:buildcache
-        cache-to:
-          - type=registry,ref=registry.lil.tools/harvardlil/perma-playwright:buildcache,mode=max
-      x-hash-paths:
-        - requirements.txt
   web:
     build:
       context: .

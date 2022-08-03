@@ -9,3 +9,4 @@ def test_about(page, urls) -> None:
     page.goto(urls.about)
     assert "About" in page.title()
     assert page.locator('.perma-partner').count() > 0
+

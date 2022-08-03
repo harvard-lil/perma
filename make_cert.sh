@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Put the mkcert rootCA.pem file somewhere easily shareable with the `web` container,
+# so that we can install it before running end-to-end tests, which require a trusted
+# secure context ("ignore_https_errors" is insufficient)
+cp "$(mkcert -CAROOT)/rootCA.pem" perma_web/rootCA.pem
+
+# Generate certs
 HOSTS=$(docker compose run -T web bash -c "echo \"from django.conf import settings; print(' '.join(host for host in settings.ALLOWED_HOSTS))\" | python ./manage.py shell")
 mkcert -key-file perma_web/perma-test.key -cert-file perma_web/perma-test.crt $HOSTS
 mkcert -key-file services/docker/webrecorder/nginx/ssl/perma-archives.key -cert-file services/docker/webrecorder/nginx/ssl/perma-archives.crt perma-archives.test

@@ -44,11 +44,13 @@ services:
       - ./services/cloudflare:/perma/services/cloudflare
       - ./services/django:/perma/services/django:delegated
       - ./services/logs:/perma/services/logs:delegated
+      - ./services/docker/minio/ssl:/tmp/minio_ssl
     # give chrome lots of space for making big screenshots
     # https://github.com/elgalu/docker-selenium/issues/20
     shm_size: 2G
     environment:
       - DOCKERIZED=True
+      - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0:8000
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"
@@ -103,35 +105,6 @@ services:
       default:
         aliases:
           - 'perma.minio.test'
-
-  #
-  # Perma Functional Tests
-  #
-  selenium:
-    image: registry.lil.tools/selenium/standalone-chrome:3.141.59-fluorine
-    volumes:
-      - /dev/shm:/dev/shm
-    environment:
-      - START_XVFB=false
-    ports:
-      - "127.0.0.1:4444:4444"
-    networks:
-      - default
-      
-  #
-  # Perma Functional Tests
-  #
-  playwright:
-    image: registry.lil.tools/harvardlil/perma-playwright:5-41cdfea42908830b8722c550e4070ef9
-    volumes:
-      - ./playwright:/playwright:delegated
-    environment:
-      - START_XVFB=false
-    command: bash
-    tty: true
-    networks:
-      - default
-      - webrecorder
 
   #
   # Perma Payments
