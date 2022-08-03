@@ -1,6 +1,7 @@
 import pytest
 import boto3
 from dataclasses import dataclass
+import subprocess
 from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
@@ -24,7 +25,27 @@ def live_server_ssl_clients_for_patch(client):
 
 
 @pytest.fixture(scope="session")
-def live_server_ssl_cert():
+def set_up_certs():
+    certs = [
+        ('mkcert ca root', f'{settings.PROJECT_ROOT}/rootCA.pem'),
+        ('perma certs', f'{settings.PROJECT_ROOT}/perma-test.crt'),
+        ('minio cert', '/tmp/minio_ssl/public.crt'),
+    ]
+
+    for cert in certs:
+        completed = subprocess.run(
+            f'certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "{cert[0]}" -i {cert[1]}',
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        if completed.returncode != 0:
+            print(completed.stderr)
+            raise Exception('Cert installation failed.')
+
+
+@pytest.fixture(scope="session")
+def live_server_ssl_cert(set_up_certs):
     return {
         'crt': f'{settings.PROJECT_ROOT}/perma-test.crt',
         'key': f'{settings.PROJECT_ROOT}/perma-test.key'
