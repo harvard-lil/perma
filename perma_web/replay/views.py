@@ -24,7 +24,7 @@ def iframe(request):
         link = get_object_or_404(Link.objects.prefetch_related('captures'), guid=guid)
         context['guid'] = link.guid
         context['warc_source_allowed_host'] = urllib.parse.urlparse(link.warc_presigned_url()).netloc
-        context['target_url'] = link.screenshot_capture.url if screenshot else link.submitted_url
+        context['target_url'] = link.screenshot_capture.url if screenshot else link.primary_capture.url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['web_worker'] = web_worker
         context['sandbox'] = link.primary_capture.use_sandbox()
