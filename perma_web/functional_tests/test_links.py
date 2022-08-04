@@ -22,7 +22,7 @@ def test_create_link(logged_in_user) -> None:
             .frame_locator('.archive-iframe') \
             .frame_locator('iframe') \
             .frame_locator('iframe') \
-            .locator('html').inner_text()
+            .locator('h1').inner_text()
 
 
 def test_link_required(logged_in_user) -> None:
