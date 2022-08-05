@@ -327,21 +327,6 @@ def _get_unarchived_links():
                                 ).order_by('creation_timestamp')
     return links
 
-
-@task
-def upload_all_to_internet_archive():
-    from perma.tasks import upload_to_internet_archive
-    for link in _get_unarchived_links():
-        upload_to_internet_archive(link.guid)
-
-
-@task
-def upload_all_to_internet_archive_daily_item():
-    from perma.tasks import upload_to_internet_archive_daily_item
-    for link in _get_unarchived_links():
-        upload_to_internet_archive_daily_item(link.guid)
-
-
 @task
 def count_pending_ia_links():
     """
