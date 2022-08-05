@@ -1382,7 +1382,19 @@ class Link(DeletableModel):
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
     internet_archive_upload_status = models.CharField(max_length=28,
                                                       default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete'), ('deletion_required', 'deletion_required'), ('upload_or_reupload_required', 'upload_or_reupload_required')),
+                                                      choices=(
+                                                          ('not_started','not_started'),
+
+                                                          ('failed','failed'),
+                                                          ('deletion_incomplete', 'deletion_incomplete'),
+
+                                                          ('deletion_required', 'deletion_required'),
+                                                          ('deleted','deleted'),
+
+                                                          ('upload_or_reupload_required', 'upload_or_reupload_required'),
+                                                          ('derive_required', 'derive_required'),
+                                                          ('completed','completed'),
+                                                      ),
                                                       db_index=True)
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
