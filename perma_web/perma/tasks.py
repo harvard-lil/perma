@@ -1498,6 +1498,8 @@ def delete_from_internet_archive_daily_item(link_guid):
     ]
     if not item.exists:
         logger.info(f"Daily item {link.ia_daily_item_identifier} not present in IA: skipping.")
+        link.internet_archive_upload_status = 'deleted'
+        link.save(update_fields=['internet_archive_upload_status'])
         return False
 
     link.internet_archive_upload_status = 'deleted'
@@ -1532,6 +1534,8 @@ def delete_from_internet_archive(link_guid):
 
     if not item.exists:
         logger.info(f"Link {link.guid} not present in IA: skipping.")
+        link.internet_archive_upload_status = 'deleted'
+        link.save(update_fields=['internet_archive_upload_status'])
         return False
 
     link.internet_archive_upload_status = 'deleted'
@@ -1740,7 +1744,7 @@ def _create_link_metadata(link):
 def upload_to_internet_archive_daily_item(link_guid):
     """
     This method is functionally similar to `upload_to_internet_archive`.
-    It is a drop-in replacement: whereever upload_to_internet_archive is run
+    It is a drop-in replacement: wherever upload_to_internet_archive is run
     as a task, this method can be run instead.
 
     The link and some metadata are uploaded to the link's 'daily item',
