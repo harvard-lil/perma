@@ -1707,7 +1707,9 @@ def upload_to_internet_archive(link_guid):
             retries_sleep=5,
             verbose=True,
         )
-        response_list[0].raise_for_status()
+        # each response is for one file, make sure none failed
+        for r in reponse_list:
+            r.raise_for_status()
         link.internet_archive_upload_status = 'completed'
     except Exception:
         logger.exception(f"Exception while uploading Link {link.guid} to IA:")
@@ -1771,7 +1773,7 @@ def upload_to_internet_archive_daily_item(link_guid):
         sio = StringIO(str(dict2xml(link_md, wrap="all", indent="  ")))
         response_list = internetarchive.upload(
             identifier,
-            files={f"{link.guid}.xml": sio},
+            files={f"{link.guid}.xml": sio, warc_name: temp_warc_file},
             metadata=item_md,
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
             secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
@@ -1779,19 +1781,9 @@ def upload_to_internet_archive_daily_item(link_guid):
             retries_sleep=5,
             queue_derive=False
         )
-        response_list[0].raise_for_status()
-        response_list = internetarchive.upload(
-            identifier,
-            files={warc_name: temp_warc_file},
-            metadata=item_md,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            retries=2,
-            retries_sleep=5,
-            verbose=True,
-            queue_derive=False
-        )
-        response_list[0].raise_for_status()
+        # there is one response for each file, make sure none of them failed.
+        for r in reponse_list:
+            r.raise_for_status()
         link.internet_archive_upload_status = 'completed'
     except Exception:
         logger.exception(f"Exception while uploading Link {link.guid} to IA:")
