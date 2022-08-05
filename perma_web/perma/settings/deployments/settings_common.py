@@ -1,6 +1,7 @@
 # Core settings used by all deployments.
 import os, sys
 from copy import deepcopy
+import enum
 
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
@@ -473,7 +474,14 @@ CELERY_TASK_ROUTES = {
 }
 
 # internet archive stuff
+class IAUploadTarget(enum.Enum):
+    DAILY_ITEM = enum.auto()
+    LINK_ITEM = enum.auto()
+
 UPLOAD_TO_INTERNET_ARCHIVE = False
+# I think a boolean flag for this is confusing, especially with the other boolean
+# above, hence the Enum
+INTERNET_ARCHIVE_UPLOAD_TARGET: IAUploadTarget = IAUploadTarget.LINK_ITEM
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'

@@ -1396,6 +1396,10 @@ class Link(DeletableModel):
                                                           ('completed','completed'),
                                                       ),
                                                       db_index=True)
+    # holds things of the format: 'perma_cc_daily_item_2022-08-05:AAAA-ZZZZ'
+    # OR 'perma_cc_AAAA-ZZZZ', denoting an IA item or a file in an IA item
+    # Null means no associated IA item
+    internet_archive_identifier = models.CharField(max_length=50, null=True, blank=False)
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
@@ -1430,12 +1434,10 @@ class Link(DeletableModel):
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()
 
-    @cached_property
-    def ia_identifier(self):
+    def format_ia_link_item_identifier(self):
         return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
-    @cached_property
-    def ia_daily_item_identifier(self):
+    def format_ia_daily_item_identifier(self):
         return settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + self.archive_timestamp.date().isoformat()
 
     @cached_property
