@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Perma.cc + Replayweb.page</title>
   <style>
     html, body {
@@ -50,191 +51,242 @@
 </head>
 <body>
 
-  <script src="{% static "vendors/replay-web-page/ui.js" %}"></script>
-  <script>
-
+  <script type="module" src="{% static "vendors/replay-web-page/ui.js" %}"></script>
+  <script type="module">
+    //
+    // Module-level constants
+    //
     const guid = "{{ guid }}";
-    if (guid && window.location != window.parent.location){
+    const url = "{{ target_url | escapejs }}";
+    const embed_style = "{{ embed_style }}";
+    const sandbox = {{ sandbox|yesno:"true,false" }};
+    const replayBase = "{% static "vendors/replay-web-page" %}/";
+    const web_worker = {{ web_worker|yesno:"true,false" }};
+    const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
+    const warc_source = window.name.startsWith("http") ? new URL(window.name) : null;
+    const target = "{{ target }}";
+    const ondemand = {{ ondemand|yesno:'true, false' }}; // If `true`, shows the "view/download file" interstitial
+    const hidden = {{ hidden|yesno:'true, false' }}; // Assumed to be `true` if `ondemand` is `true`
 
-      //
-      // If we are in an iframe: offer a replay
-      //
+    //
+    // If we are in an iframe: offer a replay
+    //
+    if (guid && window.location != window.parent.location) {
 
-      // Helpers
-
-      const launch_playback = () => {
-        const url = "{{ target_url | escapejs }}";
-        const embed_style = "{{ embed_style }}";
-        const sandbox = {{ sandbox|yesno:"true,false" }};
-        const web_worker = {{ web_worker|yesno:"true,false" }};
-
-        const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
-        const warc_source = new URL(window.name);
-        if (warc_source.host != warc_source_allowed_host) {
-          throw `Forbidden warc source: ${warc_source}`
-        }
-
-        console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source} with${web_worker ? '' : 'out'} a web worker`)
-
-        const replay = document.createElement('replay-web-page');
-        replay.setAttribute('replayBase', "{% static "vendors/replay-web-page" %}/");
-        replay.setAttribute('source', warc_source);
-        replay.setAttribute('url', url);
-        replay.setAttribute('view', 'replay');
-        replay.setAttribute('embed', embed_style);
-        const noSandbox = !sandbox;
-        if (noSandbox){
-          replay.setAttribute('noSandbox', '');
-        }
-        const noWebWorker = !web_worker;
-        if (noWebWorker){
-          replay.setAttribute('noWebWorker', '');
-        }
-        const hidden = {{ hidden|yesno:'true, false' }};
-        if (hidden){
-          replay.className = 'hidden';
-        }
-        document.body.appendChild(replay);
-        return replay;
+      // Standard mode: inject and start player.
+      if (ondemand !== true) {
+        await replay();
       }
-
-      const wait_for_element = async (selector_function) => {
-        const maxPauseSeconds = 60
-        let tries = maxPauseSeconds * 60;  // we expect a repaint rate of ~60 times a second, per https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
-        let elem = null;
-        while ( !elem && tries > 0) {
-          // sleep efficiently until the next repaint
-          const pause = await new Promise(resolve => requestAnimationFrame(resolve));
-          cancelAnimationFrame(pause);
-          // look for the target element
-          try {
-            elem = selector_function();
-          } catch (err) {
-            if ( !err.message.includes('null') ) {
-              throw err;
-            }
-            tries -= 1
-          }
-        }
-        if (elem) {
-          return elem;
-        }
-        throw 'Timed out.'
-      }
-
-      const wait_for_replay = async (replay_elem) => {
-        return await wait_for_element(() => {
-          return replay_elem.shadowRoot.querySelector('iframe').contentDocument.querySelector('replay-app-main').shadowRoot.querySelector('wr-coll').shadowRoot.querySelector('wr-coll-replay').shadowRoot.querySelector('iframe')
-        })
-      }
-
-      const handle_target = async (elem) => {
-        const target = "{{ target }}";
-        if (target==='blank' || ondemand){
-          // inject a download link and click it
-          console.log(`Opening ${elem.src} in a new window`)
-          const download = document.createElement('a');
-          download.href = elem.src;
-          download.setAttribute('download', '');
-          download.click()
-        } else if (target==='img'){
-          // set alt text and style the loaded image for cross-browser consistency
-          console.log("Formatting image")
-          const img = await wait_for_element(() => {
-            return elem.contentDocument.querySelector('img')
-          })
-          img.style = "display: block; margin: auto; width: auto; height: auto;";
-          img.alt = "screenshot"
-        }
-      }
-
-      const replay = async () => {
-        const replay_elem = launch_playback();
-        const internal_elem = await wait_for_replay(replay_elem);
-        await handle_target(internal_elem);
-      }
-
-      // Do the replay
-
-      const ondemand = {{ ondemand|yesno:'true, false' }};
-      if (ondemand){
-
+      // `ondemand` mode: show view/download file interstitial, trigger "hidden" replay on click.
+      else {
         // Insert the download button
         const button = document.createElement('div');
         button.className = 'button-wrapper'
         button.innerHTML = '<button id="download-interstitial">View/Download File</button>';
         document.body.appendChild(button);
+
         // On-click, trigger replay in a hidden iframe
         const downloadButton = document.getElementById("download-interstitial");
         downloadButton.onclick = replay;
+      } 
 
-      } else {
-        (async() => {
-          await replay();
-        })()
-      }
-
-    } else {
-
-      //
-      // Otherwise, display a simple landing page
-      //
-
+    } 
+    //
+    // Otherwise :
+    // - Display a simple landing page
+    // - Clean up after any earlier attempted playback (remove once `Clear-Site-Data` is supported).
+    //
+    else {
       const content = document.createElement('div');
       content.className = 'welcome'
       content.innerHTML = "<div>Welcome.</div>";
       document.body.appendChild(content);
 
-      //
-      // And clean up after any earlier attempted playbacks.
-      // (Will be unnecessary when the 'Clear-Site-Data' header is implemented more thoroughly across browsers)
-      //
+      await unregisterServiceWorkers();
+      await clearStorage();
+      clearDatabase();
+    }
 
-      // Unregister service worker
-      navigator.serviceWorker.getRegistrations()
-        .then(registrations=>{
-          for(let registration of registrations) {
-             console.log(`Unregistering service worker from scope ${registration.scope}.`);
-             registration.unregister();
-          }
-        });
+    /**
+     * Orchestrates replay: 
+     * - Injects `<replay-web-page>` and start playback (via `launchPlayback()`)
+     * - Waits for the player to be ready, capture its inner `<iframe>`
+     * - Based on context, will use this reference to:
+     *   - Download mode: Pull URL to resource, create and actuate a "download" link.
+     *   - Screenshot mode: Adjust styling and alt text of the image that is displayed.
+     *
+     * [!] Depends on module-level constants.
+     */ 
+    async function replay() {
+      const replayElem = launchPlayback();
+      const innerIframe = await waitForReplay(replayElem);
 
-      // Empty local, session, and cache storages
-      localStorage.clear()
-      sessionStorage.clear()
-      caches.keys().then(names=>{
-        for (let name of names) {
-          caches.delete(name);
-        }
+      // Download mode (`ondemand`): 
+      // Pull URL from archive, inject a download link and click it.
+      if (target === 'blank' || ondemand) {
+        console.log(`Opening ${innerIframe.src} in a new window`)
+        const download = document.createElement('a');
+        download.href = innerIframe.src;
+        download.setAttribute('download', '');
+        download.click(); 
+      } 
+
+      // Screenshot mode: 
+      // Set alt text and style the loaded image for cross-browser consistency
+      else if (target === 'img') {
+        console.log("Formatting image");
+        const img = await waitForElement(() => {
+          return innerIframe.contentDocument.querySelector('img')
+        })
+        img.style = "display: block; margin: auto; width: auto; height: auto;";
+        img.alt = "screenshot";
+      }
+    }
+
+    /**
+     * Creates an instance of `<replay-web-page>` and injects it into the document.  
+     * [!] Depends on module-level constants.   
+     * 
+     * @return {Element} Reference to newly-injected `<replay-web-page>` instance.
+     */
+    function launchPlayback() {
+      if (warc_source.host != warc_source_allowed_host) {
+        throw `Forbidden warc source: ${warc_source}`
+      }
+
+      console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source} with${web_worker ? '' : 'out'} a web worker`)
+
+      const replay = document.createElement('replay-web-page');
+      replay.setAttribute('replayBase', replayBase);
+      replay.setAttribute('source', warc_source);
+      replay.setAttribute('url', url);
+      replay.setAttribute('view', 'replay');
+      replay.setAttribute('embed', embed_style);
+      replay.setAttribute('noCache', '');
+
+      console.log(warc_source.href);
+
+      if (!sandbox) {
+        replay.setAttribute('noSandbox', '');
+      }
+
+      if (!web_worker) {
+        replay.setAttribute('noWebWorker', '');
+      }
+      
+      if (hidden){
+        replay.className = 'hidden';
+      }
+
+      document.body.appendChild(replay);
+      return replay;
+    }
+
+    /**
+     * Wait for `<replay-web-page>` to be ready and returns a reference to it.
+     *
+     * @param {Element} replayElem - Instance of `<replay-web-page>`
+     * @return {Element}
+     */
+    async function waitForReplay(replayElem) {
+      return await waitForElement(() => {
+        return replayElem.shadowRoot.querySelector('iframe').contentDocument.querySelector('replay-app-main').shadowRoot.querySelector('wr-coll').shadowRoot.querySelector('wr-coll-replay').shadowRoot.querySelector('iframe')
       });
+    }
 
-      // Delete IndexedDBs
+    /**
+     * Waits for a given element to be in DOM. 
+     * Wait is based on `requestAnimationFrame`: timeout is approximately 60 seconds (60 x 60 frames per seconds).
+     *
+     * @param {Function} selectorFunction - Function querying the DOM for a single element. 
+     */
+    async function waitForElement(selectorFunction) {
+      const maxPauseSeconds = 60
+      let tries = maxPauseSeconds * 60;  // we expect a repaint rate of ~60 times a second, per https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+      let elem = null;
+
+      while (!elem && tries > 0) {
+        // Sleep efficiently until the next repaint
+        const pause = await new Promise(resolve => requestAnimationFrame(resolve));
+        cancelAnimationFrame(pause);
+
+        // Look for the target element
+        try {
+          elem = selectorFunction();
+        } 
+        catch (err) {
+          if (!err.message.includes('null')) {
+            throw err;
+          }
+          tries -= 1;
+        }
+      }
+
+      if (elem) {
+        return elem;
+      }
+
+      throw new Error("Timed out");
+    }
+
+    /**
+     * Clears `localStorage`, `sessionStorage`, and the caches.
+     */
+    async function clearStorage() {
+      localStorage.clear();
+      sessionStorage.clear();
+      for (let name of await caches.keys()) {
+        caches.delete(name);
+      }
+    }
+
+    /**
+     * Unregister service workers.
+     * [!] Behaves unexpectedly. `serviceWorker.getRegistrations()` might return an empty array.
+     */
+    async function unregisterServiceWorkers() {
+      for (let registration of await navigator.serviceWorker.getRegistrations()) {
+        console.log(`Unregistering service worker from scope ${registration.scope}.`);
+        registration.unregister();
+      }
+    }
+
+    /**
+     * Clears indexedDB of `<replay-web-page>`-related database.
+     * This is a two-step process: we need to read `collDB` to find all the databases created by `<replay-web-page>`. 
+     *
+     * Note: To simplify once Firefox supports `IDBFactory.databases()`.
+     */
+     function clearDatabase() {
       const DBOpenRequest = indexedDB.open('collDB');
-      DBOpenRequest.onsuccess = event=> {
-      //// Try to retrieve a list of per-warc DBs...
+
+      // Try to:
+      // - List all databases for the current origin
+      // - Delete them  
+      // In any case: 
+      // - Delete "collDB"
+      DBOpenRequest.onsuccess = event => {
         const collDB = DBOpenRequest.result;
+
         try {
           const objectStore = collDB.transaction(['colls'], 'readonly').objectStore('colls').getAllKeys();
-          objectStore.onsuccess = event=>{
-            const dbIDs = objectStore.result;
-      ////...and on success delete each...
-            for(let dbID of dbIDs){
+
+          objectStore.onsuccess = event => {
+            for (let dbID of objectStore.result){
               console.log(`Requesting deletion of db:${dbID}.`);
               indexedDB.deleteDatabase(`db:${dbID}`);
             }
-      ////...and then delete the collections database.
-            console.log(`Requesting deletion of collDB.`);
-            collDB.close();
-            indexedDB.deleteDatabase('collDB');
           }
-        } catch (err) {
-      //// If there is no list of per-warc DBs, delete the collections database.
-          console.log(`Requesting deletion of collDB.`);
-          collDB.close();
-          indexedDB.deleteDatabase('collDB');
-          if ( !err.message.includes('object store') ) {
+        } 
+        catch (err) {
+          if (!err.message.includes('object store')) {
             throw err;
           }
+        }
+        finally {
+          collDB.close();
+          console.log(`Requesting deletion of collDB.`);
+          indexedDB.deleteDatabase('collDB');
         }
       }
     }

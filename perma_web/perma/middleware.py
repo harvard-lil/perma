@@ -1,3 +1,4 @@
+import re 
 from django.conf import settings
 from django.http import Http404
 from django.urls import reverse
@@ -20,11 +21,20 @@ def bypass_cache_middleware(get_response):
 
     def middleware(request):
         response = get_response(request)
-        if request.path.startswith(LOGIN_ROUTE) or request.path.startswith(LOGOUT_ROUTE):
+
+        if (request.path.startswith(LOGIN_ROUTE) or 
+            request.path.startswith(LOGOUT_ROUTE) or 
+            re.match(r'^\/[A-Z0-9]{4}\-[A-Z0-9]{4}', request.path) # Playback page 
+        ):
+            response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response["Pragma"] = "no-cache"
+            response["Expires"] = 0
+
             if request.user.is_authenticated:
                 response.set_cookie(settings.CACHE_BYPASS_COOKIE_NAME, 'True')
             else:
                 response.delete_cookie(settings.CACHE_BYPASS_COOKIE_NAME)
+
         return response
 
     return middleware

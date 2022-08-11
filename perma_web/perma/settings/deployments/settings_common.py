@@ -493,11 +493,13 @@ HOST = 'perma.test:8000'
 ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
 API_SUBDOMAIN = 'api'
 PLAYBACK_SUBDOMAIN = 'replay'
-DEFAULT_PLAYBACK_MODE = 'server'  # {'server', 'client'}
 
 #
 # Playback
 #
+
+# Sets mode to be used by default for playback. Can be either "client" or "server".
+DEFAULT_PLAYBACK_MODE = 'client'
 
 # The host and port loaded by Perma's iframe during (server-side) playback
 # Must be publicly available.
@@ -710,7 +712,7 @@ PERMA_PAYMENTS_IN_MAINTENANCE = False
 
 ENABLE_SPONSORED_USERS = False
 
-REPLAYWEBPAGE_VERSION = '1.6.0'
+REPLAYWEBPAGE_VERSION = '1.6.4'
 REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
 
 ENABLE_BONUS_LINKS = False
