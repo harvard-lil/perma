@@ -26,8 +26,6 @@ def bypass_cache_middleware(get_response):
               request.path.startswith(LOGOUT_ROUTE) or 
               re.match(r'^\/[A-Z0-9]{4}\-[A-Z0-9]{4}', request.path)):
             response["Cache-Control"] = "no-cache, no-store, must-revalidate"
-            response["Pragma"] = "no-cache"
-            response["Expires"] = 0
 
             if request.user.is_authenticated:
                 response.set_cookie(settings.CACHE_BYPASS_COOKIE_NAME, 'True')

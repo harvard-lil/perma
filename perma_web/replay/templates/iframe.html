@@ -57,16 +57,19 @@
     // Module-level constants
     //
     const guid = "{{ guid }}";
-    const url = "{{ target_url | escapejs }}";
-    const embed_style = "{{ embed_style }}";
+    const warcSourceAllowedHost = "{{ warc_source_allowed_host }}";
+    const warcSource = window.name.startsWith("http") ? new URL(window.name) : null;
+
+    const target = "{{ target }}"; // Allows for behavior overrides. See `replay()`. Can be an "", "img" or "blank".
+    const ondemand = {{ ondemand|yesno:'true, false' }}; // If `true`, shows the "view/download file" interstitial.
+    const hidden = {{ hidden|yesno:'true, false' }}; // Assumed to be `true` if `ondemand` is `true`.
+
+    // `<replay-web-page>` parameters
+    const url = "{{ target_url | escapejs }}"; // Url of the page to fetch in the archive.
+    const embedStyle = "{{ embed_style }}";
     const sandbox = {{ sandbox|yesno:"true,false" }};
     const replayBase = "{% static "vendors/replay-web-page" %}/";
-    const web_worker = {{ web_worker|yesno:"true,false" }};
-    const warc_source_allowed_host = "{{ warc_source_allowed_host }}";
-    const warc_source = window.name.startsWith("http") ? new URL(window.name) : null;
-    const target = "{{ target }}";
-    const ondemand = {{ ondemand|yesno:'true, false' }}; // If `true`, shows the "view/download file" interstitial
-    const hidden = {{ hidden|yesno:'true, false' }}; // Assumed to be `true` if `ondemand` is `true`
+    const webWorker = {{ web_worker|yesno:"true,false" }};
 
     //
     // If we are in an iframe: offer a replay
@@ -119,7 +122,7 @@
      */ 
     async function replay() {
       const replayElem = launchPlayback();
-      const innerIframe = await waitForReplay(replayElem);
+      const innerIframe = await getReplayInnerFrame(replayElem);
 
       // Download mode (`ondemand`): 
       // Pull URL from archive, inject a download link and click it.
@@ -147,30 +150,28 @@
      * Creates an instance of `<replay-web-page>` and injects it into the document.  
      * [!] Depends on module-level constants.   
      * 
-     * @return {Element} Reference to newly-injected `<replay-web-page>` instance.
+     * Returns a reference to the newly-injected `<replay-web-page>` instance.
      */
     function launchPlayback() {
-      if (warc_source.host != warc_source_allowed_host) {
-        throw `Forbidden warc source: ${warc_source}`
+      if (warcSource.host != warcSourceAllowedHost) {
+        throw `Forbidden warc source: ${warcSource}`
       }
 
-      console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warc_source} with${web_worker ? '' : 'out'} a web worker`)
+      console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warcSource} with${webWorker ? '' : 'out'} a web worker`)
 
       const replay = document.createElement('replay-web-page');
       replay.setAttribute('replayBase', replayBase);
-      replay.setAttribute('source', warc_source);
+      replay.setAttribute('source', warcSource);
       replay.setAttribute('url', url);
       replay.setAttribute('view', 'replay');
-      replay.setAttribute('embed', embed_style);
+      replay.setAttribute('embed', embedStyle);
       replay.setAttribute('noCache', '');
-
-      console.log(warc_source.href);
 
       if (!sandbox) {
         replay.setAttribute('noSandbox', '');
       }
 
-      if (!web_worker) {
+      if (!webWorker) {
         replay.setAttribute('noWebWorker', '');
       }
       
@@ -183,22 +184,21 @@
     }
 
     /**
-     * Wait for `<replay-web-page>` to be ready and returns a reference to it.
+     * Wait for `<replay-web-page>` to be ready and returns a reference to its (most) inner frame.
      *
-     * @param {Element} replayElem - Instance of `<replay-web-page>`
-     * @return {Element}
+     * Takes a reference to `<replay-web-page>` as a parameter.
      */
-    async function waitForReplay(replayElem) {
+    async function getReplayInnerFrame(replayElem) {
       return await waitForElement(() => {
         return replayElem.shadowRoot.querySelector('iframe').contentDocument.querySelector('replay-app-main').shadowRoot.querySelector('wr-coll').shadowRoot.querySelector('wr-coll-replay').shadowRoot.querySelector('iframe')
       });
     }
 
     /**
-     * Waits for a given element to be in DOM. 
+     * Waits for a given element to be in the DOM and returns it. 
      * Wait is based on `requestAnimationFrame`: timeout is approximately 60 seconds (60 x 60 frames per seconds).
-     *
-     * @param {Function} selectorFunction - Function querying the DOM for a single element. 
+     * 
+     * Takes a function querying the DOM for a single element as an argument
      */
     async function waitForElement(selectorFunction) {
       const maxPauseSeconds = 60
@@ -257,7 +257,7 @@
      *
      * Note: To simplify once Firefox supports `IDBFactory.databases()`.
      */
-     function clearDatabase() {
+    function clearDatabase() {
       const DBOpenRequest = indexedDB.open('collDB');
 
       // Try to:
