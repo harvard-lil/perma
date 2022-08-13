@@ -23,9 +23,8 @@ def bypass_cache_middleware(get_response):
         response = get_response(request)
 
         if (request.path.startswith(LOGIN_ROUTE) or 
-            request.path.startswith(LOGOUT_ROUTE) or 
-            re.match(r'^\/[A-Z0-9]{4}\-[A-Z0-9]{4}', request.path) # Playback page 
-        ):
+              request.path.startswith(LOGOUT_ROUTE) or 
+              re.match(r'^\/[A-Z0-9]{4}\-[A-Z0-9]{4}', request.path)):
             response["Cache-Control"] = "no-cache, no-store, must-revalidate"
             response["Pragma"] = "no-cache"
             response["Expires"] = 0
