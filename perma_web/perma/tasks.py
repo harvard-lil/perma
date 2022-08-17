@@ -1697,17 +1697,7 @@ def upload_to_internet_archive_link_item(link_guid):
         logger.info(f"Queued Link {link_guid} no longer eligible for upload.")
         return
 
-    url = remove_control_characters(link.submitted_url)
-    metadata = {
-        "collection": settings.INTERNET_ARCHIVE_COLLECTION,
-        "title": f"{link_guid}: {truncatechars(link.submitted_title, 50)}",
-        "mediatype": "web",
-        "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
-        "contributor": "Perma.cc",
-        "submitted_url": url,
-        "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
-        "external-identifier": f"urn:X-perma:{link_guid}",
-    }
+    metadata = _create_link_metadata(link)
 
     temp_warc_file = tempfile.TemporaryFile()
     try:
