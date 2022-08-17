@@ -1735,7 +1735,7 @@ def upload_to_internet_archive_link_item(link_guid):
             verbose=True,
         )
         # each response is for one file, make sure none failed
-        for r in reponse_list:
+        for r in response_list:
             r.raise_for_status()
         link.internet_archive_upload_status = 'completed'
         link.internet_archive_identifier = link.ia_link_item_identifier
@@ -1787,7 +1787,7 @@ def upload_to_internet_archive_daily_item(link_guid):
             queue_derive=False
         )
         # there is one response for each file, make sure none of them failed.
-        for r in reponse_list:
+        for r in response_list:
             r.raise_for_status()
         link.internet_archive_identifier = f"{identifier}:{link.guid}"
         link.internet_archive_upload_status = 'derive_required'
