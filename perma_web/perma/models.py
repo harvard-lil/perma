@@ -1434,10 +1434,12 @@ class Link(DeletableModel):
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()
 
-    def format_ia_link_item_identifier(self):
+    @property
+    def ia_link_item_identifier(self):
         return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
-    def format_ia_daily_item_identifier(self):
+    @property
+    def ia_daily_item_identifier(self):
         return settings.INTERNET_ARCHIVE_DAILY_ITEM_PREFIX + self.archive_timestamp.date().isoformat()
 
     @cached_property

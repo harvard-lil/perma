@@ -1702,7 +1702,7 @@ def upload_to_internet_archive_link_item(link_guid):
 
     temp_warc_file = tempfile.TemporaryFile()
     try:
-        item = internetarchive.get_item(link.format_ia_link_item_identifier())
+        item = internetarchive.get_item(link.ia_link_item_identifier)
         if item.exists:
             if not item.metadata.get('title') or item.metadata['title'] == 'Removed':
                 # if item already exists (but has been removed),
@@ -1726,7 +1726,7 @@ def upload_to_internet_archive_link_item(link_guid):
         logger.info(f"Uploading Link {link_guid} to IA.")
         warc_name = os.path.basename(link.warc_storage_file())
         response_list = internetarchive.upload(
-            link.format_ia_link_item_identifier(),
+            link.ia_link_item_identifier,
             {warc_name: temp_warc_file},
             metadata=metadata,
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
@@ -1739,7 +1739,7 @@ def upload_to_internet_archive_link_item(link_guid):
         for r in reponse_list:
             r.raise_for_status()
         link.internet_archive_upload_status = 'completed'
-        link.internet_archive_identifier = link.format_ia_link_item_identifier()
+        link.internet_archive_identifier = link.ia_link_item_identifier
     except Exception:
         logger.exception(f"Exception while uploading Link {link.guid} to IA:")
         link.internet_archive_upload_status = 'failed'
@@ -1761,7 +1761,7 @@ def upload_to_internet_archive_daily_item(link_guid):
     """
     link = Link.objects.get(guid=link_guid)
     item_md = _create_daily_metadata(link.archive_timestamp)
-    identifier = link.format_ia_daily_item_identifier()
+    identifier = link.ia_daily_item_identifier
     if not link.can_upload_to_internet_archive():
         logger.info(f"Queued Link {link.guid} not eligible for upload.")
         return
