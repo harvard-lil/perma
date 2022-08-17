@@ -473,19 +473,19 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.populate_warc_size': {'queue': 'background'},
 }
 
-# internet archive stuff
-class IAUploadTarget(enum.Enum):
-    DAILY_ITEM = enum.auto()
-    LINK_ITEM = enum.auto()
-
+# Internet Archive settings
 UPLOAD_TO_INTERNET_ARCHIVE = False
-# I think a boolean flag for this is confusing, especially with the other boolean
-# above, hence the Enum
-INTERNET_ARCHIVE_UPLOAD_TARGET: IAUploadTarget = IAUploadTarget.LINK_ITEM
+
+# Toggle whether new items should be uploaded to new-style "daily" items (https://archive.org/details/daily_perma_cc_2013-09-28)
+# or legacy-style "link" items (https://archive.org/details/perma_cc_AQ7G-UH3G).
+# Can be either "daily_item" or "link_item".
+INTERNET_ARCHIVE_UPLOAD_TARGET = 'daily_item'
+
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 INTERNET_ARCHIVE_DAILY_ITEM_PREFIX = 'daily_perma_cc_'
+
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''

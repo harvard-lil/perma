@@ -54,7 +54,6 @@ from django.http import HttpRequest
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
-from perma.settings import IAUploadTarget
 from perma.utils import (url_in_allowed_ip_range,
     copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset, protocol, remove_control_characters,
@@ -1660,13 +1659,19 @@ def _create_link_metadata(link):
     return metadata
 
 @shared_task()
-def upload_to_internet_archive(link_guid, ia_upload_target: IAUploadTarget=settings.INTERNET_ARCHIVE_UPLOAD_TARGET):
-    if ia_upload_target == IAUploadTarget.LINK_ITEM:
+def upload_to_internet_archive(link_guid, ia_upload_target=None):
+    # If a particular ia_upload_target was not specified, default to our Django setting.
+    # (Not supplied as a default to the kwarg because the Django settings object is lazy,
+    # and should not be referenced at the top level.)
+    # https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/#use-of-django-conf-settings
+    if not ia_upload_target:
+        ia_upload_target = settings.INTERNET_ARCHIVE_UPLOAD_TARGET
+
+    if ia_upload_target == 'link_item':
         return upload_to_internet_archive_link_item(link_guid)
-    elif ia_upload_target == IAUploadTarget.DAILY_ITEM:
+    elif ia_upload_target == 'daily_item':
         return upload_to_internet_archive_daily_item(link_guid)
-    else:
-        raise NotImplementedError(f"Unimplemented IA upload target {ia_upload_target}")
+    raise NotImplementedError(f"Unimplemented IA upload target: {ia_upload_target}")
 
 @shared_task()
 def upload_to_internet_archive_link_item(link_guid):
