@@ -1480,6 +1480,7 @@ def cache_playback_status(link_guid):
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
 
+
 @shared_task(acks_late=True)
 def delete_from_internet_archive(link_guid):
     link = Link.objects.get(guid=link_guid)
@@ -1490,6 +1491,7 @@ def delete_from_internet_archive(link_guid):
         delete_from_internet_archive_daily_item(link_guid)
     else:
         delete_from_internet_archive_link_item(link_guid)
+
 
 @shared_task(acks_late=True)
 def delete_from_internet_archive_daily_item(link_guid):
@@ -1529,6 +1531,7 @@ def delete_from_internet_archive_daily_item(link_guid):
             link.internet_archive_upload_status = 'deletion_incomplete'
             logger.exception(f"Link {link.guid}: attempt to delete file {f} from Internet Archive failed:")
     link.save(update_fields=['internet_archive_upload_status'])
+
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def delete_from_internet_archive_link_item(link_guid):
@@ -1593,6 +1596,7 @@ def delete_from_internet_archive_link_item(link_guid):
 
     link.save(update_fields=['internet_archive_upload_status'])
 
+
 def delete_all_from_internet_archive(guids=None, limit=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
@@ -1608,6 +1612,7 @@ def delete_all_from_internet_archive(guids=None, limit=None):
         delete_from_internet_archive.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for deletion from IA.")
+
 
 def upload_all_to_internet_archive(limit=None, max_size=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
@@ -1634,6 +1639,7 @@ def upload_all_to_internet_archive(limit=None, max_size=None):
         queued = queued + 1
     logger.info(f"Queued {queued} links for upload to IA.")
 
+
 def _create_daily_metadata(timestamp):
     iso = timestamp.date().isoformat()
     metadata = {
@@ -1643,6 +1649,7 @@ def _create_daily_metadata(timestamp):
         "date": iso,
     }
     return metadata
+
 
 def _create_link_metadata(link):
     url = remove_control_characters(link.submitted_url)
@@ -1658,6 +1665,7 @@ def _create_link_metadata(link):
     }
     return metadata
 
+
 @shared_task()
 def upload_to_internet_archive(link_guid, ia_upload_target=None):
     # If a particular ia_upload_target was not specified, default to our Django setting.
@@ -1672,6 +1680,7 @@ def upload_to_internet_archive(link_guid, ia_upload_target=None):
     elif ia_upload_target == 'daily_item':
         return upload_to_internet_archive_daily_item(link_guid)
     raise NotImplementedError(f"Unimplemented IA upload target: {ia_upload_target}")
+
 
 @shared_task()
 def upload_to_internet_archive_link_item(link_guid):
@@ -1747,6 +1756,7 @@ def upload_to_internet_archive_link_item(link_guid):
         temp_warc_file.close()
         link.save(update_fields=['internet_archive_upload_status', 'internet_archive_identifier'])
 
+
 @shared_task
 def upload_to_internet_archive_daily_item(link_guid):
     """
@@ -1798,6 +1808,7 @@ def upload_to_internet_archive_daily_item(link_guid):
         temp_warc_file.close()
         link.save(update_fields=['internet_archive_upload_status', 'internet_archive_identifier'])
 
+
 @shared_task
 def derive_internet_archive_daily_item(iso_date_str: None):
     """
@@ -1820,6 +1831,7 @@ def derive_internet_archive_daily_item(iso_date_str: None):
         item.derive()
     except Exception:
         logger.exception(f"Exception while queuing derive for ia item {identifier}")
+
 
 @shared_task()
 def send_js_errors():
