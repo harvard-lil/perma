@@ -10,6 +10,7 @@ from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 from django.forms import ModelForm
 from django.utils.functional import cached_property
+from django.utils.html import format_html
 from django.template.defaultfilters import filesizeformat
 
 from mptt.admin import MPTTModelAdmin
@@ -350,9 +351,9 @@ class LinkAdmin(SimpleHistoryAdmin):
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
-        ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
+        ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'internet_archive_identifier', 'internet_archive_link', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size']  #, 'archive_timestamp']
+    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size', 'internet_archive_link']  #, 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
@@ -374,6 +375,12 @@ class LinkAdmin(SimpleHistoryAdmin):
 
     def tag_list(self, obj):
         return ", ".join(o.name for o in obj.tags.all())
+
+    def internet_archive_link(self, obj):
+        if obj.internet_archive_identifier:
+            url = f'https://archive.org/details/{obj.internet_archive_identifier}'
+            return format_html('<a target="_blank" href="{}">{}</a>', url, url)
+        return ''
 
     def file_size(self, obj):
         return filesizeformat(obj.warc_size)
