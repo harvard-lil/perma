@@ -1399,7 +1399,7 @@ class Link(DeletableModel):
     # holds things of the format: 'perma_cc_daily_item_2022-08-05:AAAA-ZZZZ'
     # OR 'perma_cc_AAAA-ZZZZ', denoting an IA item or a file in an IA item
     # Null means no associated IA item
-    internet_archive_identifier = models.CharField(max_length=50, null=True, blank=False)
+    internet_archive_identifier = models.CharField(max_length=50, null=True, blank=True)
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
