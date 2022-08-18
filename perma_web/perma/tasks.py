@@ -1645,6 +1645,7 @@ def upload_all_to_internet_archive(limit=None, max_size=None):
 def _create_daily_metadata(timestamp):
     iso = timestamp.date().isoformat()
     metadata = {
+        # TODO: include collection, contributor, other fields?
         "mediatype": "web",
         "title": f"{iso} Perma Captures",
         "description": f"Captures by Perma.cc from {iso} (one WARC file and XML metadata file per webpage)",
@@ -1711,7 +1712,7 @@ def upload_to_internet_archive_link_item(link_guid):
                 # we have to explicitly modify the metadata, then upload.
                 logger.info(f"Link {link_guid} previously removed from IA: updating metadata")
                 item.modify_metadata(
-                    metadata,
+                    {k:v for k, v in metadata.items() if k != 'collection'},  # we aren't allowed to update collection at this point
                     access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                 )
