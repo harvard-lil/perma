@@ -1597,6 +1597,7 @@ def delete_from_internet_archive_link_item(link_guid):
     link.save(update_fields=['internet_archive_upload_status'])
 
 
+@shared_task(acks_late=True)
 def delete_all_from_internet_archive(guids=None, limit=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
@@ -1614,6 +1615,7 @@ def delete_all_from_internet_archive(guids=None, limit=None):
     logger.info(f"Queued {queued} links for deletion from IA.")
 
 
+@shared_task(acks_late=True)
 def upload_all_to_internet_archive(limit=None, max_size=None):
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
