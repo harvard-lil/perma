@@ -271,6 +271,10 @@ def single_permalink(request, guid):
                 Rel(memento_url(request, link), rel='memento', datetime=datetime_to_http_date(link.creation_timestamp)),
             ])
         )
+
+    # Prevent browser caching
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    
     logger.debug(f"Returning response for {link.guid}")
     return response
 

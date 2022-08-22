@@ -32,7 +32,10 @@ def iframe(request):
         context['ondemand'] = ondemand
         context['target'] = target
     response = render(request, 'iframe.html', context)
-    response['Clear-Site-Data'] = '"cache", "storage"'
+
+    response["Clear-Site-Data"] = '"cache", "storage"'
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    
     return response
 
 

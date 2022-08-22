@@ -77,3 +77,23 @@ the application](./developer.md#run-perma) and [running the tests](/developer.md
 When you are finished, spin down Docker containers by running:
 
     $ docker-compose down
+
+Making Mac OS trust self-signed certificate if it doesn't
+---------------------------------------------------------
+It _"sometimes"_ happen that `mkcert`'s setup is incomplete, and Mac OS doesn't trust the certificates it generated as a result.
+
+**Here's how to fix it:**
+- Go to `Applications > Utilities > Keychain Access`
+- Click on the `login` filter
+- Drag and drop the `rootCA.pem` file `mkcert` generated onto the UI
+- Look for the certificate in the list: it should start with `mkcert` followed by the name of your machine
+- Right-click on it and pick _"Get Info"_
+- Unfold the _"Trust"_ dropdown, and pick _"Always trust"_ for the relevant categories. 
+
+If you're still encountering issues, you may want to hit these urls in your browser and manually bypass the security alerts: 
+```
+https://perma.test:8000
+https://replay.perma.test:8000
+https://perma.minio.test:9000
+https://perma-archives.test:8092
+```
