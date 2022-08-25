@@ -825,7 +825,7 @@ def process_metadata(metadata, link):
         safe_save_fields(link, submitted_description=description_meta_tag[:300])
 
     ## Page Title
-    safe_save_fields(link, submitted_title=metadata['title'][:300])
+    safe_save_fields(link, submitted_title=metadata['title'][:2100])
 
 
 def save_warc(warcprox_controller, capture_job, link, content_type, screenshot, successful_favicon_urls):
