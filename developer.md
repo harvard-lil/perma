@@ -31,7 +31,7 @@ SSL certs and keys should already be present. If they are not, or if they have
 expired, you can run `bash make_cert.sh` to generate new files.)
 
 To log in and explore Perma, try logging in as one of our
-[test users](https://github.com/harvard-lil/perma/blob/develop/perma_web/fixtures/users.json). All test users have a password of "pass".
+[test users (the `linkuser` objects)](https://github.com/harvard-lil/perma/blob/develop/perma_web/fixtures/users.json#L167). All test users have a password of "pass".
 
 The server will automatically reload any time you made a change to the
 `perma_web` directory: just refresh the page to see your changes.
