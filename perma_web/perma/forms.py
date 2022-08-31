@@ -137,6 +137,10 @@ class UserForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
+        # From Sept 2022 onwards: all email addresses are lowercase
+        if self.instance.email:
+            self.instance.email = self.instance.email.lower()
+
         # save user, and set a password so that the password_reset flow can be
         # used for email confirmation
         self.instance.set_password(LinkUser.objects.make_random_password(length=20))
