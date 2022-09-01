@@ -194,7 +194,7 @@ def stats(request, stat_type=None):
                         'reserved': reserved[queue],
                         'stats': stats[queue],
                     })
-                except KeyError:
+                except (KeyError, TypeError):
                     pass
         out = {'queues':queues}
 
