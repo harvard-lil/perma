@@ -6,9 +6,9 @@
 {% block dashboardContent %}
 
 {% for account in accounts %}
-{% with subscription=account.subscription %}
-{% with customer=account.customer %}
-{% with customer_type=customer.customer_type %}
+  {% with subscription=account.subscription %}
+  {% with customer=account.customer %}
+  {% with customer_type=customer.customer_type %}
 
 {% if customer_type == 'Registrar' %}
 <h2 class="body-ah">Registrar Subscription &mdash; {{ customer.name }}</h2>
@@ -211,4 +211,4 @@
 
   {% endif %}
 
-  {% endblock %}
+{% endblock %}

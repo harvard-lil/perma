@@ -439,6 +439,7 @@ class CustomerModel(models.Model):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = self.get_subscription()
+
         tiers = []
         if subscription and subscription.get('pending_change'):
             # allow the user to effective cancel the pending change,
@@ -453,7 +454,7 @@ class CustomerModel(models.Model):
                 'recurring_frequency': subscription['frequency'],
                 'recurring_start_date': subscription['paid_through'].strftime("%Y-%m-%d"),
                 'link_limit': subscription['link_limit'],
-                'link_limit_effective_timestamp': now.timestamp(),
+                'link_limit_effective_timestamp': now.timestamp()
             }
             tiers.append({
                 'type': 'cancel_downgrade',
