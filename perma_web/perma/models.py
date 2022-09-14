@@ -59,7 +59,8 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_pk',
         'customer_type',
         'subscription',
-        'purchases'
+        'purchases',
+        'reference_number'
     ],
     'get_purchase_history': [
         'customer_pk',
@@ -238,7 +239,8 @@ class CustomerModel(models.Model):
             'purchases': [
                 {
                     'link_quantity': item['link_quantity'],
-                    'date': pp_date_from_post(item['date'])
+                    'date': pp_date_from_post(item['date']),
+                    'reference_number': item['reference_number']
                 } for item in post_data['purchase_history']
             ],
             'total_links': sum(int(purchase['link_quantity']) for purchase in post_data['purchase_history'])
@@ -330,7 +332,8 @@ class CustomerModel(models.Model):
             'paid_through': self.cached_paid_through,
             'rate': str(self.cached_subscription_rate),
             'link_limit': 'unlimited' if self.unlimited else str(self.link_limit),
-            'pending_change': pending_change
+            'pending_change': pending_change,
+            'reference_number': post_data['reference_number'],
         }
 
     def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
@@ -436,7 +439,6 @@ class CustomerModel(models.Model):
         next_month = first_day_of_next_month(now)
         next_year = today_next_year(now)
         subscription = self.get_subscription()
-
         tiers = []
         if subscription and subscription.get('pending_change'):
             # allow the user to effective cancel the pending change,
@@ -451,7 +453,7 @@ class CustomerModel(models.Model):
                 'recurring_frequency': subscription['frequency'],
                 'recurring_start_date': subscription['paid_through'].strftime("%Y-%m-%d"),
                 'link_limit': subscription['link_limit'],
-                'link_limit_effective_timestamp': now.timestamp()
+                'link_limit_effective_timestamp': now.timestamp(),
             }
             tiers.append({
                 'type': 'cancel_downgrade',
