@@ -59,7 +59,7 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_pk',
         'customer_type',
         'subscription',
-        'purchases',
+        'purchases'
     ],
     'get_purchase_history': [
         'customer_pk',

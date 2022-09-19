@@ -200,8 +200,7 @@ def spoof_pp_response_subscription(customer):
             "link_limit": "unlimited",
             "reference_number": "PERMA-1237-6200"
         },
-        "purchases": [],
-
+        "purchases": []
     }
 
 def spoof_pp_response_subscription_with_pending_change(customer):
@@ -217,7 +216,7 @@ def spoof_pp_response_subscription_with_pending_change(customer):
             "link_limit": "unlimited",
             "reference_number": "PERMA-1237-6201"
         },
-        "purchases": [],
+        "purchases": []
     }
     assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
     return response
@@ -732,8 +731,7 @@ class ModelsTestCase(PermaTestCase):
                         'rate': response['subscription']['rate'],
                         'link_limit': response['subscription']['link_limit'],
                         'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
-                    },
-                    
+                    }
                 })
                 self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
                 self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
