@@ -60,7 +60,6 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_type',
         'subscription',
         'purchases',
-        'reference_number'
     ],
     'get_purchase_history': [
         'customer_pk',
@@ -333,7 +332,7 @@ class CustomerModel(models.Model):
             'rate': str(self.cached_subscription_rate),
             'link_limit': 'unlimited' if self.unlimited else str(self.link_limit),
             'pending_change': pending_change,
-            'reference_number': post_data['reference_number'],
+            'reference_number': post_data['subscription']['reference_number'],
         }
 
     def annotate_tier(self, tier, current_subscription, now, next_month, next_year):

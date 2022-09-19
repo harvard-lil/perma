@@ -186,6 +186,7 @@ def spoof_pp_response_no_subscription_two_purchases(customer):
         }]
     }
 
+
 def spoof_pp_response_subscription(customer):
     return {
         "customer_pk": customer.pk,
@@ -196,10 +197,11 @@ def spoof_pp_response_subscription(customer):
             "frequency": "sample",
             "paid_through": "1970-01-21T00:00:00.000000Z",
             "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
-            "link_limit": "unlimited"
-
+            "link_limit": "unlimited",
+            "reference_number": "PERMA-1237-6200"
         },
-        "purchases": []
+        "purchases": [],
+
     }
 
 def spoof_pp_response_subscription_with_pending_change(customer):
@@ -212,10 +214,10 @@ def spoof_pp_response_subscription_with_pending_change(customer):
             "frequency": "sample",
             "paid_through": "9999-01-21T00:00:00.000000Z",
             "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
-            "link_limit": "unlimited"
-
+            "link_limit": "unlimited",
+            "reference_number": "PERMA-1237-6201"
         },
-        "purchases": []
+        "purchases": [],
     }
     assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
     return response
@@ -700,7 +702,8 @@ class ModelsTestCase(PermaTestCase):
                     'rate': response['subscription']['rate'],
                     'frequency': response['subscription']['frequency'],
                     'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
-                    'pending_change': None
+                    'pending_change': None,
+                    'reference_number': response['subscription']['reference_number']
                 })
                 self.assertEqual(post.call_count, 1)
                 self.assertEqual(credited.call_count, 0)
@@ -724,11 +727,13 @@ class ModelsTestCase(PermaTestCase):
                     'rate': str(customer.cached_subscription_rate),
                     'frequency': customer.link_limit_period,
                     'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+                    'reference_number': response['subscription']['reference_number'],
                     'pending_change': {
                         'rate': response['subscription']['rate'],
                         'link_limit': response['subscription']['link_limit'],
                         'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
-                    }
+                    },
+                    
                 })
                 self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
                 self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
