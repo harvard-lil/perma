@@ -1,182 +1,286 @@
 {% extends "settings-layout.html" %}
 {% load humanize %}
-
 {% block title %} | Settings{% endblock %}
-
 {% block dashboardContent %}
-
-{% for account in accounts %}
-  {% with subscription=account.subscription %}
-  {% with customer=account.customer %}
-  {% with customer_type=customer.customer_type %}
-
-    {% if customer_type == 'Registrar' %}
-        <h2 class="body-ah">Registrar Subscription &mdash; {{ customer.name }}</h2>
-    {% else %}
-        <h2 class="body-ah">Personal Subscription</h2>
-    {% endif %}
-
-    {% if not subscription %}
-
-      {% if customer_type == 'Registrar' %}
-        <p class="page-dek">Purchase a subscription for {{ customer.name }}</p>
-      {% else %}
-        <p class="page-dek">Purchase a personal subscription</p>
-      {% endif %}
-
-      <div class="row">
-        {% for tier in account.tiers %}
-          {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
-            <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
-              {% if tier.period == 'monthly' %}
-                <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per month{% endif %}</span><br>${{ tier.required_fields.recurring_amount | intcomma }}/month<br><br>${{ tier.required_fields.amount | intcomma }} this month (prorated)</button>
-              {% elif tier.period == 'annually'%}
-                 <button><span>{{ tier.limit }} Links{% if tier.limit != "unlimited" %} per year{% endif %}</span><br>${{ tier.required_fields.amount | intcomma }}/year</button>
-              {% endif %}
-              <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
-            </form>
+  {% for account in accounts %}
+    {% with subscription=account.subscription %}
+      {% with customer=account.customer %}
+        {% with customer_type=customer.customer_type %}
+          {% if customer_type == 'Registrar' %}
+            <h2 class="body-ah">Registrar Subscription &mdash; {{ customer.name }}</h2>
+          {% else %}
+            <h2 class="body-ah">Personal Subscription</h2>
           {% endif %}
-        {% endfor %}
-      </div>
-
-    {% elif subscription.status == 'Cancellation Requested' %}
-      <p class="page-dek"><span class="blue-text">Cancellation Request Pending</span></p>
-
-      <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
-
-      <p class="page-dek">Please note that it can take up to one full business day for us to process a cancellation.
-
-      {% if subscription.paid_through %}
-        <p class="page-dek">You will continue to be able to create Perma Links{% if customer_type == 'Registrar' %} for {{ customer.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
-      {% endif %}
-
-    {% elif subscription.status == 'Canceled' %}
-
-      <p class="page-dek">Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged again.</p>
-
-      <p class="page-dek">You will continue to be able to create Perma Links{% if customer_type == 'Registrar' %} for {{ customer.name }}{% endif %} until {{ subscription.paid_through | date:"F jS, Y" }}.</p>
-
-    {% else %}
-
-      {% if subscription.status == 'Hold' %}
-        <p class="page-dek">Your subscription is <span class="blue-text">on hold</span>  due to a problem with your credit card.</p>
-
-        <p class="page-dek">You can update payment information by clicking the "Modify Subscription" button below. If you need assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.</p>
-      {% else %}
-        <p class="page-dek">Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.</p>
-      {% endif %}
-
-      <div class="row">
-
-        {% if subscription.pending_change %}
-          <div class="col-xs-12">
-            <h3 class="body-ch">Through {{ subscription.paid_through | date:"F jS, Y" }}</h3>
-            <dl class="dl-horizontal">
-              {% if subscription.frequency == 'monthly' %}
-                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month (paid)</dd>
-              {% elif subscription.frequency == 'annually'%}
-                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year (paid)</dd>
+          {% if subscription %}
+            <p class="page-dek">Subscription Reference: {{ subscription.reference_number }}</p>
+          {% endif %}
+          {% if not subscription %}
+            {% if customer_type == 'Registrar' %}
+              <p class="page-dek">Purchase a subscription for {{ customer.name }}</p>
+            {% else %}
+              <p class="page-dek">Purchase a personal subscription</p>
+            {% endif %}
+            <div class="row">
+              {% for tier in account.tiers %}
+                {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
+                  <form class="upgrade-form col-xs-12 col-md-3"
+                        method="post"
+                        action="{{ subscribe_url }}">
+                    {% if tier.period == 'monthly' %}
+                      <button>
+                        <span>{{ tier.limit }} Links
+                          {% if tier.limit != "unlimited" %}per month{% endif %}
+                        </span>
+                        <br>
+                        ${{ tier.required_fields.recurring_amount | intcomma }}/month
+                        <br>
+                        <br>
+                        ${{ tier.required_fields.amount | intcomma }}
+                        this month (prorated)
+                      </button>
+                    {% elif tier.period == 'annually' %}
+                      <button>
+                        <span>{{ tier.limit }} Links
+                          {% if tier.limit != "unlimited" %}per year{% endif %}
+                        </span>
+                        <br>
+                        ${{ tier.required_fields.amount | intcomma }}/year
+                      </button>
+                    {% endif %}
+                    <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
+                  </form>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% elif subscription.status == 'Cancellation Requested' %}
+            <p class="page-dek">
+              <span class="blue-text">Cancellation Request Pending</span>
+            </p>
+            <p class="page-dek">We've received the request to cancel your subscription. We're sorry to see you go!</p>
+            <p class="page-dek">
+              Please note that it can take up to one full business day for us to process a cancellation.
+              {% if subscription.paid_through %}
+                <p class="page-dek">
+                  You will continue to be able to create Perma Links
+                  {% if customer_type == 'Registrar' %}
+                    for {{ customer.name }}
+                  {% endif %}
+                  until {{ subscription.paid_through | date:"F jS, Y" }}.
+                </p>
               {% endif %}
-              {% if customer.unlimited %}
-                <dt>Links:</dt><dd>unlimited</dd>
+            {% elif subscription.status == 'Canceled' %}
+              <p class="page-dek">
+                Your paid subscription has been <span class="blue-text">canceled</span>. You will not be charged
+                again.
+              </p>
+              <p class="page-dek">
+                You will continue to be able to create Perma Links
+                {% if customer_type == 'Registrar' %}
+                  for {{ customer.name }}
+                {% endif %}
+                until {{ subscription.paid_through | date:"F jS, Y" }}.
+              </p>
+            {% else %}
+              {% if subscription.status == 'Hold' %}
+                <p class="page-dek">
+                  Your subscription is <span class="blue-text">on hold</span> due to a problem with your credit card.
+                </p>
+                <p class="page-dek">
+                  You can update payment information by clicking the "Modify Subscription" button below. If you need
+                  assistance or believe this message is in error, please <a href="{% url 'contact' %}?subject=Subscription%20On%20Hold">contact us</a>.
+                </p>
               {% else %}
-                <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
+                <p class="page-dek">
+                  Your subscription is <span class="blue-text">{{ subscription.status | lower }}</span>.
+                </p>
               {% endif %}
-            </dl>
-
-            <h3 class="body-ch">Beginning {{ subscription.pending_change.effective | date:"F jS, Y" }}</h3>
-            <dl class="dl-horizontal">
-              {% if subscription.frequency == 'monthly' %}
-                <dt>Rate:</dt><dd>${{ subscription.pending_change.rate | intcomma }}/month</dd>
-              {% elif subscription.frequency == 'annually'%}
-                <dt>Rate:</dt><dd>${{ subscription.pending_change.rate | intcomma }}/year</dd>
+              <div class="row">
+                {% if subscription.pending_change %}
+                  <div class="col-xs-12">
+                    <h3 class="body-ch">Through {{ subscription.paid_through | date:"F jS, Y" }}</h3>
+                    <dl class="dl-horizontal">
+                      {% if subscription.frequency == 'monthly' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.rate | intcomma }}/month (paid)
+                        </dd>
+                      {% elif subscription.frequency == 'annually' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.rate | intcomma }}/year (paid)
+                        </dd>
+                      {% endif %}
+                      {% if customer.unlimited %}
+                        <dt>
+                          Links:
+                        </dt>
+                        <dd>
+                          unlimited
+                        </dd>
+                      {% else %}
+                        <dt>
+                          Included Links:
+                        </dt>
+                        <dd>
+                          {{ customer.link_limit }}
+                        </dd>
+                      {% endif %}
+                    </dl>
+                    <h3 class="body-ch">Beginning {{ subscription.pending_change.effective | date:"F jS, Y" }}</h3>
+                    <dl class="dl-horizontal">
+                      {% if subscription.frequency == 'monthly' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.pending_change.rate | intcomma }}/month
+                        </dd>
+                      {% elif subscription.frequency == 'annually' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.pending_change.rate | intcomma }}/year
+                        </dd>
+                      {% endif %}
+                      {% if subscription.pending_change.link_limit == 'unlimited' %}
+                        <dt>
+                          Links:
+                        </dt>
+                        <dd>
+                          unlimited
+                        </dd>
+                      {% else %}
+                        <dt>
+                          Included Links:
+                        </dt>
+                        <dd>
+                          {{ subscription.pending_change.link_limit }}
+                        </dd>
+                      {% endif %}
+                    </dl>
+                  </div>
+                {% else %}
+                  <div class="col-xs-12">
+                    <dl class="dl-horizontal">
+                      {% if subscription.frequency == 'monthly' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.rate | intcomma }}/month
+                        </dd>
+                      {% elif subscription.frequency == 'annually' %}
+                        <dt>
+                          Rate:
+                        </dt>
+                        <dd>
+                          ${{ subscription.rate | intcomma }}/year
+                        </dd>
+                      {% endif %}
+                      <dt>
+                        Paid Through:
+                      </dt>
+                      <dd>
+                        {{ subscription.paid_through | date:"F jS, Y" }}
+                      </dd>
+                      {% if customer.unlimited %}
+                        <dt>
+                          Links:
+                        </dt>
+                        <dd>
+                          unlimited
+                        </dd>
+                      {% else %}
+                        <dt>
+                          Included Links:
+                        </dt>
+                        <dd>
+                          {{ customer.link_limit }}
+                        </dd>
+                      {% endif %}
+                    </dl>
+                  </div>
+                {% endif %}
+                <div class="row subscription-buttons">
+                  <div class="col-xs-12 col-md-6">
+                    <form method="post" action="{{ update_url }}">
+                      {% csrf_token %}
+                      <input type="hidden" name="account_type" value={{ customer_type }}>
+                      <button class="btn btn-primary" type="submit">Modify Subscription</button>
+                    </form>
+                  </div>
+                  <div class="col-xs-12 col-md-6">
+                    <form method="post" action="{{ cancel_confirm_url }}">
+                      {% csrf_token %}
+                      <input type="hidden" name="account_type" value={{ customer_type }}>
+                      <button class="btn cancel" type="submit">Cancel Subscription</button>
+                    </form>
+                  </div>
+                </div>
               {% endif %}
-              {% if subscription.pending_change.link_limit == 'unlimited' %}
-                <dt>Links:</dt><dd>unlimited</dd>
-              {% else %}
-                <dt>Included Links:</dt><dd>{{ subscription.pending_change.link_limit }}</dd>
-              {% endif %}
-            </dl>
-          </div>
-        {% else %}
-          <div class="col-xs-12">
-            <dl class="dl-horizontal">
-              {% if subscription.frequency == 'monthly' %}
-                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/month</dd>
-              {% elif subscription.frequency == 'annually'%}
-                <dt>Rate:</dt><dd>${{ subscription.rate | intcomma }}/year</dd>
-              {% endif %}
-                <dt>Paid Through:</dt><dd>{{ subscription.paid_through | date:"F jS, Y" }}</dd>
-              {% if customer.unlimited %}
-                <dt>Links:</dt><dd>unlimited</dd>
-              {% else %}
-                <dt>Included Links:</dt><dd>{{ customer.link_limit }}</dd>
-              {% endif %}
-            </dl>
-          </div>
-        {% endif %}
-
-      <div class="row subscription-buttons">
-        <div class="col-xs-12 col-md-6">
-          <form method="post" action="{{ update_url }}">
-            {% csrf_token %}
-            <input type="hidden" name="account_type" value={{ customer_type }}>
-            <button class="btn btn-primary" type="submit">
-              Modify Subscription
-            </button>
-          </form>
-        </div>
-        <div class="col-xs-12 col-md-6">
-          <form method="post" action="{{ cancel_confirm_url }}">
-            {% csrf_token %}
-            <input type="hidden" name="account_type" value={{ customer_type }}>
-            <button class="btn cancel" type="submit">
-              Cancel Subscription
-            </button>
-          </form>
-        </div>
-      </div>
-
-    {% endif %}
-
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-
-{% endfor %}
-
-{% if ENABLE_BONUS_LINKS %}
-  <h2 class="body-ah">Get More Personal Links</h2>
-
-    <p class="page-dek">A one-time purchase, for people with or without subscriptions.</p>
-
-    <p class="fine-print">Have a subscription? These extra links carry over. You can make them whenever you want, and you can still make them if you cancel your subscription.</p>
-
-    <div class="row">
-      {% for package in bonus_packages %}
-        <form class="purchase-form col-xs-12 col-md-3" method="post" action="{{ purchase_url }}">
-            <button><span>{{ package.link_quantity }} additional Links</span><br>${{ package.amount }}<br><br>${{ package.unit_cost|floatformat:2}}/link</button>
-            <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
-        </form>
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
       {% endfor %}
-    </div>
-    {% if purchase_history.purchases %}
-      <hr>
-
-      <h3 class="body-ch">Purchase History</h3>
-
-      <dl class="dl-horizontal">
-        {% for purchase in purchase_history.purchases %}
-          <dt>{{ purchase.date | date:"F n, Y" }}:</dt><dd>{{ purchase.link_quantity }} Links</dd>
-        {% endfor %}
-      </dl>
-
-      <dl class="dl-horizontal">
-        <dt>TOTAL</dt><dd>{{ purchase_history.total_links }} Links</dd>
-        <dt>REMAINING</dt><dd>{{ request.user.bonus_links }} Links</dd>
-      </dl>
-    {% endif %}
-
-  {% endif %}
-
-{% endblock %}
+      {% if ENABLE_BONUS_LINKS %}
+        <h2 class="body-ah">Get More Personal Links</h2>
+        <p class="page-dek">A one-time purchase, for people with or without subscriptions.</p>
+        <p class="fine-print">
+          Have a subscription? These extra links carry over. You can make them whenever you want, and you
+          can still make them if you cancel your subscription.
+        </p>
+        <div class="row">
+          {% for package in bonus_packages %}
+            <form class="purchase-form col-xs-12 col-md-3"
+                  method="post"
+                  action="{{ purchase_url }}">
+              <button>
+                <span>{{ package.link_quantity }} additional Links</span>
+                <br>
+                ${{ package.amount }}
+                <br>
+                <br>
+                ${{ package.unit_cost | floatformat:2 }}/link
+              </button>
+              <input type="hidden" name="encrypted_data" value={{ package.encrypted_data }}>
+            </form>
+          {% endfor %}
+        </div>
+        {% if purchase_history.purchases %}
+          <hr>
+          <h3 class="body-ch">Purchase History</h3>
+          <dl class="dl-horizontal">
+            {% for purchase in purchase_history.purchases %}
+              <dt>
+                {{ purchase.date | date:"F n, Y" }}:
+              </dt>
+              <dd>
+                {{ purchase.reference_number }}
+              </dd>
+              <dd>
+                {{ purchase.link_quantity }} Links
+              </dd>
+            {% endfor %}
+          </dl>
+          <dl class="dl-horizontal">
+            <dt>
+              TOTAL
+            </dt>
+            <dd>
+              {{ purchase_history.total_links }} Links
+            </dd>
+            <dt>
+              REMAINING
+            </dt>
+            <dd>
+              {{ request.user.bonus_links }} Links
+            </dd>
+          </dl>
+        {% endif %}
+      {% endif %}
+    {% endblock %}

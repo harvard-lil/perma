@@ -238,7 +238,8 @@ class CustomerModel(models.Model):
             'purchases': [
                 {
                     'link_quantity': item['link_quantity'],
-                    'date': pp_date_from_post(item['date'])
+                    'date': pp_date_from_post(item['date']),
+                    'reference_number': item['reference_number']
                 } for item in post_data['purchase_history']
             ],
             'total_links': sum(int(purchase['link_quantity']) for purchase in post_data['purchase_history'])
@@ -330,7 +331,8 @@ class CustomerModel(models.Model):
             'paid_through': self.cached_paid_through,
             'rate': str(self.cached_subscription_rate),
             'link_limit': 'unlimited' if self.unlimited else str(self.link_limit),
-            'pending_change': pending_change
+            'pending_change': pending_change,
+            'reference_number': post_data['subscription']['reference_number'],
         }
 
     def annotate_tier(self, tier, current_subscription, now, next_month, next_year):
