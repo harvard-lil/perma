@@ -1,6 +1,6 @@
 {% extends "settings-layout.html" %}
 {% load humanize %}
-{% block title %}| Settings{% endblock %}
+{% block title %} | Settings{% endblock %}
 {% block dashboardContent %}
   {% for account in accounts %}
     {% with subscription=account.subscription %}
@@ -8,10 +8,11 @@
         {% with customer_type=customer.customer_type %}
           {% if customer_type == 'Registrar' %}
             <h2 class="body-ah">Registrar Subscription &mdash; {{ customer.name }}</h2>
-            {% if subscription %}<p class="page-dek">Subscription Reference: {{ subscription.reference_number }}</p>{% endif %}
           {% else %}
             <h2 class="body-ah">Personal Subscription</h2>
-            {% if subscription %}<p class="page-dek">Subscription Reference: {{ subscription.reference_number }}</p>{% endif %}
+          {% endif %}
+          {% if subscription %}
+            <p class="page-dek">Subscription Reference: {{ subscription.reference_number }}</p>
           {% endif %}
           {% if not subscription %}
             {% if customer_type == 'Registrar' %}
@@ -31,8 +32,7 @@
                           {% if tier.limit != "unlimited" %}per month{% endif %}
                         </span>
                         <br>
-                        ${{
-                        tier.required_fields.recurring_amount | intcomma }}/month
+                        ${{ tier.required_fields.recurring_amount | intcomma }}/month
                         <br>
                         <br>
                         ${{ tier.required_fields.amount | intcomma }}
@@ -44,8 +44,7 @@
                           {% if tier.limit != "unlimited" %}per year{% endif %}
                         </span>
                         <br>
-                        ${{
-                        tier.required_fields.amount | intcomma }}/year
+                        ${{ tier.required_fields.amount | intcomma }}/year
                       </button>
                     {% endif %}
                     <input type="hidden" name="encrypted_data" value={{ tier.encrypted_data }}>
@@ -64,8 +63,7 @@
                 <p class="page-dek">
                   You will continue to be able to create Perma Links
                   {% if customer_type == 'Registrar' %}
-                    for {{
-                    customer.name }}
+                    for {{ customer.name }}
                   {% endif %}
                   until {{ subscription.paid_through | date:"F jS, Y" }}.
                 </p>
@@ -78,8 +76,7 @@
               <p class="page-dek">
                 You will continue to be able to create Perma Links
                 {% if customer_type == 'Registrar' %}
-                  for {{
-                  customer.name }}
+                  for {{ customer.name }}
                 {% endif %}
                 until {{ subscription.paid_through | date:"F jS, Y" }}.
               </p>
