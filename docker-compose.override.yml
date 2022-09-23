@@ -17,3 +17,38 @@ services:
         - perma_web/package.json
         - perma_web/perma-warcprox-ca.pem
         - perma_web/lil-archive-keyring.gpg
+
+  #
+  # Perma Payments
+  #
+  pp_db:
+    image: registry.lil.tools/library/postgres:12.8
+    environment:
+      - POSTGRES_PASSWORD=example
+    volumes:
+      - pp_db_data:/var/lib/postgresql/data:delegated
+    networks:
+      - perma_payments
+
+  perma-payments:
+    image: registry.lil.tools/harvardlil/perma-payments:0.37
+    # hack: sleep to give the database time to start up
+    command: >
+      sh -c "sleep 5 && ./manage.py migrate && fab run"
+    ports:
+      - "127.0.0.1:80:80"
+    depends_on:
+      - pp_db
+    environment:
+      - DOCKERIZED=True
+      - DJANGO__DATABASES__default__HOST=pp_db
+    # TO CUSTOMIZE CONFIG:
+    # copy ./services/docker/perma-payments/settings.py.example
+    # to ./services/docker/perma-payments/settings.py,
+    # alter config as desired, in the usual way, then comment in this volume
+    # and re-run docker-compose up
+    # volumes:
+    #   - ./services/docker/perma-payments/settings.py:/perma-payments/config/settings/settings.py
+    networks:
+      - default
+      - perma_payments

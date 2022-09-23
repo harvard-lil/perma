@@ -5,6 +5,37 @@ This document contains tips and tricks for working with Perma.
 
 See the [installation documentation](./install.md) to get up and running.
 
+  - [Perma - developer notes](#perma---developer-notes)
+   - [Common tasks and commands](#common-tasks-and-commands)
+     - [Run Perma](#run-perma)
+     - [Run the tests](#run-the-tests)
+     - [Run a particular test (python only)](#run-a-particular-test-python-only)
+     - [Update the python dependencies](#update-the-python-dependencies)
+     - [Update the node dependencies](#update-the-node-dependencies)
+     - [Update Chromium](#update-chromium)
+     - [Migrate the database](#migrate-the-database)
+     - [Reset the database](#reset-the-database)
+     - [Run arbitrary commands](#run-arbitrary-commands)
+   - [Git and GitHub](#git-and-github)
+   - [Logs](#logs)
+   - [Code style and techniques](#code-style-and-techniques)
+     - [User roles and permissions tests](#user-roles-and-permissions-tests)
+     - [Javascript templates](#javascript-templates)
+     - [Sending email](#sending-email)
+     - [Asset pipeline](#asset-pipeline)
+     - [Managing static files and user-generated files](#managing-static-files-and-user-generated-files)
+     - [Hosting fonts locally](#hosting-fonts-locally)
+   - [Schema and data migrations](#schema-and-data-migrations)
+     - [Schema migrations and data migrations](#schema-migrations-and-data-migrations)
+     - [Track migrations in Git and get started](#track-migrations-in-git-and-get-started)
+   - [Testing and Test Coverage](#testing-and-test-coverage)
+     - [Linting with flake8](#linting-with-flake8)
+   - [Working with Celery](#working-with-celery)
+   - [Working with Redis](#working-with-redis)
+   - [Running with DEBUG=False locally](#running-with-debugfalse-locally)
+   - [Perma Payments](#perma-payments)
+     - [Test Perma Interaction with Perma Payments](#test-perma-interaction-with-perma-payments)
+   - [Internet Archive](#internet-archive)
 
 Common tasks and commands
 -------------------------
@@ -12,8 +43,8 @@ Common tasks and commands
 These commands assume you have configured your shell with the alias defined in
 the [shortcuts](./install.md#shortcuts) section of the installation docs, and that
 Perma's Docker containers are up and running in the background:
--  run `docker-compose up -d` to start the containers
--  run `docker-compose down` to stop them when you are finished.
+-  run `docker compose up -d` to start the containers
+-  run `docker compose down` to stop them when you are finished.
 
 (If you are not running Perma inside Docker, most of the commands below
 should still work: just skip the `d`!)
@@ -93,10 +124,10 @@ For more information on migrations, see [Schema and data migrations](#schema-and
 
 ### Reset the database
 
-1) `docker-compose down` to delete your existing containers.
+1) `docker compose down` to delete your existing containers.
 2) `docker volume rm perma_postgres_data` to delete the database.
-3) `docker-compose up -d` to spin up new containers.
-4) `docker-compose exec web fab dev.init_db` to create a fresh database, pre-populated with test fixtures.
+3) `docker compose up -d` to spin up new containers.
+4) `docker compose exec web fab dev.init_db` to create a fresh database, pre-populated with test fixtures.
 
 ### Run arbitrary commands
 
@@ -157,7 +188,7 @@ On the development server, emails are dumped to the standard out courtesy of EMA
 
 Front-end assets are processed and packaged by Webpack. Assets can be compiled with this command:
 
-    docker-compose exec web npm build
+    docker compose exec web npm build
 
 This is automatically run in the background by `d fab run`, so there is usually no need to run it manually.
 
@@ -269,12 +300,12 @@ Flake8 settings are configured in `perma_web/setup.cfg`
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-commit` or `.git/hooks/pre-push`:
 
     #!/usr/bin/env bash
-    docker-compose exec -T web flake8 .
+    docker compose exec -T web flake8 .
     exit $?
 
 Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-commit` or `chmod u+x .git/hooks/pre-push`.
 
-(You have to have started the containers with `docker-compose up -d` for this to work.)
+(You have to have started the containers with `docker compose up -d` for this to work.)
 
 
 ## Working with Celery
@@ -313,6 +344,25 @@ Aspects of Perma's paid subscription service are handled by the companion applic
 
 By default, Perma's `docker-compose` file will spin up a local Perma Payments for you to experiment with. For more fruitful experimentation, configure this Perma Payments to interact with Cybersource's test tier, by running Payments with a custom settings.py that contains our credentials. See `docker-compose.yml` and `/services/docker/perma-payments/settings.py.example` for more information. CyberSource will not be able to communicate its responses back to your local instance, of course, but you can simulate active subscriptions using the Django admin.
 
+### Test Perma Interaction with Perma Payments
+
+You may also decide to run the two services locally to experiment by running both on the same network.
+
+The Docker containers for `perma-payments` have to be built before you can successfully run  `perma` on the same network. Visit the [`perma-payments` repo](https://github.com/harvard-lil/perma-payments/blob/develop/README.md#running-locally) for those instructions. Once you've done that, build the Docker containers for perma: 
+
+- `docker compose -f docker-compose.yml up -d --build`
+
+Then, to run perma, run:
+
+`d fab run`
+
+When you're finished, take down the containers by running:
+
+`docker compose -f docker-compose.yml down`
+
+Don't worry if you get the following error when shutting down these containers while still running the `perma-payments` containers. That's because the network is maintained until both Docker Compose projects are down:
+
+`ERROR: error while removing network: network perma-payments_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
 
 ## Internet Archive
 

@@ -65,6 +65,7 @@ services:
           - 'perma.test'
           - 'api.perma.test'
           - 'replay.perma.test'
+      perma_payments:
       webrecorder:
 
   #
@@ -105,41 +106,6 @@ services:
       default:
         aliases:
           - 'perma.minio.test'
-
-  #
-  # Perma Payments
-  #
-  pp_db:
-    image: registry.lil.tools/library/postgres:12.8
-    environment:
-      - POSTGRES_PASSWORD=example
-    volumes:
-      - pp_db_data:/var/lib/postgresql/data:delegated
-    networks:
-      - perma_payments
-
-  perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:0.41
-    # hack: sleep to give the database time to start up
-    command: >
-      sh -c "sleep 5 && ./manage.py migrate && fab run"
-    ports:
-      - "127.0.0.1:80:80"
-    depends_on:
-      - pp_db
-    environment:
-      - DOCKERIZED=True
-      - DJANGO__DATABASES__default__HOST=pp_db
-    # TO CUSTOMIZE CONFIG:
-    # copy ./services/docker/perma-payments/settings.py.example
-    # to ./services/docker/perma-payments/settings.py,
-    # alter config as desired, in the usual way, then comment in this volume
-    # and re-run docker-compose up
-    # volumes:
-    #   - ./services/docker/perma-payments/settings.py:/perma-payments/config/settings/settings.py
-    networks:
-      - default
-      - perma_payments
 
   #
   # Upload scanning
@@ -266,6 +232,8 @@ volumes:
 networks:
   default:
   perma_payments:
+      name: perma-payments_default
+
   # TO CONNECT TO A SEPARATELY-RUNNING WEBRECORDER INSTANCE
   # instead of spinning one up here from our pre-built image
   # --------------------------------------------------------
@@ -276,5 +244,4 @@ networks:
   #
   # (recommended for simultaneous Perma and Webrecorder development)
   webrecorder:
-  #   external:
-  #     name: webrecorder_default
+  #   name: webrecorder_default
