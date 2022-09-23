@@ -360,7 +360,7 @@ When you're finished, take down the containers by running:
 
 `docker compose -f docker-compose.yml down`
 
-Don't worry if you get the following error when shutting down these containers while still running the `perma-payments` containers. That's because the network is maintained until both containers are down:
+Don't worry if you get the following error when shutting down these containers while still running the `perma-payments` containers. That's because the network is maintained until both Docker Compose projects are down:
 
 `ERROR: error while removing network: network perma-payments_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
 
