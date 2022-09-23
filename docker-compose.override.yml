@@ -52,16 +52,3 @@ services:
     networks:
       - default
       - perma_payments
-
-# networks:
-  # TO CONNECT TO A SEPARATELY-RUNNING WEBRECORDER INSTANCE
-  # instead of spinning one up here from our pre-built image
-  # --------------------------------------------------------
-  # 1) start the WR containers first, via WR's own repo and docker-compose file
-  # 2) comment out the Webecorder service and all its associated containers above
-  # 3) uncomment the "external" stanza below,
-  # 4) finally, start Perma's containers
-  #
-  # (recommended for simultaneous Perma and Webrecorder development)
-  # webrecorder:
-  #   name: webrecorder_default
