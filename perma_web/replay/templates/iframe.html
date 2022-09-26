@@ -70,6 +70,7 @@
     const sandbox = {{ sandbox|yesno:"true,false" }};
     const replayBase = "{% static "vendors/replay-web-page" %}/";
     const webWorker = {{ web_worker|yesno:"true,false" }};
+    const cache = {{ cache|yesno:"true,false" }};
 
     //
     // If we are in an iframe: offer a replay
@@ -157,7 +158,10 @@
         throw `Forbidden warc source: ${warcSource}`
       }
 
-      console.log(`Requesting playback of Perma Link ${guid} (${url}) from ${warcSource} with${webWorker ? '' : 'out'} a web worker`)
+      console.log(
+        `Requesting playback of Perma Link ${guid} with the following options:`, 
+        {guid, url, warcSource, webWorker, cache}
+      );
 
       const replay = document.createElement('replay-web-page');
       replay.setAttribute('replayBase', replayBase);
@@ -165,10 +169,13 @@
       replay.setAttribute('url', url);
       replay.setAttribute('view', 'replay');
       replay.setAttribute('embed', embedStyle);
-      replay.setAttribute('noCache', '');
 
       if (!sandbox) {
         replay.setAttribute('noSandbox', '');
+      }
+
+      if (!cache) {
+        replay.setAttribute('noCache', '');
       }
 
       if (!webWorker) {

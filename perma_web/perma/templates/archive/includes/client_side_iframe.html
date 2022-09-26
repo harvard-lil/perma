@@ -16,11 +16,44 @@
         worker = false
     }
 
+    // If browser doesn't support StorageManager.estimate() API, use `noCache`
+    let cache = false;
+    if (!navigator.storage.estimate) {
+        cache = true;
+    }
+
     // Add iframe
     const frame = document.createElement('iframe');
     frame.setAttribute('name', name);
     frame.className = cls;
-    frame.setAttribute('src', `${origin}?guid=${guid}${embed ? "&embed=replayonly" : ""}${screenshot ? "&type=screenshot" : ""}${interstitial ? "&hidden=true&ondemand=true" : ""}${target ? "&target="+target : ""}${!worker ? "&worker=false" : ""}`)
+
+    const srcQuery = new URLSearchParams();
+    srcQuery.append("guid", guid);
+    srcQuery.append("embed", "replayonly");
+    
+    if (screenshot) {
+        srcQuery.append("type", "screenshot");
+    }
+
+    if (interstitial) {
+        srcQuery.append("hidden", "true");
+        srcQuery.append("ondemand", "true");
+    }
+
+    if (target) {
+        srcQuery.append("target", target);
+    }
+
+    if (!worker) {
+        srcQuery.append("worker", "false");
+    }
+
+    if (!cache) {
+        srcQuery.append("cache", "false");
+    }
+
+    frame.setAttribute("src", `${origin}?${srcQuery}`)
+
     const wrapper = document.getElementById("iframe-target");
     wrapper.appendChild(frame);
 </script>

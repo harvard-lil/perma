@@ -11,8 +11,10 @@ def iframe(request):
     screenshot = request.GET.get('type', '') == 'screenshot'
     replay_only = request.GET.get('embed', '') == 'replayonly' or screenshot
     web_worker = not request.GET.get('worker', '') == 'false'
+    cache = request.GET.get('cache', '') == 'false'
     hidden = request.GET.get('hidden', '') == 'true'
     ondemand = request.GET.get('ondemand', '') == 'true'
+
     if request.GET.get('target', '') == 'blank':
         target = 'blank'
     elif screenshot:
@@ -27,6 +29,7 @@ def iframe(request):
         context['target_url'] = link.screenshot_capture.url if screenshot else link.primary_capture.url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
         context['web_worker'] = web_worker
+        context['cache'] = cache
         context['sandbox'] = link.primary_capture.use_sandbox()
         context['hidden'] = hidden
         context['ondemand'] = ondemand
