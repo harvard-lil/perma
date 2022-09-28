@@ -586,7 +586,6 @@ LOCKSS_CRAWL_INTERVAL = "12h"
 LOCKSS_QUORUM = 3
 LOCKSS_DEBUG_IPS = False
 
-ENABLE_AV_CAPTURE = False
 RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
 SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
 MAX_PROXY_THREADS = 100
