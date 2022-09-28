@@ -461,10 +461,6 @@ INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
 
-from dateutil.relativedelta import relativedelta
-LINK_EXPIRATION_TIME = relativedelta(years=2)
-
-
 #
 # Hosts
 #
