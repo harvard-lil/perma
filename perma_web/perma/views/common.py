@@ -4,7 +4,6 @@ from dateutil.tz import tzutc
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
-import time
 from timegate.utils import closest
 from warcio.timeutils import datetime_to_http_date
 from werkzeug.http import parse_date
@@ -212,35 +211,9 @@ def single_permalink(request, guid):
                 # Let's consider this a HTTP 200, I think...
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
-        view_mode_param = request.GET.get('view-mode')
-        context['view_mode'] = view_mode_param if view_mode_param in ['server-side', 'client-side', 'compare'] else f'{settings.DEFAULT_PLAYBACK_MODE}-side'
-        if context['view_mode'] == 'compare' and serve_type == 'image':
-            # No comparison view for screenshots; the css is too complicated to make it worth it
-            return HttpResponseRedirect(f"{reverse('single_permalink', args=[guid])}?view-mode=compare")
-
-        if context['view_mode'] in ['client-side', 'compare']:
-            logger.info(f'Preparing client-side playback for {link.guid}')
-            context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
-            context['embed'] = False if request.GET.get('embed') == 'False' else True
-        if context['view_mode'] in ['server-side', 'compare']:
-            try:
-                logger.info(f"Preparing server-side play back of {link.guid}")
-                wr_username = link.init_replay_for_user(request)
-            except Exception:  # noqa
-                # We are experiencing many varieties of transient flakiness in playback:
-                # second attempts, triggered by refreshing the page, almost always seem to work.
-                # While we debug... let's give playback a second try here, and see if this
-                # noticeably improves user experience.
-                logger.exception(f"First attempt to prepare server-side replay of {link.guid} failed. (Retrying: observe whether this error recurs.)")
-                time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
-                logger.info(f"Preparing server-side play back of {link.guid} (2nd try)")
-                wr_username = link.init_replay_for_user(request)
-            context.update({
-                'wr_host': settings.PLAYBACK_HOST,
-                'wr_prefix': link.wr_iframe_prefix(wr_username),
-                'wr_url': capture.url,
-                'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
-            })
+        logger.info(f'Preparing client-side playback for {link.guid}')
+        context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
+        context['embed'] = False if request.GET.get('embed') == 'False' else True
 
     response = render(request, 'archive/single-link.html', context)
 
