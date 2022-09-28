@@ -39,13 +39,12 @@ import surt
 from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
-from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException, WebrecorderException
+from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from .utils import (Sec1TLSAdapter, tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset, get_wr_session_cookie,
-    clear_wr_session, query_wr_api, user_agent_for_domain)
+    write_resource_record_from_asset, user_agent_for_domain)
 
 
 logger = logging.getLogger(__name__)
@@ -1757,151 +1756,6 @@ class Link(DeletableModel):
 
         # Trust our records (the metadata) more than has_warc
         return successful_metadata
-
-    ###
-    ### Methods for playback via Webrecorder
-    ###
-
-    @cached_property
-    def wr_collection_slug(self):
-        return self.guid.lower()
-
-    def wr_iframe_prefix(self, wr_username):
-        return f"{settings.PLAYBACK_HOST}/{wr_username}/{self.wr_collection_slug}/"
-
-    def init_replay_for_user(self, request):
-        """
-        Set up a Webrecorder collection for playback.
-
-        Private Perma Links are uploaded to a private, temporary
-        collection (unique per visitor and per GUID) protected by
-        a session cookie (views.common.set_iframe_session_cookie).
-
-        Public Perma Links are uploaded to a public, longer-lived
-        collection belonging to a persistent, Perma-managed WR user
-        (shared by all visitors, to permit caching and reduce churn).
-
-        If the collection already exists, this method is a no-op.
-        """
-        json = {
-            'title': self.wr_collection_slug,
-            'external': True
-        }
-
-        if self.is_private:
-            session_key = 'wr_private_session_cookie'
-        else:
-            session_key = 'wr_public_session_cookie'
-            json['username'] = settings.WR_PERMA_USER
-            json['password'] = settings.WR_PERMA_PASSWORD
-            json['public'] = True
-
-        # If a visitor has a usable WR session already, reuse it.
-        # If they don't, WR will start a fresh session and will return
-        # a new cookie.
-        logger.debug(f"{self.guid}: Getting cookie")
-        wr_session_cookie = get_wr_session_cookie(request, session_key)
-
-        logger.debug(f"{self.guid}: Getting session")
-        response, data = query_wr_api(
-            method='post',
-            path='/auth/ensure_login',
-            cookie=wr_session_cookie,
-            json=json,
-            valid_if=lambda code, data: code == 200 and all(key in data for key in {'username', 'coll_empty'})
-        )
-
-        new_session_cookie = response.cookies.get('__wr_sesh')
-        if new_session_cookie:
-            wr_session_cookie = new_session_cookie
-            request.session[session_key + '_timestamp'] = datetime.utcnow().timestamp()
-            request.session[session_key] = wr_session_cookie
-
-        # Store the temp username in the session so that we can
-        # force the deletion of this WR user in the future
-        # (e.g. on logout, etc.).
-        if self.is_private:
-            request.session['wr_temp_username'] = data['username']
-
-        if data['coll_empty']:
-            logger.debug(f"{self.guid}: Uploading to WR for {data['username']}")
-            try:
-                self.upload_to_wr(data['username'], wr_session_cookie)
-            except WebrecorderException:
-                clear_wr_session(request)
-                raise
-
-        return data['username']
-
-    def upload_to_wr(self, wr_username, wr_session_cookie):
-        warc_path = self.warc_storage_file()
-        upload_data = None
-        start_time = time.time()
-
-        logger.debug(f"{self.guid}: opening warc")
-        with default_storage.open(warc_path, 'rb') as warc_file:
-            logger.debug(f"{self.guid}: making PUT API call")
-            _, upload_data = query_wr_api(
-                method='put',
-                path='/upload?force-coll={coll}&filename={coll}.warc.gz'.format(coll=self.wr_collection_slug),
-                data=warc_file,
-                cookie=wr_session_cookie,
-                valid_if=lambda code, data: code == 200 and data.get('upload_id')
-            )
-
-        # wait for WR to finish uploading the WARC
-        while True:
-            logger.debug(f"{self.guid}: Waiting for WR to be ready.")
-            if time.time() - start_time > settings.WR_REPLAY_UPLOAD_TIMEOUT:
-                raise WebrecorderException("Upload timed out; check Webrecorder logs.")
-
-            _, upload_data = query_wr_api(
-                method='get',
-                path=f'/upload/{upload_data.get("upload_id")}?user={wr_username}',
-                cookie=wr_session_cookie,
-                valid_if=lambda code, data: code == 200)
-
-            if upload_data.get('done'):
-                break
-
-            time.sleep(0.5)
-
-    def delete_from_wr(self, request):
-        """
-        In general, it should not be necessary to manually delete
-        anything from Webrecorder. This utility method is useful
-        only in the rare case where Webrecorder has an out-of-date
-        copy of the Perma Link's warc and a user is awaiting a
-        playback of the up-to-date warc. This should only happen
-        when a user is "replacing" a capture.
-        """
-        if self.is_private:
-            user = request.session.get('wr_temp_username')
-            cookie = request.session.get('wr_private_session_cookie')
-            response, data = query_wr_api(
-                method='delete',
-                path=f'/collection/{self.wr_collection_slug}?user={user}',
-                cookie=cookie,
-                valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') in ['no_such_collection', 'no_such_user']
-            )
-        else:
-            response, data = query_wr_api(
-                method='post',
-                path='/auth/login',
-                cookie=None,
-                json={
-                    'username': settings.WR_PERMA_USER,
-                    'password': settings.WR_PERMA_PASSWORD
-                },
-                valid_if=lambda code, data: code == 200
-            )
-            cookie = response.cookies.get('__wr_sesh')
-            response, data = query_wr_api(
-                method='delete',
-                path=f'/collection/{self.wr_collection_slug}?user={settings.WR_PERMA_USER}',
-                cookie=cookie,
-                valid_if=lambda code, data: code == 200 or code == 404 and data.get('error') == 'no_such_collection'
-            )
 
 
 class Capture(models.Model):
