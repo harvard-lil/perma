@@ -102,7 +102,6 @@ MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'perma.middleware.bypass_cache_middleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
@@ -303,9 +302,6 @@ CACHE_MAX_AGES = {
     'timegate'     : 0,
     'timemap'      : 60 * 30,         # 30mins
 }
-
-# Remote cache
-CACHE_BYPASS_COOKIE_NAME = 'cloudflare-bypass-cache'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 50
