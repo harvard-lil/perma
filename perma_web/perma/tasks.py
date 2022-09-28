@@ -1678,21 +1678,6 @@ def send_js_errors():
 
 
 @shared_task()
-def verify_webrecorder_api_available():
-    """
-    UptimeRobot-like helper to verify that the Webrecorder API is available.
-    Necessary because the api should not be exposed to the public internet.
-    """
-    r = requests.get(
-        f'{settings.WR_API}.json',
-        timeout=10,
-        allow_redirects=False
-    )
-    r.raise_for_status()
-    assert "Webrecorder API" in r.text
-
-
-@shared_task()
 def sync_subscriptions_from_perma_payments():
     """
     Perma only learns about changes to a customer's record in Perma
