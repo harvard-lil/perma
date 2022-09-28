@@ -40,10 +40,14 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from .exceptions import InvalidTransmissionException, WebrecorderException
+from .exceptions import InvalidTransmissionException
 
 logger = logging.getLogger(__name__)
 warn = logger.warn
+
+
+def protocol():
+    return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
 
 
 ### requests helpers ###
@@ -340,12 +344,6 @@ def redirect_to_download(capture_mime_type, user_agent_str):
 
     return parsed_agent["family"] and capture_mime_type and \
            "Mobile" in parsed_agent["family"] and "pdf" in capture_mime_type
-
-
-### playback
-
-def protocol():
-    return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
 
 ### memento
 
@@ -656,122 +654,3 @@ def stream_warc_if_permissible(link, user, stream=True):
     if user.can_view(link):
         return stream_warc(link, stream)
     return HttpResponseForbidden('Private archive.')
-
-#
-# Webrecorder Helpers
-#
-
-def clear_wr_session(request, error_if_wr_user_not_found=False):
-    """
-    Clear Webrecorder session info in Perma and in WR
-    """
-    wr_temp_username = request.session.pop('wr_temp_username', '')
-    wr_private_session_cookie = request.session.pop('wr_private_session_cookie', '')
-    request.session.pop('wr_public_session_cookie', '')
-    request.session.save()
-
-    if not wr_temp_username or not wr_private_session_cookie:
-        return
-
-    try:
-        response, _  = query_wr_api(
-            method='delete',
-            path=f'/user/{wr_temp_username}',
-            cookie=wr_private_session_cookie,
-            valid_if=lambda code, data: (code == 200) or (code == 404 and data.get('error') in ['not_found', 'no_such_user'])
-        )
-    except WebrecorderException:
-        # Record the exception, but don't halt execution: this should be non-fatal
-        logger.exception(f'Unexpected response from DELETE /user/{wr_temp_username}')
-        return
-
-    if response.status_code == 404:
-        if error_if_wr_user_not_found:
-            log_level = logging.ERROR
-        else:
-            log_level = logging.INFO
-        logger.log(log_level, f'Attempt to delete {wr_temp_username} from WR failed: already expired?')
-
-
-def query_wr_api(method, path, cookie, valid_if, json=None, data=None):
-    # Make the request
-    try:
-        response = requests.request(
-            method,
-            settings.WR_API + path,
-            json=json,
-            data=data,
-            cookies={'__wr_sesh': cookie} if cookie else None,
-            timeout=10,
-            allow_redirects=False
-        )
-    except requests.exceptions.RequestException as e:
-        raise WebrecorderException() from e
-
-    # Validate the response
-    try:
-        data = safe_get_response_json(response)
-        assert valid_if(response.status_code, data)
-    except AssertionError:
-        raise WebrecorderException(f"{response.status_code}: {str(data)}")
-
-    return response, data
-
-
-def get_wr_session_cookie(request, session_key):
-    cookie = request.session.get(session_key)
-    timestamp = request.session.get(session_key + '_timestamp')
-    if cookie and timestamp >= (datetime.utcnow() - timedelta(seconds=settings.WR_COOKIE_PERMITTED_AGE)).timestamp():
-        return cookie
-    return None
-
-
-def safe_get_response_json(response):
-    try:
-        data = response.json()
-    except ValueError:
-        data = {}
-    return data
-
-
-def set_options_headers(request, response, always_set_allowed_origin=False):
-    '''
-    Mutates response in-place.
-    '''
-
-    origin = request.META.get('HTTP_ORIGIN')
-    origin_host = settings.PLAYBACK_HOST
-    target_host = settings.HOST
-
-    # always set access-control-allow-origin if requested
-    if always_set_allowed_origin and origin_host:
-        expected_origin = request.scheme + '://' + origin_host
-        response['Access-Control-Allow-Origin'] = expected_origin
-
-    # no origin, not using cors
-    if not origin:
-        return False
-
-    if origin_host:
-        expected_origin = request.scheme + '://' + origin_host
-
-        # ensure origin is the content host origin
-        if origin != expected_origin:
-            return False
-
-    host = request.META.get('HTTP_HOST')
-    # ensure host is the app host
-    if target_host and host != target_host:
-        return False
-
-    response['Access-Control-Allow-Origin'] = origin
-
-    methods = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD')
-    if methods:
-        response['Access-Control-Allow-Methods'] = methods
-
-    headers = request.META.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
-    if headers:
-        response['Access-Control-Allow-Headers'] = headers
-
-    response['Access-Control-Allow-Credentials'] = 'true'
