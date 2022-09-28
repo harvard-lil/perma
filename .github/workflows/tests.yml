@@ -61,7 +61,6 @@ jobs:
         run: |
           set -x
           docker-compose exec web fab dev.init_db
-          docker-compose exec app python -m webrecorder.admin -c info@perma.cc public Test123Test123 archivist 'Info at Perma.cc'
           docker-compose exec web pytest \
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv
