@@ -424,10 +424,7 @@ CLOUDFLARE_DIR = os.path.join(SERVICES_DIR, 'cloudflare')
 CLIENT_IP_HEADER = 'REMOTE_ADDR'
 
 # Celery settings
-if os.environ.get('DOCKERIZED'):
-    CELERY_BROKER_URL = 'redis://perma-redis:6379/1'
-else:
-    CELERY_BROKER_URL = 'redis://guest:guest@localhost::6379/1'
+CELERY_BROKER_URL = 'redis://perma-redis:6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
