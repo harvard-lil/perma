@@ -277,18 +277,6 @@ BONUS_PACKAGES = [
 DEFAULT_CREATE_LIMIT = 10
 DEFAULT_CREATE_LIMIT_PERIOD = 'once'
 
-# When getting the source with wget, let's set some details
-ARCHIVE_QUOTA = '20m' # Maximum filesize
-ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production
-ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
-    'text/html',
-    'text/xml',
-    'application/xhtml+xml',
-    'application/xml'
-]
-NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many times
-WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
-
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 
