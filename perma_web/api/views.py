@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from perma.utils import stream_warc, stream_warc_if_permissible, clear_wr_session
+from perma.utils import stream_warc, stream_warc_if_permissible
 from perma.tasks import run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
@@ -583,13 +583,6 @@ class AuthenticatedLinkDetailView(BaseView):
 
                 # write new warc and capture
                 link.write_uploaded_file(uploaded_file, cache_break=True)
-
-                # delete the link from Webrecorder and
-                # clear the user's Webrecorder session, if any,
-                # so that the new warc is used for this visitor's
-                # next playback of this link.
-                link.delete_from_wr(request)
-                clear_wr_session(request)
 
             # update internet archive if privacy changes
             if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_permanent():

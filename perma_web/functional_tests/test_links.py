@@ -1,7 +1,5 @@
 import re
 
-from django.conf import settings
-
 two_minutes = 120 * 1000
 
 
@@ -13,16 +11,11 @@ def test_create_link(logged_in_user) -> None:
     logged_in_user.locator('#addlink').click()
     logged_in_user.wait_for_url(re.compile('/[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$'), timeout=two_minutes)
     assert logged_in_user.title() == 'Perma | Example Domain'
-
-    if settings.DEFAULT_PLAYBACK_MODE == 'server':
-        replay_frame = logged_in_user.frame('https://example.com/')
-        assert "Example Domain" in replay_frame.locator('h1').text_content()
-    else:
-        assert"Example Domain" in logged_in_user \
-            .frame_locator('.archive-iframe') \
-            .frame_locator('iframe') \
-            .frame_locator('iframe') \
-            .locator('h1').inner_text()
+    assert"Example Domain" in logged_in_user \
+        .frame_locator('.archive-iframe') \
+        .frame_locator('iframe') \
+        .frame_locator('iframe') \
+        .locator('h1').inner_text()
 
 
 def test_link_required(logged_in_user) -> None:

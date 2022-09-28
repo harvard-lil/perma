@@ -498,51 +498,10 @@ PLAYBACK_SUBDOMAIN = 'replay'
 # Playback
 #
 
-# Sets mode to be used by default for playback. Can be either "client" or "server".
-DEFAULT_PLAYBACK_MODE = 'client'
-
-# The host and port loaded by Perma's iframe during (server-side) playback
-# Must be publicly available.
-PLAYBACK_HOST = 'perma-archives.test:8092'
-
-# The Webrecorder API, used internally by Perma to create WR sessions and upload
-# warcs for playback. Not in use if ENABLE_WR_PLAYBACK = False
-#
-# Use port 80 if running on same docker instance
-#
-# Or, if WR is on remote machine and/or not running Perma in Docker,
-# use the remote host and the port that is being publicly exposed
-# and mapped to port 80 on the nginx container by docker-compose. E.g.
-# http://remote-webrecorder-host:8089
-WR_API = 'http://perma-archives.test/api/v1'
-
-# WR Credentials for the public user that stores all public collections.
-# Change init_wr.sh if you change these.
-WR_PERMA_USER = 'public'
-WR_PERMA_PASSWORD = 'Test123Test123'
-
-
-# Time (in seconds) to wait for upload to finalize
-# after data fully uploaded to Webreccorder
-# Or, assume error if upload not done after this many seconds
-WR_REPLAY_UPLOAD_TIMEOUT = 25
-
-# We have WR sessions set to expire after 120s (see wr-custom.yaml).
-# We don't want the cookie to expire mid-upload or mid-playback.
-# Use this setting to specify how old a WR session cookie Perma is
-# willing to use, to make the above unlikely. Should be between
-# session.durations.short.total (wr-custom.yaml) and
-# WR_REPLAY_UPLOAD_TIMEOUT (Perma settings)
-WR_COOKIE_PERMITTED_AGE = 60
-
-# Seconds to wait before retrying a failed WR playback.
-WR_PLAYBACK_RETRY_AFTER = 1
-
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
 # to catch up, during first playback, before raising an error?
 WARC_AVAILABLE_RETRIES = 9
-
 CHECK_WARC_BEFORE_PLAYBACK = False
 
 # Sorl settings. This relates to our thumbnail creation.
@@ -599,11 +558,9 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'DEBUG',
     'ENABLE_SPONSORED_USERS',
     'ENABLE_BONUS_LINKS',
-    'PLAYBACK_HOST',
     'HOST',
     'USE_ANALYTICS',
     'USE_ANALYTICS_VIEWS',
-    'DEFAULT_PLAYBACK_MODE',
     'USE_SENTRY',
     'SENTRY_DSN',
     'SENTRY_ENVIRONMENT',

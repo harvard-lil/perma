@@ -150,12 +150,6 @@ urlpatterns = [
     url(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
     url(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
 
-    # WR playback-related
-    # pass webrecorder session cookie to iframe
-    url(r'^_set_session/?$', common.set_iframe_session_cookie, name='set_iframe_session_cookie'),
-    # display custom template when WR reports a replay error
-    url(r'^archive-error/?$', common.archive_error, name='archive_error'),
-
     # memento support
     url(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
     url(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),

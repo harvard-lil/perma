@@ -4,7 +4,6 @@ from dateutil.tz import tzutc
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
-import time
 from timegate.utils import closest
 from warcio.timeutils import datetime_to_http_date
 from werkzeug.http import parse_date
@@ -20,15 +19,13 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.utils.six.moves.http_client import responses
 
 from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
-    protocol, stream_warc_if_permissible, set_options_headers,
+    protocol, stream_warc_if_permissible,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
     get_client_ip, remove_control_characters)
 from ..email import send_admin_email, send_user_email_copy_admins
@@ -214,35 +211,9 @@ def single_permalink(request, guid):
                 # Let's consider this a HTTP 200, I think...
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
-        view_mode_param = request.GET.get('view-mode')
-        context['view_mode'] = view_mode_param if view_mode_param in ['server-side', 'client-side', 'compare'] else f'{settings.DEFAULT_PLAYBACK_MODE}-side'
-        if context['view_mode'] == 'compare' and serve_type == 'image':
-            # No comparison view for screenshots; the css is too complicated to make it worth it
-            return HttpResponseRedirect(f"{reverse('single_permalink', args=[guid])}?view-mode=compare")
-
-        if context['view_mode'] in ['client-side', 'compare']:
-            logger.info(f'Preparing client-side playback for {link.guid}')
-            context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
-            context['embed'] = False if request.GET.get('embed') == 'False' else True
-        if context['view_mode'] in ['server-side', 'compare']:
-            try:
-                logger.info(f"Preparing server-side play back of {link.guid}")
-                wr_username = link.init_replay_for_user(request)
-            except Exception:  # noqa
-                # We are experiencing many varieties of transient flakiness in playback:
-                # second attempts, triggered by refreshing the page, almost always seem to work.
-                # While we debug... let's give playback a second try here, and see if this
-                # noticeably improves user experience.
-                logger.exception(f"First attempt to prepare server-side replay of {link.guid} failed. (Retrying: observe whether this error recurs.)")
-                time.sleep(settings.WR_PLAYBACK_RETRY_AFTER)
-                logger.info(f"Preparing server-side play back of {link.guid} (2nd try)")
-                wr_username = link.init_replay_for_user(request)
-            context.update({
-                'wr_host': settings.PLAYBACK_HOST,
-                'wr_prefix': link.wr_iframe_prefix(wr_username),
-                'wr_url': capture.url,
-                'wr_timestamp': link.creation_timestamp.strftime('%Y%m%d%H%M%S'),
-            })
+        logger.info(f'Preparing client-side playback for {link.guid}')
+        context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
+        context['embed'] = False if request.GET.get('embed') == 'False' else True
 
     response = render(request, 'archive/single-link.html', context)
 
@@ -276,44 +247,6 @@ def single_permalink(request, guid):
     response["Cache-Control"] = "no-cache, no-store, must-revalidate"
     
     logger.debug(f"Returning response for {link.guid}")
-    return response
-
-
-@xframe_options_exempt
-def set_iframe_session_cookie(request):
-    """
-    The <iframe> used for Perma Link playback serves content from Webrecorder.
-    If the Perma Link is private, playback requires a WR session cookie.
-    The cookie's value is set via a WR api call during Perma's
-    `link.init_replay_for_user` and is stored in Perma's session data.
-    If the iframe requests a resource without the cookie,
-    WR will redirect here. This route in turn redirects back to WR with the
-    session cookie as a GET param. WR sets the cookie in the browser, and then,
-    finally, redirects to the originally requested resource.
-    """
-    if request.method == 'OPTIONS':
-        # no redirects required; subsequent requests from the browser get the cookie
-        response = HttpResponse()
-    else:
-        cookie = urlencode({'cookie': request.session.get('wr_private_session_cookie')})
-        query = request.META.get('QUERY_STRING', '')
-        if not cookie:
-            user = 'Anonymous'
-            if request.user.is_authenticated:
-                user = f"User {request.user.id}"
-            logger.error(f'No WR cookie found in session! User: {user}. Session keys: {request.session.keys()}.')
-            return render(request, 'archive/archive-error.html', {
-                'err_url': f'_set_session?{query}',
-                'timestamp': timezone.now(),
-                'err_msg': 'Missing cookie',
-            })
-
-        url = protocol() + settings.PLAYBACK_HOST + f'/_set_session?{query}&{cookie}'
-        response = HttpResponseRedirect(url)
-        response['Cache-Control'] = 'no-cache'
-
-    # set CORS headers (for both OPTIONS and actual redirect)
-    set_options_headers(request, response)
     return response
 
 
@@ -579,39 +512,3 @@ def robots_txt(request):
             pass
     disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
-
-
-@xframe_options_exempt
-@csrf_exempt
-def archive_error(request):
-    """
-    Replay content not found error page
-    """
-
-    # handle cors options for error page redirect from cors
-    if request.method == 'OPTIONS':
-        response = HttpResponse()
-        set_options_headers(request, response)
-        return response
-
-    reported_status = request.GET.get('status')
-    status_code = int(reported_status or '200')
-    if status_code != 404:
-        # We only want to return 404 and 200 here, to avoid complications with Cloudflare.
-        # Other error statuses always (?) indicate some problem with WR, not a status code we
-        # need or want to pass on to the user.
-        status_code = 200
-    response = render(request, 'archive/archive-error.html', {
-        'err_url': request.GET.get('url'),
-        'timestamp': request.GET.get('timestamp'),
-        'status_code': status_code,
-        'status': f'{status_code} {responses.get(status_code)}',
-        'err_msg': request.GET.get('error'),
-    }, status=status_code)
-
-    # even if not setting full headers (eg. if Origin is not set)
-    # still set set Access-Control-Allow-Origin to content host to avoid Chrome CORB issues
-    set_options_headers(request, response, always_set_allowed_origin=True)
-    return response
-
-

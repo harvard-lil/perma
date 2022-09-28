@@ -260,7 +260,6 @@ This will create a migration file for you on disk, something like,
 Even though you've changed your models file and created a migration (just a python file on disk), your database remains unchanged. You'll need to apply the migration to update your database,
 
     $ d manage.py migrate
-    $ d manage.py migrate --database=perma-cdxline
 
 Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
 
@@ -320,9 +319,8 @@ interaction or if you are working with LinkBatches (otherwise subtle bugs may no
 
 ## Working with Redis
 
-In our production environment we use Redis as a cache for our thumbnail data and to
-speed up the playback of web archives. If you want to simulate the production
-environment:
+In our production environment we use Redis as a cache for our thumbnail data.
+If you want to simulate the production environment:
 -  find the "redis" stanza of `docker-compose.yml`, currently commented out, and comment in it
 -  find the "volumes" stanza of `docker-compose.yml` and comment in `redis_data`
 -  add the caches setting found in `settings_prod.py` to your `settings.py`

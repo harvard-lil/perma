@@ -76,10 +76,6 @@ def post_process_settings(settings):
         'sync_subscriptions_from_perma_payments': {
             'task': 'perma.tasks.sync_subscriptions_from_perma_payments',
             'schedule': crontab(hour='23', minute='0')
-        },
-        'verify_webrecorder_api_available': {
-            'task': 'perma.tasks.verify_webrecorder_api_available',
-            'schedule': crontab(minute='*')
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),

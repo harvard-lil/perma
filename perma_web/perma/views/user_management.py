@@ -51,7 +51,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, clear_wr_session, get_client_ip
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, get_client_ip
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -1325,7 +1325,6 @@ def get_sitewide_cookie_domain(request):
 
 def logout(request):
     if request.method == 'POST':
-        clear_wr_session(request)
         return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)
     return render(request, "registration/logout.html")
 
@@ -1344,7 +1343,6 @@ def limited_login(request, template_name='registration/login.html',
     """
 
     if request.method == "POST" and not request.user.is_authenticated:
-        clear_wr_session(request)
         username = request.POST.get('username')
         try:
             target_user = LinkUser.objects.get(email=username)

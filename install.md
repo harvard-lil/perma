@@ -9,8 +9,6 @@ time before you are comfortable with its vocabulary and commands, but it allows 
 to jump right into coding instead of spending a lot of time getting all the services
 running on your machine.
 
-If you prefer to install Perma locally, see our [legacy installation instructions](#manual-installation-legacy).
-
 For advice about production deployments, [send us a note](mailto:info@perma.cc)!
 
 Be sure to check out [the developer documentation](./developer.md)
@@ -31,7 +29,7 @@ Hosts
 Perma serves content at several hosts. To ensure that URLs resolve correctly,
 add the following domains to your computer's hosts file:
 
-    127.0.0.1 perma.test api.perma.test replay.perma.test perma-archives.test perma.minio.test
+    127.0.0.1 perma.test api.perma.test replay.perma.test perma.minio.test
 
 For additional information on modifying your hosts file,
 [try this help doc](https://docs.rackspace.com/support/how-to/modify-your-hosts-file).
@@ -78,6 +76,7 @@ When you are finished, spin down Docker containers by running:
 
     $ docker-compose down
 
+
 Making Mac OS trust self-signed certificate if it doesn't
 ---------------------------------------------------------
 It _"sometimes"_ happen that `mkcert`'s setup is incomplete, and Mac OS doesn't trust the certificates it generated as a result.
@@ -95,5 +94,4 @@ If you're still encountering issues, you may want to hit these urls in your brow
 https://perma.test:8000
 https://replay.perma.test:8000
 https://perma.minio.test:9000
-https://perma-archives.test:8092
 ```
