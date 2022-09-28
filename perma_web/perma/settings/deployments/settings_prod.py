@@ -15,7 +15,6 @@ CELERY_BEAT_JOB_NAMES = [
     'delete-links-from-internet-archive',
     'send-js-errors',
     'run-next-capture',
-    'verify_webrecorder_api_available',
     'sync_subscriptions_from_perma_payments',
     'cache_playback_status_for_new_links',
 ]

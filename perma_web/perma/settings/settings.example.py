@@ -46,14 +46,8 @@ DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 # Likely set to localhost:8000 if you're working in a dev instance
 HOST = 'perma.cc'
 
-# If you are running an instance of Webrecorder and want Perma to
-# use Webrecorder to playback Perma Links, set this to the domain/port
-# WR is listening on
-PLAYBACK_HOST = 'perma-archives.com:8092'
-
 # in a dev server, if you want to use a separate subdomain for user-generated content like on prod,
 # you can do something like this (assuming *.test is mapped to localhost in /etc/hosts):
-# PLAYBACK_HOST = 'content.perma.test:8000'
 # MEDIA_URL = '//content.perma.test:8000/media/'
 # DEBUG_MEDIA_URL = '/media/'
 
