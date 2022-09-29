@@ -498,7 +498,7 @@ def robots_txt(request):
     from ..urls import urlpatterns
 
     disallowed_prefixes = ['_', 'archive-', 'api_key', 'errors', 'log', 'manage', 'password', 'register', 'service', 'settings', 'sign-up']
-    allow = []
+    allow = ['/$']
     # some urlpatterns do not have names
     names = [urlpattern.name for urlpattern in urlpatterns if urlpattern.name is not None]
     for name in names:
