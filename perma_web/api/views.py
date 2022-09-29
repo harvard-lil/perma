@@ -157,6 +157,14 @@ class OrganizationDetailView(BaseView):
         return self.simple_get(request, pk)
 
 
+### DEVELOPER DOCS VIEWS ###
+class DeveloperDocsView(BaseView):
+    def get(self, request, format=None):
+        """ Redirect to Developer Docs. """
+        # for testing if this view gets called for a '/' request
+        print('ok')
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 ### FOLDER VIEWS ###
 
 # /folders
@@ -504,7 +512,6 @@ class AuthenticatedLinkListView(BaseView):
                 run_next_capture.delay()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         raise_invalid_capture_job(capture_job, serializer.errors)
 
 

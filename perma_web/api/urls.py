@@ -8,13 +8,6 @@ from perma.urls import guid_pattern
 
 from . import views
 
-
-# helpers
-class RedirectWithRootDomain(RedirectView):
-    def get_redirect_url(self, *args, **kwargs):
-        url = super(RedirectWithRootDomain, self).get_redirect_url(*args, **kwargs)
-        return self.request.scheme + '://' + settings.HOST + url
-
 # list views that should appear in the HTML version of the API root
 root_view = APIRootView.as_view(api_root_dict={
     'folders': 'folders',
@@ -91,7 +84,8 @@ urlpatterns = [
     ])),
 
     # redirect plain api.perma.cc/ and perma.cc/api/ to docs:
-    url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer'))
+    # url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer'))
+    url(r'^$', views.DeveloperDocsView.as_view())
 ]
 
 ### error handlers ###
