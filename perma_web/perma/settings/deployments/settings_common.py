@@ -102,7 +102,6 @@ MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'perma.middleware.bypass_cache_middleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
@@ -277,18 +276,6 @@ BONUS_PACKAGES = [
 DEFAULT_CREATE_LIMIT = 10
 DEFAULT_CREATE_LIMIT_PERIOD = 'once'
 
-# When getting the source with wget, let's set some details
-ARCHIVE_QUOTA = '20m' # Maximum filesize
-ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production
-ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
-    'text/html',
-    'text/xml',
-    'application/xhtml+xml',
-    'application/xml'
-]
-NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many times
-WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
-
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 
@@ -300,11 +287,7 @@ MINUTE_LIMIT = '6000/m'
 HOUR_LIMIT = '100000/h'
 DAY_LIMIT = '500000/d'
 REGISTER_MINUTE_LIMIT = '600/m'
-REGISTER_HOUR_LIMIT = '2000/h'
-REGISTER_DAY_LIMIT = '5000/d'
 LOGIN_MINUTE_LIMIT = '5000/m'
-LOGIN_HOUR_LIMIT = '10000/h'
-LOGIN_DAY_LIMIT = '50000/d'
 
 #
 # Django cache
@@ -319,9 +302,6 @@ CACHE_MAX_AGES = {
     'timegate'     : 0,
     'timemap'      : 60 * 30,         # 30mins
 }
-
-# Remote cache
-CACHE_BYPASS_COOKIE_NAME = 'cloudflare-bypass-cache'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 50
@@ -444,10 +424,7 @@ CLOUDFLARE_DIR = os.path.join(SERVICES_DIR, 'cloudflare')
 CLIENT_IP_HEADER = 'REMOTE_ADDR'
 
 # Celery settings
-if os.environ.get('DOCKERIZED'):
-    CELERY_BROKER_URL = 'redis://perma-redis:6379/1'
-else:
-    CELERY_BROKER_URL = 'redis://guest:guest@localhost::6379/1'
+CELERY_BROKER_URL = 'redis://perma-redis:6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -480,10 +457,6 @@ INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
-
-from dateutil.relativedelta import relativedelta
-LINK_EXPIRATION_TIME = relativedelta(years=2)
-
 
 #
 # Hosts
@@ -556,8 +529,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
     'DEBUG',
-    'ENABLE_SPONSORED_USERS',
-    'ENABLE_BONUS_LINKS',
     'HOST',
     'USE_ANALYTICS',
     'USE_ANALYTICS_VIEWS',
@@ -607,13 +578,11 @@ WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
 
-USE_LOCKSS_REPLAY = False  # whether to replay captures from LOCKSS, if servers are available
 LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"
 LOCKSS_CRAWL_INTERVAL = "12h"
 LOCKSS_QUORUM = 3
 LOCKSS_DEBUG_IPS = False
 
-ENABLE_AV_CAPTURE = False
 RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
 SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
 MAX_PROXY_THREADS = 100
@@ -667,12 +636,8 @@ PERMA_PAYMENTS_TIMEOUT = 2
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 PERMA_PAYMENTS_IN_MAINTENANCE = False
 
-ENABLE_SPONSORED_USERS = False
-
 REPLAYWEBPAGE_VERSION = '1.6.5'
 REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
-
-ENABLE_BONUS_LINKS = False
 
 SCAN_UPLOADS = False
 SCAN_URL = ''

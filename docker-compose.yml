@@ -49,7 +49,6 @@ services:
     # https://github.com/elgalu/docker-selenium/issues/20
     shm_size: 2G
     environment:
-      - DOCKERIZED=True
       - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0:8000
     extra_hosts:
       - "perma.test:127.0.0.1"

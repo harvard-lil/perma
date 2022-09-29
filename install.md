@@ -42,7 +42,7 @@ Docker commands can be lengthy. To cut down on keystrokes, we recommend
 adding the following to your `.bash_profile`.
 
 ```
-alias d="docker-compose exec web"
+alias d="docker compose exec web"
 ```
 
 
@@ -56,11 +56,11 @@ Then check out the code:
 
 Using `pull` first after fetching new code will avoid rebuilding images locally:
 
-    $ docker-compose pull
+    $ docker compose pull
 
 Start up the Docker containers in the background:
 
-    $ docker-compose up -d
+    $ docker compose up -d
 
 The first time this runs, it may take several minutes. With up-to-date docker images,
 it should only take a few seconds.
@@ -74,7 +74,7 @@ the application](./developer.md#run-perma) and [running the tests](/developer.md
 
 When you are finished, spin down Docker containers by running:
 
-    $ docker-compose down
+    $ docker compose down
 
 
 Making Mac OS trust self-signed certificate if it doesn't

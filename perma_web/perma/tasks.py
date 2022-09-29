@@ -663,10 +663,9 @@ def get_media_tags(dom_trees):
     for base_url, dom_tree in dom_trees:
         print("Fetching images in srcsets")
         new_urls = get_srcset_image_urls(dom_tree)
-        if settings.ENABLE_AV_CAPTURE:
-            print("Fetching audio/video objects")
-            new_urls += get_audio_video_urls(dom_tree)
-            new_urls += get_object_urls(dom_tree)
+        print("Fetching audio/video objects")
+        new_urls += get_audio_video_urls(dom_tree)
+        new_urls += get_object_urls(dom_tree)
         urls |= set(make_absolute_urls(base_url, new_urls))
     return urls
 

@@ -668,7 +668,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
 
     def test_media_capture_in_iframes(self):
-        settings.ENABLE_AV_CAPTURE = True
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
                                    data={
