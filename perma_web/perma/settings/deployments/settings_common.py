@@ -493,11 +493,7 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_NAME = '__Host-sessionid'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Disable SameSite protection (https://www.owasp.org/index.php/SameSite)
-# So that we can set iframe cookies properly, when we receive the redirect from Webrecorder
-# https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-SESSION_COOKIE_SAMESITE
-SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 API_VERSION = 1
 
