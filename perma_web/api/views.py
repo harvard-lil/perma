@@ -158,7 +158,7 @@ class OrganizationDetailView(BaseView):
 
 
 ### DEVELOPER DOCS VIEWS ###
-class DeveloperDocsView(BaseView):
+class DeveloperDocsView(APIView):
     def get(self, request, format=None):
         """ Redirect to Developer Docs. """
         # for testing if this view gets called for a '/' request
