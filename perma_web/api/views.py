@@ -22,6 +22,7 @@ from .utils import TastypiePagination, load_parent, raise_general_validation_err
     url_is_invalid_unicode
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer, DetailedLinkBatchSerializer
+from django.conf import settings
 
 
 ### BASE VIEW ###
@@ -162,8 +163,7 @@ class DeveloperDocsView(APIView):
     def get(self, request, format=None):
         """ Redirect to Developer Docs. """
         # for testing if this view gets called for a '/' request
-        print('ok')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return HttpResponseRedirect(redirect_to=self.request.scheme + '://' + settings.HOST + '/docs/developer')
 
 ### FOLDER VIEWS ###
 
