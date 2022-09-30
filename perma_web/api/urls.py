@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.http import HttpResponse
-from django.views.generic import RedirectView
 from rest_framework.routers import APIRootView
 
 from perma.urls import guid_pattern
