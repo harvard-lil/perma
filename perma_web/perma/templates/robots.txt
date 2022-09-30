@@ -5,7 +5,10 @@ User-agent: *
 {% for fragment in disallow %}Disallow: /{{ fragment }}
 {% endfor %}
 
-User-agent: LinkCheck by Siteimprove.com
+User-agent: SiteimproveBot
+Disallow: /
+
+User-agent: SiteimproveBot-Crawler
 Disallow: /
 
 User-agent: Googlebot/Nutch-1.7
