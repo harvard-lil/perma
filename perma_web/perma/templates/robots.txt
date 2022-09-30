@@ -8,5 +8,8 @@ User-agent: *
 User-agent: SiteimproveBot
 Disallow: /
 
+User-agent: SiteimproveBot-Crawler
+Disallow: /
+
 User-agent: Googlebot/Nutch-1.7
 Disallow: /
