@@ -86,7 +86,7 @@ Welcome to the Perma.cc developer guide.
     <pre class="prettyprint">{"guid":"W5MF-N9EV","creation_timestamp":"2018-05-14T15:12:33Z","url":"http://example.com","title":"Example Domain","description":null,"warc_size":19156,"warc_download_url":"{{ base_url }}/public/archives/W5MF-N9EV/download","captures":[{"role":"primary","status":"success","url":"http://example.com","record_type":"response","content_type":"text/html","user_upload":false},{"role":"screenshot","status":"success","url":"file:///W5MF-N9EV/cap.png","record_type":"resource","content_type":"image/png","user_upload":false}],"queue_time":3,"capture_time":4}</pre>
 
     <h3 id="download-one-archive" class="body-bh">Download a single public archive</h3>
-    <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files, like <a href="https://github.com/webrecorder/webrecorderplayer-electron/releases/latest">Rhizome's Webrecorder Player</a>.</p>
+    <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files, like <a href="https://replayweb.page/">ReplayWeb.page</a>.</p>
     <pre>wget {{ base_url }}/public/archives/Y6JJ-TDUJ/download</pre>
     <p>or</p>
     <pre>curl -o your_favorite_filename.warc.gz {{ base_url }}/public/archives/Y6JJ-TDUJ/download</pre>
@@ -169,7 +169,7 @@ curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-k
       <pre class="prettyprint">{"guid":"85LS-BXV7","creation_timestamp":"2018-05-16T16:11:19Z","url":"http://example.com","title":"This is an example site","description":null,"warc_size":20924,"warc_download_url":"{{ base_url }}/archives/85LS-BXV7/download","captures":[{"role":"primary","status":"success","url":"http://example.com","record_type":"response","content_type":"text/html","user_upload":false},{"role":"screenshot","status":"success","url":"file:///85LS-BXV7/cap.png","record_type":"resource","content_type":"image/png","user_upload":false}],"queue_time":0,"capture_time":3,"notes":"","created_by":{"id":3,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":false,"private_reason":null,"user_deleted":false,"archive_timestamp":"2018-05-17T16:11:19Z","organization":null}</pre>
 
       <h3 id="download-one-archive-auth" class="body-bh">Download a single archive</h3>
-      <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files, like <a href="https://github.com/webrecorder/webrecorderplayer-electron/releases/latest">Rhizome's Webrecorder Player</a>.</p>
+      <p class="body-text">Perma archives are downloadable and can be viewed using tools that can replay WARC files, like <a href="https://replayweb.page/">ReplayWeb.page</a>.</p>
       <pre>wget --header "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/archives/Y6JJ-TDUJ/download</pre>
       <p>or</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" -o your_favorite_filename.warc.gz {{ base_url }}/archives/Y6JJ-TDUJ/download</pre>
