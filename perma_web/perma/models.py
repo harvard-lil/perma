@@ -1366,6 +1366,7 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links', on_delete=models.CASCADE)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
+    screenshot_view = models.BooleanField(default=False, help_text="User defaults to screenshot view.")
     bonus_link = models.BooleanField(null=True, blank=True)
 
     warc_size = models.IntegerField(blank=True, null=True)
