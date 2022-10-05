@@ -10,8 +10,6 @@ def iframe(request):
     guid = request.GET.get('guid')
     screenshot = request.GET.get('type', '') == 'screenshot'
     replay_only = request.GET.get('embed', '') == 'replayonly' or screenshot
-    web_worker = not request.GET.get('worker', '') == 'false'
-    cache = request.GET.get('cache', '') == 'false'
     hidden = request.GET.get('hidden', '') == 'true'
     ondemand = request.GET.get('ondemand', '') == 'true'
 
