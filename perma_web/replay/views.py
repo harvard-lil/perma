@@ -28,8 +28,6 @@ def iframe(request):
         context['warc_source_allowed_host'] = urllib.parse.urlparse(link.warc_presigned_url()).netloc
         context['target_url'] = link.screenshot_capture.url if screenshot else link.primary_capture.url
         context['embed_style'] = 'replayonly' if replay_only else 'default'
-        context['web_worker'] = web_worker
-        context['cache'] = cache
         context['sandbox'] = link.primary_capture.use_sandbox()
         context['hidden'] = hidden
         context['ondemand'] = ondemand
