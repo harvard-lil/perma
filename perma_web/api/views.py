@@ -162,7 +162,6 @@ class OrganizationDetailView(BaseView):
 class DeveloperDocsView(APIView):
     def get(self, request, format=None):
         """ Redirect to Developer Docs. """
-        # for testing if this view gets called for a '/' request
         return HttpResponseRedirect(redirect_to=self.request.scheme + '://' + settings.HOST + '/docs/developer')
 
 ### FOLDER VIEWS ###

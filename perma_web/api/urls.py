@@ -83,7 +83,6 @@ urlpatterns = [
     ])),
 
     # redirect plain api.perma.cc/ and perma.cc/api/ to docs:
-    # url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer'))
     url(r'^$', views.DeveloperDocsView.as_view())
 ]
 
