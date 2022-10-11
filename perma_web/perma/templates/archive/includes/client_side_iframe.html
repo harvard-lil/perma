@@ -5,7 +5,7 @@
     const cls = "{{ interstitial|yesno:'interstitial,archive-iframe'}}";
     const origin = "{{ protocol }}{{ client_side_playback_host }}";
     const guid = "{{ link.guid }}";
-    const sandbox = {{ sandbox|yesno:"true,false" }};
+    const sandbox = {{ link.primary_capture.use_sandbox|yesno:"true,false" }};
     const embed = {{ embed|yesno:"true,false" }};
     const screenshot = {{ screenshot|yesno:"true,false" }};
     const interstitial = {{ interstitial|yesno:"true,false" }};
@@ -36,7 +36,7 @@
     frame.setAttribute("src", `${origin}?${srcQuery}`);
 
     if (sandbox) {
-        frame.setAttribute("sandbox", "allow-scripts allow-forms allow-same-origin allow-downloads")
+        frame.setAttribute("sandbox", "allow-scripts allow-forms allow-same-origin allow-downloads");
     }
 
     const wrapper = document.getElementById("iframe-target");
