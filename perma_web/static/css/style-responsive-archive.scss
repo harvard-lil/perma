@@ -1114,6 +1114,16 @@ input.tray-detail-entry {
   width: 100%;
 }
 
+.tray-detail-group.screenshot-view * {
+  vertical-align: middle;
+  display: inline-flex;
+  width: initial;
+}
+
+input[type=radio].link-screenshot-view {
+  margin-right: 20px;
+}
+
 p.fp {
   font-size: 10px;
   color: $color-trans-gray;
