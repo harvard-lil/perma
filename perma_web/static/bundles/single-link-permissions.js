@@ -121,7 +121,7 @@ function init() {
 function handleShowDetails(open) {
   detailsButton.textContent = open ? "Hide record details" : "Show record details";
   detailsTray.style.display = open ? "block" : "none";
-  viewMode.style.display = open ? "none" : "block" ;
+  viewMode.style.display = open ? "none" : "block";
 }
 
 function adjustTopMargin() {
