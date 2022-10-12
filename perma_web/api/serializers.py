@@ -191,8 +191,8 @@ class AuthenticatedLinkSerializer(LinkSerializer):
     organization = OrganizationSerializer(read_only=True)
 
     class Meta(LinkSerializer.Meta):
-        fields = LinkSerializer.Meta.fields + ('notes', 'created_by', 'is_private', 'private_reason', 'user_deleted', 'archive_timestamp', 'organization')
-        allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason']
+        fields = LinkSerializer.Meta.fields + ('notes', 'created_by', 'is_private', 'private_reason', 'user_deleted', 'archive_timestamp', 'organization', 'screenshot_view')
+        allowed_update_fields = ['submitted_title', 'submitted_description', 'notes', 'is_private', 'private_reason', 'screenshot_view']
 
     def get_warc_download_url(self, link):
         if link.warc_size:
