@@ -28510,7 +28510,15 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\" class=\"link-notes\" rows=\"6\">"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"notes") : depth0), depth0))
-    + "</textarea>\n          <span class=\"muted\">\n            Notes are private to you and your organization(s)\n          </span>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"move-to-folder-"
+    + "</textarea>\n          <span class=\"muted\">\n            Notes are private to you and your organization(s)\n          </span>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"link-screenshot-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\">Default view</label>\n          <span class=\"screenshot-view-save-status\"></span>\n          <input type=\"radio\" id=\"link-screenshot-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\" class=\"link-screenshot-view\" value=\""
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"screenshot-view") : depth0), depth0))
+    + "\" "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"sel") : depth0),{"name":"if","hash":{},"fn":container.program(22, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":85,"column":122},"end":{"line":85,"column":157}}})) != null ? stack1 : "")
+    + ">\n          <span class=\"muted\">\n            Default view preference is private to you and your organization(s)\n        </span>\n        </div>\n\n        <div class=\"form-group\">\n            <label for=\"move-to-folder-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\">Move to folder</label>\n          <select id=\"move-to-folder-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
@@ -28543,6 +28551,8 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 },"20":function(container,depth0,helpers,partials,data) {
     return "style=\"display:block\"";
 },"22":function(container,depth0,helpers,partials,data) {
+    return "checked=\"checked\"";
+},"24":function(container,depth0,helpers,partials,data) {
     return "  <div class=\"row item-row row-no-bleed\">\n    <div class=\"row\">\n      <div class=\"col col-xs-12\">\n        <div class=\"item-title\">\n          <p class=\"item-notification\">This is an empty folder</p>\n        </div>\n      </div>\n    </div>\n  </div>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -28554,7 +28564,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 
   return ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"query") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":1,"column":0},"end":{"line":8,"column":7}}})) != null ? stack1 : "")
     + "\n\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(22, data, 0),"data":data,"loc":{"start":{"line":11,"column":0},"end":{"line":103,"column":9}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(24, data, 0),"data":data,"loc":{"start":{"line":11,"column":0},"end":{"line":112,"column":9}}})) != null ? stack1 : "");
 },"useData":true});
 
 /***/ }),

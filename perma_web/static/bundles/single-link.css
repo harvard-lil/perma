@@ -4935,6 +4935,18 @@ input.tray-detail-entry {
   width: 100%;
 }
 
+.tray-detail-group.screenshot-view * {
+  vertical-align: middle;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  width: initial;
+}
+
+input[type=radio].link-screenshot-view {
+  margin-right: 20px;
+  margin-left: 10px;
+}
+
 p.fp {
   font-size: 10px;
   color: rgba(0, 0, 0, 0.4);
