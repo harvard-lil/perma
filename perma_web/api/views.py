@@ -22,7 +22,8 @@ from .utils import TastypiePagination, load_parent, raise_general_validation_err
     url_is_invalid_unicode
 from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer, AuthenticatedLinkSerializer, \
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer, DetailedLinkBatchSerializer
-
+from django.conf import settings
+from django.urls import reverse
 
 ### BASE VIEW ###
 
@@ -156,6 +157,14 @@ class OrganizationDetailView(BaseView):
         """ Single org details. """
         return self.simple_get(request, pk)
 
+
+### DEVELOPER DOCS VIEWS ###
+class DeveloperDocsView(APIView):
+    def get(self, request, format=None):
+        """ reverse to Developer Docs to fetch correct url (view) named as 'dev_docs' """
+        absolute_url_to_redirect_to = f"{ self.request.scheme }://{ settings.HOST }{ reverse('dev_docs', urlconf='perma.urls') }"
+        """ Redirect to Dev Docs """
+        return HttpResponseRedirect(absolute_url_to_redirect_to)
 
 ### FOLDER VIEWS ###
 
@@ -504,7 +513,6 @@ class AuthenticatedLinkListView(BaseView):
                 run_next_capture.delay()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         raise_invalid_capture_job(capture_job, serializer.errors)
 
 
