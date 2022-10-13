@@ -11,7 +11,7 @@ import os
 import os.path
 import threading
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 import urllib.parse
 import re
 import urllib.robotparser
@@ -49,7 +49,8 @@ from django.utils import timezone
 from django.urls import reverse
 from django.http import HttpRequest
 
-from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
+    CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (url_in_allowed_ip_range,
@@ -1719,3 +1720,72 @@ def populate_warc_size(link_guid):
     link = Link.objects.get(guid=link_guid)
     link.warc_size = default_storage.size(link.warc_storage_file())
     link.save(update_fields=['warc_size'])
+
+
+@shared_task(acks_late=True)
+def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
+    """
+    This is a one-time task, the first step in the migration from having one "individual" IA Item
+    per Perma Link to having "daily" digest Items. Going forward, we will keep track of IA Items
+    via dedicated models, rather than using fields on the Link object. This task queues up the
+    creation of IA Django model objects for our legacy individual Items.
+    """
+    # all Links we think may have been uploaded to IA
+    links = Link.objects.exclude(
+        internet_archive_upload_status='not_started'
+    )
+    if limit:
+        links = links[:limit]
+    queued = 0
+    for link_guid in links.values_list('guid', flat=True):
+        backfill_individual_link_internet_archive_objects.delay(link_guid)
+        queued = queued + 1
+    logger.info(f"Queued the creation of {queued} individual link IA items.")
+
+
+@shared_task()
+def backfill_individual_link_internet_archive_objects(link_guid):
+    """
+    If an Internet Archive "Item" was produced for the specified Link,
+    create an InternetArchiveItem object. If that Item contains a warc,
+    create a corresponding InternetArchiveFile object.
+    """
+    identifier = InternetArchiveItem.INDIVIDUAL_LINK_IDENTIFIER.format(
+        prefix=settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX,
+        guid=link_guid
+    )
+
+    # Create an InternetArchiveItem object if a match is found in IA
+    ia_item = internetarchive.get_item(identifier)
+    if not ia_item.exists:
+        logger.error(f"No IA item exists for {link_guid}, but our database suggests that one should.")
+        return
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        defaults={
+            'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
+            'cached_file_count': ia_item.files_count,
+            'cached_title': ia_item.metadata['title'],
+            'cached_description': ia_item.metadata['description']
+        }
+    )
+    logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
+
+    # Create an InternetArchiveFile object if the Item contains a warc
+    filename = InternetArchiveFile.WARC_FILENAME.format(guid=link_guid)
+    ia_warc = ia_item.get_file(filename)
+    if not ia_warc.exists:
+        return
+    _, created = InternetArchiveFile.objects.get_or_create(
+        link_id=link_guid,
+        item=perma_item,
+        defaults={
+            'cached_title': ia_warc.metadata.get('title'),
+            'cached_comments':ia_warc.metadata.get('comments'),
+            'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
+            'cached_external_identifier_match_date': ia_warc.metadata.get('external-identifier-match-date'),
+            'cached_format': ia_warc.metadata['format'],
+            'cached_size': ia_warc.size
+        }
+    )
+    logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
