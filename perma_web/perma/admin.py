@@ -9,14 +9,17 @@ from django.db import connection
 from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 from django.forms import ModelForm
-from django.utils.functional import cached_property
 from django.template.defaultfilters import filesizeformat
+from django.utils.functional import cached_property
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
 from .exceptions import PermaPaymentsCommunicationException
-from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, LinkBatch, Sponsorship
+from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, \
+    LinkBatch, Sponsorship, InternetArchiveItem, InternetArchiveFile
 
 ### helpers ###
 
@@ -134,6 +137,35 @@ class NameFilter(InputFilter):
             return queryset.filter(name__icontains=value)
 
 
+class IAIdentifierFilter(InputFilter):
+    parameter_name = 'identifier'
+    title = 'Identifier'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(identifier__icontains=value)
+
+
+class IAItemFilter(InputFilter):
+    parameter_name = 'item'
+    title = 'IA Item'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(item_id=value)
+
+class IALinkIDFilter(InputFilter):
+    parameter_name = 'guid'
+    title = 'GUID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(link_id=value)
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -148,6 +180,30 @@ class SponsorshipInline(admin.TabularInline):
     fk_name = 'user'
     extra = 1
     raw_id_fields = ['registrar']
+
+class IAFileInline(admin.TabularInline):
+    model = InternetArchiveFile
+    fields = readonly_fields = ['id_link', 'item_link', 'cached_file_size']
+    can_delete = False
+
+    def id_link(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:perma_internetarchivefile_change", args=(obj.id,)),
+            obj.id
+        ))
+    id_link.short_description = 'id'
+
+    def item_link(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:perma_internetarchiveitem_change", args=(obj.item_id,)),
+            obj.item_id
+        ))
+    item_link.short_description = 'item'
+
+    def cached_file_size(self, obj):
+        return filesizeformat(obj.cached_size)
+    cached_file_size.short_description = 'cached size'
+
 
 
 ### paginator ###
@@ -360,7 +416,8 @@ class LinkAdmin(SimpleHistoryAdmin):
         new_class("CaptureJobInline", admin.StackedInline, model=CaptureJob,
                    fields=['status', 'superseded', 'message', 'step_count', 'step_description', 'human'],
                    readonly_fields=['message', 'step_count', 'step_description', 'human'],
-                   can_delete=False)
+                   can_delete=False),
+        IAFileInline
     ]
     raw_id_fields = ['created_by','replacement_link']
 
@@ -440,6 +497,46 @@ class LinkBatchAdmin(admin.ModelAdmin):
         return obj.capture_job_count
 
 
+class InternetArchiveItemAdmin(admin.ModelAdmin):
+    list_display = ['identifier', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+    list_filter = [IAIdentifierFilter]
+    readonly_fields = ['identifier', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
+
+
+class InternetArchiveFileAdmin(admin.ModelAdmin):
+    list_display = ['id', 'item_link', 'permalink_link', 'cached_file_size', 'cached_submitted_url', 'cached_format', ]
+    list_filter = [IAItemFilter, IALinkIDFilter]
+    fields = readonly_fields = [
+        'link', 'item', 'cached_file_size', 'cached_title', 'cached_comments',
+        'cached_external_identifier', 'cached_external_identifier_match_date', 'cached_format',
+        'cached_submitted_url', 'cached_perma_url'
+    ]
+
+    paginator = FasterAdminPaginator
+    show_full_result_count = False
+
+    def permalink_link(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:perma_link_change", args=(obj.link_id,)),
+            obj.link_id
+        ))
+    permalink_link.short_description = 'GUID'
+
+    def item_link(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:perma_internetarchiveitem_change", args=(obj.item_id,)),
+            obj.item_id
+        ))
+    item_link.short_description = 'IA Item'
+
+    def cached_file_size(self, obj):
+        return filesizeformat(obj.cached_size)
+    cached_file_size.short_description = 'cached size'
+
+
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
 admin.TabularInline.extra = 0
 admin.StackedInline.extra = 0
@@ -456,3 +553,5 @@ admin.site.register(LinkUser, LinkUserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Registrar, RegistrarAdmin)
 admin.site.register(Folder, FolderAdmin)
+admin.site.register(InternetArchiveItem, InternetArchiveItemAdmin)
+admin.site.register(InternetArchiveFile, InternetArchiveFileAdmin)
