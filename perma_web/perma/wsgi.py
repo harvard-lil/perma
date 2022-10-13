@@ -10,14 +10,6 @@ this application via the ``WSGI_APPLICATION`` setting.
 import os
 import perma.settings
 
-# Newrelic setup
-use_newrelic = os.environ.get("USE_NEW_RELIC", False)
-if use_newrelic:
-    import newrelic.agent
-    newrelic_config_file = os.environ.get('NEW_RELIC_CONFIG_FILE',
-                                          os.path.join(os.path.dirname(__file__), '../../services/newrelic/newrelic.ini'))
-    newrelic.agent.initialize(newrelic_config_file)
-
 # env setup
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 
@@ -83,7 +75,3 @@ if perma.settings.TRUSTED_PROXIES:
             return self.app(environ, start_response)
 
     application = ForwardedForWhitelistMiddleware(application, whitelists=perma.settings.TRUSTED_PROXIES)
-
-# add newrelic app wrapper
-if use_newrelic:
-    application = newrelic.agent.WSGIApplicationWrapper(application)

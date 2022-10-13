@@ -124,6 +124,3 @@ TIERS = {
         }
     ]
 }
-
-ENABLE_SPONSORED_USERS = True
-ENABLE_BONUS_LINKS = True

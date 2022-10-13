@@ -3,7 +3,6 @@ from axes.utils import reset as reset_login_attempts
 import datetime
 from time import sleep
 
-from django.conf import settings
 from django.core import mail
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -27,7 +26,6 @@ class AuthViewsTestCase(PermaTestCase):
     def make_bad_attempt(self):
         response = self.client.post(self.login_url, {'username': self.email, 'password': self.wrong_password}, secure=True)
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
         return response
 
     def test_login(self):
@@ -42,23 +40,22 @@ class AuthViewsTestCase(PermaTestCase):
         self.assertEqual(create_url, True)
         self.assertEqual(response.status_code, 302)
         self.assertIn('_auth_user_id', self.client.session)
-        self.assertTrue(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
 
 
     def test_deactived_user_login(self):
-        response = self.submit_form('user_management_limited_login',
+        self.submit_form('user_management_limited_login',
                           data = {'username': 'deactivated_registrar_user@example.com',
                                   'password': 'pass'},
                           success_url=reverse('user_management_account_is_deactivated'))
-        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
 
     def test_unactived_user_login(self):
-        response = self.submit_form('user_management_limited_login',
+        self.submit_form('user_management_limited_login',
                           data = {'username': 'unactivated_faculty_user@example.com',
                                   'password': 'pass'},
                           success_url=reverse('user_management_not_active'))
-        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_logout(self):
         """
@@ -69,9 +66,8 @@ class AuthViewsTestCase(PermaTestCase):
         self.log_in_user(user='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
         self.get('logout')
-        response = self.submit_form('logout')
+        self.submit_form('logout')
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertFalse(response.cookies.get(settings.CACHE_BYPASS_COOKIE_NAME).value)
 
     def test_password_change(self):
         """
@@ -116,7 +112,7 @@ class AuthViewsTestCase(PermaTestCase):
         response = self.make_bad_attempt()
         self.assertContains(response, 'Too Many Attempts', status_code=403)
         sleep(2)
-        response = self.log_in_user(user=self.email, password=self.password)
+        self.log_in_user(user=self.email, password=self.password)
         self.assertIn('_auth_user_id', self.client.session)
 
     @override_settings(AXES_FAILURE_LIMIT=2)

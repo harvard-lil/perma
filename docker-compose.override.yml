@@ -7,7 +7,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:26-cb7a270eedc83fc304e684cfdbba0cbe
+          - registry.lil.tools/harvardlil/perma-web:28-1dd0740c5683447452b841674d5f2090
         platforms:
           - linux/amd64
           - linux/arm64
@@ -40,7 +40,6 @@ services:
     depends_on:
       - pp_db
     environment:
-      - DOCKERIZED=True
       - DJANGO__DATABASES__default__HOST=pp_db
     # TO CUSTOMIZE CONFIG:
     # copy ./services/docker/perma-payments/settings.py.example
