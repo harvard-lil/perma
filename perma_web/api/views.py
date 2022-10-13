@@ -693,7 +693,7 @@ class LinkBatchesListView(BaseView):
         if not request.user.is_authenticated:
             raise PermissionDenied()
         if request.content_type != 'application/json':
-            content = {'content-type error': 'content-type must be aplication/json'}
+            content = {'detail': 'content-type must be aplication/json'}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
         request.data['created_by'] = request.user.pk
 
