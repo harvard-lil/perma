@@ -11,7 +11,7 @@ import os
 import os.path
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 import urllib.parse
 import re
 import urllib.robotparser
@@ -43,6 +43,7 @@ import internetarchive
 
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
+from django.db.models.functions import TruncDate
 from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
@@ -1789,3 +1790,91 @@ def backfill_individual_link_internet_archive_objects(link_guid):
         }
     )
     logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
+
+
+@shared_task(acks_late=True)
+def queue_backfill_of_daily_internet_archive_objects(limit=None):
+    """
+    This is a one-time task, the second step in the migration from having one "individual" IA Item
+    per Perma Link to having "daily" digest Items. The Internet Archive created a number of "daily"
+    Items on Perma's behalf using the files and metadata of our legacy individual Items. This task
+    queues up the creation of IA Django model objects for those daily Items.
+    """
+    dates = Link.objects.annotate(
+                created_date=TruncDate('creation_timestamp')
+            ).values_list(
+                'created_date', flat=True
+            ).order_by(
+                'created_date'
+            ).distinct()[:limit]
+
+    queued = 0
+    for date_string in (d.strftime('%Y-%m-%d') for d in dates):
+        backfill_daily_internet_archive_objects.delay(date_string)
+        queued = queued + 1
+    logger.info(f"Queued the creation of {queued} daily IA items.")
+
+
+@shared_task()
+def backfill_daily_internet_archive_objects(date_string):
+    """
+    If an Internet Archive "Item" was produced for the specified day,
+    create an InternetArchiveItem object. If that Item contains warcs,
+    create a corresponding InternetArchiveFile objects for each.
+    """
+    identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+        prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+        date_string=date_string
+    )
+
+    # Create an InternetArchiveItem object if a match is found in IA
+    ia_item = internetarchive.get_item(identifier)
+    if not ia_item.exists:
+        logger.info(f"No IA item exists for {date_string}.")
+        return
+    start = InternetArchiveItem.datetime(f"{date_string} 00:00:00")
+    end = start + timedelta(days=1)
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        span=(start, end),
+        defaults={
+            'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
+            'cached_file_count': ia_item.files_count,
+            'cached_title': ia_item.metadata['title'],
+            'cached_description': ia_item.metadata['description']
+        }
+    )
+    logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
+
+    # Create an InternetArchiveFile object for each warc in the Item.
+    #
+    # If this turns out to put too much stress on the database, consider temporarily
+    # increasing resources while this one-time process is underway, or creating in batches,
+    # similar to:
+    #
+    # from itertools import islice
+    # batch_size = 100
+    # objs = (InternetArchiveFile(...) for ia_warc in files)
+    # while True:
+    #     batch = list(islice(objs, batch_size))
+    #     if not batch:
+    #         break
+    #     InternetArchiveFile.objects.bulk_create(batch, batch_size)
+    #
+    # We are trying simple iteration first for improved observability and because get_or_create is repeatable
+    files = internetarchive.get_files(identifier=identifier, formats='Web ARChive GZ')
+    for ia_warc in files:
+        link_id = InternetArchiveFile.guid_from_filename(ia_warc.name)
+        _, created = InternetArchiveFile.objects.get_or_create(
+            link_id=link_id,
+            item=perma_item,
+            defaults={
+                'cached_title': ia_warc.metadata.get('title'),
+                'cached_comments':ia_warc.metadata.get('comments'),
+                'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
+                'cached_external_identifier_match_date': ia_warc.metadata.get('external-identifier-match-date'),
+                'cached_format': ia_warc.metadata['format'],
+                'cached_size': ia_warc.size
+            }
+        )
+        logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {link_id} and {identifier}.")
