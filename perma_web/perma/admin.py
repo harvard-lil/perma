@@ -56,7 +56,7 @@ class SubmittedURLFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(submitted_url__icontains=value)
 
 
@@ -66,7 +66,7 @@ class CreatedByFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(created_by__email__icontains=value)
 
 
@@ -76,7 +76,7 @@ class GUIDFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(guid__icontains=value)
 
 
@@ -86,7 +86,7 @@ class LinkIDFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(link__guid__icontains=value)
 
 
@@ -96,7 +96,7 @@ class TagFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(tags__name__icontains=value)
 
 
@@ -106,8 +106,9 @@ class MessageFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(message__icontains=value)
+
 
 class OwnerFilter(InputFilter):
     parameter_name = 'owner'
@@ -115,8 +116,9 @@ class OwnerFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(owned_by__email__icontains=value)
+
 
 class OrgFilter(InputFilter):
     parameter_name = 'org'
@@ -124,8 +126,9 @@ class OrgFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(organization__name__icontains=value)
+
 
 class NameFilter(InputFilter):
     parameter_name = 'name'
@@ -133,7 +136,7 @@ class NameFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(name__icontains=value)
 
 
@@ -153,8 +156,9 @@ class IAItemFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(item_id=value)
+
 
 class IALinkIDFilter(InputFilter):
     parameter_name = 'guid'
@@ -162,7 +166,7 @@ class IALinkIDFilter(InputFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is not None:
+        if value:
             return queryset.filter(link_id=value)
 
 

@@ -11,7 +11,7 @@
         <input  type="text"
                 value="{{ spec.value|default_if_none:'' }}"
                 name="{{ spec.parameter_name }}"/>
-        {% if not all_choice.selected %}
+        {% if spec.value and not all_choice.selected %}
             <strong><a href="{{ all_choice.query_string }}">x {% trans 'Remove' %}</a></strong>
         {% endif %}
       </form>
