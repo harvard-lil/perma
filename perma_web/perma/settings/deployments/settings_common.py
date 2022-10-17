@@ -438,10 +438,6 @@ CELERY_TASK_TIME_LIMIT = 420
 WORKER_COUNT = 2
 
 CELERY_TASK_ROUTES = {
-    'perma.tasks.upload_to_internet_archive': {'queue': 'ia'},
-    'perma.tasks.delete_from_internet_archive': {'queue': 'ia'},
-    'perma.tasks.delete_all_from_internet_archive': {'queue': 'ia'},
-    'perma.tasks.upload_all_to_internet_archive': {'queue': 'ia'},
     'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
     'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
     'perma.tasks.cache_playback_status': {'queue': 'background'},
@@ -450,7 +446,6 @@ CELERY_TASK_ROUTES = {
 }
 
 # internet archive stuff
-UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'

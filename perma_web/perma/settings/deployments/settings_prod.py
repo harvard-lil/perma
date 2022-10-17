@@ -11,8 +11,6 @@ DEBUG = False
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERY_BEAT_JOB_NAMES = [
     'update-stats',
-    'send-links-to-internet-archive',
-    'delete-links-from-internet-archive',
     'send-js-errors',
     'run-next-capture',
     'sync_subscriptions_from_perma_payments',
