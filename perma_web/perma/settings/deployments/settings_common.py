@@ -443,6 +443,10 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.cache_playback_status': {'queue': 'background'},
     'perma.tasks.populate_warc_size_fields': {'queue': 'background'},
     'perma.tasks.populate_warc_size': {'queue': 'background'},
+    'perma.tasks.queue_backfill_of_individual_link_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.queue_backfill_of_daily_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia'},
 }
 
 # internet archive stuff
