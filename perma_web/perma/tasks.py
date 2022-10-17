@@ -1,4 +1,3 @@
-import tempfile
 import traceback
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -44,10 +43,8 @@ import internetarchive
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
 from django.db.models.functions import TruncDate
-from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
-from django.urls import reverse
 from django.http import HttpRequest
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
@@ -55,8 +52,8 @@ from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Orga
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (url_in_allowed_ip_range,
-    copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
-    write_resource_record_from_asset, protocol, remove_control_characters,
+    preserve_perma_warc, write_warc_records_recorded_from_web,
+    write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter)
 from perma import site_scripts
 
@@ -1478,186 +1475,6 @@ def cache_playback_status(link_guid):
     link.cached_can_play_back = link.can_play_back()
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
-
-
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def delete_from_internet_archive(link_guid):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    link = Link.objects.get(guid=link_guid)
-    item = internetarchive.get_item(link.ia_identifier)
-
-    metadata_identifiers = [
-        f"{link.ia_identifier}_meta.sqlite",
-        f"{link.ia_identifier}_meta.xml",
-        f"{link.ia_identifier}_files.xml"
-    ]
-
-    if not item.exists:
-        logger.info(f"Link {link.guid} not present in IA: skipping.")
-        return False
-
-    link.internet_archive_upload_status = 'deleted'
-    for f in item.files:
-        # from https://internetarchive.readthedocs.io/en/latest/api.html#deleting, Note: Some system files, such as <itemname>_meta.xml, cannot be deleted.
-        if f['name'] in metadata_identifiers:
-            logger.info(f"Link {link.guid}: skipping deletion of metadata file {f['name']}.")
-        else:
-            ia_file = item.get_file(f['name'])
-            try:
-                logger.info(f"Link {link.guid}: deleting {f['name']}.")
-                ia_file.delete(
-                    verbose=True,
-                    cascade_delete=True,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
-            except Exception:
-                link.internet_archive_upload_status = 'deletion_incomplete'
-                logger.exception(f"Link {link.guid}: attempt to delete file {f['name']} from Internet Archive failed:")
-
-    metadata = {
-        "description": "",
-        "contributor": "",
-        "sponsor": "",
-        "submitted_url": "",
-        "perma_url": "",
-        "title": "Removed",
-        "external-identifier": "",
-        "imagecount": "",
-    }
-
-    logger.info(f"Link {link.guid}: zeroing out metadata.")
-    try:
-        item.modify_metadata(
-            metadata,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-        )
-    except Exception:
-        link.internet_archive_upload_status = 'deletion_incomplete'
-        logger.exception(f"Link {link.guid}: attempt to zero out metadata on Internet Archive failed:")
-
-    link.save(update_fields=['internet_archive_upload_status'])
-
-
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def delete_all_from_internet_archive(guids=None, limit=None):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    if guids:
-        links = Link.objects.filter(guid__in=guids)
-    else:
-        links = Link.objects.filter(internet_archive_upload_status__in=['deletion_required', 'deletion_incomplete'])
-    if limit:
-        links = links[:limit]
-    queued = 0
-    for link_guid in links.values_list('guid', flat=True):
-        delete_from_internet_archive.delay(link_guid)
-        queued = queued + 1
-    logger.info(f"Queued {queued} links for deletion from IA.")
-
-
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def upload_all_to_internet_archive(limit=None, max_size=None):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    max_size = max_size or settings.INTERNET_ARCHIVE_MAX_UPLOAD_SIZE
-
-    links = Link.objects.visible_to_ia().filter(
-        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
-    )
-
-    if max_size:
-        links = links.filter(warc_size__lte=max_size)
-
-    if limit:
-        links = links[:limit]
-
-    # upload smallest WARCs first, so large ones don't clog
-    # the pipeline when the network is slow
-    links = links.order_by('warc_size')
-
-    queued = 0
-    for link_guid in links.values_list('guid', flat=True):
-        upload_to_internet_archive.delay(link_guid)
-        queued = queued + 1
-    logger.info(f"Queued {queued} links for upload to IA.")
-
-
-@shared_task()
-def upload_to_internet_archive(link_guid):
-    """
-    Call synchronously from the Django shell with the invocation:
-    >>> upload_to_internet_archive.apply(kwargs={"link_guid": 'AAAA-AAAA'})
-    """
-
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    link = Link.objects.get(guid=link_guid)
-    if not link.can_upload_to_internet_archive():
-        logger.info(f"Queued Link {link_guid} no longer eligible for upload.")
-        return
-
-    url = remove_control_characters(link.submitted_url)
-    metadata = {
-        "collection": settings.INTERNET_ARCHIVE_COLLECTION,
-        "title": f"{link_guid}: {truncatechars(link.submitted_title, 50)}",
-        "mediatype": "web",
-        "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
-        "contributor": "Perma.cc",
-        "submitted_url": url,
-        "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
-        "external-identifier": f"urn:X-perma:{link_guid}",
-    }
-
-    temp_warc_file = tempfile.TemporaryFile()
-    try:
-        item = internetarchive.get_item(link.ia_identifier)
-        if item.exists:
-            if not item.metadata.get('title') or item.metadata['title'] == 'Removed':
-                # if item already exists (but has been removed),
-                # ia won't update its metadata when we attempt to re-upload:
-                # we have to explicitly modify the metadata, then upload.
-                logger.info(f"Link {link_guid} previously removed from IA: updating metadata")
-                item.modify_metadata(
-                    metadata,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
-            else:
-                logger.info(f"Link {link_guid} was already uploaded to IA: skipping.")
-                return
-
-        # copy warc to local disk storage for upload
-        with default_storage.open(link.warc_storage_file()) as warc_file:
-            copy_file_data(warc_file, temp_warc_file)
-            temp_warc_file.seek(0)
-
-        logger.info(f"Uploading Link {link_guid} to IA.")
-        warc_name = os.path.basename(link.warc_storage_file())
-        response_list = internetarchive.upload(
-            link.ia_identifier,
-            {warc_name: temp_warc_file},
-            metadata=metadata,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            retries=2,
-            retries_sleep=5,
-            verbose=True,
-        )
-        response_list[0].raise_for_status()
-        link.internet_archive_upload_status = 'completed'
-    except Exception:
-        logger.exception(f"Exception while uploading Link {link.guid} to IA:")
-        link.internet_archive_upload_status = 'failed'
-    finally:
-        temp_warc_file.close()
-        link.save(update_fields=['internet_archive_upload_status'])
 
 
 @shared_task()
