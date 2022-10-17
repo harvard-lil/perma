@@ -1584,7 +1584,7 @@ def backfill_individual_link_internet_archive_objects(link_guid):
             'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
             'cached_file_count': ia_item.files_count,
             'cached_title': ia_item.metadata['title'],
-            'cached_description': ia_item.metadata['description']
+            'cached_description': ia_item.metadata.get('description')
         }
     )
     logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
