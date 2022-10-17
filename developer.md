@@ -361,25 +361,3 @@ When you're finished, take down the containers by running:
 Don't worry if you get the following error when shutting down these containers while still running the `perma-payments` containers. That's because the network is maintained until both Docker Compose projects are down:
 
 `ERROR: error while removing network: network perma-payments_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
-
-## Internet Archive
-
-For extra backup, we use Internet Archive for Perma archive storage.
-Here is an [example archive](https://archive.org/details/perma_cc_8XUF-4UEQ).
-
-It is important to note that we only store public archives on IA.
-
-Links that are made private after they have been uploaded to Internet Archive are immediately removed from the site (this means that the WARC file no longer exists in IA, and all Perma-generated metadata, except for the identifier, gets removed. There are a few auto-generated fields that IA does not allow the deletion of, like Lastfiledate and Scandate).
-
-A [Celery](#working-with-celery) background task is responsible for running nightly uploads of 24-48 hour old public links, and uploading them to Internet Archive.
-
-
-IA-related methods (like `upload_all_to_internet_archive` and `delete_from_internet_archive`) live in [tasks.py](perma_web/perma/tasks.py).
-
-In order to run these tasks, you will need to specify some keys in your settings.py:
-
-- INTERNET_ARCHIVE_COLLECTION (The name of the collection you want to upload to. `test_collection` is good for testing, as it gets deleted every so often by IA).
-- UPLOAD_TO_INTERNET_ARCHIVE (True or False, whether to allow uploading)
-- INTERNET_ARCHIVE_IDENTIFIER_PREFIX (In our case, our prefix is perma_cc_ so that our archives are accessible through a URL like this: https://archive.org/detail/perma_cc_GUID)
-- INTERNET_ARCHIVE_ACCESS_KEY [click here to retrieve](https://archive.org/account/s3.php)
-- INTERNET_ARCHIVE_SECRET_KEY [click here to retrieve](https://archive.org/account/s3.php)
