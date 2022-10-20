@@ -278,14 +278,14 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
 
     def test_should_allow_filtering_url(self):
-        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter'}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter.com','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
@@ -294,7 +294,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
 
     def test_should_allow_filtering_by_date_range_and_query(self):
         data = self.successful_get(self.logged_in_list_url, data={
-            'url': 'metafilter',
+            'url': 'metafilter.com',
             'min_date':"2016-12-06T18:55:37Z",
             'max_date':"2016-12-08T18:55:37Z",
         }, user=self.regular_user)
