@@ -286,7 +286,7 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
         model = Link
         fields = ['url', 'date', 'min_date', 'max_date']
 
-    def surt_filter(self, queryset, name, value):
+    def surt_filter(self, queryset, _name, value):
         try:
             canonicalized = surt.surt(value)
         except ValueError:
