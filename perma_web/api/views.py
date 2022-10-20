@@ -12,6 +12,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import surt
 
 from perma.utils import stream_warc, stream_warc_if_permissible
 from perma.tasks import run_next_capture
@@ -279,10 +280,21 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
     date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='date')      # ?date=
     min_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='gte')   # ?min_date=
     max_date = django_filters.IsoDateTimeFilter(field_name="creation_timestamp", lookup_expr='lte')   # ?max_date=
-    url = django_filters.CharFilter(field_name="submitted_url", lookup_expr='icontains')              # ?url=
+    url = django_filters.CharFilter(method='surt_filter')                                             # ?url=
+
     class Meta:
         model = Link
         fields = ['url', 'date', 'min_date', 'max_date']
+
+    def surt_filter(self, queryset, _name, value):
+        try:
+            canonicalized = surt.surt(value)
+        except ValueError:
+            # if the user-specified value is not a valid URL and therefore cannot be parsed
+            # and formatted as a surt, return the queryset as is, as though `url` was not
+            # included in the querystring
+            return queryset
+        return queryset.filter(submitted_url_surt=canonicalized)
 
 
 # /public/archives
