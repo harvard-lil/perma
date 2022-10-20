@@ -290,6 +290,9 @@ class LinkFilter(django_filters.rest_framework.FilterSet):
         try:
             canonicalized = surt.surt(value)
         except ValueError:
+            # if the user-specified value is not a valid URL and therefore cannot be parsed
+            # and formatted as a surt, return the queryset as is, as though `url` was not
+            # included in the querystring
             return queryset
         return queryset.filter(submitted_url_surt=canonicalized)
 
