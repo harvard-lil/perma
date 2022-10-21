@@ -715,6 +715,7 @@ class Organization(DeletableModel):
             return
         shared_folder = Folder(name=self.name, organization=self, is_shared_folder=True)
         shared_folder.save()
+        shared_folder.refresh_from_db()
         self.shared_folder = shared_folder
         self.save()
 

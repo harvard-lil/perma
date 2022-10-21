@@ -348,6 +348,13 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(f'{f1.pk}-{f3.pk}', f3.cached_path)
         self.assertEqual(f'{f1.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
 
+    def test_cached_path_is_set_for_new_orgs(self):
+        r = Registrar()
+        r.save()
+        o = Organization(registrar=r)
+        o.save()
+        o.refresh_from_db()
+        assert o.shared_folder.cached_path
 
     def test_link_count_in_time_period_no_links(self):
         '''
