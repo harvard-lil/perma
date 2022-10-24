@@ -14,7 +14,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 1,
-      "level": 0
+      "level": 0,
+      "cached_path": "22"
     }
   },
   {
@@ -32,7 +33,8 @@
       "lft": 1,
       "rght": 4,
       "tree_id": 2,
-      "level": 0
+      "level": 0,
+      "cached_path": "23"
     }
   },
   {
@@ -50,7 +52,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 3,
-      "level": 0
+      "level": 0,
+      "cached_path": "24"
     }
   },
   {
@@ -68,7 +71,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 4,
-      "level": 0
+      "level": 0,
+      "cached_path": "25"
     }
   },
   {
@@ -86,7 +90,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 5,
-      "level": 0
+      "level": 0,
+      "cached_path": "26"
     }
   },
   {
@@ -104,7 +109,8 @@
       "lft": 1,
       "rght": 6,
       "tree_id": 10,
-      "level": 0
+      "level": 0,
+      "cached_path": "27"
     }
   },
   {
@@ -122,7 +128,8 @@
       "lft": 1,
       "rght": 6,
       "tree_id": 11,
-      "level": 0
+      "level": 0,
+      "cached_path": "28"
     }
   },
   {
@@ -140,7 +147,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 4,
-      "level": 1
+      "level": 1,
+      "cached_path": "25-30-29"
     }
   },
   {
@@ -158,7 +166,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 4,
-      "level": 1
+      "level": 1,
+      "cached_path": "25-29-30"
     }
   },
   {
@@ -176,7 +185,8 @@
       "lft": 1,
       "rght": 6,
       "tree_id": 12,
-      "level": 0
+      "level": 0,
+      "cached_path": "31"
     }
   },
   {
@@ -194,7 +204,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 13,
-      "level": 0
+      "level": 0,
+      "cached_path": "32"
     }
   },
   {
@@ -212,7 +223,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 14,
-      "level": 0
+      "level": 0,
+      "cached_path": "33"
     }
   },
   {
@@ -230,7 +242,8 @@
       "lft": 2,
       "rght": 3,
       "tree_id": 10,
-      "level": 1
+      "level": 1,
+      "cached_path": "27-34"
     }
   },
   {
@@ -248,7 +261,8 @@
       "lft": 4,
       "rght": 5,
       "tree_id": 10,
-      "level": 1
+      "level": 1,
+      "cached_path": "27-35"
     }
   },
   {
@@ -266,7 +280,8 @@
       "lft": 4,
       "rght": 5,
       "tree_id": 11,
-      "level": 1
+      "level": 1,
+      "cached_path": "28-36"
     }
   },
   {
@@ -284,7 +299,8 @@
       "lft": 2,
       "rght": 3,
       "tree_id": 11,
-      "level": 1
+      "level": 1,
+      "cached_path": "28-37"
     }
   },
   {
@@ -302,7 +318,8 @@
       "lft": 2,
       "rght": 3,
       "tree_id": 12,
-      "level": 1
+      "level": 1,
+      "cached_path": "31-38"
     }
   },
   {
@@ -320,7 +337,8 @@
       "lft": 4,
       "rght": 5,
       "tree_id": 12,
-      "level": 1
+      "level": 1,
+      "cached_path": "31-39"
     }
   },
   {
@@ -338,7 +356,8 @@
       "lft": 1,
       "rght": 6,
       "tree_id": 15,
-      "level": 0
+      "level": 0,
+      "cached_path": "40"
     }
   },
   {
@@ -356,7 +375,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 16,
-      "level": 0
+      "level": 0,
+      "cached_path": "41"
     }
   },
   {
@@ -374,7 +394,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 17,
-      "level": 0
+      "level": 0,
+      "cached_path": "42"
     }
   },
   {
@@ -392,7 +413,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 18,
-      "level": 0
+      "level": 0,
+      "cached_path": "43"
     }
   },
   {
@@ -410,7 +432,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 19,
-      "level": 0
+      "level": 0,
+      "cached_path": "44"
     }
   },
   {
@@ -428,7 +451,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 20,
-      "level": 0
+      "level": 0,
+      "cached_path": "45"
     }
   },
   {
@@ -446,7 +470,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 21,
-      "level": 0
+      "level": 0,
+      "cached_path": "46"
     }
   },
   {
@@ -464,7 +489,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 22,
-      "level": 0
+      "level": 0,
+      "cached_path": "47"
     }
   },
   {
@@ -482,7 +508,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 23,
-      "level": 0
+      "level": 0,
+      "cached_path": "48"
     }
   },
   {
@@ -500,7 +527,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 24,
-      "level": 0
+      "level": 0,
+      "cached_path": "49"
     }
   },
   {
@@ -518,7 +546,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 25,
-      "level": 0
+      "level": 0,
+      "cached_path": "50"
     }
   },
   {
@@ -536,7 +565,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 26,
-      "level": 0
+      "level": 0,
+      "cached_path": "51"
     }
   },
   {
@@ -554,7 +584,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 27,
-      "level": 0
+      "level": 0,
+      "cached_path": "52"
     }
   },
   {
@@ -572,7 +603,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 28,
-      "level": 0
+      "level": 0,
+      "cached_path": "53"
     }
   },
   {
@@ -590,7 +622,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 29,
-      "level": 0
+      "level": 0,
+      "cached_path": "54"
     }
   },
   {
@@ -608,7 +641,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 30,
-      "level": 0
+      "level": 0,
+      "cached_path": "55"
     }
   },
   {
@@ -626,7 +660,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 31,
-      "level": 0
+      "level": 0,
+      "cached_path": "56"
     }
   },
   {
@@ -644,7 +679,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 32,
-      "level": 0
+      "level": 0,
+      "cached_path": "57"
     }
   },
   {
@@ -662,7 +698,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 33,
-      "level": 0
+      "level": 0,
+      "cached_path": "58"
     }
   },
   {
@@ -681,7 +718,8 @@
       "lft": 1,
       "rght": 10,
       "tree_id": 49,
-      "level": 0
+      "level": 0,
+      "cached_path": "59"
     }
   },
   {
@@ -702,7 +740,8 @@
       "rght": 9,
       "parent": 59,
       "tree_id": 49,
-      "level": 1
+      "level": 1,
+      "cached_path": "59-60"
     }
   },
   {
@@ -723,7 +762,8 @@
       "rght": 8,
       "parent": 60,
       "tree_id": 49,
-      "level": 2
+      "level": 2,
+      "cached_path": "59-60-61"
     }
   },
   {
@@ -742,7 +782,8 @@
       "lft": 1,
       "rght": 6,
       "tree_id": 50,
-      "level": 0
+      "level": 0,
+      "cached_path": "62"
     }
   },
   {
@@ -764,7 +805,8 @@
       "parent": 62,
       "tree_id": 50,
       "level": 1,
-      "read_only": true
+      "read_only": true,
+      "cached_path": "62-63"
     }
   },
   {
@@ -785,7 +827,8 @@
       "rght": 7,
       "parent": 61,
       "tree_id": 49,
-      "level": 3
+      "level": 3,
+      "cached_path": "59-60-61-64"
     }
   },
   {
@@ -807,7 +850,8 @@
       "parent": 63,
       "tree_id": 50,
       "level": 2,
-      "read_only": true
+      "read_only": true,
+      "cached_path": "62-63-65"
     }
   },
   {
@@ -825,7 +869,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 51,
-      "level": 0
+      "level": 0,
+      "cached_path": "66"
     }
   },
   {
@@ -843,7 +888,8 @@
       "lft": 1,
       "rght": 2,
       "tree_id": 52,
-      "level": 0
+      "level": 0,
+      "cached_path": "67"
     }
   }
 ]

@@ -1186,7 +1186,7 @@ class Folder(MPTTModel):
 
     # since a textual representation of the folder's ancestry is included in the folder's API serialization,
     # keep a cached copy on the model, so we don't have to constantly hit the DB
-    cached_path = models.TextField(null=True, blank=True)
+    cached_path = models.TextField()
 
     objects = FolderManager()
     tracker = FieldTracker()
