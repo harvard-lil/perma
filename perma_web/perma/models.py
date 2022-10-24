@@ -1799,13 +1799,30 @@ class Capture(models.Model):
         """
         return not self.mime_type().startswith("application/pdf") and not self.show_interstitial()
 
-    INLINE_TYPES = {'image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'text/html', 'text/plain', 'application/pdf',
-                    'application/xhtml', 'application/xhtml+xml'}
+    INLINE_TYPES = {
+        'image/jpeg', 
+        'image/gif', 
+        'image/png', 
+        'image/tiff', 
+        'text/html', 
+        'text/plain', 
+        'application/pdf',
+        'application/xhtml', 
+        'application/xhtml+xml', 
+        'video/mp4', 
+        'video/webm', 
+        'video/ogg', 
+        'application/ogg',
+        'audio/ogg',
+        'audio/mpeg',
+        'audio/x-wav',
+        'audio/wav'
+    }
 
     def show_interstitial(self):
         """
             Whether we should show an interstitial view/download button instead of showing the content directly.
-            True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image).
+            True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image/audio/video).
         """
         return self.mime_type() not in self.INLINE_TYPES
 
