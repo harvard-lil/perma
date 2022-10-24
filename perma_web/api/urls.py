@@ -1,19 +1,11 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.http import HttpResponse
-from django.views.generic import RedirectView
 from rest_framework.routers import APIRootView
 
 from perma.urls import guid_pattern
 
 from . import views
-
-
-# helpers
-class RedirectWithRootDomain(RedirectView):
-    def get_redirect_url(self, *args, **kwargs):
-        url = super(RedirectWithRootDomain, self).get_redirect_url(*args, **kwargs)
-        return self.request.scheme + '://' + settings.HOST + url
 
 # list views that should appear in the HTML version of the API root
 root_view = APIRootView.as_view(api_root_dict={
@@ -91,7 +83,7 @@ urlpatterns = [
     ])),
 
     # redirect plain api.perma.cc/ and perma.cc/api/ to docs:
-    url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer'))
+    url(r'^$', views.DeveloperDocsView.as_view())
 ]
 
 ### error handlers ###

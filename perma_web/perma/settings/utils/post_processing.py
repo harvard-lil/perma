@@ -57,14 +57,6 @@ def post_process_settings(settings):
             'task': 'perma.tasks.update_stats',
             'schedule': crontab(minute='*'),
         },
-        'send-links-to-internet-archive': {
-            'task': 'perma.tasks.upload_all_to_internet_archive',
-            'schedule': crontab(minute='0', hour='*'),
-        },
-        'delete-links-from-internet-archive': {
-            'task': 'perma.tasks.delete_all_from_internet_archive',
-            'schedule': crontab(minute='0', hour='*'),
-        },
         'send-js-errors': {
             'task': 'perma.tasks.send_js_errors',
             'schedule': crontab(hour='10', minute='0', day_of_week=1)

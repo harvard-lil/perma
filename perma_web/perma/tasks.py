@@ -1,4 +1,3 @@
-import tempfile
 import traceback
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -43,18 +42,18 @@ import internetarchive
 
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
-from django.template.defaultfilters import truncatechars
+from django.db.models.functions import TruncDate
 from django.conf import settings
 from django.utils import timezone
-from django.urls import reverse
 from django.http import HttpRequest
 
-from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, CaptureJob, UncaughtError
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
+    CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (url_in_allowed_ip_range,
-    copy_file_data, preserve_perma_warc, write_warc_records_recorded_from_web,
-    write_resource_record_from_asset, protocol, remove_control_characters,
+    preserve_perma_warc, write_warc_records_recorded_from_web,
+    write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter)
 from perma import site_scripts
 
@@ -1478,186 +1477,6 @@ def cache_playback_status(link_guid):
         link.save(update_fields=['cached_can_play_back'])
 
 
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def delete_from_internet_archive(link_guid):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    link = Link.objects.get(guid=link_guid)
-    item = internetarchive.get_item(link.ia_identifier)
-
-    metadata_identifiers = [
-        f"{link.ia_identifier}_meta.sqlite",
-        f"{link.ia_identifier}_meta.xml",
-        f"{link.ia_identifier}_files.xml"
-    ]
-
-    if not item.exists:
-        logger.info(f"Link {link.guid} not present in IA: skipping.")
-        return False
-
-    link.internet_archive_upload_status = 'deleted'
-    for f in item.files:
-        # from https://internetarchive.readthedocs.io/en/latest/api.html#deleting, Note: Some system files, such as <itemname>_meta.xml, cannot be deleted.
-        if f['name'] in metadata_identifiers:
-            logger.info(f"Link {link.guid}: skipping deletion of metadata file {f['name']}.")
-        else:
-            ia_file = item.get_file(f['name'])
-            try:
-                logger.info(f"Link {link.guid}: deleting {f['name']}.")
-                ia_file.delete(
-                    verbose=True,
-                    cascade_delete=True,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
-            except Exception:
-                link.internet_archive_upload_status = 'deletion_incomplete'
-                logger.exception(f"Link {link.guid}: attempt to delete file {f['name']} from Internet Archive failed:")
-
-    metadata = {
-        "description": "",
-        "contributor": "",
-        "sponsor": "",
-        "submitted_url": "",
-        "perma_url": "",
-        "title": "Removed",
-        "external-identifier": "",
-        "imagecount": "",
-    }
-
-    logger.info(f"Link {link.guid}: zeroing out metadata.")
-    try:
-        item.modify_metadata(
-            metadata,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-        )
-    except Exception:
-        link.internet_archive_upload_status = 'deletion_incomplete'
-        logger.exception(f"Link {link.guid}: attempt to zero out metadata on Internet Archive failed:")
-
-    link.save(update_fields=['internet_archive_upload_status'])
-
-
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def delete_all_from_internet_archive(guids=None, limit=None):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    if guids:
-        links = Link.objects.filter(guid__in=guids)
-    else:
-        links = Link.objects.filter(internet_archive_upload_status__in=['deletion_required', 'deletion_incomplete'])
-    if limit:
-        links = links[:limit]
-    queued = 0
-    for link_guid in links.values_list('guid', flat=True):
-        delete_from_internet_archive.delay(link_guid)
-        queued = queued + 1
-    logger.info(f"Queued {queued} links for deletion from IA.")
-
-
-@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
-def upload_all_to_internet_archive(limit=None, max_size=None):
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    max_size = max_size or settings.INTERNET_ARCHIVE_MAX_UPLOAD_SIZE
-
-    links = Link.objects.visible_to_ia().filter(
-        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
-    )
-
-    if max_size:
-        links = links.filter(warc_size__lte=max_size)
-
-    if limit:
-        links = links[:limit]
-
-    # upload smallest WARCs first, so large ones don't clog
-    # the pipeline when the network is slow
-    links = links.order_by('warc_size')
-
-    queued = 0
-    for link_guid in links.values_list('guid', flat=True):
-        upload_to_internet_archive.delay(link_guid)
-        queued = queued + 1
-    logger.info(f"Queued {queued} links for upload to IA.")
-
-
-@shared_task()
-def upload_to_internet_archive(link_guid):
-    """
-    Call synchronously from the Django shell with the invocation:
-    >>> upload_to_internet_archive.apply(kwargs={"link_guid": 'AAAA-AAAA'})
-    """
-
-    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
-        return
-
-    link = Link.objects.get(guid=link_guid)
-    if not link.can_upload_to_internet_archive():
-        logger.info(f"Queued Link {link_guid} no longer eligible for upload.")
-        return
-
-    url = remove_control_characters(link.submitted_url)
-    metadata = {
-        "collection": settings.INTERNET_ARCHIVE_COLLECTION,
-        "title": f"{link_guid}: {truncatechars(link.submitted_title, 50)}",
-        "mediatype": "web",
-        "description": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
-        "contributor": "Perma.cc",
-        "submitted_url": url,
-        "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
-        "external-identifier": f"urn:X-perma:{link_guid}",
-    }
-
-    temp_warc_file = tempfile.TemporaryFile()
-    try:
-        item = internetarchive.get_item(link.ia_identifier)
-        if item.exists:
-            if not item.metadata.get('title') or item.metadata['title'] == 'Removed':
-                # if item already exists (but has been removed),
-                # ia won't update its metadata when we attempt to re-upload:
-                # we have to explicitly modify the metadata, then upload.
-                logger.info(f"Link {link_guid} previously removed from IA: updating metadata")
-                item.modify_metadata(
-                    metadata,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
-            else:
-                logger.info(f"Link {link_guid} was already uploaded to IA: skipping.")
-                return
-
-        # copy warc to local disk storage for upload
-        with default_storage.open(link.warc_storage_file()) as warc_file:
-            copy_file_data(warc_file, temp_warc_file)
-            temp_warc_file.seek(0)
-
-        logger.info(f"Uploading Link {link_guid} to IA.")
-        warc_name = os.path.basename(link.warc_storage_file())
-        response_list = internetarchive.upload(
-            link.ia_identifier,
-            {warc_name: temp_warc_file},
-            metadata=metadata,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            retries=2,
-            retries_sleep=5,
-            verbose=True,
-        )
-        response_list[0].raise_for_status()
-        link.internet_archive_upload_status = 'completed'
-    except Exception:
-        logger.exception(f"Exception while uploading Link {link.guid} to IA:")
-        link.internet_archive_upload_status = 'failed'
-    finally:
-        temp_warc_file.close()
-        link.save(update_fields=['internet_archive_upload_status'])
-
-
 @shared_task()
 def send_js_errors():
     """
@@ -1719,3 +1538,160 @@ def populate_warc_size(link_guid):
     link = Link.objects.get(guid=link_guid)
     link.warc_size = default_storage.size(link.warc_storage_file())
     link.save(update_fields=['warc_size'])
+
+
+@shared_task(acks_late=True)
+def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
+    """
+    This is a one-time task, the first step in the migration from having one "individual" IA Item
+    per Perma Link to having "daily" digest Items. Going forward, we will keep track of IA Items
+    via dedicated models, rather than using fields on the Link object. This task queues up the
+    creation of IA Django model objects for our legacy individual Items.
+    """
+    # all Links we think may have been uploaded to IA
+    links = Link.objects.exclude(
+        internet_archive_upload_status='not_started'
+    )
+    if limit:
+        links = links[:limit]
+    queued = 0
+    for link_guid in links.values_list('guid', flat=True):
+        backfill_individual_link_internet_archive_objects.delay(link_guid)
+        queued = queued + 1
+    logger.info(f"Queued the creation of {queued} individual link IA items.")
+
+
+@shared_task()
+def backfill_individual_link_internet_archive_objects(link_guid):
+    """
+    If an Internet Archive "Item" was produced for the specified Link,
+    create an InternetArchiveItem object. If that Item contains a warc,
+    create a corresponding InternetArchiveFile object.
+    """
+    identifier = InternetArchiveItem.INDIVIDUAL_LINK_IDENTIFIER.format(
+        prefix=settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX,
+        guid=link_guid
+    )
+
+    # Create an InternetArchiveItem object if a match is found in IA
+    ia_item = internetarchive.get_item(identifier)
+    if not ia_item.exists:
+        logger.error(f"No IA item exists for {link_guid}, but our database suggests that one should.")
+        return
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        defaults={
+            'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
+            'cached_file_count': ia_item.files_count,
+            'cached_title': ia_item.metadata['title'],
+            'cached_description': ia_item.metadata.get('description')
+        }
+    )
+    logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
+
+    # Create an InternetArchiveFile object if the Item contains a warc
+    filename = InternetArchiveFile.WARC_FILENAME.format(guid=link_guid)
+    ia_warc = ia_item.get_file(filename)
+    if not ia_warc.exists:
+        return
+    _, created = InternetArchiveFile.objects.get_or_create(
+        link_id=link_guid,
+        item=perma_item,
+        defaults={
+            'cached_title': ia_warc.metadata.get('title'),
+            'cached_comments':ia_warc.metadata.get('comments'),
+            'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
+            'cached_external_identifier_match_date': ia_warc.metadata.get('external-identifier-match-date'),
+            'cached_format': ia_warc.metadata['format'],
+            'cached_size': ia_warc.size
+        }
+    )
+    logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
+
+
+@shared_task(acks_late=True)
+def queue_backfill_of_daily_internet_archive_objects(limit=None):
+    """
+    This is a one-time task, the second step in the migration from having one "individual" IA Item
+    per Perma Link to having "daily" digest Items. The Internet Archive created a number of "daily"
+    Items on Perma's behalf using the files and metadata of our legacy individual Items. This task
+    queues up the creation of IA Django model objects for those daily Items.
+    """
+    dates = Link.objects.annotate(
+                created_date=TruncDate('creation_timestamp')
+            ).values_list(
+                'created_date', flat=True
+            ).order_by(
+                'created_date'
+            ).distinct()[:limit]
+
+    queued = 0
+    for date_string in (d.strftime('%Y-%m-%d') for d in dates):
+        backfill_daily_internet_archive_objects.delay(date_string)
+        queued = queued + 1
+    logger.info(f"Queued the creation of {queued} daily IA items.")
+
+
+@shared_task()
+def backfill_daily_internet_archive_objects(date_string):
+    """
+    If an Internet Archive "Item" was produced for the specified day,
+    create an InternetArchiveItem object. If that Item contains warcs,
+    create a corresponding InternetArchiveFile objects for each.
+    """
+    identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+        prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+        date_string=date_string
+    )
+
+    # Create an InternetArchiveItem object if a match is found in IA
+    ia_item = internetarchive.get_item(identifier)
+    if not ia_item.exists:
+        logger.info(f"No IA item exists for {date_string}.")
+        return
+    start = InternetArchiveItem.datetime(f"{date_string} 00:00:00")
+    end = start + timedelta(days=1)
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        span=(start, end),
+        defaults={
+            'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
+            'cached_file_count': ia_item.files_count,
+            'cached_title': ia_item.metadata['title'],
+            'cached_description': ia_item.metadata['description']
+        }
+    )
+    logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
+
+    # Create an InternetArchiveFile object for each warc in the Item.
+    #
+    # If this turns out to put too much stress on the database, consider temporarily
+    # increasing resources while this one-time process is underway, or creating in batches,
+    # similar to:
+    #
+    # from itertools import islice
+    # batch_size = 100
+    # objs = (InternetArchiveFile(...) for ia_warc in files)
+    # while True:
+    #     batch = list(islice(objs, batch_size))
+    #     if not batch:
+    #         break
+    #     InternetArchiveFile.objects.bulk_create(batch, batch_size)
+    #
+    # We are trying simple iteration first for improved observability and because get_or_create is repeatable
+    files = internetarchive.get_files(identifier=identifier, formats='Web ARChive GZ')
+    for ia_warc in files:
+        link_id = InternetArchiveFile.guid_from_filename(ia_warc.name)
+        _, created = InternetArchiveFile.objects.get_or_create(
+            link_id=link_id,
+            item=perma_item,
+            defaults={
+                'cached_title': ia_warc.metadata.get('title'),
+                'cached_comments':ia_warc.metadata.get('comments'),
+                'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
+                'cached_external_identifier_match_date': ia_warc.metadata.get('external-identifier-match-date'),
+                'cached_format': ia_warc.metadata['format'],
+                'cached_size': ia_warc.size
+            }
+        )
+        logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {link_id} and {identifier}.")

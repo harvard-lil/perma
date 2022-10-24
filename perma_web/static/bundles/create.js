@@ -17646,7 +17646,8 @@ function apiFoldersToJsTreeFolders(apiFolders) {
 
 function loadSingleFolder(folderId, callback) {
   // Grab a single folder ID from the server and pass back to jsTree.
-  APIModule.request("GET", "/folders/" + folderId + "/folders/").done(function (data) {
+  // Temporarily limit response to 500; TODO: handle pagination
+  APIModule.request("GET", "/folders/".concat(folderId, "/folders/?limit=500")).done(function (data) {
     callback(apiFoldersToJsTreeFolders(data.objects));
   });
 }
@@ -17660,10 +17661,11 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
     return;
   } // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
   // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
+  // Temporarily limit response to 500; TODO: handle pagination
 
 
   $.when.apply($, _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_0___default()(subfoldersToPreload).call(subfoldersToPreload, function (folderId) {
-    return APIModule.request("GET", "/folders/" + folderId + "/folders/", null, {
+    return APIModule.request("GET", "/folders/".concat(folderId, "/folders/?limit=500"), null, {
       "error": null
     });
   })) // When all API requests have returned, loop through the responses and build the folder tree:

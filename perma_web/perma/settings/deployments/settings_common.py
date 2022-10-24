@@ -438,22 +438,22 @@ CELERY_TASK_TIME_LIMIT = 420
 WORKER_COUNT = 2
 
 CELERY_TASK_ROUTES = {
-    'perma.tasks.upload_to_internet_archive': {'queue': 'ia'},
-    'perma.tasks.delete_from_internet_archive': {'queue': 'ia'},
-    'perma.tasks.delete_all_from_internet_archive': {'queue': 'ia'},
-    'perma.tasks.upload_all_to_internet_archive': {'queue': 'ia'},
     'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
     'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
     'perma.tasks.cache_playback_status': {'queue': 'background'},
     'perma.tasks.populate_warc_size_fields': {'queue': 'background'},
     'perma.tasks.populate_warc_size': {'queue': 'background'},
+    'perma.tasks.queue_backfill_of_individual_link_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.queue_backfill_of_daily_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia'},
 }
 
 # internet archive stuff
-UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
+INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX = 'daily_perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
@@ -538,7 +538,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
 DISABLE_DEV_SHM = False
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.5249.61 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.5249.119 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 PERMABOT_USER_AGENT_SUFFIX = "(Perma.cc bot)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
@@ -632,7 +632,7 @@ PERMA_PAYMENTS_TIMEOUT = 2
 PERMA_PAYMENTS_TIMESTAMP_MAX_AGE_SECONDS = 120
 PERMA_PAYMENTS_IN_MAINTENANCE = False
 
-REPLAYWEBPAGE_VERSION = '1.6.5'
+REPLAYWEBPAGE_VERSION = '1.7.1'
 REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
 
 SCAN_UPLOADS = False

@@ -1,31 +1,16 @@
 from django.core import mail
 
 from django.test import TestCase, override_settings
-from perma.tasks import update_stats, upload_all_to_internet_archive, upload_to_internet_archive, delete_from_internet_archive, send_js_errors
-from perma.models import Link, UncaughtError
+from perma.tasks import update_stats, send_js_errors
+from perma.models import UncaughtError
 
-@override_settings(CELERY_ALWAYS_EAGER=True, UPLOAD_TO_INTERNET_ARCHIVE=True)
+@override_settings(CELERY_ALWAYS_EAGER=True)
 class TaskTestCase(TestCase):
 
     def testUpdateStats(self):
         # this tests only that the task runs,
         # not anything about the task itself
         self.assertTrue(update_stats.delay())
-
-    def testUploadAllToInternetArchive(self):
-        # this tests only that the task runs,
-        # not anything about the task itself
-        self.assertTrue(upload_all_to_internet_archive.delay())
-
-    def testUploadToInternetArchive(self):
-        # test when GUID does not exist
-        with self.assertRaises(Link.DoesNotExist):
-            upload_to_internet_archive.delay('ZZZZ-ZZZZ')
-
-    def testDeleteFromInternetArchive(self):
-        # test when GUID does not exist
-        with self.assertRaises(Link.DoesNotExist):
-            delete_from_internet_archive.delay('ZZZZ-ZZZZ')
 
     def test_send_js_errors(self):
         response = send_js_errors()
@@ -48,4 +33,3 @@ class TaskTestCase(TestCase):
         self.assertIn('Function: getNextContents', message_parts)
         self.assertIn('File: static/bundles/create.js', message_parts)
         self.assertNotIn('showFolderContents', message_parts)
-
