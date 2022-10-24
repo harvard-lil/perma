@@ -39,11 +39,13 @@ class LinkResourceTestMixin():
 
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.unrelated_private_link = Link.objects.get(pk="ABCD-0001")
+        self.capture_view_link = Link.objects.get(pk="N1N0-33DB")
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.sponsored_user_link = Link.objects.get(pk="ABCD-0011")
 
         self.sponsored_user_link_detail_url = "{0}/{1}".format(self.list_url, self.sponsored_user_link.pk)
         self.unrelated_link_detail_url = "{0}/{1}".format(self.list_url, self.unrelated_link.pk)
+        self.capture_view_link_url = "{0}/{1}".format(self.list_url, self.capture_view_link.pk)
         self.link_detail_url = "{0}/{1}".format(self.list_url, self.link.pk)
 
         self.logged_in_list_url = self.list_url
@@ -129,7 +131,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
     #######
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=10)
+        self.successful_get(self.public_list_url, count=11)
 
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
@@ -185,6 +187,11 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
                               data={'notes': 'These are new notes',
                                     'title': 'This is a new title',
                                     'description': 'This is a new description'})
+
+    def test_patch_default_view(self):
+        self.successful_patch(self.capture_view_link_url,
+                              user=self.capture_view_link.created_by,
+                              data={'screenshot_view': True})
 
     def test_should_reject_updates_to_disallowed_fields(self):
         response = self.rejected_patch(self.unrelated_link_detail_url,
@@ -260,28 +267,28 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 2)
+        self.assertEqual(len(objs), 3)
         self.assertEqual(objs[0]['url'], 'http://metafilter.com')
 
     def test_should_allow_filtering_title_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 2)
+        self.assertEqual(len(objs), 3)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_notes_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 2)
+        self.assertEqual(len(objs), 3)
         self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
 
     def test_should_allow_filtering_url(self):
         data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 2)
+        self.assertEqual(len(objs), 3)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):

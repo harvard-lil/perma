@@ -226,7 +226,6 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
                         raise
                 except KeyError:
                     pass
-
             return fresh_data
 
         else:
