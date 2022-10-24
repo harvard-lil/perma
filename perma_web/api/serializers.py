@@ -54,9 +54,7 @@ class LinkUserSerializer(BaseSerializer):
 
 class FolderSerializer(BaseSerializer):
     has_children = serializers.SerializerMethodField()
-    path = serializers.SerializerMethodField()
-    # after cached_path is set for all folders, replace path with:
-    # path = serializers.CharField(source='cached_path')
+    path = serializers.CharField(source='cached_path', read_only=True)
 
     class Meta:
         model = Folder
@@ -66,9 +64,6 @@ class FolderSerializer(BaseSerializer):
 
     def get_has_children(self, folder):
         return not folder.is_leaf_node()
-
-    def get_path(self, folder):
-        return folder.cached_path or folder.get_path()
 
     def validate_name(self, name):
         if self.instance:
