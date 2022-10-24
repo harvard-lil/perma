@@ -1578,15 +1578,21 @@ def backfill_individual_link_internet_archive_objects(link_guid):
     if not ia_item.exists:
         logger.error(f"No IA item exists for {link_guid}, but our database suggests that one should.")
         return
-    perma_item, created = InternetArchiveItem.objects.get_or_create(
-        identifier=identifier,
-        defaults={
-            'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
-            'cached_file_count': ia_item.files_count,
-            'cached_title': ia_item.metadata['title'],
-            'cached_description': ia_item.metadata.get('description')
-        }
-    )
+    try:
+        perma_item, created = InternetArchiveItem.objects.get_or_create(
+            identifier=identifier,
+            defaults={
+                'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
+                'cached_file_count': ia_item.files_count,
+                'cached_title': ia_item.metadata['title'],
+                'cached_description': ia_item.metadata.get('description')
+            }
+        )
+    except KeyError as e:
+        # We are seeing occasional, unreproducible `KeyError: 'addeddate'`.
+        # Add logging to help us diagnose.
+        logger.error(f"{str(e)} for {identifier}. Item metadata: {ia_item.metadata}")
+        return
     logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
 
     # Create an InternetArchiveFile object if the Item contains a warc
