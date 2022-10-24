@@ -1244,6 +1244,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_purchase_history', autospec=True)
     def test_purchase_history_present_if_one_time_purchases(self, get_purchase_history, get_subscription, prepped):
+        breakpoint()
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.return_value = None
         get_purchase_history.return_value = {

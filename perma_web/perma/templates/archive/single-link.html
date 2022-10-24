@@ -85,7 +85,7 @@
             <div class="server-client-toggle toggle-btn-group pt-3">
               <strong>View<span class="_verbose"> Mode</span>:</strong>
               {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                <a class="btn btn-ui-small btn-toggle {% if serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}">Standard</a>
+                <a class="btn btn-ui-small btn-toggle {% if serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?type=standard">Standard</a>
               {% endif %}
               {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
                 <a class="btn btn-ui-small btn-toggle {% if serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?type=image">Screenshot</a>
@@ -134,9 +134,9 @@
           <div class="tray-detail-group screenshot-view">
             <label for="screenshot_view" class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label><br/>
             <label for="default_standard">Standard</label>
-            <input type="radio" id="default_standard" name="screenshot_view" class="form-control link-screenshot-view" value='{{ link.screenshot_view|yesno:"false,true"}}' {% if link.screenshot_view%}checked{% endif %}/>
+            <input type="radio" id="default_standard" name="screenshot_view" class="form-control link-screenshot-view" value='false' {% if not link.screenshot_view%}checked{% endif %}/>
             <label for="default_screenshot">Screenshot</label>
-              <input type="radio" id="default_screenshot" name="screenshot_view" class="form-control link-screenshot-view" value='{{ link.screenshot_view|yesno:"true,false"}}' {% if not link.screenshot_view%}checked{% endif %}/>
+            <input type="radio" id="default_screenshot" name="screenshot_view" class="form-control link-screenshot-view" value='true' {% if link.screenshot_view%}checked{% endif %}/>
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">

@@ -33,7 +33,7 @@ from ..email import send_admin_email, send_user_email_copy_admins
 import logging
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image', 'warc_download']
+valid_serve_types = ['image', 'warc_download', 'standard']
 
 
 class DirectTemplateView(TemplateView):
@@ -126,7 +126,6 @@ def single_permalink(request, guid):
     # We only do the redirect if the correctly-formatted GUID actually exists --
     # this prevents actual 404s from redirecting with weird formatting.
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_permalink', args=[canonical_guid]))
 
@@ -137,7 +136,10 @@ def single_permalink(request, guid):
     # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
     serve_type = request.GET.get('type')
     if serve_type is None:
-        serve_type = 'source'
+        if link.screenshot_view:
+            serve_type = 'image'
+        else:
+            serve_type = 'standard'
     elif serve_type not in valid_serve_types:
         return HttpResponsePermanentRedirect(reverse('single_permalink', args=[canonical_guid]))
 
@@ -152,14 +154,13 @@ def single_permalink(request, guid):
         # not all Perma Links have screenshots; if no screenshot is present,
         # forward to primary capture for playback or for appropriate error message
         if (not capture or capture.status != 'success') and link.primary_capture:
-            return HttpResponseRedirect(reverse('single_permalink', args=[guid]))
+            return HttpResponseRedirect(reverse('single_permalink', args=[guid])+"?type=standard")
     else:
         capture = link.primary_capture
 
         # if primary capture did not work, but screenshot did work, forward to screenshot
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
             return HttpResponseRedirect(reverse('single_permalink', args=[guid])+"?type=image")
-
     try:
         capture_mime_type = capture.mime_type()
     except AttributeError:
