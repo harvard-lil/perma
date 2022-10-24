@@ -101,7 +101,7 @@ class CommonViewsTestCase(PermaTestCase):
         # TODO: this just renders a blank iframe... not desirable.
         # See https://github.com/harvard-lil/perma/issues/2574
 
-    def test_archive_with_only_screenshot(self):
+    def test_screenshot_only_archive_not_screenshot_view(self):
         link = Link.objects.get(guid='ABCD-0007')
         self.assertFalse(link.screenshot_view)
         self.assertTrue(link.capture_job.status == 'completed')
@@ -111,6 +111,17 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=image')
             self.assertIn('memento-datetime', response._headers)
             self.assertIn('link', response._headers)
+
+    def test_screenshot_only_archive_no_redirect_with_screenshot_view(self):
+        link = Link.objects.get(guid='ABCD-0007')
+        link.screenshot_view = True
+        link.save()
+        self.assertTrue(link.screenshot_view)
+        self.assertTrue(link.capture_job.status == 'completed')
+        self.assertTrue(link.captures.count())
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0007'}}, request_kwargs={'follow': True})
+            self.assertEqual(response.request.get('QUERY_STRING'), '')
 
     # patch default storage so that it returns a sample warc
     def test_dark_archive(self):

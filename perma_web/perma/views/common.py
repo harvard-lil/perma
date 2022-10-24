@@ -126,6 +126,7 @@ def single_permalink(request, guid):
     # We only do the redirect if the correctly-formatted GUID actually exists --
     # this prevents actual 404s from redirecting with weird formatting.
     link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
+
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_permalink', args=[canonical_guid]))
 
@@ -161,6 +162,7 @@ def single_permalink(request, guid):
         # if primary capture did not work, but screenshot did work, forward to screenshot
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
             return HttpResponseRedirect(reverse('single_permalink', args=[guid])+"?type=image")
+
     try:
         capture_mime_type = capture.mime_type()
     except AttributeError:

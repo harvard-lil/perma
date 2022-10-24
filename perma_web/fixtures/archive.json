@@ -345,7 +345,8 @@
       "submitted_url_surt": "com,github)/",
       "creation_timestamp": "2016-07-19T20:21:31Z",
       "archive_timestamp": "2016-07-20T20:21:31Z",
-      "organization": 1
+      "organization": 1,
+      "screenshot_view": true
     }
   },
   {
