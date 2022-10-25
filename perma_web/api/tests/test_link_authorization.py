@@ -38,7 +38,7 @@ class LinkAuthorizationMixin():
 
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
-        self.capture_view_link = Link.objects.get(pk="N1N0-33DB")
+        self.capture_view_link = Link.objects.get(pk="ABCD-0007")
         self.private_link_by_user = Link.objects.get(pk="ABCD-0001")
         self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
         self.unlisted_link = Link.objects.get(pk="ABCD-0005")

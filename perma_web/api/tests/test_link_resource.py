@@ -39,7 +39,7 @@ class LinkResourceTestMixin():
 
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.unrelated_private_link = Link.objects.get(pk="ABCD-0001")
-        self.capture_view_link = Link.objects.get(pk="N1N0-33DB")
+        self.capture_view_link = Link.objects.get(pk="ABCD-0007")
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.sponsored_user_link = Link.objects.get(pk="ABCD-0011")
 

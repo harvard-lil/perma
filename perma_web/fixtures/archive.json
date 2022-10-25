@@ -96,7 +96,7 @@
       "archive_timestamp": "2014-12-08T18:55:37Z",
       "notes": "Maybe the source of all cool things on the internet.",
       "organization": 1,
-      "screenshot_view": false
+      "screenshot_view": true
     }
   },
   {
@@ -547,7 +547,7 @@
   "model": "perma.capture",
   "pk": 14
   },
-    {
+  {
   "fields": {
     "status": "success",
     "url": "file:///ABCD-0009/cap.png",
@@ -559,6 +559,19 @@
   },
   "model": "perma.capture",
   "pk": 15
+  },
+  {
+  "fields": {
+    "status": "success",
+    "url": "https://www.wikipedia.org/",
+    "user_upload": false,
+    "record_type": "response",
+    "role": "primary",
+    "content_type": "text/html",
+    "link": "N1N0-33DB"
+  },
+  "model": "perma.capture",
+  "pk": 16
   },
   {
   "fields": {
@@ -673,5 +686,24 @@
   },
   "model": "perma.capturejob",
   "pk": 6
-  }
+  },
+  {
+    "fields": {
+      "link": "N1N0-33DB",
+      "status": "completed",
+      "message": null,
+      "human": true,
+      "order": 966.0,
+      "submitted_url": "https://www.wikipedia.org/",
+      "created_by": 4,
+      "link_batch": null,
+      "attempt": 1,
+      "step_count": 6.0,
+      "step_description": "Saving web archive file",
+      "capture_start_time": "2019-03-27T19:03:49Z",
+      "capture_end_time": "2019-03-27T19:03:55.493Z"
+    },
+    "model": "perma.capturejob",
+    "pk": 7
+    }
 ]

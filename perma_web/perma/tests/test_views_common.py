@@ -112,16 +112,20 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertIn('memento-datetime', response._headers)
             self.assertIn('link', response._headers)
 
-    def test_screenshot_only_archive_no_redirect_with_screenshot_view(self):
+    def test_screenshot_only_archive_type_with_screenshot_view(self):
         link = Link.objects.get(guid='ABCD-0007')
         link.screenshot_view = True
         link.save()
-        self.assertTrue(link.screenshot_view)
-        self.assertTrue(link.capture_job.status == 'completed')
-        self.assertTrue(link.captures.count())
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0007'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), '')
+
+    def test_capture_only_archive_type_with_screenshot_view(self):
+        link = Link.objects.get(guid='N1N0-33DB')
+        self.assertTrue(link.screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
+            self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
 
     # patch default storage so that it returns a sample warc
     def test_dark_archive(self):
