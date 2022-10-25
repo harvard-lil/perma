@@ -867,7 +867,7 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         folders = [self.root_folder]
         if self.sponsored_root_folder:
             folders.append(self.sponsored_root_folder)
-        return folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder') if org]
+        return folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder').order_by('name') if org]
 
     def all_folder_trees(self):
         """
