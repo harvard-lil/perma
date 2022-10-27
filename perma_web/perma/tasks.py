@@ -1463,7 +1463,7 @@ def update_stats():
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         cache_playback_status.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links to have their playback status cached.")
@@ -1522,7 +1522,7 @@ def populate_warc_size_fields(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         populate_warc_size.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for populating warc_size.")
@@ -1555,7 +1555,7 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         backfill_individual_link_internet_archive_objects.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued the creation of {queued} individual link IA items.")
