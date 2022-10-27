@@ -2060,8 +2060,8 @@ class InternetArchiveFile(models.Model):
     Items may contain IA-produced, derivative files as well; for instance, cdx files.
     We do not store objects referencing those derivative files, only original files that we ourselves upload.
     """
-    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING)
-    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE)
+    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
+    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
