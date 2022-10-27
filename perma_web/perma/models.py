@@ -32,6 +32,7 @@ from django.db import models, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
+from django.contrib.postgres.indexes import GistIndex
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
@@ -2033,6 +2034,13 @@ class InternetArchiveItem(models.Model):
 
     class Meta:
         verbose_name = "Internet Archive Item"
+
+        indexes = [
+            # We would like an index like the below, but expressions aren't supported in this version of Django.
+            # We are adding it via a SQL migration instead. See 0007_auto_20221024_2049.py
+            # models.Index(IsEmpty('span'), 'identifier', name='empty_span_idx'),
+            GistIndex(fields=['span']),
+        ]
 
     def __str__(self):
         return f"IA Item {self.identifier}"
