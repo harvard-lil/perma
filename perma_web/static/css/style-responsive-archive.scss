@@ -1481,12 +1481,22 @@ body.modal-open {
     }
   }
 
-  .save-status {
+  legend {
+    font-size: 14px;
+    border-bottom: none;
+  }
+
+  .save-status,
+  .title-save-status,
+  .notes-save-status,
+  .description-save-status,
+  .screenshot_view-save-status {
     color: $color-orange;
     margin-top: 0;
     margin-left: .7em;
     font-weight: 700;
   }
+
   .btn-file-upload-container {
     display: block;
     margin-left: 5px;

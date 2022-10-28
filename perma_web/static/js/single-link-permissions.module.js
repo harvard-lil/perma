@@ -57,7 +57,7 @@ function setupEventHandlers () {
       if (name == "file") return;
       if (inputarea.val() == inputValues[name]) return;
       inputValues[name] = inputarea.val();
-      var statusElement = inputarea.parent().find(".save-status");
+      var statusElement = inputarea.parents().find(`.${name}-save-status`);
 
       LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, ()=>{
         setTimeout(function() {

@@ -5331,7 +5331,15 @@ body.modal-open {
 #collapse-details input.file {
   cursor: pointer;
 }
-#collapse-details .save-status {
+#collapse-details legend {
+  font-size: 14px;
+  border-bottom: none;
+}
+#collapse-details .save-status,
+#collapse-details .title-save-status,
+#collapse-details .notes-save-status,
+#collapse-details .description-save-status,
+#collapse-details .screenshot_view-save-status {
   color: #DD671A;
   margin-top: 0;
   margin-left: 0.7em;

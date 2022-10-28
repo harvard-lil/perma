@@ -119,24 +119,31 @@
         </div>
 
         {% if can_edit %}
-          <div class="tray-detail-group">
-            <label for="submitted_title" class="tray-detail-title">Title <span class="label-instruction _verbose">&nbsp;</span><span class="save-status"></span></label>
-            <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
-          </div>
-          <div class="tray-detail-group">
-            <label for="submitted_description" class="tray-detail-title">Description<span class="save-status"></span></label>
-            <input id="submitted_description" name="description" class="form-control link-submitted-description" value="{{link.submitted_description}}"/>
-          </div>
-          <div class="tray-detail-group">
-            <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label>
-            <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
-          </div>
-          <div class="tray-detail-group screenshot-view">
-            <label for="screenshot_view" class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label><br/>
-            <label for="default_standard">Standard</label>
-            <input type="radio" id="default_standard" name="screenshot_view" class="form-control link-screenshot-view" value='false' {% if not link.screenshot_view%}checked{% endif %}/>
-            <label for="default_screenshot">Screenshot</label>
-            <input type="radio" id="default_screenshot" name="screenshot_view" class="form-control link-screenshot-view" value='true' {% if link.screenshot_view%}checked{% endif %}/>
+        <div class="tray-detail-group">
+          <label for="submitted_title" class="tray-detail-title">Title <span class="label-instruction _verbose">&nbsp;</span><span class="title-save-status"></span></label>
+          <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
+        </div>
+        <div class="tray-detail-group">
+          <label for="submitted_description" class="tray-detail-title">Description<span class="description-save-status"></span></label>
+          <input id="submitted_description" name="description" class="form-control link-submitted-description" value="{{link.submitted_description}}"/>
+        </div>
+        <div class="tray-detail-group">
+          <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="notes-save-status"></span></label>
+          <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
+        </div>
+        <div class="tray-detail-group">
+          <fieldset>
+            <legend class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="screenshot_view-save-status"></span></legend>
+            <label class="radio-inline" for="default_standard">
+              <input type="radio" id="default_standard" name="screenshot_view" value='false' {% if not link.screenshot_view%}checked{% endif %}>
+              Standard
+            </label>
+            <label class="radio-inline" for="default_screenshot">
+              <input type="radio" id="default_screenshot" name="screenshot_view" value='true' {% if link.screenshot_view%}checked{% endif %}>
+              Screenshot
+            </label>
+          </fieldset>
+        </div>
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">
