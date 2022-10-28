@@ -1565,8 +1565,7 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
 def backfill_individual_link_internet_archive_objects(link_guid):
     """
     If an Internet Archive "Item" was produced for the specified Link,
-    create an InternetArchiveItem object. If that Item contains a warc,
-    create a corresponding InternetArchiveFile object.
+    create an InternetArchiveItem object and InternetArchiveFile object.
     """
     identifier = InternetArchiveItem.INDIVIDUAL_LINK_IDENTIFIER.format(
         prefix=settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX,
@@ -1595,15 +1594,12 @@ def backfill_individual_link_internet_archive_objects(link_guid):
         return
     logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
 
-    # Create an InternetArchiveFile object if the Item contains a warc
+    # Create an InternetArchiveFile object with the appropriate status
     filename = InternetArchiveFile.WARC_FILENAME.format(guid=link_guid)
     ia_warc = ia_item.get_file(filename)
-    if not ia_warc.exists:
-        return
-    _, created = InternetArchiveFile.objects.get_or_create(
-        link_id=link_guid,
-        item=perma_item,
-        defaults={
+    if ia_warc.exists:
+        metadata = {
+            'status': 'confirmed_present',
             'cached_title': ia_warc.metadata.get('title'),
             'cached_comments':ia_warc.metadata.get('comments'),
             'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
@@ -1611,6 +1607,14 @@ def backfill_individual_link_internet_archive_objects(link_guid):
             'cached_format': ia_warc.metadata['format'],
             'cached_size': ia_warc.size
         }
+    else:
+        metadata = {
+            'status': 'confirmed_absent',
+        }
+    _, created = InternetArchiveFile.objects.get_or_create(
+        link_id=link_guid,
+        item=perma_item,
+        defaults=metadata
     )
     logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
 
