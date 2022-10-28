@@ -131,7 +131,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
     #######
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=11)
+        self.successful_get(self.public_list_url, count=13)
 
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
@@ -267,28 +267,28 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 3)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['url'], 'http://metafilter.com')
 
     def test_should_allow_filtering_title_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 3)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_notes_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 3)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
 
     def test_should_allow_filtering_url(self):
         data = self.successful_get(self.logged_in_list_url, data={'url': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 3)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):
@@ -766,7 +766,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         # establish baseline
         links_remaining, _ , bonus_links = self.regular_user.get_links_remaining()
-        self.assertEqual(links_remaining, 6)
+        self.assertEqual(links_remaining, 5)
         self.assertEqual(bonus_links, 0)
 
         # delete the bonus link
@@ -775,7 +775,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         # assertions
         links_remaining, links_remaining_period, bonus_links = self.regular_user.get_links_remaining()
-        self.assertEqual(links_remaining, 6)
+        self.assertEqual(links_remaining, 5)
         self.assertEqual(bonus_links, 1)
 
 

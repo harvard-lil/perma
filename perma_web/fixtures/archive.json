@@ -89,12 +89,55 @@
 
       "created_by": 4,
       "user_deleted_timestamp": null,
-      "submitted_title": "MetaFilter | Community Weblog",
-      "submitted_url": "http://metafilter.com",
-      "submitted_url_surt": "com,metafilter)/",
+      "submitted_title": "Dog.com",
+      "submitted_url": "https://www.dog.com",
+      "submitted_url_surt": "com,dog)/",
       "creation_timestamp": "2014-12-07T18:55:37Z",
       "archive_timestamp": "2014-12-08T18:55:37Z",
-      "notes": "Maybe the source of all cool things on the internet.",
+      "notes": "Capture but no screenshot, default to screenshot view",
+      "organization": 1,
+      "screenshot_view": true
+    }
+  },
+  {
+    "pk": "M1L0-87DB",
+    "model": "perma.link",
+    "fields": {
+      "folders": [
+        25,
+        27
+      ],
+      "user_deleted": false,
+
+      "created_by": 4,
+      "user_deleted_timestamp": null,
+      "submitted_title": "Dog",
+      "submitted_url": "https://www.dog.com/",
+      "submitted_url_surt": "com,dog)/",
+      "creation_timestamp": "2014-12-07T18:55:37Z",
+      "archive_timestamp": "2014-12-08T18:55:37Z",
+      "notes": "Capture but no screenshot, default to standard/primary view",
+      "organization": 1
+    }
+  },
+  {
+    "pk": "F1X1-LS24",
+    "model": "perma.link",
+    "fields": {
+      "folders": [
+        25,
+        27
+      ],
+      "user_deleted": false,
+
+      "created_by": 4,
+      "user_deleted_timestamp": null,
+      "submitted_title": "Dog",
+      "submitted_url": "https://www.dog.com/",
+      "submitted_url_surt": "com,dog)/",
+      "creation_timestamp": "2014-12-07T18:55:37Z",
+      "archive_timestamp": "2014-12-08T18:55:37Z",
+      "notes": "Primary and Screenshot capture, default to screenshot view",
       "organization": 1,
       "screenshot_view": true
     }
@@ -155,8 +198,7 @@
       "submitted_url_surt": "org,wikipedia)/?special=true",
       "creation_timestamp": "2014-07-19T20:21:31Z",
       "archive_timestamp": "2014-07-20T20:21:31Z",
-      "organization": null,
-      "screenshot_view": true
+      "organization": null
     }
   },
   {
@@ -292,8 +334,7 @@
       "submitted_url_surt": "org,wikipedia)/",
       "creation_timestamp": "2014-07-19T20:21:31Z",
       "archive_timestamp": "2014-07-20T20:21:31Z",
-      "organization": 1,
-      "screenshot_view": false
+      "organization": 1
     }
   },
     {
@@ -304,14 +345,15 @@
         30,
         34
       ],
-      "notes": "Middle Memento",
+      "notes": "Middle Memento plus Screenshot view",
       "created_by": 4,
       "submitted_title": "Wikipedia",
       "submitted_url": "http://www.wikipedia.org",
       "submitted_url_surt": "org,wikipedia)/",
       "creation_timestamp": "2015-07-19T20:21:31Z",
       "archive_timestamp": "2015-07-20T20:21:31Z",
-      "organization": 1
+      "organization": 1,
+      "screenshot_view": true
     }
   },
   {
@@ -345,8 +387,7 @@
       "submitted_url_surt": "com,github)/",
       "creation_timestamp": "2016-07-19T20:21:31Z",
       "archive_timestamp": "2016-07-20T20:21:31Z",
-      "organization": 1,
-      "screenshot_view": true
+      "organization": 1
     }
   },
   {
@@ -563,7 +604,7 @@
   {
   "fields": {
     "status": "success",
-    "url": "https://www.wikipedia.org/",
+    "url": "https://www.dog.com",
     "user_upload": false,
     "record_type": "response",
     "role": "primary",
@@ -573,6 +614,45 @@
   "model": "perma.capture",
   "pk": 16
   },
+  {
+  "fields": {
+    "status": "success",
+    "url": "https://www.dog.com",
+    "user_upload": false,
+    "record_type": "response",
+    "role": "primary",
+    "content_type": "text/html",
+    "link": "F1X1-LS24"
+  },
+  "model": "perma.capture",
+  "pk": 17
+  },
+  {
+  "fields": {
+    "status": "success",
+    "url": "file:///F1X1-LS24/cap.png",
+    "user_upload": false,
+    "record_type": "resource",
+    "role": "screenshot",
+    "content_type": "image/png",
+    "link": "F1X1-LS24"
+  },
+  "model": "perma.capture",
+  "pk": 18
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "https://www.dog.com/",
+      "user_upload": false,
+      "record_type": "response",
+      "role": "primary",
+      "content_type": "text/html",
+      "link": "M1L0-87DB"
+    },
+    "model": "perma.capture",
+    "pk": 19
+    },
   {
   "fields": {
     "link": "UU32-XY8I",
@@ -694,7 +774,7 @@
       "message": null,
       "human": true,
       "order": 966.0,
-      "submitted_url": "https://www.wikipedia.org/",
+      "submitted_url": "https://www.dog.com",
       "created_by": 4,
       "link_batch": null,
       "attempt": 1,
@@ -705,5 +785,43 @@
     },
     "model": "perma.capturejob",
     "pk": 7
+    },
+    {
+      "fields": {
+        "link": "M1L0-87DB",
+        "status": "completed",
+        "message": null,
+        "human": true,
+        "order": 966.0,
+        "submitted_url": "https://www.dog.com",
+        "created_by": 4,
+        "link_batch": null,
+        "attempt": 1,
+        "step_count": 6.0,
+        "step_description": "Saving web archive file",
+        "capture_start_time": "2019-03-27T19:03:49Z",
+        "capture_end_time": "2019-03-27T19:03:55.493Z"
+      },
+      "model": "perma.capturejob",
+      "pk": 8
+    },
+    {
+      "fields": {
+        "link": "F1X1-LS24",
+        "status": "completed",
+        "message": null,
+        "human": true,
+        "order": 966.0,
+        "submitted_url": "https://www.dog.com",
+        "created_by": 4,
+        "link_batch": null,
+        "attempt": 1,
+        "step_count": 6.0,
+        "step_description": "Saving web archive file",
+        "capture_start_time": "2019-03-27T19:03:49Z",
+        "capture_end_time": "2019-03-27T19:03:55.493Z"
+      },
+      "model": "perma.capturejob",
+      "pk": 9
     }
 ]
