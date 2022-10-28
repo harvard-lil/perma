@@ -1705,3 +1705,38 @@ def backfill_daily_internet_archive_objects(date_string):
             }
         )
         logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {link_id} and {identifier}.")
+
+
+def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
+    """
+    A generic queuing task. Chunks the queryset by batch_size,
+    and queues up the specified celery task for each chunk, passing in a
+    list of the objects' primary keys and any other supplied kwargs.
+    """
+    query = query.values_list('pk', flat=True)
+
+    batches_queued = 0
+    pks = []
+    for pk in query.iterator():
+        pks.append(pk)
+        if len(pks) >= batch_size:
+            task.delay(pks, **kwargs)
+            batches_queued = batches_queued + 1
+            pks = []
+    remainder = len(pks)
+    if remainder:
+        task.delay(pks, **kwargs)
+
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a remainder of size ' + str(remainder) if remainder else ''}.")
+
+
+@shared_task(acks_late=True)
+def populate_internet_archive_file_status(pks):
+    """
+    We created a large number of InternetArchiveFile objects before realizing we
+    needed a 'status' field. This one-time task populates that field for the existing
+    items in a database-friendly way.
+    """
+    count_updated = InternetArchiveFile.objects.filter(pk__in=pks).update(status='confirmed_present')
+    logger.info(f"Updated status for {count_updated} InternetArchiveFiles ({pks[0]} to {pks[-1]}).")
+
