@@ -2063,6 +2063,14 @@ class InternetArchiveFile(models.Model):
     link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
     item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
 
+    status = models.CharField(
+        max_length=19,
+        null=True,
+        blank=True,
+        choices=((s, s) for s in ('upload_attempted', 'confirmed_present', 'deletion_attempted', 'confirmed_absent')),
+        db_index=True
+    )
+
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
     # Standard metadata fields, defined at https://archive.org/services/docs/api/metadata-schema/index.html#file-metadata-schema
