@@ -137,7 +137,7 @@ def single_permalink(request, guid):
     # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
     serve_type = request.GET.get('type')
     if serve_type is None:
-        if link.screenshot_view:
+        if link.default_to_screenshot_view:
             serve_type = 'image'
         else:
             serve_type = 'standard'

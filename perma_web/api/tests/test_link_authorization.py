@@ -57,7 +57,7 @@ class LinkAuthorizationMixin():
 
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title',
-                           'screenshot_view': True}
+                           'default_to_screenshot_view': True}
 
     def get_public_link_url(self, link):
         return "{0}/{1}".format(self.public_list_url, link.pk)

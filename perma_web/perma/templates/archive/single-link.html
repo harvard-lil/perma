@@ -133,13 +133,13 @@
         </div>
         <div class="tray-detail-group">
           <fieldset>
-            <legend class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="screenshot_view-save-status"></span></legend>
+            <legend class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="default_to_screenshot_view-save-status"></span></legend>
             <label class="radio-inline" for="default_standard">
-              <input type="radio" id="default_standard" name="screenshot_view" value='false' {% if not link.screenshot_view%}checked{% endif %}>
+              <input type="radio" id="default_standard" name="default_to_screenshot_view" value='false' {% if not link.default_to_screenshot_view%}checked{% endif %}>
               Standard
             </label>
             <label class="radio-inline" for="default_screenshot">
-              <input type="radio" id="default_screenshot" name="screenshot_view" value='true' {% if link.screenshot_view%}checked{% endif %}>
+              <input type="radio" id="default_screenshot" name="default_to_screenshot_view" value='true' {% if link.default_to_screenshot_view%}checked{% endif %}>
               Screenshot
             </label>
           </fieldset>

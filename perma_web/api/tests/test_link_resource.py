@@ -191,7 +191,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
     def test_patch_default_view(self):
         self.successful_patch(self.capture_view_link_url,
                               user=self.capture_view_link.created_by,
-                              data={'screenshot_view': True})
+                              data={'default_to_screenshot_view': True})
 
     def test_should_reject_updates_to_disallowed_fields(self):
         response = self.rejected_patch(self.unrelated_link_detail_url,

@@ -12,12 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='historicallink',
-            name='screenshot_view',
+            name='default_to_screenshot_view',
             field=models.BooleanField(default=False, help_text='User defaults to screenshot view.'),
         ),
         migrations.AddField(
             model_name='link',
-            name='screenshot_view',
+            name='default_to_screenshot_view',
             field=models.BooleanField(default=False, help_text='User defaults to screenshot view.'),
         ),
     ]

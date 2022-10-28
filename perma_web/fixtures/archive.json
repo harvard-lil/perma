@@ -96,7 +96,7 @@
       "archive_timestamp": "2014-12-08T18:55:37Z",
       "notes": "Capture but no screenshot, default to screenshot view",
       "organization": 1,
-      "screenshot_view": true
+      "default_to_screenshot_view": true
     }
   },
   {
@@ -139,7 +139,7 @@
       "archive_timestamp": "2014-12-08T18:55:37Z",
       "notes": "Primary and Screenshot capture, default to screenshot view",
       "organization": 1,
-      "screenshot_view": true
+      "default_to_screenshot_view": true
     }
   },
   {
@@ -353,7 +353,7 @@
       "creation_timestamp": "2015-07-19T20:21:31Z",
       "archive_timestamp": "2015-07-20T20:21:31Z",
       "organization": 1,
-      "screenshot_view": true
+      "default_to_screenshot_view": true
     }
   },
   {
