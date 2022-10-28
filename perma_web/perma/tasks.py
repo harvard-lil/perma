@@ -1548,9 +1548,12 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
     via dedicated models, rather than using fields on the Link object. This task queues up the
     creation of IA Django model objects for our legacy individual Items.
     """
-    # all Links we think may have been uploaded to IA
+    # get all Links we think may have been uploaded to IA,
+    # and then filter out the ones we have already processed
     links = Link.objects.exclude(
         internet_archive_upload_status='not_started'
+    ).exclude(
+        internet_archive_items__span__isempty=True
     )
     if limit:
         links = links[:limit]
