@@ -1740,6 +1740,6 @@ def populate_internet_archive_file_status(pks):
     needed a 'status' field. This one-time task populates that field for the existing
     items in a database-friendly way.
     """
-    count_updated = InternetArchiveFile.objects.filter(pk__in=pks).update(status='confirmed_present')
+    count_updated = InternetArchiveFile.objects.filter(pk__in=pks, status__isnull=True).update(status='confirmed_present')
     logger.info(f"Updated status for {count_updated} InternetArchiveFiles ({pks[0]} to {pks[-1]}).")
 
