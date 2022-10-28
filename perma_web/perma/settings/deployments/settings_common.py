@@ -447,6 +447,7 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.queue_backfill_of_daily_internet_archive_objects': {'queue': 'ia'},
     'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia'},
     'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia'},
+    'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia'},
 }
 
 # internet archive stuff
