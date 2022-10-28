@@ -2015,8 +2015,10 @@ class InternetArchiveItem(models.Model):
     # (From documentation archived at https://perma.cc/AVZ8-FD57)
     identifier = models.CharField(max_length=100, null=False, blank=False, primary_key=True, editable=False)
 
-    # The best available field reporting when an Item was added to Internet Archive
+    # The best available field reporting when an Item was added to Internet Archive.
     # (From documentation archived at https://perma.cc/U88M-6R5C)
+    # If the item has been "darked" by IA (e.g. removed after a copyright or content complaint),
+    # this field is no longer returned by the API, so may be unrecoverable.
     added_date = models.DateTimeField(null=True, blank=True)
 
     # InternetArchiveItem.objects.filter(span__isempty=True) were created for a single Perma Link
@@ -2024,6 +2026,7 @@ class InternetArchiveItem(models.Model):
     # (https://docs.djangoproject.com/en/4.1/ref/contrib/postgres/fields/#isempty)
     span = DateTimeRangeField(default=get_empty_datetime_range, help_text="The lower bound is included, and the upper bound excluded. That is, bounds='[)'")
 
+    cached_is_dark = models.BooleanField(default=False, db_index=True)
     cached_file_count = models.IntegerField(null=True, blank=True, default=None)
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
