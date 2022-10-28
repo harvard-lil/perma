@@ -136,8 +136,7 @@ class CommonViewsTestCase(PermaTestCase):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'M1L0-87DB'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), '')
 
-
-   # This tests that where there is BOTH a primary and screenshot but no default to screenshot, there's no redirect to add the "type=standard" query
+    # This tests that where there is BOTH a primary and screenshot but no default to screenshot, there's no redirect to add the "type=standard" query
     def test_full_archive_default_standard_view(self):
         link = Link.objects.get(guid='UU32-XY8I')
         self.assertFalse(link.screenshot_view)
