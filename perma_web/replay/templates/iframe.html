@@ -62,24 +62,34 @@
       font-weight: 300;
       color: #333333;
       padding: 1rem;
+      /* Prevent flashing: */
+      opacity: 0;
+      animation: no-playback-fade-in 0.5s ease-in-out;
+      animation-iteration-count: 1;
+      animation-fill-mode: forwards;
+    }
+
+    @keyframes no-playback-fade-in {
+      0%    { opacity: 0; }
+      20%   { opacity: 0; }
+      80%   { opacity: 0.5; }
+      100%  { opacity: 1; }
     }
 
     #no-playback div {
       text-align: center;
     }
 
-    #no-playback p {
+    #no-playback h2 {
       font-size: clamp(20px, 3vmax, 36px);
       margin-top: 0px;
-      margin-bottom: 1em;
-    }
-
-    #no-playback p:first-of-type {
       margin-bottom: 0.35em;
+      font-weight: 100;
     }
 
-    #no-playback p.small {
+    #no-playback p {
       font-size: clamp(14px, 1.25vmax, 18px);
+      line-height: 1.5em;
       color: gray;
       margin-bottom: 1.5em;
     }
@@ -91,11 +101,25 @@
 </head>
 <body>
 
+  <!-- Will display unless playback logic can kick in -->
+  <main id="no-playback">
+    <div>
+      <h2>Incompatible browser</h2>
+      <p>
+        Please update your browser to visit this Perma Link.<br>
+        Perma.cc has been tested with the latest version of:<br>
+        Google Chrome, Mozilla Firefox, Apple Safari and Microsoft Edge.
+      </p>    
+      <a class="button" href="javascript:history.back()">Go back</a>
+    <div>
+  </main>
+
   <script type="module" src="{% static "vendors/replay-web-page/ui.js" %}"></script>
   <script type="module">
     //
     // Module-level constants
     //
+    const noPlayback = document.querySelector("#no-playback");
     const guid = "{{ guid }}";
     const warcSourceAllowedHost = "{{ warc_source_allowed_host }}";
     const warcSource = window.name.startsWith("http") ? new URL(window.name) : null;
@@ -114,6 +138,9 @@
     // If we are in an iframe: offer a replay
     //
     if (guid && window.location != window.parent.location) {
+
+      // Delete `#no-playback` message
+      noPlayback.remove();
 
       // Standard mode: inject and start player.
       if (ondemand !== true) {
@@ -134,19 +161,13 @@
     } 
     //
     // Otherwise :
-    // - Display a simple no-playback page
+    // - Replace `#no-playback` copy to indicate no Perma Link was found
     // - Clean up after any earlier attempted playback (remove once `Clear-Site-Data` is supported).
     //
     else {
-      const content = document.createElement('div');
-      content.id = 'no-playback'
-      content.innerHTML = `
-      <div>
-        <p>No Perma Link to replay.</p>
-        <p class="small">Tip: visiting this page clears your playback cache.</p>
-        <a class="button" href="javascript:history.back()">Go back</a>
-      </div>`;
-      document.body.appendChild(content);
+      noPlayback.querySelector("h2").innerText = `No Perma Link to replay.`;
+      noPlayback.querySelector("p").innerHTML = ``;
+      noPlayback.querySelector("p").innerText = `Tip: visiting this page clears your playback cache`;
 
       await unregisterServiceWorkers();
       await clearStorage();
