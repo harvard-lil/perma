@@ -1463,7 +1463,7 @@ def update_stats():
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         cache_playback_status.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links to have their playback status cached.")
@@ -1522,7 +1522,7 @@ def populate_warc_size_fields(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         populate_warc_size.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for populating warc_size.")
@@ -1548,14 +1548,17 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
     via dedicated models, rather than using fields on the Link object. This task queues up the
     creation of IA Django model objects for our legacy individual Items.
     """
-    # all Links we think may have been uploaded to IA
+    # get all Links we think may have been uploaded to IA,
+    # and then filter out the ones we have already processed
     links = Link.objects.exclude(
         internet_archive_upload_status='not_started'
+    ).exclude(
+        internet_archive_items__span__isempty=True
     )
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         backfill_individual_link_internet_archive_objects.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued the creation of {queued} individual link IA items.")
@@ -1565,8 +1568,7 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
 def backfill_individual_link_internet_archive_objects(link_guid):
     """
     If an Internet Archive "Item" was produced for the specified Link,
-    create an InternetArchiveItem object. If that Item contains a warc,
-    create a corresponding InternetArchiveFile object.
+    create an InternetArchiveItem object and InternetArchiveFile object.
     """
     identifier = InternetArchiveItem.INDIVIDUAL_LINK_IDENTIFIER.format(
         prefix=settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX,
@@ -1578,26 +1580,29 @@ def backfill_individual_link_internet_archive_objects(link_guid):
     if not ia_item.exists:
         logger.error(f"No IA item exists for {link_guid}, but our database suggests that one should.")
         return
-    perma_item, created = InternetArchiveItem.objects.get_or_create(
-        identifier=identifier,
-        defaults={
+    if ia_item.is_dark:
+        metadata = {
+            'cached_is_dark': True,
+        }
+    else:
+        metadata = {
             'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
             'cached_file_count': ia_item.files_count,
             'cached_title': ia_item.metadata['title'],
             'cached_description': ia_item.metadata.get('description')
         }
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        defaults=metadata
     )
     logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
 
-    # Create an InternetArchiveFile object if the Item contains a warc
+    # Create an InternetArchiveFile object with the appropriate status
     filename = InternetArchiveFile.WARC_FILENAME.format(guid=link_guid)
     ia_warc = ia_item.get_file(filename)
-    if not ia_warc.exists:
-        return
-    _, created = InternetArchiveFile.objects.get_or_create(
-        link_id=link_guid,
-        item=perma_item,
-        defaults={
+    if ia_warc.exists:
+        metadata = {
+            'status': 'confirmed_present',
             'cached_title': ia_warc.metadata.get('title'),
             'cached_comments':ia_warc.metadata.get('comments'),
             'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
@@ -1605,6 +1610,14 @@ def backfill_individual_link_internet_archive_objects(link_guid):
             'cached_format': ia_warc.metadata['format'],
             'cached_size': ia_warc.size
         }
+    else:
+        metadata = {
+            'status': 'confirmed_absent',
+        }
+    _, created = InternetArchiveFile.objects.get_or_create(
+        link_id=link_guid,
+        item=perma_item,
+        defaults=metadata
     )
     logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
 
@@ -1695,3 +1708,38 @@ def backfill_daily_internet_archive_objects(date_string):
             }
         )
         logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {link_id} and {identifier}.")
+
+
+def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
+    """
+    A generic queuing task. Chunks the queryset by batch_size,
+    and queues up the specified celery task for each chunk, passing in a
+    list of the objects' primary keys and any other supplied kwargs.
+    """
+    query = query.values_list('pk', flat=True)
+
+    batches_queued = 0
+    pks = []
+    for pk in query.iterator():
+        pks.append(pk)
+        if len(pks) >= batch_size:
+            task.delay(pks, **kwargs)
+            batches_queued = batches_queued + 1
+            pks = []
+    remainder = len(pks)
+    if remainder:
+        task.delay(pks, **kwargs)
+
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a remainder of size ' + str(remainder) if remainder else ''}.")
+
+
+@shared_task(acks_late=True)
+def populate_internet_archive_file_status(pks):
+    """
+    We created a large number of InternetArchiveFile objects before realizing we
+    needed a 'status' field. This one-time task populates that field for the existing
+    items in a database-friendly way.
+    """
+    count_updated = InternetArchiveFile.objects.filter(pk__in=pks, status__isnull=True).update(status='confirmed_present')
+    logger.info(f"Updated status for {count_updated} InternetArchiveFiles ({pks[0]} to {pks[-1]}).")
+

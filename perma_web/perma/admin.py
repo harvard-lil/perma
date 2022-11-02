@@ -502,19 +502,19 @@ class LinkBatchAdmin(admin.ModelAdmin):
 
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
-    list_filter = [IAIdentifierFilter]
-    readonly_fields = ['identifier', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+    list_display = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+    list_filter = [IAIdentifierFilter, 'cached_is_dark']
+    readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
 
 
 class InternetArchiveFileAdmin(admin.ModelAdmin):
-    list_display = ['id', 'item_link', 'permalink_link', 'cached_file_size', 'cached_submitted_url', 'cached_format', ]
-    list_filter = [IAItemFilter, IALinkIDFilter]
+    list_display = ['id', 'item_link', 'permalink_link', 'status', 'cached_file_size', 'cached_submitted_url', 'cached_format', ]
+    list_filter = [IAItemFilter, IALinkIDFilter, 'status']
     fields = readonly_fields = [
-        'link', 'item', 'cached_file_size', 'cached_title', 'cached_comments',
+        'link', 'item', 'status', 'cached_file_size', 'cached_title', 'cached_comments',
         'cached_external_identifier', 'cached_external_identifier_match_date', 'cached_format',
         'cached_submitted_url', 'cached_perma_url'
     ]

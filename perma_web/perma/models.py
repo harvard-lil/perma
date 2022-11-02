@@ -32,6 +32,7 @@ from django.db import models, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
+from django.contrib.postgres.indexes import GistIndex
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
@@ -2031,8 +2032,10 @@ class InternetArchiveItem(models.Model):
     # (From documentation archived at https://perma.cc/AVZ8-FD57)
     identifier = models.CharField(max_length=100, null=False, blank=False, primary_key=True, editable=False)
 
-    # The best available field reporting when an Item was added to Internet Archive
+    # The best available field reporting when an Item was added to Internet Archive.
     # (From documentation archived at https://perma.cc/U88M-6R5C)
+    # If the item has been "darked" by IA (e.g. removed after a copyright or content complaint),
+    # this field is no longer returned by the API, so may be unrecoverable.
     added_date = models.DateTimeField(null=True, blank=True)
 
     # InternetArchiveItem.objects.filter(span__isempty=True) were created for a single Perma Link
@@ -2040,6 +2043,7 @@ class InternetArchiveItem(models.Model):
     # (https://docs.djangoproject.com/en/4.1/ref/contrib/postgres/fields/#isempty)
     span = DateTimeRangeField(default=get_empty_datetime_range, help_text="The lower bound is included, and the upper bound excluded. That is, bounds='[)'")
 
+    cached_is_dark = models.BooleanField(default=False, db_index=True)
     cached_file_count = models.IntegerField(null=True, blank=True, default=None)
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
@@ -2050,6 +2054,13 @@ class InternetArchiveItem(models.Model):
 
     class Meta:
         verbose_name = "Internet Archive Item"
+
+        indexes = [
+            # We would like an index like the below, but expressions aren't supported in this version of Django.
+            # We are adding it via a SQL migration instead. See 0007_auto_20221024_2049.py
+            # models.Index(IsEmpty('span'), 'identifier', name='empty_span_idx'),
+            GistIndex(fields=['span']),
+        ]
 
     def __str__(self):
         return f"IA Item {self.identifier}"
@@ -2069,8 +2080,16 @@ class InternetArchiveFile(models.Model):
     Items may contain IA-produced, derivative files as well; for instance, cdx files.
     We do not store objects referencing those derivative files, only original files that we ourselves upload.
     """
-    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING)
-    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE)
+    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
+    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
+
+    status = models.CharField(
+        max_length=19,
+        null=True,
+        blank=True,
+        choices=((s, s) for s in ('upload_attempted', 'confirmed_present', 'deletion_attempted', 'confirmed_absent')),
+        db_index=True
+    )
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
