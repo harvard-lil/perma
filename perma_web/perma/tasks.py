@@ -1548,13 +1548,46 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
     via dedicated models, rather than using fields on the Link object. This task queues up the
     creation of IA Django model objects for our legacy individual Items.
     """
-    # get all Links we think may have been uploaded to IA,
-    # and then filter out the ones we have already processed
-    links = Link.objects.exclude(
-        internet_archive_upload_status='not_started'
-    ).exclude(
-        internet_archive_items__span__isempty=True
-    )
+    # Get all Links we think may have been uploaded to IA,
+    # and then filter out the ones we have already processed.
+    # Do so with our own SQL, because that generated from the
+    # intuitive ORM query proved to be impossibly slow.
+    # links = Link.objects.all_with_deleted(
+    #     internet_archive_upload_status='not_started'
+    # ).exclude(
+    #     internet_archive_items__span__isempty=True
+    # )
+    from django.db.models.expressions import RawSQL  # noqa
+
+    sql = '''
+        SELECT
+          "perma_link"."guid"
+        FROM
+          perma_link
+          LEFT JOIN (
+            SELECT
+              "perma_link"."guid"
+            FROM
+              "perma_link"
+              INNER JOIN "perma_internetarchivefile" ON (
+                "perma_link"."guid" = "perma_internetarchivefile"."link_id"
+              )
+              INNER JOIN "perma_internetarchiveitem" ON (
+                "perma_internetarchivefile"."item_id" = "perma_internetarchiveitem"."identifier"
+              )
+            WHERE
+              isempty(
+                "perma_internetarchiveitem"."span"
+              ) = True
+          ) AS links_with_individual_items ON perma_link.guid = links_with_individual_items.guid
+        WHERE
+          links_with_individual_items.guid IS NULL
+          AND NOT (
+            "perma_link"."internet_archive_upload_status" = 'not_started'
+      )
+    '''
+
+    links = Link.objects.filter(guid__in=RawSQL(sql, []))
     if limit:
         links = links[:limit]
     queued = 0
