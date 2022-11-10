@@ -1930,7 +1930,6 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
             # modify_xml tasks can take some time to complete;
             # the task for this link appears not to have finished yet.
             # we need to check again later.
-            print(previous_attempts)
             retry = (
                 not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
                 not previous_attempts or
