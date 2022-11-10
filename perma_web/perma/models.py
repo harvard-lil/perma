@@ -2126,7 +2126,7 @@ class InternetArchiveFile(models.Model):
     def standard_metadata_for_link(cls, link):
         url = remove_control_characters(link.submitted_url)
         return {
-            "title": f"{link.guid}: {truncatechars(link.submitted_title, 50)}",
+            "title": re.sub(' +', ' ', f"{link.guid}: {truncatechars(link.submitted_title, 50)}"),
             "comments": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
             "external-identifier": f"urn:X-perma:{link.guid}",
             "external-identifier-match-date": f"X-perma:{link.creation_timestamp.isoformat()}",
