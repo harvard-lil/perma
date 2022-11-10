@@ -1840,7 +1840,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
             retry = (
                 not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
                 not previous_attempts or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[file_id] + 1)
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[str(file_id)] + 1)
             )
             if retry:
                 file_ids_to_retry.append(file_id)
