@@ -452,7 +452,7 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia'},
 }
 
-# internet archive stuff
+# Internet Archive stuff
 INTERNET_ARCHIVE_MAX_UPLOAD_SIZE = 1024 * 1024 * 100
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
 INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
@@ -462,6 +462,8 @@ INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
 # Rate limiting
 INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 20
+INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT = None
+INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 12
 
 
 #
