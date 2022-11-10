@@ -1838,9 +1838,9 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
         if s3_is_overloaded or rate_limit_approaching:
             logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
             retry = (
-                not settings.INTERNET_RETRY_FOR_RATELIMITING_LIMIT or
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
                 not previous_attempts or
-                (settings.INTERNET_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[file_id] + 1)
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[file_id] + 1)
             )
             if retry:
                 file_ids_to_retry.append(file_id)
@@ -1867,9 +1867,9 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
         except (requests.JSONDecodeError, AssertionError):
             logger.exception(f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}):")
             retry = (
-                not settings.INTERNET_RETRY_FOR_ERROR_LIMIT or
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
                 not previous_attempts or
-                (settings.INTERNET_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
             )
             if retry:
                 file_ids_to_retry.append(file_id)
@@ -1932,9 +1932,9 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
             # we need to check again later.
             print(previous_attempts)
             retry = (
-                not settings.INTERNET_RETRY_FOR_ERROR_LIMIT or
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
                 not previous_attempts or
-                (settings.INTERNET_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
             )
             if retry:
                 file_ids_to_check_again.append(file_id)
