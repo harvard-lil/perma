@@ -33,6 +33,8 @@ from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex
+from django.template.defaultfilters import truncatechars
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
@@ -47,7 +49,8 @@ from .utils import (Sec1TLSAdapter, tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset, user_agent_for_domain)
+    write_resource_record_from_asset, user_agent_for_domain,
+    protocol, remove_control_characters)
 
 
 logger = logging.getLogger(__name__)
@@ -2104,6 +2107,8 @@ class InternetArchiveFile(models.Model):
     cached_submitted_url = models.TextField(null=True, blank=True, default=None)
     cached_perma_url = models.TextField(null=True, blank=True, default=None)
 
+    tracker = FieldTracker()
+
     class Meta:
         verbose_name = "Internet Archive File"
         unique_together = (("link", "item"),)
@@ -2116,6 +2121,32 @@ class InternetArchiveFile(models.Model):
     @classmethod
     def guid_from_filename(cls, filename):
         return filename.split('.')[0]
+
+    @classmethod
+    def standard_metadata_for_link(cls, link):
+        url = remove_control_characters(link.submitted_url)
+        return {
+            "title": f"{link.guid}: {truncatechars(link.submitted_title, 50)}",
+            "comments": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
+            "external-identifier": f"urn:X-perma:{link.guid}",
+            "external-identifier-match-date": f"X-perma:{link.creation_timestamp.isoformat()}",
+            "format": "Web ARChive GZ",
+            "submitted_url": url,
+            "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
+        }
+
+    def update_from_ia_metadata(self, metadata):
+        """
+        Intentionally does not call save(), so this method can be used with bulk database operations.
+        """
+        self.cached_title = metadata['title']
+        self.cached_comments = metadata['comments']
+        self.cached_external_identifier = metadata['external-identifier']
+        self.cached_external_identifier_match_date = metadata['external-identifier-match-date']
+        self.cached_format = metadata['format']
+        self.cached_submitted_url = metadata['submitted_url']
+        self.cached_perma_url = metadata['perma_url']
+
 
 
 #########################

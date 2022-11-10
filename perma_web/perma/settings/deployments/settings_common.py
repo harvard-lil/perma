@@ -448,6 +448,8 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia'},
     'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia'},
     'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia'},
+    'perma.tasks.add_metadata_to_existing_daily_item_files': {'queue': 'ia'},
+    'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia'},
 }
 
 # internet archive stuff
@@ -458,6 +460,9 @@ INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX = 'daily_perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
+# Rate limiting
+INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 20
+
 
 #
 # Hosts

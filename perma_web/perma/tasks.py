@@ -1776,3 +1776,160 @@ def populate_internet_archive_file_status(pks):
     count_updated = InternetArchiveFile.objects.filter(pk__in=pks, status__isnull=True).update(status='confirmed_present')
     logger.info(f"Updated status for {count_updated} InternetArchiveFiles ({pks[0]} to {pks[-1]}).")
 
+
+@shared_task(acks_late=True)
+def add_metadata_to_existing_daily_item_files(file_ids):
+    """
+    "Daily" Internet Archive Items were created on Perma.cc's behalf by the Internet Archive
+    team, who used their own scripts to produce them from the "individual" Items we created
+    ourselves, over the years. The daily Items do not presently have any metadata about the
+    Perma archives they contain: they have only the creation date (not timestamp), GUID, and
+    warc file.
+
+    This task adds details like the target URL and the capture timestamp to the Item's file-level
+    metadata, which is a stored in a generated "<identifier>_files.xml" file associated with the Item.
+    See https://archive.org/developers/md-write.html#targets
+
+    The archive.org API supports "multi-target writes" that would let us add file-level metadata
+    for multiple Perma Links / warc files at a time. But unfortunately, the python package only
+    exposes an interface for "single-target" writes. Rather than attempt to implement a multi-target
+    version ourselves, we issue a separate modify_metadata IA task for each File associated with
+    an Item, attempting to respect IA's rate limiting.
+
+    Sample invocation:
+    ```
+    files = InternetArchiveFile.objects.filter(
+        item__span__isempty=False,
+        status='confirmed_present',
+        cached_submitted_url__isnull=True
+    )
+    queue_batched_tasks(add_metadata_to_existing_daily_item_files, files, batch_size=100)
+    ```
+    """
+    modified_ids = []
+    scheduled_tasks = 0
+    file_ids_to_retry = []
+
+    config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    ia_session = internetarchive.get_session(config=config)
+
+    for file_id in file_ids:
+
+        perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+        perma_item = perma_file.item
+        ia_item = ia_session.get_item(perma_item.identifier)
+        link = perma_file.link
+
+        # make sure we aren't exceeding rate limits
+        s3_is_overloaded = ia_session.s3_is_overloaded(
+            identifier=ia_item.identifier,
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
+        )
+        rate_limit_info = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
+        rate_limit_info_retrieved = rate_limit_info and rate_limit_info.get('success', False)
+        if rate_limit_info_retrieved:
+            limit = rate_limit_info.get('value', {}).get('tasks_limit', 0)
+            in_flight = rate_limit_info.get('value', {}).get('tasks_inflight', 0)
+            rate_limit_approaching = (
+                limit - in_flight - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+            )
+        else:
+            rate_limit_approaching = True
+        if s3_is_overloaded or rate_limit_approaching:
+            logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+            file_ids_to_retry.append(file_id)
+            continue
+
+        # schedule an IA modify_xml task that will add this Perma Link's metadata
+        # to this IA item's <identifier>_files.xml
+        new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+        response = ia_item.modify_metadata(
+            new_metadata,
+            target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
+        )
+        if response.status_code == 400 and "no changes" in response.text:
+            logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+            modified_ids.append(file_id)
+            continue
+        try:
+            assert response.ok
+            assert response.json().get('success')
+        except (requests.JSONDecodeError, AssertionError):
+            logger.exception(f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}):")
+            file_ids_to_retry.append(file_id)
+            continue
+
+        modified_ids.append(file_id)
+        scheduled_tasks = scheduled_tasks + 1
+
+    # Queue our celery tasks that check to see when modify_xml has completed and the file-level metadata has been successfully added
+    if modified_ids:
+        confirm_added_metadata_to_existing_daily_item_files.delay(modified_ids)
+        logger.info(f"Scheduled modify_xml tasks for {scheduled_tasks} InternetArchiveFiles; {len(modified_ids) - scheduled_tasks} didn't require modification.")
+
+    # Re-queue any guids we skipped or that failed
+    if file_ids_to_retry:
+        add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry)
+        logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
+
+
+@shared_task(acks_late=True)
+def confirm_added_metadata_to_existing_daily_item_files(file_ids):
+    """
+    This task is enqueued by add_metadata_to_existing_daily_item_files, when it requests an update to
+    an IA Item's file-level metadata. This tasks checks to see if the requested updated has completed,
+    and if not, re-queues itself.
+
+    If something goes truly haywire (a scheduled update NEVER completes, or never completes as expected),
+    this task could re-queue itself perpetually, but realistically it's hard to imagine that happening.
+    If we notice a problem, we should take note of the file id(s) in question, clear the IA celery queue,
+    and investigate.
+    """
+
+    updated_files = []
+    file_ids_to_check_again = []
+
+    for file_id in file_ids:
+
+        perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+        perma_item = perma_file.item
+        link = perma_file.link
+
+        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+
+        expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+        try:
+            assert expected_metadata.items() <= ia_file.metadata.items()
+        except AssertionError:
+            # modify_xml tasks can take some time to complete;
+            # the task for this link appears not to have finished yet.
+            # we need to check again later.
+            file_ids_to_check_again.append(file_id)
+            continue
+
+        perma_file = perma_item.internet_archive_files.get(link=link)
+        perma_file.update_from_ia_metadata(ia_file.metadata)
+        if perma_file.tracker.changed():
+            updated_files.append(perma_file)
+        else:
+            logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+
+    if updated_files:
+        InternetArchiveFile.objects.bulk_update(updated_files, [
+            'cached_title',
+            'cached_comments',
+            'cached_external_identifier',
+            'cached_external_identifier_match_date',
+            'cached_format',
+            'cached_submitted_url',
+            'cached_perma_url'
+        ])
+        logger.info(f"Updated metadata of { len(updated_files) } InternetArchiveFiles.")
+
+    if file_ids_to_check_again:
+        confirm_added_metadata_to_existing_daily_item_files.delay(file_ids_to_check_again)
+        logger.info(f"Re-queued 'confirm_added_metadata_to_existing_daily_item_files' for { len(file_ids_to_check_again) } InternetArchiveFiles.")
+
