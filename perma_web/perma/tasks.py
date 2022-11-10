@@ -1778,7 +1778,7 @@ def populate_internet_archive_file_status(pks):
 
 
 @shared_task(acks_late=True)
-def add_metadata_to_existing_daily_item_files(file_ids):
+def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     """
     "Daily" Internet Archive Items were created on Perma.cc's behalf by the Internet Archive
     team, who used their own scripts to produce them from the "individual" Items we created
@@ -1837,7 +1837,15 @@ def add_metadata_to_existing_daily_item_files(file_ids):
             rate_limit_approaching = True
         if s3_is_overloaded or rate_limit_approaching:
             logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
-            file_ids_to_retry.append(file_id)
+            retry = (
+                not settings.INTERNET_RETRY_FOR_RATELIMITING_LIMIT or
+                not previous_attempts or
+                (settings.INTERNET_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[file_id] + 1)
+            )
+            if retry:
+                file_ids_to_retry.append(file_id)
+            else:
+                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached.")
             continue
 
         # schedule an IA modify_xml task that will add this Perma Link's metadata
@@ -1854,11 +1862,19 @@ def add_metadata_to_existing_daily_item_files(file_ids):
             modified_ids.append(file_id)
             continue
         try:
-            assert response.ok
-            assert response.json().get('success')
+            assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
+            assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
         except (requests.JSONDecodeError, AssertionError):
             logger.exception(f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}):")
-            file_ids_to_retry.append(file_id)
+            retry = (
+                not settings.INTERNET_RETRY_FOR_ERROR_LIMIT or
+                not previous_attempts or
+                (settings.INTERNET_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+            )
+            if retry:
+                file_ids_to_retry.append(file_id)
+            else:
+                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
             continue
 
         modified_ids.append(file_id)
@@ -1871,12 +1887,19 @@ def add_metadata_to_existing_daily_item_files(file_ids):
 
     # Re-queue any guids we skipped or that failed
     if file_ids_to_retry:
-        add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry)
+        attempts_dict = {
+            str(file_id): 1 for file_id in file_ids_to_retry
+        }
+        if previous_attempts:
+            for file_id in attempts_dict:
+                attempts_dict[str(file_id)] = attempts_dict[str(file_id)] + previous_attempts[str(file_id)]
+
+        add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry, attempts_dict)
         logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
 
 
-@shared_task(acks_late=True)
-def confirm_added_metadata_to_existing_daily_item_files(file_ids):
+@shared_task(acks_late=True, previous_attempts=None)
+def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     """
     This task is enqueued by add_metadata_to_existing_daily_item_files, when it requests an update to
     an IA Item's file-level metadata. This tasks checks to see if the requested updated has completed,
@@ -1902,12 +1925,21 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids):
 
         expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
         try:
-            assert expected_metadata.items() <= ia_file.metadata.items()
+            assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
         except AssertionError:
             # modify_xml tasks can take some time to complete;
             # the task for this link appears not to have finished yet.
             # we need to check again later.
-            file_ids_to_check_again.append(file_id)
+            print(previous_attempts)
+            retry = (
+                not settings.INTERNET_RETRY_FOR_ERROR_LIMIT or
+                not previous_attempts or
+                (settings.INTERNET_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+            )
+            if retry:
+                file_ids_to_check_again.append(file_id)
+            else:
+                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
             continue
 
         perma_file = perma_item.internet_archive_files.get(link=link)
@@ -1930,6 +1962,12 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids):
         logger.info(f"Updated metadata of { len(updated_files) } InternetArchiveFiles.")
 
     if file_ids_to_check_again:
-        confirm_added_metadata_to_existing_daily_item_files.delay(file_ids_to_check_again)
-        logger.info(f"Re-queued 'confirm_added_metadata_to_existing_daily_item_files' for { len(file_ids_to_check_again) } InternetArchiveFiles.")
+        attempts_dict = {
+            str(file_id): 1 for file_id in file_ids_to_check_again
+        }
+        if previous_attempts:
+            for file_id in attempts_dict:
+                attempts_dict[str(file_id)] = attempts_dict[str(file_id)] + previous_attempts[str(file_id)]
 
+        confirm_added_metadata_to_existing_daily_item_files.delay(file_ids_to_check_again, attempts_dict)
+        logger.info(f"Re-queued 'confirm_added_metadata_to_existing_daily_item_files' for { len(file_ids_to_check_again) } InternetArchiveFiles.")
