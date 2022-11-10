@@ -1898,7 +1898,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
         logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
 
 
-@shared_task(acks_late=True, previous_attempts=None)
+@shared_task(acks_late=True)
 def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     """
     This task is enqueued by add_metadata_to_existing_daily_item_files, when it requests an update to
