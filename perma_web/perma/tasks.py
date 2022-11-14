@@ -1914,39 +1914,62 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
     updated_files = []
     file_ids_to_check_again = []
 
-    for file_id in file_ids:
+    try:
 
-        perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
-        perma_item = perma_file.item
-        link = perma_file.link
+        # cache any ia_items we load to avoid redundant API requests
+        ia_items = {}
+        def get_ia_item(identifier):
+            ia_item = ia_items.get(identifier)
+            if not ia_item:
+                ia_item = internetarchive.get_item(identifier)
+                ia_items[identifier] = ia_item
+            return ia_item
 
-        ia_item = internetarchive.get_item(perma_item.identifier)
-        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+        for file_id in file_ids:
 
-        expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-        try:
-            assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
-        except AssertionError:
-            # modify_xml tasks can take some time to complete;
-            # the task for this link appears not to have finished yet.
-            # we need to check again later.
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-                not previous_attempts or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
-            )
-            if retry:
+            perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+            perma_item = perma_file.item
+            link = perma_file.link
+
+            try:
+                ia_item = get_ia_item(perma_item.identifier)
+                ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+            except requests.exceptions.ConnectionError:
+                # Sometimes, requests to retrieve the metadata of an IA Item time out.
+                # Retry later, without counting this as a failed attempt
                 file_ids_to_check_again.append(file_id)
-            else:
-                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
-            continue
+                continue
 
-        perma_file = perma_item.internet_archive_files.get(link=link)
-        perma_file.update_from_ia_metadata(ia_file.metadata)
-        if perma_file.tracker.changed():
-            updated_files.append(perma_file)
-        else:
-            logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+            expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+            try:
+                assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
+            except AssertionError:
+                # IA's modify_xml tasks can take some time to complete;
+                # the task for this link appears not to have finished yet.
+                # We need to check again later.
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_check_again.append(file_id)
+                else:
+                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
+                continue
+
+            perma_file = perma_item.internet_archive_files.get(link=link)
+            perma_file.update_from_ia_metadata(ia_file.metadata)
+            if perma_file.tracker.changed():
+                updated_files.append(perma_file)
+            else:
+                logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+
+    except SoftTimeLimitExceeded:
+        not_processed_yet = set(file_ids) - set(file.id for file in updated_files) - set(file_ids_to_check_again)
+        for file_id in not_processed_yet:
+            # add these to the list of file_ids to retry, without counting this as a failed attempt
+            file_ids_to_check_again.append(file_id)
 
     if updated_files:
         InternetArchiveFile.objects.bulk_update(updated_files, [
