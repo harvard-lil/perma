@@ -1813,72 +1813,98 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
     ia_session = internetarchive.get_session(config=config)
 
-    for file_id in file_ids:
+    # cache any ia_items we load to avoid redundant API requests
+    ia_items = {}
+    def get_ia_item(ia_session, identifier):
+        ia_item = ia_items.get(identifier)
+        if not ia_item:
+            ia_item = ia_session.get_item(identifier)
+            ia_items[identifier] = ia_item
+        return ia_item
 
-        perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
-        perma_item = perma_file.item
-        ia_item = ia_session.get_item(perma_item.identifier)
-        link = perma_file.link
+    try:
+        for file_id in file_ids:
 
-        # make sure we aren't exceeding rate limits
-        s3_is_overloaded = ia_session.s3_is_overloaded(
-            identifier=ia_item.identifier,
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
-        )
-        rate_limit_info = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
-        rate_limit_info_retrieved = rate_limit_info and rate_limit_info.get('success', False)
-        if rate_limit_info_retrieved:
-            limit = rate_limit_info.get('value', {}).get('tasks_limit', 0)
-            in_flight = rate_limit_info.get('value', {}).get('tasks_inflight', 0)
-            rate_limit_approaching = (
-                limit - in_flight - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
-            )
-        else:
-            rate_limit_approaching = True
-        if s3_is_overloaded or rate_limit_approaching:
-            logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
-                not previous_attempts or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[str(file_id)] + 1)
-            )
-            if retry:
+            perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+            perma_item = perma_file.item
+            link = perma_file.link
+            try:
+                ia_item = get_ia_item(ia_session, perma_item.identifier)
+            except requests.exceptions.ConnectionError:
+                # Sometimes, requests to retrieve the metadata of an IA Item time out.
+                # Retry later, without counting this as a failed attempt
                 file_ids_to_retry.append(file_id)
-            else:
-                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached.")
-            continue
+                continue
 
-        # schedule an IA modify_xml task that will add this Perma Link's metadata
-        # to this IA item's <identifier>_files.xml
-        new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-        response = ia_item.modify_metadata(
-            new_metadata,
-            target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
-            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
-        )
-        if response.status_code == 400 and "no changes" in response.text:
-            logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+            # make sure we aren't exceeding rate limits
+            s3_is_overloaded = ia_session.s3_is_overloaded(
+                identifier=ia_item.identifier,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
+            )
+            rate_limit_info = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
+            rate_limit_info_retrieved = rate_limit_info and rate_limit_info.get('success', False)
+            if rate_limit_info_retrieved:
+                limit = rate_limit_info.get('value', {}).get('tasks_limit', 0)
+                in_flight = rate_limit_info.get('value', {}).get('tasks_inflight', 0)
+                rate_limit_approaching = (
+                    limit - in_flight - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+                )
+            else:
+                rate_limit_approaching = True
+            if s3_is_overloaded or rate_limit_approaching:
+                logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_retry.append(file_id)
+                else:
+                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached.")
+                continue
+
+            # schedule an IA modify_xml task that will add this Perma Link's metadata
+            # to this IA item's <identifier>_files.xml
+            new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+            response = ia_item.modify_metadata(
+                new_metadata,
+                target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
+            )
+            if response.status_code == 400 and "no changes" in response.text:
+                logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+                modified_ids.append(file_id)
+                continue
+            try:
+                assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
+                assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
+            except (requests.JSONDecodeError, AssertionError) as e:
+                msg = f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid})"
+                if "Couldn't acquire write lock" in str(e):
+                    logger.warning(msg)
+                else:
+                    logger.exception(msg + ":")
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_retry.append(file_id)
+                else:
+                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
+                continue
+
             modified_ids.append(file_id)
-            continue
-        try:
-            assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
-            assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
-        except (requests.JSONDecodeError, AssertionError):
-            logger.exception(f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}):")
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-                not previous_attempts or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
-            )
-            if retry:
-                file_ids_to_retry.append(file_id)
-            else:
-                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
-            continue
+            scheduled_tasks = scheduled_tasks + 1
 
-        modified_ids.append(file_id)
-        scheduled_tasks = scheduled_tasks + 1
+    except SoftTimeLimitExceeded:
+        not_processed_yet = set(file_ids) - set(modified_ids) - set(file_ids_to_retry)
+        for file_id in not_processed_yet:
+            # add these to the list of file_ids to retry, without counting this as a failed attempt
+            file_ids_to_retry.append(file_id)
 
     # Queue our celery tasks that check to see when modify_xml has completed and the file-level metadata has been successfully added
     if modified_ids:
@@ -1914,39 +1940,62 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
     updated_files = []
     file_ids_to_check_again = []
 
-    for file_id in file_ids:
+    try:
 
-        perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
-        perma_item = perma_file.item
-        link = perma_file.link
+        # cache any ia_items we load to avoid redundant API requests
+        ia_items = {}
+        def get_ia_item(identifier):
+            ia_item = ia_items.get(identifier)
+            if not ia_item:
+                ia_item = internetarchive.get_item(identifier)
+                ia_items[identifier] = ia_item
+            return ia_item
 
-        ia_item = internetarchive.get_item(perma_item.identifier)
-        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+        for file_id in file_ids:
 
-        expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-        try:
-            assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
-        except AssertionError:
-            # modify_xml tasks can take some time to complete;
-            # the task for this link appears not to have finished yet.
-            # we need to check again later.
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-                not previous_attempts or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
-            )
-            if retry:
+            perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+            perma_item = perma_file.item
+            link = perma_file.link
+
+            try:
+                ia_item = get_ia_item(perma_item.identifier)
+                ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+            except requests.exceptions.ConnectionError:
+                # Sometimes, requests to retrieve the metadata of an IA Item time out.
+                # Retry later, without counting this as a failed attempt
                 file_ids_to_check_again.append(file_id)
-            else:
-                logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
-            continue
+                continue
 
-        perma_file = perma_item.internet_archive_files.get(link=link)
-        perma_file.update_from_ia_metadata(ia_file.metadata)
-        if perma_file.tracker.changed():
-            updated_files.append(perma_file)
-        else:
-            logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+            expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+            try:
+                assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
+            except AssertionError:
+                # IA's modify_xml tasks can take some time to complete;
+                # the task for this link appears not to have finished yet.
+                # We need to check again later.
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_check_again.append(file_id)
+                else:
+                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
+                continue
+
+            perma_file = perma_item.internet_archive_files.get(link=link)
+            perma_file.update_from_ia_metadata(ia_file.metadata)
+            if perma_file.tracker.changed():
+                updated_files.append(perma_file)
+            else:
+                logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+
+    except SoftTimeLimitExceeded:
+        not_processed_yet = set(file_ids) - set(file.id for file in updated_files) - set(file_ids_to_check_again)
+        for file_id in not_processed_yet:
+            # add these to the list of file_ids to retry, without counting this as a failed attempt
+            file_ids_to_check_again.append(file_id)
 
     if updated_files:
         InternetArchiveFile.objects.bulk_update(updated_files, [
