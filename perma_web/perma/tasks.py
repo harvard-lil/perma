@@ -1813,12 +1813,27 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
     ia_session = internetarchive.get_session(config=config)
 
+    # cache any ia_items we load to avoid redundant API requests
+    ia_items = {}
+    def get_ia_item(ia_session, identifier):
+        ia_item = ia_items.get(identifier)
+        if not ia_item:
+            ia_item = ia_session.get_item(identifier)
+            ia_items[identifier] = ia_item
+        return ia_item
+
     for file_id in file_ids:
 
         perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
         perma_item = perma_file.item
-        ia_item = ia_session.get_item(perma_item.identifier)
         link = perma_file.link
+        try:
+            ia_item = get_ia_item(ia_session, perma_item.identifier)
+        except requests.exceptions.ConnectionError:
+            # Sometimes, requests to retrieve the metadata of an IA Item time out.
+            # Retry later, without counting this as a failed attempt
+            file_ids_to_retry.append(file_id)
+            continue
 
         # make sure we aren't exceeding rate limits
         s3_is_overloaded = ia_session.s3_is_overloaded(
