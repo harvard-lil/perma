@@ -1864,8 +1864,12 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
         try:
             assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
             assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
-        except (requests.JSONDecodeError, AssertionError):
-            logger.exception(f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}):")
+        except (requests.JSONDecodeError, AssertionError) as e:
+            msg = f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid})"
+            if "Couldn't acquire write lock" in str(e):
+                logger.warning(msg)
+            else:
+                logger.exception(msg + ":")
             retry = (
                 not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
                 not previous_attempts or
