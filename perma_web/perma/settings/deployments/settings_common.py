@@ -443,13 +443,15 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.cache_playback_status': {'queue': 'background'},
     'perma.tasks.populate_warc_size_fields': {'queue': 'background'},
     'perma.tasks.populate_warc_size': {'queue': 'background'},
-    'perma.tasks.queue_backfill_of_individual_link_internet_archive_objects': {'queue': 'ia'},
-    'perma.tasks.queue_backfill_of_daily_internet_archive_objects': {'queue': 'ia'},
-    'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia'},
-    'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia'},
-    'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia'},
+    # the 'ia' queue is for tasks that alter or may alter Internet Archive's records
     'perma.tasks.add_metadata_to_existing_daily_item_files': {'queue': 'ia'},
-    'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia'},
+    # the 'ia-readonly' queue is for internal tasks that only affect our database
+    'perma.tasks.queue_backfill_of_individual_link_internet_archive_objects': {'queue': 'ia-readonly'},
+    'perma.tasks.queue_backfill_of_daily_internet_archive_objects': {'queue': 'ia-readonly'},
+    'perma.tasks.backfill_daily_internet_archive_objects': {'queue': 'ia-readonly'},
+    'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia-readonly'},
+    'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia-readonly'},
+    'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia-readonly'},
 }
 
 # Internet Archive stuff
