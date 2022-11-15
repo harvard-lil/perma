@@ -28,6 +28,8 @@
 
         <h3 class="body-ah">Celery task data:</h3>
         <br>
+        <button type="button" id="cancel-auto-refresh">Pause Auto-Refresh</button>
+        <br><br>
         <div id="celery">Loading...</div>
       </div>
 
@@ -228,7 +230,6 @@
           <div class="col-sm-6 queue-block">
             <h4>{{ name }}</h4>
             <div class="job-block">
-              <h5>Active jobs:</h5>
               {{#each active}}
                 {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
               {{/each}}

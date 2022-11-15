@@ -1249,9 +1249,23 @@ _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___
   fillSection("celery_queues");
 }, 2000);
 
-_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-  fillSection("celery");
-}, 2000);
+function refresh_celery_jobs() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    fillSection("celery");
+  }, 2000);
+}
+
+var celery_tasks_refresh = refresh_celery_jobs();
+document.getElementById('cancel-auto-refresh').addEventListener('click', function (e) {
+  if (celery_tasks_refresh) {
+    clearInterval(celery_tasks_refresh);
+    celery_tasks_refresh = null;
+    e.target.innerText = 'Resume Auto-Refresh';
+  } else {
+    celery_tasks_refresh = refresh_celery_jobs();
+    e.target.innerText = 'Pause Auto-Refresh';
+  }
+});
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
