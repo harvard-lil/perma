@@ -204,6 +204,7 @@ def stats(request, stat_type=None):
             'total_main_queue': r.llen('celery'),
             'total_background_queue': r.llen('background'),
             'total_ia_queue': r.llen('ia'),
+            'total_ia_readonly_queue': r.llen('ia-readonly'),
         }
 
     elif stat_type == "job_queue":

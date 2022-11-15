@@ -24,6 +24,7 @@ require('./helpers/fix-links.js');  // https://github.com/harvard-lil/accessibil
 require('bootstrap-js/dropdown');  // make menus work
 require('bootstrap-js/collapse');  // make menu toggle for small screen work
 require('bootstrap-js/carousel');  // make carousels work
+require('bootstrap-js/tab');       // make tabs work (used on /manage/stats)
 
 // We used to use modernizr but have currently dropped it.
 // If we want to include it again this is where to put it --

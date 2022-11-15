@@ -2,22 +2,21 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 function fillSection(name){
-  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+  $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+    if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))){
+      // If no data was returned, don't redraw the section.
+      return
+    }
     DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
   });
 }
 
-function addSection(name){
-  $('.stats-container').append('<div class="row" id="'+name+'">Loading '+name+' ...</div>');
-  return function() { fillSection(name) };
-}
-
-var chain = $.when(addSection("random")());
-chain = chain.then(addSection("days"));
-chain = chain.then(addSection("emails"));
-chain = chain.then(addSection("job_queue"));
-chain = chain.then(addSection("celery_queues"));
-chain = chain.then(addSection("celery"));
+fillSection("job_queue");
+fillSection("celery_queues");
+fillSection("celery");
+fillSection("days");
+fillSection("random");
+fillSection("emails");
 
 setInterval(function(){ fillSection("job_queue")}, 2000);
 setInterval(function(){ fillSection("celery_queues")}, 2000);
