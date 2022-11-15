@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 555);
+/******/ 	return __webpack_require__(__webpack_require__.s = 556);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -405,7 +405,7 @@ module.exports = {};
 
 /***/ }),
 
-/***/ 277:
+/***/ 278:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -684,7 +684,7 @@ module.exports = function (name) {
 
 /***/ }),
 
-/***/ 372:
+/***/ 373:
 /***/ (function(module, exports, __webpack_require__) {
 
 /**!
@@ -719,14 +719,14 @@ this.decorators.push("return fn;"),d?this.decorators=Function.apply(this,["fn","
 
 /***/ }),
 
-/***/ 376:
+/***/ 377:
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(377);
+module.exports = __webpack_require__(378);
 
 /***/ }),
 
-/***/ 377:
+/***/ 378:
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(4);
@@ -1210,38 +1210,36 @@ module.exports = function (passed, required) {
 
 /***/ }),
 
-/***/ 555:
+/***/ 556:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(376);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(377);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__);
 
 
-var DOMHelpers = __webpack_require__(277);
+var DOMHelpers = __webpack_require__(278);
 
-var HandlebarsHelpers = __webpack_require__(556);
+var HandlebarsHelpers = __webpack_require__(557);
 
 function fillSection(name) {
-  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+  $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+    if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
+      // If no data was returned, don't redraw the section.
+      return;
+    }
+
     DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
   });
 }
 
-function addSection(name) {
-  $('.stats-container').append('<div class="row" id="' + name + '">Loading ' + name + ' ...</div>');
-  return function () {
-    fillSection(name);
-  };
-}
-
-var chain = $.when(addSection("random")());
-chain = chain.then(addSection("days"));
-chain = chain.then(addSection("emails"));
-chain = chain.then(addSection("job_queue"));
-chain = chain.then(addSection("celery_queues"));
-chain = chain.then(addSection("celery"));
+fillSection("job_queue");
+fillSection("celery_queues");
+fillSection("celery");
+fillSection("days");
+fillSection("random");
+fillSection("emails");
 
 _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
   fillSection("job_queue");
@@ -1258,14 +1256,14 @@ _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___
 
 /***/ }),
 
-/***/ 556:
+/***/ 557:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderTemplate", function() { return renderTemplate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compileTemplate", function() { return compileTemplate; });
-var Handlebars = __webpack_require__(372);
+var Handlebars = __webpack_require__(373);
 /*
 Using handlebar's compile method to generate templates on the fly
 */
