@@ -170,6 +170,61 @@ class IALinkIDFilter(InputFilter):
             return queryset.filter(link_id=value)
 
 
+class IAItemTypeFilter(admin.SimpleListFilter):
+    parameter_name = 'type'
+    title = 'Item Type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('individual', 'Individual'),
+            ('daily', 'Daily'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'individual':
+            return queryset.filter(span__isempty=True)
+        elif value == 'daily':
+            return queryset.filter(span__isempty=False)
+
+
+class IAFileTypeFilter(admin.SimpleListFilter):
+    parameter_name = 'type'
+    title = 'Item Type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('individual', 'Individual'),
+            ('daily', 'Daily'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'individual':
+            return queryset.filter(item__span__isempty=True)
+        elif value == 'daily':
+            return queryset.filter(item__span__isempty=False)
+
+
+class IAFileHasMetadataFilter(admin.SimpleListFilter):
+    parameter_name = 'metadata'
+    title = 'Metadata Updated?'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('true', 'True'),
+            ('false', 'False'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'true':
+            return queryset.filter(cached_title__isnull=False)
+        elif value == 'false':
+            return queryset.filter(cached_title__isnull=True)
+
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -503,7 +558,7 @@ class LinkBatchAdmin(admin.ModelAdmin):
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
-    list_filter = [IAIdentifierFilter, 'cached_is_dark']
+    list_filter = [IAIdentifierFilter, IAItemTypeFilter, 'cached_is_dark']
     readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
 
     paginator = FasterAdminPaginator
@@ -512,7 +567,7 @@ class InternetArchiveItemAdmin(admin.ModelAdmin):
 
 class InternetArchiveFileAdmin(admin.ModelAdmin):
     list_display = ['id', 'item_link', 'permalink_link', 'status', 'cached_file_size', 'cached_submitted_url', 'cached_format', ]
-    list_filter = [IAItemFilter, IALinkIDFilter, 'status']
+    list_filter = [IAItemFilter, IALinkIDFilter, IAFileTypeFilter, 'status', IAFileHasMetadataFilter]
     fields = readonly_fields = [
         'link', 'item', 'status', 'cached_file_size', 'cached_title', 'cached_comments',
         'cached_external_identifier', 'cached_external_identifier_match_date', 'cached_format',
