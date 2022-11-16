@@ -237,3 +237,8 @@ img {
     margin-bottom: 15px;
   }
 }
+
+// remove our custom focus indicator for tabs
+.nav-tabs a:focus {
+  outline: none !important;
+}

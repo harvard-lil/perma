@@ -2,8 +2,68 @@
 {% load render_bundle from webpack_loader %}
 {% block title %} | Admin Stats{% endblock %}
 
+{% block bodyFlags %}admin-stats{% endblock bodyFlags %}
+
 {% block mainContent %}
-  <div class="container cont-fixed stats-container"></div>
+  <div class="container cont-fixed stats-container">
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
+      <li><a href="#rate-limits-pane" data-toggle="tab">Rate Limits</a></li>
+      <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
+      <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
+      <li><a href="#random-pane" data-toggle="tab">Random</a></li>
+      <li><a href="#emails-pane" data-toggle="tab">Users by Domain</a></li>
+    </ul>
+    <div class="tab-content">
+
+      <div class="tab-pane active" id="celery_data">
+        <h3 class="body-ah">Celery queues</h3>
+        <div class="muted" id="celery_queues_refreshes">(refreshes every 2s)</div>
+        <div id="celery_queues">Loading...</div>
+
+        <h3 class="body-ah">Celery task data</h3>
+        <div class="muted" id="celery_refreshes">(refreshes every 2s)</div>
+        <button type="button" id="cancel-auto-refresh">Pause Auto-Refresh</button>
+        <br>
+        <hr>
+        <div id="celery">Loading...</div>
+      </div>
+
+      <div class="tab-pane" id="rate-limits-pane">
+        <h3 class="body-ah">Rate Limits</h3>
+        <button type="button" id="refresh-rate-limits">Refresh</button>
+        <br><br>
+        <div id="rate_limits">Loading...</div>
+      </div>
+
+      <div class="tab-pane" id="capture-job-pane">
+        <h3 class="body-ah">Capture jobs</h3>
+        <div class="muted" id="capture_jobs_refreshes">(refreshes every 2s)</div>
+        <hr>
+        <div id="job_queue">Loading...</div>
+      </div>
+
+
+      <div class="tab-pane" id="days-pane">
+        <h3 class="body-ah">Links from the past month</h3>
+        <br>
+        <div id="days">Loading...</div>
+      </div>
+
+      <div class="tab-pane" id="random-pane">
+        <h3 class="body-ah">Random</h3>
+        <br>
+        <div id="random">Loading...</div>
+      </div>
+
+      <div class="tab-pane" id="emails-pane">
+        <h3 class="body-ah">Users by email domain</h3>
+        <br>
+        <div id="emails">Loading...</div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -14,9 +74,6 @@
 {% block templates %}
   {% verbatim %}
     <script id="random-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Random:</h3>
-
-      <br>
 
       <div class="row">
         <div class="col-sm-3">Total links:</div>
@@ -91,12 +148,9 @@
         <div class="col-sm-3">Confirmed users with no links:</div>
         <div class="col-sm-9">{{ confirmed_users_with_no_links }} ({{ confirmed_users_with_no_links_percentage }}%)</div>
       </div>
-
-      <br>
     </script>
 
     <script id="days-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Links from the past month:</h3>
       <table class="table">
         <tbody id="day">
           <tr>
@@ -129,7 +183,6 @@
     </script>
 
     <script id="emails-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Users by email domain:</h3>
       <div class="body-text" style="-webkit-column-count: 4; -moz-column-count: 4; column-count: 4;">
         {{#each users_by_domain}}
           .{{ domain }}: {{ count }}<br/>
@@ -138,7 +191,6 @@
     </script>
 
     <script id="job_queue-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Capture jobs:</h3>
       <div class="row">
         <div class="col-sm-4">
           <h4>In progress:</h4>
@@ -165,7 +217,6 @@
     </script>
 
     <script id="celery_queues-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Celery queues:</h3>
       <div class="row">
         <div class="col-sm-3">Tasks in main queue:</div>
         <div class="col-sm-9">{{ total_main_queue }}</div>
@@ -178,28 +229,30 @@
         <div class="col-sm-3">Tasks in IA queue:</div>
         <div class="col-sm-9">{{ total_ia_queue }}</div>
       </div>
+      <div class="row">
+        <div class="col-sm-3">Tasks in IA readonly queue:</div>
+        <div class="col-sm-9">{{ total_ia_readonly_queue }}</div>
+      </div>
     </script>
 
     <script id="celery-template" type="text/x-handlebars-template">
-      <h3 class="body-ah">Celery task data:</h3>
       <div class="row">
         {{#each queues}}
-          <div class="col-sm-6">
+          <div class="col-sm-6 queue-block">
             <h4>{{ name }}</h4>
-            <div>
-              <h5>Active jobs:</h5>
+            <div class="job-block">
               {{#each active}}
                 {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
               {{/each}}
             </div>
             <br>
-            <div>
+            <div class="job-block">
               <h5>Next jobs (not a complete list):</h5>
               {{#each reserved}}
                 {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
               {{/each}}
             </div>
-            <div>
+            <div class="job-block">
               <br>
               <h5>Finished task count:</h5>
               {{#each stats.total}}
@@ -208,6 +261,25 @@
             </div>
           </div>
         {{/each}}
+      </div>
+    </script>
+
+    <script id="rate_limits-template" type="text/x-handlebars-template">
+      <div class="row">
+        <div class="col-sm-3">modify_xml.php:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each modify_xml}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3">derive.php:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each derive}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
       </div>
     </script>
   {% endverbatim %}
