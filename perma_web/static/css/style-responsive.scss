@@ -824,6 +824,10 @@ a.cc {
   }
 }
 
+//
+// admin stats page
+//
+
 .stats-container a {
   text-decoration: underline;
 }
@@ -843,6 +847,13 @@ a.cc {
   overflow-y: auto;
   margin-bottom: 36px;
 }
+
+#rate-limits-status {
+  color: $color-orange;
+  margin-top: 0;
+  margin-left: .7em;
+}
+
 
 /////////////////////////////////////////
 
