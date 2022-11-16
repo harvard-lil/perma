@@ -7,21 +7,15 @@
 {% block mainContent %}
   <div class="container cont-fixed stats-container" style="min-height: 100%">
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
-      <li><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
+      <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
+      <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
       <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
       <li><a href="#random-pane" data-toggle="tab">Random</a></li>
       <li><a href="#emails-pane" data-toggle="tab">Users by Domain</a></li>
     </ul>
     <div class="tab-content" style="min-height: 100%">
 
-      <div class="tab-pane active" id="capture-job-pane">
-        <h3 class="body-ah">Capture jobs:</h3>
-        <br>
-        <div id="job_queue">Loading...</div>
-      </div>
-
-      <div class="tab-pane" id="celery_data">
+      <div class="tab-pane active" id="celery_data">
         <h3 class="body-ah">Celery queues:</h3>
         <br>
         <div id="celery_queues">Loading...</div>
@@ -32,6 +26,13 @@
         <br><br>
         <div id="celery">Loading...</div>
       </div>
+
+      <div class="tab-pane" id="capture-job-pane">
+        <h3 class="body-ah">Capture jobs:</h3>
+        <br>
+        <div id="job_queue">Loading...</div>
+      </div>
+
 
       <div class="tab-pane" id="days-pane">
         <h3 class="body-ah">Links from the past month:</h3>

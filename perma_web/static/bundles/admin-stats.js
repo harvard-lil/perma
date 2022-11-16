@@ -1234,8 +1234,8 @@ function fillSection(name) {
   });
 }
 
-fillSection("job_queue");
 fillSection("celery_queues");
+fillSection("job_queue");
 fillSection("celery");
 fillSection("days");
 fillSection("random");
