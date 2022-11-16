@@ -50,7 +50,7 @@ from .utils import (Sec1TLSAdapter, tz_datetime,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
     write_resource_record_from_asset, user_agent_for_domain,
-    protocol, remove_control_characters)
+    protocol, remove_control_characters, tidy_whitespace)
 
 
 logger = logging.getLogger(__name__)
@@ -2124,9 +2124,10 @@ class InternetArchiveFile(models.Model):
 
     @classmethod
     def standard_metadata_for_link(cls, link):
-        url = remove_control_characters(link.submitted_url)
+        title = tidy_whitespace(f"{link.guid}: {truncatechars(link.submitted_title, 50)}")
+        url = tidy_whitespace(remove_control_characters(link.submitted_url))
         return {
-            "title": re.sub(' +', ' ', f"{link.guid}: {truncatechars(link.submitted_title, 50)}").strip(),
+            "title": title,
             "comments": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
             "external-identifier": f"urn:X-perma:{link.guid}",
             "external-identifier-match-date": f"X-perma:{link.creation_timestamp.isoformat()}",
