@@ -6,6 +6,8 @@ from datetime import timedelta
 import celery
 import internetarchive
 import redis
+import requests
+
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
@@ -232,21 +234,20 @@ def stats(request, stat_type=None):
         try:
             modify_xml = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
             derive = ia_session.get_tasks_api_rate_limit(cmd='derive.php')
-        except requests.exceptions.ConnectionError:
-            pass
-
-        out = {
-            "modify_xml": {
-                "tasks_limit": modify_xml["value"]["tasks_limit"],
-                "tasks_inflight": modify_xml["value"]["tasks_inflight"],
-                "tasks_blocked_by_offline": modify_xml["value"]["tasks_blocked_by_offline"]
-            },
-            "derive": {
-                "tasks_limit": derive["value"]["tasks_limit"],
-                "tasks_inflight": derive["value"]["tasks_inflight"],
-                "tasks_blocked_by_offline": derive["value"]["tasks_blocked_by_offline"]
+            out = {
+                "modify_xml": {
+                    "tasks_limit": modify_xml["value"]["tasks_limit"],
+                    "tasks_inflight": modify_xml["value"]["tasks_inflight"],
+                    "tasks_blocked_by_offline": modify_xml["value"]["tasks_blocked_by_offline"]
+                },
+                "derive": {
+                    "tasks_limit": derive["value"]["tasks_limit"],
+                    "tasks_inflight": derive["value"]["tasks_inflight"],
+                    "tasks_blocked_by_offline": derive["value"]["tasks_blocked_by_offline"]
+                }
             }
-        }
+        except requests.exceptions.ConnectionError:
+            out = None
 
     if out:
         return JsonResponse(out)
