@@ -206,7 +206,7 @@ class IAFileTypeFilter(admin.SimpleListFilter):
             return queryset.filter(item__span__isempty=False)
 
 
-class IAFileHasMetdataFilter(admin.SimpleListFilter):
+class IAFileHasMetadataFilter(admin.SimpleListFilter):
     parameter_name = 'metadata'
     title = 'Metadata Updated?'
 
