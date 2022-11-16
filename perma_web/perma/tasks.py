@@ -1763,7 +1763,7 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     if remainder:
         task.delay(pks, **kwargs)
 
-    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a remainder of size ' + str(remainder) if remainder else ''}.")
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}.")
 
 
 @shared_task(acks_late=True)
@@ -1867,12 +1867,19 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
             # schedule an IA modify_xml task that will add this Perma Link's metadata
             # to this IA item's <identifier>_files.xml
             new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-            response = ia_item.modify_metadata(
-                new_metadata,
-                target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
-                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
-            )
+            try:
+                response = ia_item.modify_metadata(
+                    new_metadata,
+                    target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
+                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
+                )
+            except requests.exceptions.ConnectionError:
+                # modify_metadata calls  self.refresh(), which sometimes times out.
+                # Retry later, without counting this as a failed attempt
+                file_ids_to_retry.append(file_id)
+                continue
+
             if response.status_code == 400 and "no changes" in response.text:
                 logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
                 modified_ids.append(file_id)
@@ -2007,7 +2014,7 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
             'cached_submitted_url',
             'cached_perma_url'
         ])
-        logger.info(f"Updated metadata of { len(updated_files) } InternetArchiveFiles.")
+        logger.info(f"Confirmed update of { len(updated_files) } InternetArchiveFiles.")
 
     if file_ids_to_check_again:
         attempts_dict = {
