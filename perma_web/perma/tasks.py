@@ -1763,7 +1763,7 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     if remainder:
         task.delay(pks, **kwargs)
 
-    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a remainder of size ' + str(remainder) if remainder else ''}.")
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}.")
 
 
 @shared_task(acks_late=True)
@@ -2007,7 +2007,7 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
             'cached_submitted_url',
             'cached_perma_url'
         ])
-        logger.info(f"Updated metadata of { len(updated_files) } InternetArchiveFiles.")
+        logger.info(f"Confirmed update of { len(updated_files) } InternetArchiveFiles.")
 
     if file_ids_to_check_again:
         attempts_dict = {
