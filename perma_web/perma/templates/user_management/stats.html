@@ -31,7 +31,7 @@
 
       <div class="tab-pane" id="rate-limits-pane">
         <h3 class="body-ah">Rate Limits</h3>
-        <button type="button" id="refresh-rate-limits">Refresh</button>
+        <button type="button" id="refresh-rate-limits">Refresh</button><span id="rate-limits-status"></span>
         <br><br>
         <div id="rate_limits">Loading...</div>
       </div>
@@ -242,14 +242,14 @@
             <h4>{{ name }}</h4>
             <div class="job-block">
               {{#each active}}
-                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{@key}}: {{this}}{{/each}}<br/>
               {{/each}}
             </div>
             <br>
             <div class="job-block">
               <h5>Next jobs (not a complete list):</h5>
               {{#each reserved}}
-                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{@key}}: {{this}}{{/each}}<br/>
               {{/each}}
             </div>
             <div class="job-block">

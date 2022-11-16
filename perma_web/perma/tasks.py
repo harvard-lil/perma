@@ -1861,7 +1861,12 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 if retry:
                     file_ids_to_retry.append(file_id)
                 else:
-                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached.")
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
+
                 continue
 
             # schedule an IA modify_xml task that will add this Perma Link's metadata
@@ -1888,11 +1893,11 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
                 assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
             except (requests.JSONDecodeError, AssertionError) as e:
-                msg = f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid})"
+                msg = f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): "
                 if "Couldn't acquire write lock" in str(e):
-                    logger.warning(msg)
+                    logger.warning(msg + "Couldn't acquire write lock. Will retry if allowed.")
                 else:
-                    logger.exception(msg + ":")
+                    logger.exception(msg + "Will retry if allowed.")
                 retry = (
                     not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
                     not previous_attempts or
@@ -1901,7 +1906,11 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 if retry:
                     file_ids_to_retry.append(file_id)
                 else:
-                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
                 continue
 
             modified_ids.append(file_id)
@@ -1909,6 +1918,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
 
     except SoftTimeLimitExceeded:
         not_processed_yet = set(file_ids) - set(modified_ids) - set(file_ids_to_retry)
+        logger.info(f"After SoftTimeLimitExceeded, adding { len(not_processed_yet) } InternetArchiveFiles to the list to retry.")
         for file_id in not_processed_yet:
             # add these to the list of file_ids to retry, without counting this as a failed attempt
             file_ids_to_retry.append(file_id)
@@ -1988,7 +1998,11 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
                 if retry:
                     file_ids_to_check_again.append(file_id)
                 else:
-                    logger.exception(f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached.")
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
                 continue
 
             perma_file = perma_item.internet_archive_files.get(link=link)
