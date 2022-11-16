@@ -567,7 +567,7 @@ class InternetArchiveItemAdmin(admin.ModelAdmin):
 
 class InternetArchiveFileAdmin(admin.ModelAdmin):
     list_display = ['id', 'item_link', 'permalink_link', 'status', 'cached_file_size', 'cached_submitted_url', 'cached_format', ]
-    list_filter = [IAItemFilter, IALinkIDFilter, IAFileTypeFilter, 'status', IAFileHasMetdataFilter]
+    list_filter = [IAItemFilter, IALinkIDFilter, IAFileTypeFilter, 'status', IAFileHasMetadataFilter]
     fields = readonly_fields = [
         'link', 'item', 'status', 'cached_file_size', 'cached_title', 'cached_comments',
         'cached_external_identifier', 'cached_external_identifier_match_date', 'cached_format',
