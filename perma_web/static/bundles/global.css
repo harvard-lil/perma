@@ -7232,6 +7232,13 @@ a.cc:active, p a.cc.perma:active {
 .queue-block {
   height: 300px;
   overflow-y: auto;
+  margin-bottom: 36px;
+}
+
+#rate-limits-status {
+  color: #DD671A;
+  margin-top: 0;
+  margin-left: 0.7em;
 }
 
 .style-container-padding, .cont-fixed, .cont-full {

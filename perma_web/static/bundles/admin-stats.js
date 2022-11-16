@@ -264,6 +264,13 @@ module.exports = fails(function () {
 
 /***/ }),
 
+/***/ 2:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(3);
+
+/***/ }),
+
 /***/ 20:
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -511,6 +518,17 @@ var NATIVE_SYMBOL = __webpack_require__(30);
 module.exports = NATIVE_SYMBOL
   && !Symbol.sham
   && typeof Symbol.iterator == 'symbol';
+
+
+/***/ }),
+
+/***/ 3:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(4);
+var path = __webpack_require__(27);
+
+module.exports = path.setTimeout;
 
 
 /***/ }),
@@ -1217,13 +1235,16 @@ module.exports = function (passed, required) {
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(377);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
+
 
 
 var DOMHelpers = __webpack_require__(278);
 
 var HandlebarsHelpers = __webpack_require__(557);
 
-function fillSection(name) {
+function fillSection(name, callback) {
   $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
     if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
       // If no data was returned, don't redraw the section.
@@ -1231,6 +1252,10 @@ function fillSection(name) {
     }
 
     DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
+
+    if (callback) {
+      callback();
+    }
   });
 }
 
@@ -1268,7 +1293,15 @@ document.getElementById('cancel-auto-refresh').addEventListener('click', functio
   }
 });
 document.getElementById('refresh-rate-limits').addEventListener('click', function (e) {
-  fillSection("rate_limits");
+  var status = document.getElementById('rate-limits-status');
+  status.innerText = 'Refreshing...';
+  fillSection("rate_limits", function () {
+    status.innerText = 'Refreshed!';
+
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
+      return status.innerText = '';
+    }, 2000);
+  });
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
