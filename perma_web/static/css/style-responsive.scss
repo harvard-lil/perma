@@ -828,6 +828,12 @@ a.cc {
   text-decoration: underline;
 }
 
+.stats-container {
+  h3 + div + div, h3 + div + button, h3 + button {
+    margin-top: 8px;
+  }
+}
+
 #celery {
   word-wrap: break-word;
 }

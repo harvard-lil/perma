@@ -5,49 +5,57 @@
 {% block bodyFlags %}admin-stats{% endblock bodyFlags %}
 
 {% block mainContent %}
-  <div class="container cont-fixed stats-container" style="min-height: 100%">
+  <div class="container cont-fixed stats-container">
     <ul class="nav nav-tabs">
       <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
+      <li><a href="#rate-limits-pane" data-toggle="tab">Rate Limits</a></li>
       <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
       <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
       <li><a href="#random-pane" data-toggle="tab">Random</a></li>
       <li><a href="#emails-pane" data-toggle="tab">Users by Domain</a></li>
     </ul>
-    <div class="tab-content" style="min-height: 100%">
+    <div class="tab-content">
 
       <div class="tab-pane active" id="celery_data">
-        <h3 class="body-ah">Celery queues:</h3>
-        <br>
+        <h3 class="body-ah">Celery queues</h3>
+        <div class="muted" id="celery_queues_refreshes">(refreshes every 2s)</div>
         <div id="celery_queues">Loading...</div>
 
-        <h3 class="body-ah">Celery task data:</h3>
-        <br>
+        <h3 class="body-ah">Celery task data</h3>
+        <div class="muted" id="celery_refreshes">(refreshes every 2s)</div>
         <button type="button" id="cancel-auto-refresh">Pause Auto-Refresh</button>
         <br><br>
         <div id="celery">Loading...</div>
       </div>
 
+      <div class="tab-pane" id="rate-limits-pane">
+        <h3 class="body-ah">Rate Limits</h3>
+        <button type="button" id="refresh-rate-limits">Refresh</button>
+        <br><br>
+        <div id="rate_limits">Loading...</div>
+      </div>
+
       <div class="tab-pane" id="capture-job-pane">
-        <h3 class="body-ah">Capture jobs:</h3>
-        <br>
+        <h3 class="body-ah">Capture jobs</h3>
+        <div class="muted" id="capture_jobs_refreshes">(refreshes every 2s)</div>
         <div id="job_queue">Loading...</div>
       </div>
 
 
       <div class="tab-pane" id="days-pane">
-        <h3 class="body-ah">Links from the past month:</h3>
+        <h3 class="body-ah">Links from the past month</h3>
         <br>
         <div id="days">Loading...</div>
       </div>
 
       <div class="tab-pane" id="random-pane">
-        <h3 class="body-ah">Random:</h3>
+        <h3 class="body-ah">Random</h3>
         <br>
         <div id="random">Loading...</div>
       </div>
 
       <div class="tab-pane" id="emails-pane">
-        <h3 class="body-ah">Users by email domain:</h3>
+        <h3 class="body-ah">Users by email domain</h3>
         <br>
         <div id="emails">Loading...</div>
       </div>
@@ -251,6 +259,25 @@
             </div>
           </div>
         {{/each}}
+      </div>
+    </script>
+
+    <script id="rate_limits-template" type="text/x-handlebars-template">
+      <div class="row">
+        <div class="col-sm-3">modify_xml.php:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each modify_xml}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3">derive.php:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each derive}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
       </div>
     </script>
   {% endverbatim %}

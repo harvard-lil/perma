@@ -12,8 +12,9 @@ function fillSection(name){
 }
 
 fillSection("celery_queues");
-fillSection("job_queue");
 fillSection("celery");
+fillSection("rate_limits");
+fillSection("job_queue");
 fillSection("days");
 fillSection("random");
 fillSection("emails");
@@ -35,4 +36,8 @@ document.getElementById('cancel-auto-refresh').addEventListener('click', (e) => 
     celery_tasks_refresh = refresh_celery_jobs();
     e.target.innerText = 'Pause Auto-Refresh';
   }
+})
+
+document.getElementById('refresh-rate-limits').addEventListener('click', (e) => {
+  fillSection("rate_limits");
 })

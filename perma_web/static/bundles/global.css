@@ -7221,6 +7221,10 @@ a.cc:active, p a.cc.perma:active {
   text-decoration: underline;
 }
 
+.stats-container h3 + div + div, .stats-container h3 + div + button, .stats-container h3 + button {
+  margin-top: 8px;
+}
+
 #celery {
   word-wrap: break-word;
 }
