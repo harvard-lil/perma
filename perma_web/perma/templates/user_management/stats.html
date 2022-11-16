@@ -242,14 +242,14 @@
             <h4>{{ name }}</h4>
             <div class="job-block">
               {{#each active}}
-                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{@key}}: {{this}}{{/each}}<br/>
               {{/each}}
             </div>
             <br>
             <div class="job-block">
               <h5>Next jobs (not a complete list):</h5>
               {{#each reserved}}
-                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{this}}{{/each}}<br/>
+                {{name}}: {{#each args}}{{this}}{{/each}} {{#each kwargs}}{{@key}}: {{this}}{{/each}}<br/>
               {{/each}}
             </div>
             <div class="job-block">
