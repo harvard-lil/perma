@@ -80,17 +80,27 @@
         </div>
 
         <div class="form-group">
-          <label for="link-screenshot-view-{{guid}}">Default view</label>
-          <span class="screenshot-view-save-status"></span>
-          <input type="radio" id="link-screenshot-view-{{guid}}" class="link-screenshot-view" value="{{screenshot-view}}" {{#if sel}}checked="checked"{{/if}}>
-          <span class="muted">
-            Default view preference is private to you and your organization(s)
-        </span>
+            <label for="move-to-folder-{{guid}}">Move to folder</label>
+          <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
         </div>
 
         <div class="form-group">
-            <label for="move-to-folder-{{guid}}">Move to folder</label>
-          <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+          <fieldset class="default-to-screenshot-view">
+            <legend class="default-to-screenshot-view">Default view
+              <span class="default_to_screenshot_view-save-status"></span>
+            </legend>
+            <label class="radio-inline" for="link-default-to-screenshot-view-{{guid}}">
+              <input type="radio" id="link-default-to-screenshot-view-{{guid}}" class="link-default-to-screenshot-view" name="default-view" value="false"  {{#unless default_to_screenshot_view}} checked="checked" {{/unless}}>
+              Standard
+            </label>
+            <label class="radio-inline" for="link-default-to-screenshot-view-{{guid}}">
+              <input type="radio" id="link-default-to-screenshot-view-{{guid}}" class="link-default-to-screenshot-view" name="default-view"  value="true" {{#if default_to_screenshot_view}} checked="checked" {{/if}}>
+              Screenshot
+            </label>
+          </fieldset>
+          <span class="muted">
+            Default view preference is private to you and your organization(s)
+          </span>
         </div>
 
       </div>

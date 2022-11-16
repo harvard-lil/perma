@@ -2887,6 +2887,17 @@ form {
   }
 }
 
+fieldset.default-to-screenshot-view {
+  padding: 0;
+}
+
+legend.default-to-screenshot-view {
+  font-weight: 400;
+  margin: 0;
+  font-size: 14px;
+  border-bottom: none;
+}
+
 fieldset {
   background-color: $color-background;
   border-radius: 4px;
@@ -4355,9 +4366,17 @@ ol.result-list {
       width: auto;
       padding-bottom: $grid;
     }
+
+    label,
+    .default_to_screenshot_view-save-status {
+      width: auto;
+      padding-bottom: $grid;
+    }
+
     .title-save-status,
     .description-save-status,
-    .notes-save-status {
+    .notes-save-status,
+    .default_to_screenshot_view-save-status {
       color: $color-orange;
       margin-top: 0;
       margin-left: .7em;

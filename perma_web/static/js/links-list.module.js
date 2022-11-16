@@ -80,23 +80,51 @@ function setupLinksTableEventHandlers () {
     .on('input propertychange change', '.link-notes', function () {
       let textarea = $(this);
       let guid = getLinkIDForFormElement(textarea);
-      LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
+      var statusElement = textarea.prevAll('.notes-save-status')
+      LinkHelpers.saveInput(guid, textarea, statusElement, 'notes',  ()=>{
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000);
+      });
     })
 
     // save changes to title field
     .on('input', '.link-title', function () {
       let textarea = $(this);
       let guid = getLinkIDForFormElement(textarea);
-      LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
+      var statusElement = textarea.prevAll('.title-save-status')
+
+      LinkHelpers.saveInput(guid, textarea, statusElement, 'title', function (data) {
         // update display title when saved
         textarea.closest('.item-container').find('.item-title span').text(data.title);
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000)
       });
     })
 
     .on('input', '.link-description', function () {
       let textarea = $(this);
       let guid = getLinkIDForFormElement(textarea);
-      LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description')
+      var statusElement = textarea.prevAll('.description-save-status')
+
+      LinkHelpers.saveInput(guid, textarea, statusElement, 'description',  ()=>{
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000);
+      });
+    })
+
+    .on('input', '.link-default-to-screenshot-view', function () {
+      let radio = $(this);
+      let guid = getLinkIDForFormElement(radio);
+      var statusElement = radio.parent().parent().find('.default_to_screenshot_view-save-status');
+
+      LinkHelpers.saveInput(guid, radio, statusElement, 'default_to_screenshot_view',  ()=>{
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000);
+      });
     })
 
     // handle move-to-folder dropdown
