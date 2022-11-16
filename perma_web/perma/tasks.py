@@ -1867,12 +1867,19 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
             # schedule an IA modify_xml task that will add this Perma Link's metadata
             # to this IA item's <identifier>_files.xml
             new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-            response = ia_item.modify_metadata(
-                new_metadata,
-                target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
-                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
-            )
+            try:
+                response = ia_item.modify_metadata(
+                    new_metadata,
+                    target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
+                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
+                )
+            except requests.exceptions.ConnectionError:
+                # modify_metadata calls  self.refresh(), which sometimes times out.
+                # Retry later, without counting this as a failed attempt
+                file_ids_to_retry.append(file_id)
+                continue
+
             if response.status_code == 400 and "no changes" in response.text:
                 logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
                 modified_ids.append(file_id)
