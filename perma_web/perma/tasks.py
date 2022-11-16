@@ -1918,6 +1918,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
 
     except SoftTimeLimitExceeded:
         not_processed_yet = set(file_ids) - set(modified_ids) - set(file_ids_to_retry)
+        logger.info(f"After SoftTimeLimitExceeded, adding { len(not_processed_yet) } InternetArchiveFiles to the list to retry.")
         for file_id in not_processed_yet:
             # add these to the list of file_ids to retry, without counting this as a failed attempt
             file_ids_to_retry.append(file_id)
