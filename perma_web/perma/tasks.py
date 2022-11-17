@@ -1848,7 +1848,6 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                     file_ids_to_retry.append(file_id)
                     continue
 
-                time.sleep(60)
                 try:
                     ia_item = get_ia_item(ia_session, perma_item.identifier)
                 except requests.exceptions.ConnectionError:
