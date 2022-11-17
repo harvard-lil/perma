@@ -2,6 +2,7 @@ var resizeTimeout, wrapper;
 
 export var detailsButton = document.getElementById("details-button");
 var detailsTray = document.getElementById("collapse-details");
+var viewMode = document.getElementsByClassName("view-mode")[0];
 
 function init () {
   adjustTopMargin();
@@ -23,6 +24,7 @@ function init () {
 export function handleShowDetails (open) {
   detailsButton.textContent = open ? "Hide record details":"Show record details";
   detailsTray.style.display = open ? "block" : "none";
+  viewMode.style.display = open ? "none" : "block" ;
 }
 
 function adjustTopMargin () {

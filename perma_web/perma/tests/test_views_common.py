@@ -101,8 +101,9 @@ class CommonViewsTestCase(PermaTestCase):
         # TODO: this just renders a blank iframe... not desirable.
         # See https://github.com/harvard-lil/perma/issues/2574
 
-    def test_archive_with_only_screenshot(self):
+    def test_screenshot_only_archive_default_to_screenshot_view_false(self):
         link = Link.objects.get(guid='ABCD-0007')
+        self.assertFalse(link.default_to_screenshot_view)
         self.assertTrue(link.capture_job.status == 'completed')
         self.assertTrue(link.captures.count())
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
@@ -110,6 +111,56 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=image')
             self.assertIn('memento-datetime', response._headers)
             self.assertIn('link', response._headers)
+
+    def test_capture_only_archive_default_to_screenshot_view_true(self):
+        link = Link.objects.get(guid='N1N0-33DB')
+        self.assertTrue(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
+            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
+
+    # This tests that where there is only a screenshot and default to screenshot, there's no redirect to add the "type=image" query
+    def test_screenshot_only_archive_default_to_screenshot_view_true(self):
+        link = Link.objects.get(guid='ABCD-0008')
+        self.assertTrue(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0008'}}, request_kwargs={'follow': True})
+            self.assertEqual(response.request.get('QUERY_STRING'), '')
+
+    # This tests that where there is only a primary but no default to screenshot, there's no redirect to add the "type=standard" query
+    def test_capture_only_archive_default_to_screenshot_view_false(self):
+        link = Link.objects.get(guid='M1L0-87DB')
+        self.assertFalse(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'M1L0-87DB'}}, request_kwargs={'follow': True})
+            self.assertEqual(response.request.get('QUERY_STRING'), '')
+
+    # This tests that where there is BOTH a primary and screenshot but no default to screenshot, there's no redirect to add the "type=standard" query
+    def test_full_archive_default_to_screenshot_view_false(self):
+        link = Link.objects.get(guid='UU32-XY8I')
+        self.assertFalse(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'UU32-XY8I'}}, request_kwargs={'follow': True})
+            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertEqual(response.request.get('QUERY_STRING'), '')
+   
+    # This tests that where there is BOTH a primary and screenshot and default to screenshot, there's no redirect to add the "type=standard" query
+    def test_full_archive_default_to_screenshot_view_true(self):
+        link = Link.objects.get(guid='F1X1-LS24')
+        self.assertTrue(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'F1X1-LS24'}}, request_kwargs={'follow': True})
+            self.assertTrue(b'const screenshot = true;' in response.content)
+            self.assertEqual(response.request.get('QUERY_STRING'), '')
+
+    def test_capture_only_default_to_screenshot_view_true(self):
+        link = Link.objects.get(guid='N1N0-33DB')
+        self.assertTrue(link.default_to_screenshot_view)
+        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+            response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
+            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
 
     # patch default storage so that it returns a sample warc
     def test_dark_archive(self):

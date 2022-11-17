@@ -9465,6 +9465,17 @@ form .btn {
   background-color: #2D76EE;
 }
 
+fieldset.default-to-screenshot-view {
+  padding: 0;
+}
+
+legend.default-to-screenshot-view {
+  font-weight: 400;
+  margin: 0;
+  font-size: 14px;
+  border-bottom: none;
+}
+
 fieldset {
   background-color: #F6F8F1;
   border-radius: 4px;
@@ -11124,9 +11135,15 @@ ol.result-list .admin-actions {
   width: auto;
   padding-bottom: 8px;
 }
+.row.item-details .form-group label,
+.row.item-details .form-group .default_to_screenshot_view-save-status {
+  width: auto;
+  padding-bottom: 8px;
+}
 .row.item-details .form-group .title-save-status,
 .row.item-details .form-group .description-save-status,
-.row.item-details .form-group .notes-save-status {
+.row.item-details .form-group .notes-save-status,
+.row.item-details .form-group .default_to_screenshot_view-save-status {
   color: #DD671A;
   margin-top: 0;
   margin-left: 0.7em;

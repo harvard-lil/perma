@@ -99,6 +99,7 @@ __webpack_require__.r(__webpack_exports__);
 var resizeTimeout, wrapper;
 var detailsButton = document.getElementById("details-button");
 var detailsTray = document.getElementById("collapse-details");
+var viewMode = document.getElementsByClassName("view-mode")[0];
 
 function init() {
   adjustTopMargin();
@@ -120,6 +121,7 @@ function init() {
 function handleShowDetails(open) {
   detailsButton.textContent = open ? "Hide record details" : "Show record details";
   detailsTray.style.display = open ? "block" : "none";
+  viewMode.style.display = open ? "none" : "block";
 }
 
 function adjustTopMargin() {
@@ -16513,7 +16515,7 @@ function setupEventHandlers() {
     if (inputarea.val() == inputValues[name]) return;
     inputValues[name] = inputarea.val();
 
-    var statusElement = _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = inputarea.parent()).call(_context2, ".save-status");
+    var statusElement = _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = inputarea.parents()).call(_context2, ".".concat(name, "-save-status"));
 
     LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, function () {
       _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {

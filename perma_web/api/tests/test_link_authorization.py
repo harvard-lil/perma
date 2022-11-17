@@ -38,6 +38,7 @@ class LinkAuthorizationMixin():
 
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
+        self.capture_view_link = Link.objects.get(pk="ABCD-0007")
         self.private_link_by_user = Link.objects.get(pk="ABCD-0001")
         self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
         self.unlisted_link = Link.objects.get(pk="ABCD-0005")
@@ -51,10 +52,12 @@ class LinkAuthorizationMixin():
         self.list_url = reverse('api:archives')
         self.link_url = self.get_link_url(self.link)
         self.unrelated_link_url = self.get_link_url(self.unrelated_link)
+        self.capture_view_link_url = self.get_link_url(self.capture_view_link)
         self.in_progress_link_url = self.get_link_url(self.in_progress_link)
 
         self.patch_data = {'notes': 'These are new notes',
-                           'title': 'This is a new title'}
+                           'title': 'This is a new title',
+                           'default_to_screenshot_view': True}
 
     def get_public_link_url(self, link):
         return "{0}/{1}".format(self.public_list_url, link.pk)
@@ -101,7 +104,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
     # Editing #
     ###########
 
-    def test_should_allow_link_owner_to_patch_notes_and_title(self):
+    def test_should_allow_link_owner_to_patch_notes_and_title_and_screenshot(self):
         self.successful_patch(self.unrelated_link_url, user=self.org_user, data=self.patch_data)
 
     def test_should_reject_patch_from_users_who_dont_own_unrelated_link(self):
@@ -115,7 +118,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
     def test_should_allow_patch_from_staff(self):
         self.successful_patch(self.unrelated_link_url, user=self.admin_user, data=self.patch_data)
 
-    def test_should_allow_link_creator_to_patch_notes_and_title(self):
+    def test_should_allow_link_creator_to_patch_notes_and_title_and_screenshot(self):
         self.successful_patch(self.link_url, user=self.link.created_by, data=self.patch_data)
 
     def test_should_allow_member_of_links_org_to_patch_notes_and_title(self):
