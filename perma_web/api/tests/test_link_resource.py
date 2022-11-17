@@ -766,7 +766,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         # establish baseline
         links_remaining, _ , bonus_links = self.regular_user.get_links_remaining()
-        self.assertEqual(links_remaining, 5)
+        self.assertEqual(links_remaining, 6)
         self.assertEqual(bonus_links, 0)
 
         # delete the bonus link
@@ -775,7 +775,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         # assertions
         links_remaining, links_remaining_period, bonus_links = self.regular_user.get_links_remaining()
-        self.assertEqual(links_remaining, 5)
+        self.assertEqual(links_remaining, 6)
         self.assertEqual(bonus_links, 1)
 
 
