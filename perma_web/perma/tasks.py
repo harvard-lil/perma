@@ -1842,11 +1842,14 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                     perma_file, perma_item, link = retry_on_exception(get_perma_objects_with_lock_on_item, args=[file_id], exception=DatabaseError, attempts=settings.INTERNET_ARCHIVE_ITEM_LOCK_RETRIES, log=False)
                 except DatabaseError:
                     # If we are stepping on our own feet and trying to modify the same IA Item's <identifier>_files.xml
-                    # from too many processes at once, and we can't get a lock after repeated attempts, just move on to
-                    # the next file, and retry later, without counting this as a failed attempt.
-                    logger.warning(f"Failed to acquire db lock for InternetArchiveFile {file_id}'s related Item after {settings.INTERNET_ARCHIVE_ITEM_LOCK_RETRIES} attempts. Will retry.")
-                    file_ids_to_retry.append(file_id)
-                    continue
+                    # from too many processes at once and we can't get a lock, just move on to
+                    # another task, hopefully that for another Item, and retry this one later.
+                    logger.info(f"Failed to acquire db lock for InternetArchiveFile {file_id}'s related Item: rescheduling remainder of this task.")
+                    not_processed_yet = set(file_ids) - set(modified_ids) - set(file_ids_to_retry)
+                    for file_id in not_processed_yet:
+                        # add these to the list of file_ids to retry, without counting this as a failed attempt
+                        file_ids_to_retry.append(file_id)
+                    break
 
                 try:
                     ia_item = get_ia_item(ia_session, perma_item.identifier)
