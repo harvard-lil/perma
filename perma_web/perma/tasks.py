@@ -1834,12 +1834,12 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
             with transaction.atomic():
 
                 try:
-                   # IA can't really handle multiple updates for the same Item at a time: it tries to get a lock and fails
-                   # (https://archive.org/developers/md-write-adv.html#per-item-write-locking).
-                   #
-                   # Handle simultaneity on our end instead: ask our db for a lock on this File's InternetArchiveItem
-                   # while we are scheduling the update; retry with exponential backoff up to a limit.
-                   perma_file, perma_item, link = retry_on_exception(get_perma_objects_with_lock_on_item, args=[file_id], exception=DatabaseError, attempts=settings.INTERNET_ARCHIVE_ITEM_LOCK_RETRIES, log=False)
+                    # IA can't really handle multiple updates for the same Item at a time: it tries to get a lock and fails
+                    # (https://archive.org/developers/md-write-adv.html#per-item-write-locking).
+                    #
+                    # Handle simultaneity on our end instead: ask our db for a lock on this File's InternetArchiveItem
+                    # while we are scheduling the update; retry with exponential backoff up to a limit.
+                    perma_file, perma_item, link = retry_on_exception(get_perma_objects_with_lock_on_item, args=[file_id], exception=DatabaseError, attempts=settings.INTERNET_ARCHIVE_ITEM_LOCK_RETRIES, log=False)
                 except DatabaseError:
                     # If we are stepping on our own feet and trying to modify the same IA Item's <identifier>_files.xml
                     # from too many processes at once, and we can't get a lock after repeated attempts, just move on to
@@ -1867,8 +1867,9 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 if rate_limit_info_retrieved:
                     limit = rate_limit_info.get('value', {}).get('tasks_limit', 0)
                     in_flight = rate_limit_info.get('value', {}).get('tasks_inflight', 0)
+                    blocked_by_offline = rate_limit_info.get('value', {}).get('tasks_blocked_by_offline', 0)
                     rate_limit_approaching = (
-                        limit - in_flight - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+                        limit - in_flight - blocked_by_offline - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
                     )
                 else:
                     rate_limit_approaching = True
