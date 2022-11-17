@@ -28545,12 +28545,12 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\">Move to folder</label>\n          <select id=\"move-to-folder-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
-    + "\" class=\"move-to-folder form-control\"></select>\n        </div>\n\n        <div class=\"form-group\">\n          <fieldset class=\"default-to-screenshot-view\">\n            <legend class=\"default-to-screenshot-view\">Default view\n              <span class=\"default_to_screenshot_view-save-status\"></span>\n            </legend>\n            <label class=\"radio-inline\" for=\"link-default-to-screenshot-view-"
+    + "\" class=\"move-to-folder form-control\"></select>\n        </div>\n\n        <div class=\"form-group\">\n          <fieldset class=\"default-to-screenshot-view\">\n            <legend class=\"default-to-screenshot-view\">Default view\n              <span class=\"default_to_screenshot_view-save-status\"></span>\n            </legend>\n            <label class=\"radio-inline\" for=\"link-default-to-standard-view-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
-    + "\">\n              <input type=\"radio\" id=\"link-default-to-screenshot-view-"
+    + "\">\n              <input type=\"radio\" id=\"link-default-to-standard-view-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\" class=\"link-default-to-screenshot-view\" name=\"default-view\" value=\"false\"  "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"default_to_screenshot_view") : depth0),{"name":"unless","hash":{},"fn":container.program(22, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":93,"column":155},"end":{"line":93,"column":223}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"default_to_screenshot_view") : depth0),{"name":"unless","hash":{},"fn":container.program(22, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":93,"column":153},"end":{"line":93,"column":221}}})) != null ? stack1 : "")
     + ">\n              Standard\n            </label>\n            <label class=\"radio-inline\" for=\"link-default-to-screenshot-view-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\">\n              <input type=\"radio\" id=\"link-default-to-screenshot-view-"
