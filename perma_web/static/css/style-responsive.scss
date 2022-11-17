@@ -2935,6 +2935,11 @@ legend.default-to-screenshot-view {
   border-bottom: none;
 }
 
+.row.item-details .form-group input[name="default-view"] {
+  width: auto;
+  margin-top: 4px;
+}
+
 fieldset {
   background-color: $color-background;
   border-radius: 4px;
