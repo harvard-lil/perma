@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 398);
+/******/ 	return __webpack_require__(__webpack_require__.s = 399);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -296,7 +296,7 @@ module.exports = function (it) {
 
 /***/ }),
 
-/***/ 211:
+/***/ 212:
 /***/ (function(module, exports, __webpack_require__) {
 
 var fails = __webpack_require__(10);
@@ -431,28 +431,28 @@ module.exports = {};
 
 /***/ }),
 
-/***/ 271:
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(272);
-
-/***/ }),
-
 /***/ 272:
 /***/ (function(module, exports, __webpack_require__) {
 
-var parent = __webpack_require__(273);
-
-module.exports = parent;
-
+module.exports = __webpack_require__(273);
 
 /***/ }),
 
 /***/ 273:
 /***/ (function(module, exports, __webpack_require__) {
 
+var parent = __webpack_require__(274);
+
+module.exports = parent;
+
+
+/***/ }),
+
+/***/ 274:
+/***/ (function(module, exports, __webpack_require__) {
+
 var isPrototypeOf = __webpack_require__(28);
-var method = __webpack_require__(274);
+var method = __webpack_require__(275);
 
 var ArrayPrototype = Array.prototype;
 
@@ -464,10 +464,10 @@ module.exports = function (it) {
 
 /***/ }),
 
-/***/ 274:
+/***/ 275:
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(275);
+__webpack_require__(276);
 var entryVirtual = __webpack_require__(76);
 
 module.exports = entryVirtual('Array').map;
@@ -475,14 +475,14 @@ module.exports = entryVirtual('Array').map;
 
 /***/ }),
 
-/***/ 275:
+/***/ 276:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $ = __webpack_require__(5);
 var $map = __webpack_require__(64).map;
-var arrayMethodHasSpeciesSupport = __webpack_require__(211);
+var arrayMethodHasSpeciesSupport = __webpack_require__(212);
 
 var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('map');
 
@@ -717,16 +717,16 @@ module.exports = true;
 
 /***/ }),
 
-/***/ 398:
+/***/ 399:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(271);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(272);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_0__);
 
 
-var Datamap = __webpack_require__(399); // show world map
+var Datamap = __webpack_require__(400); // show world map
 
 
 var partnerMap = new Datamap({
@@ -765,7 +765,21 @@ $(window).on('resize', function () {
 
 /***/ }),
 
-/***/ 399:
+/***/ 40:
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(6);
+var setGlobal = __webpack_require__(41);
+
+var SHARED = '__core-js_shared__';
+var store = global[SHARED] || setGlobal(SHARED, {});
+
+module.exports = store;
+
+
+/***/ }),
+
+/***/ 400:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {(function() {
@@ -13415,8 +13429,8 @@ $(window).on('resize', function () {
 
   // Expose library
   if (true) {
-    d3 = __webpack_require__(400);
-    topojson = __webpack_require__(401);
+    d3 = __webpack_require__(401);
+    topojson = __webpack_require__(402);
     module.exports = Datamap;
   }
   else {}
@@ -13438,21 +13452,7 @@ $(window).on('resize', function () {
 
 /***/ }),
 
-/***/ 40:
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(6);
-var setGlobal = __webpack_require__(41);
-
-var SHARED = '__core-js_shared__';
-var store = global[SHARED] || setGlobal(SHARED, {});
-
-module.exports = store;
-
-
-/***/ }),
-
-/***/ 400:
+/***/ 401:
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -23016,7 +23016,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
 
 /***/ }),
 
-/***/ 401:
+/***/ 402:
 /***/ (function(module, exports, __webpack_require__) {
 
 (function (global, factory) {

@@ -43,6 +43,8 @@ ghostdriver.log
 
 *.todo
 
+*.dump
+
 # node
 node_modules
 npm-debug.log
