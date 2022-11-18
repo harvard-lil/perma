@@ -2041,7 +2041,7 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
                 if retry:
                     file_ids_to_check_again.append(file_id)
                 else:
-                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    msg = f"Not retrying confirm metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
                     if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
                         logger.exception(msg)
                     else:
