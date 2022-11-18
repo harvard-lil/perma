@@ -1753,19 +1753,31 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
     query = query.values_list('pk', flat=True)
 
+    first = None
+    last = None
     batches_queued = 0
     pks = []
     for pk in query.iterator():
+
+        # track the first pk for logging
+        if not first:
+            first = pk
+
         pks.append(pk)
         if len(pks) >= batch_size:
             task.delay(pks, **kwargs)
             batches_queued = batches_queued + 1
             pks = []
+
+        # track the last pk for logging
+        last = pk
+
     remainder = len(pks)
     if remainder:
         task.delay(pks, **kwargs)
+        last = pks[-1]
 
-    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}.")
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}, pks {first}-{last}.")
 
 
 @shared_task(acks_late=True)
@@ -1810,6 +1822,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     """
     modified_ids = []
     scheduled_tasks = 0
+    hit_rate_limit = 0
     file_ids_to_retry = []
 
     config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
@@ -1876,7 +1889,9 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 else:
                     rate_limit_approaching = True
                 if s3_is_overloaded or rate_limit_approaching:
-                    logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                    # This is noisy: we're not sure whether we want it or not, going forward.
+                    # logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                    hit_rate_limit = hit_rate_limit + 1
                     retry = (
                         not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
                         not previous_attempts or
@@ -1964,6 +1979,10 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
         add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry, attempts_dict)
         logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
 
+    # Log whether we bumped against the rate limit at any point
+    if hit_rate_limit:
+        logger.warning(f"Skipped {hit_rate_limit} add metadata tasks due to rate limit.")
+
 
 @shared_task(acks_late=True)
 def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
@@ -2022,7 +2041,7 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
                 if retry:
                     file_ids_to_check_again.append(file_id)
                 else:
-                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    msg = f"Not retrying confirm metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
                     if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
                         logger.exception(msg)
                     else:
