@@ -1822,6 +1822,7 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
     """
     modified_ids = []
     scheduled_tasks = 0
+    hit_rate_limit = 0
     file_ids_to_retry = []
 
     config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
@@ -1888,7 +1889,9 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
                 else:
                     rate_limit_approaching = True
                 if s3_is_overloaded or rate_limit_approaching:
-                    logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                    # This is noisy: we're not sure whether we want it or not, going forward.
+                    # logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                    hit_rate_limit = hit_rate_limit + 1
                     retry = (
                         not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
                         not previous_attempts or
@@ -1975,6 +1978,10 @@ def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
 
         add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry, attempts_dict)
         logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
+
+    # Log whether we bumped against the rate limit at any point
+    if hit_rate_limit:
+        logger.warning(f"Skipped {hit_rate_limit} add metadata tasks due to rate limit.")
 
 
 @shared_task(acks_late=True)
