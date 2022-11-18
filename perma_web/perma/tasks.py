@@ -1753,19 +1753,31 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
     query = query.values_list('pk', flat=True)
 
+    first = None
+    last = None
     batches_queued = 0
     pks = []
     for pk in query.iterator():
+
+        # track the first pk for logging
+        if not first:
+            first = pk
+
         pks.append(pk)
         if len(pks) >= batch_size:
             task.delay(pks, **kwargs)
             batches_queued = batches_queued + 1
             pks = []
+
+        # track the last pk for logging
+        last = pk
+
     remainder = len(pks)
     if remainder:
         task.delay(pks, **kwargs)
+        last = pks[-1]
 
-    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}.")
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}, pks {first}-{last}.")
 
 
 @shared_task(acks_late=True)
