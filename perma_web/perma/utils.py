@@ -13,7 +13,6 @@ from nacl.public import Box, PrivateKey, PublicKey
 from netaddr import IPAddress, IPNetwork
 import operator
 import os
-import re
 import requests
 import ssl
 import socket
