@@ -408,8 +408,9 @@ def memento_data_for_url(request, url, qs=None, hash=None):
 def remove_control_characters(s):
     return "".join(ch for ch in s if unicodedata.category(ch)[0]!="C")
 
-def tidy_whitespace(s):
-    return re.sub(' +', ' ', s).strip()
+def remove_whitespace(s):
+    return ''.join(s.split())
+
 
 ### perma payments
 
