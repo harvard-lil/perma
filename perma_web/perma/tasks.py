@@ -55,7 +55,7 @@ from perma.exceptions import PermaPaymentsCommunicationException
 from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
-    user_agent_for_domain, Sec1TLSAdapter)
+    user_agent_for_domain, Sec1TLSAdapter, remove_whitespace)
 from perma.wsgi_utils import retry_on_exception
 from perma import site_scripts
 
@@ -2028,7 +2028,10 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
 
             expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
             try:
-                assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
+                for k, v in expected_metadata.items():
+                    # IA normalizes whitespace idiosyncratically:
+                    # ignore all whitespace when checking for expected values
+                    assert remove_whitespace(ia_file.metadata.get(k)) == remove_whitespace(v), f"expected {k}: {v}, got {ia_file.metadata.get(k)}."
             except AssertionError:
                 # IA's modify_xml tasks can take some time to complete;
                 # the task for this link appears not to have finished yet.
