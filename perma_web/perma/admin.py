@@ -12,6 +12,7 @@ from django.forms import ModelForm
 from django.template.defaultfilters import filesizeformat
 from django.utils.functional import cached_property
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from mptt.admin import MPTTModelAdmin
@@ -557,12 +558,16 @@ class LinkBatchAdmin(admin.ModelAdmin):
 
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+    list_display = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'complete', 'last_derived', 'derive_required', 'internet_archive_link']
     list_filter = [IAIdentifierFilter, IAItemTypeFilter, 'cached_is_dark']
     readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
+
+    def internet_archive_link(self, obj):
+        url = f'https://archive.org/details/{obj.identifier}'
+        return format_html('<a target="_blank" href="{}">{}</a>', url, url)
 
 
 class InternetArchiveFileAdmin(admin.ModelAdmin):
