@@ -85,7 +85,7 @@
             <div class="server-client-toggle toggle-btn-group pt-3">
               <strong>View<span class="_verbose"> Mode</span>:</strong>
               {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                <a class="btn btn-ui-small btn-toggle {% if serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}">Standard</a>
+                <a class="btn btn-ui-small btn-toggle {% if serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?type=standard">Standard</a>
               {% endif %}
               {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
                 <a class="btn btn-ui-small btn-toggle {% if serve_type == 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?type=image">Screenshot</a>
@@ -119,18 +119,31 @@
         </div>
 
         {% if can_edit %}
-          <div class="tray-detail-group">
-            <label for="submitted_title" class="tray-detail-title">Title <span class="label-instruction _verbose">&nbsp;</span><span class="save-status"></span></label>
-            <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
-          </div>
-          <div class="tray-detail-group">
-            <label for="submitted_description" class="tray-detail-title">Description<span class="save-status"></span></label>
-            <input id="submitted_description" name="description" class="form-control link-submitted-description" value="{{link.submitted_description}}"/>
-          </div>
-          <div class="tray-detail-group">
-            <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label>
-            <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
-          </div>
+        <div class="tray-detail-group">
+          <label for="submitted_title" class="tray-detail-title">Title <span class="label-instruction _verbose">&nbsp;</span><span class="title-save-status"></span></label>
+          <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
+        </div>
+        <div class="tray-detail-group">
+          <label for="submitted_description" class="tray-detail-title">Description<span class="description-save-status"></span></label>
+          <input id="submitted_description" name="description" class="form-control link-submitted-description" value="{{link.submitted_description}}"/>
+        </div>
+        <div class="tray-detail-group">
+          <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization %} and your organization{% endif %})</span><span class="notes-save-status"></span></label>
+          <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
+        </div>
+        <div class="tray-detail-group">
+          <fieldset>
+            <legend class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization %} and your organization{% endif %})</span><span class="default_to_screenshot_view-save-status"></span></legend>
+            <label class="radio-inline" for="default_standard">
+              <input type="radio" id="default_standard" name="default_to_screenshot_view" value="false" {% if not link.default_to_screenshot_view %} checked {% endif %}>
+              Standard
+            </label>
+            <label class="radio-inline" for="default_screenshot">
+              <input type="radio" id="default_screenshot" name="default_to_screenshot_view" value="true" {% if link.default_to_screenshot_view %} checked {% endif %}>
+              Screenshot
+            </label>
+          </fieldset>
+        </div>
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">

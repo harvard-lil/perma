@@ -14058,10 +14058,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(59);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(191);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(191);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(272);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5__);
 
@@ -14147,26 +14147,54 @@ function setupLinksTableEventHandlers() {
   .on('input propertychange change', '.link-notes', function () {
     var textarea = $(this);
     var guid = getLinkIDForFormElement(textarea);
-    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
+    var statusElement = textarea.prevAll('.notes-save-status');
+    LinkHelpers.saveInput(guid, textarea, statusElement, 'notes', function () {
+      _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default()(function () {
+        $(statusElement).html('');
+      }, 1000);
+    });
   }) // save changes to title field
   .on('input', '.link-title', function () {
     var textarea = $(this);
     var guid = getLinkIDForFormElement(textarea);
-    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
+    var statusElement = textarea.prevAll('.title-save-status');
+    LinkHelpers.saveInput(guid, textarea, statusElement, 'title', function (data) {
       var _context2;
 
       // update display title when saved
       _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_2___default()(_context2 = textarea.closest('.item-container')).call(_context2, '.item-title span').text(data.title);
+
+      _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default()(function () {
+        $(statusElement).html('');
+      }, 1000);
     });
   }).on('input', '.link-description', function () {
     var textarea = $(this);
     var guid = getLinkIDForFormElement(textarea);
-    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description');
+    var statusElement = textarea.prevAll('.description-save-status');
+    LinkHelpers.saveInput(guid, textarea, statusElement, 'description', function () {
+      _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default()(function () {
+        $(statusElement).html('');
+      }, 1000);
+    });
+  }).on('input', '.link-default-to-screenshot-view', function () {
+    var _context3;
+
+    var radio = $(this);
+    var guid = getLinkIDForFormElement(radio);
+
+    var statusElement = _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_2___default()(_context3 = radio.parent().parent()).call(_context3, '.default_to_screenshot_view-save-status');
+
+    LinkHelpers.saveInput(guid, radio, statusElement, 'default_to_screenshot_view', function () {
+      _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default()(function () {
+        $(statusElement).html('');
+      }, 1000);
+    });
   }) // handle move-to-folder dropdown
   .on('change', '.move-to-folder', function () {
     var moveSelect = $(this);
 
-    var data = _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3___default()({
+    var data = _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_4___default()({
       folderId: moveSelect.val(),
       linkId: getLinkIDForFormElement(moveSelect)
     });
@@ -14189,7 +14217,7 @@ function initShowFolderDOM(query) {
 
   showLoadingMessage = true;
 
-  _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_4___default()(function () {
+  _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_3___default()(function () {
     if (showLoadingMessage) {
       DOMHelpers.emptyElement($linkTable);
       DOMHelpers.changeHTML($linkTable, '<div class="alert-info">Loading folder contents...</div>');
@@ -14219,11 +14247,11 @@ function showFolderContents(folderID, query) {
 
   function getNextContents() {
     APIModule.request("GET", endpoint, requestData).done(function (response) {
-      var _context3;
+      var _context4;
 
       showLoadingMessage = false;
 
-      var links = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5___default()(_context3 = response.objects).call(_context3, generateLinkFields.bind(this, query)); // append HTML
+      var links = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5___default()(_context4 = response.objects).call(_context4, generateLinkFields.bind(this, query)); // append HTML
 
 
       if (requestData.offset === 0) {
@@ -28513,11 +28541,23 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\" class=\"link-notes\" rows=\"6\">"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"notes") : depth0), depth0))
-    + "</textarea>\n          <span class=\"muted\">\n            Notes are private to you and your organization(s)\n          </span>\n        </div>\n\n        <div class=\"form-group\">\n          <label for=\"move-to-folder-"
+    + "</textarea>\n          <span class=\"muted\">\n            Notes are private to you and your organization(s)\n          </span>\n        </div>\n\n        <div class=\"form-group\">\n            <label for=\"move-to-folder-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
     + "\">Move to folder</label>\n          <select id=\"move-to-folder-"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
-    + "\" class=\"move-to-folder form-control\"></select>\n        </div>\n\n      </div>\n      <div class=\"col-sm-5 link-stats\">\n        <div><span><strong>Created by:</strong> "
+    + "\" class=\"move-to-folder form-control\"></select>\n        </div>\n\n        <div class=\"form-group\">\n          <fieldset class=\"default-to-screenshot-view\">\n            <legend class=\"default-to-screenshot-view\">Default view\n              <span class=\"default_to_screenshot_view-save-status\"></span>\n            </legend>\n            <label class=\"radio-inline\" for=\"link-default-to-standard-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\">\n              <input type=\"radio\" id=\"link-default-to-standard-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\" class=\"link-default-to-screenshot-view\" name=\"default-view\" value=\"false\"  "
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"default_to_screenshot_view") : depth0),{"name":"unless","hash":{},"fn":container.program(22, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":93,"column":153},"end":{"line":93,"column":221}}})) != null ? stack1 : "")
+    + ">\n              Standard\n            </label>\n            <label class=\"radio-inline\" for=\"link-default-to-screenshot-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\">\n              <input type=\"radio\" id=\"link-default-to-screenshot-view-"
+    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"guid") : depth0), depth0))
+    + "\" class=\"link-default-to-screenshot-view\" name=\"default-view\"  value=\"true\" "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"default_to_screenshot_view") : depth0),{"name":"if","hash":{},"fn":container.program(22, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":97,"column":154},"end":{"line":97,"column":214}}})) != null ? stack1 : "")
+    + ">\n              Screenshot\n            </label>\n          </fieldset>\n          <span class=\"muted\">\n            Default view preference is private to you and your organization(s)\n          </span>\n        </div>\n\n      </div>\n      <div class=\"col-sm-5 link-stats\">\n        <div><span><strong>Created by:</strong> "
     + alias3(alias2(((stack1 = (depth0 != null ? lookupProperty(depth0,"created_by") : depth0)) != null ? lookupProperty(stack1,"full_name") : stack1), depth0))
     + "</span></div>\n      </div>\n    </div>\n  </div>\n";
 },"6":function(container,depth0,helpers,partials,data) {
@@ -28546,6 +28586,8 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 },"20":function(container,depth0,helpers,partials,data) {
     return "style=\"display:block\"";
 },"22":function(container,depth0,helpers,partials,data) {
+    return " checked=\"checked\" ";
+},"24":function(container,depth0,helpers,partials,data) {
     return "  <div class=\"row item-row row-no-bleed\">\n    <div class=\"row\">\n      <div class=\"col col-xs-12\">\n        <div class=\"item-title\">\n          <p class=\"item-notification\">This is an empty folder</p>\n        </div>\n      </div>\n    </div>\n  </div>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -28557,7 +28599,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 
   return ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"query") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":1,"column":0},"end":{"line":8,"column":7}}})) != null ? stack1 : "")
     + "\n\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(22, data, 0),"data":data,"loc":{"start":{"line":11,"column":0},"end":{"line":103,"column":9}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.program(24, data, 0),"data":data,"loc":{"start":{"line":11,"column":0},"end":{"line":122,"column":9}}})) != null ? stack1 : "");
 },"useData":true});
 
 /***/ }),
