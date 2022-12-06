@@ -6381,6 +6381,10 @@ img {
     margin-bottom: 15px;
   }
 }
+.nav-tabs a:focus {
+  outline: none !important;
+}
+
 @font-face {
   font-family: "Roboto Slab";
   font-display: swap;
@@ -6704,6 +6708,13 @@ body {
   color: #222;
   font-family: "Roboto Slab", sans-serif;
   margin: 0;
+  min-height: 100%;
+}
+
+body {
+  height: 100%;
+}
+body #after-modals {
   min-height: 100%;
 }
 
@@ -7208,6 +7219,26 @@ a.cc:active, p a.cc.perma:active {
 }
 .stats-container a, .stats-container p a.perma, p .stats-container a.perma {
   text-decoration: underline;
+}
+
+.stats-container h3 + div + div, .stats-container h3 + div + button, .stats-container h3 + button {
+  margin-top: 8px;
+}
+
+#celery {
+  word-wrap: break-word;
+}
+
+.queue-block {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 36px;
+}
+
+#rate-limits-status {
+  color: #DD671A;
+  margin-top: 0;
+  margin-left: 0.7em;
 }
 
 .style-container-padding, .cont-fixed, .cont-full {

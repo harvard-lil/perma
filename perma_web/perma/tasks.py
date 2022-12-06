@@ -1463,7 +1463,7 @@ def update_stats():
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         cache_playback_status.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links to have their playback status cached.")
@@ -1522,7 +1522,7 @@ def populate_warc_size_fields(limit=None):
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         populate_warc_size.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued {queued} links for populating warc_size.")
@@ -1548,14 +1548,50 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
     via dedicated models, rather than using fields on the Link object. This task queues up the
     creation of IA Django model objects for our legacy individual Items.
     """
-    # all Links we think may have been uploaded to IA
-    links = Link.objects.exclude(
-        internet_archive_upload_status='not_started'
-    )
+    # Get all Links we think may have been uploaded to IA,
+    # and then filter out the ones we have already processed.
+    # Do so with our own SQL, because that generated from the
+    # intuitive ORM query proved to be impossibly slow.
+    # links = Link.objects.all_with_deleted(
+    #     internet_archive_upload_status='not_started'
+    # ).exclude(
+    #     internet_archive_items__span__isempty=True
+    # )
+    from django.db.models.expressions import RawSQL  # noqa
+
+    sql = '''
+        SELECT
+          "perma_link"."guid"
+        FROM
+          perma_link
+          LEFT JOIN (
+            SELECT
+              "perma_link"."guid"
+            FROM
+              "perma_link"
+              INNER JOIN "perma_internetarchivefile" ON (
+                "perma_link"."guid" = "perma_internetarchivefile"."link_id"
+              )
+              INNER JOIN "perma_internetarchiveitem" ON (
+                "perma_internetarchivefile"."item_id" = "perma_internetarchiveitem"."identifier"
+              )
+            WHERE
+              isempty(
+                "perma_internetarchiveitem"."span"
+              ) = True
+          ) AS links_with_individual_items ON perma_link.guid = links_with_individual_items.guid
+        WHERE
+          links_with_individual_items.guid IS NULL
+          AND NOT (
+            "perma_link"."internet_archive_upload_status" = 'not_started'
+      )
+    '''
+
+    links = Link.objects.filter(guid__in=RawSQL(sql, []))
     if limit:
         links = links[:limit]
     queued = 0
-    for link_guid in links.values_list('guid', flat=True):
+    for link_guid in links.values_list('guid', flat=True).iterator():
         backfill_individual_link_internet_archive_objects.delay(link_guid)
         queued = queued + 1
     logger.info(f"Queued the creation of {queued} individual link IA items.")
@@ -1565,8 +1601,7 @@ def queue_backfill_of_individual_link_internet_archive_objects(limit=None):
 def backfill_individual_link_internet_archive_objects(link_guid):
     """
     If an Internet Archive "Item" was produced for the specified Link,
-    create an InternetArchiveItem object. If that Item contains a warc,
-    create a corresponding InternetArchiveFile object.
+    create an InternetArchiveItem object and InternetArchiveFile object.
     """
     identifier = InternetArchiveItem.INDIVIDUAL_LINK_IDENTIFIER.format(
         prefix=settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX,
@@ -1578,26 +1613,29 @@ def backfill_individual_link_internet_archive_objects(link_guid):
     if not ia_item.exists:
         logger.error(f"No IA item exists for {link_guid}, but our database suggests that one should.")
         return
-    perma_item, created = InternetArchiveItem.objects.get_or_create(
-        identifier=identifier,
-        defaults={
+    if ia_item.is_dark:
+        metadata = {
+            'cached_is_dark': True,
+        }
+    else:
+        metadata = {
             'added_date': InternetArchiveItem.datetime(ia_item.metadata['addeddate']),
             'cached_file_count': ia_item.files_count,
             'cached_title': ia_item.metadata['title'],
             'cached_description': ia_item.metadata.get('description')
         }
+    perma_item, created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        defaults=metadata
     )
     logger.info(f"{'Created IA Item' if created else 'Existing IA Item found'} for {identifier}.")
 
-    # Create an InternetArchiveFile object if the Item contains a warc
+    # Create an InternetArchiveFile object with the appropriate status
     filename = InternetArchiveFile.WARC_FILENAME.format(guid=link_guid)
     ia_warc = ia_item.get_file(filename)
-    if not ia_warc.exists:
-        return
-    _, created = InternetArchiveFile.objects.get_or_create(
-        link_id=link_guid,
-        item=perma_item,
-        defaults={
+    if ia_warc.exists:
+        metadata = {
+            'status': 'confirmed_present',
             'cached_title': ia_warc.metadata.get('title'),
             'cached_comments':ia_warc.metadata.get('comments'),
             'cached_external_identifier': ia_warc.metadata.get('external-identifier'),
@@ -1605,6 +1643,14 @@ def backfill_individual_link_internet_archive_objects(link_guid):
             'cached_format': ia_warc.metadata['format'],
             'cached_size': ia_warc.size
         }
+    else:
+        metadata = {
+            'status': 'confirmed_absent',
+        }
+    _, created = InternetArchiveFile.objects.get_or_create(
+        link_id=link_guid,
+        item=perma_item,
+        defaults=metadata
     )
     logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {filename} and {identifier}.")
 
@@ -1695,3 +1741,302 @@ def backfill_daily_internet_archive_objects(date_string):
             }
         )
         logger.info(f"{'Created IA File' if created else 'Existing IA File found'} for {link_id} and {identifier}.")
+
+
+def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
+    """
+    A generic queuing task. Chunks the queryset by batch_size,
+    and queues up the specified celery task for each chunk, passing in a
+    list of the objects' primary keys and any other supplied kwargs.
+    """
+    query = query.values_list('pk', flat=True)
+
+    batches_queued = 0
+    pks = []
+    for pk in query.iterator():
+        pks.append(pk)
+        if len(pks) >= batch_size:
+            task.delay(pks, **kwargs)
+            batches_queued = batches_queued + 1
+            pks = []
+    remainder = len(pks)
+    if remainder:
+        task.delay(pks, **kwargs)
+
+    logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}.")
+
+
+@shared_task(acks_late=True)
+def populate_internet_archive_file_status(pks):
+    """
+    We created a large number of InternetArchiveFile objects before realizing we
+    needed a 'status' field. This one-time task populates that field for the existing
+    items in a database-friendly way.
+    """
+    count_updated = InternetArchiveFile.objects.filter(pk__in=pks, status__isnull=True).update(status='confirmed_present')
+    logger.info(f"Updated status for {count_updated} InternetArchiveFiles ({pks[0]} to {pks[-1]}).")
+
+
+@shared_task(acks_late=True)
+def add_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
+    """
+    "Daily" Internet Archive Items were created on Perma.cc's behalf by the Internet Archive
+    team, who used their own scripts to produce them from the "individual" Items we created
+    ourselves, over the years. The daily Items do not presently have any metadata about the
+    Perma archives they contain: they have only the creation date (not timestamp), GUID, and
+    warc file.
+
+    This task adds details like the target URL and the capture timestamp to the Item's file-level
+    metadata, which is a stored in a generated "<identifier>_files.xml" file associated with the Item.
+    See https://archive.org/developers/md-write.html#targets
+
+    The archive.org API supports "multi-target writes" that would let us add file-level metadata
+    for multiple Perma Links / warc files at a time. But unfortunately, the python package only
+    exposes an interface for "single-target" writes. Rather than attempt to implement a multi-target
+    version ourselves, we issue a separate modify_metadata IA task for each File associated with
+    an Item, attempting to respect IA's rate limiting.
+
+    Sample invocation:
+    ```
+    files = InternetArchiveFile.objects.filter(
+        item__span__isempty=False,
+        status='confirmed_present',
+        cached_submitted_url__isnull=True
+    )
+    queue_batched_tasks(add_metadata_to_existing_daily_item_files, files, batch_size=100)
+    ```
+    """
+    modified_ids = []
+    scheduled_tasks = 0
+    file_ids_to_retry = []
+
+    config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    ia_session = internetarchive.get_session(config=config)
+
+    # cache any ia_items we load to avoid redundant API requests
+    ia_items = {}
+    def get_ia_item(ia_session, identifier):
+        ia_item = ia_items.get(identifier)
+        if not ia_item:
+            ia_item = ia_session.get_item(identifier)
+            ia_items[identifier] = ia_item
+        return ia_item
+
+    try:
+        for file_id in file_ids:
+
+            perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+            perma_item = perma_file.item
+            link = perma_file.link
+            try:
+                ia_item = get_ia_item(ia_session, perma_item.identifier)
+            except requests.exceptions.ConnectionError:
+                # Sometimes, requests to retrieve the metadata of an IA Item time out.
+                # Retry later, without counting this as a failed attempt
+                file_ids_to_retry.append(file_id)
+                continue
+
+            # make sure we aren't exceeding rate limits
+            s3_is_overloaded = ia_session.s3_is_overloaded(
+                identifier=ia_item.identifier,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
+            )
+            rate_limit_info = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
+            rate_limit_info_retrieved = rate_limit_info and rate_limit_info.get('success', False)
+            if rate_limit_info_retrieved:
+                limit = rate_limit_info.get('value', {}).get('tasks_limit', 0)
+                in_flight = rate_limit_info.get('value', {}).get('tasks_inflight', 0)
+                rate_limit_approaching = (
+                    limit - in_flight - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+                )
+            else:
+                rate_limit_approaching = True
+            if s3_is_overloaded or rate_limit_approaching:
+                logger.warning(f"Skipped add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}) due to rate limit.")
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_retry.append(file_id)
+                else:
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): rate limit retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
+
+                continue
+
+            # schedule an IA modify_xml task that will add this Perma Link's metadata
+            # to this IA item's <identifier>_files.xml
+            new_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+            try:
+                response = ia_item.modify_metadata(
+                    new_metadata,
+                    target=f"files/{InternetArchiveFile.WARC_FILENAME.format(guid=link.guid)}",
+                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY
+                )
+            except requests.exceptions.ConnectionError:
+                # modify_metadata calls  self.refresh(), which sometimes times out.
+                # Retry later, without counting this as a failed attempt
+                file_ids_to_retry.append(file_id)
+                continue
+
+            if response.status_code == 400 and "no changes" in response.text:
+                logger.info(f"Metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+                modified_ids.append(file_id)
+                continue
+            try:
+                assert response.ok, f"ia.modify_metadata returned {response.status_code}: {response.text}"
+                assert response.json().get('success'), f"ia.modify_metadata returned {response.status_code}: {response.text}"
+            except (requests.JSONDecodeError, AssertionError) as e:
+                msg = f"Failed to schedule modify_xml task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): "
+                if "Couldn't acquire write lock" in str(e):
+                    logger.warning(msg + "Couldn't acquire write lock. Will retry if allowed.")
+                else:
+                    logger.exception(msg + "Will retry if allowed.")
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_retry.append(file_id)
+                else:
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
+                continue
+
+            modified_ids.append(file_id)
+            scheduled_tasks = scheduled_tasks + 1
+
+    except SoftTimeLimitExceeded:
+        not_processed_yet = set(file_ids) - set(modified_ids) - set(file_ids_to_retry)
+        logger.info(f"After SoftTimeLimitExceeded, adding { len(not_processed_yet) } InternetArchiveFiles to the list to retry.")
+        for file_id in not_processed_yet:
+            # add these to the list of file_ids to retry, without counting this as a failed attempt
+            file_ids_to_retry.append(file_id)
+
+    # Queue our celery tasks that check to see when modify_xml has completed and the file-level metadata has been successfully added
+    if modified_ids:
+        confirm_added_metadata_to_existing_daily_item_files.delay(modified_ids)
+        logger.info(f"Scheduled modify_xml tasks for {scheduled_tasks} InternetArchiveFiles; {len(modified_ids) - scheduled_tasks} didn't require modification.")
+
+    # Re-queue any guids we skipped or that failed
+    if file_ids_to_retry:
+        attempts_dict = {
+            str(file_id): 1 for file_id in file_ids_to_retry
+        }
+        if previous_attempts:
+            for file_id in attempts_dict:
+                attempts_dict[str(file_id)] = attempts_dict[str(file_id)] + previous_attempts[str(file_id)]
+
+        add_metadata_to_existing_daily_item_files.delay(file_ids_to_retry, attempts_dict)
+        logger.info(f"Re-queued 'add_metadata_to_existing_daily_item_files' for {len(file_ids_to_retry)} InternetArchiveFiles.")
+
+
+@shared_task(acks_late=True)
+def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attempts=None):
+    """
+    This task is enqueued by add_metadata_to_existing_daily_item_files, when it requests an update to
+    an IA Item's file-level metadata. This tasks checks to see if the requested updated has completed,
+    and if not, re-queues itself.
+
+    If something goes truly haywire (a scheduled update NEVER completes, or never completes as expected),
+    this task could re-queue itself perpetually, but realistically it's hard to imagine that happening.
+    If we notice a problem, we should take note of the file id(s) in question, clear the IA celery queue,
+    and investigate.
+    """
+
+    updated_files = []
+    file_ids_to_check_again = []
+
+    try:
+
+        # cache any ia_items we load to avoid redundant API requests
+        ia_items = {}
+        def get_ia_item(identifier):
+            ia_item = ia_items.get(identifier)
+            if not ia_item:
+                ia_item = internetarchive.get_item(identifier)
+                ia_items[identifier] = ia_item
+            return ia_item
+
+        for file_id in file_ids:
+
+            perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
+            perma_item = perma_file.item
+            link = perma_file.link
+
+            try:
+                ia_item = get_ia_item(perma_item.identifier)
+                ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+            except requests.exceptions.ConnectionError:
+                # Sometimes, requests to retrieve the metadata of an IA Item time out.
+                # Retry later, without counting this as a failed attempt
+                file_ids_to_check_again.append(file_id)
+                continue
+
+            expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
+            try:
+                assert expected_metadata.items() <= ia_file.metadata.items(), f"{expected_metadata.items()} != {ia_file.metadata.items()}"
+            except AssertionError:
+                # IA's modify_xml tasks can take some time to complete;
+                # the task for this link appears not to have finished yet.
+                # We need to check again later.
+                retry = (
+                    not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                    not previous_attempts or
+                    (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > previous_attempts[str(file_id)] + 1)
+                )
+                if retry:
+                    file_ids_to_check_again.append(file_id)
+                else:
+                    msg = f"Not retrying add metadata task for {file_id} (IA Item {ia_item.identifier}, File {link.guid}): error retry maximum reached."
+                    if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                        logger.exception(msg)
+                    else:
+                        logger.warning(msg)
+                continue
+
+            perma_file = perma_item.internet_archive_files.get(link=link)
+            perma_file.update_from_ia_metadata(ia_file.metadata)
+            if perma_file.tracker.changed():
+                updated_files.append(perma_file)
+            else:
+                logger.info(f"Cached metadata already updated for {file_id} (IA Item {ia_item.identifier}, File {link.guid}).")
+
+    except SoftTimeLimitExceeded:
+        not_processed_yet = set(file_ids) - set(file.id for file in updated_files) - set(file_ids_to_check_again)
+        for file_id in not_processed_yet:
+            # add these to the list of file_ids to retry, without counting this as a failed attempt
+            file_ids_to_check_again.append(file_id)
+
+    if updated_files:
+        InternetArchiveFile.objects.bulk_update(updated_files, [
+            'cached_title',
+            'cached_comments',
+            'cached_external_identifier',
+            'cached_external_identifier_match_date',
+            'cached_format',
+            'cached_submitted_url',
+            'cached_perma_url'
+        ])
+        logger.info(f"Confirmed update of { len(updated_files) } InternetArchiveFiles.")
+
+    if file_ids_to_check_again:
+        attempts_dict = {
+            str(file_id): 1 for file_id in file_ids_to_check_again
+        }
+        if previous_attempts:
+            for file_id in attempts_dict:
+                attempts_dict[str(file_id)] = attempts_dict[str(file_id)] + previous_attempts[str(file_id)]
+
+        confirm_added_metadata_to_existing_daily_item_files.delay(file_ids_to_check_again, attempts_dict)
+        logger.info(f"Re-queued 'confirm_added_metadata_to_existing_daily_item_files' for { len(file_ids_to_check_again) } InternetArchiveFiles.")

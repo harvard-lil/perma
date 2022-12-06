@@ -32,6 +32,9 @@ from django.db import models, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
+from django.contrib.postgres.indexes import GistIndex
+from django.template.defaultfilters import truncatechars
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
@@ -46,7 +49,8 @@ from .utils import (Sec1TLSAdapter, tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
-    write_resource_record_from_asset, user_agent_for_domain)
+    write_resource_record_from_asset, user_agent_for_domain,
+    protocol, remove_control_characters, tidy_whitespace)
 
 
 logger = logging.getLogger(__name__)
@@ -2031,8 +2035,10 @@ class InternetArchiveItem(models.Model):
     # (From documentation archived at https://perma.cc/AVZ8-FD57)
     identifier = models.CharField(max_length=100, null=False, blank=False, primary_key=True, editable=False)
 
-    # The best available field reporting when an Item was added to Internet Archive
+    # The best available field reporting when an Item was added to Internet Archive.
     # (From documentation archived at https://perma.cc/U88M-6R5C)
+    # If the item has been "darked" by IA (e.g. removed after a copyright or content complaint),
+    # this field is no longer returned by the API, so may be unrecoverable.
     added_date = models.DateTimeField(null=True, blank=True)
 
     # InternetArchiveItem.objects.filter(span__isempty=True) were created for a single Perma Link
@@ -2040,6 +2046,7 @@ class InternetArchiveItem(models.Model):
     # (https://docs.djangoproject.com/en/4.1/ref/contrib/postgres/fields/#isempty)
     span = DateTimeRangeField(default=get_empty_datetime_range, help_text="The lower bound is included, and the upper bound excluded. That is, bounds='[)'")
 
+    cached_is_dark = models.BooleanField(default=False, db_index=True)
     cached_file_count = models.IntegerField(null=True, blank=True, default=None)
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
@@ -2050,6 +2057,13 @@ class InternetArchiveItem(models.Model):
 
     class Meta:
         verbose_name = "Internet Archive Item"
+
+        indexes = [
+            # We would like an index like the below, but expressions aren't supported in this version of Django.
+            # We are adding it via a SQL migration instead. See 0007_auto_20221024_2049.py
+            # models.Index(IsEmpty('span'), 'identifier', name='empty_span_idx'),
+            GistIndex(fields=['span']),
+        ]
 
     def __str__(self):
         return f"IA Item {self.identifier}"
@@ -2069,8 +2083,16 @@ class InternetArchiveFile(models.Model):
     Items may contain IA-produced, derivative files as well; for instance, cdx files.
     We do not store objects referencing those derivative files, only original files that we ourselves upload.
     """
-    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING)
-    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE)
+    link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
+    item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
+
+    status = models.CharField(
+        max_length=19,
+        null=True,
+        blank=True,
+        choices=((s, s) for s in ('upload_attempted', 'confirmed_present', 'deletion_attempted', 'confirmed_absent')),
+        db_index=True
+    )
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
@@ -2085,6 +2107,8 @@ class InternetArchiveFile(models.Model):
     cached_submitted_url = models.TextField(null=True, blank=True, default=None)
     cached_perma_url = models.TextField(null=True, blank=True, default=None)
 
+    tracker = FieldTracker()
+
     class Meta:
         verbose_name = "Internet Archive File"
         unique_together = (("link", "item"),)
@@ -2097,6 +2121,33 @@ class InternetArchiveFile(models.Model):
     @classmethod
     def guid_from_filename(cls, filename):
         return filename.split('.')[0]
+
+    @classmethod
+    def standard_metadata_for_link(cls, link):
+        title = tidy_whitespace(f"{link.guid}: {truncatechars(link.submitted_title, 50)}")
+        url = tidy_whitespace(remove_control_characters(link.submitted_url))
+        return {
+            "title": title,
+            "comments": f"Perma.cc archive of {url} created on {link.creation_timestamp}.",
+            "external-identifier": f"urn:X-perma:{link.guid}",
+            "external-identifier-match-date": f"X-perma:{link.creation_timestamp.isoformat()}",
+            "format": "Web ARChive GZ",
+            "submitted_url": url,
+            "perma_url": protocol() + settings.HOST + reverse('single_permalink', args=[link.guid]),
+        }
+
+    def update_from_ia_metadata(self, metadata):
+        """
+        Intentionally does not call save(), so this method can be used with bulk database operations.
+        """
+        self.cached_title = metadata['title']
+        self.cached_comments = metadata['comments']
+        self.cached_external_identifier = metadata['external-identifier']
+        self.cached_external_identifier_match_date = metadata['external-identifier-match-date']
+        self.cached_format = metadata['format']
+        self.cached_submitted_url = metadata['submitted_url']
+        self.cached_perma_url = metadata['perma_url']
+
 
 
 #########################

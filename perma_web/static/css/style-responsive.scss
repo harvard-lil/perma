@@ -290,6 +290,16 @@ body {
   min-height: 100%;
 }
 
+// This appears to give us a sticky footer without breaking anything.
+// But I'm not sure about it.
+body {
+  height: 100%;
+
+  #after-modals {
+    min-height: 100%
+  }
+}
+
 footer {
   background-color: white;
   padding: $grid * 4 0;
@@ -814,9 +824,36 @@ a.cc {
   }
 }
 
+//
+// admin stats page
+//
+
 .stats-container a {
   text-decoration: underline;
 }
+
+.stats-container {
+  h3 + div + div, h3 + div + button, h3 + button {
+    margin-top: 8px;
+  }
+}
+
+#celery {
+  word-wrap: break-word;
+}
+
+.queue-block {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 36px;
+}
+
+#rate-limits-status {
+  color: $color-orange;
+  margin-top: 0;
+  margin-left: .7em;
+}
+
 
 /////////////////////////////////////////
 

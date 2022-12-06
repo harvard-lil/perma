@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 555);
+/******/ 	return __webpack_require__(__webpack_require__.s = 556);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -264,6 +264,13 @@ module.exports = fails(function () {
 
 /***/ }),
 
+/***/ 2:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(3);
+
+/***/ }),
+
 /***/ 20:
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -405,7 +412,7 @@ module.exports = {};
 
 /***/ }),
 
-/***/ 277:
+/***/ 278:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -511,6 +518,17 @@ var NATIVE_SYMBOL = __webpack_require__(30);
 module.exports = NATIVE_SYMBOL
   && !Symbol.sham
   && typeof Symbol.iterator == 'symbol';
+
+
+/***/ }),
+
+/***/ 3:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(4);
+var path = __webpack_require__(27);
+
+module.exports = path.setTimeout;
 
 
 /***/ }),
@@ -684,7 +702,7 @@ module.exports = function (name) {
 
 /***/ }),
 
-/***/ 372:
+/***/ 373:
 /***/ (function(module, exports, __webpack_require__) {
 
 /**!
@@ -719,14 +737,14 @@ this.decorators.push("return fn;"),d?this.decorators=Function.apply(this,["fn","
 
 /***/ }),
 
-/***/ 376:
+/***/ 377:
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(377);
+module.exports = __webpack_require__(378);
 
 /***/ }),
 
-/***/ 377:
+/***/ 378:
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(4);
@@ -1210,38 +1228,44 @@ module.exports = function (passed, required) {
 
 /***/ }),
 
-/***/ 555:
+/***/ 556:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(376);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(377);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
 
 
-var DOMHelpers = __webpack_require__(277);
 
-var HandlebarsHelpers = __webpack_require__(556);
+var DOMHelpers = __webpack_require__(278);
 
-function fillSection(name) {
-  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+var HandlebarsHelpers = __webpack_require__(557);
+
+function fillSection(name, callback) {
+  $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+    if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
+      // If no data was returned, don't redraw the section.
+      return;
+    }
+
     DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
+
+    if (callback) {
+      callback();
+    }
   });
 }
 
-function addSection(name) {
-  $('.stats-container').append('<div class="row" id="' + name + '">Loading ' + name + ' ...</div>');
-  return function () {
-    fillSection(name);
-  };
-}
-
-var chain = $.when(addSection("random")());
-chain = chain.then(addSection("days"));
-chain = chain.then(addSection("emails"));
-chain = chain.then(addSection("job_queue"));
-chain = chain.then(addSection("celery_queues"));
-chain = chain.then(addSection("celery"));
+fillSection("celery_queues");
+fillSection("celery");
+fillSection("rate_limits");
+fillSection("job_queue");
+fillSection("days");
+fillSection("random");
+fillSection("emails");
 
 _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
   fillSection("job_queue");
@@ -1251,21 +1275,46 @@ _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___
   fillSection("celery_queues");
 }, 2000);
 
-_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-  fillSection("celery");
-}, 2000);
+function refresh_celery_jobs() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    fillSection("celery");
+  }, 2000);
+}
+
+var celery_tasks_refresh = refresh_celery_jobs();
+document.getElementById('cancel-auto-refresh').addEventListener('click', function (e) {
+  if (celery_tasks_refresh) {
+    clearInterval(celery_tasks_refresh);
+    celery_tasks_refresh = null;
+    e.target.innerText = 'Resume Auto-Refresh';
+  } else {
+    celery_tasks_refresh = refresh_celery_jobs();
+    e.target.innerText = 'Pause Auto-Refresh';
+  }
+});
+document.getElementById('refresh-rate-limits').addEventListener('click', function (e) {
+  var status = document.getElementById('rate-limits-status');
+  status.innerText = 'Refreshing...';
+  fillSection("rate_limits", function () {
+    status.innerText = 'Refreshed!';
+
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
+      return status.innerText = '';
+    }, 2000);
+  });
+});
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
 
-/***/ 556:
+/***/ 557:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderTemplate", function() { return renderTemplate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compileTemplate", function() { return compileTemplate; });
-var Handlebars = __webpack_require__(372);
+var Handlebars = __webpack_require__(373);
 /*
 Using handlebar's compile method to generate templates on the fly
 */

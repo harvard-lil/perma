@@ -4,7 +4,10 @@ import itertools
 from datetime import timedelta
 
 import celery
+import internetarchive
 import redis
+import requests
+
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
@@ -204,6 +207,7 @@ def stats(request, stat_type=None):
             'total_main_queue': r.llen('celery'),
             'total_background_queue': r.llen('background'),
             'total_ia_queue': r.llen('ia'),
+            'total_ia_readonly_queue': r.llen('ia-readonly'),
         }
 
     elif stat_type == "job_queue":
@@ -223,11 +227,33 @@ def stats(request, stat_type=None):
             } for j in CaptureJob.objects.filter(status='in_progress').select_related('link', 'link__created_by')]
         }
 
+    elif stat_type == 'rate_limits':
+        config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+        ia_session = internetarchive.get_session(config=config)
+
+        try:
+            modify_xml = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
+            derive = ia_session.get_tasks_api_rate_limit(cmd='derive.php')
+            out = {
+                "modify_xml": {
+                    "tasks_limit": modify_xml["value"]["tasks_limit"],
+                    "tasks_inflight": modify_xml["value"]["tasks_inflight"],
+                    "tasks_blocked_by_offline": modify_xml["value"]["tasks_blocked_by_offline"]
+                },
+                "derive": {
+                    "tasks_limit": derive["value"]["tasks_limit"],
+                    "tasks_inflight": derive["value"]["tasks_inflight"],
+                    "tasks_blocked_by_offline": derive["value"]["tasks_blocked_by_offline"]
+                }
+            }
+        except requests.exceptions.ConnectionError:
+            out = None
+
     if out:
         return JsonResponse(out)
 
     else:
-        return render(request, 'user_management/stats.html', locals())
+        return render(request, 'user_management/stats.html')
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)

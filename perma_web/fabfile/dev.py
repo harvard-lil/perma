@@ -23,7 +23,7 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
               "to create new batches you should run with settings.CELERY_TASK_ALWAYS_EAGER = False\n")
     else:
         print("\nStarting background celery process.")
-        commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia -B -n w1@%h")
+        commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia,ia-readonly -B -n w1@%h")
 
     if settings.PROXY_CAPTURES:
         print("\nStarting Tor service in the background.")
