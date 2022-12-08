@@ -4,9 +4,7 @@ import itertools
 from datetime import timedelta
 
 import celery
-import internetarchive
 import redis
-import requests
 
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.cache import never_cache
@@ -54,7 +52,9 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, get_form_data, ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, get_client_ip
+from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
+    ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, get_client_ip,
+    get_complete_ia_rate_limiting_info)
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
 
@@ -228,26 +228,7 @@ def stats(request, stat_type=None):
         }
 
     elif stat_type == 'rate_limits':
-        config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
-        ia_session = internetarchive.get_session(config=config)
-
-        try:
-            modify_xml = ia_session.get_tasks_api_rate_limit(cmd='modify_xml.php')
-            derive = ia_session.get_tasks_api_rate_limit(cmd='derive.php')
-            out = {
-                "modify_xml": {
-                    "tasks_limit": modify_xml["value"]["tasks_limit"],
-                    "tasks_inflight": modify_xml["value"]["tasks_inflight"],
-                    "tasks_blocked_by_offline": modify_xml["value"]["tasks_blocked_by_offline"]
-                },
-                "derive": {
-                    "tasks_limit": derive["value"]["tasks_limit"],
-                    "tasks_inflight": derive["value"]["tasks_inflight"],
-                    "tasks_blocked_by_offline": derive["value"]["tasks_blocked_by_offline"]
-                }
-            }
-        except requests.exceptions.ConnectionError:
-            out = None
+        out = get_complete_ia_rate_limiting_info()
 
     if out:
         return JsonResponse(out)

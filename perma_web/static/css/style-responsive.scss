@@ -854,6 +854,19 @@ a.cc {
   margin-left: .7em;
 }
 
+.bucket-stats {
+  padding-left: 0;
+  padding-bottom: 15px;
+}
+
+.over-limit:not(:first-child) {
+  padding-top: 15px;
+}
+
+.over-limit:not(:last-child) {
+  border-bottom: 1px solid $color-trans-lightgray;
+}
+
 
 /////////////////////////////////////////
 

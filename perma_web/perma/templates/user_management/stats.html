@@ -281,6 +281,43 @@
           </dl>
         </div>
       </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">General S3:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each general_s3}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">Buckets:</div>
+        <div class="col-sm-9">
+          {{#each buckets}}
+            <div class="col-sm-3 bucket-stats">{{ @key }}</div>
+            <div class="col-sm-9 bucket-stats">
+              <dl>
+                {{#each this}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+              </dl>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">All responses over limit:</div>
+        <div class="col-sm-9">
+          {{#each over_limit_details}}
+            <div class="over-limit">
+              <dl class="dl-horizontal">
+                <dt>bucket</dt><dd>{{bucket}}</dd>
+                {{#each detail}}<dt>{{ @key }}:</dt><dd>{{this}}</dd>{{/each}}
+                <dt>over_limit</dt><dd>{{over_limit}}</dd>
+              </dl>
+            </div>
+          {{/each}}
+        </div>
     </script>
   {% endverbatim %}
 {% endblock %}
