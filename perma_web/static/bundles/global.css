@@ -7241,6 +7241,19 @@ a.cc:active, p a.cc.perma:active {
   margin-left: 0.7em;
 }
 
+.bucket-stats {
+  padding-left: 0;
+  padding-bottom: 15px;
+}
+
+.over-limit:not(:first-child) {
+  padding-top: 15px;
+}
+
+.over-limit:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .style-container-padding, .cont-fixed, .cont-full {
   padding: 0 16px;
 }

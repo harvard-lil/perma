@@ -2052,6 +2052,7 @@ class InternetArchiveItem(models.Model):
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
 
+    tasks_in_progress = models.IntegerField(default=0, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
     complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)

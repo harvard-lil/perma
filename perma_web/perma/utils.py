@@ -658,3 +658,154 @@ def stream_warc_if_permissible(link, user, stream=True):
     if user.can_view(link):
         return stream_warc(link, stream)
     return HttpResponseForbidden('Private archive.')
+
+
+#
+# Internet Archive
+#
+
+def patch_internet_archive(ia_module):
+    """
+    Patch a custom method into the Internet Archive's `ArchiveSession`.
+    """
+
+    def get_s3_load_info(self, identifier=None, access_key=None, request_kwargs=None):
+        """
+        This is identical to the IA session's s3_is_overloaded method, except
+        it also returns the complete response, which is expected to be JSON of the form:
+            {
+                'bucket': '<identifier>'|None,
+                'detail': {
+                    'accesskey_ration': <int>,
+                    'accesskey_tasks_queued': <int>,
+                    'bucket_ration': <int>,
+                    'bucket_tasks_queued': <int>,
+                    'limit_reason': <str>,
+                    'rationing_engaged': <int>,
+                    'rationing_level': <int>,
+                    'total_global_limit': <int>,
+                    'total_tasks_queued': <int>
+                },
+                'over_limit': 0|1
+            }
+
+        https://github.com/jjjake/internetarchive/blob/8c13eb021bd3afb52d56b49151be24317f0cdca6/internetarchive/session.py#L325-L344
+        """
+        request_kwargs = request_kwargs or {}
+        if 'timeout' not in request_kwargs:
+            request_kwargs['timeout'] = 12
+
+        u = f'{self.protocol}//s3.us.archive.org'
+        p = {
+            'check_limit': 1,
+            'accesskey': access_key,
+            'bucket': identifier,
+        }
+        try:
+            r = self.get(u, params=p, **request_kwargs)
+        except Exception:
+            return (True, {})
+        try:
+            j = r.json()
+        except ValueError:
+            return (True, {})
+        # remove our access key, if present, from the response
+        try:
+            del j['accesskey']
+        except KeyError:
+            pass
+        return (j.get('over_limit') != 0, j)
+
+    ia_module.ArchiveSession.get_s3_load_info = get_s3_load_info
+
+
+def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets=None):
+    """
+    Return information on all known Internet Archive rate limits and their current status.
+    """
+    # import here to prevent circular references; lots of files import from utils.py
+    from perma.models import InternetArchiveItem  # noqa
+    import internetarchive  # noqa
+    patch_internet_archive(internetarchive)
+
+    config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    ia_session = internetarchive.get_session(config=config)
+
+    def get_task_info(cmd):
+        # Some available tasks are listed at https://archive.org/developers/tasks.html#supported-tasks,
+        # but information about others, such as modify_xml.php, is also exposed by this API.
+        #
+        # Uploads and deletes, handled by the S3-like API (https://archive.org/developers/ias3.html)
+        # are also subject to rate limiting, but their limits are described by a different API:
+        # see `get_s3_load_info`.
+        try:
+            data = ia_session.get_tasks_api_rate_limit(cmd=cmd)
+        except requests.exceptions.ConnectionError:
+            return None
+        return {
+            "tasks_limit": data["value"]["tasks_limit"],
+            "tasks_inflight": data["value"]["tasks_inflight"],
+            "tasks_blocked_by_offline": data["value"]["tasks_blocked_by_offline"]
+        }
+
+    def update_general_s3_info(output, s3_details):
+        output["general_s3"]["accesskey_ration"] = s3_details.get("detail", {}).get("accesskey_ration")
+        output["general_s3"]["accesskey_tasks_queued"] = s3_details.get("detail", {}).get("accesskey_tasks_queued")
+        output["general_s3"]["total_global_limit"] = s3_details.get("detail", {}).get('total_global_limit')
+        output["general_s3"]["total_tasks_queued"] = s3_details.get("detail", {}).get('total_tasks_queued')
+
+    def add_bucket_info(output, bucket, s3_details):
+        output["buckets"][bucket] = {
+            "bucket_ration": s3_details.get("detail", {}).get("bucket_ration"),
+            "bucket_tasks_queued": s3_details.get("detail", {}).get("bucket_tasks_queued")
+        }
+
+    def record_over_limit_details(output, s3_is_overloaded, s3_details):
+        # Until we understand better how these rate limits work and how information is
+        # communicated, keep a copy of the complete response whenever it looks like a
+        # rate limit has been exceeded or is approaching. May be empty: when the API
+        # is truly overloaded, it sometimes fails to return a response at all, in which
+        # case s3_is_overloaded is True and s3_details is {}.
+        if s3_is_overloaded or s3_details.get("detail", {}).get("rationing_engaged"):
+            output["over_limit"].append(s3_details)
+
+    output = {
+        "modify_xml": get_task_info('modify_xml.php'),
+        "derive": get_task_info('derive.php'),
+        "general_s3": {},
+        "buckets": {},
+        "over_limit_details": []
+    }
+
+    # check s3 accesskey and global limits first, without specifying a bucket
+    s3_is_overloaded, s3_details = ia_session.get_s3_load_info(access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
+    update_general_s3_info(output, s3_details)
+    record_over_limit_details(output, s3_is_overloaded, s3_details)
+
+    # check for bucket-specific limits
+    if include_buckets:
+        buckets = InternetArchiveItem.objects.filter(tasks_in_progress__gt=0).values_list('identifier', flat=True)
+        if include_max_buckets:
+            buckets = buckets[include_max_buckets]
+        for bucket in buckets:
+            s3_is_overloaded, s3_details = ia_session.get_s3_load_info(identifier=bucket, access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
+            add_bucket_info(output, bucket, s3_details)
+            # each bucket-specific response will include updated general rate limit info
+            update_general_s3_info(output, s3_details)
+            record_over_limit_details(output, s3_is_overloaded, s3_details)
+
+    return output
+
+
+def ia_global_task_limit_approaching(s3_details):
+    if not s3_details:
+        # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
+        return True
+    return s3_details['detail']['total_global_limit'] - s3_details['detail']['total_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_GLOBAL_RATE_LIMIT <= 0
+
+
+def ia_perma_task_limit_approaching(s3_details):
+    if not s3_details:
+        # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
+        return True
+    return s3_details['detail']['accesskey_ration'] - s3_details['detail']['accesskey_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0

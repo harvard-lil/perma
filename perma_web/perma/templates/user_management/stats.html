@@ -8,7 +8,7 @@
   <div class="container cont-fixed stats-container">
     <ul class="nav nav-tabs">
       <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
-      <li><a href="#rate-limits-pane" data-toggle="tab">Rate Limits</a></li>
+      <li><a href="#rate-limits-pane" data-toggle="tab">IA Rate Limits</a></li>
       <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
       <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
       <li><a href="#random-pane" data-toggle="tab">Random</a></li>
@@ -30,7 +30,7 @@
       </div>
 
       <div class="tab-pane" id="rate-limits-pane">
-        <h3 class="body-ah">Rate Limits</h3>
+        <h3 class="body-ah">IA Rate Limits</h3>
         <button type="button" id="refresh-rate-limits">Refresh</button><span id="rate-limits-status"></span>
         <br><br>
         <div id="rate_limits">Loading...</div>
@@ -281,6 +281,43 @@
           </dl>
         </div>
       </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">General S3:</div>
+        <div class="col-sm-9">
+          <dl>
+            {{#each general_s3}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+          </dl>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">Buckets:</div>
+        <div class="col-sm-9">
+          {{#each buckets}}
+            <div class="col-sm-3 bucket-stats">{{ @key }}</div>
+            <div class="col-sm-9 bucket-stats">
+              <dl>
+                {{#each this}}<dd>{{ @key }}:</dd><dt>{{this}}</dt>{{/each}}
+              </dl>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">All responses over limit:</div>
+        <div class="col-sm-9">
+          {{#each over_limit_details}}
+            <div class="over-limit">
+              <dl class="dl-horizontal">
+                <dt>bucket</dt><dd>{{bucket}}</dd>
+                {{#each detail}}<dt>{{ @key }}:</dt><dd>{{this}}</dd>{{/each}}
+                <dt>over_limit</dt><dd>{{over_limit}}</dd>
+              </dl>
+            </div>
+          {{/each}}
+        </div>
     </script>
   {% endverbatim %}
 {% endblock %}
