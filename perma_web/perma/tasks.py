@@ -43,8 +43,8 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
 from django.db import transaction, DatabaseError
-from django.db.models import F
-from django.db.models.functions import TruncDate, Greatest
+from django.db.models import F, Value, CharField, DateField, Func
+from django.db.models.functions import TruncDate, Greatest, Concat, Right
 from django.conf import settings
 from django.utils import timezone
 from django.http import HttpRequest
@@ -2093,6 +2093,101 @@ def confirm_added_metadata_to_existing_daily_item_files(file_ids, previous_attem
 
         confirm_added_metadata_to_existing_daily_item_files.delay(file_ids_to_check_again, attempts_dict)
         logger.info(f"Re-queued 'confirm_added_metadata_to_existing_daily_item_files' for { len(file_ids_to_check_again) } InternetArchiveFiles.")
+
+
+@shared_task(acks_late=True)
+def upload_missing_files_to_internet_archive(limit=None):
+    # Get all Links we think should have been uploaded to IA,
+    # and then filter out the ones that have already been uploaded
+    # to a "daily" item.
+    #
+    # Do so with our own SQL because the SQL generated from the
+    # intuitive ORM query proved to be impossibly slow.
+    # links = Link.objects.visible_to_ia().exclude(
+    #     internet_archive_items__span__isempty=False
+    # )
+    query_started = time.time()
+
+    from django.db.models.expressions import RawSQL  # noqa
+    sql = '''
+        SELECT
+          "perma_link"."guid"
+        FROM
+          perma_link
+          LEFT JOIN (
+            SELECT
+              "perma_link"."guid"
+            FROM
+              "perma_link"
+              INNER JOIN "perma_internetarchivefile" ON (
+                "perma_link"."guid" = "perma_internetarchivefile"."link_id"
+              )
+              INNER JOIN "perma_internetarchiveitem" ON (
+                "perma_internetarchivefile"."item_id" = "perma_internetarchiveitem"."identifier"
+              )
+            WHERE
+              isempty(
+                "perma_internetarchiveitem"."span"
+              ) = False
+          ) AS links_with_daily_items ON perma_link.guid = links_with_daily_items.guid
+        WHERE
+          links_with_daily_items.guid IS NULL
+          AND (
+            "perma_link"."user_deleted" = False AND "perma_link"."is_private" = False AND "perma_link"."is_unlisted" = False AND "perma_link"."cached_can_play_back" = True
+      )
+    '''
+
+    # Get all links we think should have been uploaded to IA that are not yet associated with a daily InternetArchiveItem.
+    not_uploaded = Link.objects.filter(guid__in=RawSQL(sql, []))
+
+    # Annotate that queryset with each link's corresponding IA Item identifier.
+    not_uploaded_identifiers = not_uploaded.annotate(
+        identifier=Concat(
+            Value(settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX),
+            TruncDate('creation_timestamp'),
+            output_field=CharField()
+        )
+    ).values_list(
+        'identifier', flat=True
+    ).distinct()
+
+    # See which of those IA Items exist already. Get the results as list of dates
+    # (by extracting the date from the Item's identifier).
+    dates_of_items_with_missing_links = list(InternetArchiveItem.objects.filter(
+        identifier__in=not_uploaded_identifiers
+    ).annotate(
+        date=Func(
+            Right('identifier', 10),
+            Value('YYYY-MM-DD'),
+            function='to_date',
+            output_field=DateField()
+        )
+    ).values_list(
+        'date', flat=True
+    ))
+
+    # Limit the queryset of links-not-yet-uploaded to those created on dates with already-existing IA items.
+    to_upload = not_uploaded.filter(
+        creation_timestamp__date__in=dates_of_items_with_missing_links
+    ).values_list(
+        'guid', flat=True
+    ).order_by('guid')
+    if limit:
+        to_upload = to_upload[:limit]
+
+    query_ended = time.time()
+    logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
+
+    # Queue the tasks
+    queued = []
+    try:
+        for guid in to_upload:
+            upload_link_to_internet_archive.delay(guid)
+            queued.append(guid)
+    except SoftTimeLimitExceeded:
+        pass
+
+    logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
 
 
 @shared_task(acks_late=True)
