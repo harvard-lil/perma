@@ -795,3 +795,17 @@ def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets
             record_over_limit_details(output, s3_is_overloaded, s3_details)
 
     return output
+
+
+def ia_global_task_limit_approaching(s3_details):
+    if not s3_details:
+        # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
+        return True
+    return s3_details['detail']['total_global_limit'] - s3_details['detail']['total_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_GLOBAL_RATE_LIMIT <= 0
+
+
+def ia_perma_task_limit_approaching(s3_details):
+    if not s3_details:
+        # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
+        return True
+    return s3_details['detail']['accesskey_ration'] - s3_details['detail']['accesskey_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0

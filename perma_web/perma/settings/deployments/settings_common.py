@@ -349,6 +349,10 @@ LOGGING['loggers'] = {
     'warcprox': {
         'level': 'CRITICAL'
     },
+    # prevent IA's own error emails, in favor of our own handling
+    'internetarchive': {
+        'level': 'CRITICAL'
+    },
     'celery.django': {
         'level': 'INFO',
         'handlers': ['console', 'mail_admins', 'file'],
@@ -452,6 +456,8 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.backfill_individual_link_internet_archive_objects': {'queue': 'ia-readonly'},
     'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia-readonly'},
     'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia-readonly'},
+    'perma.tasks.upload_link_to_internet_archive': {'queue': 'ia'},
+    'perma.tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
 }
 
 # Internet Archive stuff
@@ -463,11 +469,15 @@ INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX = 'daily_perma_cc_'
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
 # Rate limiting
-INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 20
+INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_GLOBAL_RATE_LIMIT = 500
+INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 50
 INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT = None
 INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 2
 INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED = False
 INTERNET_ARCHIVE_ITEM_LOCK_RETRIES = 4
+# Other
+INTERNET_ARCHIVE_EXCEPTION_IF_NO_ITEM = False
+INTERNET_ARCHIVE_UPLOAD_MAX_TMEOUTS = 2
 
 
 #
