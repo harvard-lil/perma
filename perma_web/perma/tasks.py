@@ -2407,7 +2407,8 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     try:
         ia_item = internetarchive.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
-    except requests.exceptions.ConnectionError:
+        assert ia_file.exists
+    except (requests.exceptions.ConnectionError, AssertionError):
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
         confirm_file_uploaded_to_internet_archive.delay(file_id, attempts)
@@ -2418,7 +2419,7 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         for k, v in expected_metadata.items():
             # IA normalizes whitespace idiosyncratically:
             # ignore all whitespace when checking for expected values
-            assert remove_whitespace(ia_file.metadata.get(k)) == remove_whitespace(v), f"expected {k}: {v}, got {ia_file.metadata.get(k)}."
+            assert remove_whitespace(ia_file.metadata.get(k, '')) == remove_whitespace(v), f"expected {k}: {v}, got {ia_file.metadata.get(k)}."
     except AssertionError:
         # IA's tasks can take some time to complete;
         # the upload-related tasks for this link appear not to have finished yet.
