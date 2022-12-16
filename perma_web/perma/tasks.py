@@ -2417,6 +2417,7 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         # Retry later, without counting this as a failed attempt
         confirm_file_uploaded_to_internet_archive.delay(file_id, attempts)
         logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionTimeout.")
+        return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
     try:
