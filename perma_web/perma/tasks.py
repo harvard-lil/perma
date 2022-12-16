@@ -2448,18 +2448,17 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     perma_file.update_from_ia_metadata(ia_file.metadata)
     perma_file.status = 'confirmed_present'
     perma_file.cached_size =  ia_file.size
-    if perma_file.tracker.changed():
-        perma_file.save(update_fields=[
-            'status',
-            'cached_size',
-            'cached_title',
-            'cached_comments',
-            'cached_external_identifier',
-            'cached_external_identifier_match_date',
-            'cached_format',
-            'cached_submitted_url',
-            'cached_perma_url'
-        ])
+    perma_file.save(update_fields=[
+        'status',
+        'cached_size',
+        'cached_title',
+        'cached_comments',
+        'cached_external_identifier',
+        'cached_external_identifier_match_date',
+        'cached_format',
+        'cached_submitted_url',
+        'cached_perma_url'
+    ])
 
     # Update InternetArchiveItem accordingly
     perma_item.derive_required = True
