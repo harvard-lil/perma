@@ -2404,18 +2404,23 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     perma_item = perma_file.item
     link = perma_file.link
 
+    if perma_file.status == 'confirmed_present':
+        logger.info(f"InternetArchiveFile {file_id} ({link.guid}) already confirmed to be uploaded to {perma_item.identifier}.")
+        return
+
     try:
         ia_item = internetarchive.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
-        assert ia_file.exists
-    except (requests.exceptions.ConnectionError, AssertionError):
+    except requests.exceptions.ConnectionError:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
         confirm_file_uploaded_to_internet_archive.delay(file_id, attempts)
         logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionTimeout.")
+        return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
     try:
+        assert ia_file.exists
         for k, v in expected_metadata.items():
             # IA normalizes whitespace idiosyncratically:
             # ignore all whitespace when checking for expected values
@@ -2443,18 +2448,17 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     perma_file.update_from_ia_metadata(ia_file.metadata)
     perma_file.status = 'confirmed_present'
     perma_file.cached_size =  ia_file.size
-    if perma_file.tracker.changed():
-        perma_file.save(update_fields=[
-            'status',
-            'cached_size',
-            'cached_title',
-            'cached_comments',
-            'cached_external_identifier',
-            'cached_external_identifier_match_date',
-            'cached_format',
-            'cached_submitted_url',
-            'cached_perma_url'
-        ])
+    perma_file.save(update_fields=[
+        'status',
+        'cached_size',
+        'cached_title',
+        'cached_comments',
+        'cached_external_identifier',
+        'cached_external_identifier_match_date',
+        'cached_format',
+        'cached_submitted_url',
+        'cached_perma_url'
+    ])
 
     # Update InternetArchiveItem accordingly
     perma_item.derive_required = True
