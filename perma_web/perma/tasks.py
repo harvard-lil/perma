@@ -2404,6 +2404,10 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     perma_item = perma_file.item
     link = perma_file.link
 
+    if perma_file.status == 'confirmed_present':
+        logger.info(f"InternetArchiveFile {file_id} ({link.guid}) already confirmed to be uploaded to {perma_item.identifier}.")
+        return
+
     try:
         ia_item = internetarchive.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
