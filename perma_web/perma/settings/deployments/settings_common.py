@@ -457,6 +457,7 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.populate_internet_archive_file_status': {'queue': 'ia-readonly'},
     'perma.tasks.confirm_added_metadata_to_existing_daily_item_files': {'queue': 'ia-readonly'},
     'perma.tasks.upload_link_to_internet_archive': {'queue': 'ia'},
+    'perma.tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
 }
 
