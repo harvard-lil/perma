@@ -2292,7 +2292,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         perma_item.save(update_fields=['tasks_in_progress'])
 
         # Record that we are attempting an upload
-        perma_file.status == 'upload_attempted'
+        perma_file.status = 'upload_attempted'
         perma_file.save(update_fields=['status'])
 
         # Get the IA Item
