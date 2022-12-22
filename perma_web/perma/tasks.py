@@ -2181,7 +2181,7 @@ def upload_missing_files_to_internet_archive(limit=None):
     # Queue the tasks
     queued = []
     try:
-        for guid in to_upload:
+        for guid in to_upload.iterator():
             upload_link_to_internet_archive.delay(guid)
             queued.append(guid)
     except SoftTimeLimitExceeded:
@@ -2411,7 +2411,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
             )[:limit]
 
     queued = 0
-    for file_id in file_ids:
+    for file_id in file_ids.iterator():
         confirm_file_uploaded_to_internet_archive.delay(file_id)
         queued = queued + 1
     logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
