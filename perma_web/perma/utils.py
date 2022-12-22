@@ -719,7 +719,7 @@ def patch_internet_archive(ia_module):
     ia_module.ArchiveSession.get_s3_load_info = get_s3_load_info
 
 
-def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets=None):
+def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets=100):
     """
     Return information on all known Internet Archive rate limits and their current status.
     """
@@ -786,7 +786,7 @@ def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets
     if include_buckets:
         buckets = InternetArchiveItem.objects.filter(tasks_in_progress__gt=0).values_list('identifier', flat=True)
         if include_max_buckets:
-            buckets = buckets[include_max_buckets]
+            buckets = buckets[:include_max_buckets]
         for bucket in buckets:
             s3_is_overloaded, s3_details = ia_session.get_s3_load_info(identifier=bucket, access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
             add_bucket_info(output, bucket, s3_details)
