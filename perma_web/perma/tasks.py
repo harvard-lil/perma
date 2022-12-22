@@ -2292,7 +2292,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         perma_item.save(update_fields=['tasks_in_progress'])
 
         # Record that we are attempting an upload
-        perma_file.status == 'upload_attempted'
+        perma_file.status = 'upload_attempted'
         perma_file.save(update_fields=['status'])
 
         # Get the IA Item
@@ -2387,9 +2387,34 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                         logger.warning(msg)
                 return
 
-    # Schedule a confirmation task
-    confirm_file_uploaded_to_internet_archive.delay(perma_file.id)
     logger.info(f"Uploaded {link_guid} to {identifier}: confirmation pending.")
+
+
+@shared_task(acks_late=True)
+def queue_file_uploaded_confirmation_tasks(limit=None):
+    """
+    It takes some time for IA to finish processing uploads, even after the S3-like API
+    returns a success code. This task schedules a confirmation task for each file we've
+    attempted to upload but have not yet verified has succeeded. We do this on a schedule,
+    rather than immediately upon uploading a file, in order to introduce a delay: if we
+    start checking immediately, an intolerable number of attempts fail... which causes
+    too much IA API usage and too much churn.
+
+    This may be too blunt an instrument; we may need to introduce a delay in the confirmation
+    task itself, sleeping between each retry, but we want to try this first: if we can, we want
+    to avoid having sleeping-but-active celery tasks.
+    """
+    file_ids = InternetArchiveFile.objects.filter(
+                status='upload_attempted'
+            ).values_list(
+                'id', flat=True
+            )[:limit]
+
+    queued = 0
+    for file_id in file_ids:
+        confirm_file_uploaded_to_internet_archive.delay(file_id)
+        queued = queued + 1
+    logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
 
 
 @shared_task(acks_late=True)

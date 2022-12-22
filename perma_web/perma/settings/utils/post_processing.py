@@ -68,6 +68,10 @@ def post_process_settings(settings):
         'sync_subscriptions_from_perma_payments': {
             'task': 'perma.tasks.sync_subscriptions_from_perma_payments',
             'schedule': crontab(hour='23', minute='0')
+        },
+        'confirm_files_uploaded_to_internet_archive': {
+            'task': 'perma.tasks.queue_file_uploaded_confirmation_tasks',
+            'schedule': crontab(hour='*', minute='15'),
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),
