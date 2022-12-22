@@ -15,6 +15,7 @@ CELERY_BEAT_JOB_NAMES = [
     'run-next-capture',
     'sync_subscriptions_from_perma_payments',
     'cache_playback_status_for_new_links',
+    'confirm_files_uploaded_to_internet_archive',
 ]
 
 # logging
