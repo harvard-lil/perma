@@ -2406,6 +2406,13 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     """
     file_ids = InternetArchiveFile.objects.filter(
                 status='upload_attempted'
+            ).exclude(
+                item_id__in=[
+                    'daily_perma_cc_2022-07-25',
+                    'daily_perma_cc_2022-07-21',
+                    'daily_perma_cc_2022-07-20',
+                    'daily_perma_cc_2022-07-19'
+                ]
             ).values_list(
                 'id', flat=True
             )[:limit]
