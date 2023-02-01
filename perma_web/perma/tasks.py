@@ -2512,3 +2512,135 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     ])
 
     logger.info(f"Confirmed upload of {link.guid} to {perma_item.identifier}.")
+
+
+@shared_task(acks_late=True)
+def delete_link_from_daily_item(link_guid, attempts=0):
+    perma_file = InternetArchiveFile.objects.select_related('item').get(link_id=link_guid, item__span__isempty=False)
+    perma_item = perma_file.item
+    identifier = perma_item.identifier
+
+    def retry_deletion(attempt_count):
+        perma_item.tasks_in_progress = F('tasks_in_progress') - 1
+        perma_item.save(update_fields=['tasks_in_progress'])
+        delete_link_from_daily_item.delay(link_guid, attempt_count)
+
+    if perma_file.status == 'confirmed_absent':
+        logger.info(f"The daily InternetArchiveFile for {link_guid} is already confirmed absent from {identifier}.")
+        return
+    elif perma_file.status == 'upload_attempted':
+        # If we find ourselves here, something has gotten very mixed up indeed. We probably need a human to have a look.
+        # Use the error log, assuming this will happen rarely or never.
+        logger.error(f"Please investigate the status of {link_guid}: our records indicate an upload attempt is in progress, but a deletion was attempted in the meantime.")
+        return
+    elif perma_file.status == 'deletion_attempted':
+        logger.info(f"Potentially redundant attempt to delete {link_guid} from {identifier}: if this message recurs, please look into its status.")
+    elif perma_file.status == 'confirmed_present':
+        logger.info(f"Deleting {link_guid} from {identifier}.")
+    else:
+        logger.warning(f"Not deleting {link_guid} from {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
+        return
+
+    # Record that we are attempting a deletion
+    perma_file.status = 'deletion_attempted'
+    perma_file.save(update_fields=['status'])
+
+    # Indicate that this InternetArchiveItem should be tracked until further notice
+    perma_item.tasks_in_progress = F('tasks_in_progress') + 1
+    perma_item.save(update_fields=['tasks_in_progress'])
+
+    # Make sure we aren't exceeding rate limits
+    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    ia_session = internetarchive.get_session(config=config)
+    s3_is_overloaded, s3_details = ia_session.get_s3_load_info(
+        identifier=identifier,
+        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
+    )
+    perma_task_limit_approaching = ia_perma_task_limit_approaching(s3_details)
+    global_task_limit_approaching = ia_global_task_limit_approaching(s3_details)
+    if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching:
+        # This logging is noisy: we're not sure whether we want it or not, going forward.
+        logger.warning(f"Skipped IA deletion task for {link_guid} (IA Item {identifier}) due to rate limit: {s3_details}.")
+        retry = (
+            not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
+            (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
+        )
+        if retry:
+            retry_deletion(attempts + 1)
+        else:
+            msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
+            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                logger.exception(msg)
+            else:
+                logger.warning(msg)
+        return
+
+    # Get the IA Item and File
+    try:
+        ia_item = ia_session.get_item(identifier)
+        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link_guid))
+    except requests.exceptions.ConnectionError:
+        # Sometimes, requests to retrieve the metadata of an IA Item time out.
+        # Retry later, without counting this as a failed attempt
+        logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after ConnectionError.")
+        retry_deletion(attempts)
+
+    # attempt the deletion
+    try:
+        response = ia_file.delete(
+            cascade_delete=False,  # is this correct? not sure: test with "derived" items
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            verbose=False,
+            debug=False,
+            retries=0,
+        )
+        assert response.status_code == 204, f"IA returned {response.status_code}): {response.text}"
+    except (requests.exceptions.RetryError,
+            requests.exceptions.HTTPError,
+            requests.exceptions.ConnectTimeout,
+            requests.exceptions.ReadTimeout,
+            OSError,
+            AssertionError) as e:
+        # `delete` internally calls response.raise_for_status catches and re-raises these exceptions.
+        # https://github.com/jjjake/internetarchive/blob/a2de155d15aab279de6bb6364998266c21752ca6/internetarchive/files.py#L354
+        # I am not sure why that is a longer list than the `upload` code catches.
+        # It could be that we should catch the longer list in both places.
+        # I am anticipating that the rate-limiting related error messages will be identical here,
+        # but do not know if that is in fact the case.
+        # ('InternalError', ('We encountered an internal error. Please try again.', '500 Internal Server Error'))
+        # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
+        # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
+        if "Please reduce your request rate" in str(e):
+            # This logging is noisy: we're not sure whether we want it or not, going forward.
+            logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) prevented by rate-limiting. Will retry if allowed.")
+            retry = (
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
+            )
+            if retry:
+                retry_deletion(attempts + 1)
+            else:
+                msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
+                if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                    logger.exception(msg)
+                else:
+                    logger.warning(msg)
+            return
+        else:
+            logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
+            retry = (
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
+            )
+            if retry:
+                retry_deletion(attempts + 1)
+            else:
+                msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}, File {link_guid}): error retry maximum reached."
+                if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                    logger.exception(msg)
+                else:
+                    logger.warning(msg)
+            return
+
+    logger.info(f"Requested deletion of {link_guid} from {identifier}: confirmation pending.")
