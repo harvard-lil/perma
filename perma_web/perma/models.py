@@ -2168,6 +2168,18 @@ class InternetArchiveFile(models.Model):
         self.cached_submitted_url = metadata['submitted_url']
         self.cached_perma_url = metadata['perma_url']
 
+    def zero_cached_ia_metadata(self):
+        """
+        Intentionally does not call save(), so this method can be used with bulk database operations.
+        """
+        self.cached_title = None
+        self.cached_comments = None
+        self.cached_external_identifier = None
+        self.cached_external_identifier_match_date = None
+        self.cached_format = None
+        self.cached_submitted_url = None
+        self.cached_perma_url = None
+
 
 
 #########################

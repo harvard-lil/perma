@@ -2644,3 +2644,113 @@ def delete_link_from_daily_item(link_guid, attempts=0):
             return
 
     logger.info(f"Requested deletion of {link_guid} from {identifier}: confirmation pending.")
+
+
+@shared_task(acks_late=True)
+def confirm_file_deleted_from_daily_item(file_id, attempts=0):
+    """
+    This task checks to see if a file we have requested be deleted from internet archive
+    is still visibly a part of the expected IA Item;
+    if it is, the task re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
+    Once the file is confirmed to be absent, it marks that IA item needs to have its
+    "derive.php" task re-triggered.
+    """
+    perma_file = InternetArchiveFile.objects.select_related('item').get(id=file_id)
+    perma_item = perma_file.item
+    guid = perma_file.link_id
+
+    if perma_file.status == 'confirmed_absent':
+        logger.info(f"InternetArchiveFile {file_id} ({guid}) already confirmed absent from {perma_item.identifier}.")
+        return
+
+    try:
+        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
+    except requests.exceptions.ConnectionError:
+        # Sometimes, requests to retrieve the metadata of an IA Item time out.
+        # Retry later, without counting this as a failed attempt
+        confirm_file_deleted_from_daily_item.delay(file_id, attempts)
+        logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionTimeout.")
+        return
+
+    try:
+        assert not ia_file.exists
+    except AssertionError:
+        # IA's tasks can take some time to complete;
+        # the deletion-related tasks for this link appear not to have finished yet.
+        # We need to check again later.
+        retry = (
+            not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+            (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
+        )
+        if retry:
+            confirm_file_deleted_from_daily_item.delay(file_id, attempts + 1)
+            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}).")
+        else:
+            msg = f"Not retrying 'confirm_file_deleted_from_daily_item' for {file_id} (IA Item {perma_item.identifier}, File {guid}): error retry maximum reached."
+            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                logger.exception(msg)
+            else:
+                logger.warning(msg)
+        return
+
+    # Update the InternetArchiveFile accordingly
+    perma_file.status = 'confirmed_absent'
+    perma_file.zero_cached_ia_metadata()
+    perma_file.save(update_fields=[
+        'status',
+        'cached_size',
+        'cached_title',
+        'cached_comments',
+        'cached_external_identifier',
+        'cached_external_identifier_match_date',
+        'cached_format',
+        'cached_submitted_url',
+        'cached_perma_url'
+    ])
+
+    # Update InternetArchiveItem accordingly
+    perma_item.derive_required = True
+    perma_item.cached_file_count = ia_item.files_count
+    perma_item.tasks_in_progress = Greatest(F('tasks_in_progress') - 1, 0)
+    perma_item.save(update_fields=[
+        'derive_required',
+        'cached_file_count',
+        'tasks_in_progress'
+    ])
+
+    logger.info(f"Confirmed deletion of {guid} from {perma_item.identifier}.")
+
+
+@shared_task(acks_late=True)
+def queue_file_deleted_confirmation_tasks(limit=None):
+    """
+    It takes some time for IA to finish processing deletions, even after the S3-like API
+    returns a success code. This task schedules a confirmation task for each file we've
+    attempted to delete but have not yet verified has succeeded. We do this on a schedule,
+    rather than immediately upon uploading a file, in order to introduce a delay: if we
+    start checking immediately, an intolerable number of attempts fail... which causes
+    too much IA API usage and too much churn.
+
+    This may be too blunt an instrument; we may need to introduce a delay in the confirmation
+    task itself, sleeping between each retry, but we want to try this first: if we can, we want
+    to avoid having sleeping-but-active celery tasks.
+    """
+    file_ids = InternetArchiveFile.objects.filter(
+                status='deletion_attempted'
+            ).exclude(
+                item_id__in=[
+                    'daily_perma_cc_2022-07-25',
+                    'daily_perma_cc_2022-07-21',
+                    'daily_perma_cc_2022-07-20',
+                    'daily_perma_cc_2022-07-19'
+                ]
+            ).values_list(
+                'id', flat=True
+            )[:limit]
+
+    queued = 0
+    for file_id in file_ids.iterator():
+        confirm_file_deleted_from_daily_item.delay(file_id)
+        queued = queued + 1
+    logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")

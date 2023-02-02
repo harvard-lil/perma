@@ -72,6 +72,10 @@ def post_process_settings(settings):
         'confirm_files_uploaded_to_internet_archive': {
             'task': 'perma.tasks.queue_file_uploaded_confirmation_tasks',
             'schedule': crontab(minute="*/15"),
+        },
+        'confirm_files_deleted_from_internet_archive': {
+            'task': 'perma.tasks.queue_file_deleted_confirmation_tasks',
+            'schedule': crontab(minute="*/15"),
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),
