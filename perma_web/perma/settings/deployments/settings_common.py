@@ -461,10 +461,10 @@ CELERY_TASK_ROUTES = {
     'perma.tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
     'perma.tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
-    'perma.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
-    'perma.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
-    'perma.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
-    'perma.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
+    'perma.tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
+    'perma.tasks.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
+    'perma.tasks.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
 }
 
 # Internet Archive stuff
