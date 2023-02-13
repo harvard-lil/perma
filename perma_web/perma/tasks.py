@@ -2204,17 +2204,18 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         logger.info(f"Queued Link {link_guid} no longer eligible for upload.")
         return
 
-    # Make sure we've already created the IA item for this link
+    # Get or create the appropriate InternetArchiveItem object for this link
+    date_string = link.creation_timestamp.strftime('%Y-%m-%d')
     identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
         prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
-        date_string=link.creation_timestamp.strftime('%Y-%m-%d')
+        date_string=date_string
     )
-    try:
-        perma_item = InternetArchiveItem.objects.get(identifier=identifier)
-    except InternetArchiveItem.DoesNotExist:
-        msg = f"Internet Archive Item {identifier} does not exist: not uploading {link_guid}."
-        if settings.INTERNET_ARCHIVE_EXCEPTION_IF_NO_ITEM:
-            logger.error(msg)
+    start = InternetArchiveItem.datetime(f"{date_string} 00:00:00")
+    end = start + timedelta(days=1)
+    perma_item, _created = InternetArchiveItem.objects.get_or_create(
+        identifier=identifier,
+        span=(start, end),
+    )
         else:
             logger.warning(msg)
         return
@@ -2321,6 +2322,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 ia_item.upload_file(
                     body=temp_warc_file,
                     key=InternetArchiveFile.WARC_FILENAME.format(guid=link_guid),
+                    metadata=InternetArchiveItem.standard_metadata_for_date(date_string),
                     file_metadata=InternetArchiveFile.standard_metadata_for_link(link),
                     access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
@@ -2427,10 +2429,11 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
 @shared_task(acks_late=True)
 def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     """
-    This task is enqueued by upload_link_to_internet_archive after it finishes uploading a WARC to
-    IA's S3-like API. It checks to see if the requested upload has been processed and the new WARC
-    is now visibly a part of the expected IA Item; if not, the tasks re-queues itself up to
-    settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
+    This tasks checks to see if a WARC uploaded to IA's S3-like API has been processed
+    and the new WARC is now visibly a part of the expected IA Item;
+    if not, the tasks re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
+    Once the file is confirmed to be present, it marks that IA item needs to have its
+    "derive.php" task re-triggered.
     """
     perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
     perma_item = perma_file.item
@@ -2491,6 +2494,18 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         'cached_submitted_url',
         'cached_perma_url'
     ])
+
+    # If this is the first confirmed upload to this IA item,
+    # cache its basic metadata locally
+    if not perma_item.cached_title:
+        perma_item.added_date = InternetArchiveItem.datetime(ia_item.metadata['addeddate'])
+        perma_item.cached_title = ia_item.metadata['title']
+        perma_item.cached_description = ia_item.metadata.get('description')
+        perma_item.save(update_fields=[
+            'added_date',
+            'cached_title',
+            'cached_description'
+        ])
 
     # Update InternetArchiveItem accordingly
     perma_item.derive_required = True

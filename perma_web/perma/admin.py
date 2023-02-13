@@ -566,6 +566,8 @@ class InternetArchiveItemAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
     def internet_archive_link(self, obj):
+        if not obj.cached_title:
+            return ''
         url = f'https://archive.org/details/{obj.identifier}'
         return format_html('<a target="_blank" href="{}">{}</a>', url, url)
 

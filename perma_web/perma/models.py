@@ -2024,6 +2024,11 @@ class InternetArchiveItem(models.Model):
     - not contain more than 10,000 files.
 
     (From documentation archived at https://perma.cc/S4WC-64AF)
+
+    Expect one InternetArchiveItem object for every item in the perma_cc Internet Archive collection.
+
+    **If the 'cached_title' field is empty, it means we have attempted to create that item, but have
+    not yet confirmed whether that attempt succeeded or failed; failed attempts are not uncommon.**
     """
 
     # Each item at Internet Archive has an identifier. An identifier is composed
@@ -2076,6 +2081,19 @@ class InternetArchiveItem(models.Model):
     @classmethod
     def datetime(cls, datetime_string):
         return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+
+    @classmethod
+    def standard_metadata_for_date(cls, date_string):
+        iso = datetime.strptime(date_string, '%Y-%m-%d').date().isoformat()
+        metadata = {
+            "collection": settings.INTERNET_ARCHIVE_COLLECTION,
+            "contributor": "Perma.cc",
+            "mediatype": "web",
+            "date": iso,
+            "title": f"{iso} Perma.cc Captures",
+            "description": f"Captures by Perma.cc from {iso} (one WARC file and XML metadata file per webpage)",
+        }
+        return metadata
 
 
 class InternetArchiveFile(models.Model):
