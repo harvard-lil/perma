@@ -1353,6 +1353,9 @@ class LinkQuerySet(QuerySet):
     def visible_to_ia(self):
         return self.visible_to_memento()
 
+    def ineligible_for_ia(self):
+        return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
+
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 

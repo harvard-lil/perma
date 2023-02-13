@@ -464,6 +464,7 @@ CELERY_TASK_ROUTES = {
     'perma.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
     'perma.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
     'perma.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
 }
 
 # Internet Archive stuff

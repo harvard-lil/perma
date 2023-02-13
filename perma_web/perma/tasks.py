@@ -2844,3 +2844,33 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
     logger.info(f"Queued { (end - start).days + 1 } days of internet archive uploads.")
 
+
+@shared_task
+def queue_internet_archive_deletions(limit=None):
+    """
+    Queue deletion tasks for any currently-ineligible Links that were eligible
+    when daily IA items were initially created...and so were uploaded.
+
+    (Don't limit by creation date: this is expected to be a small number.)
+    """
+    to_delete = Link.objects.ineligible_for_ia().filter(
+        internet_archive_items__span__isempty=False,
+        internet_archive_files__status__in=['confirmed_present', 'deletion_attempted']
+    )[:limit]
+
+    # Queue the tasks
+    queued = []
+    query_started = time.time()
+    query_ended = None
+    try:
+        for guid in to_delete.values_list('guid', flat=True).iterator():
+            if not query_ended:
+                # log here: the query won't actually be evaluated until .iterator() is called
+                query_ended = time.time()
+                logger.info(f"Ready to queue links for deletion in {query_ended - query_started} seconds.")
+            delete_link_from_daily_item.delay(guid)
+            queued.append(guid)
+    except SoftTimeLimitExceeded:
+        pass
+
+    logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
