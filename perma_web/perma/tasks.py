@@ -11,7 +11,7 @@ import os.path
 import tempfile
 import threading
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 import urllib.parse
 import re
 import urllib.robotparser
@@ -58,7 +58,7 @@ from perma.utils import (url_in_allowed_ip_range,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
     patch_internet_archive, ia_global_task_limit_approaching,
-    ia_perma_task_limit_approaching, copy_file_data)
+    ia_perma_task_limit_approaching, copy_file_data, date_range)
 from perma.wsgi_utils import retry_on_exception
 from perma import site_scripts
 
@@ -2754,3 +2754,93 @@ def queue_file_deleted_confirmation_tasks(limit=None):
         confirm_file_deleted_from_daily_item.delay(file_id)
         queued = queued + 1
     logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
+
+
+
+@shared_task
+def queue_internet_archive_uploads_for_date(date_string, limit=None):
+    """
+    Queue upload tasks for all currently-eligible Links created on a given day,
+    if we have not yet attempted to upload them to a "daily" Item.
+    """
+
+    # Get all Links we think should have been uploaded to IA,
+    # and then filter out the ones that have already been uploaded
+    # to a "daily" item.
+    #
+    # Do so with our own SQL because the SQL generated from the
+    # intuitive ORM query proved to be impossibly slow.
+    # links = Link.objects.visible_to_ia().filter(
+    #     creation_timestamp__date=InternetArchiveItem.date(date_string)
+    # ).exclude(
+    #     internet_archive_items__span__isempty=False
+    # )
+    sql = f'''
+        WITH links_with_daily_items AS (
+            SELECT
+              perma_link.guid
+            FROM
+              perma_link
+              INNER JOIN perma_internetarchivefile ON
+                perma_link.guid = perma_internetarchivefile.link_id
+              INNER JOIN perma_internetarchiveitem ON
+                perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
+            WHERE
+              isempty(
+                perma_internetarchiveitem.span
+              ) = False
+        )
+
+        SELECT
+          perma_link.guid
+        FROM
+          perma_link
+          LEFT JOIN links_with_daily_items ON
+               perma_link.guid = links_with_daily_items.guid
+        WHERE
+          links_with_daily_items.guid IS NULL
+          AND (
+            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
+          )
+          AND (
+            perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
+          )
+    '''
+
+    # Get all links we think should have been uploaded to IA that are not yet associated with a daily InternetArchiveItem.
+    if limit:
+        sql += f"LIMIT %s"
+        to_upload = Link.objects.raw(sql, [date_string, str(limit)])
+    else:
+        to_upload = Link.objects.raw(sql, [date_string])
+
+    # Queue the tasks
+    queued = []
+    query_started = time.time()
+    query_ended = None
+    try:
+        for guid in to_upload.iterator():
+            if not query_ended:
+                # log here: the query won't actually be evaluated until .iterator() is called
+                query_ended = time.time()
+                logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
+            upload_link_to_internet_archive.delay(guid)
+            queued.append(guid)
+    except SoftTimeLimitExceeded:
+        pass
+
+    logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
+
+
+@shared_task
+def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string):
+    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
+    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
+    if start > end:
+        logger.error(f"Invalid range: start={start} end={end}")
+
+    for day in date_range(start, end, timedelta(days=1)):
+        queue_internet_archive_uploads_for_date.delay(day.strftime('%Y-%m-%d'))
+
+    logger.info(f"Queued { (end - start).days + 1 } days of internet archive uploads.")
+
