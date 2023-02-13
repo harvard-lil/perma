@@ -2775,7 +2775,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=None):
     # ).exclude(
     #     internet_archive_items__span__isempty=False
     # )
-    sql = f'''
+    sql = '''
         WITH links_with_daily_items AS (
             SELECT
               perma_link.guid
@@ -2809,7 +2809,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=None):
 
     # Get all links we think should have been uploaded to IA that are not yet associated with a daily InternetArchiveItem.
     if limit:
-        sql += f"LIMIT %s"
+        sql += "LIMIT %s"
         to_upload = Link.objects.raw(sql, [date_string, str(limit)])
     else:
         to_upload = Link.objects.raw(sql, [date_string])
