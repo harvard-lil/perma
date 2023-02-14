@@ -2425,7 +2425,7 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     """
     This task checks to see if a WARC uploaded to IA's S3-like API has been processed
     and the new WARC is now visibly a part of the expected IA Item;
-    if not, the tasks re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
+    if not, the task re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
     Once the file is confirmed to be present, it marks that IA item needs to have its
     "derive.php" task re-triggered.
     """
