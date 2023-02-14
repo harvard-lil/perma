@@ -2497,7 +2497,7 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         perma_item.cached_title = ia_item.metadata['title']
         perma_item.cached_description = ia_item.metadata.get('description')
         perma_item.save(update_fields=[
-            'confirmed_exists'
+            'confirmed_exists',
             'added_date',
             'cached_title',
             'cached_description'
