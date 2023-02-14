@@ -2226,12 +2226,12 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         if perma_file.status == 'confirmed_present':
             logger.info(f"Not uploading {link_guid} to {identifier}: our records indicate it is already present.")
             return
-        elif perma_file.status == 'deletion_attempted':
+        elif perma_file.status in ['deletion_attempted', 'deletion_submitted']:
             # If we find ourselves here, something has gotten very mixed up indeed. We probably need a human to have a look.
             # Use the error log, assuming this will happen rarely or never.
             logger.error(f"Please investigate the status of {link_guid}: our records indicate a deletion attempt is in progress, but an upload was attempted in the meantime.")
             return
-        elif perma_file.status == 'upload_attempted':
+        elif perma_file.status in ['upload_attempted', 'upload_submitted']:
             logger.info(f"Potentially redundant attempt to upload {link_guid} to {identifier}: if this message recurs, please look into its status.")
         elif perma_file.status == 'confirmed_absent':
             logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
@@ -2383,6 +2383,10 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                     logger.warning(msg)
             return
 
+    # Record that the upload has been submitted
+    perma_file.status = 'upload_submitted'
+    perma_file.save(update_fields=['status'])
+
     logger.info(f"Uploaded {link_guid} to {identifier}: confirmation pending.")
 
 
@@ -2401,7 +2405,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     to avoid having sleeping-but-active celery tasks.
     """
     file_ids = InternetArchiveFile.objects.filter(
-                status='upload_attempted'
+                status='upload_submitted'
             ).exclude(
                 item_id__in=[
                     'daily_perma_cc_2022-07-25',
@@ -2530,12 +2534,12 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     if perma_file.status == 'confirmed_absent':
         logger.info(f"The daily InternetArchiveFile for {link_guid} is already confirmed absent from {identifier}.")
         return
-    elif perma_file.status == 'upload_attempted':
+    elif perma_file.status in ['upload_attempted', 'upload_submitted']:
         # If we find ourselves here, something has gotten very mixed up indeed. We probably need a human to have a look.
         # Use the error log, assuming this will happen rarely or never.
         logger.error(f"Please investigate the status of {link_guid}: our records indicate an upload attempt is in progress, but a deletion was attempted in the meantime.")
         return
-    elif perma_file.status == 'deletion_attempted':
+    elif perma_file.status in ['deletion_attempted', 'deletion_submitted']:
         logger.info(f"Potentially redundant attempt to delete {link_guid} from {identifier}: if this message recurs, please look into its status.")
     elif perma_file.status == 'confirmed_present':
         logger.info(f"Deleting {link_guid} from {identifier}.")
@@ -2645,6 +2649,10 @@ def delete_link_from_daily_item(link_guid, attempts=0):
                     logger.warning(msg)
             return
 
+    # Record that the deletion has been submitted
+    perma_file.status = 'deletion_submitted'
+    perma_file.save(update_fields=['status'])
+
     logger.info(f"Requested deletion of {link_guid} from {identifier}: confirmation pending.")
 
 
@@ -2739,7 +2747,7 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     to avoid having sleeping-but-active celery tasks.
     """
     file_ids = InternetArchiveFile.objects.filter(
-                status='deletion_attempted'
+                status='deletion_submitted'
             ).exclude(
                 item_id__in=[
                     'daily_perma_cc_2022-07-25',
