@@ -2821,13 +2821,13 @@ def queue_internet_archive_uploads_for_date(date_string, limit=None):
     query_started = time.time()
     query_ended = None
     try:
-        for guid in to_upload.iterator():
+        for link in to_upload.iterator():
             if not query_ended:
                 # log here: the query won't actually be evaluated until .iterator() is called
                 query_ended = time.time()
                 logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
-            upload_link_to_internet_archive.delay(guid)
-            queued.append(guid)
+            upload_link_to_internet_archive.delay(link.guid)
+            queued.append(link.guid)
     except SoftTimeLimitExceeded:
         pass
 
