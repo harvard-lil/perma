@@ -2725,7 +2725,7 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0):
 
 
 @shared_task(acks_late=True)
-def queue_file_deleted_confirmation_tasks(limit=None):
+def queue_file_deleted_confirmation_tasks(limit=100):
     """
     It takes some time for IA to finish processing deletions, even after the S3-like API
     returns a success code. This task schedules a confirmation task for each file we've
@@ -2760,7 +2760,7 @@ def queue_file_deleted_confirmation_tasks(limit=None):
 
 
 @shared_task
-def queue_internet_archive_uploads_for_date(date_string, limit=None):
+def queue_internet_archive_uploads_for_date(date_string, limit=100):
     """
     Queue upload tasks for all currently-eligible Links created on a given day,
     if we have not yet attempted to upload them to a "daily" Item.
@@ -2835,14 +2835,14 @@ def queue_internet_archive_uploads_for_date(date_string, limit=None):
 
 
 @shared_task
-def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string):
+def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100):
     start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
     end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
     if start > end:
         logger.error(f"Invalid range: start={start} end={end}")
 
     for day in date_range(start, end, timedelta(days=1)):
-        queue_internet_archive_uploads_for_date.delay(day.strftime('%Y-%m-%d'))
+        queue_internet_archive_uploads_for_date.delay(day.strftime('%Y-%m-%d'), daily_limit)
 
     logger.info(f"Queued { (end - start).days + 1 } days of internet archive uploads.")
 
