@@ -857,6 +857,7 @@ a.cc {
 .bucket-stats {
   padding-left: 0;
   padding-bottom: 15px;
+  word-wrap: break-word;
 }
 
 .over-limit:not(:first-child) {

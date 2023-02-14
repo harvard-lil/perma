@@ -558,14 +558,16 @@ class LinkBatchAdmin(admin.ModelAdmin):
 
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'tasks_in_progress', 'complete', 'last_derived', 'derive_required', 'internet_archive_link']
-    list_filter = [IAIdentifierFilter, IAItemTypeFilter, 'cached_is_dark']
+    list_display = ['identifier', 'confirmed_exists', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'tasks_in_progress', 'complete', 'last_derived', 'derive_required', 'internet_archive_link']
+    list_filter = [IAIdentifierFilter, IAItemTypeFilter, 'confirmed_exists', 'cached_is_dark']
     readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
 
     def internet_archive_link(self, obj):
+        if not obj.confirmed_exists:
+            return ''
         url = f'https://archive.org/details/{obj.identifier}'
         return format_html('<a target="_blank" href="{}">{}</a>', url, url)
 

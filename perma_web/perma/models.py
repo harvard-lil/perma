@@ -1353,6 +1353,9 @@ class LinkQuerySet(QuerySet):
     def visible_to_ia(self):
         return self.visible_to_memento()
 
+    def ineligible_for_ia(self):
+        return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
+
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
@@ -2024,6 +2027,8 @@ class InternetArchiveItem(models.Model):
     - not contain more than 10,000 files.
 
     (From documentation archived at https://perma.cc/S4WC-64AF)
+
+    Expect one InternetArchiveItem object for every item in the perma_cc Internet Archive collection.
     """
 
     # Each item at Internet Archive has an identifier. An identifier is composed
@@ -2035,6 +2040,11 @@ class InternetArchiveItem(models.Model):
     # Archive, not simply unique within a single collection.
     # (From documentation archived at https://perma.cc/AVZ8-FD57)
     identifier = models.CharField(max_length=100, null=False, blank=False, primary_key=True, editable=False)
+    confirmed_exists = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="If false we have attempted to create that item, but have not yet confirmed whether that attempt succeeded; failed attempts are not uncommon."
+    )
 
     # The best available field reporting when an Item was added to Internet Archive.
     # (From documentation archived at https://perma.cc/U88M-6R5C)
@@ -2076,6 +2086,18 @@ class InternetArchiveItem(models.Model):
     @classmethod
     def datetime(cls, datetime_string):
         return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+
+    @classmethod
+    def standard_metadata_for_date(cls, date_string):
+        metadata = {
+            "collection": settings.INTERNET_ARCHIVE_COLLECTION,
+            "contributor": "Perma.cc",
+            "mediatype": "web",
+            "date": date_string,
+            "title": f"{date_string} Perma.cc Captures",
+            "description": f"Captures by Perma.cc from {date_string} (one WARC file and XML metadata file per webpage)",
+        }
+        return metadata
 
 
 class InternetArchiveFile(models.Model):
@@ -2149,6 +2171,18 @@ class InternetArchiveFile(models.Model):
         self.cached_format = metadata['format']
         self.cached_submitted_url = metadata['submitted_url']
         self.cached_perma_url = metadata['perma_url']
+
+    def zero_cached_ia_metadata(self):
+        """
+        Intentionally does not call save(), so this method can be used with bulk database operations.
+        """
+        self.cached_title = None
+        self.cached_comments = None
+        self.cached_external_identifier = None
+        self.cached_external_identifier_match_date = None
+        self.cached_format = None
+        self.cached_submitted_url = None
+        self.cached_perma_url = None
 
 
 
