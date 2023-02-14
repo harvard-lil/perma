@@ -2843,16 +2843,22 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
 
 
 @shared_task
-def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100):
+def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, max_days=4):
     start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
     end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
     if start > end:
         logger.error(f"Invalid range: start={start} end={end}")
 
+    dates = []
     for day in date_range(start, end, timedelta(days=1)):
-        queue_internet_archive_uploads_for_date.delay(day.strftime('%Y-%m-%d'), daily_limit)
+        if len(dates) < max_days:
+            date_string = day.strftime('%Y-%m-%d')
+            dates.append(date_string)
+            queue_internet_archive_uploads_for_date.delay(date_string, daily_limit)
+        else:
+            break
 
-    logger.info(f"Queued { (end - start).days + 1 } days of internet archive uploads.")
+    logger.info(f"Queued { len(dates) } days of internet archive uploads ({dates}) (up to {daily_limit} each).")
 
 
 @shared_task
