@@ -2491,11 +2491,13 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
 
     # If this is the first confirmed upload to this IA item,
     # cache its basic metadata locally
-    if not perma_item.cached_title:
+    if not perma_item.confirmed_exists:
+        perma_item.confirmed_exists = True
         perma_item.added_date = InternetArchiveItem.datetime(ia_item.metadata['addeddate'])
         perma_item.cached_title = ia_item.metadata['title']
         perma_item.cached_description = ia_item.metadata.get('description')
         perma_item.save(update_fields=[
+            'confirmed_exists'
             'added_date',
             'cached_title',
             'cached_description'

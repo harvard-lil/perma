@@ -2029,9 +2029,6 @@ class InternetArchiveItem(models.Model):
     (From documentation archived at https://perma.cc/S4WC-64AF)
 
     Expect one InternetArchiveItem object for every item in the perma_cc Internet Archive collection.
-
-    **If the 'cached_title' field is empty, it means we have attempted to create that item, but have
-    not yet confirmed whether that attempt succeeded or failed; failed attempts are not uncommon.**
     """
 
     # Each item at Internet Archive has an identifier. An identifier is composed
@@ -2043,6 +2040,11 @@ class InternetArchiveItem(models.Model):
     # Archive, not simply unique within a single collection.
     # (From documentation archived at https://perma.cc/AVZ8-FD57)
     identifier = models.CharField(max_length=100, null=False, blank=False, primary_key=True, editable=False)
+    confirmed_exists = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="If false we have attempted to create that item, but have not yet confirmed whether that attempt succeeded; failed attempts are not uncommon."
+    )
 
     # The best available field reporting when an Item was added to Internet Archive.
     # (From documentation archived at https://perma.cc/U88M-6R5C)
