@@ -2087,14 +2087,13 @@ class InternetArchiveItem(models.Model):
 
     @classmethod
     def standard_metadata_for_date(cls, date_string):
-        iso = datetime.strptime(date_string, '%Y-%m-%d').date().isoformat()
         metadata = {
             "collection": settings.INTERNET_ARCHIVE_COLLECTION,
             "contributor": "Perma.cc",
             "mediatype": "web",
-            "date": iso,
-            "title": f"{iso} Perma.cc Captures",
-            "description": f"Captures by Perma.cc from {iso} (one WARC file and XML metadata file per webpage)",
+            "date": date_string,
+            "title": f"{date_string} Perma.cc Captures",
+            "description": f"Captures by Perma.cc from {date_string} (one WARC file and XML metadata file per webpage)",
         }
         return metadata
 
