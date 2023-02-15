@@ -2114,7 +2114,7 @@ class InternetArchiveFile(models.Model):
         max_length=19,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'confirmed_present', 'deletion_attempted', 'confirmed_absent')),
+        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'confirmed_absent')),
         db_index=True
     )
 
