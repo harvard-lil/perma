@@ -1743,7 +1743,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # ('InternalError', ('We encountered an internal error. Please try again.', '500 Internal Server Error'))
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
-        if "Please reduce your request rate" in str(e):
+        error_string = str(e)
+        if "Please reduce your request rate" in error_string:
             # This logging is noisy: we're not sure whether we want it or not, going forward.
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) prevented by rate-limiting. Will retry if allowed.")
             retry = (
@@ -1759,6 +1760,17 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 else:
                     logger.warning(msg)
             return
+        elif ("The bucket namespace is shared" in error_string or
+              "Failed to get necessary short term bucket lock" in error_string or
+              "auto_make_bucket requested" in error_string or
+              ("Checking for identifier availability..." in error_string and "not_available" in error_string)):
+            # These errors happen when we concurrently request to upload more than one file to an Item
+            # that does not yet exist: each concurrent request attempts to create it, and is thwarted
+            # by IA code guarding against inconsistent state. We need to support concurrent uploads
+            # because of our volume. Since we cannot create the Item in an advance preparatory step
+            # without a lot of engineering work on our end, we simply live with these errors, and
+            # re-queue the failed attempts, without considering it a failed attempt.
+            retry_upload(attempts, timeouts)
         else:
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
             retry = (
