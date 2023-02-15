@@ -784,7 +784,7 @@ def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets
 
     # check for bucket-specific limits
     if include_buckets:
-        buckets = InternetArchiveItem.objects.filter(tasks_in_progress__gt=0).values_list('identifier', flat=True)
+        buckets = InternetArchiveItem.objects.filter(tasks_in_progress__gt=0).values_list('identifier', flat=True).order_by('identifier')
         if include_max_buckets:
             buckets = buckets[:include_max_buckets]
         for bucket in buckets:

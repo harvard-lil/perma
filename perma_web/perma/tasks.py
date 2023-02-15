@@ -1743,7 +1743,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # ('InternalError', ('We encountered an internal error. Please try again.', '500 Internal Server Error'))
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
-        if "Please reduce your request rate" in str(e):
+        error_string = str(e)
+        if "Please reduce your request rate" in error_string:
             # This logging is noisy: we're not sure whether we want it or not, going forward.
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) prevented by rate-limiting. Will retry if allowed.")
             retry = (
@@ -1759,6 +1760,17 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 else:
                     logger.warning(msg)
             return
+        elif ("The bucket namespace is shared" in error_string or
+              "Failed to get necessary short term bucket lock" in error_string or
+              "auto_make_bucket requested" in error_string or
+              ("Checking for identifier availability..." in error_string and "not_available" in error_string)):
+            # These errors happen when we concurrently request to upload more than one file to an Item
+            # that does not yet exist: each concurrent request attempts to create it, and is thwarted
+            # by IA code guarding against inconsistent state. We need to support concurrent uploads
+            # because of our volume. Since we cannot create the Item in an advance preparatory step
+            # without a lot of engineering work on our end, we simply live with these errors, and
+            # re-queue the failed attempts, without considering it a failed attempt.
+            retry_upload(attempts, timeouts)
         else:
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
             retry = (
@@ -1853,20 +1865,8 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     except AssertionError:
         # IA's tasks can take some time to complete;
         # the upload-related tasks for this link appear not to have finished yet.
-        # We need to check again later.
-        retry = (
-            not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-            (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
-        )
-        if retry:
-            confirm_file_uploaded_to_internet_archive.delay(file_id, attempts + 1)
-            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}).")
-        else:
-            msg = f"Not retrying 'confirm_link_uploaded_to_internet_archive' for {file_id} (IA Item {perma_item.identifier}, File {link.guid}): error retry maximum reached."
-            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
-                logger.exception(msg)
-            else:
-                logger.warning(msg)
+        # We'll need to check again later, the next time celerybeat schedules these tasks.
+        logger.info(f"Submitted upload of {link.guid} to IA Item {perma_item.identifier} not yet confirmed.")
         return
 
     # Update the InternetArchiveFile accordingly
