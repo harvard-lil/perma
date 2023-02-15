@@ -1865,20 +1865,8 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
     except AssertionError:
         # IA's tasks can take some time to complete;
         # the upload-related tasks for this link appear not to have finished yet.
-        # We need to check again later.
-        retry = (
-            not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-            (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
-        )
-        if retry:
-            confirm_file_uploaded_to_internet_archive.delay(file_id, attempts + 1)
-            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}).")
-        else:
-            msg = f"Not retrying 'confirm_link_uploaded_to_internet_archive' for {file_id} (IA Item {perma_item.identifier}, File {link.guid}): error retry maximum reached."
-            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
-                logger.exception(msg)
-            else:
-                logger.warning(msg)
+        # We'll need to check again later, the next time celerybeat schedules these tasks.
+        logger.info(f"Submitted upload of {link.guid} to IA Item {perma_item.identifier} not yet confirmed.")
         return
 
     # Update the InternetArchiveFile accordingly
