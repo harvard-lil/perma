@@ -666,3 +666,6 @@ SENTRY_DSN = ''
 SENTRY_ENVIRONMENT = 'dev'
 SENTRY_TRACES_SAMPLE_RATE = 1.0
 SENTRY_SEND_DEFAULT_PII = False
+
+# Before deployment, we suppress the addition of new capture jobs when this file is present
+DEPLOYMENT_SENTINEL = '/tmp/perma-deployment-pending'

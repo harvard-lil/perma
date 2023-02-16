@@ -1414,7 +1414,8 @@ def run_next_capture():
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
                 capture_job.mark_failed('Failed during capture.')
-    run_next_capture.delay()
+    if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
+        run_next_capture.delay()
 
 
 @shared_task()
