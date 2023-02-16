@@ -1416,6 +1416,8 @@ def run_next_capture():
                 capture_job.mark_failed('Failed during capture.')
     if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
         run_next_capture.delay()
+    else:
+        logger.info("Deployment sentinel is present, not running next capture.")
 
 
 @shared_task()

@@ -27,6 +27,9 @@ from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer,
 from django.conf import settings
 from django.urls import reverse
 
+import logging
+logger = logging.getLogger(__name__)
+
 ### BASE VIEW ###
 
 class BaseView(APIView):
@@ -525,6 +528,8 @@ class AuthenticatedLinkListView(BaseView):
                 capture_job.save(update_fields=['status', 'link'])
                 if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
                     run_next_capture.delay()
+                else:
+                    logger.info("Deployment sentinel is present, not running next capture.")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise_invalid_capture_job(capture_job, serializer.errors)
