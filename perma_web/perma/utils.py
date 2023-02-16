@@ -767,7 +767,7 @@ def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets
         # is truly overloaded, it sometimes fails to return a response at all, in which
         # case s3_is_overloaded is True and s3_details is {}.
         if s3_is_overloaded or s3_details.get("detail", {}).get("rationing_engaged"):
-            output["over_limit"].append(s3_details)
+            output["over_limit_details"].append(s3_details)
 
     output = {
         "modify_xml": get_task_info('modify_xml.php'),
