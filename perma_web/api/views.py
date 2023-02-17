@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import csv
 import django_filters
+import os.path
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Prefetch
@@ -25,6 +26,9 @@ from .serializers import FolderSerializer, CaptureJobSerializer, LinkSerializer,
     LinkUserSerializer, OrganizationSerializer, LinkBatchSerializer, DetailedLinkBatchSerializer
 from django.conf import settings
 from django.urls import reverse
+
+import logging
+logger = logging.getLogger(__name__)
 
 ### BASE VIEW ###
 
@@ -522,7 +526,10 @@ class AuthenticatedLinkListView(BaseView):
                 capture_job.status = 'pending'
                 capture_job.link = link
                 capture_job.save(update_fields=['status', 'link'])
-                run_next_capture.delay()
+                if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
+                    run_next_capture.delay()
+                else:
+                    logger.info("Deployment sentinel is present, not running next capture.")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise_invalid_capture_job(capture_job, serializer.errors)
