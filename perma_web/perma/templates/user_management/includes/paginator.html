@@ -25,13 +25,13 @@
           </span>
         </li>
       {% else %}
-        {% ifequal i page.number %}
+        {% if i == page.number %}
           <li class="active">
             <span><span class="sr-only">Page</span>{{ page.number }} <span class="sr-only">(current page)</span></span>
           </li>
         {% else %}
           <li><a href="?{% current_query_string page=i %}"><span class="sr-only">Page</span> {{ i }}</a></li>
-        {% endifequal %}
+        {% endif %}
       {% endif %}
     {% endfor %}
 
