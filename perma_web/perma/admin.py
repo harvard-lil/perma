@@ -335,7 +335,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
             registrar_users=Count('users', distinct=True),
             last_active=Max('users__last_login'),
             orgs_count=Count('organizations',distinct=True)
-        ).prefetch_related('tags')
+        ).prefetch_related('tags').order_by('name')
     def registrar_users(self, obj):
         return obj.registrar_users
     def last_active(self, obj):
