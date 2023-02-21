@@ -39,7 +39,7 @@ whitenoise                              # serve static assets
 
 
 # thumbnails (carousel? anything else?)
-sorl-thumbnail==12.3
+sorl-thumbnail==12.7
 Wand
 
 

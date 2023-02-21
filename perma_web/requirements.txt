@@ -1010,9 +1010,9 @@ six==1.16.0 \
     #   requests-file
     #   surt
     #   warcio
-sorl-thumbnail==12.3 \
-    --hash=sha256:bb277dc98daa07e892d429b73eed749411f7eff1ee6feef142a19e029582e8cd \
-    --hash=sha256:ce91c5b112a2ef930a09625adbd99682bd62f34be1963c28f3ffc0d0138a07fd
+sorl-thumbnail==12.7 \
+    --hash=sha256:c56cd651feab3bdc415d5301600198e2e70c08234dad48b8f6cfa4746cc102c7 \
+    --hash=sha256:fbe6dfd66a1aceb7e0203895ff5622775e50266f8d8cfd841fe1500bd3e19018
     # via -r requirements.in
 sortedcontainers==2.4.0 \
     --hash=sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88 \
