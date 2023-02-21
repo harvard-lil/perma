@@ -215,6 +215,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # 3 days, in seconds
 PASSWORD_RESET_TIMEOUT = 3 * 24 * 60 * 60
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 # subscription packages
