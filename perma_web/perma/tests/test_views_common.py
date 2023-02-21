@@ -59,13 +59,13 @@ class CommonViewsTestCase(PermaTestCase):
         for user in self.users:
             self.log_in_user(user)
             response = self.assert_not_500('3SLN-JHX9')
-            self.assertEqual(response._headers['memento-datetime'][1], 'Sun, 07 Dec 2014 18:55:37 GMT')
-            self.assertIn('<http://metafilter.com>; rel=original,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timegate/http://metafilter.com>; rel=timegate,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/link/http://metafilter.com>; rel=timemap; type=application/link-format,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/json/http://metafilter.com>; rel=timemap; type=application/json,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/html/http://metafilter.com>; rel=timemap; type=text/html,', response._headers['link'][1])
-            self.assertIn('<https://testserver/3SLN-JHX9>; rel=memento; datetime="Sun, 07 Dec 2014 18:55:37 GMT"', response._headers['link'][1])
+            self.assertEqual(response.headers['memento-datetime'], 'Sun, 07 Dec 2014 18:55:37 GMT')
+            self.assertIn('<http://metafilter.com>; rel=original,', response.headers['link'])
+            self.assertIn('<https://testserver/timegate/http://metafilter.com>; rel=timegate,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/link/http://metafilter.com>; rel=timemap; type=application/link-format,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/json/http://metafilter.com>; rel=timemap; type=application/json,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/html/http://metafilter.com>; rel=timemap; type=text/html,', response.headers['link'])
+            self.assertIn('<https://testserver/3SLN-JHX9>; rel=memento; datetime="Sun, 07 Dec 2014 18:55:37 GMT"', response.headers['link'])
 
     def test_regular_archive(self):
         # ensure capture job present and 'completed'
@@ -76,13 +76,13 @@ class CommonViewsTestCase(PermaTestCase):
         for user in self.users:
             self.log_in_user(user)
             response = self.assert_not_500('UU32-XY8I')
-            self.assertEqual(response._headers['memento-datetime'][1], 'Sat, 19 Jul 2014 20:21:31 GMT')
-            self.assertIn('<https://www.wikipedia.org/?special=true>; rel=original,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timegate/https://www.wikipedia.org/?special=true>; rel=timegate,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/link/https://www.wikipedia.org/?special=true>; rel=timemap; type=application/link-format,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/json/https://www.wikipedia.org/?special=true>; rel=timemap; type=application/json,', response._headers['link'][1])
-            self.assertIn('<https://testserver/timemap/html/https://www.wikipedia.org/?special=true>; rel=timemap; type=text/html,', response._headers['link'][1])
-            self.assertIn('<https://testserver/UU32-XY8I>; rel=memento; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response._headers['link'][1])
+            self.assertEqual(response.headers['memento-datetime'], 'Sat, 19 Jul 2014 20:21:31 GMT')
+            self.assertIn('<https://www.wikipedia.org/?special=true>; rel=original,', response.headers['link'])
+            self.assertIn('<https://testserver/timegate/https://www.wikipedia.org/?special=true>; rel=timegate,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/link/https://www.wikipedia.org/?special=true>; rel=timemap; type=application/link-format,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/json/https://www.wikipedia.org/?special=true>; rel=timemap; type=application/json,', response.headers['link'])
+            self.assertIn('<https://testserver/timemap/html/https://www.wikipedia.org/?special=true>; rel=timemap; type=text/html,', response.headers['link'])
+            self.assertIn('<https://testserver/UU32-XY8I>; rel=memento; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response.headers['link'])
 
     def test_archive_with_unsuccessful_capturejob(self):
         link = Link.objects.get(guid='UU32-XY8I')
@@ -96,8 +96,8 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertTrue(link.capture_job.status == 'completed')
         self.assertFalse(link.captures.count())
         response = self.assert_not_500('TE73-AKWM')
-        self.assertNotIn('memento-datetime', response._headers)
-        self.assertNotIn('link', response._headers)
+        self.assertNotIn('memento-datetime', response.headers)
+        self.assertNotIn('link', response.headers)
         # TODO: this just renders a blank iframe... not desirable.
         # See https://github.com/harvard-lil/perma/issues/2574
 
@@ -109,8 +109,8 @@ class CommonViewsTestCase(PermaTestCase):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0007'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=image')
-            self.assertIn('memento-datetime', response._headers)
-            self.assertIn('link', response._headers)
+            self.assertIn('memento-datetime', response.headers)
+            self.assertIn('link', response.headers)
 
     def test_capture_only_archive_default_to_screenshot_view_true(self):
         link = Link.objects.get(guid='N1N0-33DB')
@@ -167,16 +167,16 @@ class CommonViewsTestCase(PermaTestCase):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
             self.assertIn(b"This record is private and cannot be displayed.", response.content)
-            self.assertNotIn('memento-datetime', response._headers)
-            self.assertNotIn('link', response._headers)
+            self.assertNotIn('memento-datetime', response.headers)
+            self.assertNotIn('link', response.headers)
 
             # check that top bar is displayed to logged-in users
             for user in self.users:
                 self.log_in_user(user)
                 response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
                 self.assertIn(b"This record is private.", response.content)
-                self.assertNotIn('memento-datetime', response._headers)
-                self.assertNotIn('link', response._headers)
+                self.assertNotIn('memento-datetime', response.headers)
+                self.assertNotIn('link', response.headers)
 
     def test_redirect_to_download(self):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
@@ -198,8 +198,8 @@ class CommonViewsTestCase(PermaTestCase):
     def test_deleted(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410, request_kwargs={'follow': True})
         self.assertIn(b"This record has been deleted.", response.content)
-        self.assertNotIn('memento-datetime', response._headers)
-        self.assertNotIn('link', response._headers)
+        self.assertNotIn('memento-datetime', response.headers)
+        self.assertNotIn('link', response.headers)
 
     def test_misformatted_nonexistent_links_404(self):
         self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'JJ99--JJJJ'}}, require_status_code=404)
@@ -221,8 +221,8 @@ class CommonViewsTestCase(PermaTestCase):
     ###
     def test_timemap_json(self):
         response = self.get('timemap', reverse_kwargs={'args':['json', 'wikipedia.org']})
-        self.assertEqual(response._headers['content-type'][1], 'application/json')
-        self.assertEqual(response._headers['x-memento-count'][1], '3')
+        self.assertEqual(response.headers['content-type'], 'application/json')
+        self.assertEqual(response.headers['x-memento-count'], '3')
         self.assertEqual(response.json(), {
             'self': 'https://testserver/timemap/json/wikipedia.org',
             'original_uri': 'wikipedia.org',
@@ -245,8 +245,8 @@ class CommonViewsTestCase(PermaTestCase):
 
     def test_timemap_link(self):
         response = self.get('timemap', reverse_kwargs={'args':['link', 'wikipedia.org']})
-        self.assertEqual(response._headers['content-type'][1], 'application/link-format')
-        self.assertEqual(response._headers['x-memento-count'][1], '3')
+        self.assertEqual(response.headers['content-type'], 'application/link-format')
+        self.assertEqual(response.headers['x-memento-count'], '3')
         expected =b"""\
 <wikipedia.org>; rel=original,
 <https://testserver/timegate/wikipedia.org>; rel=timegate,
@@ -263,39 +263,39 @@ class CommonViewsTestCase(PermaTestCase):
     def test_timemap_not_found_standard(self):
         for response_type in ['link', 'json']:
             response = self.get('timemap', reverse_kwargs={'args':[response_type, 'wikipedia.org?foo=bar']}, require_status_code=404)
-            self.assertEqual(response._headers['x-memento-count'][1], '0')
+            self.assertEqual(response.headers['x-memento-count'], '0')
             self.assertEqual(response.content, b'404 page not found\n')
 
     def test_timemap_not_found_html(self):
         response = self.get('timemap', reverse_kwargs={'args':['html', 'wikipedia.org?foo=bar']}, require_status_code=404)
-        self.assertEqual(response._headers['x-memento-count'][1], '0')
+        self.assertEqual(response.headers['x-memento-count'], '0')
         self.assertIn(b'<i>No captures found for <b>wikipedia.org?foo=bar</b></i>', response.content)
 
     def test_timegate_most_recent(self):
         response = self.get('timegate', reverse_kwargs={'args':['wikipedia.org']}, require_status_code=302)
-        self.assertEqual(response._headers['location'][1], 'https://testserver/ABCD-0009')
-        self.assertIn('accept-datetime', response._headers['vary'][1])
-        self.assertIn('<https://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<https://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<https://testserver/ABCD-0009>; rel=memento; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<wikipedia.org>; rel=original,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timegate/wikipedia.org>; rel=timegate,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/link/wikipedia.org>; rel=timemap; type=application/link-format,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/json/wikipedia.org>; rel=timemap; type=application/json,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/html/wikipedia.org>; rel=timemap; type=text/html,', response._headers['link'][1])
+        self.assertEqual(response.headers['location'], 'https://testserver/ABCD-0009')
+        self.assertIn('accept-datetime', response.headers['vary'])
+        self.assertIn('<https://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<https://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<https://testserver/ABCD-0009>; rel=memento; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<wikipedia.org>; rel=original,', response.headers['link'])
+        self.assertIn('<https://testserver/timegate/wikipedia.org>; rel=timegate,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/link/wikipedia.org>; rel=timemap; type=application/link-format,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/json/wikipedia.org>; rel=timemap; type=application/json,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/html/wikipedia.org>; rel=timemap; type=text/html,', response.headers['link'])
 
     def test_timegate_with_target_date(self):
         response = self.get('timegate', reverse_kwargs={'args':['wikipedia.org']}, request_kwargs={"HTTP_ACCEPT_DATETIME": 'Thu, 26 Jul 2015 20:21:31 GMT'}, require_status_code=302)
-        self.assertEqual(response._headers['location'][1], 'https://testserver/ABCD-0008')
-        self.assertIn('accept-datetime', response._headers['vary'][1])
-        self.assertIn('<https://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<https://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<https://testserver/ABCD-0008>; rel=memento; datetime="Sun, 19 Jul 2015 20:21:31 GMT"', response._headers['link'][1])
-        self.assertIn('<wikipedia.org>; rel=original,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timegate/wikipedia.org>; rel=timegate,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/link/wikipedia.org>; rel=timemap; type=application/link-format,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/json/wikipedia.org>; rel=timemap; type=application/json,', response._headers['link'][1])
-        self.assertIn('<https://testserver/timemap/html/wikipedia.org>; rel=timemap; type=text/html,', response._headers['link'][1])
+        self.assertEqual(response.headers['location'], 'https://testserver/ABCD-0008')
+        self.assertIn('accept-datetime', response.headers['vary'])
+        self.assertIn('<https://testserver/ABCD-0007>; rel="first memento"; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<https://testserver/ABCD-0009>; rel="last memento"; datetime="Tue, 19 Jul 2016 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<https://testserver/ABCD-0008>; rel=memento; datetime="Sun, 19 Jul 2015 20:21:31 GMT"', response.headers['link'])
+        self.assertIn('<wikipedia.org>; rel=original,', response.headers['link'])
+        self.assertIn('<https://testserver/timegate/wikipedia.org>; rel=timegate,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/link/wikipedia.org>; rel=timemap; type=application/link-format,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/json/wikipedia.org>; rel=timemap; type=application/json,', response.headers['link'])
+        self.assertIn('<https://testserver/timemap/html/wikipedia.org>; rel=timemap; type=text/html,', response.headers['link'])
 
     def test_timegate_not_found(self):
         response = self.get('timegate', reverse_kwargs={'args':['wikipedia.org?foo=bar']}, require_status_code=404)
