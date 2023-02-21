@@ -288,7 +288,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'Test Journal'), 3 + 1)
         self.assertEqual(response.count(b'Another Journal'), 1 + 1)
         self.assertEqual(response.count(b"A Third Journal"), 3 + 1)
-        self.assertEqual(response.count(b"Another Library&#39;s Journal"), 3 + 1)
+        self.assertEqual(response.count(b"Another Library&#x27;s Journal"), 3 + 1)
         self.assertEqual(response.count(b"Some Case"), 1 + 1)
 
         # filter by org
@@ -2461,7 +2461,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertTemplateUsed(response, 'registration/password_reset_confirm.html')
         response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass2'}, follow=True, secure=True)
         self.assertNotContains(response, 'Your password has been set')
-        self.assertContains(response, "The two password fields didn&#39;t match")
+        self.assertContains(response, "The two password fields didn’t match")
         # reg confirm - correct
         response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, follow=True, secure=True)
         self.assertContains(response, 'Your password has been set')
