@@ -212,7 +212,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-PASSWORD_RESET_TIMEOUT_DAYS = 3
+# 3 days, in seconds
+PASSWORD_RESET_TIMEOUT = 3 * 24 * 60 * 60
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 

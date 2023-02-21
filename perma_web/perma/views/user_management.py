@@ -1695,7 +1695,7 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
     ]))
     context.update({
         'activation_route': activation_route,
-        'activation_expires': settings.PASSWORD_RESET_TIMEOUT_DAYS,
+        'activation_expires': settings.PASSWORD_RESET_TIMEOUT,
         'request': request
     })
     send_user_email(

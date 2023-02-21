@@ -5,7 +5,7 @@ You're receiving this email because you requested a password reset for your user
 Please go to the following page and choose a new password:
 {{ activation_route }}
 
-The link will be valid for the next {% widthratio activation_expires 1 24 %} hours.
+The link will be valid for the next {% widthratio activation_expires 3600 1 %} hours.
 
 Thanks,
 The Perma.cc Team

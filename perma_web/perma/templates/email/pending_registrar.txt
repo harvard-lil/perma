@@ -6,7 +6,7 @@ To activate this personal account, please click the link below or copy it to you
 
 {{ activation_route }}
 
-The link will be valid for the next {% widthratio activation_expires 1 24 %} hours.
+The link will be valid for the next {% widthratio activation_expires 3600 1 %} hours.
 
 Thanks,
 The Perma.cc Team
