@@ -344,20 +344,24 @@ By default, Perma's `docker-compose` file will spin up a local Perma Payments fo
 
 ### Test Perma Interaction with Perma Payments
 
-You may also decide to run the two services locally to experiment by running both on the same network.
+You may also decide to run both services by running `docker compose` in both repositories simultaneously, with a tweaked Perma network config.
 
-The Docker containers for `perma-payments` have to be built before you can successfully run  `perma` on the same network. Visit the [`perma-payments` repo](https://github.com/harvard-lil/perma-payments/blob/develop/README.md#running-locally) for those instructions. Once you've done that, build the Docker containers for perma: 
+First, head over to the [`Perma Payments` repo](https://github.com/harvard-lil/perma-payments/blob/develop/README.md#running-locally) for instructions on how to spin that up.
 
-- `docker compose -f docker-compose.yml up -d --build`
+Once it's running, spin up Perma... but with a slightly different command than usual, so that it doesn't try to create its own Perma Payments, but instead uses the already-running one:
 
-Then, to run perma, run:
+- `docker compose -f docker-compose.yml up -d`
+
+Then, run Perma's dev server as usual:
 
 `d fab run`
 
-When you're finished, take down the containers by running:
+When you are finished, take down the Perma containers by running:
 
 `docker compose -f docker-compose.yml down`
 
-Don't worry if you get the following error when shutting down these containers while still running the `perma-payments` containers. That's because the network is maintained until both Docker Compose projects are down:
+Don't worry if you get the following error:
 
 `ERROR: error while removing network: network perma-payments_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
+
+It just means that Perma Payments is still running: the network is maintained until both projects are down. Head back over to the Perma Payments repo and run `docker compose down` there... and you're done.
