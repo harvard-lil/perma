@@ -876,9 +876,9 @@ pynacl==1.5.0 \
     # via
     #   -r requirements.in
     #   paramiko
-pyopenssl==22.0.0 \
-    --hash=sha256:660b1b1425aac4a1bea1d94168a85d99f0b3144c869dd4390d27629d0087f1bf \
-    --hash=sha256:ea252b38c87425b64116f808355e8da644ef9b07e429398bfece610f893ee2e0
+pyopenssl==23.0.0 \
+    --hash=sha256:c1cc5f86bcacefc84dada7d31175cae1b1518d5f60d3d0bb595a67822a868a6f \
+    --hash=sha256:df5fc28af899e74e19fccb5510df423581047e10ab6f1f4ba1763ff5fde844c0
     # via
     #   certauth
     #   pytest-django-liveserver-ssl
