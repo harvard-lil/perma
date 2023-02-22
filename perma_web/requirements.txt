@@ -448,9 +448,9 @@ internetarchive==3.0.0 \
 ipdb==0.13.9 \
     --hash=sha256:951bd9a64731c444fd907a5ce268543020086a697f6be08f7cc2c9a752a278c5
     # via -r requirements.in
-ipython==8.2.0 \
-    --hash=sha256:1b672bfd7a48d87ab203d9af8727a3b0174a4566b4091e9447c22fb63ea32857 \
-    --hash=sha256:70e5eb132cac594a34b5f799bd252589009905f05104728aea6a403ec2519dc1
+ipython==8.10.0 \
+    --hash=sha256:b13a1d6c1f5818bd388db53b7107d17454129a70de2b87481d555daede5eb49e \
+    --hash=sha256:b38c31e8fc7eff642fc7c597061fff462537cf2314e3225a19c906b7b0d8a345
     # via ipdb
 isodate==0.6.1 \
     --hash=sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96 \
@@ -806,9 +806,8 @@ pluggy==1.0.0 \
     --hash=sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159 \
     --hash=sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3
     # via pytest
-prompt-toolkit==3.0.29 \
-    --hash=sha256:62291dad495e665fca0bda814e342c69952086afb0f4094d0893d357e5c78752 \
-    --hash=sha256:bd640f60e8cecd74f0dc249713d433ace2ddc62b65ee07f96d358e0b152b6ea7
+prompt-toolkit==3.0.37 \
+    --hash=sha256:6a2948ec427dfcc7c983027b1044b355db6aaa8be374f54ad2015471f7d81c5b
     # via
     #   click-repl
     #   ipython
@@ -1347,5 +1346,4 @@ setuptools==65.6.3 \
     # via
     #   django-axes
     #   ipdb
-    #   ipython
     #   pip-tools
