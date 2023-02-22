@@ -11,7 +11,7 @@ netaddr                                 # to check archive IPs against banned ra
 pytz                                    # timezone helper
 requests
 tqdm                                    # progress bar in dev fab tasks
-Werkzeug<2.1                            # pin until https://github.com/django-extensions/django-extensions/issues/1715 lands
+Werkzeug
 uwsgitop                                # uWSGI monitoring
 
 
