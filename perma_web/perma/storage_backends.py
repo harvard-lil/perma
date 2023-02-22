@@ -15,7 +15,9 @@ from whitenoise.storage import CompressedStaticFilesStorage
 import logging
 
 
-file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
+# documentation:
+# providing_args=["instance", "path", "overwrite"])
+file_saved = django.dispatch.Signal()
 
 
 ### Static files config

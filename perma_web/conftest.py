@@ -1,6 +1,7 @@
 import pytest
 import boto3
 from dataclasses import dataclass
+import os
 import subprocess
 from django.conf import settings
 from django.core.management import call_command
@@ -16,6 +17,10 @@ def full_page_screenshot(*args, **kwargs):
     kwargs['full_page'] = True
     return _orig(*args, **kwargs)
 Page.screenshot = full_page_screenshot
+
+
+# Allow setup of live server test cases; see https://github.com/microsoft/playwright-python/issues/439
+os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
 # shadow this fixture from  pytest_django_liveserver_ssl so that it doesn't request the admin client (which doesn't work with our fixture situation)

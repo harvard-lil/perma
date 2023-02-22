@@ -55,7 +55,6 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
 
 _default_tests = "functional_tests perma api lockss"
 
-
 @task
 def test(apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """

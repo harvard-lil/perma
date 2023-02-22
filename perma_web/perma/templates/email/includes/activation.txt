@@ -1,4 +1,4 @@
-In order to complete your account activation, please confirm your email address and set a password. It’s as simple as clicking the link below. The link will be valid for the next {% widthratio activation_expires 1 24 %} hours.
+In order to complete your account activation, please confirm your email address and set a password. It’s as simple as clicking the link below. The link will be valid for the next {% widthratio activation_expires 3600 1 %} hours.
 
 {{ activation_route }}
 

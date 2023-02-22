@@ -34,7 +34,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse, HttpResponse
-from django.utils.decorators import available_attrs
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.utils import timezone
@@ -88,7 +87,7 @@ def user_passes_test_or_403(test_func):
     """
     def decorator(view_func):
         @login_required()
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if not test_func(request.user):
                 raise PermissionDenied
