@@ -46,7 +46,7 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
             if not os.path.exists(os.path.join(settings.PROJECT_ROOT, cert_file)) or not os.path.exists(os.path.join(settings.PROJECT_ROOT, key_file)):
                 print("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
                 return
-            options = f'--cert-file {cert_file} --key-file {key_file}'
+            options = f'--cert-file {cert_file} --key-file {key_file} --keep-meta-shutdown'
             local(f"python manage.py runserver_plus {port} {options}")
         finally:
             for proc in proc_list:
