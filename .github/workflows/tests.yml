@@ -60,7 +60,7 @@ jobs:
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          docker-compose exec web fab dev.init_db
+          docker-compose exec web invoke dev.init-db
           docker-compose exec web pytest \
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv

@@ -20,7 +20,7 @@ from django.test import LiveServerTestCase, TransactionTestCase, TestCase, Simpl
 from django.utils.functional import cached_property
 from rest_framework.test import APIClient
 
-import perma.tasks
+import perma.celery_tasks
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
@@ -76,7 +76,7 @@ def log_api_call(func):
     """
         Handy wrapper to log all API calls during tests. To enable, use:
 
-         LOG_API_CALLS=1 fab test
+         LOG_API_CALLS=1 invoke test
     """
     if not os.environ.get('LOG_API_CALLS'):
         return func
@@ -123,7 +123,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     rejected_status_code = 401  # Unauthorized
 
     # reduce wait times for testing
-    perma.tasks.ROBOTS_TXT_TIMEOUT = perma.tasks.AFTER_LOAD_TIMEOUT = 1
+    perma.celery_tasks.ROBOTS_TXT_TIMEOUT = perma.celery_tasks.AFTER_LOAD_TIMEOUT = 1
 
     def setUp(self):
         super(ApiResourceTestCaseMixin, self).setUp()

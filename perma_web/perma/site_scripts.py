@@ -3,7 +3,7 @@ from time import sleep
 
 def forbes_post_load(browser):
     # Wait for splash page to auto redirect
-    from perma.tasks import repeat_until_truthy  # avoid circular import
+    from perma.celery_tasks import repeat_until_truthy  # avoid circular import
     try:
         current_url = browser.current_url
     except TimeoutException:

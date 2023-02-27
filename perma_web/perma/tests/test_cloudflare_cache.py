@@ -13,7 +13,7 @@ class CloudflareCacheTestCase(TestCase):
     message = """
 Cloudflare has updated its list of IP addresses since we last grabbed a
 copy. We rely on an up-to-date list of IP addresses for rate limiting,
-LOCKSS security, and other purposes. Please run `fab dev.update_cloudflare_cache`
+LOCKSS security, and other purposes. Please run `invoke dev.update-cloudflare-cache`
 and commit the updated files.
 """
 

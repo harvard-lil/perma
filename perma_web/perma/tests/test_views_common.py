@@ -5,7 +5,7 @@ from django.test import override_settings, Client
 
 from perma.urls import urlpatterns
 from perma.models import Registrar, Link, CaptureJob
-from perma.tasks import cache_playback_status_for_new_links
+from perma.celery_tasks import cache_playback_status_for_new_links
 
 from .utils import PermaTestCase
 

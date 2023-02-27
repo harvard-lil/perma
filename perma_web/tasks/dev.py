@@ -4,13 +4,10 @@ import signal
 import sys
 
 from django.conf import settings
-from fabric.context_managers import shell_env
-from fabric.decorators import task
-from fabric.operations import local
+from invoke import task
 
-
-@task(name='run')
-def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=''):
+@task
+def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
     """
         Run django test server on open port, so it's accessible outside Docker.
 
@@ -34,11 +31,11 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
     # Similarly, don't download fresh replayweb.page assets, to avoid confusion.
     if settings.DEBUG:
         commands.append('npm start')
-        commands.append("watchmedo auto-restart -d ./perma/settings/ -p '*.py' -R -- fab dev.get_replay_assets")
+        commands.append("watchmedo auto-restart -d ./perma/settings/ -p '*.py' -R -- invoke dev.get-replay-assets")
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
 
-    with shell_env(DEBUG_TOOLBAR=debug_toolbar):
+    with ctx.prefix(f'export DEBUG_TOOLBAR={"1" if debug_toolbar else ""}'):
 
         try:
             # use runserver_plus
@@ -47,7 +44,7 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
                 print("\nError! The required SSL cert and key files are missing. See developer.md for instructions on how to generate.")
                 return
             options = f'--cert-file {cert_file} --key-file {key_file} --keep-meta-shutdown'
-            local(f"python manage.py runserver_plus {port} {options}")
+            ctx.run(f"python manage.py runserver_plus {port} {options}")
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
@@ -56,31 +53,31 @@ def run_django(port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-
 _default_tests = "functional_tests perma api lockss"
 
 @task
-def test(apps=_default_tests):
+def test(ctx, apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
-    test_python(apps)
+    test_python(ctx, apps)
     if apps == _default_tests:
-        test_js()
+        test_js(ctx)
 
 @task
-def test_python(apps=_default_tests):
+def test_python(ctx, apps=_default_tests):
     """ Run Python tests. """
 
     # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
     # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
     if "functional_tests" in apps:
-        local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
+        ctx.run("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
-    local(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
+    ctx.run(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
 
 @task
-def test_js():
+def test_js(ctx):
     """ Run Javascript tests. """
-    local("npm test")
+    ctx.run("npm test")
 
 
-@task(alias='pip-compile')
-def pip_compile(args=''):
+@task
+def pip_compile(ctx, args=''):
     import subprocess
 
     # run pip-compile
@@ -88,11 +85,11 @@ def pip_compile(args=''):
     # setuptools that pip-compile leaves out by default.
     command = ['pip-compile', '--generate-hashes', '--allow-unsafe']+args.split()
     print("Calling %s" % " ".join(command))
-    subprocess.check_call(command, env=dict(os.environ, CUSTOM_COMPILE_COMMAND='fab pip-compile'))
+    subprocess.check_call(command, env=dict(os.environ, CUSTOM_COMPILE_COMMAND='invoke pip-compile'))
 
 
 @task()
-def get_replay_assets():
+def get_replay_assets(ctx):
     import requests
 
     for asset in ['sw.js', 'ui.js', 'ruffle/ruffle.js']:
@@ -105,22 +102,22 @@ def get_replay_assets():
 
 
 @task
-def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
+def logs(ctx, log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
-    local(f"tail -f {log_dir}/*")
+    ctx.run(f"tail -f {log_dir}/*")
 
 
 @task
-def init_db():
+def init_db(ctx):
     """
         Apply migrations and import fixtures for new dev database.
     """
-    local("python manage.py migrate")
-    local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
+    ctx.run("python manage.py migrate")
+    ctx.run("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
 
 @task
-def build_week_stats():
+def build_week_stats(ctx):
     """
         A temporary helper to populate our weekly stats
     """
@@ -174,7 +171,7 @@ def build_week_stats():
 
 
 @task
-def count_pending_ia_links():
+def count_pending_ia_links(ctx):
     """
     For use in monitoring the size of the queue.
     """
@@ -187,7 +184,7 @@ def count_pending_ia_links():
 
 
 @task
-def count_links_without_cached_playback_status():
+def count_links_without_cached_playback_status(ctx):
     """
     For use in monitoring the size of the queue.
     """
@@ -198,7 +195,7 @@ def count_links_without_cached_playback_status():
 
 
 @task
-def rebuild_folder_trees():
+def rebuild_folder_trees(ctx):
     from perma.models import Organization, LinkUser, Folder
     print("Checking for broken folder trees ...")
 
@@ -214,12 +211,12 @@ def rebuild_folder_trees():
 
 
 @task
-def ping_all_users(limit_to="", exclude="", batch_size="500"):
+def ping_all_users(ctx, limit_to="", exclude="", batch_size=500):
     '''
        Sends an email to all our current users. See templates/email/special.txt
 
        Arguments should be strings, with multiple values separated by semi-colons
-       e.g. fab ping_all_users:limit_to="14;27;30",batch_size="1000"
+       e.g. invoke ping-all-users --limit-to "14;27;30" --batch-size 1000
 
        Limit filters are applied before exclude filters.
     '''
@@ -254,7 +251,6 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
 
     # limit to our desired batch size
     not_yet_emailed = users.count()
-    batch_size = int(batch_size)
     if not_yet_emailed > batch_size:
         logger.info(f"{not_yet_emailed} users to email: limiting to first {batch_size}")
         users = users[:batch_size]
@@ -298,12 +294,12 @@ def ping_all_users(limit_to="", exclude="", batch_size="500"):
 
 
 @task
-def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", email="stats", year=""):
+def ping_registrar_users(ctx, limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", email="stats", year=""):
     '''
        Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
 
        Arguments should be strings, with multiple values separated by semi-colons
-       e.g. fab ping_registrar_users:limit_to="14;27;30",exclude_by_tag="opted_out",email="special"
+       e.g. invoke ping-registrar-users --limit-to "14;27;30" --exclude-by-tag "opted_out" --email "special"
 
        Limit filters are applied before exclude filters.
     '''
@@ -377,7 +373,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
 
 
 @task
-def fix_ia_metadata():
+def fix_ia_metadata(ctx):
     """
         One-off helper function, kept for example purposes. Update all existing IA uploads to remove `sponsor` metadata.
     """
@@ -400,7 +396,7 @@ def fix_ia_metadata():
 
 
 @task
-def check_s3_hashes():
+def check_s3_hashes(ctx):
     """
         Confirm that files in primary (disk) storage are also in secondary (s3) storage.
 
@@ -459,7 +455,7 @@ def check_s3_hashes():
 
 
 @task
-def check_storage(start_date=None):
+def check_storage(ctx, start_date=None):
     """
         Confirm that, for every link, there is a WARC in each storage, and that their hashes match.
 
@@ -606,7 +602,7 @@ def md5hash(path, storage):
 
 
 @task
-def update_cloudflare_cache():
+def update_cloudflare_cache(ctx):
     """ Update Cloudflare IP lists. """
     import requests
     for ip_filename in ('ips-v4', 'ips-v6'):
@@ -615,12 +611,12 @@ def update_cloudflare_cache():
 
 
 @task
-def test_db_connection(connection):
+def test_db_connection(ctx, connection):
     """
     Open a database connection.
     Use this task repeatedly, possibly with different database connection settings,
     e.g. in order to flush out a transient SSL connection problem, something like:
-    while [ 1 ] ; do date ; fab dev.test_db_connection:some-connection ; sleep 1 ; done
+    while [ 1 ] ; do date ; invoke dev.test-db-connection "some-connection" ; sleep 1 ; done
     """
     from django.db import connections
     print(f"Attempting connection to {connection} ...")
@@ -630,7 +626,7 @@ def test_db_connection(connection):
 
 
 @task
-def populate_link_surt_column(batch_size="500", model='Link'):
+def populate_link_surt_column(ctx, batch_size=500, model='Link'):
     import logging
     from tqdm import tqdm
     import surt
@@ -645,7 +641,6 @@ def populate_link_surt_column(batch_size="500", model='Link'):
 
     # limit to our desired batch size
     not_populated = links.count()
-    batch_size = int(batch_size)
     if not_populated > batch_size:
         logger.info(f"{not_populated} links to update: limiting to first {batch_size}")
         links = links[:batch_size]
@@ -671,7 +666,7 @@ def populate_link_surt_column(batch_size="500", model='Link'):
 
 
 @task
-def populate_folder_cached_path(batch_size="500"):
+def populate_folder_cached_path(ctx, batch_size=500):
     import logging
     from tqdm import tqdm
     from perma.models import Folder
@@ -684,7 +679,6 @@ def populate_folder_cached_path(batch_size="500"):
 
     # limit to our desired batch size
     not_populated = folders.count()
-    batch_size = int(batch_size)
     if not_populated > batch_size:
         logger.info(f"{not_populated} folders to update: limiting to first {batch_size}")
         folders = folders[:batch_size]
