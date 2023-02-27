@@ -1,16 +1,16 @@
-# After updating this file, run `fab pip-compile` to update requirements.txt.
-# To update a single dependency, pass pip-compile args to fab. For example: fab 'pip-compile:-P django'
+# After updating this file, run `invoke pip-compile` to update requirements.txt.
+# To update a single dependency, pass pip-compile args to fab. For example: invoke pip-compile '-P django'
 
 # general
 celery                                  # task queue
 Django~=3.2
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
-Fabric3                                 # task automation
+invoke                                  # task automation
 netaddr                                 # to check archive IPs against banned ranges
 pytz                                    # timezone helper
 requests
-tqdm                                    # progress bar in dev fab tasks
+tqdm                                    # progress bar in dev invoke tasks
 Werkzeug
 uwsgitop                                # uWSGI monitoring
 

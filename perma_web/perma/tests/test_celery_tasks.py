@@ -1,7 +1,7 @@
 from django.core import mail
 
 from django.test import TestCase, override_settings
-from perma.tasks import update_stats, send_js_errors
+from perma.celery_tasks import update_stats, send_js_errors
 from perma.models import UncaughtError
 
 @override_settings(CELERY_ALWAYS_EAGER=True)

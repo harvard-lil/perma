@@ -29,7 +29,7 @@ services:
     # TO AUTOMATICALLY START PERMA:
     # (sleep hack to give the database and rabbitmq time to start up)
     # command: >
-    #   sh -c "sleep 10 && ./manage.py migrate && fab run"
+    #   sh -c "sleep 10 && ./manage.py migrate && invoke run"
     volumes:
       # NAMED VOLUMES
       # Use a named, persistent volume so that the node_modules directory,

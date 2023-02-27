@@ -50,31 +50,31 @@ def post_process_settings(settings):
     # add the named celerybeat jobs
     celerybeat_job_options = {
         'cache_playback_status_for_new_links': {
-            'task': 'perma.tasks.cache_playback_status_for_new_links',
+            'task': 'perma.celery_tasks.cache_playback_status_for_new_links',
             'schedule': crontab(hour='*', minute='30'),
         },
         'update-stats': {
-            'task': 'perma.tasks.update_stats',
+            'task': 'perma.celery_tasks.update_stats',
             'schedule': crontab(minute='*'),
         },
         'send-js-errors': {
-            'task': 'perma.tasks.send_js_errors',
+            'task': 'perma.celery_tasks.send_js_errors',
             'schedule': crontab(hour='10', minute='0', day_of_week=1)
         },
         'run-next-capture': {
-            'task': 'perma.tasks.run_next_capture',
+            'task': 'perma.celery_tasks.run_next_capture',
             'schedule': crontab(minute='*'),
         },
         'sync_subscriptions_from_perma_payments': {
-            'task': 'perma.tasks.sync_subscriptions_from_perma_payments',
+            'task': 'perma.celery_tasks.sync_subscriptions_from_perma_payments',
             'schedule': crontab(hour='23', minute='0')
         },
         'confirm_files_uploaded_to_internet_archive': {
-            'task': 'perma.tasks.queue_file_uploaded_confirmation_tasks',
+            'task': 'perma.celery_tasks.queue_file_uploaded_confirmation_tasks',
             'schedule': crontab(minute="*/5"),
         },
         'confirm_files_deleted_from_internet_archive': {
-            'task': 'perma.tasks.queue_file_deleted_confirmation_tasks',
+            'task': 'perma.celery_tasks.queue_file_deleted_confirmation_tasks',
             'schedule': crontab(minute="*/5"),
         }
     }

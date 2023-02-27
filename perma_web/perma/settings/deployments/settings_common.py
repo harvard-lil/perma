@@ -445,22 +445,22 @@ CELERY_TASK_TIME_LIMIT = 420
 WORKER_COUNT = 2
 
 CELERY_TASK_ROUTES = {
-    'perma.tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
-    'perma.tasks.cache_playback_status_for_new_links': {'queue': 'background'},
-    'perma.tasks.cache_playback_status': {'queue': 'background'},
-    'perma.tasks.populate_warc_size_fields': {'queue': 'background'},
-    'perma.tasks.populate_warc_size': {'queue': 'background'},
+    'perma.celery_tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
+    'perma.celery_tasks.cache_playback_status_for_new_links': {'queue': 'background'},
+    'perma.celery_tasks.cache_playback_status': {'queue': 'background'},
+    'perma.celery_tasks.populate_warc_size_fields': {'queue': 'background'},
+    'perma.celery_tasks.populate_warc_size': {'queue': 'background'},
     # the 'ia' queue is for tasks that alter or may alter Internet Archive's records
-    'perma.tasks.upload_link_to_internet_archive': {'queue': 'ia'},
-    'perma.tasks.delete_link_from_daily_item': {'queue': 'ia'},
+    'perma.celery_tasks.upload_link_to_internet_archive': {'queue': 'ia'},
+    'perma.celery_tasks.delete_link_from_daily_item': {'queue': 'ia'},
     # the 'ia-readonly' queue is for internal tasks that only affect our database
-    'perma.tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
-    'perma.tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
-    'perma.tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
-    'perma.tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
-    'perma.tasks.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
-    'perma.tasks.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
-    'perma.tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
 }
 
 # Internet Archive stuff

@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 import surt
 
 from perma.utils import stream_warc, stream_warc_if_permissible
-from perma.tasks import run_next_capture
+from perma.celery_tasks import run_next_capture
 from perma.models import Folder, CaptureJob, Link, Capture, Organization, LinkBatch
 
 from .utils import TastypiePagination, load_parent, raise_general_validation_error, \
