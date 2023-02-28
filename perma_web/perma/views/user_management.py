@@ -562,7 +562,7 @@ def list_users_in_group(request, group_name):
             orgs = Organization.objects.filter(registrar__id=registrar_filter).order_by('name')
         else:
             orgs = Organization.objects.all().order_by('name')
-        registrars = Registrar.objects.all().order_by('name')
+        registrars = Registrar.objects.filter(status__in=['pending', 'approved']).order_by('name')
     elif request.user.is_registrar_user():
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar=request.user.registrar)
