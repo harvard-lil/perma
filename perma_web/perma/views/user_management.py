@@ -255,17 +255,6 @@ def manage_registrar(request):
 
     registrars = Registrar.objects.all()
 
-    # handle sorting
-    registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
-
-    # handle search
-    registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
-
-    # handle status filter
-    status = request.GET.get('status', '')
-    if status:
-        registrars = registrars.filter(status=status)
-
     # handle annotations
     registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
@@ -277,6 +266,17 @@ def manage_registrar(request):
         # https://docs.djangoproject.com/en/2.0/ref/models/database-functions/
         last_active=Greatest(Coalesce('last_active_registrar', 'last_active_org_user'), 'last_active_org_user')
     )
+
+    # handle sorting
+    registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
+
+    # handle search
+    registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
+
+    # handle status filter
+    status = request.GET.get('status', '')
+    if status:
+        registrars = registrars.filter(status=status)
 
     orgs_count = Organization.objects.filter(registrar__in=registrars).count()
     #users_count = registrars.aggregate(count=Sum('registrar_users'))
@@ -361,6 +361,12 @@ def manage_organization(request):
     is_admin = request.user.is_staff
     orgs = Organization.objects.accessible_to(request.user).select_related('registrar')
 
+    # add annotations
+    orgs = orgs.annotate(
+        organization_users=Count('users', distinct=True),
+        last_active=Max('users__last_login'),
+    )
+
     # handle sorting
     orgs, sort = apply_sort_order(request, orgs, valid_org_sorts)
 
@@ -372,12 +378,6 @@ def manage_organization(request):
     if registrar_filter:
         orgs = orgs.filter(registrar__id=registrar_filter)
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
-
-    # add annotations
-    orgs = orgs.annotate(
-        organization_users=Count('users', distinct=True),
-        last_active=Max('users__last_login'),
-    )
 
     # get total user count
     users_count = orgs.aggregate(count=Sum('organization_users'))['count']
