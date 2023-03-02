@@ -31,7 +31,7 @@ services:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:4-0713c04cf39c839d249be111ebc30b36
+    image: registry.lil.tools/harvardlil/perma-payments:6-fc3e7a41c2c4ab7dd526cacb63a64e78
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && invoke run"
