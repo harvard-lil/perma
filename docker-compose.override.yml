@@ -41,6 +41,7 @@ services:
       - pp_db
     environment:
       - DJANGO__DATABASES__default__HOST=pp_db
+      - DOCKERIZED=true
     # TO CUSTOMIZE CONFIG:
     # copy ./services/docker/perma-payments/settings.py.example
     # to ./services/docker/perma-payments/settings.py,
