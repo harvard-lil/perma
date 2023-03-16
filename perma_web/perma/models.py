@@ -29,7 +29,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count
+from django.db.models import Q, Max, Count, Sum
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex
@@ -2155,6 +2155,10 @@ class InternetArchiveItem(models.Model):
             "description": f"Captures by Perma.cc from {date_string} (one WARC file and XML metadata file per webpage)",
         }
         return metadata
+
+    @classmethod
+    def inflight_task_count(cls):
+        return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
 
 
 class InternetArchiveFile(models.Model):

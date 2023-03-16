@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timedelta
 import urllib.parse
 import re
+import redis
 import urllib.robotparser
 from urllib3.util import is_connection_dropped
 import errno
@@ -2263,3 +2264,42 @@ def queue_internet_archive_deletions(limit=None):
         pass
 
     logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
+
+
+@shared_task
+def conditionally_queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
+    """
+    """
+    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
+    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
+    if start > end:
+        logger.error(f"Invalid range: start={start} end={end}")
+
+    tasks_in_flight = InternetArchiveItem.inflight_task_count()
+    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
+
+    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
+    to_queue = min(max_to_queue, limit) if limit else max_to_queue
+
+    total_queued = 0
+    queued = []
+    for day in date_range(start, end, timedelta(days=1)):
+        if total_queued < to_queue:
+            date_string = day.strftime('%Y-%m-%d')
+            identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+                prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+                date_string=date_string
+            )
+            try:
+                in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
+            except InternetArchiveItem.DoesNotExist:
+                in_flight_for_this_day = 0
+            bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
+            if bucket_limit > 0:
+                queue_internet_archive_uploads_for_date.delay(date_string, bucket_limit)
+                total_queued += bucket_limit
+                queued.append(f"{date_string} ({bucket_limit})")
+        else:
+            break
+
+    logger.info(f"Queued {total_queued} internet archive uploads: {','.join(queued)}")
