@@ -23,11 +23,11 @@ from django.views.decorators.cache import cache_control
 from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
-from ..forms import ContactForm
+from ..forms import ContactForm, check_honeypot
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     protocol, stream_warc_if_permissible,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
-    get_client_ip, remove_control_characters)
+    remove_control_characters)
 from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
@@ -397,13 +397,11 @@ def contact(request):
         return form
 
     if request.method == 'POST':
-        form = handle_registrar_fields(ContactForm(request.POST))
 
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid contact email from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('contact_thanks'))
+        if something_took_the_bait := check_honeypot(request, 'contact_thanks'):
+            return something_took_the_bait
+
+        form = handle_registrar_fields(ContactForm(request.POST))
 
         if form.is_valid():
             # Assemble info for email
