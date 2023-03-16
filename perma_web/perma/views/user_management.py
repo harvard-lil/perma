@@ -35,6 +35,7 @@ from django.template.context_processors import csrf
 from django.contrib import messages
 
 from perma.forms import (
+    check_honeypot,
     RegistrarForm,
     LibraryRegistrarForm,
     OrganizationWithRegistrarForm,
@@ -53,7 +54,7 @@ from perma.forms import (
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
-    ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments, get_client_ip,
+    ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
     get_complete_ia_rate_limiting_info)
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
@@ -1419,6 +1420,10 @@ def libraries(request):
     Info for libraries, allow them to request accounts
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_library_instructions', 'a-telephone'):
+            return something_took_the_bait
+
         registrar_form = LibraryRegistrarForm(request.POST, request.FILES, prefix ="b")
         if request.user.is_authenticated:
             user_form = None
@@ -1440,12 +1445,6 @@ def libraries(request):
             form_is_valid = user_form.is_valid() and registrar_form.is_valid()
         else:
             form_is_valid = registrar_form.is_valid()
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if user_form and user_form.data.get('a-telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {user_form.data}")
-            return HttpResponseRedirect(reverse('register_library_instructions'))
         if form_is_valid:
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
@@ -1489,14 +1488,11 @@ def sign_up(request):
     Register a new user
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+            return something_took_the_bait
+
         form = UserForm(request.POST)
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-
         if form.is_valid():
             new_user = form.save()
             email_new_user(request, new_user)
@@ -1513,14 +1509,12 @@ def sign_up_courts(request):
     Register a new court user
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+            return something_took_the_bait
+
         form = CreateUserFormWithCourt(request.POST)
         submitted_email = request.POST.get('e-address', None)
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
 
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
@@ -1561,14 +1555,11 @@ def sign_up_faculty(request):
     Register a new user
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+            return something_took_the_bait
+
         form = CreateUserFormWithUniversity(request.POST)
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'faculty'
@@ -1589,14 +1580,12 @@ def sign_up_firm(request):
     Register a new law firm user
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+            return something_took_the_bait
+
         form = CreateUserFormWithFirm(request.POST)
         user_email = request.POST.get('e-address', None)
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
 
         try:
             target_user = LinkUser.objects.get(email=user_email)
@@ -1636,14 +1625,11 @@ def sign_up_journals(request):
     Register a new user
     """
     if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+            return something_took_the_bait
+
         form = CreateUserFormWithUniversity(request.POST)
-
-        # telephone is display: none, so should never be filled out except by spam bots.
-        if form.data.get('telephone'):
-            user_ip = get_client_ip(request)
-            logger.info(f"Suppressing invalid signup request from {user_ip}: {form.data}")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.requested_account_type = 'journal'

@@ -3,14 +3,24 @@ from axes.utils import reset as reset_login_attempts
 from django import forms
 from django.contrib.auth.forms import SetPasswordForm
 from django.forms import ModelForm
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.html import mark_safe
 
 from perma.models import Registrar, Organization, LinkUser, Sponsorship
+from perma.utils import get_client_ip
 
 import logging
 logger = logging.getLogger(__name__)
 
 ### HELPERS ###
+
+def check_honeypot(request, redirect_to_view, honey_pot_fieldname='telephone'):
+    # the honeypot field should be display: none, so should never be filled out except by spam bots.
+    if request.POST.get(honey_pot_fieldname):
+        user_ip = get_client_ip(request)
+        logger.info(f"Suppressing invalid form submission from {user_ip}: {request.POST}")
+        return HttpResponseRedirect(reverse(redirect_to_view))
 
 class OrganizationField(forms.ModelMultipleChoiceField):
     def __init__(self,
