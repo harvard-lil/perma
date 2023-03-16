@@ -173,7 +173,7 @@ class IALinkIDFilter(InputFilter):
 
 class IAItemTypeFilter(admin.SimpleListFilter):
     parameter_name = 'type'
-    title = 'Item Type'
+    title = 'item type'
 
     def lookups(self, request, model_admin):
         return (
@@ -191,7 +191,7 @@ class IAItemTypeFilter(admin.SimpleListFilter):
 
 class IAFileTypeFilter(admin.SimpleListFilter):
     parameter_name = 'type'
-    title = 'Item Type'
+    title = 'item type'
 
     def lookups(self, request, model_admin):
         return (
