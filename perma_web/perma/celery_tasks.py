@@ -2168,56 +2168,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
     Queue upload tasks for all currently-eligible Links created on a given day,
     if we have not yet attempted to upload them to a "daily" Item.
     """
-
-    # Get all Links we think should have been uploaded to IA,
-    # and then filter out the ones that have already been uploaded
-    # to a "daily" item.
-    #
-    # Do so with our own SQL because the SQL generated from the
-    # intuitive ORM query proved to be impossibly slow.
-    # links = Link.objects.visible_to_ia().filter(
-    #     creation_timestamp__date=InternetArchiveItem.date(date_string)
-    # ).exclude(
-    #     internet_archive_items__span__isempty=False
-    # )
-    sql = '''
-        WITH links_with_daily_items AS (
-            SELECT
-              perma_link.guid
-            FROM
-              perma_link
-              INNER JOIN perma_internetarchivefile ON
-                perma_link.guid = perma_internetarchivefile.link_id
-              INNER JOIN perma_internetarchiveitem ON
-                perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
-            WHERE
-              isempty(
-                perma_internetarchiveitem.span
-              ) = False
-        )
-
-        SELECT
-          perma_link.guid
-        FROM
-          perma_link
-          LEFT JOIN links_with_daily_items ON
-               perma_link.guid = links_with_daily_items.guid
-        WHERE
-          links_with_daily_items.guid IS NULL
-          AND (
-            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
-          )
-          AND (
-            perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
-          )
-    '''
-
-    # Get all links we think should have been uploaded to IA that are not yet associated with a daily InternetArchiveItem.
-    if limit:
-        sql += " LIMIT %s"
-        to_upload = Link.objects.raw(sql, [date_string, str(limit)])
-    else:
-        to_upload = Link.objects.raw(sql, [date_string])
+    to_upload = Link.objects.ia_upload_pending(date_string, limit)
 
     # Queue the tasks
     queued = []
