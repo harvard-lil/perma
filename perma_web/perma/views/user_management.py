@@ -52,7 +52,7 @@ from perma.forms import (
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm)
-from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
     get_complete_ia_rate_limiting_info)
@@ -230,6 +230,7 @@ def stats(request, stat_type=None):
 
     elif stat_type == 'rate_limits':
         out = get_complete_ia_rate_limiting_info()
+        out["inflight"] = InternetArchiveItem.inflight_task_count()
 
     if out:
         return JsonResponse(out)
