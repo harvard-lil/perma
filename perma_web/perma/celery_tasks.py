@@ -58,7 +58,7 @@ from perma.utils import (url_in_allowed_ip_range,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
     patch_internet_archive, ia_global_task_limit_approaching,
-    ia_perma_task_limit_approaching, copy_file_data, date_range)
+    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
 from perma import site_scripts
 
 import logging
@@ -1669,7 +1669,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     )
     perma_task_limit_approaching = ia_perma_task_limit_approaching(s3_details)
     global_task_limit_approaching = ia_global_task_limit_approaching(s3_details)
-    if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching:
+    bucket_task_limit_approaching = ia_bucket_task_limit_approaching(s3_details)
+    if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching or bucket_task_limit_approaching:
         # This logging is noisy: we're not sure whether we want it or not, going forward.
         logger.warning(f"Skipped IA upload task for {link_guid} (IA Item {identifier}) due to rate limit: {s3_details}.")
         retry = (
