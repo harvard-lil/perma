@@ -2261,9 +2261,9 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
                 in_flight_for_this_day = 0
             bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
             if bucket_limit > 0:
-                total_queued += bucket_limit
-                queued.append(f"{date_string} ({bucket_limit})")
-                queue_internet_archive_uploads_for_date(date_string, bucket_limit)
+                queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
+                total_queued += queued
+                queued.append(f"{date_string} ({queued})")
         else:
             break
 
