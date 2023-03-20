@@ -2191,52 +2191,6 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
 
 
 @shared_task
-def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, max_days=4):
-    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
-    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
-    if start > end:
-        logger.error(f"Invalid range: start={start} end={end}")
-
-    dates = []
-    for day in date_range(start, end, timedelta(days=1)):
-        if len(dates) < max_days:
-            date_string = day.strftime('%Y-%m-%d')
-            dates.append(date_string)
-            queue_internet_archive_uploads_for_date.delay(date_string, daily_limit)
-        else:
-            break
-
-    logger.info(f"Queued { len(dates) } days of internet archive uploads ({dates}) (up to {daily_limit} each).")
-
-
-@shared_task
-def requeue_internet_archive_uploads_for_date(date_string, status='upload_attempted', limit=100):
-    """
-    A temporary utility task, for re-scheduling the upload of links whose upload
-    attempts are known to have failed and need to be retried.
-
-    Default to a limit of 100 tasks, which preliminary evidence suggests does not routinely
-    trigger rate limits.
-    """
-    identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
-        prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
-        date_string=date_string
-    )
-
-    files = InternetArchiveFile.objects.filter(
-        item_id=identifier,
-        status=status
-    )[:limit]
-
-    queued = []
-    for file in files.iterator():
-        upload_link_to_internet_archive.delay(file.link_id)
-        queued.append(file.id)
-
-    logger.info(f"Re-queued { len(queued) } links for upload (InternetArchiveFile {queued[0]} through {queued[-1]}).")
-
-
-@shared_task
 def queue_internet_archive_deletions(limit=None):
     """
     Queue deletion tasks for any currently-ineligible Links that were eligible
