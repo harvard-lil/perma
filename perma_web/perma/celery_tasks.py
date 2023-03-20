@@ -2270,6 +2270,13 @@ def queue_internet_archive_deletions(limit=None):
 @shared_task
 def conditionally_queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
     """
+    Queues up to settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS links for upload to IA, spread over
+    a number of days such that no more than `daily_limit` are ever queued for a particular day. May
+    queue fewer links, if an explicit `limit` is passed in, or if:
+    - there are pending tasks in the Celery queue
+    - there are submitted-but-as-of-yet-unfinished upload requests being processed by IA
+    - there are not enough qualifying links in the date range
+    - there are not enough qualifying links in the date range, while respecting daily_limit
     """
     start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
     end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
