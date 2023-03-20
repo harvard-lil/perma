@@ -460,6 +460,7 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_uploads_for_date': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
 }
 
@@ -472,6 +473,7 @@ INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX = 'daily_perma_cc_'
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
 # Rate limiting
+INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS = 400  # manual testing suggests IA can usually handle 400 at a time without getting swamped
 INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_GLOBAL_RATE_LIMIT = 500
 INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 50
 INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT = None

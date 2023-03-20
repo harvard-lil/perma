@@ -810,6 +810,13 @@ def ia_perma_task_limit_approaching(s3_details):
     return s3_details['detail']['accesskey_ration'] - s3_details['detail']['accesskey_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
 
 
+def ia_bucket_task_limit_approaching(s3_details):
+    if not s3_details:
+        # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
+        return True
+    return s3_details['detail']['bucket_ration'] - s3_details['detail']['bucket_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+
+
 def date_range(start_date, end_date, delta):
     current = start_date
     while current <= end_date:

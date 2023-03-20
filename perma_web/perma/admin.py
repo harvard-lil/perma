@@ -173,7 +173,7 @@ class IALinkIDFilter(InputFilter):
 
 class IAItemTypeFilter(admin.SimpleListFilter):
     parameter_name = 'type'
-    title = 'Item Type'
+    title = 'item type'
 
     def lookups(self, request, model_admin):
         return (
@@ -191,7 +191,7 @@ class IAItemTypeFilter(admin.SimpleListFilter):
 
 class IAFileTypeFilter(admin.SimpleListFilter):
     parameter_name = 'type'
-    title = 'Item Type'
+    title = 'item type'
 
     def lookups(self, request, model_admin):
         return (
@@ -224,6 +224,22 @@ class IAFileHasMetadataFilter(admin.SimpleListFilter):
         elif value == 'false':
             return queryset.filter(cached_title__isnull=True)
 
+class IAItemHasTasksFilter(admin.SimpleListFilter):
+    parameter_name = 'tasks_in_progress'
+    title = 'has tasks in progress'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'yes':
+            return queryset.exclude(tasks_in_progress=0)
+        elif value == 'no':
+            return queryset.filter(tasks_in_progress=0)
 
 
 ### inlines ###
@@ -559,7 +575,7 @@ class LinkBatchAdmin(admin.ModelAdmin):
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'confirmed_exists', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'tasks_in_progress', 'complete', 'last_derived', 'derive_required', 'internet_archive_link']
-    list_filter = [IAIdentifierFilter, IAItemTypeFilter, 'confirmed_exists', 'cached_is_dark']
+    list_filter = [IAIdentifierFilter, IAItemTypeFilter, IAItemHasTasksFilter, 'confirmed_exists', 'cached_is_dark']
     readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
 
     paginator = FasterAdminPaginator

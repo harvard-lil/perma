@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timedelta
 import urllib.parse
 import re
+import redis
 import urllib.robotparser
 from urllib3.util import is_connection_dropped
 import errno
@@ -57,7 +58,7 @@ from perma.utils import (url_in_allowed_ip_range,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
     patch_internet_archive, ia_global_task_limit_approaching,
-    ia_perma_task_limit_approaching, copy_file_data, date_range)
+    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
 from perma import site_scripts
 
 import logging
@@ -1668,7 +1669,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     )
     perma_task_limit_approaching = ia_perma_task_limit_approaching(s3_details)
     global_task_limit_approaching = ia_global_task_limit_approaching(s3_details)
-    if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching:
+    bucket_task_limit_approaching = ia_bucket_task_limit_approaching(s3_details)
+    if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching or bucket_task_limit_approaching:
         # This logging is noisy: we're not sure whether we want it or not, going forward.
         logger.warning(f"Skipped IA upload task for {link_guid} (IA Item {identifier}) due to rate limit: {s3_details}.")
         retry = (
@@ -2168,56 +2170,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
     Queue upload tasks for all currently-eligible Links created on a given day,
     if we have not yet attempted to upload them to a "daily" Item.
     """
-
-    # Get all Links we think should have been uploaded to IA,
-    # and then filter out the ones that have already been uploaded
-    # to a "daily" item.
-    #
-    # Do so with our own SQL because the SQL generated from the
-    # intuitive ORM query proved to be impossibly slow.
-    # links = Link.objects.visible_to_ia().filter(
-    #     creation_timestamp__date=InternetArchiveItem.date(date_string)
-    # ).exclude(
-    #     internet_archive_items__span__isempty=False
-    # )
-    sql = '''
-        WITH links_with_daily_items AS (
-            SELECT
-              perma_link.guid
-            FROM
-              perma_link
-              INNER JOIN perma_internetarchivefile ON
-                perma_link.guid = perma_internetarchivefile.link_id
-              INNER JOIN perma_internetarchiveitem ON
-                perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
-            WHERE
-              isempty(
-                perma_internetarchiveitem.span
-              ) = False
-        )
-
-        SELECT
-          perma_link.guid
-        FROM
-          perma_link
-          LEFT JOIN links_with_daily_items ON
-               perma_link.guid = links_with_daily_items.guid
-        WHERE
-          links_with_daily_items.guid IS NULL
-          AND (
-            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
-          )
-          AND (
-            perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
-          )
-    '''
-
-    # Get all links we think should have been uploaded to IA that are not yet associated with a daily InternetArchiveItem.
-    if limit:
-        sql += " LIMIT %s"
-        to_upload = Link.objects.raw(sql, [date_string, str(limit)])
-    else:
-        to_upload = Link.objects.raw(sql, [date_string])
+    to_upload = Link.objects.ia_upload_pending(date_string, limit)
 
     # Queue the tasks
     queued = []
@@ -2312,3 +2265,53 @@ def queue_internet_archive_deletions(limit=None):
         pass
 
     logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
+
+
+@shared_task
+def conditionally_queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
+    """
+    Queues up to settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS links for upload to IA, spread over
+    a number of days such that no more than `daily_limit` are ever queued for a particular day. May
+    queue fewer links, if an explicit `limit` is passed in, or if:
+    - there are pending tasks in the Celery queue
+    - there are submitted-but-as-of-yet-unfinished upload requests being processed by IA
+    - there are not enough qualifying links in the date range
+    - there are not enough qualifying links in the date range, while respecting daily_limit
+    """
+    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
+    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
+    if start > end:
+        logger.error(f"Invalid range: start={start} end={end}")
+
+    tasks_in_flight = InternetArchiveItem.inflight_task_count()
+    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
+
+    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
+    to_queue = min(max_to_queue, limit) if limit else max_to_queue
+
+    total_queued = 0
+    queued = []
+    for day in date_range(start, end, timedelta(days=1)):
+        if total_queued < to_queue:
+            date_string = day.strftime('%Y-%m-%d')
+            if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
+                # for now, skip these days: by accident, we don't presently have edit
+                # privileges for the IA Items with these identifiers
+                continue
+            identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+                prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+                date_string=date_string
+            )
+            try:
+                in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
+            except InternetArchiveItem.DoesNotExist:
+                in_flight_for_this_day = 0
+            bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
+            if bucket_limit > 0:
+                queue_internet_archive_uploads_for_date.delay(date_string, bucket_limit)
+                total_queued += bucket_limit
+                queued.append(f"{date_string} ({bucket_limit})")
+        else:
+            break
+
+    logger.info(f"Queued {total_queued} internet archive uploads: {','.join(queued)}")

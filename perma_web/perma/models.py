@@ -29,7 +29,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count
+from django.db.models import Q, Max, Count, Sum
 from django.db.models.functions import Now
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex
@@ -1356,6 +1356,63 @@ class LinkQuerySet(QuerySet):
     def ineligible_for_ia(self):
         return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
 
+    def ia_upload_pending(self, date_string=None, limit=100):
+        # Get all Links we think should have been uploaded to IA,
+        # and then filter out the ones that have already been uploaded
+        # to a "daily" item.
+        #
+        # Do so with our own SQL because the SQL generated from the
+        # intuitive ORM query proved to be impossibly slow.
+        # links = Link.objects.visible_to_ia().filter(
+        #     creation_timestamp__date=InternetArchiveItem.date(date_string)
+        # ).exclude(
+        #     internet_archive_items__span__isempty=False
+        # )
+        date_clause = '''
+          AND (
+            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
+          )
+        '''
+        limit_clause = "LIMIT %s"
+        sql = f'''
+            WITH links_with_daily_items AS (
+                SELECT
+                  perma_link.guid
+                FROM
+                  perma_link
+                  INNER JOIN perma_internetarchivefile ON
+                    perma_link.guid = perma_internetarchivefile.link_id
+                  INNER JOIN perma_internetarchiveitem ON
+                    perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
+                WHERE
+                  isempty(
+                    perma_internetarchiveitem.span
+                  ) = False
+            )
+
+            SELECT
+              perma_link.guid
+            FROM
+              perma_link
+              LEFT JOIN links_with_daily_items ON
+                   perma_link.guid = links_with_daily_items.guid
+            WHERE
+              links_with_daily_items.guid IS NULL
+              AND (
+                perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
+              )
+              {date_clause if date_string else ''}
+            {limit_clause if limit else ''}
+        '''
+
+        params = []
+        if date_string:
+            params.append(date_string)
+        if limit:
+            params.append(str(limit))
+
+        return self.model.objects.raw(sql, params)
+
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
@@ -2062,7 +2119,7 @@ class InternetArchiveItem(models.Model):
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
 
-    tasks_in_progress = models.IntegerField(default=0, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
+    tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
     complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
@@ -2098,6 +2155,10 @@ class InternetArchiveItem(models.Model):
             "description": f"Captures by Perma.cc from {date_string} (one WARC file and XML metadata file per webpage)",
         }
         return metadata
+
+    @classmethod
+    def inflight_task_count(cls):
+        return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
 
 
 class InternetArchiveFile(models.Model):
