@@ -2287,6 +2287,10 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     for day in date_range(start, end, timedelta(days=1)):
         if total_queued < to_queue:
             date_string = day.strftime('%Y-%m-%d')
+            if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
+                # for now, skip these days: by accident, we don't presently have edit
+                # privileges for the IA Items with these identifiers
+                continue
             identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
                 prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
                 date_string=date_string

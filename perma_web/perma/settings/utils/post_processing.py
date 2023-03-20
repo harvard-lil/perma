@@ -4,6 +4,8 @@
 
 from celery.schedules import crontab
 import celery
+from datetime import datetime
+import os
 
 def post_process_settings(settings):
 
@@ -68,6 +70,14 @@ def post_process_settings(settings):
         'sync_subscriptions_from_perma_payments': {
             'task': 'perma.celery_tasks.sync_subscriptions_from_perma_payments',
             'schedule': crontab(hour='23', minute='0')
+        },
+        'conditionally_queue_internet_archive_uploads_for_date_range': {
+            'task': 'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range',
+            'schedule': crontab(minute="*/15"),
+            'args': (
+                os.environ.get('IA_UPLOAD_START_DATESTRING') or '2021-11-10' ,
+                os.environ.get('IA_UPLOAD_END_DATESTRING') or datetime.now().strftime('%Y-%m-%d')
+            )
         },
         'confirm_files_uploaded_to_internet_archive': {
             'task': 'perma.celery_tasks.queue_file_uploaded_confirmation_tasks',
