@@ -15,8 +15,7 @@ CELERY_BEAT_JOB_NAMES = [
     'run-next-capture',
     'sync_subscriptions_from_perma_payments',
     'cache_playback_status_for_new_links',
-    # don't enable the cron yet; enable after manual testing
-    # 'conditionally_queue_internet_archive_uploads_for_date_range',
+    'conditionally_queue_internet_archive_uploads_for_date_range',
     'confirm_files_uploaded_to_internet_archive',
     'confirm_files_deleted_from_internet_archive',
 ]

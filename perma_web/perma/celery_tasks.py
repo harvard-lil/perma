@@ -2314,4 +2314,4 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         else:
             break
 
-    logger.info(f"Queued {total_queued} internet archive uploads: {','.join(queued)}")
+    logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {','.join(queued)}")
