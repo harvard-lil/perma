@@ -2163,8 +2163,6 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
 
-
-@shared_task
 def queue_internet_archive_uploads_for_date(date_string, limit=100):
     """
     Queue upload tasks for all currently-eligible Links created on a given day,
@@ -2188,6 +2186,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
         pass
 
     logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
+    return len(queued)
 
 
 @shared_task
@@ -2262,9 +2261,9 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
                 in_flight_for_this_day = 0
             bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
             if bucket_limit > 0:
-                queue_internet_archive_uploads_for_date.delay(date_string, bucket_limit)
                 total_queued += bucket_limit
                 queued.append(f"{date_string} ({bucket_limit})")
+                queue_internet_archive_uploads_for_date(date_string, bucket_limit)
         else:
             break
 
