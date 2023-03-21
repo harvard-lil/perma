@@ -2257,7 +2257,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     else:
         end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
     if start > end:
-        logger.error(f"Invalid range: start={start} end={end}")
+        logger.error(f"Invalid range: start={start} end={end}.")
 
     tasks_in_flight = InternetArchiveItem.inflight_task_count()
     tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
@@ -2291,4 +2291,4 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         else:
             break
 
-    logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {','.join(queued)}")
+    logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {' ,'.join(queued)}.")
