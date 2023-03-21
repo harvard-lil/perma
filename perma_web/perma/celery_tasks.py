@@ -1,6 +1,7 @@
 import traceback
 from collections import OrderedDict
 from contextlib import contextmanager
+import itertools
 from pyquery import PyQuery
 
 from http.client import CannotSendRequest
@@ -2163,32 +2164,6 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
 
-def queue_internet_archive_uploads_for_date(date_string, limit=100):
-    """
-    Queue upload tasks for all currently-eligible Links created on a given day,
-    if we have not yet attempted to upload them to a "daily" Item.
-    """
-    to_upload = Link.objects.ia_upload_pending(date_string, limit)
-
-    # Queue the tasks
-    queued = []
-    query_started = time.time()
-    query_ended = None
-    try:
-        for link in to_upload.iterator():
-            if not query_ended:
-                # log here: the query won't actually be evaluated until .iterator() is called
-                query_ended = time.time()
-                logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
-            upload_link_to_internet_archive.delay(link.guid)
-            queued.append(link.guid)
-    except SoftTimeLimitExceeded:
-        pass
-
-    logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
-    return len(queued)
-
-
 @shared_task
 def queue_internet_archive_deletions(limit=None):
     """
@@ -2220,6 +2195,47 @@ def queue_internet_archive_deletions(limit=None):
     logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
 
 
+def queue_internet_archive_uploads_for_date(date_string, limit=100):
+    """
+    Queue upload tasks for all currently-eligible Links created on a given day,
+    if we have not yet attempted to upload them to a "daily" Item.
+    """
+
+    # force the query to evaluate so we can time it, and use a strategy that
+    # lets us test whether any links were found and iterate through the queryset,
+    # without needing to query the database twice
+    query_started = time.time()
+    to_upload = Link.objects.ia_upload_pending(date_string, limit).iterator()
+    first_link_to_upload = next(to_upload, None)
+    query_ended = time.time()
+
+    if first_link_to_upload:
+        logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
+        queued = []
+        try:
+            for link in itertools.chain([first_link_to_upload], to_upload):
+                upload_link_to_internet_archive.delay(link.guid)
+                queued.append(link.guid)
+        except SoftTimeLimitExceeded:
+            pass
+        logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
+        return len(queued)
+    else:
+        logger.info(f"Found no links to upload in {query_ended - query_started} seconds.")
+        identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=date_string
+        )
+        try:
+            item = InternetArchiveItem.objects.get(identifier=identifier)
+            item.complete = True
+            item.save(update_fields=['complete'])
+            logger.info(f"Found no pending links: marked IA Item {item.identifier} complete.")
+        except InternetArchiveItem.DoesNotExist:
+            logger.info(f"Found no pending links for {date_string}.")
+        return 0
+
+
 @shared_task
 def conditionally_queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
     """
@@ -2231,8 +2247,15 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     - there are not enough qualifying links in the date range
     - there are not enough qualifying links in the date range, while respecting daily_limit
     """
-    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
-    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
+    if not start_date_string:
+        # start the day after the last 'complete' day
+        start = InternetArchiveItem.objects.filter(complete=True).order_by('-span').first().span.lower.date() + timedelta(days=1)
+    else:
+        start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
+    if not end_date_string:
+        end = datetime.now().date()
+    else:
+        end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
     if start > end:
         logger.error(f"Invalid range: start={start} end={end}")
 
@@ -2262,8 +2285,9 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
             bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
             if bucket_limit > 0:
                 count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
-                total_queued += count_queued
-                queued.append(f"{date_string} ({count_queued})")
+                if count_queued:
+                    total_queued += count_queued
+                    queued.append(f"{date_string} ({count_queued})")
         else:
             break
 
