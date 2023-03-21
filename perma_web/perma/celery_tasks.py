@@ -2244,8 +2244,15 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     - there are not enough qualifying links in the date range
     - there are not enough qualifying links in the date range, while respecting daily_limit
     """
-    start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
-    end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
+    if not start_date_string:
+        # start the day after the last 'complete' day
+        start = InternetArchiveItem.objects.filter(complete=True).order_by('-span').first().span.lower.date() + timedelta(days=1)
+    else:
+        start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
+    if not end_date_string:
+        end = datetime.now().date()
+    else:
+        end = datetime.strptime(end_date_string, '%Y-%m-%d').date()
     if start > end:
         logger.error(f"Invalid range: start={start} end={end}")
 
