@@ -232,6 +232,10 @@ def stats(request, stat_type=None):
         out = get_complete_ia_rate_limiting_info()
         out["inflight"] = InternetArchiveItem.inflight_task_count()
 
+        r = redis.from_url(settings.CELERY_BROKER_URL)
+        out['total_ia_queue'] = r.llen('ia')
+        out['total_ia_readonly_queue'] =  r.llen('ia-readonly')
+
     if out:
         return JsonResponse(out)
 
