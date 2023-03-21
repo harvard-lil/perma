@@ -2163,32 +2163,6 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
 
-def queue_internet_archive_uploads_for_date(date_string, limit=100):
-    """
-    Queue upload tasks for all currently-eligible Links created on a given day,
-    if we have not yet attempted to upload them to a "daily" Item.
-    """
-    to_upload = Link.objects.ia_upload_pending(date_string, limit)
-
-    # Queue the tasks
-    queued = []
-    query_started = time.time()
-    query_ended = None
-    try:
-        for link in to_upload.iterator():
-            if not query_ended:
-                # log here: the query won't actually be evaluated until .iterator() is called
-                query_ended = time.time()
-                logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
-            upload_link_to_internet_archive.delay(link.guid)
-            queued.append(link.guid)
-    except SoftTimeLimitExceeded:
-        pass
-
-    logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
-    return len(queued)
-
-
 @shared_task
 def queue_internet_archive_deletions(limit=None):
     """
@@ -2218,6 +2192,45 @@ def queue_internet_archive_deletions(limit=None):
         pass
 
     logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
+
+
+def queue_internet_archive_uploads_for_date(date_string, limit=100):
+    """
+    Queue upload tasks for all currently-eligible Links created on a given day,
+    if we have not yet attempted to upload them to a "daily" Item.
+    """
+    to_upload = Link.objects.ia_upload_pending(date_string, limit)
+
+    if to_upload:
+        # Queue the tasks
+        queued = []
+        query_started = time.time()
+        query_ended = None
+        try:
+            for link in to_upload.iterator():
+                if not query_ended:
+                    # log here: the query won't actually be evaluated until .iterator() is called
+                    query_ended = time.time()
+                    logger.info(f"Ready to queue links for upload in {query_ended - query_started} seconds.")
+                upload_link_to_internet_archive.delay(link.guid)
+                queued.append(link.guid)
+        except SoftTimeLimitExceeded:
+            pass
+        logger.info(f"Queued { len(queued) } links for upload ({queued[0]} through {queued[-1]}).")
+        return len(queued)
+    else:
+        identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=date_string
+        )
+        try:
+            item = InternetArchiveItem.objects.get(identifier=identifier)
+            item.complete = True
+            item.save(update_fields=['complete'])
+            logger.info(f"Found no pending links: marked IA Item {item.identifier} complete.")
+        except InternetArchiveItem.DoesNotExist:
+            logger.info(f"Found no pending links for {date_string}.")
+        return 0
 
 
 @shared_task
