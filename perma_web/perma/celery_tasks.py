@@ -58,15 +58,12 @@ from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
-    patch_internet_archive, ia_global_task_limit_approaching,
+    get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
 from perma import site_scripts
 
 import logging
 logger = logging.getLogger('celery.django')
-
-import internetarchive
-patch_internet_archive(internetarchive)
 
 
 ### CONSTANTS ###
@@ -1662,8 +1659,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     perma_file.save(update_fields=['status'])
 
     # Make sure we aren't exceeding rate limits
-    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
-    ia_session = internetarchive.get_session(config=config)
+    ia_session = get_ia_session()
     s3_is_overloaded, s3_details = ia_session.get_s3_load_info(
         identifier=identifier,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
@@ -1861,8 +1857,9 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         logger.info(f"InternetArchiveFile {file_id} ({link.guid}) already confirmed to be uploaded to {perma_item.identifier}.")
         return
 
+    ia_session = get_ia_session()
     try:
-        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
     except requests.exceptions.ConnectionError:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
@@ -1964,8 +1961,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     perma_item.save(update_fields=['tasks_in_progress'])
 
     # Make sure we aren't exceeding rate limits
-    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
-    ia_session = internetarchive.get_session(config=config)
+    ia_session = get_ia_session()
     s3_is_overloaded, s3_details = ia_session.get_s3_load_info(
         identifier=identifier,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
@@ -2081,8 +2077,9 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0):
         logger.info(f"InternetArchiveFile {file_id} ({guid}) already confirmed absent from {perma_item.identifier}.")
         return
 
+    ia_session = get_ia_session()
     try:
-        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
     except requests.exceptions.ConnectionError:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
