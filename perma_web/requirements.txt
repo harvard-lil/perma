@@ -1023,9 +1023,9 @@ selenium==2.47.3 \
     --hash=sha256:412817c661f5261b77e31bff25744de0cf930cd2fa22fd5d6c4eb7731bf7b02f \
     --hash=sha256:74bde8f310287bbb5c404714379be1c80e2a033021cca018e50cd77c0993dc7f
     # via -r requirements.in
-sentry-sdk==1.7.0 \
-    --hash=sha256:54cc2db9d85fcad557b2269f72f82f6f6b3a52eb93ae840a02a6eca4d9a0b707 \
-    --hash=sha256:741762816cdd32f647fca94a4515098cd52cb09dfe8c78f7d70eb28d2eaf89c5
+sentry-sdk==1.17.0 \
+    --hash=sha256:3c4e898f7a3edf5a2042cd0dcab6ee124e2112189228c272c08ad15d3850c201 \
+    --hash=sha256:ad40860325c94d1a656da70fba5a7c4dbb2f6809d3cc2d00f74ca0b608330f14
     # via -r requirements.in
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
@@ -1118,9 +1118,9 @@ ua-parser==0.10.0 \
 urlcanon==0.3.1 \
     --hash=sha256:30f5bf0e2e4a0feb6dd9ee139a4180a5d493117e8a1448569da3d73c18b92b62
     # via warcprox
-urllib3==1.26.9 \
-    --hash=sha256:44ece4d53fb1706f667c9bd1c648f5469a2ec925fcf3a776667042d645472c14 \
-    --hash=sha256:aabaf16477806a5e1dd19aa41f8c2b7950dd3c746362d7e3223dbe6de6ac448e
+urllib3==1.26.15 \
+    --hash=sha256:8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305 \
+    --hash=sha256:aa751d169e23c7479ce47a0cb0da579e3ede798f994f5816a74e4f4500dcea42
     # via
     #   botocore
     #   internetarchive
