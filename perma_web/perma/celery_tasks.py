@@ -49,6 +49,7 @@ from django.db.models.functions import Greatest
 from django.conf import settings
 from django.utils import timezone
 from django.http import HttpRequest
+from django.template.defaultfilters import pluralize
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
     CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
@@ -1837,7 +1838,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
         logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped queuing file upload confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{tasks_in_ia_readonly_queue} in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
 def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
@@ -2174,7 +2175,7 @@ def queue_file_deleted_confirmation_tasks(limit=100):
         logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped queuing file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task{tasks_in_ia_readonly_queue} in the ia-readonly queue.")
 
 
 @shared_task
@@ -2309,4 +2310,4 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
 
     else:
-        logger.info("Prepared to upload 0 links to internet archive: max tasks already in progress.")
+        logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
