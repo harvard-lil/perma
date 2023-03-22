@@ -663,6 +663,14 @@ def stream_warc_if_permissible(link, user, stream=True):
 # Internet Archive
 #
 
+def get_ia_session():
+    import internetarchive
+    patch_internet_archive(internetarchive)
+
+    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    return internetarchive.get_session(config=config, http_adapter_kwargs={"max_retries": 0})
+
+
 def patch_internet_archive(ia_module):
     """
     Patch a custom method into the Internet Archive's `ArchiveSession`.
@@ -727,8 +735,7 @@ def get_complete_ia_rate_limiting_info(include_buckets=True, include_max_buckets
     import internetarchive  # noqa
     patch_internet_archive(internetarchive)
 
-    config = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
-    ia_session = internetarchive.get_session(config=config)
+    ia_session = get_ia_session()
 
     def get_task_info(cmd):
         # Some available tasks are listed at https://archive.org/developers/tasks.html#supported-tasks,

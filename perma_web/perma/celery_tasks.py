@@ -58,15 +58,12 @@ from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
-    patch_internet_archive, ia_global_task_limit_approaching,
+    get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
 from perma import site_scripts
 
 import logging
 logger = logging.getLogger('celery.django')
-
-import internetarchive
-patch_internet_archive(internetarchive)
 
 
 ### CONSTANTS ###
@@ -1662,8 +1659,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     perma_file.save(update_fields=['status'])
 
     # Make sure we aren't exceeding rate limits
-    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
-    ia_session = internetarchive.get_session(config=config)
+    ia_session = get_ia_session()
     s3_is_overloaded, s3_details = ia_session.get_s3_load_info(
         identifier=identifier,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
@@ -1740,7 +1736,11 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             else:
                 logger.warning(msg)
         return
-
+    except requests.exceptions.ReadTimeout:
+        # If Internet Archive goes down entirely (as with a power outage), we get a read timeout.
+        # Retry later, without counting this as a failed attempt
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ReadTimeout.")
+        retry_upload(attempts, timeouts)
     except (requests.exceptions.HTTPError, AssertionError) as e:
         # upload_file internally calls response.raise_for_status, catching HTTPError
         # and re-raising with a custom error message.
@@ -1814,28 +1814,34 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     task itself, sleeping between each retry, but we want to try this first: if we can, we want
     to avoid having sleeping-but-active celery tasks.
     """
-    file_ids = InternetArchiveFile.objects.filter(
-                status='upload_submitted'
-            ).exclude(
-                item_id__in=[
-                    'daily_perma_cc_2022-07-25',
-                    'daily_perma_cc_2022-07-21',
-                    'daily_perma_cc_2022-07-20',
-                    'daily_perma_cc_2022-07-19'
-                ]
-            ).values_list(
-                'id', flat=True
-            )[:limit]
+    tasks_in_ia_readonly_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia-readonly')
 
-    queued = 0
-    for file_id in file_ids.iterator():
-        confirm_file_uploaded_to_internet_archive.delay(file_id)
-        queued = queued + 1
-    logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
+    if not tasks_in_ia_readonly_queue:
 
+        file_ids = InternetArchiveFile.objects.filter(
+                    status='upload_submitted'
+                ).exclude(
+                    item_id__in=[
+                        'daily_perma_cc_2022-07-25',
+                        'daily_perma_cc_2022-07-21',
+                        'daily_perma_cc_2022-07-20',
+                        'daily_perma_cc_2022-07-19'
+                    ]
+                ).values_list(
+                    'id', flat=True
+                )[:limit]
+
+        queued = 0
+        for file_id in file_ids.iterator():
+            confirm_file_uploaded_to_internet_archive.delay(file_id)
+            queued = queued + 1
+        logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
+
+    else:
+        logger.info(f"Skipped queuing file upload confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
-def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
+def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
     """
     This task checks to see if a WARC uploaded to IA's S3-like API has been processed
     and the new WARC is now visibly a part of the expected IA Item;
@@ -1851,14 +1857,15 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         logger.info(f"InternetArchiveFile {file_id} ({link.guid}) already confirmed to be uploaded to {perma_item.identifier}.")
         return
 
+    ia_session = get_ia_session()
     try:
-        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
     except requests.exceptions.ConnectionError:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out.
-        # Retry later, without counting this as a failed attempt
-        confirm_file_uploaded_to_internet_archive.delay(file_id, attempts)
-        logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionTimeout.")
+        # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
+        if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
+            confirm_file_uploaded_to_internet_archive.delay(file_id, attempts, connection_errors + 1)
+            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionError.")
         return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
@@ -1954,8 +1961,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     perma_item.save(update_fields=['tasks_in_progress'])
 
     # Make sure we aren't exceeding rate limits
-    config = {"s3": {"access": settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret": settings.INTERNET_ARCHIVE_SECRET_KEY}}
-    ia_session = internetarchive.get_session(config=config)
+    ia_session = get_ia_session()
     s3_is_overloaded, s3_details = ia_session.get_s3_load_info(
         identifier=identifier,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
@@ -2055,7 +2061,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
 
 
 @shared_task(acks_late=True)
-def confirm_file_deleted_from_daily_item(file_id, attempts=0):
+def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=0):
     """
     This task checks to see if a file we have requested be deleted from internet archive
     is still visibly a part of the expected IA Item;
@@ -2071,14 +2077,15 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0):
         logger.info(f"InternetArchiveFile {file_id} ({guid}) already confirmed absent from {perma_item.identifier}.")
         return
 
+    ia_session = get_ia_session()
     try:
-        ia_item = internetarchive.get_item(perma_item.identifier)
+        ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
     except requests.exceptions.ConnectionError:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out.
-        # Retry later, without counting this as a failed attempt
-        confirm_file_deleted_from_daily_item.delay(file_id, attempts)
-        logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionTimeout.")
+        # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
+        if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
+            confirm_file_deleted_from_daily_item.delay(file_id, attempts, connection_errors + 1)
+            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionError.")
         return
 
     try:
@@ -2144,24 +2151,31 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     task itself, sleeping between each retry, but we want to try this first: if we can, we want
     to avoid having sleeping-but-active celery tasks.
     """
-    file_ids = InternetArchiveFile.objects.filter(
-                status='deletion_submitted'
-            ).exclude(
-                item_id__in=[
-                    'daily_perma_cc_2022-07-25',
-                    'daily_perma_cc_2022-07-21',
-                    'daily_perma_cc_2022-07-20',
-                    'daily_perma_cc_2022-07-19'
-                ]
-            ).values_list(
-                'id', flat=True
-            )[:limit]
+    tasks_in_ia_readonly_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia-readonly')
 
-    queued = 0
-    for file_id in file_ids.iterator():
-        confirm_file_deleted_from_daily_item.delay(file_id)
-        queued = queued + 1
-    logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
+    if not tasks_in_ia_readonly_queue:
+
+        file_ids = InternetArchiveFile.objects.filter(
+                    status='deletion_submitted'
+                ).exclude(
+                    item_id__in=[
+                        'daily_perma_cc_2022-07-25',
+                        'daily_perma_cc_2022-07-21',
+                        'daily_perma_cc_2022-07-20',
+                        'daily_perma_cc_2022-07-19'
+                    ]
+                ).values_list(
+                    'id', flat=True
+                )[:limit]
+
+        queued = 0
+        for file_id in file_ids.iterator():
+            confirm_file_deleted_from_daily_item.delay(file_id)
+            queued = queued + 1
+        logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
+
+    else:
+        logger.info(f"Skipped queuing file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
 
 
 @shared_task
@@ -2265,30 +2279,35 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
-    total_queued = 0
-    queued = []
-    for day in date_range(start, end, timedelta(days=1)):
-        if total_queued < to_queue:
-            date_string = day.strftime('%Y-%m-%d')
-            if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
-                # for now, skip these days: by accident, we don't presently have edit
-                # privileges for the IA Items with these identifiers
-                continue
-            identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
-                prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
-                date_string=date_string
-            )
-            try:
-                in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
-            except InternetArchiveItem.DoesNotExist:
-                in_flight_for_this_day = 0
-            bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
-            if bucket_limit > 0:
-                count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
-                if count_queued:
-                    total_queued += count_queued
-                    queued.append(f"{date_string} ({count_queued})")
-        else:
-            break
+    if to_queue:
 
-    logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {' ,'.join(queued)}.")
+        total_queued = 0
+        queued = []
+        for day in date_range(start, end, timedelta(days=1)):
+            if total_queued < to_queue:
+                date_string = day.strftime('%Y-%m-%d')
+                if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
+                    # for now, skip these days: by accident, we don't presently have edit
+                    # privileges for the IA Items with these identifiers
+                    continue
+                identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+                    prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+                    date_string=date_string
+                )
+                try:
+                    in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
+                except InternetArchiveItem.DoesNotExist:
+                    in_flight_for_this_day = 0
+                bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
+                if bucket_limit > 0:
+                    count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
+                    if count_queued:
+                        total_queued += count_queued
+                        queued.append(f"{date_string} ({count_queued})")
+            else:
+                break
+
+        logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
+
+    else:
+        logger.info("Prepared to upload 0 links to internet archive: max tasks already in progress.")
