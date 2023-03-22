@@ -1818,25 +1818,31 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     task itself, sleeping between each retry, but we want to try this first: if we can, we want
     to avoid having sleeping-but-active celery tasks.
     """
-    file_ids = InternetArchiveFile.objects.filter(
-                status='upload_submitted'
-            ).exclude(
-                item_id__in=[
-                    'daily_perma_cc_2022-07-25',
-                    'daily_perma_cc_2022-07-21',
-                    'daily_perma_cc_2022-07-20',
-                    'daily_perma_cc_2022-07-19'
-                ]
-            ).values_list(
-                'id', flat=True
-            )[:limit]
+    tasks_in_ia_readonly_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia-readonly')
 
-    queued = 0
-    for file_id in file_ids.iterator():
-        confirm_file_uploaded_to_internet_archive.delay(file_id)
-        queued = queued + 1
-    logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
+    if not tasks_in_ia_readonly_queue:
 
+        file_ids = InternetArchiveFile.objects.filter(
+                    status='upload_submitted'
+                ).exclude(
+                    item_id__in=[
+                        'daily_perma_cc_2022-07-25',
+                        'daily_perma_cc_2022-07-21',
+                        'daily_perma_cc_2022-07-20',
+                        'daily_perma_cc_2022-07-19'
+                    ]
+                ).values_list(
+                    'id', flat=True
+                )[:limit]
+
+        queued = 0
+        for file_id in file_ids.iterator():
+            confirm_file_uploaded_to_internet_archive.delay(file_id)
+            queued = queued + 1
+        logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
+
+    else:
+        logger.info(f"Skipped queuing file upload confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
 def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
@@ -2148,24 +2154,31 @@ def queue_file_deleted_confirmation_tasks(limit=100):
     task itself, sleeping between each retry, but we want to try this first: if we can, we want
     to avoid having sleeping-but-active celery tasks.
     """
-    file_ids = InternetArchiveFile.objects.filter(
-                status='deletion_submitted'
-            ).exclude(
-                item_id__in=[
-                    'daily_perma_cc_2022-07-25',
-                    'daily_perma_cc_2022-07-21',
-                    'daily_perma_cc_2022-07-20',
-                    'daily_perma_cc_2022-07-19'
-                ]
-            ).values_list(
-                'id', flat=True
-            )[:limit]
+    tasks_in_ia_readonly_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia-readonly')
 
-    queued = 0
-    for file_id in file_ids.iterator():
-        confirm_file_deleted_from_daily_item.delay(file_id)
-        queued = queued + 1
-    logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
+    if not tasks_in_ia_readonly_queue:
+
+        file_ids = InternetArchiveFile.objects.filter(
+                    status='deletion_submitted'
+                ).exclude(
+                    item_id__in=[
+                        'daily_perma_cc_2022-07-25',
+                        'daily_perma_cc_2022-07-21',
+                        'daily_perma_cc_2022-07-20',
+                        'daily_perma_cc_2022-07-19'
+                    ]
+                ).values_list(
+                    'id', flat=True
+                )[:limit]
+
+        queued = 0
+        for file_id in file_ids.iterator():
+            confirm_file_deleted_from_daily_item.delay(file_id)
+            queued = queued + 1
+        logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
+
+    else:
+        logger.info(f"Skipped queuing file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
 
 
 @shared_task
