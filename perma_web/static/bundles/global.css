@@ -7246,6 +7246,9 @@ a.cc:active, p a.cc.perma:active {
   padding-bottom: 15px;
   word-wrap: break-word;
 }
+.bucket-stats.col-sm-6 {
+  padding-left: 0px !important;
+}
 
 .over-limit:not(:first-child) {
   padding-top: 15px;
