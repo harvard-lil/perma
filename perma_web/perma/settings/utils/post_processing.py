@@ -72,7 +72,7 @@ def post_process_settings(settings):
         },
         'conditionally_queue_internet_archive_uploads_for_date_range': {
             'task': 'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range',
-            'schedule': crontab(minute="*/15"),
+            'schedule': crontab(minute="*/5"),
             'args': (
                 os.environ.get('IA_UPLOAD_START_DATESTRING') or None,
                 os.environ.get('IA_UPLOAD_END_DATESTRING') or None

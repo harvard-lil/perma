@@ -2261,6 +2261,11 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     - there are not enough qualifying links in the date range
     - there are not enough qualifying links in the date range, while respecting daily_limit
     """
+    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
+    if tasks_in_ia_queue:
+        logger.info(f"Skipped the queuing of file upload tasks: {tasks_in_ia_queue} task{pluralize(tasks_in_ia_queue)} in the ia queue.")
+        return
+
     if not start_date_string:
         # start the day after the last 'complete' day
         start = InternetArchiveItem.objects.filter(complete=True).order_by('-span').first().span.lower.date() + timedelta(days=1)
@@ -2274,9 +2279,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         logger.error(f"Invalid range: start={start} end={end}.")
 
     tasks_in_flight = InternetArchiveItem.inflight_task_count()
-    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
-
-    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
+    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
     if to_queue:
