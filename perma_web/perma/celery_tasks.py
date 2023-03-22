@@ -1841,7 +1841,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
         logger.info(f"Skipped queuing file upload confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
-def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
+def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
     """
     This task checks to see if a WARC uploaded to IA's S3-like API has been processed
     and the new WARC is now visibly a part of the expected IA Item;
@@ -1862,10 +1862,10 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0):
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
     except requests.exceptions.ConnectionError:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out.
-        # Retry later, without counting this as a failed attempt
-        confirm_file_uploaded_to_internet_archive.delay(file_id, attempts)
-        logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionTimeout.")
+        # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
+        if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
+            confirm_file_uploaded_to_internet_archive.delay(file_id, attempts, connection_errors + 1)
+            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionError.")
         return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
@@ -2061,7 +2061,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
 
 
 @shared_task(acks_late=True)
-def confirm_file_deleted_from_daily_item(file_id, attempts=0):
+def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=0):
     """
     This task checks to see if a file we have requested be deleted from internet archive
     is still visibly a part of the expected IA Item;
@@ -2082,10 +2082,10 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0):
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
     except requests.exceptions.ConnectionError:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out.
-        # Retry later, without counting this as a failed attempt
-        confirm_file_deleted_from_daily_item.delay(file_id, attempts)
-        logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionTimeout.")
+        # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
+        if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
+            confirm_file_deleted_from_daily_item.delay(file_id, attempts, connection_errors + 1)
+            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionError.")
         return
 
     try:
