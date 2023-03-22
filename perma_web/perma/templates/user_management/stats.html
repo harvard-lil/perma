@@ -18,12 +18,10 @@
 
       <div class="tab-pane active" id="celery_data">
         <h3 class="body-ah">Celery queues</h3>
-        <div class="muted" id="celery_queues_refreshes">(refreshes every 2s)</div>
         <div id="celery_queues">Loading...</div>
 
         <h3 class="body-ah">Celery task data</h3>
-        <div class="muted" id="celery_refreshes">(refreshes every 2s)</div>
-        <button type="button" id="cancel-auto-refresh">Pause Auto-Refresh</button>
+        <button type="button" id="toggle-tasks-auto-refresh">Start Auto-Refresh (every 2s)</button>
         <br>
         <hr>
         <div id="celery">Loading...</div>
@@ -31,14 +29,15 @@
 
       <div class="tab-pane" id="rate-limits-pane">
         <h3 class="body-ah">Internet Archive</h3>
-        <button type="button" id="refresh-rate-limits">Refresh</button><span id="rate-limits-status"></span>
+        <button type="button" id="refresh-rate-limits">Refresh</button>&nbsp;<button type="button" id="auto-refresh-rate-limits">Start Auto-Refresh (every 15s)</button><span id="rate-limits-status"></span>
         <br><br>
         <div id="rate_limits">Loading...</div>
       </div>
 
       <div class="tab-pane" id="capture-job-pane">
         <h3 class="body-ah">Capture jobs</h3>
-        <div class="muted" id="capture_jobs_refreshes">(refreshes every 2s)</div>
+        <button type="button" id="toggle-capture-jobs-auto-refresh">Start Auto-Refresh (every 2s)</button>
+        <br>
         <hr>
         <div id="job_queue">Loading...</div>
       </div>
