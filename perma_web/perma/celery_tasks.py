@@ -2269,30 +2269,35 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
-    total_queued = 0
-    queued = []
-    for day in date_range(start, end, timedelta(days=1)):
-        if total_queued < to_queue:
-            date_string = day.strftime('%Y-%m-%d')
-            if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
-                # for now, skip these days: by accident, we don't presently have edit
-                # privileges for the IA Items with these identifiers
-                continue
-            identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
-                prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
-                date_string=date_string
-            )
-            try:
-                in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
-            except InternetArchiveItem.DoesNotExist:
-                in_flight_for_this_day = 0
-            bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
-            if bucket_limit > 0:
-                count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
-                if count_queued:
-                    total_queued += count_queued
-                    queued.append(f"{date_string} ({count_queued})")
-        else:
-            break
+    if to_queue:
 
-    logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
+        total_queued = 0
+        queued = []
+        for day in date_range(start, end, timedelta(days=1)):
+            if total_queued < to_queue:
+                date_string = day.strftime('%Y-%m-%d')
+                if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
+                    # for now, skip these days: by accident, we don't presently have edit
+                    # privileges for the IA Items with these identifiers
+                    continue
+                identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+                    prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+                    date_string=date_string
+                )
+                try:
+                    in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
+                except InternetArchiveItem.DoesNotExist:
+                    in_flight_for_this_day = 0
+                bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
+                if bucket_limit > 0:
+                    count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
+                    if count_queued:
+                        total_queued += count_queued
+                        queued.append(f"{date_string} ({count_queued})")
+            else:
+                break
+
+        logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
+
+    else:
+        logger.info("Prepared to upload 0 links to internet archive: max tasks already in progress.")
