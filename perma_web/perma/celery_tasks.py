@@ -1740,7 +1740,11 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             else:
                 logger.warning(msg)
         return
-
+    except requests.exceptions.ReadTimeout:
+        # If Internet Archive goes down entirely (as with a power outage), we get a read timeout.
+        # Retry later, without counting this as a failed attempt
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ReadTimeout.")
+        retry_upload(attempts, timeouts)
     except (requests.exceptions.HTTPError, AssertionError) as e:
         # upload_file internally calls response.raise_for_status, catching HTTPError
         # and re-raising with a custom error message.
