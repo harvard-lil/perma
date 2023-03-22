@@ -99,7 +99,7 @@ to freeze all subdependencies into `requirements.txt`.
 
 To upgrade a single requirement to the latest version:
 
-`d invoke pip-compile "-P package_name"`
+`d invoke pip-compile --args "-P package_name"`
 
 ### Update the node dependencies
 
