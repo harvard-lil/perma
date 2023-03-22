@@ -1245,7 +1245,7 @@ var DOMHelpers = __webpack_require__(278);
 var HandlebarsHelpers = __webpack_require__(557);
 
 function fillSection(name, callback) {
-  $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+  $.getJSON(location.pathname + "/" + name).then(function (data) {
     if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
       // If no data was returned, don't redraw the section.
       return;
@@ -1265,11 +1265,12 @@ fillSection("rate_limits");
 fillSection("job_queue");
 fillSection("days");
 fillSection("random");
-fillSection("emails");
+fillSection("emails"); // Refresh the celery queue job counts automatically
 
 _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
   fillSection("celery_queues");
-}, 2000);
+}, 2000); // Start refreshing the list of celery works and the jobs they are processing on button press
+
 
 function refresh_celery_jobs() {
   return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
@@ -1287,7 +1288,8 @@ document.getElementById('toggle-tasks-auto-refresh').addEventListener('click', f
     celery_tasks_refresh = refresh_celery_jobs();
     e.target.innerText = 'Stop Auto-Refresh';
   }
-});
+}); // Refresh the rate limits once, on button press
+// or, start auto-refreshing every 20s, when the other button is pressed
 
 function refresh_rate_limits() {
   var status = document.getElementById('rate-limits-status');
@@ -1321,7 +1323,7 @@ document.getElementById('auto-refresh-rate-limits').addEventListener('click', fu
     refresh_rate_limits();
     rate_limits_refresh = auto_refresh_rate_limits();
   }
-});
+}); // Start refreshing the list of capture jobs on button press
 
 function refresh_capture_jobs() {
   return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
@@ -1339,6 +1341,18 @@ document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('cl
     capture_jobs_refresh = refresh_capture_jobs();
     e.target.innerText = 'Stop Auto-Refresh';
   }
+}); // Select the tab specified in the hash, if present on page load
+
+if (window.location.hash) {
+  var tabNav = document.querySelector("a[href=\"".concat(window.location.hash, "\"]"));
+
+  if (tabNav) {
+    tabNav.click();
+  }
+}
+
+document.querySelector('.nav-tabs').addEventListener('click', function (e) {
+  window.location.hash = e.target.hash;
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 

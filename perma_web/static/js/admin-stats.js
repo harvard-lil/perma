@@ -2,7 +2,7 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 function fillSection(name, callback){
-  $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
+  $.getJSON(location.pathname + "/" + name).then(function (data) {
     if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))){
       // If no data was returned, don't redraw the section.
       return
@@ -23,9 +23,10 @@ fillSection("days");
 fillSection("random");
 fillSection("emails");
 
-
+// Refresh the celery queue job counts automatically
 setInterval(function(){ fillSection("celery_queues")}, 2000);
 
+// Start refreshing the list of celery works and the jobs they are processing on button press
 function refresh_celery_jobs(){
   return setInterval(function(){ fillSection("celery")}, 2000);
 }
@@ -41,7 +42,8 @@ document.getElementById('toggle-tasks-auto-refresh').addEventListener('click', (
   }
 })
 
-
+// Refresh the rate limits once, on button press
+// or, start auto-refreshing every 20s, when the other button is pressed
 function refresh_rate_limits(){
   let status = document.getElementById('rate-limits-status')
   status.innerText = 'Refreshing...';
@@ -70,6 +72,7 @@ document.getElementById('auto-refresh-rate-limits').addEventListener('click', (e
 })
 
 
+// Start refreshing the list of capture jobs on button press
 function refresh_capture_jobs(){
   return setInterval(function(){ fillSection("job_queue")}, 2000);
 }
@@ -83,4 +86,16 @@ document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('cl
     capture_jobs_refresh = refresh_capture_jobs();
     e.target.innerText = 'Stop Auto-Refresh';
   }
+})
+
+
+// Select the tab specified in the hash, if present on page load
+if (window.location.hash) {
+    let tabNav = document.querySelector(`a[href="${window.location.hash}"]`);
+    if (tabNav) {
+      tabNav.click();
+    }
+}
+document.querySelector('.nav-tabs').addEventListener('click', (e) => {
+  window.location.hash = e.target.hash;
 })
