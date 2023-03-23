@@ -1853,7 +1853,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
         logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{tasks_in_ia_readonly_queue} in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
 def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
