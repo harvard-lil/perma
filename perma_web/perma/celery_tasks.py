@@ -2188,7 +2188,7 @@ def queue_file_deleted_confirmation_tasks(limit=100):
         logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped the queuing of file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task{tasks_in_ia_readonly_queue} in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
 
 
 @shared_task
