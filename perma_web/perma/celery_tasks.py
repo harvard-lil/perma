@@ -1562,6 +1562,8 @@ def populate_warc_size(link_guid):
 ### INTERNET ARCHIVE ###
 ###                  ###
 
+CONNECTION_ERRORS = (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout)
+
 def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
     A generic queuing task. Chunks the queryset by batch_size,
@@ -1700,10 +1702,10 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     # Get the IA Item
     try:
         ia_item = ia_session.get_item(identifier)
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
-        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ConnectionError.")
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
 
     # Attempt the upload
@@ -1749,9 +1751,10 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             else:
                 logger.warning(msg)
         return
-    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout):
+
+    except CONNECTION_ERRORS:
         # If Internet Archive is unavailable, retry later, without counting this as a failed attempt.
-        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ReadTimeout.")
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
     except (requests.exceptions.HTTPError, AssertionError) as e:
         # upload_file internally calls response.raise_for_status, catching HTTPError
@@ -1873,11 +1876,11 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_er
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
             confirm_file_uploaded_to_internet_archive.delay(file_id, attempts, connection_errors + 1)
-            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionError.")
+            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after a connection error.")
         return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
@@ -2001,10 +2004,10 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     try:
         ia_item = ia_session.get_item(identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link_guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
-        logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after ConnectionError.")
+        logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after a connection error.")
         retry_deletion(attempts)
 
     # attempt the deletion
@@ -2020,10 +2023,8 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         assert response.status_code == 204, f"IA returned {response.status_code}): {response.text}"
     except (requests.exceptions.RetryError,
             requests.exceptions.HTTPError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
             OSError,
-            AssertionError) as e:
+            AssertionError) + CONNECTION_ERRORS as e:
         # `delete` internally calls response.raise_for_status catches and re-raises these exceptions.
         # https://github.com/jjjake/internetarchive/blob/a2de155d15aab279de6bb6364998266c21752ca6/internetarchive/files.py#L354
         # I am not sure why that is a longer list than the `upload` code catches.
@@ -2093,11 +2094,11 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
             confirm_file_deleted_from_daily_item.delay(file_id, attempts, connection_errors + 1)
-            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionError.")
+            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after a connection error.")
         return
 
     try:
