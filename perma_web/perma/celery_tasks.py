@@ -67,6 +67,10 @@ import logging
 logger = logging.getLogger('celery.django')
 
 
+###           ###
+### Capturing ###
+###           ###
+
 ### CONSTANTS ###
 
 RESOURCE_LOAD_TIMEOUT = settings.RESOURCE_LOAD_TIMEOUT # seconds to wait for at least one resource to load before giving up on capture
@@ -915,7 +919,7 @@ def browser_running(browser, onfailure=None):
         raise HaltCaptureException
 
 
-### TASKS ##
+### TASK ##
 
 @shared_task
 @tempdir.run_in_tempdir()
@@ -1420,6 +1424,10 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
+###              ###
+### HOUSEKEEPING ###
+###              ###
+
 @shared_task()
 def update_stats():
     """
@@ -1549,6 +1557,10 @@ def populate_warc_size(link_guid):
     link.warc_size = default_storage.size(link.warc_storage_file())
     link.save(update_fields=['warc_size'])
 
+
+###                  ###
+### INTERNET ARCHIVE ###
+###                  ###
 
 def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
