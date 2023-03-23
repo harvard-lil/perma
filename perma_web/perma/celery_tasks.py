@@ -1707,6 +1707,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
+        return
 
     # Attempt the upload
     try:
@@ -1756,6 +1757,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # If Internet Archive is unavailable, retry later, without counting this as a failed attempt.
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
+        return
+
     except (requests.exceptions.HTTPError, AssertionError) as e:
         # upload_file internally calls response.raise_for_status, catching HTTPError
         # and re-raising with a custom error message.
@@ -1792,6 +1795,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             # without a lot of engineering work on our end, we simply live with these errors, and
             # re-queue the failed attempts, without considering it a failed attempt.
             retry_upload(attempts, timeouts)
+            return
         else:
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
             retry = (
@@ -2009,6 +2013,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after a connection error.")
         retry_deletion(attempts)
+        return
 
     # attempt the deletion
     try:
