@@ -72,7 +72,7 @@ def post_process_settings(settings):
         },
         'conditionally_queue_internet_archive_uploads_for_date_range': {
             'task': 'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range',
-            'schedule': crontab(minute="*/15"),
+            'schedule': crontab(minute="*/5"),
             'args': (
                 os.environ.get('IA_UPLOAD_START_DATESTRING') or None,
                 os.environ.get('IA_UPLOAD_END_DATESTRING') or None
@@ -80,11 +80,11 @@ def post_process_settings(settings):
         },
         'confirm_files_uploaded_to_internet_archive': {
             'task': 'perma.celery_tasks.queue_file_uploaded_confirmation_tasks',
-            'schedule': crontab(minute="*/5"),
+            'schedule': crontab(minute="2-59/5"),
         },
         'confirm_files_deleted_from_internet_archive': {
             'task': 'perma.celery_tasks.queue_file_deleted_confirmation_tasks',
-            'schedule': crontab(minute="*/5"),
+            'schedule': crontab(minute="2-59/5"),
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),

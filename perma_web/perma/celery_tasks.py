@@ -49,6 +49,7 @@ from django.db.models.functions import Greatest
 from django.conf import settings
 from django.utils import timezone
 from django.http import HttpRequest
+from django.template.defaultfilters import pluralize
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
     CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
@@ -65,6 +66,10 @@ from perma import site_scripts
 import logging
 logger = logging.getLogger('celery.django')
 
+
+###           ###
+### Capturing ###
+###           ###
 
 ### CONSTANTS ###
 
@@ -914,7 +919,7 @@ def browser_running(browser, onfailure=None):
         raise HaltCaptureException
 
 
-### TASKS ##
+### TASK ##
 
 @shared_task
 @tempdir.run_in_tempdir()
@@ -1419,6 +1424,10 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
+###              ###
+### HOUSEKEEPING ###
+###              ###
+
 @shared_task()
 def update_stats():
     """
@@ -1548,6 +1557,12 @@ def populate_warc_size(link_guid):
     link.warc_size = default_storage.size(link.warc_storage_file())
     link.save(update_fields=['warc_size'])
 
+
+###                  ###
+### INTERNET ARCHIVE ###
+###                  ###
+
+CONNECTION_ERRORS = (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout)
 
 def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
@@ -1687,10 +1702,10 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     # Get the IA Item
     try:
         ia_item = ia_session.get_item(identifier)
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
-        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ConnectionError.")
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
 
     # Attempt the upload
@@ -1736,10 +1751,10 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             else:
                 logger.warning(msg)
         return
-    except requests.exceptions.ReadTimeout:
-        # If Internet Archive goes down entirely (as with a power outage), we get a read timeout.
-        # Retry later, without counting this as a failed attempt
-        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after ReadTimeout.")
+
+    except CONNECTION_ERRORS:
+        # If Internet Archive is unavailable, retry later, without counting this as a failed attempt.
+        logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
     except (requests.exceptions.HTTPError, AssertionError) as e:
         # upload_file internally calls response.raise_for_status, catching HTTPError
@@ -1838,7 +1853,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
         logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped queuing file upload confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
 
 @shared_task(acks_late=True)
 def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
@@ -1861,11 +1876,11 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_er
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
             confirm_file_uploaded_to_internet_archive.delay(file_id, attempts, connection_errors + 1)
-            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after ConnectionError.")
+            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after a connection error.")
         return
 
     expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
@@ -1989,10 +2004,10 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     try:
         ia_item = ia_session.get_item(identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link_guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
-        logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after ConnectionError.")
+        logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after a connection error.")
         retry_deletion(attempts)
 
     # attempt the deletion
@@ -2008,10 +2023,8 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         assert response.status_code == 204, f"IA returned {response.status_code}): {response.text}"
     except (requests.exceptions.RetryError,
             requests.exceptions.HTTPError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
             OSError,
-            AssertionError) as e:
+            AssertionError) + CONNECTION_ERRORS as e:
         # `delete` internally calls response.raise_for_status catches and re-raises these exceptions.
         # https://github.com/jjjake/internetarchive/blob/a2de155d15aab279de6bb6364998266c21752ca6/internetarchive/files.py#L354
         # I am not sure why that is a longer list than the `upload` code catches.
@@ -2081,11 +2094,11 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
-    except requests.exceptions.ConnectionError:
+    except CONNECTION_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
             confirm_file_deleted_from_daily_item.delay(file_id, attempts, connection_errors + 1)
-            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after ConnectionError.")
+            logger.info(f"Re-queued 'confirm_file_deleted_from_daily_item' for InternetArchiveFile {file_id} ({guid}) after a connection error.")
         return
 
     try:
@@ -2175,7 +2188,7 @@ def queue_file_deleted_confirmation_tasks(limit=100):
         logger.info(f"Queued the file deleted confirmation task for {queued} InternetArchiveFiles.")
 
     else:
-        logger.info(f"Skipped queuing file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task(s) in the ia-readonly queue.")
+        logger.info(f"Skipped the queuing of file deleted confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
 
 
 @shared_task
@@ -2261,9 +2274,24 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     - there are not enough qualifying links in the date range
     - there are not enough qualifying links in the date range, while respecting daily_limit
     """
+    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
+    if tasks_in_ia_queue:
+        logger.info(f"Skipped the queuing of file upload tasks: {tasks_in_ia_queue} task{pluralize(tasks_in_ia_queue)} in the ia queue.")
+        return
+
     if not start_date_string:
-        # start the day after the last 'complete' day
+        # for now, start the day after the last 'complete' day
         start = InternetArchiveItem.objects.filter(complete=True).order_by('-span').first().span.lower.date() + timedelta(days=1)
+        # once that completes, and once we have verified that an InternetArchiveItem has been created
+        # for every day in the backlog, with no gaps, we should instead start with the oldest incomplete
+        # day in the backlog:
+        #
+        # oldest_incomplete_daily_item_in_backlog = InternetArchiveItem.objects.filter(
+        #       span__isempty=False,
+        #       span__gt=('2021-11-10', '2021-11-11'),
+        #       complete=False,
+        # ).order_by('span').first()
+        # start = oldest_incomplete_daily_item_in_backlog.span.lower.date()
     else:
         start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
     if not end_date_string:
@@ -2274,9 +2302,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         logger.error(f"Invalid range: start={start} end={end}.")
 
     tasks_in_flight = InternetArchiveItem.inflight_task_count()
-    tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
-
-    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight - tasks_in_ia_queue
+    max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
     if to_queue:
@@ -2310,4 +2336,4 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
 
     else:
-        logger.info("Prepared to upload 0 links to internet archive: max tasks already in progress.")
+        logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
