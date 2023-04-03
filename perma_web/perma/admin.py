@@ -242,6 +242,16 @@ class IAItemHasTasksFilter(admin.SimpleListFilter):
             return queryset.filter(tasks_in_progress=0)
 
 
+class RegistrarNameFilter(InputFilter):
+    parameter_name = 'registrar'
+    title = 'Registrar'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(registrar__name__icontains=value)
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -366,7 +376,7 @@ class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
-    list_filter = ['registrar', 'user_deleted']
+    list_filter = [RegistrarNameFilter, 'user_deleted']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
