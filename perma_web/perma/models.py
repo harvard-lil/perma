@@ -30,9 +30,9 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
 from django.db.models import Q, Max, Count, Sum
-from django.db.models.functions import Now
+from django.db.models.functions import Now, Upper
 from django.db.models.query import QuerySet
-from django.contrib.postgres.indexes import GistIndex
+from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
 from django.utils import timezone
@@ -1473,6 +1473,7 @@ class Link(DeletableModel):
             models.Index(fields=['user_deleted', 'is_private', 'is_unlisted', 'cached_can_play_back', 'internet_archive_upload_status']),
             models.Index(fields=['creation_timestamp']),
             models.Index(fields=['submitted_url_surt']),
+            GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
         ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)

@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     # built in apps
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.postgres',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
