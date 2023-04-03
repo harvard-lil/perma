@@ -242,6 +242,16 @@ class IAItemHasTasksFilter(admin.SimpleListFilter):
             return queryset.filter(tasks_in_progress=0)
 
 
+class RegistrarNameFilter(InputFilter):
+    parameter_name = 'registrar'
+    title = 'Registrar'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(registrar__name__icontains=value)
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -327,7 +337,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
     list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
     list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
-    list_filter = ('unlimited', 'nonpaying', 'cached_subscription_status')
+    list_filter = ('status', 'unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'orgs_private_by_default')}),
         ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'bonus_links')}),
@@ -366,7 +376,7 @@ class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
-    list_filter = ['registrar', 'user_deleted']
+    list_filter = [RegistrarNameFilter, 'user_deleted']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
