@@ -838,7 +838,9 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     notes = models.TextField(blank=True)
 
     objects = LinkUserManager()
-    tracker = FieldTracker()
+    # Don't add an unconfigured FieldTracker() to LinkUser: it breaks last_login https://github.com/harvard-lil/perma/issues/3296
+    # If tracking is required, enumerate the necessary fields using the fields param https://django-model-utils.readthedocs.io/en/latest/utilities.html#tracking-specific-fields
+    # tracker = FieldTracker(fields=[])
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
