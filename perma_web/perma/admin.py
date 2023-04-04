@@ -6,6 +6,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import connection
+from django.db.models.functions import Upper
 from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 from django.forms import ModelForm
@@ -78,7 +79,7 @@ class GUIDFilter(InputFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(guid__icontains=value)
+            return queryset.filter(guid__icontains=value).order_by(Upper('guid'))
 
 
 class LinkIDFilter(InputFilter):
