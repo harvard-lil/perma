@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_extensions, migrations.RunPython.noop),
+        migrations.RunPython(create_extensions, migrations.RunPython.noop, atomic=False),
         migrations.AddIndex(
             model_name='link',
             index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
