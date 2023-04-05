@@ -4,22 +4,11 @@ import django.contrib.postgres.indexes
 from django.db import migrations
 import django.db.models.functions.text
 
-from django.db.utils import ProgrammingError
-
-
-def create_extensions(apps, schema_editor):
-    """
-    In environments where the database user does not have the power to
-    create extensions, these extensions _must_ have been created by another
-    user prior to running this migration.
-    """
-    try:
-        for extension in ['btree_gin', 'pg_trgm']:
-            schema_editor.execute(f"CREATE EXTENSION IF NOT EXISTS { extension }")
-    except ProgrammingError:
-        # this is actually psycopg2.errors.InsufficientPrivilege under the hood
-        pass
-
+from django.conf import settings
+from django.contrib.postgres.operations import (
+    BtreeGinExtension,
+    TrigramExtension,
+)
 
 class Migration(migrations.Migration):
 
@@ -27,10 +16,25 @@ class Migration(migrations.Migration):
         ('perma', '0015_alter_internetarchiveitem_tasks_in_progress'),
     ]
 
-    operations = [
-        migrations.RunPython(create_extensions, migrations.RunPython.noop, atomic=False),
+    # In environments where the database user does not have the power to
+    # create extensions, these extensions _must_ have been created by another
+    # user prior to running this migration.
+    #
+    # In our docker environment, where the database user does have the power,
+    # install them here.
+    #
+    # See https://github.com/harvard-lil/perma/issues/3308 for context.
+    if settings.DATABASES['default']['HOST'] == 'db':
+        print("Installing extensions.")
+        operations = [
+            BtreeGinExtension(),
+            TrigramExtension()
+        ]
+    else:
+        operations = []
+    operations.append(
         migrations.AddIndex(
             model_name='link',
             index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
-        ),
-    ]
+        )
+    )
