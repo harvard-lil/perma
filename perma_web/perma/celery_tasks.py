@@ -1562,7 +1562,12 @@ def populate_warc_size(link_guid):
 ### INTERNET ARCHIVE ###
 ###                  ###
 
-CONNECTION_ERRORS = (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout)
+CONNECTION_ERRORS = (
+    requests.exceptions.ConnectionError,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.HTTPError,
+    requests.exceptions.ReadTimeout
+)
 
 def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
