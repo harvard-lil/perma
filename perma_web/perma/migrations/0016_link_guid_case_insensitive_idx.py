@@ -4,7 +4,7 @@ import django.contrib.postgres.indexes
 from django.db import migrations
 import django.db.models.functions.text
 
-from psycopg2.errors import InsufficientPrivilege
+from django.db.utils import ProgrammingError
 
 
 def create_extensions(apps, schema_editor):
@@ -16,7 +16,8 @@ def create_extensions(apps, schema_editor):
     try:
         for extension in ['btree_gin', 'pg_trgm']:
             schema_editor.execute(f"CREATE EXTENSION IF NOT EXISTS { extension }")
-    except InsufficientPrivilege:
+    except ProgrammingError:
+        # this is actually psycopg2.errors.InsufficientPrivilege under the hood
         pass
 
 
