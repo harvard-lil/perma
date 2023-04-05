@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
     # In our docker environment, where the database user does have the power,
     # install them here.
     #
-    # See <placeholder for link to github issue> for context.
+    # See https://github.com/harvard-lil/perma/issues/3308 for context.
     if settings.DATABASES['default']['HOST'] == 'db':
         print("Installing extensions.")
         operations = [
