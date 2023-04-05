@@ -4,10 +4,20 @@ import django.contrib.postgres.indexes
 from django.db import migrations
 import django.db.models.functions.text
 
-from django.contrib.postgres.operations import (
-    BtreeGinExtension,
-    TrigramExtension,
-)
+from psycopg2.errors import InsufficientPrivilege
+
+
+def create_extensions(apps, schema_editor):
+    """
+    In environments where the database user does not have the power to
+    create extensions, these extensions _must_ have been created by another
+    user prior to running this migration.
+    """
+    try:
+        for extension in ['btree_gin', 'pg_trgm']:
+            schema_editor.execute(f"CREATE EXTENSION IF NOT EXISTS { extension }")
+    except InsufficientPrivilege:
+        pass
 
 
 class Migration(migrations.Migration):
@@ -17,8 +27,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        BtreeGinExtension(),
-        TrigramExtension(),
+        migrations.RunPython(create_extensions, migrations.RunPython.noop),
         migrations.AddIndex(
             model_name='link',
             index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
