@@ -4,7 +4,6 @@ import django.contrib.postgres.indexes
 from django.db import migrations
 import django.db.models.functions.text
 
-from django.conf import settings
 from django.contrib.postgres.operations import (
     BtreeGinExtension,
     TrigramExtension,
@@ -21,20 +20,14 @@ class Migration(migrations.Migration):
     # user prior to running this migration.
     #
     # In our docker environment, where the database user does have the power,
-    # install them here.
+    # the BtreeGinExtension and TrigramExtension operations will install them here.
     #
-    # See https://github.com/harvard-lil/perma/issues/3308 for context.
-    if settings.DATABASES['default']['HOST'] == 'db':
-        print("Installing extensions.")
-        operations = [
-            BtreeGinExtension(),
-            TrigramExtension()
-        ]
-    else:
-        operations = []
-    operations.append(
+    # See https://github.com/harvard-lil/perma/issues/3308 for discussion.
+    operations = [
+        BtreeGinExtension(),
+        TrigramExtension(),
         migrations.AddIndex(
             model_name='link',
             index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
         )
-    )
+    ]
