@@ -2325,7 +2325,12 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
                     date_string=date_string
                 )
                 try:
-                    in_flight_for_this_day = InternetArchiveItem.objects.get(identifier=identifier).tasks_in_progress
+                    item = InternetArchiveItem.objects.get(identifier=identifier)
+                    if item.complete:
+                        # if this day is already complete, skip it, and move on to the
+                        # next day in the range
+                        continue
+                    in_flight_for_this_day = item.tasks_in_progress
                 except InternetArchiveItem.DoesNotExist:
                     in_flight_for_this_day = 0
                 bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
