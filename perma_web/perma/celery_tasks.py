@@ -2290,18 +2290,12 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         return
 
     if not start_date_string:
-        # for now, start the day after the last 'complete' day
-        start = InternetArchiveItem.objects.filter(complete=True).order_by('-span').first().span.lower.date() + timedelta(days=1)
-        # once that completes, and once we have verified that an InternetArchiveItem has been created
-        # for every day in the backlog, with no gaps, we should instead start with the oldest incomplete
-        # day in the backlog:
-        #
-        # oldest_incomplete_daily_item_in_backlog = InternetArchiveItem.objects.filter(
-        #       span__isempty=False,
-        #       span__gt=('2021-11-10', '2021-11-11'),
-        #       complete=False,
-        # ).order_by('span').first()
-        # start = oldest_incomplete_daily_item_in_backlog.span.lower.date()
+        oldest_incomplete_daily_item_in_backlog = InternetArchiveItem.objects.filter(
+              span__isempty=False,
+              span__gt=('2021-11-10', '2021-11-11'),
+              complete=False,
+        ).order_by('span').first()
+        start = oldest_incomplete_daily_item_in_backlog.span.lower.date()
     else:
         start = datetime.strptime(start_date_string, '%Y-%m-%d').date()
     if not end_date_string:
