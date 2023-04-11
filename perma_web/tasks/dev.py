@@ -1,9 +1,15 @@
+from collections import defaultdict
+import csv
+import itertools
 import os
+import re
 import subprocess
 import signal
 import sys
+import time
 
 from django.conf import settings
+from django.utils import timezone
 from invoke import task
 
 @task
@@ -701,3 +707,311 @@ def populate_folder_cached_path(ctx, batch_size=500):
             logger.info(f"Stopped with ~ {remaining_to_update} remaining folders to update")
     else:
         logger.info("No more folders left to update!")
+
+#
+# Merge user accounts
+#
+
+TRANSFERRED_ORG_LINKS_CSV = 'merge_reports/tranferred_org_links.csv'
+TRANSFERRED_PERSONAL_LINKS_CSV = 'merge_reports/tranferred_personal_links.csv'
+MERGED_USERS_CSV = 'merge_reports/merged_users.csv'
+RETAINED_USERS_CSV = 'merge_reports/retained_users.csv'
+
+def initialize_csvs():
+    for filename in [TRANSFERRED_ORG_LINKS_CSV, TRANSFERRED_PERSONAL_LINKS_CSV, MERGED_USERS_CSV, RETAINED_USERS_CSV]:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+    with open(TRANSFERRED_ORG_LINKS_CSV, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow(['guid', 'from user id', 'to user id', 'moved at'])
+
+    with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow(['guid', 'from user id', 'from folder id', 'to user id', 'to folder id', 'moved at'])
+
+    with open(MERGED_USERS_CSV, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow([
+            'user id',
+            'original email',
+            'changed to placeholder',
+            'normalized email',
+            'merged with user id',
+            'org links transferred',
+            'personal links transferred',
+            'merged at'
+        ])
+
+    with open(RETAINED_USERS_CSV, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow(['user id', 'original email', 'normalized email', 'merged with accounts', 'merged at'])
+
+
+def merge_accounts(
+        to_keep,
+        to_delete,
+        copy_memberships=True,
+        transfer_links=False):
+    from perma.models import Link
+
+    if copy_memberships:
+        to_keep.copy_memberships_from_users(itertools.chain([to_keep], to_delete))
+
+    updated_org_links = defaultdict(lambda: 0)
+    updated_personal_links = defaultdict(lambda: 0)
+    if transfer_links:
+        # Find all links in org folders and change 'created_by' to the new ID.
+        org_links = Link.objects.filter(created_by__in=to_delete, organization__isnull=False)
+        with open(TRANSFERRED_ORG_LINKS_CSV, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter='|')
+            for link in org_links:
+                writer.writerow([link.guid, link.created_by_id, to_keep.id, timezone.now()])
+                updated_org_links[link.created_by_id] += 1
+        org_links.update(
+            created_by=to_keep
+        )
+
+        # Then, move all the Personal Links into the target account's Personal Links folder,
+        # in addition to setting 'created_by' to the new ID. We know from studying the accounts
+        # in question that folder tree structure can be ignored.
+        for user in to_delete:
+            personal_links = Link.folders.through.objects.filter(link__in=user.created_links.all())
+            with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter='|')
+                for lf in personal_links:
+                    writer.writerow([lf.link_id, lf.link.created_by_id, lf.folder_id, to_keep.id, to_keep.root_folder_id, timezone.now()])
+            updated_personal_links[user.id] += personal_links.update(folder_id=to_keep.root_folder_id)
+            user.created_links.all().update(created_by_id=to_keep.id)
+
+    with open(MERGED_USERS_CSV, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        for user in to_delete:
+            original_email, placeholder_email = user.soft_delete_after_merge_with_user(to_keep)
+            writer.writerow([
+                user.id,
+                original_email,
+                placeholder_email,
+                original_email.lower(),
+                to_keep.id,
+                updated_org_links[user.id],
+                updated_personal_links[user.id],
+                timezone.now()
+            ])
+
+    merged_with = ', '.join([str(user.id) for user in to_delete])
+    to_keep.prepend_to_notes(f"Merged with {merged_with}")
+    if updated_org_links or updated_personal_links:
+        to_keep.link_count = to_keep.created_links.count()
+    to_keep.save(update_fields=['notes', 'link_count'])
+    with open(RETAINED_USERS_CSV, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='|')
+        writer.writerow([
+            to_keep.id,
+            to_keep.email,
+            to_keep.email.lower(),
+            merged_with,
+            timezone.now()
+        ])
+
+
+def unmerge_accounts(from_user_id):
+    from perma.models import Link, LinkUser
+
+    user = LinkUser.objects.get(id=from_user_id)
+    if match := re.search(r"\n*Merged with (?P<user_ids>.+)", user.notes):
+        user_ids = [int(uid) for uid in match.group('user_ids').split(', ')]
+    else:
+        print(f"Found no accounts to unmerge from user {from_user_id}.")
+        return
+
+    reversed_org_links = defaultdict(list)
+    reversed_personal_links = defaultdict(list)
+
+    # Find all transferred org links and change 'created_by' to the old ID.
+    with open(TRANSFERRED_ORG_LINKS_CSV, 'r', newline='') as csvfile:
+        csv_reader = csv.DictReader(csvfile, delimiter='|')
+        to_reverse = []
+        for row in csv_reader:
+            if int(row['from user id']) in user_ids:
+                guid = row['guid']
+                original_creator = int(row['from user id'])
+                link = Link.objects.get(guid=guid)
+                link.created_by_id = original_creator
+                to_reverse.append(link)
+                reversed_org_links[original_creator].append(guid)
+        Link.objects.bulk_update(to_reverse, ['created_by_id'])
+
+    # Find all transferred personal links and move them back to their original folder,
+    # in addition to setting 'created_by' to the original ID.
+    with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'r', newline='') as csvfile:
+        csv_reader = csv.DictReader(csvfile, delimiter='|')
+        lfs_to_reverse = []
+        links_to_reverse = []
+        for row in csv_reader:
+            if int(row['from user id']) in user_ids:
+                guid = row['guid']
+                original_creator = int(row['from user id'])
+                original_folder = int(row['from folder id'])
+                lf = Link.folders.through.objects.select_related('link').get(link_id=guid)
+                lf.folder_id = original_folder
+                lf.link.created_by_id = original_creator
+                lfs_to_reverse.append(lf)
+                links_to_reverse.append(lf.link)
+                reversed_personal_links[original_creator].append(guid)
+        Link.folders.through.objects.bulk_update(lfs_to_reverse, ['folder_id'])
+        Link.objects.bulk_update(links_to_reverse, ['created_by_id'])
+
+    with open(MERGED_USERS_CSV, 'r', newline='') as csvfile:
+        csv_reader = csv.DictReader(csvfile, delimiter='|')
+        to_reverse = []
+        from_users = set()
+
+        for row in csv_reader:
+            if int(row['user id']) in user_ids:
+                original_email = row['original email']
+                from_user_id = int(row['merged with user id'])
+
+                user = LinkUser.objects.get(id=int(row['user id']))
+                user.email = original_email
+                user.is_active = user.is_confirmed
+                user.link_count = int(row['org links transferred']) + int(row['personal links transferred'])
+
+                if match := re.search(r"\n*Original registrar: (?P<registrar_id>\d+)", user.notes):
+                    user.registrar_id = int(match.group('registrar_id'))
+                    user.remove_line_from_notes('Original registrar')
+
+                if match := re.search(r"\n*Original orgs: (?P<org_ids>.+)", user.notes):
+                    orgs = [int(oid) for oid in match.group('org_ids').split(', ')]
+                    user.organizations.add(*orgs)
+                    user.remove_line_from_notes('Original orgs')
+
+                user.prepend_to_notes(f'Previously merged with user { from_user_id }.')
+                user.remove_line_from_notes('Original email')
+                to_reverse.append(user)
+
+                from_user = LinkUser.objects.get(id=from_user_id)
+                from_user.prepend_to_notes(f"Extracted previously merged user { user.id }.")
+                from_user.save(update_fields=['notes'])
+                from_users.add(from_user)
+
+        LinkUser.objects.bulk_update(to_reverse, ['email', 'is_active', 'link_count', 'registrar_id', 'notes'])
+        for user in from_users:
+            user.refresh_from_db()
+            if match := re.search(r"\n*Added registrar during the merging of accounts", user.notes):
+                user.registrar_id = None
+                user.remove_line_from_notes('Added registrar')
+
+            if match := re.search(r"\n*Added organizations.*: (?P<org_ids>.+)", user.notes):
+                orgs = [int(oid) for oid in match.group('org_ids').split(', ')]
+                user.organizations.remove(*orgs)
+                user.remove_line_from_notes('Added organizations')
+
+            user.link_count = user.created_links.count()
+            user.save(update_fields=['link_count', 'registrar_id', 'notes'])
+
+        print(reversed_org_links, reversed_personal_links, to_reverse, from_users)
+
+
+def merge_users_with_only_unconfirmed_accounts(user_list):
+    """
+    Sync all the registrars/orgs to the most recently created and delete the others.
+    """
+    user_list.sort(key=lambda u: u.id, reverse=True)
+    to_keep, *to_delete = user_list
+    merge_accounts(to_keep, to_delete)
+
+
+def merge_users_with_only_one_confirmed_account(user_list):
+    """
+    Sync all the registrars/orgs to the confirmed one and delete the other ones.
+    """
+    user_list.sort(key=lambda u: u.is_confirmed, reverse=True)
+    to_keep, *to_delete = user_list
+    merge_accounts(to_keep, to_delete)
+
+
+def merge_users_with_multiple_confirmed_accounts_but_no_links(user_list):
+    """
+    Select the account they have logged into most recently, or if they
+    have never logged in, the most recently created confirmed account.
+    Then sync all the registrars/orgs to it and delete the other ones.
+    """
+    to_keep = None
+    to_delete = []
+
+    if all(u.last_login for u in user_list):
+        for user in user_list:
+            if user.last_login:
+                if to_keep:
+                    if to_keep.last_login < user.last_login:
+                        to_delete.append(to_keep)
+                        to_keep = user
+                    else:
+                        to_delete.append(user)
+                else:
+                    to_keep = user
+            else:
+                to_delete.append(user)
+    else:
+        for user in user_list:
+            if user.is_confirmed:
+                if to_keep:
+                    if to_keep.id < user.id:
+                        to_delete.append(to_keep)
+                        to_keep = user
+                    else:
+                        to_delete.append(user)
+                else:
+                    to_keep = user
+            else:
+                to_delete.append(user)
+
+    merge_accounts(to_keep, to_delete)
+
+
+def merge_users_with_only_one_account_with_links(user_list):
+    """
+    If the account with the links is the one they have logged into most recently, keep that one:
+    sync registrars/orgs and then delete the other ones.
+
+    If the account with the links is not the one they have logged into most recently,
+    move the links to the most recently logged into account, sync the registrars/orgs,
+    and then delete the others.
+    """
+    [account_with_links] = filter(lambda u: u.link_count, user_list)
+    most_recently_logged_into_account = account_with_links
+    for user in user_list:
+        if user.last_login and user.last_login > most_recently_logged_into_account.last_login:
+            most_recently_logged_into_account = user
+
+    if account_with_links == most_recently_logged_into_account:
+        to_keep = account_with_links
+        to_delete = list(filter(lambda u: u is not to_keep, user_list))
+        merge_accounts(to_keep, to_delete)
+    else:
+        to_keep = most_recently_logged_into_account
+        to_delete = list(filter(lambda u: u is not to_keep, user_list))
+        merge_accounts(to_keep, to_delete, transfer_links=True)
+
+
+def merge_users_with_multiple_accounts_with_links(user_list):
+    """
+    We should move all links into the account with the most recent login,
+    sync registrars/orgs and then delete the other ones.
+    """
+    to_keep = None
+    to_delete = []
+    for user in user_list:
+        if user.last_login:
+            if to_keep:
+                if to_keep.last_login < user.last_login:
+                    to_delete.append(to_keep)
+                    to_keep = user
+                else:
+                    to_delete.append(user)
+            else:
+                to_keep = user
+        else:
+            to_delete.append(user)
+    merge_accounts(to_keep, to_delete, transfer_links=True)
+
