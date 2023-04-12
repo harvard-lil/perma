@@ -587,7 +587,7 @@ class LinkBatchAdmin(admin.ModelAdmin):
 class InternetArchiveItemAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'confirmed_exists', 'cached_is_dark', 'added_date', 'span', 'cached_file_count', 'tasks_in_progress', 'complete', 'last_derived', 'derive_required', 'internet_archive_link']
     list_filter = [IAIdentifierFilter, IAItemTypeFilter, IAItemHasTasksFilter, 'confirmed_exists', 'complete', 'cached_is_dark']
-    readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'complete', 'last_derived', 'derive_required']
+    readonly_fields = ['identifier', 'cached_is_dark', 'added_date', 'span', 'cached_title', 'cached_description', 'cached_file_count', 'last_derived']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
