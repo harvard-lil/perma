@@ -2266,7 +2266,7 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
         try:
             item = InternetArchiveItem.objects.get(identifier=identifier)
             # Don't mark an item complete if it's yesterday's
-            if timezone.now() - item.span.lower > timedelta(days=2):
+            if timezone.now() - item.span.lower > timedelta(days=3):
                 item.complete = True
                 item.save(update_fields=['complete'])
                 logger.info(f"Found no pending links: marked IA Item {item.identifier} complete.")
