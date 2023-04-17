@@ -2343,7 +2343,10 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
             else:
                 break
 
-        logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
+        if total_queued:
+            logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
+        else:
+            logger.info("Prepared to upload 0 links to internet archive: no pending links in range.")
 
     else:
         logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
