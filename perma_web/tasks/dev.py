@@ -1015,3 +1015,182 @@ def merge_users_with_multiple_accounts_with_links(user_list):
             to_delete.append(user)
     merge_accounts(to_keep, to_delete, transfer_links=True)
 
+
+def get_and_categorize_duplicative_users():
+    from perma.models import LinkUser
+
+    sql = '''
+      SELECT
+        perma_linkuser.id,
+        perma_linkuser.email,
+        perma_linkuser.is_active,
+        perma_linkuser.is_confirmed,
+        perma_linkuser.link_count,
+        perma_linkuser.registrar_id,
+        STRING_AGG (DISTINCT perma_linkuser_organizations.organization_id::TEXT, ',') organization_ids,
+        perma_linkuser.cached_subscription_status
+      FROM
+        perma_linkuser
+        LEFT OUTER JOIN perma_linkuser_organizations ON (
+          perma_linkuser.id = perma_linkuser_organizations.linkuser_id
+        )
+      WHERE
+        LOWER(perma_linkuser.email) in (
+          SELECT
+            LOWER(perma_linkuser.email)
+          FROM
+            perma_linkuser
+          GROUP BY
+            LOWER(perma_linkuser.email)
+          HAVING
+            COUNT(*) > 1
+        )
+      GROUP BY
+        perma_linkuser.id;
+    '''
+
+    duplicative_users = LinkUser.objects.raw(sql)
+    grouped_duplicative_users = defaultdict(list)
+
+    start = time.time()
+    count = 0
+    for user in duplicative_users:
+        count += 1
+        grouped_duplicative_users[user.email.lower()].append(user)
+    end = time.time()
+
+    print(f"Data collected in {end - start} seconds.")
+    print(f"Found {count} addresses, for {len(grouped_duplicative_users)} users.")
+
+    any_paid_history = set()
+    registrar_and_org_mix = set()
+    none_confirmed = set()
+    only_one_confirmed = set()
+
+    multiple_confirmed = defaultdict(list)
+    multiple_confirmed_none_with_links = set()
+    multiple_confirmed_only_one_with_links = set()
+    multiple_confirmed_several_with_links = set()
+
+    #
+    # Identify any groups of users that are not same to merge
+    #
+    start = time.time()
+    for normalized_email, user_group in grouped_duplicative_users.items():
+
+        registrar = False
+        orgs = False
+        for user in user_group:
+            purchase_history = user.get_purchase_history()
+            has_purchase_history = bool(purchase_history['purchases']) if purchase_history else False
+            if user.cached_subscription_status or has_purchase_history:
+                any_paid_history.add(normalized_email)
+            if user.registrar_id:
+                registrar = True
+            if user.organization_ids:
+                orgs = True
+        if registrar and orgs:
+            registrar_and_org_mix.add(normalized_email)
+
+    end = time.time()
+    exclude_group = any_paid_history | registrar_and_org_mix
+    print(f"Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
+    print(f"Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
+    print(f"(Exclude group located collected in {end - start} seconds.)")
+
+    #
+    # Organize remaining users by how many accounts associated with their email address have been confirmed.
+    #
+    start = time.time()
+    for normalized_email, user_group in grouped_duplicative_users.items():
+        if normalized_email not in exclude_group:
+            confirmed = []
+            for user in user_group:
+                if user.is_confirmed:
+                    confirmed.append(user.id)
+            if not confirmed:
+                none_confirmed.add(normalized_email)
+            elif len(confirmed) == 1:
+                only_one_confirmed.add(normalized_email)
+            else:
+                multiple_confirmed[normalized_email] = user_group
+    end = time.time()
+
+    print(f"Found {len(none_confirmed)} users with no confirmed accounts.")
+    print(f"Found {len(only_one_confirmed)} users with only one confirmed account.")
+    print(f"(Confirmations analyzed in {end - start} seconds.)")
+
+    #
+    # Organize with multiple confirmed accounts by how many of them have links.
+    #
+    start = time.time()
+    for normalized_email, user_group in multiple_confirmed.items():
+        has_links = []
+        for user in user_group:
+            if user.link_count > 0:
+                has_links.append(user.id)
+        if not has_links:
+            multiple_confirmed_none_with_links.add(normalized_email)
+        elif len(has_links) == 1:
+            multiple_confirmed_only_one_with_links.add(normalized_email)
+        else:
+            multiple_confirmed_several_with_links.add(normalized_email)
+    end = time.time()
+
+    print(f"Found {len(multiple_confirmed_none_with_links)} users with multiple confirmed accounts, but no links.")
+    print(f"Found {len(multiple_confirmed_only_one_with_links)} users that have multiple confirmed accounts but only one account with links.")
+    print(f"Found {len(multiple_confirmed_several_with_links)} users that have multiple accounts with links.")
+    print(f"(Link counts analyzed in {end - start} seconds.)")
+
+    return {
+        'none_confirmed': none_confirmed,
+        'only_one_confirmed': only_one_confirmed,
+        'multiple_confirmed_none_with_links': multiple_confirmed_none_with_links,
+        'multiple_confirmed_only_one_with_links': multiple_confirmed_only_one_with_links,
+        'multiple_confirmed_several_with_links': multiple_confirmed_several_with_links
+    }
+
+@task
+def merge_duplicative_accounts(ctx):
+    from perma.models import LinkUser
+
+    soup = time.time()
+
+    emails_by_category = get_and_categorize_duplicative_users()
+
+    initialize_csvs()
+
+    def merge_category(category, merge_func):
+        start = time.time()
+        for normalized_email in emails_by_category[category]:
+            users = LinkUser.objects.filter(email__iexact=normalized_email)
+            merge_func(list(users))
+        end = time.time()
+        print(f"(Merged {category} in {end - start} seconds.)")
+
+    merge_category('none_confirmed', merge_users_with_only_unconfirmed_accounts)
+    # locally: (Merged unconfirmed users in 0.28430652618408203 seconds.)
+
+    merge_category('only_one_confirmed', merge_users_with_only_one_confirmed_account)
+    # locally: (Merged only_one_confirmed in 2.2521471977233887 seconds.)
+
+    merge_category('multiple_confirmed_none_with_links', merge_users_with_multiple_confirmed_accounts_but_no_links)
+    # locally: (Merged multiple_confirmed_none_with_links in 0.5002124309539795 seconds.)
+
+    merge_category('multiple_confirmed_only_one_with_links', merge_users_with_only_one_account_with_links)
+    # locally: (Merged multiple_confirmed_only_one_with_links in 4.435230255126953 seconds.)
+
+    merge_category('multiple_confirmed_several_with_links', merge_users_with_multiple_accounts_with_links)
+    # locally: (Merged multiple_confirmed_several_with_links in 7.168652057647705 seconds.)
+
+    nuts = time.time()
+    print(f"Merged all duplicative accounts in {nuts - soup} seconds.")
+    # locally: Merged all duplicative accounts in 16.03778886795044 seconds.
+
+@task
+def unmerge_duplicative_accounts(ctx):
+
+    with open(RETAINED_USERS_CSV, 'r', newline='') as csvfile:
+        csv_reader = csv.DictReader(csvfile, delimiter='|')
+        for row in csv_reader:
+            unmerge_accounts(row['user id'])
