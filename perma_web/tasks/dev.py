@@ -1016,40 +1016,40 @@ def merge_users_with_multiple_accounts_with_links(user_list):
     merge_accounts(to_keep, to_delete, transfer_links=True)
 
 
+DUPLICATIVE_USER_SQL = '''
+  SELECT
+    perma_linkuser.id,
+    perma_linkuser.email,
+    perma_linkuser.is_active,
+    perma_linkuser.is_confirmed,
+    perma_linkuser.link_count,
+    perma_linkuser.registrar_id,
+    STRING_AGG (DISTINCT perma_linkuser_organizations.organization_id::TEXT, ',') organization_ids,
+    perma_linkuser.cached_subscription_status
+  FROM
+    perma_linkuser
+    LEFT OUTER JOIN perma_linkuser_organizations ON (
+      perma_linkuser.id = perma_linkuser_organizations.linkuser_id
+    )
+  WHERE
+    LOWER(perma_linkuser.email) in (
+      SELECT
+        LOWER(perma_linkuser.email)
+      FROM
+        perma_linkuser
+      GROUP BY
+        LOWER(perma_linkuser.email)
+      HAVING
+        COUNT(*) > 1
+    )
+  GROUP BY
+    perma_linkuser.id;
+'''
+
 def get_and_categorize_duplicative_users():
     from perma.models import LinkUser
 
-    sql = '''
-      SELECT
-        perma_linkuser.id,
-        perma_linkuser.email,
-        perma_linkuser.is_active,
-        perma_linkuser.is_confirmed,
-        perma_linkuser.link_count,
-        perma_linkuser.registrar_id,
-        STRING_AGG (DISTINCT perma_linkuser_organizations.organization_id::TEXT, ',') organization_ids,
-        perma_linkuser.cached_subscription_status
-      FROM
-        perma_linkuser
-        LEFT OUTER JOIN perma_linkuser_organizations ON (
-          perma_linkuser.id = perma_linkuser_organizations.linkuser_id
-        )
-      WHERE
-        LOWER(perma_linkuser.email) in (
-          SELECT
-            LOWER(perma_linkuser.email)
-          FROM
-            perma_linkuser
-          GROUP BY
-            LOWER(perma_linkuser.email)
-          HAVING
-            COUNT(*) > 1
-        )
-      GROUP BY
-        perma_linkuser.id;
-    '''
-
-    duplicative_users = LinkUser.objects.raw(sql)
+    duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
     grouped_duplicative_users = defaultdict(list)
 
     start = time.time()
@@ -1194,3 +1194,9 @@ def unmerge_duplicative_accounts(ctx):
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         for row in csv_reader:
             unmerge_accounts(row['user id'])
+
+@task
+def assert_no_duplicative_accounts(ctx):
+    from perma.models import LinkUser
+    duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
+    assert not len(duplicative_users)
