@@ -34,7 +34,11 @@ def iframe(request):
 
     response["Clear-Site-Data"] = '"cache", "storage"'
     response["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    
+
+    # Intended CSP Policy:
+    # "Everything's allowed within the <iframe>, as long as it's same-origin."
+    response["Content-Security-Policy"] = "default-src 'self' data: 'unsafe-inline' 'unsafe-hashes' 'unsafe-eval';" # noqa
+
     return response
 
 
