@@ -970,7 +970,7 @@ def merge_users_with_multiple_confirmed_accounts_but_no_links(user_list):
     to_keep = None
     to_delete = []
 
-    if all(u.last_login for u in user_list):
+    if any(u.last_login for u in user_list):
         for user in user_list:
             if user.last_login:
                 if to_keep:
