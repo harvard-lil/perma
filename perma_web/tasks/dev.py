@@ -712,6 +712,9 @@ def merge_accounts(
         copy_memberships=True,
         transfer_links=False):
 
+    #
+    # Make sure the 'kept' account belongs to the same registrar, or the same orgs, as the other accounts
+    #
     if copy_memberships:
         try:
             to_keep.copy_memberships_from_users(itertools.chain([to_keep], to_delete))
@@ -719,6 +722,9 @@ def merge_accounts(
             logger.error(f"MERGING: Could not merge users {to_keep.id}, {', '.join([str(u.id) for u in to_delete])}: {str(e)}")
             return
 
+    #
+    # If we know we need to move links around, do so: first org links, then personal links.
+    #
     updated_org_links = defaultdict(lambda: 0)
     updated_personal_links = defaultdict(lambda: 0)
     if transfer_links:
@@ -745,6 +751,9 @@ def merge_accounts(
             updated_personal_links[user.id] += personal_links.update(folder_id=to_keep.root_folder_id)
             user.created_links.all().update(created_by_id=to_keep.id)
 
+    #
+    # Finally, soft-delete the redundant accounts...
+    #
     with open(MERGED_USERS_CSV, 'a', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         for user in to_delete:
@@ -760,6 +769,9 @@ def merge_accounts(
                 timezone.now()
             ])
 
+    #
+    # ...and update our records.
+    #
     merged_with = ', '.join([str(user.id) for user in to_delete])
     to_keep.prepend_to_notes(f"Merged with {merged_with}")
     if updated_org_links or updated_personal_links:
@@ -821,6 +833,7 @@ def unmerge_accounts(from_user_id, log_to_file=None):
         Link.folders.through.objects.bulk_update(lfs_to_reverse, ['folder_id'])
         Link.objects.bulk_update(links_to_reverse, ['created_by_id'])
 
+    # Reverse the soft-deletions
     with open(MERGED_USERS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         to_reverse = []
@@ -869,6 +882,7 @@ def unmerge_accounts(from_user_id, log_to_file=None):
             user.link_count = user.created_links.count()
             user.save(update_fields=['link_count', 'registrar_id', 'notes'])
 
+        # Report everything that was changed
         if log_to_file:
             with open(log_to_file, 'a', newline='') as file:
                 file.write(f"## Unmerged accounts {user_ids} from user {from_user_id}\n")
