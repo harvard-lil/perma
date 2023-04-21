@@ -762,7 +762,7 @@ def merge_accounts(
         try:
             to_keep.copy_memberships_from_users(itertools.chain([to_keep], to_delete))
         except AssertionError as e:
-            logger.error(f"Could not merge users {to_keep.id}, {', '.join([str(u.id) for u in to_delete])}: {str(e)}")
+            logger.error(f"MERGING: Could not merge users {to_keep.id}, {', '.join([str(u.id) for u in to_delete])}: {str(e)}")
             return
 
     updated_org_links = defaultdict(lambda: 0)
@@ -822,14 +822,14 @@ def merge_accounts(
         ])
 
 
-def unmerge_accounts(from_user_id):
+def unmerge_accounts(from_user_id, log_to_file=None):
     from perma.models import Link, LinkUser
 
     user = LinkUser.objects.get(id=from_user_id)
     if match := re.search(r"\n*Merged with (?P<user_ids>.+)", user.notes):
         user_ids = [int(uid) for uid in match.group('user_ids').split(', ')]
     else:
-        print(f"Found no accounts to unmerge from user {from_user_id}.")
+        logger.info(f"MERGING: Found no accounts to unmerge from user {from_user_id}.")
         return
 
     reversed_org_links = defaultdict(list)
@@ -917,7 +917,30 @@ def unmerge_accounts(from_user_id):
             user.link_count = user.created_links.count()
             user.save(update_fields=['link_count', 'registrar_id', 'notes'])
 
-        print(reversed_org_links, reversed_personal_links, to_reverse, from_users)
+        if log_to_file:
+            with open(log_to_file, 'a', newline='') as file:
+                file.write(f"## Unmerged accounts {user_ids} from user {from_user_id}\n")
+                file.write(f"{''.join([str(u) for u in to_reverse])} from {from_users.pop()}\n\n")
+                if reversed_org_links:
+                    file.write("\tREVERSED ORG LINKS\n\n")
+                    for original_creator_id, link_list in reversed_org_links.items():
+                        file.write(f"\tRestored to user: {original_creator_id}\n")
+                        file.write(f"\t{link_list}")
+                        file.write("\n\n")
+                if reversed_personal_links:
+                    file.write("\tREVERSED PERSONAL LINKS\n\n")
+                    for original_creator_id, link_list in reversed_personal_links.items():
+                        file.write(f"\tRestored to user: {original_creator_id}\n")
+                        file.write(f"\t{str(link_list)}")
+                        file.write("\n\n")
+        else:
+            print(f"Unmerged accounts {user_ids} from user {from_user_id}")
+            print(f"{to_reverse} from {from_users}")
+            if reversed_org_links:
+                print(f"Reversed org links {reversed_org_links}")
+            if reversed_personal_links:
+                print(f"Reversed personal links {reversed_personal_links}")
+            print("")
 
 
 def merge_users_with_only_unconfirmed_accounts(user_list):
@@ -1064,7 +1087,7 @@ def get_and_categorize_duplicative_users():
     for user in duplicative_users:
         count += 1
         grouped_duplicative_users[user.email.lower()].append(user)
-    print(f"Found {count} addresses, for {len(grouped_duplicative_users)} users.")
+    logger.info(f"MERGING: Found {count} addresses, for {len(grouped_duplicative_users)} users.")
 
     any_paid_history = set()
     registrar_and_org_mix = set()
@@ -1096,8 +1119,8 @@ def get_and_categorize_duplicative_users():
             registrar_and_org_mix.add(normalized_email)
 
     exclude_group = any_paid_history | registrar_and_org_mix
-    print(f"Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
-    print(f"Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
+    logger.info(f"MERGING: Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
+    logger.info(f"MERGING: Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
 
     #
     # Organize remaining users by how many accounts associated with their email address have been confirmed.
@@ -1115,8 +1138,8 @@ def get_and_categorize_duplicative_users():
             else:
                 multiple_confirmed[normalized_email] = user_group
 
-    print(f"Found {len(none_confirmed)} users with no confirmed accounts.")
-    print(f"Found {len(only_one_confirmed)} users with only one confirmed account.")
+    logger.info(f"MERGING: Found {len(none_confirmed)} users with no confirmed accounts.")
+    logger.info(f"MERGING: Found {len(only_one_confirmed)} users with only one confirmed account.")
 
     #
     # Organize with multiple confirmed accounts by how many of them have links.
@@ -1133,9 +1156,9 @@ def get_and_categorize_duplicative_users():
         else:
             multiple_confirmed_several_with_links.add(normalized_email)
 
-    print(f"Found {len(multiple_confirmed_none_with_links)} users with multiple confirmed accounts, but no links.")
-    print(f"Found {len(multiple_confirmed_only_one_with_links)} users that have multiple confirmed accounts but only one account with links.")
-    print(f"Found {len(multiple_confirmed_several_with_links)} users that have multiple accounts with links.")
+    logger.info(f"MERGING: Found {len(multiple_confirmed_none_with_links)} users with multiple confirmed accounts, but no links.")
+    logger.info(f"MERGING: Found {len(multiple_confirmed_only_one_with_links)} users that have multiple confirmed accounts but only one account with links.")
+    logger.info(f"MERGING: Found {len(multiple_confirmed_several_with_links)} users that have multiple accounts with links.")
 
     return {
         'none_confirmed': none_confirmed,
@@ -1161,34 +1184,24 @@ def merge_duplicative_accounts(ctx):
             users = LinkUser.objects.filter(email__iexact=normalized_email)
             merge_func(list(users))
         end = time.time()
-        print(f"(Merged {category} in {end - start} seconds.)")
+        logger.info(f"MERGING: Merged {category} in {end - start} seconds.")
 
     merge_category('none_confirmed', merge_users_with_only_unconfirmed_accounts)
-    # locally: (Merged unconfirmed users in 0.28430652618408203 seconds.)
-
     merge_category('only_one_confirmed', merge_users_with_only_one_confirmed_account)
-    # locally: (Merged only_one_confirmed in 2.2521471977233887 seconds.)
-
     merge_category('multiple_confirmed_none_with_links', merge_users_with_multiple_confirmed_accounts_but_no_links)
-    # locally: (Merged multiple_confirmed_none_with_links in 0.5002124309539795 seconds.)
-
     merge_category('multiple_confirmed_only_one_with_links', merge_users_with_only_one_account_with_links)
-    # locally: (Merged multiple_confirmed_only_one_with_links in 4.435230255126953 seconds.)
-
     merge_category('multiple_confirmed_several_with_links', merge_users_with_multiple_accounts_with_links)
-    # locally: (Merged multiple_confirmed_several_with_links in 7.168652057647705 seconds.)
 
     nuts = time.time()
-    print(f"Merged all duplicative accounts in {nuts - soup} seconds.")
-    # locally: Merged all duplicative accounts in 16.03778886795044 seconds.
+    logger.info(f"MERGING: Merged all duplicative accounts in {nuts - soup} seconds.")
 
 @task
-def unmerge_duplicative_accounts(ctx):
+def unmerge_duplicative_accounts(ctx, log_to_file=None):
 
     with open(RETAINED_USERS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         for row in csv_reader:
-            unmerge_accounts(row['user id'])
+            unmerge_accounts(row['user id'], log_to_file)
 
 @task
 def assert_no_duplicative_accounts(ctx):
