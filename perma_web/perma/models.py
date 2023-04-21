@@ -1116,6 +1116,10 @@ class LinkUser(CustomerModel, AbstractBaseUser):
 
         orgs = set()
         registrars = set()
+        if self.registrar_id:
+            registrars.add(self.registrar_id)
+        else:
+            orgs.update(original_orgs)
         for user in users:
             if user.registrar_id:
                 registrars.add(user.registrar_id)
@@ -1123,9 +1127,9 @@ class LinkUser(CustomerModel, AbstractBaseUser):
                 orgs.update(user.organizations.all())
 
         if orgs or registrars:
-            assert not (orgs and registrars), f"This set of users includes both org and registrar users: {', '.join([user.id for user in users])}."
+            assert not (orgs and registrars), f"This set of users includes both org and registrar users: {self.id}, {', '.join([str(user.id) for user in users])}."
             if registrars:
-                assert len(registrars) == 1
+                assert len(registrars) == 1, f"This set of users includes registrar users from multiple registrars: {self.id}, {', '.join([str(user.id) for user in users])}."
                 new_registrar_id = registrars.pop()
                 if not self.registrar_id:
                     self.registrar_id = new_registrar_id
