@@ -1,20 +1,37 @@
 from collections import defaultdict
 import csv
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
+import hashlib
+from invoke import task
+import internetarchive
 import itertools
+import json
 import os
+import pytz
 import re
-import subprocess
+import requests
 import signal
+import subprocess
+import surt
 import sys
+from tqdm import tqdm
 import time
 
+
 from django.conf import settings
+from django.core.files.storage import default_storage
+from django.db import connections
+from django.db.models import Q
+from django.http import HttpRequest
 from django.utils import timezone
-from invoke import task
+
+from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
+from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organization, Registrar, WeekStats
+
 
 import logging
 logger = logging.getLogger(__name__)
-
 
 @task
 def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
@@ -88,8 +105,6 @@ def test_js(ctx):
 
 @task
 def pip_compile(ctx, args=''):
-    import subprocess
-
     # run pip-compile
     # Use --allow-unsafe because pip --require-hashes needs all requirements to be pinned, including those like
     # setuptools that pip-compile leaves out by default.
@@ -100,8 +115,6 @@ def pip_compile(ctx, args=''):
 
 @task()
 def get_replay_assets(ctx):
-    import requests
-
     for asset in ['sw.js', 'ui.js', 'ruffle/ruffle.js']:
         dest = os.path.join(settings.PROJECT_ROOT, f'static/vendors/replay-web-page/{asset}')
         with open(dest, 'wb') as file:
@@ -131,10 +144,6 @@ def build_week_stats(ctx):
     """
         A temporary helper to populate our weekly stats
     """
-    from perma.models import Link, LinkUser, Organization, Registrar, WeekStats
-    from datetime import timedelta
-    from django.utils import timezone
-
     # regenerate all weekly stats
     WeekStats.objects.all().delete()
 
@@ -185,8 +194,6 @@ def count_pending_ia_links(ctx):
     """
     For use in monitoring the size of the queue.
     """
-    from perma.models import Link
-
     count = Link.objects.visible_to_ia().filter(
         internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
     ).count()
@@ -198,15 +205,12 @@ def count_links_without_cached_playback_status(ctx):
     """
     For use in monitoring the size of the queue.
     """
-    from perma.models import Link
-
     count = Link.objects.permanent().filter(cached_can_play_back__isnull=True).count()
     print(count)
 
 
 @task
 def rebuild_folder_trees(ctx):
-    from perma.models import Organization, LinkUser, Folder
     print("Checking for broken folder trees ...")
 
     for o in Organization.objects.all():
@@ -230,13 +234,6 @@ def ping_all_users(ctx, limit_to="", exclude="", batch_size=500):
 
        Limit filters are applied before exclude filters.
     '''
-    import logging
-    from tqdm import tqdm
-    from perma.models import LinkUser
-    from perma.email import send_user_email
-
-    logger = logging.getLogger(__name__)
-
     logger.info("BEGIN: ping_all_users")
 
     # load desired Perma users
@@ -313,14 +310,6 @@ def ping_registrar_users(ctx, limit_to="", limit_by_tag="", exclude="", exclude_
 
        Limit filters are applied before exclude filters.
     '''
-    import json, logging
-    from datetime import datetime
-    from django.http import HttpRequest
-    from perma.models import Registrar
-    from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
-
-    logger = logging.getLogger(__name__)
-
     registrars = Registrar.objects.all()
     if limit_to:
         registrars = registrars.filter(id__in=limit_to.split(";"))
@@ -387,10 +376,6 @@ def fix_ia_metadata(ctx):
     """
         One-off helper function, kept for example purposes. Update all existing IA uploads to remove `sponsor` metadata.
     """
-    from django.conf import settings
-    import internetarchive
-    from perma.models import Link
-
     for link in Link.objects.filter(internet_archive_upload_status='completed').order_by('guid').values('guid'):
         result = 'success'
         identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link['guid']
@@ -412,10 +397,6 @@ def check_s3_hashes(ctx):
 
         One-off helper function, kept for example purposes.
     """
-    from django.core.files.storage import default_storage
-    from tqdm import tqdm
-    import hashlib
-
     local_cache_path = '/tmp/perma_local_file_list'
     remote_cache_path = '/tmp/perma_remote_file_list'
     remote_paths = {}
@@ -476,15 +457,6 @@ def check_storage(ctx, start_date=None):
 
         Derived from check_s3_hashes
     """
-    from django.core.files.storage import default_storage
-    from django.db.models import Q
-    from perma.models import Link, Capture
-
-    from datetime import date, datetime
-    from dateutil.relativedelta import relativedelta
-    import pytz
-    import re
-
     # check the arg
     if not start_date:
         # use first archive date
@@ -598,8 +570,6 @@ def md5hash(path, storage):
     helper function to calculate MD5 hash of a file
 
     """
-    import hashlib
-
     blocksize = 2 ** 20
     m = hashlib.md5()
     with storage.open(path) as f:
@@ -614,7 +584,6 @@ def md5hash(path, storage):
 @task
 def update_cloudflare_cache(ctx):
     """ Update Cloudflare IP lists. """
-    import requests
     for ip_filename in ('ips-v4', 'ips-v6'):
         with open(os.path.join(settings.CLOUDFLARE_DIR, ip_filename), 'w') as ip_file:
             ip_file.write(requests.get(f'https://www.cloudflare.com/{ip_filename}').text)
@@ -628,7 +597,6 @@ def test_db_connection(ctx, connection):
     e.g. in order to flush out a transient SSL connection problem, something like:
     while [ 1 ] ; do date ; invoke dev.test-db-connection "some-connection" ; sleep 1 ; done
     """
-    from django.db import connections
     print(f"Attempting connection to {connection} ...")
     cursor = connections[connection].cursor()
     print("Succeeded.")
@@ -637,13 +605,6 @@ def test_db_connection(ctx, connection):
 
 @task
 def populate_link_surt_column(ctx, batch_size=500, model='Link'):
-    import logging
-    from tqdm import tqdm
-    import surt
-    from perma.models import Link, HistoricalLink
-
-    logger = logging.getLogger(__name__)
-
     logger.info("BEGIN: populate_link_surt_column")
 
     models = {'Link': Link, 'HistoricalLink': HistoricalLink}
@@ -677,12 +638,6 @@ def populate_link_surt_column(ctx, batch_size=500, model='Link'):
 
 @task
 def populate_folder_cached_path(ctx, batch_size=500):
-    import logging
-    from tqdm import tqdm
-    from perma.models import Folder
-
-    logger = logging.getLogger(__name__)
-
     logger.info("BEGIN: populate_folder_cached_path")
 
     folders = Folder.objects.filter(cached_path__isnull=True)
@@ -756,7 +711,6 @@ def merge_accounts(
         to_delete,
         copy_memberships=True,
         transfer_links=False):
-    from perma.models import Link
 
     if copy_memberships:
         try:
@@ -823,8 +777,6 @@ def merge_accounts(
 
 
 def unmerge_accounts(from_user_id, log_to_file=None):
-    from perma.models import Link, LinkUser
-
     user = LinkUser.objects.get(id=from_user_id)
     if match := re.search(r"\n*Merged with (?P<user_ids>.+)", user.notes):
         user_ids = [int(uid) for uid in match.group('user_ids').split(', ')]
@@ -1078,8 +1030,6 @@ DUPLICATIVE_USER_SQL = '''
 '''
 
 def get_and_categorize_duplicative_users():
-    from perma.models import LinkUser
-
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
     grouped_duplicative_users = defaultdict(list)
 
@@ -1170,8 +1120,6 @@ def get_and_categorize_duplicative_users():
 
 @task
 def merge_duplicative_accounts(ctx):
-    from perma.models import LinkUser
-
     soup = time.time()
 
     emails_by_category = get_and_categorize_duplicative_users()
@@ -1197,7 +1145,6 @@ def merge_duplicative_accounts(ctx):
 
 @task
 def unmerge_duplicative_accounts(ctx, log_to_file=None):
-
     with open(RETAINED_USERS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         for row in csv_reader:
@@ -1205,6 +1152,5 @@ def unmerge_duplicative_accounts(ctx, log_to_file=None):
 
 @task
 def assert_no_duplicative_accounts(ctx):
-    from perma.models import LinkUser
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
     assert not len(duplicative_users)
