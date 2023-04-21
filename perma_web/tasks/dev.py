@@ -1119,8 +1119,8 @@ def get_and_categorize_duplicative_users():
             registrar_and_org_mix.add(normalized_email)
 
     exclude_group = any_paid_history | registrar_and_org_mix
-    logger.info(f"MERGING: Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
-    logger.info(f"MERGING: Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
+    logger.warning(f"MERGING: Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
+    logger.warning(f"MERGING: Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
 
     #
     # Organize remaining users by how many accounts associated with their email address have been confirmed.
