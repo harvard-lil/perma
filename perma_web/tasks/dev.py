@@ -12,6 +12,10 @@ from django.conf import settings
 from django.utils import timezone
 from invoke import task
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 @task
 def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
     """
@@ -755,7 +759,11 @@ def merge_accounts(
     from perma.models import Link
 
     if copy_memberships:
-        to_keep.copy_memberships_from_users(itertools.chain([to_keep], to_delete))
+        try:
+            to_keep.copy_memberships_from_users(itertools.chain([to_keep], to_delete))
+        except AssertionError as e:
+            logger.error(f"Could not merge users {to_keep.id}, {', '.join([str(u.id) for u in to_delete])}: {str(e)}")
+            return
 
     updated_org_links = defaultdict(lambda: 0)
     updated_personal_links = defaultdict(lambda: 0)
