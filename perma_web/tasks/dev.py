@@ -993,7 +993,7 @@ def merge_users_with_only_one_account_with_links(user_list):
 
 def merge_users_with_multiple_accounts_with_links(user_list):
     """
-    We should move all links into the account with the most recent login,
+    Move all links into the account with the most recent login,
     sync registrars/orgs and then delete the other ones.
     """
     to_keep = None
