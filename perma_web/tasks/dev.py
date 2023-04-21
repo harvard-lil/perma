@@ -1060,14 +1060,10 @@ def get_and_categorize_duplicative_users():
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
     grouped_duplicative_users = defaultdict(list)
 
-    start = time.time()
     count = 0
     for user in duplicative_users:
         count += 1
         grouped_duplicative_users[user.email.lower()].append(user)
-    end = time.time()
-
-    print(f"Data collected in {end - start} seconds.")
     print(f"Found {count} addresses, for {len(grouped_duplicative_users)} users.")
 
     any_paid_history = set()
@@ -1083,7 +1079,6 @@ def get_and_categorize_duplicative_users():
     #
     # Identify any groups of users that are not same to merge
     #
-    start = time.time()
     for normalized_email, user_group in grouped_duplicative_users.items():
 
         registrar = False
@@ -1100,16 +1095,13 @@ def get_and_categorize_duplicative_users():
         if registrar and orgs:
             registrar_and_org_mix.add(normalized_email)
 
-    end = time.time()
     exclude_group = any_paid_history | registrar_and_org_mix
     print(f"Found {len(any_paid_history)} users who have purchased subscriptions or bonus links.")
     print(f"Found {len(registrar_and_org_mix)} users who have accounts associated with both registrars and orgs.")
-    print(f"(Exclude group located collected in {end - start} seconds.)")
 
     #
     # Organize remaining users by how many accounts associated with their email address have been confirmed.
     #
-    start = time.time()
     for normalized_email, user_group in grouped_duplicative_users.items():
         if normalized_email not in exclude_group:
             confirmed = []
@@ -1122,16 +1114,13 @@ def get_and_categorize_duplicative_users():
                 only_one_confirmed.add(normalized_email)
             else:
                 multiple_confirmed[normalized_email] = user_group
-    end = time.time()
 
     print(f"Found {len(none_confirmed)} users with no confirmed accounts.")
     print(f"Found {len(only_one_confirmed)} users with only one confirmed account.")
-    print(f"(Confirmations analyzed in {end - start} seconds.)")
 
     #
     # Organize with multiple confirmed accounts by how many of them have links.
     #
-    start = time.time()
     for normalized_email, user_group in multiple_confirmed.items():
         has_links = []
         for user in user_group:
@@ -1143,12 +1132,10 @@ def get_and_categorize_duplicative_users():
             multiple_confirmed_only_one_with_links.add(normalized_email)
         else:
             multiple_confirmed_several_with_links.add(normalized_email)
-    end = time.time()
 
     print(f"Found {len(multiple_confirmed_none_with_links)} users with multiple confirmed accounts, but no links.")
     print(f"Found {len(multiple_confirmed_only_one_with_links)} users that have multiple confirmed accounts but only one account with links.")
     print(f"Found {len(multiple_confirmed_several_with_links)} users that have multiple accounts with links.")
-    print(f"(Link counts analyzed in {end - start} seconds.)")
 
     return {
         'none_confirmed': none_confirmed,
