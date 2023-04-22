@@ -1064,7 +1064,7 @@ def get_and_categorize_duplicative_users():
     multiple_confirmed_several_with_links = set()
 
     #
-    # Identify any groups of users that are not same to merge
+    # Identify any groups of users that are not safe to merge
     #
     for normalized_email, user_group in grouped_duplicative_users.items():
 
