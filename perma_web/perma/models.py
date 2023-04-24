@@ -852,6 +852,17 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     class Meta:
         verbose_name = 'User'
 
+        constraints = [
+            # We would like to add a case-insensitive uniqueness constraint on `email`
+            # like the below, but expressions aren't supported in this version of Django.
+            # We are adding the constraint via a SQL migration instead. See 0019_auto_20230424_2134.py
+            # We additionally note that in this version of Django, constraints aren't
+            # checked during model validation. We are not adding a special case-insensitive
+            # validation check, because we downcase email in `clean`: checked against a
+            # known-to-be-downcased column, the check from unique=True is sufficient.
+            # models.UniqueConstraint(Lower('email'), name='unique_lower_email')
+        ]
+
     def format_email_fields(self):
         self.raw_email = self.email
         self.email = self.email.lower()
