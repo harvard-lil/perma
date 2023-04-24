@@ -1167,4 +1167,4 @@ def unmerge_duplicative_accounts(ctx, log_to_file=None):
 @task
 def assert_no_duplicative_accounts(ctx):
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
-    assert not len(duplicative_users)
+    assert not len(duplicative_users), ", ".join(str(user.id) for user in duplicative_users)
