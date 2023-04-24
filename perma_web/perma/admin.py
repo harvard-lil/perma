@@ -440,7 +440,7 @@ class LinkUserAdmin(UserAdmin):
     form = LinkUserChangeForm
     add_form = LinkUserAddForm
     fieldsets = (
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'notes')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'raw_email', 'notes')}),
         (None, {'fields': ('password',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
         ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial', 'bonus_links')}),
