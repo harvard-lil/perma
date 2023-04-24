@@ -751,7 +751,7 @@ class BaseAddUserToGroup(UpdateView):
             return self.object
         user_email = self.request.GET.get('email')
         if user_email:
-            return LinkUser.objects.filter(email=user_email).first()
+            return LinkUser.objects.filter(email=user_email.lower()).first()
 
     def get_initial(self):
         """ Populate form with supplied email address. """

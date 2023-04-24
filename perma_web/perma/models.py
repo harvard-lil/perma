@@ -852,8 +852,20 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     class Meta:
         verbose_name = 'User'
 
+    def format_email_fields(self):
+        self.raw_email = self.email
+        self.email = self.email.lower()
+
+    def clean(self, *args, **kwargs):
+        self.format_email_fields()
+        super().clean(*args, **kwargs)
+
     def save(self, *args, **kwargs):
-        super(LinkUser, self).save(*args, **kwargs)
+        if not self.pk:
+            # Redundant if objects are being created via a model form and `clean` has been called,
+            # but harmless, and might prevent shenanigans in the Django shell.
+            self.format_email_fields()
+        super().save(*args, **kwargs)
 
         # make sure root folder is created for each user.
         if not self.root_folder:
