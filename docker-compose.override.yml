@@ -7,7 +7,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:51-a700cbc80d4d44fae96166fb5d19f759
+          - registry.lil.tools/harvardlil/perma-web:52-1071b575ded109ea61001040f1b13eb7
         platforms:
           - linux/amd64
           - linux/arm64
