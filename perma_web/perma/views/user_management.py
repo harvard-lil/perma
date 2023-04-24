@@ -1357,7 +1357,7 @@ def limited_login(request, template_name='registration/login.html',
     """
 
     if request.method == "POST" and not request.user.is_authenticated:
-        username = request.POST.get('username')
+        username = request.POST.get('username', '').lower()
         try:
             target_user = LinkUser.objects.get(email=username)
         except LinkUser.DoesNotExist:
@@ -1375,6 +1375,10 @@ def limited_login(request, template_name='registration/login.html',
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
 
+        def clean_username(self):
+            return self.cleaned_data.get('username', '').lower()
+
+
     return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
 
@@ -1391,9 +1395,12 @@ def reset_password(request):
             super(PasswordResetForm, self).__init__(*args, **kwargs)
             self.fields['email'].widget.attrs['autofocus'] = ''
 
+        def clean_username(self):
+            return self.cleaned_data.get('username', '').lower()
+
     if request.method == "POST":
         try:
-            target_user = LinkUser.objects.get(email=request.POST.get('email'))
+            target_user = LinkUser.objects.get(email=request.POST.get('email').lower())
         except LinkUser.DoesNotExist:
             target_user = None
         if target_user:
