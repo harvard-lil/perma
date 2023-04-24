@@ -808,7 +808,11 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         db_index=True,
         error_messages={'unique': "A user with that email address already exists.",}
     )
-
+    raw_email = models.CharField(
+        verbose_name='raw email address',
+        max_length=255,
+        null=True
+    )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
     pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users', on_delete=models.CASCADE)
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
