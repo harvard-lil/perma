@@ -2619,6 +2619,24 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_admin_can_resend_activation_to_registrar_user(self):
         self.check_activation_resent('test_admin_user@example.com','test_registrar_user@example.com')
 
+    ### PASSWORD RESETS ###
+
+    def test_password_reset_is_case_insensitive(self):
+        email = 'test_user@example.com'
+        not_a_user = 'doesnotexist@example.com'
+        self.assertEqual(LinkUser.objects.filter(email__iexact=email).count(), 1)
+        self.assertFalse(LinkUser.objects.filter(email=not_a_user).exists())
+
+        self.submit_form('password_reset', data={})
+        self.submit_form('password_reset', data={'email': not_a_user})
+        self.assertEqual(len(mail.outbox), 0)
+
+        self.submit_form('password_reset', data={'email': email})
+        self.assertEqual(len(mail.outbox), 1)
+
+        self.submit_form('password_reset', data={'email': self.randomize_capitalization(email)})
+        self.assertEqual(len(mail.outbox), 2)
+
     ### ADMIN STATS ###
 
     def test_admin_stats(self):
