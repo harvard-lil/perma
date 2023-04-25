@@ -1441,7 +1441,7 @@ def libraries(request):
         else:
             user_form = UserForm(request.POST, prefix = "a")
             user_form.fields['email'].label = "Your email"
-        user_email = request.POST.get('a-e-address', None)
+        user_email = request.POST.get('a-e-address', '').lower()
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1525,7 +1525,7 @@ def sign_up_courts(request):
             return something_took_the_bait
 
         form = CreateUserFormWithCourt(request.POST)
-        submitted_email = request.POST.get('e-address', None)
+        submitted_email = request.POST.get('e-address', '').lower()
 
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
@@ -1596,7 +1596,7 @@ def sign_up_firm(request):
             return something_took_the_bait
 
         form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('e-address', None)
+        user_email = request.POST.get('e-address', '').lower()
 
         try:
             target_user = LinkUser.objects.get(email=user_email)
