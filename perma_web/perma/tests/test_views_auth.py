@@ -7,6 +7,7 @@ from django.core import mail
 from django.test.utils import override_settings
 from django.urls import reverse
 
+from perma.models import LinkUser
 from .utils import PermaTestCase
 
 
@@ -23,9 +24,18 @@ class AuthViewsTestCase(PermaTestCase):
     def setUp(self):
         reset_login_attempts(username=self.email)
 
-    def make_bad_attempt(self):
-        response = self.client.post(self.login_url, {'username': self.email, 'password': self.wrong_password}, secure=True)
+    def attempt_login(self, username, password, expect_success=True):
         self.assertNotIn('_auth_user_id', self.client.session)
+
+        response = self.client.post(self.login_url, {'username': username, 'password': password}, secure=True)
+
+        if expect_success:
+            self.assertEqual(response.status_code, 302)
+            self.assertFalse('login' in response['Location'])
+            self.assertIn('_auth_user_id', self.client.session)
+        else:
+            self.assertNotIn('_auth_user_id', self.client.session)
+
         return response
 
     def test_login(self):
@@ -33,14 +43,17 @@ class AuthViewsTestCase(PermaTestCase):
         Test the login form
         We should get redirected to the create page
         """
+        # Login through our form and make sure we get redirected to our create page,
+        # no matter how the email address is capitalized
+        self.assertEqual(LinkUser.objects.filter(email__iexact=self.email).count(), 1)
 
-        # Login through our form and make sure we get redirected to our create page
-        response = self.client.post(self.login_url, {'username': self.email, 'password': self.password}, secure=True)
-        create_url = 'login' not in response['Location']
-        self.assertEqual(create_url, True)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('_auth_user_id', self.client.session)
-
+        self.attempt_login(self.email, self.password)
+        self.client.logout()
+        self.attempt_login(self.email.upper(), self.password)
+        self.client.logout()
+        self.attempt_login(self.email.title(), self.password)
+        self.client.logout()
+        self.attempt_login(self.randomize_capitalization(self.email), self.password)
 
     def test_deactived_user_login(self):
         self.submit_form('user_management_limited_login',
@@ -96,10 +109,10 @@ class AuthViewsTestCase(PermaTestCase):
 
     @override_settings(AXES_FAILURE_LIMIT=2)
     def test_locked_out_after_limit(self):
-        response = self.make_bad_attempt()
+        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
         self.assertContains(response, 'class="field-error"', status_code=200)
 
-        response = self.make_bad_attempt()
+        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
         self.assertContains(response, 'Too Many Attempts', status_code=403)
 
         response = self.log_in_user(user=self.email, password=self.new_password)
@@ -109,7 +122,7 @@ class AuthViewsTestCase(PermaTestCase):
     @override_settings(AXES_FAILURE_LIMIT=1)
     @override_settings(AXES_COOLOFF_TIME=datetime.timedelta(seconds=2))
     def test_lockout_expires_after_cooloff(self):
-        response = self.make_bad_attempt()
+        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
         self.assertContains(response, 'Too Many Attempts', status_code=403)
         sleep(2)
         self.log_in_user(user=self.email, password=self.password)
@@ -118,8 +131,8 @@ class AuthViewsTestCase(PermaTestCase):
     @override_settings(AXES_FAILURE_LIMIT=2)
     def test_login_attempts_reset(self):
         # lock the user out
-        self.make_bad_attempt()
-        response = self.make_bad_attempt()
+        self.attempt_login(self.email, self.wrong_password, expect_success=False)
+        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
         self.assertContains(response, 'Too Many Attempts', status_code=403)
         self.assertContains(response, 'Reset my password', status_code=403)
         aa = AccessAttempt.objects.get(username=self.email)
@@ -139,7 +152,7 @@ class AuthViewsTestCase(PermaTestCase):
 
         # verify you get the normal form errors, not the lockout page,
         # if you fail again
-        response = self.make_bad_attempt()
+        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
         self.assertContains(response, 'class="field-error"', status_code=200)
 
         # verify you CAN login with the new password

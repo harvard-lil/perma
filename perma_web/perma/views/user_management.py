@@ -1369,7 +1369,6 @@ def limited_login(request, template_name='registration/login.html',
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    # subclass authentication_form to add autofocus attribute to username field
     class LoginForm(authentication_form):
         def __init__(self, *args, **kwargs):
             super(LoginForm, self).__init__(*args, **kwargs)
