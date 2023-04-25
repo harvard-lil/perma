@@ -872,9 +872,9 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            # Redundant if objects are being created via a model form and `clean` has been called,
-            # but harmless, and might prevent shenanigans in the Django shell.
+        if not self.pk and not self.raw_email:
+            # If objects aren't being created via a model form where `clean` has been called,
+            # make sure email is still formatted correctly.
             self.format_email_fields()
         super().save(*args, **kwargs)
 
