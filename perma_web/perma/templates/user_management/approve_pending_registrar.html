@@ -29,7 +29,7 @@
       {% if target_registrar_user.first_name and target_registrar_user.last_name %}
         <li>{{target_registrar_user.first_name}} {{target_registrar_user.last_name}}</li>
       {% endif %}
-      <li>{{target_registrar_user.email}}</li>
+      <li>{{target_registrar_user.raw_email}}</li>
     </ul>
 
     <form action="" method="POST">

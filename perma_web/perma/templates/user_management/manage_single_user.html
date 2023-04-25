@@ -4,7 +4,7 @@
 {% block dashboardContent %}
   {% if this_page == 'users_sponsored_users' and sponsorships %}
     <div class="orgs-list-container">
-      <h3 class="body-bh">Edit {{ target_user.email }}'s sponsorship{{ sponsorships|length|pluralize }}</h3>
+      <h3 class="body-bh">Edit {{ target_user.raw_email }}'s sponsorship{{ sponsorships|length|pluralize }}</h3>
       {% regroup sponsorships by status as sponsorships_list %}
       {% for status in sponsorships_list %}
         <h4 class="body-ch">{{ status.grouper|title }}</h4>
@@ -23,7 +23,7 @@
   {% elif this_page == 'users_organization_users' and orgs %}
     <div class="orgs-list-container">
       <h3 class="body-bh">Remove from organization</h3>
-      <p class="page-dek"><strong>{{ target_user.email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
+      <p class="page-dek"><strong>{{ target_user.raw_email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
       <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
         {% csrf_token %}
         {% for org in orgs %}
@@ -38,11 +38,11 @@
   {% if request.user.is_staff %}
     <h3 class="body-bh">{% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %}</h3>
     <a href="{% url delete_user_url target_user.id %}">
-      <p class="page-dek"><strong>{{ target_user.email}}</strong>'s account was created on {{ target_user.date_joined}}{% if target_user.last_login%} Last login occurred on {{ target_user.last_login}}{% else %}They have never logged in.{% endif %}</p>
+      <p class="page-dek"><strong>{{ target_user.raw_email}}</strong>'s account was created on {{ target_user.date_joined}}{% if target_user.last_login%} Last login occurred on {{ target_user.last_login}}{% else %}They have never logged in.{% endif %}</p>
       <span class="field-error">
         <i class="icon-trash"></i>
 
-        {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}
+        {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.raw_email}}
       </span>
     </a>
   {% endif %}

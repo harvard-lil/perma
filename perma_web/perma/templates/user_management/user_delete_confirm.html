@@ -5,12 +5,12 @@
 {% block adminContent %}
 
   <h3 class="body-bh">{{ action|title }} {{ target_user.email }}</h3>
-  <p class="page-dek">Yowza! Do you really want to {{ action|title }} {{ target_user.email }}{% if action == 'delete' %} forever{% endif %}?</p>
+  <p class="page-dek">Yowza! Do you really want to {{ action|title }} {{ target_user.raw_email }}{% if action == 'delete' %} forever{% endif %}?</p>
   <form action="" method="POST">
     {% csrf_token %}
     <a class="btn cancel" href="../">Cancel</a>
     <button type="submit" class="btn delete-confirm">
-      {{ action|title }} {{ target_user.email }}{% if action == 'delete' %} forever{% endif %}
+      {{ action|title }} {{ target_user.raw_email }}{% if action == 'delete' %} forever{% endif %}
     </button>
   </form>
 

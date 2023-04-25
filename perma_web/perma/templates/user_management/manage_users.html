@@ -226,13 +226,13 @@
         <div class="col col-sm-8 col-no-gutter">
           <h4 class="item-title" id="user-{{ listed_user.id }}">
             {% if not listed_user.first_name and not listed_user.last_name %}
-              {{ listed_user.email }}
+              {{ listed_user.raw_email }}
             {% else %}
               {{ listed_user.first_name }} {{ listed_user.last_name }}
             {% endif %}
             {% if listed_user == request.user %}(you){% endif %}
           </h4>
-          <div class="item-subtitle">{{ listed_user.email }}</div>
+          <div class="item-subtitle">{{ listed_user.raw_email }}</div>
           {% if not listed_user.is_confirmed %}
             <p class="warning">User must activate account</p>
           {% endif %}
