@@ -1399,7 +1399,7 @@ def reset_password(request):
 
     if request.method == "POST":
         try:
-            target_user = LinkUser.objects.get(email=request.POST.get('email').lower())
+            target_user = LinkUser.objects.get(email=request.POST.get('email', '').lower())
         except LinkUser.DoesNotExist:
             target_user = None
         if target_user:
