@@ -1921,7 +1921,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['raw_email'])
 
         # Not logged in, submit all fields including first and last name
         new_lib = self.new_lib()
@@ -1937,7 +1937,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['raw_email'])
 
         # Logged in
         new_lib = self.new_lib()
@@ -2080,7 +2080,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('court_request_response'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # New user email address, create account
         self.submit_form('sign_up_courts',
@@ -2090,8 +2090,8 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['normalized_email'])
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
+        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # LOGGED IN
 
@@ -2106,8 +2106,8 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['normalized_email'])
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
+        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # Existing user's email address, not that of the user logged in.
         # (This is odd; see issue 1749)
@@ -2212,7 +2212,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('firm_request_response'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # New user email address, create account
         self.submit_form('sign_up_firm',
@@ -2222,8 +2222,8 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['normalized_email'])
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # LOGGED IN
 
@@ -2238,8 +2238,8 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('register_email_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['normalized_email'])
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # Existing user's email address, not that of the user logged in.
         # (This is odd; see issue 1749)
@@ -2315,7 +2315,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # LOGGED IN
 
@@ -2329,7 +2329,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
     def test_new_journal_form_honeypot(self):
         new_journal = self.new_journal()
@@ -2409,7 +2409,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
         # LOGGED IN
 
@@ -2423,7 +2423,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
     def test_new_faculty_form_honeypot(self):
         new_user = self.new_faculty_user()
@@ -2497,7 +2497,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # email sent
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
-        activation_url = self.check_new_activation_email(message, new_user_normalized_email)
+        activation_url = self.check_new_activation_email(message, new_user_raw_email)
 
         # the new user is created, but is unactivated
         user = LinkUser.objects.get(email=new_user_normalized_email)

@@ -781,7 +781,7 @@ class BaseAddUserToGroup(UpdateView):
                                  extra_tags='safe')
         else:
             send_user_email(
-                self.object.email,
+                self.object.raw_email,
                 self.confirmation_email_template,
                 { 'account_settings_page': f"https://{self.request.get_host()}{reverse('user_management_settings_profile')}",
                   'form': form }
@@ -1697,7 +1697,7 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
         'request': request
     })
     send_user_email(
-        user.email,
+        user.raw_email,
         template,
         context
     )
@@ -1716,7 +1716,7 @@ def email_registrar_request(request, pending_registrar):
     """
     host = request.get_host()
     try:
-        email = request.user.email
+        email = request.user.raw_email
     except AttributeError:
         # User did not have an account
         email = request.POST.get('a-e-address')
@@ -1742,7 +1742,7 @@ def email_approved_registrar_user(request, user):
     """
     host = request.get_host()
     send_user_email(
-        user.email,
+        user.raw_email,
         "email/library_approved.txt",
         {
             "host": host,
@@ -1761,7 +1761,7 @@ def email_court_request(request, user):
         target_user = None
     send_admin_email(
         "Perma.cc new library court account information request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/court_request.txt",
         {
@@ -1769,7 +1769,7 @@ def email_court_request(request, user):
             "last_name": user.last_name,
             "court_name": user.requested_account_note,
             "has_account": target_user,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1783,7 +1783,7 @@ def email_firm_request(request, user):
         target_user = None
     send_admin_email(
         "Perma.cc new law firm account information request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/firm_request.txt",
         {
@@ -1791,7 +1791,7 @@ def email_firm_request(request, user):
             "last_name": user.last_name,
             "firm_name": user.requested_account_note,
             "has_account": target_user,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1801,13 +1801,13 @@ def email_premium_request(request, user):
     """
     send_admin_email(
         "Perma.cc premium account request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/premium_request.txt",
         {
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1817,13 +1817,13 @@ def email_deletion_request(request):
     """
     send_admin_email(
         "Perma.cc account deletion request",
-        request.user.email,
+        request.user.raw_email,
         request,
         "email/admin/deletion_request.txt",
         {
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
-            "email": request.user.email,
+            "email": request.user.raw_email,
             "admin_url": request.build_absolute_uri(reverse('admin:perma_linkuser_change', args=(request.user.id,)))
         }
     )

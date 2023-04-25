@@ -272,7 +272,7 @@ def ping_all_users(ctx, limit_to="", exclude="", batch_size=500):
     logger.info(f"Begin emailing {to_send_count} users.")
     with open(already_emailed_path, 'a') as f:
         for user in tqdm(users):
-            succeeded = send_user_email(user.email,
+            succeeded = send_user_email(user.raw_email,
                                         'email/special.txt',
                                          {'user': user})
             if succeeded:
