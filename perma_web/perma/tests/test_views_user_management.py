@@ -77,6 +77,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         cls.inactive_sponsored_user = LinkUser.objects.get(pk=22)
         cls.another_inactive_sponsored_user = LinkUser.objects.get(pk=23)
         cls.regular_user = LinkUser.objects.get(pk=4)
+        cls.another_regular_user = LinkUser.objects.get(pk=16)
         cls.registrar = cls.registrar_user.registrar
         cls.pending_registrar = Registrar.objects.get(pk=2)
         cls.unrelated_registrar = Registrar.objects.get(pk=2)
@@ -540,7 +541,8 @@ class UserManagementViewsTestCase(PermaTestCase):
             'a-first_name':'First',
             'a-last_name':'Last',
         }
-        email = 'test_views_test@test.com'
+        email = self.randomize_capitalization('test_views_test@test.com')
+        normalized_email = email.lower()
 
         for view_name, form_extras in [
             ['registrar_user', {'a-registrar': 1}],
@@ -550,11 +552,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         ]:
             # create user
             email += '1'
+            normalized_email += '1'
             self.submit_form('user_management_' + view_name + '_add_user',
                            data=dict(list(base_user.items()) + list(form_extras.items()) + [['a-e-address', email]]),
                            success_url=reverse('user_management_manage_' + view_name),
-                           success_query=LinkUser.objects.filter(email=email))
-            new_user = LinkUser.objects.get(email=email)
+                           success_query=LinkUser.objects.filter(email=normalized_email, raw_email=email))
+            new_user = LinkUser.objects.get(email=normalized_email)
 
             # delete user (deactivate)
             new_user.is_confirmed = True
@@ -577,43 +580,33 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### ADDING NEW USERS TO ORGANIZATIONS ###
 
-    def test_admin_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.admin_user)
+    def add_org_user(self):
+        email = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_email = email.lower()
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk,
                                'a-first_name': 'First',
                                'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
+                               'a-e-address': email},
+                         query_params={'email': email},
                          success_url=reverse('user_management_manage_organization_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                               organizations=self.organization).exists())
+                         success_query=LinkUser.objects.filter(
+                             email=normalized_email,
+                             raw_email=email,
+                             organizations=self.organization
+                         ).exists())
 
+    def test_admin_user_can_add_new_user_to_org(self):
+        self.log_in_user(self.admin_user)
+        self.add_org_user()
 
     def test_registrar_user_can_add_new_user_to_org(self):
         self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                               organizations=self.organization).exists())
-
+        self.add_org_user()
 
     def test_org_user_can_add_new_user_to_org(self):
         self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                               organizations=self.organization).exists())
+        self.add_org_user()
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_org(self):
         self.log_in_user(self.registrar_user)
@@ -641,29 +634,33 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### ADDING EXISTING USERS TO ORGANIZATIONS ###
 
-    def test_admin_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.admin_user)
+    def add_org_users(self):
+        # submit email with the same capitalization
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk},
                          query_params={'email': self.regular_user.email},
                          success_url=reverse('user_management_manage_organization_user'),
                          success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+
+        # submit email with a different capitalization
+        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk},
+                         query_params={'email': scrambled_email},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=self.another_regular_user.organizations.filter(pk=self.organization.pk))
+
+    def test_admin_user_can_add_existing_user_to_org(self):
+        self.log_in_user(self.admin_user)
+        self.add_org_users()
 
     def test_registrar_user_can_add_existing_user_to_org(self):
         self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+        self.add_org_users()
 
     def test_org_user_can_add_existing_user_to_org(self):
         self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+        self.add_org_users()
 
     def test_registrar_user_cannot_add_existing_user_to_inaccessible_org(self):
         self.log_in_user(self.registrar_user)
@@ -816,7 +813,8 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
 
     def test_admin_user_can_add_new_sponsored_user_to_registrar(self):
-        address = 'doesnotexist@example.com'
+        address = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_address = address.lower()
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_sponsored_user_add_user',
                           data={'a-sponsoring_registrars': self.registrar.pk,
@@ -827,7 +825,11 @@ class UserManagementViewsTestCase(PermaTestCase):
                           success_url=reverse('user_management_manage_sponsored_user'))
 
         # Check that everything is set up correctly (we'll do this once, here, and not repeat in other tests)
-        user = LinkUser.objects.get(email=address, sponsoring_registrars=self.registrar)
+        user = LinkUser.objects.get(
+            email=normalized_address,
+            raw_email=address,
+            sponsoring_registrars=self.registrar
+        )
         sponsorship = user.sponsorships.first()
         sponsored_folder = sponsorship.folders.get()
         self.assertEqual(sponsorship.status, 'active')
@@ -835,16 +837,18 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(sponsored_folder.read_only)
 
         # Try to add the same person again; should fail
+        scrambled_email = self.randomize_capitalization(address)
         response = self.submit_form('user_management_sponsored_user_add_user',
                                      data={'a-sponsoring_registrars': self.registrar.pk,
                                            'a-first_name': 'First',
                                            'a-last_name': 'Last',
-                                           'a-e-address': address},
-                                     query_params={'email': address}).content
+                                           'a-e-address': scrambled_email},
+                                     query_params={'email': scrambled_email}).content
         self.assertIn(bytes("Select a valid choice. That choice is not one of the available choices", 'utf-8'), response)
 
     def test_registrar_user_can_add_new_sponsored_user_to_registrar(self):
-        address = 'doesnotexist@example.com'
+        address = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_address = address.lower()
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_sponsored_user_add_user',
                          data={'a-sponsoring_registrars': self.registrar.pk,
@@ -853,16 +857,21 @@ class UserManagementViewsTestCase(PermaTestCase):
                                'a-e-address': address},
                          query_params={'email': address},
                          success_url=reverse('user_management_manage_sponsored_user'),
-                         success_query=LinkUser.objects.filter(email=address,
-                                                               sponsoring_registrars=self.registrar).exists())
+                         success_query=LinkUser.objects.filter(
+                             email=normalized_address,
+                             raw_email=address,
+                             sponsoring_registrars=self.registrar
+                         ).exists())
+
         # Try to add the same person again; should fail
+        scrambled_email = self.randomize_capitalization(address)
         response = self.submit_form('user_management_sponsored_user_add_user',
                                      data={'a-sponsoring_registrars': self.registrar.pk,
                                            'a-first_name': 'First',
                                            'a-last_name': 'Last',
-                                           'a-e-address': address},
-                                     query_params={'email': address}).content
-        self.assertIn(bytes("{} is already sponsored by your registrar.".format(address), 'utf-8'), response)
+                                           'a-e-address': scrambled_email},
+                                     query_params={'email': scrambled_email}).content
+        self.assertIn(bytes("{} is already sponsored by your registrar.".format(normalized_address), 'utf-8'), response)
 
     def test_registrar_user_cannot_add_sponsored_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_user)
@@ -880,17 +889,19 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_admin_user_can_add_sponsorship_to_existing_user(self):
         self.log_in_user(self.admin_user)
+        scrambled_email = self.randomize_capitalization(self.regular_user.email)
         self.submit_form('user_management_sponsored_user_add_user',
                          data={'a-sponsoring_registrars': self.registrar.pk},
-                         query_params={'email': self.regular_user.email},
+                         query_params={'email': scrambled_email},
                          success_url=reverse('user_management_manage_sponsored_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
 
     def test_registrar_user_can_add_sponsorship_to_existing_user(self):
         self.log_in_user(self.registrar_user)
+        scrambled_email = self.randomize_capitalization(self.regular_user.email)
         self.submit_form('user_management_sponsored_user_add_user',
                          data={'a-sponsoring_registrars': self.registrar.pk},
-                         query_params={'email': self.regular_user.email},
+                         query_params={'email': scrambled_email},
                          success_url=reverse('user_management_manage_sponsored_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
 
@@ -968,7 +979,8 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ADDING NEW USERS TO REGISTRARS AS REGISTRAR USERS) ###
 
     def test_admin_user_can_add_new_user_to_registrar(self):
-        address = 'doesnotexist@example.com'
+        address = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_address = address.lower()
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_registrar_user_add_user',
                           data={'a-registrar': self.registrar.pk,
@@ -977,11 +989,15 @@ class UserManagementViewsTestCase(PermaTestCase):
                                 'a-e-address': address},
                           query_params={'email': address},
                           success_url=reverse('user_management_manage_registrar_user'),
-                          success_query=LinkUser.objects.filter(email=address,
-                                                                registrar=self.registrar).exists())
+                          success_query=LinkUser.objects.filter(
+                              email=normalized_address,
+                              raw_email=address,
+                              registrar=self.registrar).exists()
+                         )
 
     def test_registrar_user_can_add_new_user_to_registrar(self):
-        address = 'doesnotexist@example.com'
+        address = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_address = address.lower()
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk,
@@ -990,16 +1006,21 @@ class UserManagementViewsTestCase(PermaTestCase):
                                'a-e-address': address},
                          query_params={'email': address},
                          success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(email=address,
-                                                               registrar=self.registrar).exists())
+                         success_query=LinkUser.objects.filter(
+                             email=normalized_address,
+                             raw_email=address,
+                             registrar=self.registrar).exists()
+                         )
+
         # Try to add the same person again; should fail
+        scrambled_email = self.randomize_capitalization(address)
         response = self.submit_form('user_management_registrar_user_add_user',
                                      data={'a-registrar': self.registrar.pk,
                                            'a-first_name': 'First',
                                            'a-last_name': 'Last',
-                                           'a-e-address': address},
-                                     query_params={'email': address}).content
-        self.assertIn(bytes("{} is already a registrar user for your registrar.".format(address), 'utf-8'), response)
+                                           'a-e-address': scrambled_email},
+                                     query_params={'email': scrambled_email}).content
+        self.assertIn(bytes("{} is already a registrar user for your registrar.".format(normalized_address), 'utf-8'), response)
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_user)
@@ -1015,21 +1036,29 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### ADDING EXISTING USERS TO REGISTRARS ###
 
-    def test_admin_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.admin_user)
+    def add_registrars(self):
+        # submit email with the same capitalization
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
                          query_params={'email': self.regular_user.email},
                          success_url=reverse('user_management_manage_registrar_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
 
-    def test_registrar_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
+        # submit email with a different capitalization
+        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.regular_user.email},
+                         query_params={'email': scrambled_email},
                          success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
+                         success_query=LinkUser.objects.filter(pk=self.another_regular_user.pk, registrar=self.registrar))
+
+    def test_admin_user_can_add_existing_user_to_registrar(self):
+        self.log_in_user(self.admin_user)
+        self.add_registrars()
+
+    def test_registrar_user_can_add_existing_user_to_registrar(self):
+        self.log_in_user(self.registrar_user)
+        self.add_registrars()
 
     def test_registrar_user_can_upgrade_org_user_to_registrar(self):
         self.log_in_user(self.registrar_user)
@@ -1099,21 +1128,27 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ADDING NEW USERS AS ADMINS ###
 
     def test_admin_user_can_add_new_user_as_admin(self):
+        address = self.randomize_capitalization('doesnotexist@example.com')
+        normalized_address = address.lower()
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_admin_user_add_user',
                          data={'a-first_name': 'First',
                                'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
+                               'a-e-address': address},
+                         query_params={'email': address},
                          success_url=reverse('user_management_manage_admin_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                               is_staff=True).exists())
+                         success_query=LinkUser.objects.filter(
+                             email=normalized_address,
+                             raw_email=address,
+                             is_staff=True).exists()
+                         )
+
     ### ADDING EXISTING USERS AS ADMINS ###
 
     def test_admin_user_can_add_existing_user_as_admin(self):
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_admin_user_add_user',
-                         query_params={'email': self.regular_user.email},
+                         query_params={'email': self.randomize_capitalization(self.regular_user.email)},
                          success_url=reverse('user_management_manage_admin_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
 
@@ -2338,7 +2373,9 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_faculty_user(self):
         rand = random()
-        return { 'email': 'user{}@university.org'.format(rand),
+        email = self.randomize_capitalization('user{}@university.org'.format(rand))
+        return { 'raw_email': email,
+                 'normalized_email': email.lower(),
                  'first': 'Joe',
                  'last': 'Yacobówski',
                  'requested_account_note': 'Journal {}'.format(rand) }
@@ -2355,12 +2392,12 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # New user email address + journal info
         self.submit_form('sign_up_faculty',
-                          data = { 'e-address': new_user['email'],
+                          data = { 'e-address': new_user['raw_email'],
                                    'requested_account_note': new_user['requested_account_note']},
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
 
         # LOGGED IN
 
@@ -2368,23 +2405,23 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (This succeeds and creates a new account; see issue 1749)
         new_user = self.new_faculty_user()
         self.submit_form('sign_up_faculty',
-                          data = { 'e-address': new_user['email'],
+                          data = { 'e-address': new_user['raw_email'],
                                    'requested_account_note': new_user['requested_account_note']},
                           user = existing_user['email'],
                           success_url = reverse('register_email_instructions'))
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['normalized_email'])
 
     def test_new_faculty_form_honeypot(self):
         new_user = self.new_faculty_user()
         self.submit_form('sign_up_faculty',
-                          data = { 'e-address': new_user['email'],
+                          data = { 'e-address': new_user['raw_email'],
                                    'requested_account_note': new_user['requested_account_note'],
                                    'telephone': "I'm a bot." },
                           success_url = reverse('register_email_instructions'))
         self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(LinkUser.objects.filter(email=new_user['email']).exists())
+        self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
 
     def test_new_faculty_failure(self):
         '''
@@ -2401,7 +2438,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # If email address already belongs to an account, validation fails
         self.submit_form('sign_up_faculty',
-                          data = { 'e-address': 'test_user@example.com',
+                          data = { 'e-address': self.randomize_capitalization('test_user@example.com'),
                                    'requested_account_note': 'Here'},
                           error_keys = ['email'])
         self.assertEqual(len(mail.outbox), 0)
