@@ -17,6 +17,7 @@ import surt
 import sys
 from tqdm import tqdm
 import time
+from pathlib import Path
 
 
 from django.conf import settings
@@ -667,28 +668,32 @@ def populate_folder_cached_path(ctx, batch_size=500):
     else:
         logger.info("No more folders left to update!")
 
+
 #
 # Merge user accounts
 #
 
-TRANSFERRED_ORG_LINKS_CSV = 'merge_reports/tranferred_org_links.csv'
-TRANSFERRED_PERSONAL_LINKS_CSV = 'merge_reports/tranferred_personal_links.csv'
+TRANSFERRED_ORG_LINKS_CSV = 'merge_reports/transferred_org_links.csv'
+TRANSFERRED_PERSONAL_LINKS_CSV = 'merge_reports/transferred_personal_links.csv'
 MERGED_USERS_CSV = 'merge_reports/merged_users.csv'
 RETAINED_USERS_CSV = 'merge_reports/retained_users.csv'
 
-def initialize_csvs():
-    for filename in [TRANSFERRED_ORG_LINKS_CSV, TRANSFERRED_PERSONAL_LINKS_CSV, MERGED_USERS_CSV, RETAINED_USERS_CSV]:
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-    with open(TRANSFERRED_ORG_LINKS_CSV, 'w', newline='') as csvfile:
+def initialize_csvs(reports_dir):
+    p = Path(reports_dir)
+
+    for filename in [TRANSFERRED_ORG_LINKS_CSV, TRANSFERRED_PERSONAL_LINKS_CSV, MERGED_USERS_CSV, RETAINED_USERS_CSV]:
+        os.makedirs(p / os.path.dirname(filename), exist_ok=True)
+
+    with open(p / TRANSFERRED_ORG_LINKS_CSV, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         writer.writerow(['guid', 'from user id', 'to user id', 'moved at'])
 
-    with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'w', newline='') as csvfile:
+    with open(p / TRANSFERRED_PERSONAL_LINKS_CSV, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         writer.writerow(['guid', 'from user id', 'from folder id', 'to user id', 'to folder id', 'moved at'])
 
-    with open(MERGED_USERS_CSV, 'w', newline='') as csvfile:
+    with open(p / MERGED_USERS_CSV, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         writer.writerow([
             'user id',
@@ -701,7 +706,7 @@ def initialize_csvs():
             'merged at'
         ])
 
-    with open(RETAINED_USERS_CSV, 'w', newline='') as csvfile:
+    with open(p / RETAINED_USERS_CSV, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         writer.writerow(['user id', 'original email', 'normalized email', 'merged with accounts', 'merged at'])
 
@@ -709,8 +714,11 @@ def initialize_csvs():
 def merge_accounts(
         to_keep,
         to_delete,
+        reports_dir,
         copy_memberships=True,
         transfer_links=False):
+
+    p = Path(reports_dir)
 
     #
     # Make sure the 'kept' account belongs to the same registrar, or the same orgs, as the other accounts
@@ -730,7 +738,7 @@ def merge_accounts(
     if transfer_links:
         # Find all links in org folders and change 'created_by' to the new ID.
         org_links = Link.objects.filter(created_by__in=to_delete, organization__isnull=False)
-        with open(TRANSFERRED_ORG_LINKS_CSV, 'a', newline='') as csvfile:
+        with open(p / TRANSFERRED_ORG_LINKS_CSV, 'a', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter='|')
             for link in org_links:
                 writer.writerow([link.guid, link.created_by_id, to_keep.id, timezone.now()])
@@ -744,7 +752,7 @@ def merge_accounts(
         # in question that folder tree structure can be ignored.
         for user in to_delete:
             personal_links = Link.folders.through.objects.filter(link__in=user.created_links.all())
-            with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'a', newline='') as csvfile:
+            with open(p / TRANSFERRED_PERSONAL_LINKS_CSV, 'a', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter='|')
                 for lf in personal_links:
                     writer.writerow([lf.link_id, lf.link.created_by_id, lf.folder_id, to_keep.id, to_keep.root_folder_id, timezone.now()])
@@ -754,7 +762,7 @@ def merge_accounts(
     #
     # Finally, soft-delete the redundant accounts...
     #
-    with open(MERGED_USERS_CSV, 'a', newline='') as csvfile:
+    with open(p / MERGED_USERS_CSV, 'a', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         for user in to_delete:
             original_email, placeholder_email = user.soft_delete_after_merge_with_user(to_keep)
@@ -777,7 +785,7 @@ def merge_accounts(
     if updated_org_links or updated_personal_links:
         to_keep.link_count = to_keep.created_links.count()
     to_keep.save(update_fields=['notes', 'link_count'])
-    with open(RETAINED_USERS_CSV, 'a', newline='') as csvfile:
+    with open(p / RETAINED_USERS_CSV, 'a', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
         writer.writerow([
             to_keep.id,
@@ -788,7 +796,8 @@ def merge_accounts(
         ])
 
 
-def unmerge_accounts(from_user_id, log_to_file=None):
+def unmerge_accounts(from_user_id, reports_dir, log_to_file=None):
+    p = Path(reports_dir)
     user = LinkUser.objects.get(id=from_user_id)
     if match := re.search(r"\n*Merged with (?P<user_ids>.+)", user.notes):
         user_ids = [int(uid) for uid in match.group('user_ids').split(', ')]
@@ -800,7 +809,7 @@ def unmerge_accounts(from_user_id, log_to_file=None):
     reversed_personal_links = defaultdict(list)
 
     # Find all transferred org links and change 'created_by' to the old ID.
-    with open(TRANSFERRED_ORG_LINKS_CSV, 'r', newline='') as csvfile:
+    with open(p / TRANSFERRED_ORG_LINKS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         to_reverse = []
         for row in csv_reader:
@@ -815,7 +824,7 @@ def unmerge_accounts(from_user_id, log_to_file=None):
 
     # Find all transferred personal links and move them back to their original folder,
     # in addition to setting 'created_by' to the original ID.
-    with open(TRANSFERRED_PERSONAL_LINKS_CSV, 'r', newline='') as csvfile:
+    with open(p / TRANSFERRED_PERSONAL_LINKS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         lfs_to_reverse = []
         links_to_reverse = []
@@ -834,7 +843,7 @@ def unmerge_accounts(from_user_id, log_to_file=None):
         Link.objects.bulk_update(links_to_reverse, ['created_by_id'])
 
     # Reverse the soft-deletions
-    with open(MERGED_USERS_CSV, 'r', newline='') as csvfile:
+    with open(p / MERGED_USERS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         to_reverse = []
         from_users = set()
@@ -909,25 +918,25 @@ def unmerge_accounts(from_user_id, log_to_file=None):
             print("")
 
 
-def merge_users_with_only_unconfirmed_accounts(user_list):
+def merge_users_with_only_unconfirmed_accounts(user_list, reports_dir):
     """
     Sync all the registrars/orgs to the most recently created and delete the others.
     """
     user_list.sort(key=lambda u: u.id, reverse=True)
     to_keep, *to_delete = user_list
-    merge_accounts(to_keep, to_delete)
+    merge_accounts(to_keep, to_delete, reports_dir)
 
 
-def merge_users_with_only_one_confirmed_account(user_list):
+def merge_users_with_only_one_confirmed_account(user_list, reports_dir):
     """
     Sync all the registrars/orgs to the confirmed one and delete the other ones.
     """
     user_list.sort(key=lambda u: u.is_confirmed, reverse=True)
     to_keep, *to_delete = user_list
-    merge_accounts(to_keep, to_delete)
+    merge_accounts(to_keep, to_delete, reports_dir)
 
 
-def merge_users_with_multiple_confirmed_accounts_but_no_links(user_list):
+def merge_users_with_multiple_confirmed_accounts_but_no_links(user_list, reports_dir):
     """
     Select the account they have logged into most recently, or if they
     have never logged in, the most recently created confirmed account.
@@ -963,10 +972,10 @@ def merge_users_with_multiple_confirmed_accounts_but_no_links(user_list):
             else:
                 to_delete.append(user)
 
-    merge_accounts(to_keep, to_delete)
+    merge_accounts(to_keep, to_delete, reports_dir)
 
 
-def merge_users_with_only_one_account_with_links(user_list):
+def merge_users_with_only_one_account_with_links(user_list, reports_dir):
     """
     If the account with the links is the one they have logged into most recently, keep that one:
     sync registrars/orgs and then delete the other ones.
@@ -984,14 +993,14 @@ def merge_users_with_only_one_account_with_links(user_list):
     if account_with_links == most_recently_logged_into_account:
         to_keep = account_with_links
         to_delete = list(filter(lambda u: u is not to_keep, user_list))
-        merge_accounts(to_keep, to_delete)
+        merge_accounts(to_keep, to_delete, reports_dir)
     else:
         to_keep = most_recently_logged_into_account
         to_delete = list(filter(lambda u: u is not to_keep, user_list))
-        merge_accounts(to_keep, to_delete, transfer_links=True)
+        merge_accounts(to_keep, to_delete, reports_dir, transfer_links=True)
 
 
-def merge_users_with_multiple_accounts_with_links(user_list):
+def merge_users_with_multiple_accounts_with_links(user_list, reports_dir):
     """
     Move all links into the account with the most recent login,
     sync registrars/orgs and then delete the other ones.
@@ -1010,7 +1019,7 @@ def merge_users_with_multiple_accounts_with_links(user_list):
                 to_keep = user
         else:
             to_delete.append(user)
-    merge_accounts(to_keep, to_delete, transfer_links=True)
+    merge_accounts(to_keep, to_delete, reports_dir, transfer_links=True)
 
 
 DUPLICATIVE_USER_SQL = '''
@@ -1042,6 +1051,7 @@ DUPLICATIVE_USER_SQL = '''
   GROUP BY
     perma_linkuser.id;
 '''
+
 
 def get_and_categorize_duplicative_users():
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
@@ -1132,19 +1142,20 @@ def get_and_categorize_duplicative_users():
         'multiple_confirmed_several_with_links': multiple_confirmed_several_with_links
     }
 
+
 @task
-def merge_duplicative_accounts(ctx):
+def merge_duplicative_accounts(ctx, reports_dir='.'):
     soup = time.time()
 
     emails_by_category = get_and_categorize_duplicative_users()
 
-    initialize_csvs()
+    initialize_csvs(reports_dir)
 
     def merge_category(category, merge_func):
         start = time.time()
         for normalized_email in emails_by_category[category]:
             users = LinkUser.objects.filter(email__iexact=normalized_email)
-            merge_func(list(users))
+            merge_func(list(users), reports_dir)
         end = time.time()
         logger.info(f"MERGING: Merged {category} in {end - start} seconds.")
 
@@ -1157,12 +1168,15 @@ def merge_duplicative_accounts(ctx):
     nuts = time.time()
     logger.info(f"MERGING: Merged all duplicative accounts in {nuts - soup} seconds.")
 
+
 @task
-def unmerge_duplicative_accounts(ctx, log_to_file=None):
-    with open(RETAINED_USERS_CSV, 'r', newline='') as csvfile:
+def unmerge_duplicative_accounts(ctx, log_to_file=None, reports_dir='.'):
+    p = Path(reports_dir)
+    with open(p / RETAINED_USERS_CSV, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter='|')
         for row in csv_reader:
-            unmerge_accounts(row['user id'], log_to_file)
+            unmerge_accounts(row['user id'], reports_dir, log_to_file)
+
 
 @task
 def assert_no_duplicative_accounts(ctx):
