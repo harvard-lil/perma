@@ -51,7 +51,8 @@ from perma.forms import (
     UserAddSponsoringRegistrarForm,
     UserAddOrganizationForm,
     UserFormWithAdmin,
-    UserAddAdminForm)
+    UserAddAdminForm,
+    UserUpdateProfileForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
@@ -1108,8 +1109,11 @@ def settings_profile(request):
     """
     Settings profile, change name, change email, ...
     """
+    if request.method == 'GET':
+        # We want the user to see their raw email address
+        request.user.email = request.user.raw_email
 
-    form = UserForm(get_form_data(request), prefix = "a", instance=request.user)
+    form = UserUpdateProfileForm(get_form_data(request), prefix = "a", instance=request.user)
 
     if request.method == 'POST':
         if form.is_valid():

@@ -129,7 +129,7 @@ class SetPasswordForm(SetPasswordForm):
 
 class UserForm(forms.ModelForm):
     """
-    User add/edit form.
+    User add form.
     """
     telephone = forms.CharField(label="Do not fill out this box", required=False)  # field to fool bots
 
@@ -365,6 +365,14 @@ class UserAddAdminForm(forms.ModelForm):
         if commit:
             self.instance.save()
         return self.instance
+
+class UserUpdateProfileForm(forms.ModelForm):
+    """
+    Form for users to update their profile information.
+    """
+    class Meta:
+        model = LinkUser
+        fields = ['first_name', 'last_name', 'email']
 
 
 ### CONTACT FORMS ###

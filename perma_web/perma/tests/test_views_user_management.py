@@ -1174,15 +1174,16 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### SETTINGS ###
 
     def test_user_can_change_own_settings(self):
-        self.submit_form('user_management_settings_profile',
-                         user=self.admin_user,
-                         data={
-                             'a-first_name': 'Newfirst',
-                             'a-last_name': 'Newlast',
-                             'a-e-address': 'test_admin_user@example.com'
-                         },
-                         success_url=reverse('user_management_settings_profile'),
-                         success_query=LinkUser.objects.filter(first_name='Newfirst'))
+        response = self.submit_form('user_management_settings_profile',
+                                     user=self.admin_user,
+                                     data={
+                                         'a-first_name': 'Newfirst',
+                                         'a-last_name': 'Newlast',
+                                         'a-email': 'test_admin_user@example.com'
+                                     },
+                                     request_kwargs={"follow": True},
+                                     success_query=LinkUser.objects.filter(first_name='Newfirst'))
+        self.assertIn(bytes('Profile saved!', 'utf-8'), response.content)
 
     def test_user_can_request_deletion_once(self):
         deletion_url = reverse('user_management_delete_account')
