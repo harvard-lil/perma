@@ -683,7 +683,7 @@ def initialize_csvs(reports_dir):
     p = Path(reports_dir)
 
     for filename in [TRANSFERRED_ORG_LINKS_CSV, TRANSFERRED_PERSONAL_LINKS_CSV, MERGED_USERS_CSV, RETAINED_USERS_CSV]:
-        os.makedirs(p / os.path.dirname(filename), exist_ok=True)
+        (p / filename).parent.mkdir(parents=True, exist_ok=True)
 
     with open(p / TRANSFERRED_ORG_LINKS_CSV, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='|')
