@@ -1,4 +1,5 @@
 import json
+from random import choice
 from urllib.parse import urlencode
 
 from django.test import TestCase
@@ -94,6 +95,9 @@ class PermaTestCase(TestCase):
             success_query = query that should return one object if form worked
         """
 
+        if success_query:
+            self.assertNotEqual(success_query.count(), 1)
+
         kwargs['require_status_code'] = None
         resp = self.post(view_name, data, *args, **kwargs)
 
@@ -119,6 +123,8 @@ class PermaTestCase(TestCase):
 
         return resp
 
+    def randomize_capitalization(self, s):
+        return ''.join(choice((str.upper, str.lower))(c) for c in s)
 
 
 # from https://github.com/jamesls/fakeredis/issues/234

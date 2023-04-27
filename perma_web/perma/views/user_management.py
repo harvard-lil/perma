@@ -51,7 +51,8 @@ from perma.forms import (
     UserAddSponsoringRegistrarForm,
     UserAddOrganizationForm,
     UserFormWithAdmin,
-    UserAddAdminForm)
+    UserAddAdminForm,
+    UserUpdateProfileForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
@@ -751,7 +752,7 @@ class BaseAddUserToGroup(UpdateView):
             return self.object
         user_email = self.request.GET.get('email')
         if user_email:
-            return LinkUser.objects.filter(email=user_email).first()
+            return LinkUser.objects.filter(email=user_email.lower()).first()
 
     def get_initial(self):
         """ Populate form with supplied email address. """
@@ -781,7 +782,7 @@ class BaseAddUserToGroup(UpdateView):
                                  extra_tags='safe')
         else:
             send_user_email(
-                self.object.email,
+                self.object.raw_email,
                 self.confirmation_email_template,
                 { 'account_settings_page': f"https://{self.request.get_host()}{reverse('user_management_settings_profile')}",
                   'form': form }
@@ -1108,8 +1109,11 @@ def settings_profile(request):
     """
     Settings profile, change name, change email, ...
     """
+    if request.method == 'GET':
+        # We want the user to see their raw email address
+        request.user.email = request.user.raw_email
 
-    form = UserForm(get_form_data(request), prefix = "a", instance=request.user)
+    form = UserUpdateProfileForm(get_form_data(request), prefix = "a", instance=request.user)
 
     if request.method == 'POST':
         if form.is_valid():
@@ -1357,7 +1361,7 @@ def limited_login(request, template_name='registration/login.html',
     """
 
     if request.method == "POST" and not request.user.is_authenticated:
-        username = request.POST.get('username')
+        username = request.POST.get('username', '').lower()
         try:
             target_user = LinkUser.objects.get(email=username)
         except LinkUser.DoesNotExist:
@@ -1369,11 +1373,14 @@ def limited_login(request, template_name='registration/login.html',
             if not target_user.is_active:
                 return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
-    # subclass authentication_form to add autofocus attribute to username field
     class LoginForm(authentication_form):
         def __init__(self, *args, **kwargs):
             super(LoginForm, self).__init__(*args, **kwargs)
             self.fields['username'].widget.attrs['autofocus'] = ''
+
+        def clean_username(self):
+            return self.cleaned_data.get('username', '').lower()
+
 
     return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
 
@@ -1391,9 +1398,12 @@ def reset_password(request):
             super(PasswordResetForm, self).__init__(*args, **kwargs)
             self.fields['email'].widget.attrs['autofocus'] = ''
 
+        def clean_username(self):
+            return self.cleaned_data.get('username', '').lower()
+
     if request.method == "POST":
         try:
-            target_user = LinkUser.objects.get(email=request.POST.get('email'))
+            target_user = LinkUser.objects.get(email=request.POST.get('email', '').lower())
         except LinkUser.DoesNotExist:
             target_user = None
         if target_user:
@@ -1435,7 +1445,7 @@ def libraries(request):
         else:
             user_form = UserForm(request.POST, prefix = "a")
             user_form.fields['email'].label = "Your email"
-        user_email = request.POST.get('a-e-address', None)
+        user_email = request.POST.get('a-e-address', '').lower()
         try:
             target_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
@@ -1519,7 +1529,7 @@ def sign_up_courts(request):
             return something_took_the_bait
 
         form = CreateUserFormWithCourt(request.POST)
-        submitted_email = request.POST.get('e-address', None)
+        submitted_email = request.POST.get('e-address', '').lower()
 
         try:
             target_user = LinkUser.objects.get(email=submitted_email)
@@ -1590,7 +1600,7 @@ def sign_up_firm(request):
             return something_took_the_bait
 
         form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('e-address', None)
+        user_email = request.POST.get('e-address', '').lower()
 
         try:
             target_user = LinkUser.objects.get(email=user_email)
@@ -1691,7 +1701,7 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
         'request': request
     })
     send_user_email(
-        user.email,
+        user.raw_email,
         template,
         context
     )
@@ -1710,7 +1720,7 @@ def email_registrar_request(request, pending_registrar):
     """
     host = request.get_host()
     try:
-        email = request.user.email
+        email = request.user.raw_email
     except AttributeError:
         # User did not have an account
         email = request.POST.get('a-e-address')
@@ -1736,7 +1746,7 @@ def email_approved_registrar_user(request, user):
     """
     host = request.get_host()
     send_user_email(
-        user.email,
+        user.raw_email,
         "email/library_approved.txt",
         {
             "host": host,
@@ -1755,7 +1765,7 @@ def email_court_request(request, user):
         target_user = None
     send_admin_email(
         "Perma.cc new library court account information request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/court_request.txt",
         {
@@ -1763,7 +1773,7 @@ def email_court_request(request, user):
             "last_name": user.last_name,
             "court_name": user.requested_account_note,
             "has_account": target_user,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1777,7 +1787,7 @@ def email_firm_request(request, user):
         target_user = None
     send_admin_email(
         "Perma.cc new law firm account information request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/firm_request.txt",
         {
@@ -1785,7 +1795,7 @@ def email_firm_request(request, user):
             "last_name": user.last_name,
             "firm_name": user.requested_account_note,
             "has_account": target_user,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1795,13 +1805,13 @@ def email_premium_request(request, user):
     """
     send_admin_email(
         "Perma.cc premium account request",
-        user.email,
+        user.raw_email,
         request,
         "email/admin/premium_request.txt",
         {
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "email": user.email
+            "email": user.raw_email
         }
     )
 
@@ -1811,13 +1821,13 @@ def email_deletion_request(request):
     """
     send_admin_email(
         "Perma.cc account deletion request",
-        request.user.email,
+        request.user.raw_email,
         request,
         "email/admin/deletion_request.txt",
         {
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
-            "email": request.user.email,
+            "email": request.user.raw_email,
             "admin_url": request.build_absolute_uri(reverse('admin:perma_linkuser_change', args=(request.user.id,)))
         }
     )

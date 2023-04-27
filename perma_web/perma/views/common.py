@@ -420,7 +420,7 @@ def contact(request):
                 send_user_email_copy_admins(
                     subject,
                     from_address,
-                    [user.email for user in Registrar.objects.get(id=reg_id).active_registrar_users()],
+                    [user.raw_email for user in Registrar.objects.get(id=reg_id).active_registrar_users()],
                     request,
                     'email/registrar_contact.txt',
                     context

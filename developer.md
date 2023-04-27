@@ -182,6 +182,8 @@ Our templates are pre-compiled by webpack. The source files are in `perma_web > 
 `perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
 are configured so our MTA will actually transmit the email.
 
+We recommend addressing the email to user.raw_email rather than user.email (which is downcased), just in case.
+
 On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
 ### Asset pipeline

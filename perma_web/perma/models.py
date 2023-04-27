@@ -808,7 +808,11 @@ class LinkUser(CustomerModel, AbstractBaseUser):
         db_index=True,
         error_messages={'unique': "A user with that email address already exists.",}
     )
-
+    raw_email = models.CharField(
+        verbose_name='raw email address',
+        max_length=255,
+        null=True
+    )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
     pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users', on_delete=models.CASCADE)
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
@@ -848,8 +852,31 @@ class LinkUser(CustomerModel, AbstractBaseUser):
     class Meta:
         verbose_name = 'User'
 
+        constraints = [
+            # We would like to add a case-insensitive uniqueness constraint on `email`
+            # like the below, but expressions aren't supported in this version of Django.
+            # We are adding the constraint via a SQL migration instead. See 0019_auto_20230424_2134.py
+            # We additionally note that in this version of Django, constraints aren't
+            # checked during model validation. We are not adding a special case-insensitive
+            # validation check, because we downcase email in `clean`: checked against a
+            # known-to-be-downcased column, the check from unique=True is sufficient.
+            # models.UniqueConstraint(Lower('email'), name='unique_lower_email')
+        ]
+
+    def format_email_fields(self):
+        self.raw_email = self.email
+        self.email = self.email.lower()
+
+    def clean(self, *args, **kwargs):
+        self.format_email_fields()
+        super().clean(*args, **kwargs)
+
     def save(self, *args, **kwargs):
-        super(LinkUser, self).save(*args, **kwargs)
+        if not self.pk and not self.raw_email:
+            # If objects aren't being created via a model form where `clean` has been called,
+            # make sure email is still formatted correctly.
+            self.format_email_fields()
+        super().save(*args, **kwargs)
 
         # make sure root folder is created for each user.
         if not self.root_folder:

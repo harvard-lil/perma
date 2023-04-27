@@ -2,9 +2,9 @@
 {% block title %} | Reactivate sponsorship user{% endblock %}
 
 {% block adminContent %}
-  <h3 class="body-bh">Reactivate <strong>{{ registrar }}'s</strong> sponsorship of <strong>{{ target_user.email }}</strong>?</h3>
+  <h3 class="body-bh">Reactivate <strong>{{ registrar }}'s</strong> sponsorship of <strong>{{ target_user.raw_email }}</strong>?</h3>
   <p class="page-dek">This user will be able to create Perma Links courtesy of {{ registrar }}</p>
-  <p>Do you really want to reactivate <strong>{{ target_user.email }}'s</strong> sponsorship?</p>
+  <p>Do you really want to reactivate <strong>{{ target_user.raw_email }}'s</strong> sponsorship?</p>
   <form action="" method="POST">
     {% csrf_token %}
     <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-primary">Reactivate sponsorship</button>

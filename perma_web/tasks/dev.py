@@ -273,7 +273,7 @@ def ping_all_users(ctx, limit_to="", exclude="", batch_size=500):
     logger.info(f"Begin emailing {to_send_count} users.")
     with open(already_emailed_path, 'a') as f:
         for user in tqdm(users):
-            succeeded = send_user_email(user.email,
+            succeeded = send_user_email(user.raw_email,
                                         'email/special.txt',
                                          {'user': user})
             if succeeded:
@@ -1181,4 +1181,4 @@ def unmerge_duplicative_accounts(ctx, log_to_file=None, reports_dir='.'):
 @task
 def assert_no_duplicative_accounts(ctx):
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
-    assert not len(duplicative_users)
+    assert not len(duplicative_users), ", ".join(str(user.id) for user in duplicative_users)
