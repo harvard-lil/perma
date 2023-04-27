@@ -1,0 +1,11 @@
+TITLE: Your Perma.cc Account
+
+Hello,
+
+We noticed that your email address was being used across multiple Perma.cc accounts. This is likely due to an error having to do with case sensitive logins and may have resulted in your dashboard not displaying your Perma Links correctly.
+
+We were able to merge the accounts, and all of your links should now all be visible in the same dashboard.
+
+It is possible that the next time you log in you will have to reset your password, but beyond that we do not expect you to experience any service interruption. Please reach out to info@perma.cc if this is not the case.
+
+The Perma.cc Team

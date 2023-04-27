@@ -8,6 +8,7 @@ import internetarchive
 import itertools
 import json
 import os
+from pathlib import Path
 import pytz
 import re
 import requests
@@ -17,7 +18,6 @@ import surt
 import sys
 from tqdm import tqdm
 import time
-from pathlib import Path
 
 
 from django.conf import settings
@@ -1182,3 +1182,26 @@ def unmerge_duplicative_accounts(ctx, log_to_file=None, reports_dir='.'):
 def assert_no_duplicative_accounts(ctx):
     duplicative_users = LinkUser.objects.raw(DUPLICATIVE_USER_SQL)
     assert not len(duplicative_users), ", ".join(str(user.id) for user in duplicative_users)
+
+
+@task
+def email_retained_users(ctx, reports_dir='.'):
+    p = Path(reports_dir)
+
+    sent_count = 0
+    failed_list = []
+
+    logger.info("Begin emailing users.")
+    with open(p / RETAINED_USERS_CSV, 'r', newline='') as csvfile:
+        csv_reader = csv.DictReader(csvfile, delimiter='|')
+        for row in csv_reader:
+            raw_email = row['original email']
+            succeeded = send_user_email(raw_email,'email/merged.txt',{})
+            if succeeded:
+                sent_count += 1
+            else:
+                failed_list.append(row['user id'])
+
+    logger.info(f"Emailed {sent_count} users")
+    if failed_list:
+        logger.warning(f"Some users were not emailed: {str(failed_list)}. Check log for fatal SMTP errors.")
