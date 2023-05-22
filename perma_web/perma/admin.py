@@ -253,6 +253,24 @@ class RegistrarNameFilter(InputFilter):
             return queryset.filter(registrar__name__icontains=value)
 
 
+class JobWithDeletedLinkFilter(admin.SimpleListFilter):
+    parameter_name = 'link_deleted'
+    title = 'link was deleted'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'yes':
+            return queryset.filter(link__user_deleted=True)
+        elif value == 'no':
+            return queryset.filter(Q(link__isnull=True) | Q(link__user_deleted=False))
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -539,15 +557,14 @@ class FolderAdmin(MPTTModelAdmin):
 
 class CaptureJobAdmin(admin.ModelAdmin):
     list_display = ['id', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url']
-    list_filter = [CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded']
+    list_filter = [CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter]
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
 
     def get_queryset(self, request):
-        q = Q(link__isnull=True) | Q(link__user_deleted=False)
-        return super(CaptureJobAdmin, self).get_queryset(request).filter(q).select_related('link')
+        return super(CaptureJobAdmin, self).get_queryset(request).select_related('link')
 
     def link_creation_timestamp(self, obj):
         if obj.link:
