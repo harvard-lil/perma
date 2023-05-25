@@ -244,13 +244,27 @@ class IAItemHasTasksFilter(admin.SimpleListFilter):
 
 
 class RegistrarNameFilter(InputFilter):
-    parameter_name = 'registrar'
-    title = 'Registrar'
+    parameter_name = 'registrar_name'
+    title = 'Registrar Name'
 
     def queryset(self, request, queryset):
         value = self.value()
         if value:
             return queryset.filter(registrar__name__icontains=value)
+
+
+class RegistrarIdFilter(InputFilter):
+    parameter_name = 'registrar_id'
+    title = 'Registrar ID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            try:
+                value = int(value)
+            except ValueError:
+                return queryset.none()
+            return queryset.filter(registrar__id=value)
 
 
 class JobWithDeletedLinkFilter(admin.SimpleListFilter):
@@ -395,7 +409,7 @@ class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
-    list_filter = [RegistrarNameFilter, 'user_deleted']
+    list_filter = [RegistrarNameFilter, RegistrarIdFilter, 'user_deleted']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
