@@ -276,10 +276,8 @@ Data migrations follow the same flow, but add a step in the middle. See the [Dja
 2) Make sure no containers are running: `docker compose down`.
 3) Edit the `volumes` section of the `db` service of `docker-compose.yml`:
    - rename the `postgres_data` volume to something new like `prod_postgres_data`, and make the same change down at the bottom of the file in the `volumes` stanza.
-   - add a line that mounts the database dump into the db container's tmp directory, like `./the-database-dump's-local-path.dump:/tmp/data.dump`
-4) Run `docker compose up -d`. Expect it to take longer than usual, because of the large mount.
-5) Run `docker compose exec db pg_restore --username=perma --verbose --no-owner -h localhost -d perma /tmp/data.dump`. It will take several minutes to complete. Expect a single non-fatal error at the end of the process, "role "rdsadmin" does not exist".
-6) Optionally, remove the line for the extra mount, and run `docker compose up -d` again.
+4) Run `docker compose up -d`.
+5) Run `bash ingest.sh -f path-to-file.dump`. It will take several minutes to complete. Expect a single non-fatal error at the end of the process, "role "rdsadmin" does not exist".
 
 You should then be able to run as usual, and log into any account using the password "changeme".
 
