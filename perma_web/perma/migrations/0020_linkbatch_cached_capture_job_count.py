@@ -8,8 +8,8 @@ def backfill_cached_capture_job_count(apps, schema_editor):
     LinkBatch = apps.get_model('perma', 'LinkBatch')
     CaptureJob = apps.get_model('perma', 'CaptureJob')
 
-    print(f"Start backfilling capture job counts.")
-    updated = LinkBatch.objects.filter(
+    print("Start backfilling capture job counts.")
+    LinkBatch.objects.filter(
         cached_capture_job_count=0
     ).update(
         cached_capture_job_count=Subquery(
@@ -24,7 +24,7 @@ def backfill_cached_capture_job_count(apps, schema_editor):
             )
         )
     )
-    print(f"Updated capture job counts")
+    print("Updated capture job counts")
 
 
 class Migration(migrations.Migration):
