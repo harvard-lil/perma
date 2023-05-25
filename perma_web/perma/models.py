@@ -2139,6 +2139,7 @@ class LinkBatch(models.Model):
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches', on_delete=models.CASCADE)
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False, db_index=True)
     target_folder = models.ForeignKey(Folder, blank=False, null=False, on_delete=models.CASCADE)
+    cached_capture_job_count = models.IntegerField(default=0, db_index=True)
 
     class Meta:
         verbose_name_plural = "link batches"
