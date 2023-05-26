@@ -39,7 +39,9 @@ function render_batch(links_in_batch, folder_path) {
                 link.isPending = true;
                 // divide into batches; each batch takes average_capture_time to complete
                 let waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
-                if (waitMinutes >= 1){
+                if (waitMinutes == Number.POSITIVE_INFINITY){
+                    link.beginsIn = null;
+                } else if (waitMinutes >= 1){
                     link.beginsIn = `about ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''}.`;
                 } else {
                     link.beginsIn = `less than 1 minute.`;
