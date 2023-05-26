@@ -4,7 +4,7 @@ import django_filters
 import os.path
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, F
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from mptt.exceptions import InvalidMove
 from rest_framework import status
@@ -411,7 +411,10 @@ class AuthenticatedLinkListView(BaseView):
         # Batch is set directly on the request object by the LinkBatch api,
         # to prevent abuse of this feature by those POSTing directly to this route.
         if getattr(request, 'batch', None):
-            capture_job.link_batch = LinkBatch.objects.get(id=request.batch)
+            batch = LinkBatch.objects.get(id=request.batch)
+            capture_job.link_batch = batch
+            batch.cached_capture_job_count = F('cached_capture_job_count') + 1
+            batch.save(update_fields=['cached_capture_job_count'])
         capture_job.save()
 
         # Set target folder, in order of preference:

@@ -592,27 +592,19 @@ class CaptureJobAdmin(admin.ModelAdmin):
 
 
 class LinkBatchAdmin(admin.ModelAdmin):
-    list_display = ['id', 'created_by', 'started_on', 'target_folder', 'capture_job_count']
+    list_display = ['id', 'created_by', 'started_on', 'target_folder', 'cached_capture_job_count']
     raw_id_fields = ['created_by', 'target_folder']
-    readonly_fields = ['capture_job_count']
+    readonly_fields = ['cached_capture_job_count']
 
     inlines = [
         new_class("CaptureJobInline", admin.TabularInline, model=CaptureJob,
-                  fields=['status', 'message', 'step_count', 'step_description', 'human'],
-                  readonly_fields=['message', 'step_count', 'step_description', 'human'],
+                  fields=['status', 'submitted_url', 'message', 'step_count', 'step_description', 'human'],
+                  readonly_fields=['status', 'submitted_url', 'message', 'step_count', 'step_description', 'human'],
                   can_delete=False)
     ]
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
-
-    def get_queryset(self, request):
-        return super(LinkBatchAdmin, self).get_queryset(request).annotate(
-            capture_job_count=Count('capture_jobs', distinct=True)
-        )
-
-    def capture_job_count(self, obj):
-        return obj.capture_job_count
 
 
 class InternetArchiveItemAdmin(admin.ModelAdmin):
