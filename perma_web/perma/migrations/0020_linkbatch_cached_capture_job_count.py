@@ -11,6 +11,8 @@ def backfill_cached_capture_job_count(apps, schema_editor):
     print("Start backfilling capture job counts.")
     LinkBatch.objects.filter(
         cached_capture_job_count=0
+    ).exclude(
+        capture_jobs=None
     ).update(
         cached_capture_job_count=Subquery(
             CaptureJob.objects.filter(
