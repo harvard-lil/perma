@@ -596,8 +596,7 @@ class CommonViewsTestCase(PermaTestCase):
             error_keys = [
                 'reason',
                 'source',
-                'email',
-                'guid'
+                'email'
             ]
         )
 
