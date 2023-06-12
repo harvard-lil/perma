@@ -431,24 +431,6 @@ class CommonViewsTestCase(PermaTestCase):
                                            user=user).content
             self.check_contact_params(BeautifulSoup(response, 'html.parser'))
 
-    def check_contact_flags(self, soup):
-        subject_field = soup.find('input', {'name': 'subject'})
-        self.assertEqual(subject_field.get('value', ''), self.flag_subject)
-        message_field = soup.find('textarea', {'name': 'box2'})
-        self.assertEqual(message_field.text.strip(), self.flag_message)
-
-    def test_contact_flags(self):
-        '''
-            Check flag read in from GET params, and that its subject/message override other GET params
-        '''
-        for user in self.users + [None]:
-            response = self.get('contact', query_params={ 'flag': self.flag,
-                                                          'message': self.message_text,
-                                                          'subject': self.custom_subject },
-                                           user=user).content
-            self.check_contact_flags(BeautifulSoup(response, 'html.parser'))
-
-
     ###
     ###   Does the contact form submit as expected?
     ###
@@ -598,6 +580,82 @@ class CommonViewsTestCase(PermaTestCase):
         message = mail.outbox[0]
         self.assertIn("Affiliations: Test Library (Registrar)", message.body)
         self.assertIn("Logged in: true", message.body)
+
+    #
+    # Report form, as a bot
+    #
+
+    def test_report_with_no_guid_renders(self):
+        response = self.get('report').content
+        self.assertIn(b"Report Inappropriate Content", response)
+
+    def test_report_empty_post(self):
+        self.submit_form(
+            'report',
+            data = {},
+            error_keys = [
+                'reason',
+                'source',
+                'email',
+                'guid'
+            ]
+        )
+
+    def test_report_post_with_spam_catcher1(self):
+        self.submit_form(
+            'report',
+            data = {
+                'reason': "",
+                'source': "",
+                'email': "",
+                'telephone': "I'm a bot",
+                'guid': "AAAA-AAAA"
+            },
+            success_url=reverse('contact_thanks')
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+
+    def test_report_post_with_spam_catcher2(self):
+        self.submit_form(
+            'report',
+            data = {
+                'reason': 'Graphic or Dangerous Content',
+                'source': 'Somewhere online',
+                'email': 'me@me.com',
+            },
+            success_url=reverse('contact_thanks')
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+    #
+    # Report form, as a person
+    #
+
+    def test_report_post_with_basic_fields(self):
+        self.submit_form(
+            'report',
+            data = {
+                'reason': 'Graphic or Dangerous Content',
+                'source': 'Somewhere online',
+                'email': 'me@me.com',
+                'guid': 'some-string-that-could-be-a-guid'
+            },
+            success_url=reverse('contact_thanks')
+        )
+        [message] = mail.outbox
+        self.assertIn(f"https://testserver{ reverse('admin:perma_link_changelist') }?guid=some-string-that-could-be-a-guid", message.body)
+        self.assertIn('Graphic or Dangerous Content', message.body)
+        self.assertIn('Somewhere online', message.body)
+        self.assertIn('me@me.com', message.body)
+        self.assertIn('some-string-that-could-be-a-guid', message.body)
+        self.assertIn("Logged in: false", message.body)
+
+    def test_report_email_prepopulated_for_logged_in_user(self):
+        response = self.get('report', user='test_another_library_org_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        [email] = soup.select('input[name="email"]')
+        self.assertEqual(email['value'], 'test_another_library_org_user@example.com')
 
 
     def test_about_partner_list(self):

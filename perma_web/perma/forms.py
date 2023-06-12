@@ -2,6 +2,7 @@ from axes.utils import reset as reset_login_attempts
 
 from django import forms
 from django.contrib.auth.forms import SetPasswordForm
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -392,3 +393,28 @@ class ContactForm(forms.Form):
     telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
     box2 = forms.CharField(label="Message", widget=forms.Textarea)
     referer = forms.URLField(widget=forms.HiddenInput, required=False)
+
+
+class ReportForm(forms.Form):
+    """
+    Form for reporting inappropriate content.
+    """
+    reason = forms.ChoiceField(
+        choices = BLANK_CHOICE_DASH +[(reason, reason) for reason in [
+            'Graphic or Dangerous Content',
+            'False or Misinformation',
+            'Copyright Infringement',
+            'Other'
+        ]],
+        label = 'Reason for Reporting'
+    )
+    source = forms.CharField(
+        label="How did you discover this Perma Link?",
+        help_text="If possible, please include the URL where you found the Perma Link.",
+        widget=forms.Textarea
+    )
+    email = forms.EmailField(label="Your email address")
+    box2 = forms.CharField(label="Message (optional)", widget=forms.Textarea, required=False)
+    telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
+    guid = forms.CharField(widget=forms.HiddenInput, required=False)
+    referer = forms.CharField(widget=forms.HiddenInput, required=False)

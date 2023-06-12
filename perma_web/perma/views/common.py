@@ -17,13 +17,12 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.generic import TemplateView
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
 
 from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
-from ..forms import ContactForm, check_honeypot
+from ..forms import ContactForm, ReportForm, check_honeypot
 from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
     protocol, stream_warc_if_permissible,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
@@ -464,11 +463,6 @@ def contact(request):
             # all other values of `upgrade` are disallowed
             upgrade = None
 
-        flagged_archive_guid = request.GET.get('flag', '')
-        if flagged_archive_guid:
-            subject = 'Reporting Inappropriate Content'
-            message = f'http://perma.cc/{flagged_archive_guid} contains material that is inappropriate.'
-
         form = handle_registrar_fields(
             ContactForm(
                 initial={
@@ -489,6 +483,70 @@ def contact_thanks(request):
     """
     registrar = Registrar.objects.filter(pk=request.GET.get('registrar', '-1')).first()
     return render(request, 'contact-thanks.html', {'registrar': registrar})
+
+
+@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+def report(request):
+    """
+    Report inappropriate content.
+    """
+    def affiliation_string():
+        affiliation_string = ''
+        if request.user.is_authenticated:
+            if request.user.registrar:
+                affiliation_string = f"{request.user.registrar.name} (Registrar)"
+            else:
+                affiliations = [f"{org.name} ({org.registrar.name})" for org in request.user.organizations.all().order_by('registrar')]
+                if affiliations:
+                    affiliation_string = ', '.join(affiliations)
+        return affiliation_string
+
+    if request.method == 'POST':
+
+        if something_took_the_bait := check_honeypot(request, 'contact_thanks'):
+            return something_took_the_bait
+
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['guid']:
+                from_address = form.cleaned_data['email']
+                subject = "[perma-contact] Reporting Inappropriate Content"
+                context = {
+                    "reason": form.cleaned_data['reason'],
+                    "source": form.cleaned_data['source'],
+                    "message": form.cleaned_data['box2'],
+                    "from_address": from_address,
+                    "guid": form.cleaned_data['guid'],
+                    "referer": form.cleaned_data['referer'],
+                    "affiliation_string": affiliation_string()
+                }
+                send_admin_email(
+                    subject,
+                    from_address,
+                    request,
+                    'email/admin/report.txt',
+                    context
+                )
+            return HttpResponseRedirect(reverse('contact_thanks'))
+        else:
+            return render(request, 'report.html', {
+                'form': form,
+                'guid': request.POST.get('guid', '')
+            })
+
+    else:
+        guid = request.GET.get('guid', '')
+        form = ReportForm(
+                initial={
+                    'guid': guid,
+                    'referer': request.META.get('HTTP_REFERER', ''),
+                    'email': getattr(request.user, 'email', '')
+                }
+        )
+        return render(request, 'report.html', {
+            'form': form,
+            'guid': guid
+        })
 
 
 def robots_txt(request):

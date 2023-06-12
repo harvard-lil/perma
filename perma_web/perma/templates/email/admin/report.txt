@@ -1,0 +1,26 @@
+{% block content %}
+A user has reported that {{ guid }} contains inappropriate material.
+
+{{ request.scheme|add:"://"|add:request.get_host }}{% url 'admin:perma_link_changelist' %}?guid={{ guid | urlencode }}
+
+
+Reason for Reporting
+--------------------
+{{ reason }}
+
+How did you discover this Perma Link?
+-------------------------------------
+{{ source}}{% if message %}
+Message from user
+-----------------
+{{ message }}{% endif %}
+{% endblock%}{% block footer %}
+----
+Troubleshooting Info:
+User email: {{ from_address }}
+Logged in: {{ request.user.is_authenticated | yesno:"true,false" }}
+Affiliations: {{ affiliation_string | default:"(none)" }}
+Referring Page: {{ referer }}
+User agent: {{ request.META.HTTP_USER_AGENT | default:"(unknown)"}}
+{% endblock footer %}
+
