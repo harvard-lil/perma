@@ -514,7 +514,6 @@ def report(request):
                 context = {
                     "reason": form.cleaned_data['reason'],
                     "source": form.cleaned_data['source'],
-                    "message": form.cleaned_data['box2'],
                     "from_address": from_address,
                     "guid": form.cleaned_data['guid'],
                     "referer": form.cleaned_data['referer'],

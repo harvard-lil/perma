@@ -10,10 +10,7 @@ Reason for Reporting
 
 How did you discover this Perma Link?
 -------------------------------------
-{{ source}}{% if message %}
-Message from user
------------------
-{{ message }}{% endif %}
+{{ source}}
 {% endblock%}{% block footer %}
 ----
 Troubleshooting Info:
