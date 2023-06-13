@@ -1,0 +1,30 @@
+{% extends "base-responsive.html" %}
+{% block title %} | Report Inappropriate Content{% endblock %}
+{% with base_url=request.scheme|add:"://"|add:request.get_host %}
+
+{% block meta %}
+<meta name="robots" content="noarchive">
+{% endblock %}
+
+{% block mainContent %}
+<div class="container cont-fixed">
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Report</h1>
+
+      <p class="page-dek">{{ base_url }}{{ guid }} contains material that is inappropriate.</p>
+    </div>
+  </div> <!-- row -->
+  <div class="row">
+    <div class="col-sm-9 contact-form">
+      <form action="{% url 'report' %}" method="post">
+        {% csrf_token %}
+        {% include "includes/fieldset.html" with form_classes="fg-100" %}
+        <button type="submit" class="btn">Send</button>
+      </form>
+    </div><!--col -->
+  </div><!--row-->
+</div><!--container-->
+{% endblock mainContent %}
+
+{% endwith %}

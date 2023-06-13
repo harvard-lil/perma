@@ -27,6 +27,7 @@ urlpatterns = [
     re_path(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     re_path(r'^return-policy/?$', DirectTemplateView.as_view(template_name='return_policy.html'), name='return_policy'),
     re_path(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
+    re_path(r'^report/?$', common.report, name='report'),
     re_path(r'^contact/?$', common.contact, name='contact'),
     re_path(r'^contact/thanks/?$', common.contact_thanks, name='contact_thanks'),
     #   re_path(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),

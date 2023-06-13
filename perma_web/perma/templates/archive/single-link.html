@@ -192,7 +192,7 @@
           <a href="{% url 'single_permalink' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
         {% endif %}
         {% if not can_edit %}
-          <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
+          <a href="{% url 'report' %}?guid={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
         {% endif %}
         {# user edit buttons #}
         {% if can_toggle_private %}
