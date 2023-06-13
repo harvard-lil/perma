@@ -9748,6 +9748,12 @@ button#addlink,
   display: none;
 }
 
+.report-form label:after {
+  content: "*";
+  color: red;
+  padding-left: 3px;
+}
+
 .signup-learnMore-form label[for=id_telephone], .signup-learnMore-form label[for=id_a-telephone], .add-user label[for=id_telephone], .add-user label[for=id_a-telephone], .change-user label[for=id_telephone], .change-user label[for=id_a-telephone] {
   display: none;
 }
