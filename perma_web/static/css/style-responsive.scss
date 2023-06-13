@@ -3204,6 +3204,14 @@ button#addlink,
   }
 }
 
+.report-form {
+  label:after {
+    content: "*";
+    color: red;
+    padding-left: 3px;
+  }
+}
+
 .signup-learnMore-form, .add-user, .change-user {
   // hide telephone so it will only be filled by spam bots
   label[for="id_telephone"], label[for="id_a-telephone"] {

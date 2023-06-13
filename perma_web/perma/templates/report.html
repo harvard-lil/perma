@@ -12,11 +12,11 @@
     <div class="col-sm-12">
       <h1 class="page-title">Report</h1>
 
-      <p class="page-dek">{{ base_url }}{{ guid }} contains material that is inappropriate.</p>
+      <p class="page-dek">{{ base_url }}/{{ guid }} contains material that is inappropriate.</p>
     </div>
   </div> <!-- row -->
   <div class="row">
-    <div class="col-sm-9 contact-form">
+    <div class="col-sm-9 contact-form report-form">
       <form action="{% url 'report' %}" method="post">
         {% csrf_token %}
         {% include "includes/fieldset.html" with form_classes="fg-100" %}
