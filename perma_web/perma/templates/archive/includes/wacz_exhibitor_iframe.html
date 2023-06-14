@@ -67,4 +67,32 @@
     wrapper.appendChild(frame);
   }
 
+
+  {% if screenshot %}
+    // Experimental: uses functionality proposed in
+    // https://github.com/rebeccacremona/wacz-exhibitor/tree/override-element-attr
+
+    // set alt text and style the loaded image for cross-browser consistency
+    frame.addEventListener( "load", function(e) {
+
+      frame.contentWindow.postMessage(
+        {"overrideElementAttribute": {
+          "selector": "img",
+          "attributeName": "style",
+          "attributeContents": "display: block; margin: auto; width: auto; height: auto;"
+        }},
+        origin
+      );
+
+      frame.contentWindow.postMessage(
+        {"overrideElementAttribute": {
+          "selector": "img",
+          "attributeName": "alt",
+          "attributeContents": "Screenshot"
+        }},
+        origin
+      );
+    });
+  {% endif %}
+
 </script>
