@@ -4,6 +4,8 @@ import os
 
 DEBUG = True
 
+# PLAYBACK_HOST = 'rejouer.perma.test:8080'
+
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
