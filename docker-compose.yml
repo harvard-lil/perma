@@ -106,6 +106,26 @@ services:
           - 'perma.minio.test'
 
   #
+  # wacz-exhibitor
+  #
+  wacz-exhibitor:
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:0.0.10-2
+    build:
+      context: ./services/docker/wacz-exhibitor
+      x-bake:
+        tags:
+          - registry.lil.tools/harvardlil/wacz-exhibitor:0.0.10-2
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    ports:
+      - "127.0.0.1:8080:8080"
+    extra_hosts:
+      - "rejouer.perma.test:127.0.0.1"
+    volumes:
+      - ./services/docker/wacz-exhibitor/ssl:/etc/nginx/certs
+
+  #
   # Upload scanning
   #
   filecheck:

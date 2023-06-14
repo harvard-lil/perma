@@ -1,0 +1,70 @@
+<div id="iframe-target"></div>
+
+<!-- Will display unless playback logic can kick in -->
+<div id="no-playback">
+  <div class="record-message">
+    <p class="record-message-primary">Incompatible browser</p>
+    <p class="record-message-secondary">
+      Please update your browser to visit this Perma Link.<br>
+      Perma.cc has been tested with the latest version of:<br>
+      Google Chrome, Mozilla Firefox, Apple Safari and Microsoft Edge.
+    </p>
+    <a class="btn btn-primary" href="javascript:history.back()">Go back</a>
+  </div>
+</div>
+
+<script type="module">
+  // TODO: double check that this is good enough: I am assuming any browser
+  // that can handle <script type="module" can handle playbacks.
+  // Compare with:
+  // https://github.com/harvard-lil/perma/commit/899c3e71b1976024edd23e50b90e5f998384052f
+  const noPlayback = document.querySelector("#no-playback");
+  noPlayback.remove();
+
+  // Playback details
+  const cls = "{{ interstitial|yesno:'background,archive-iframe'}}";
+  const origin = "{{ protocol }}{{ client_side_playback_host }}";
+  const url = {% if screenshot %}"{{ link.screenshot_capture.url | escapejs}}"{% else %}"{{ link.primary_capture.url | escapejs }}"{% endif %}
+  const sandbox = {{ link.primary_capture.use_sandbox|yesno:"true,false" }};
+  const embed = {{ embed|yesno:"true,false" }};
+  const interstitial = {{ interstitial|yesno:"true,false" }};
+
+  var frame = null;
+  var srcQuery = null;
+
+  // Add iframe
+  frame = document.createElement('iframe');
+  frame.className = cls;
+
+  // Build query string
+  srcQuery = new URLSearchParams();
+  srcQuery.append("source", "{{ link.warc_presigned_url_relative | escapejs }}");
+  srcQuery.append("url", url);
+  if (embed) {
+    srcQuery.append("embed", "replayonly");
+  }
+  frame.setAttribute("src", origin + "?" + srcQuery);
+
+  if (sandbox) {
+    frame.setAttribute("sandbox", "allow-scripts allow-forms allow-same-origin allow-downloads allow-modals");
+  }
+
+  const wrapper = document.getElementById("iframe-target");
+  if (interstitial) {
+
+    // Display the hidden interstitial message.
+    const interstitialElems = document.querySelectorAll("#playback-interstitial .hidden");
+    for (const elem of interstitialElems) {
+      elem.classList.remove("hidden");
+    }
+
+    const downloadButton = document.querySelector("#download-button");
+    downloadButton.addEventListener( "click", function(e) {
+     wrapper.appendChild(frame);
+    });
+
+  } else {
+    wrapper.appendChild(frame);
+  }
+
+</script>
