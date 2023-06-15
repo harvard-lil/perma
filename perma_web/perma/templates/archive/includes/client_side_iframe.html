@@ -36,6 +36,12 @@
     if (interstitial) {
       srcQuery.append("hidden", "true");
       srcQuery.append("ondemand", "true");
+
+      // Display the hidden interstitial message.
+      const interstitialElems = document.querySelectorAll("#playback-interstitial .hidden");
+      for (const elem of interstitialElems) {
+        elem.classList.remove("hidden");
+      }
     }
 
     if (target) {

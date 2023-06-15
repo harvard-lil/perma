@@ -214,7 +214,10 @@ def single_permalink(request, guid):
                 return render(request, 'archive/playback-delayed.html', context,  status=200)
 
         logger.info(f'Preparing client-side playback for {link.guid}')
-        context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
+        if settings.PLAYBACK_HOST:
+            context['client_side_playback_host'] = settings.PLAYBACK_HOST
+        else:
+            context['client_side_playback_host'] = f"{settings.PLAYBACK_SUBDOMAIN}.{settings.HOST}"
         context['embed'] = False if request.GET.get('embed') == 'False' else True
 
     response = render(request, 'archive/single-link.html', context)

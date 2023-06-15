@@ -492,7 +492,11 @@ INTERNET_ARCHIVE_UPLOAD_MAX_TMEOUTS = 2
 HOST = 'perma.test:8000'
 ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
 API_SUBDOMAIN = 'api'
+
 PLAYBACK_SUBDOMAIN = 'replay'
+# Set PLAYBACK_HOST to replay via an externally running instance of wacz-exhibitor.
+# Otherwise, falls back to replay at PLAYBACK_SUBDOMAIN, served by the replay Django app
+PLAYBACK_HOST = None
 
 #
 # Playback
@@ -559,7 +563,8 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_DSN',
     'SENTRY_ENVIRONMENT',
     'SENTRY_TRACES_SAMPLE_RATE',
-    'PLAYBACK_SUBDOMAIN'
+    'PLAYBACK_SUBDOMAIN',
+    'PLAYBACK_HOST'
 )
 
 

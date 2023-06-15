@@ -1755,6 +1755,10 @@ class Link(DeletableModel):
                 'ResponseContentEncoding': ''
         })
 
+    def warc_presigned_url_relative(self):
+        parsed = urlparse(self.warc_presigned_url())
+        return f'{parsed.path}?{parsed.query}'.lstrip('/')
+
     # def get_thumbnail(self, image_data=None):
     #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
     #         return None
