@@ -97,7 +97,6 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'perma.middleware.APISubdomainMiddleware',
-    'perma.middleware.ReplaySubdomainMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -490,17 +489,14 @@ INTERNET_ARCHIVE_UPLOAD_MAX_TMEOUTS = 2
 #
 
 HOST = 'perma.test:8000'
-ALLOWED_HOSTS = ['perma.test', 'api.perma.test', 'replay.perma.test']
+ALLOWED_HOSTS = ['perma.test', 'api.perma.test']
 API_SUBDOMAIN = 'api'
-
-PLAYBACK_SUBDOMAIN = 'replay'
-# Set PLAYBACK_HOST to replay via an externally running instance of wacz-exhibitor.
-# Otherwise, falls back to replay at PLAYBACK_SUBDOMAIN, served by the replay Django app
-PLAYBACK_HOST = None
 
 #
 # Playback
 #
+
+PLAYBACK_HOST = 'rejouer.perma.test:8080'
 
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
@@ -563,7 +559,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_DSN',
     'SENTRY_ENVIRONMENT',
     'SENTRY_TRACES_SAMPLE_RATE',
-    'PLAYBACK_SUBDOMAIN',
     'PLAYBACK_HOST'
 )
 

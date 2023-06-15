@@ -59,7 +59,6 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
     # Similarly, don't download fresh replayweb.page assets, to avoid confusion.
     if settings.DEBUG:
         commands.append('npm start')
-        commands.append("watchmedo auto-restart -d ./perma/settings/ -p '*.py' -R -- invoke dev.get-replay-assets")
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
 
@@ -112,18 +111,6 @@ def pip_compile(ctx, args=''):
     command = ['pip-compile', '--generate-hashes', '--allow-unsafe']+args.split()
     print("Calling %s" % " ".join(command))
     subprocess.check_call(command, env=dict(os.environ, CUSTOM_COMPILE_COMMAND='invoke pip-compile'))
-
-
-@task()
-def get_replay_assets(ctx):
-    for asset in ['sw.js', 'ui.js', 'ruffle/ruffle.js']:
-        dest = os.path.join(settings.PROJECT_ROOT, f'static/vendors/replay-web-page/{asset}')
-        with open(dest, 'wb') as file:
-            url = f'{settings.REPLAYWEBPAGE_SOURCE_URL}@{settings.REPLAYWEBPAGE_VERSION}/{asset}'
-            print(f'Downloading {url} to {dest}')
-            response = requests.get(url)
-            file.write(response.content)
-
 
 @task
 def logs(ctx, log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):

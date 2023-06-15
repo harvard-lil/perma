@@ -16,32 +16,18 @@
   <div id="playback-interstitial" class="record-message {{ new_record|yesno:'new-record-message,' }}">
     <p class="hidden record-message-primary">Perma.cc can’t display this file type but you can view or download the archived file by clicking below.</p>
     <p class="hidden record-message-secondary">File type {{ capture.mime_type }}</p>
-    {% if PLAYBACK_HOST %}
-      <button id="download-button" class="hidden btn btn-primary">View/Download File</button>
-      <div>
-        {% include "archive/includes/wacz_exhibitor_iframe.html" with interstitial=True  %}
-      </div>
-    {% else %}
-      <div>
-        {% include "archive/includes/client_side_iframe.html" with interstitial=True %}
-      </div>
-    {% endif %}
+    <button id="download-button" class="hidden btn btn-primary">View/Download File</button>
+    <div>
+      {% include "archive/includes/wacz_exhibitor_iframe.html" with interstitial=True  %}
+    </div>
   </div>
 {% else %}
   <div class="capture-wrapper">
     <div class="h_iframe">
-      {% if PLAYBACK_HOST %}
-        {% if capture.role == 'screenshot' %}
-          {% include "archive/includes/wacz_exhibitor_iframe.html" with screenshot=True %}
-        {% else %}
-          {% include "archive/includes/wacz_exhibitor_iframe.html" %}
-        {% endif %}
+      {% if capture.role == 'screenshot' %}
+        {% include "archive/includes/wacz_exhibitor_iframe.html" with screenshot=True %}
       {% else %}
-        {% if capture.role == 'screenshot' %}
-          {% include "archive/includes/client_side_iframe.html" with screenshot=True %}
-        {% else %}
-          {% include "archive/includes/client_side_iframe.html" %}
-        {% endif %}
+        {% include "archive/includes/wacz_exhibitor_iframe.html" %}
       {% endif %}
     </div>
   </div>
