@@ -185,7 +185,7 @@ class CommonViewsTestCase(PermaTestCase):
 
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
-            self.assertIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+            self.assertIn(b"Perma.cc can’t display this file type on mobile", response.content)
 
             # Check to see we are requesting an interstitial iframe: we can't check for the download link without JS
             self.assertIn(b'const cls = "interstitial"', response.content)
@@ -193,7 +193,7 @@ class CommonViewsTestCase(PermaTestCase):
             # If not on mobile, display link as normal
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
-            self.assertNotIn(b"Perma.cc can\'t display this file type on mobile", response.content)
+            self.assertNotIn(b"Perma.cc can’t display this file type on mobile", response.content)
 
     def test_deleted(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410, request_kwargs={'follow': True})
