@@ -109,12 +109,12 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:0.0.10-3
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:0.0.12-1
     build:
       context: ./services/docker/wacz-exhibitor
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:0.0.10-3
+          - registry.lil.tools/harvardlil/wacz-exhibitor:0.0.12-1
         platforms:
           - linux/amd64
           - linux/arm64
