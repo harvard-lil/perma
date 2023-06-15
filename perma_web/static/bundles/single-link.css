@@ -5404,4 +5404,35 @@ body.modal-open {
   margin: 0px auto;
 }
 
+/* Fallback screen for old browsers */
+#no-playback,
+#playback-interstitial .hidden {
+  /* Prevent flashing: */
+  opacity: 0;
+  animation: no-playback-fade-in 0.5s ease-in-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes no-playback-fade-in {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+iframe.background {
+  visibility: hidden;
+  height: 10px;
+  min-width: 10px;
+  width: 10px;
+}
+
 /*# sourceMappingURL=single-link.css.map*/
