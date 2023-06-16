@@ -146,7 +146,6 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
-    'replay',
     'lockss',
 
     # third party apps
