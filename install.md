@@ -92,6 +92,6 @@ It _"sometimes"_ happen that `mkcert`'s setup is incomplete, and Mac OS doesn't 
 If you're still encountering issues, you may want to hit these urls in your browser and manually bypass the security alerts: 
 ```
 https://perma.test:8000
-https://replay.perma.test:8000
+https://rejouer.perma.test:8080
 https://perma.minio.test:9000
 ```
