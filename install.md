@@ -29,7 +29,7 @@ Hosts
 Perma serves content at several hosts. To ensure that URLs resolve correctly,
 add the following domains to your computer's hosts file:
 
-    127.0.0.1 perma.test api.perma.test replay.perma.test rejouer.perma.test perma.minio.test
+    127.0.0.1 perma.test api.perma.test rejouer.perma.test perma.minio.test
 
 For additional information on modifying your hosts file,
 [try this help doc](https://docs.rackspace.com/support/how-to/modify-your-hosts-file).

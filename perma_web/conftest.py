@@ -35,6 +35,7 @@ def set_up_certs():
         ('mkcert ca root', f'{settings.PROJECT_ROOT}/rootCA.pem'),
         ('perma certs', f'{settings.PROJECT_ROOT}/perma-test.crt'),
         ('minio cert', '/tmp/minio_ssl/public.crt'),
+        ('wacz-exhibitor cert', '/tmp/wacz-exhibitor_ssl/public.crt'),
     ]
 
     for cert in certs:

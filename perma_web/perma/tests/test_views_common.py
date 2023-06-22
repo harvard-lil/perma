@@ -117,7 +117,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertTrue(link.default_to_screenshot_view)
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
-            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
 
     # This tests that where there is only a screenshot and default to screenshot, there's no redirect to add the "type=image" query
@@ -142,7 +142,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertFalse(link.default_to_screenshot_view)
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'UU32-XY8I'}}, request_kwargs={'follow': True})
-            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), '')
    
     # This tests that where there is BOTH a primary and screenshot and default to screenshot, there's no redirect to add the "type=standard" query
@@ -151,7 +151,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertTrue(link.default_to_screenshot_view)
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'F1X1-LS24'}}, request_kwargs={'follow': True})
-            self.assertTrue(b'const screenshot = true;' in response.content)
+            self.assertTrue(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), '')
 
     def test_capture_only_default_to_screenshot_view_true(self):
@@ -159,7 +159,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertTrue(link.default_to_screenshot_view)
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
-            self.assertTrue(b'const screenshot = false;' in response.content)
+            self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
 
     # patch default storage so that it returns a sample warc
@@ -186,9 +186,6 @@ class CommonViewsTestCase(PermaTestCase):
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
             self.assertIn(b"Perma.cc can\xe2\x80\x99t display this file type on mobile", response.content)
-
-            # Check to see we are requesting an interstitial iframe: we can't check for the download link without JS
-            self.assertIn(b'const cls = "interstitial"', response.content)
 
             # If not on mobile, display link as normal
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
