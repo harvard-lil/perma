@@ -23,7 +23,7 @@ services:
       context: ./services/docker/wacz-exhibitor
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:1-nohash
+          - registry.lil.tools/harvardlil/wacz-exhibitor:2-bb5fb34b1360658d9e2115ccc06406ba
         platforms:
           - linux/amd64
           - linux/arm64

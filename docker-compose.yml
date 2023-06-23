@@ -109,7 +109,7 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:1-nohash
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:2-bb5fb34b1360658d9e2115ccc06406ba
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
