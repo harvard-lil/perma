@@ -109,15 +109,7 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:0.0.12-1
-    build:
-      context: ./services/docker/wacz-exhibitor
-      x-bake:
-        tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:0.0.12-1
-        platforms:
-          - linux/amd64
-          - linux/arm64
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:1-nohash
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
