@@ -9,7 +9,7 @@ services:
         RELEASE: v0.1.0
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:61-7306185b56da14d83e3ce0fed7a3d310
+          - registry.lil.tools/harvardlil/perma-web:62-f840f7cf32fe26df6414a3969bfdeace
         platforms:
           - linux/amd64
           - linux/arm64
@@ -25,7 +25,7 @@ services:
       context: ./services/docker/wacz-exhibitor
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:2-bb5fb34b1360658d9e2115ccc06406ba
+          - registry.lil.tools/harvardlil/wacz-exhibitor:3-8ce71c739143ded5a4194a2314f3e723
         platforms:
           - linux/amd64
           - linux/arm64
