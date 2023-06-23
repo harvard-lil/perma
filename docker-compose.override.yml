@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: perma_web/Dockerfile
+      args:
+        RELEASE: v0.1.0
       x-bake:
         tags:
           - registry.lil.tools/harvardlil/perma-web:61-7306185b56da14d83e3ce0fed7a3d310
