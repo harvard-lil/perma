@@ -18,6 +18,18 @@ services:
         - perma_web/perma-warcprox-ca.pem
         - perma_web/lil-archive-keyring.gpg
 
+  wacz-exhibitor:
+    build:
+      context: ./services/docker/wacz-exhibitor
+      x-bake:
+        tags:
+          - registry.lil.tools/harvardlil/wacz-exhibitor:1-nohash
+        platforms:
+          - linux/amd64
+          - linux/arm64
+      x-hash-paths:
+        - ./nginx.conf
+
   #
   # Perma Payments
   #
