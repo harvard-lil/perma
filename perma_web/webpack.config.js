@@ -23,7 +23,6 @@ module.exports = {
     // each of these entry points will also include global.js, so should be listed in CommonsChunkPlugin below
     'create': './static/js/create',
     'single-link-permissions': './static/js/single-link-permissions.module',
-    'map': './static/js/map',
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
     'stats': './static/js/stats',
