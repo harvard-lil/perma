@@ -146,6 +146,7 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
+    'reporting',
     'lockss',
 
     # third party apps
