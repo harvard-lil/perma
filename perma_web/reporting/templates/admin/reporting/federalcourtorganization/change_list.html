@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <a href="?{{ csv_param }}=True" class="addlink">
+      Download CSV
+    </a>
+  </li>
+{% endblock %}
