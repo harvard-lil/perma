@@ -33,7 +33,7 @@ class CsvPlaceholderFilter(admin.SimpleListFilter):
 
     Thanks https://stackoverflow.com/a/68550839!
     """
-    parameter_name = '_csv'
+    parameter_name = CSV_PARAM
     title = ''
 
     # hide from filter pane
@@ -50,13 +50,21 @@ class CsvPlaceholderFilter(admin.SimpleListFilter):
 
 
 class CsvResponseMixin():
+    try:
+        list_filter = list_filter.append(CsvPlaceholderFilter)
+    except NameError:
+        list_filter = [CsvPlaceholderFilter]
+
     @property
     def field_list(self):
         """Return a list of fields to be included in the CSV output for this class"""
         return []
 
     def changelist_view(self, request, extra_context=None):
-        if "_csv" in request.GET:
+        extra_context = extra_context or {}
+        extra_context['csv_param'] = CSV_PARAM
+
+        if CSV_PARAM in request.GET:
 
             qs = self.get_queryset(request)[:MAX_CSV_RESULTS]
 
@@ -69,6 +77,7 @@ class CsvResponseMixin():
             return self.csv_response(output)
 
         return super().changelist_view(request, extra_context)
+
 
     def csv_response(self, output_rows):
         """Return a response object of type CSV given a datastructure of rows of string output"""
@@ -84,7 +93,6 @@ class CsvResponseMixin():
 class FederalCourtAdmin(CsvResponseMixin, RegistrarAdmin):
     list_display = ['name', 'last_active', 'get_registrar_users', 'org_users_total', 'org_users_distinct', 'orgs', 'orgs_total', 'link_count']
     list_editable = []
-    list_filter = [CsvPlaceholderFilter]
     ordering = ['manual_sort_order']
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'orgs_private_by_default')}),
@@ -139,7 +147,7 @@ class FederalCourtAdmin(CsvResponseMixin, RegistrarAdmin):
 class FederalCourtOrganizationAdmin(CsvResponseMixin, admin.ModelAdmin):
     search_fields = ['name']
     list_display = ['id', 'court', 'name', 'org_users', 'link_count']
-    list_filter = [RegistrarNameFilter, RegistrarIdFilter, 'user_deleted', CsvPlaceholderFilter]
+    list_filter = [RegistrarNameFilter, RegistrarIdFilter, 'user_deleted']
     ordering = ['registrar__manual_sort_order', 'name']
 
     @property
