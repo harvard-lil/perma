@@ -590,7 +590,7 @@ class Registrar(CustomerModel):
     """
     This is a library, a court, a firm, or similar.
     """
-    name = models.CharField(max_length=400)
+    name = models.CharField(max_length=400, db_index=True)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
@@ -603,6 +603,7 @@ class Registrar(CustomerModel):
     address = models.CharField(max_length=500, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    manual_sort_order = models.IntegerField(default=0, db_index=True)
 
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
 
