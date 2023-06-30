@@ -6,8 +6,7 @@
 cp "$(mkcert -CAROOT)/rootCA.pem" perma_web/rootCA.pem
 
 # Generate certs
-HOSTS=$(docker compose run -T web bash -c "echo \"from django.conf import settings; print(' '.join(host for host in settings.ALLOWED_HOSTS))\" | python ./manage.py shell")
-mkcert -key-file perma_web/perma-test.key -cert-file perma_web/perma-test.crt $HOSTS
+mkcert -key-file perma_web/perma-test.key -cert-file perma_web/perma-test.crt perma.test api.perma.test
 mkcert -key-file services/docker/minio/ssl/private.key -cert-file services/docker/minio/ssl/public.crt perma.minio.test
 mkcert -key-file services/docker/wacz-exhibitor/ssl/private.key -cert-file services/docker/wacz-exhibitor/ssl/public.crt rejouer.perma.test
 
