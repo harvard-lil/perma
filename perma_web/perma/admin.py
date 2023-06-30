@@ -285,6 +285,52 @@ class JobWithDeletedLinkFilter(admin.SimpleListFilter):
             return queryset.filter(Q(link__isnull=True) | Q(link__user_deleted=False))
 
 
+class OrgUserFilter(InputFilter):
+    parameter_name = 'org_id'
+    title = 'Org ID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            try:
+                value = int(value)
+            except ValueError:
+                return queryset.none()
+            return queryset.filter(organizations__in=[value])
+
+
+class OrgUserForRegistrarFilter(InputFilter):
+    parameter_name = 'org_user_for_registrar_id'
+    title = 'Org User for Registrar ID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            try:
+                value = int(value)
+            except ValueError:
+                return queryset.none()
+            try:
+                registrar = Registrar.objects.get(id=value)
+            except Registrar.DoesNotExist:
+                return queryset.none()
+            return queryset.filter(organizations__in=registrar.organizations.all())
+
+
+class RegistrarUserFilter(InputFilter):
+    parameter_name = 'registrar_id'
+    title = 'Registrar ID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            try:
+                value = int(value)
+            except ValueError:
+                return queryset.none()
+            return queryset.filter(registrar_id=value)
+
+
 ### inlines ###
 
 class LinkInline(admin.TabularInline):
@@ -487,7 +533,7 @@ class LinkUserAdmin(UserAdmin):
     raw_id_fields = ['registrar', 'organizations']
     list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying','cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate', 'bonus_links', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
-    list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status')
+    list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status', RegistrarUserFilter, OrgUserFilter, OrgUserForRegistrarFilter)
     ordering = ('-id',)
     readonly_fields = ['date_joined']
     # Adds so many fields to the form that it becomes illegal to submit,
