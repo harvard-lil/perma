@@ -155,7 +155,11 @@ def single_permalink(request, guid):
 
     # Special handling for mobile pdf viewing because it can be buggy
     # Redirecting to a download page if on mobile
-    redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
+    # redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
+    # [!] TEMPORARY WORKAROUND (07-07-2023):
+    # Users reported not being able to download PDFs on mobile.
+    # Trying to playback PDFs on mobile instead until this is sorted out (seems to be working ok).
+    redirect_to_download_view = False
 
     # If this record was just created by the current user, we want to do some special-handling:
     # for instance, show them a message in the template, and give the playback extra time to initialize
