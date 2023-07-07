@@ -23,7 +23,7 @@ from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm, ReportForm, check_honeypot
-from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
+from ..utils import (if_anonymous, ratelimit_ip_key,
     protocol, stream_warc_if_permissible,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
     remove_control_characters)
@@ -101,7 +101,7 @@ def single_permalink(request, guid):
     """
     Given a Perma ID, serve it up.
     """
-    raw_user_agent = request.META.get('HTTP_USER_AGENT', '')
+    # raw_user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
