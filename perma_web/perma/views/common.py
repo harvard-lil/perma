@@ -23,7 +23,7 @@ from perma.wsgi_utils import retry_on_exception
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm, ReportForm, check_honeypot
-from ..utils import (if_anonymous, ratelimit_ip_key, redirect_to_download,
+from ..utils import (if_anonymous, ratelimit_ip_key,
     protocol, stream_warc_if_permissible,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
     remove_control_characters)
@@ -101,7 +101,7 @@ def single_permalink(request, guid):
     """
     Given a Perma ID, serve it up.
     """
-    raw_user_agent = request.META.get('HTTP_USER_AGENT', '')
+    # raw_user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
@@ -155,7 +155,11 @@ def single_permalink(request, guid):
 
     # Special handling for mobile pdf viewing because it can be buggy
     # Redirecting to a download page if on mobile
-    redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
+    # redirect_to_download_view = redirect_to_download(capture_mime_type, raw_user_agent)
+    # [!] TEMPORARY WORKAROUND (07-07-2023):
+    # Users reported not being able to download PDFs on mobile.
+    # Trying to playback PDFs on mobile instead until this is sorted out (seems to be working ok).
+    redirect_to_download_view = False
 
     # If this record was just created by the current user, we want to do some special-handling:
     # for instance, show them a message in the template, and give the playback extra time to initialize
