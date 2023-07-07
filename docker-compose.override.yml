@@ -9,7 +9,7 @@ services:
         RELEASE: v0.1.1
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:64-1a7a03058adab413832c1c95e4460b4a
+          - registry.lil.tools/harvardlil/perma-web:65-4413672d8a71f4e608c4a8272a57ffff
         platforms:
           - linux/amd64
           - linux/arm64
