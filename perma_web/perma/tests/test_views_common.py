@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core import mail
 from django.urls import reverse
-from django.test import override_settings, Client
+from django.test import override_settings
 
 from perma.urls import urlpatterns
 from perma.models import Registrar, Link, CaptureJob
@@ -178,6 +178,8 @@ class CommonViewsTestCase(PermaTestCase):
                 self.assertNotIn('memento-datetime', response.headers)
                 self.assertNotIn('link', response.headers)
 
+    # Feature temporarily disabled
+    """
     def test_redirect_to_download(self):
         with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             # Give user option to download to view pdf if on mobile
@@ -191,6 +193,7 @@ class CommonViewsTestCase(PermaTestCase):
             client = Client(HTTP_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7')
             response = client.get(reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
             self.assertNotIn(b"Perma.cc can\xe2\x80\x99t display this file type on mobile", response.content)
+    """
 
     def test_deleted(self):
         response = self.get('single_permalink', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}}, require_status_code=410, request_kwargs={'follow': True})
