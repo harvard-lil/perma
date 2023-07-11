@@ -1744,7 +1744,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             assert response.status_code == 200, f"IA returned {response.status_code}): {response.text}"
     except SoftTimeLimitExceeded:
         retry = (
-            not hasattr(settings, 'INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS') or
+            not settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS or
             (settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS > timeouts + 1)
         )
         if retry:
