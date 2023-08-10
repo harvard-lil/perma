@@ -35,7 +35,7 @@ See the [installation documentation](./install.md) to get up and running.
    - [Running with DEBUG=False locally](#running-with-debugfalse-locally)
    - [Perma Payments](#perma-payments)
      - [Test Perma Interaction with Perma Payments](#test-perma-interaction-with-perma-payments)
-   - [Internet Archive](#internet-archive)
+   - [Scoop](#scoop)
 
 Common tasks and commands
 -------------------------
@@ -368,7 +368,7 @@ Once it's running, spin up Perma... but with a slightly different command than u
 
 Then, run Perma's dev server as usual:
 
-`d invoke run`
+`docker compose invoke run`
 
 When you are finished, take down the Perma containers by running:
 
@@ -379,3 +379,33 @@ Don't worry if you get the following error:
 `ERROR: error while removing network: network perma-payments_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
 
 It just means that Perma Payments is still running: the network is maintained until both projects are down. Head back over to the Perma Payments repo and run `docker compose down` there... and you're done.
+
+
+## Scoop
+
+We are in the process of rolling out a capture process using LIL's newly-developed web archiving tool [Scoop](https://github.com/harvard-lil/scoop). When complete, Perma capture requests will call out to the [Scoop REST API](https://github.com/harvard-lil/scoop-rest-api/), which will produce the requested WARC/WACZ and return it to Perma, replacing Perma's current internal capturing mechanism.
+
+By default, Perma's `docker-compose` file will spin up a local Scoop REST API for you to experiment with.
+
+### Working with both repositories simultaneously
+
+You may also decide to run both services by running `docker compose` in both repositories simultaneously, with a tweaked Perma network config.
+
+First, head over to the [`Scoop REST API` repo](https://github.com/harvard-lil/scoop-rest-api/) for instructions on how to spin that up.
+
+Once it's running, spin up Perma... but with a slightly different command than usual, so that it doesn't try to create its own Scoop REST API, but instead uses the already-running one:
+
+- `docker compose -f docker-compose.yml up -d`
+
+Then, run Perma's dev server as usual:
+
+`docker compose invoke run`
+
+When you are finished, take down the Perma containers by running:
+
+`docker compose -f docker-compose.yml down`
+
+Don't worry if you get the following error:
+
+`ERROR: error while removing network: network scoop-rest-api_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
+The Scoop REST API is still running: the network is maintained until both projects are down. Head back over to the Scoop REST API repo and run `docker compose down` there... and you're done.

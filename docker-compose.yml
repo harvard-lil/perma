@@ -65,6 +65,7 @@ services:
           - 'perma.test'
           - 'api.perma.test'
       perma_payments:
+      scoop-rest-api:
 
   #
   # Minio
@@ -145,3 +146,5 @@ networks:
   default:
   perma_payments:
       name: perma-payments_default
+  scoop-rest-api:
+      name: scoop-rest-api_default
