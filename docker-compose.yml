@@ -65,7 +65,7 @@ services:
           - 'perma.test'
           - 'api.perma.test'
       perma_payments:
-      scoop-rest-api:
+      scoop_rest_api:
 
   #
   # Minio
@@ -140,11 +140,12 @@ volumes:
   postgres_data:
   redis_data:
   pp_db_data:
+  scoop_db_data:
   minio_data:
 
 networks:
   default:
   perma_payments:
       name: perma-payments_default
-  scoop-rest-api:
+  scoop_rest_api:
       name: scoop-rest-api_default

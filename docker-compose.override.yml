@@ -33,6 +33,51 @@ services:
         - ./nginx.conf
 
   #
+  # Scoop REST API
+  #
+  scoop-db:
+    image: registry.lil.tools/library/mariadb:10.6.14
+    environment:
+      - MARIADB_ROOT_PASSWORD=password
+      - MARIADB_DATABASE=scoop_api
+    volumes:
+      # If the volume contains a database (a subdirectory named mysql)
+      # when you start the container, it will be left untouched and unaffected
+      # by config environment variables like $MARIADB_ROOT_PASSWORD.
+      - scoop_db_data:/var/lib/mysql:delegated
+    networks:
+      - scoop_rest_api
+
+  scoop-rest-api:
+    image: registry.lil.tools/harvardlil/scoop-rest-api:1-b560ac721402fc22e392a7dc8d26f850
+    init: true
+    tty: true
+    depends_on:
+      - scoop-db
+    ports:
+      - "127.0.0.1:5000:5000"
+    entrypoint:
+      - "/docker-entrypoint.sh"
+    command:
+      - "/bin/bash"
+    environment:
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=password
+      - DATABASE_HOST=scoop-db
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=scoop_api
+      - TESTS_DATABASE_USERNAME=root
+      - TESTS_DATABASE_PASSWORD=password
+      - TESTS_DATABASE_HOST=scoop-db
+      - TESTS_DATABASE_PORT=3306
+      - START_CRON=true                   # false|true
+      - START_FLASK_SERVER=true           # false|true
+      - START_CAPTURE_PROCESSES=parallel  # none|single|parallel
+      - DISPLAY=:99                       # Run Xvfb with the below virtual display number
+    networks:
+      - scoop_rest_api
+
+  #
   # Perma Payments
   #
   pp_db:
