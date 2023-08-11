@@ -49,17 +49,13 @@ services:
       - scoop_rest_api
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:1-b560ac721402fc22e392a7dc8d26f850
+    image: registry.lil.tools/harvardlil/scoop-rest-api:3-1471ea126e3cf9953a436f3fb215afa1
     init: true
     tty: true
     depends_on:
       - scoop-db
     ports:
       - "127.0.0.1:5000:5000"
-    entrypoint:
-      - "/docker-entrypoint.sh"
-    command:
-      - "/bin/bash"
     environment:
       - DATABASE_USERNAME=root
       - DATABASE_PASSWORD=password
@@ -74,6 +70,9 @@ services:
       - START_FLASK_SERVER=true           # false|true
       - START_CAPTURE_PROCESSES=parallel  # none|single|parallel
       - DISPLAY=:99                       # Run Xvfb with the below virtual display number
+      - CREATE_ACCESS_KEY_WITH_LABEL=dev  # create a new access key each time the container starts
+    volumes:
+      - scoop_access_key:/app/docker/access_keys:delegated
     networks:
       - scoop_rest_api
 

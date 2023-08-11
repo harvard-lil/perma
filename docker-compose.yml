@@ -32,6 +32,7 @@ services:
     #   sh -c "sleep 10 && ./manage.py migrate && invoke run"
     volumes:
       # NAMED VOLUMES
+      - scoop_access_key:/tmp/scoop_access_key:ro
       # Use a named, persistent volume so that the node_modules directory,
       # which is created during the image's build process, and which our
       # code presently expects to be nested inside the perma_web directory,
@@ -141,6 +142,7 @@ volumes:
   redis_data:
   pp_db_data:
   scoop_db_data:
+  scoop_access_key:
   minio_data:
 
 networks:
