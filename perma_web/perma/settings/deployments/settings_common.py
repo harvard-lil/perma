@@ -663,6 +663,8 @@ PERMA_PAYMENTS_IN_MAINTENANCE = False
 REPLAYWEBPAGE_VERSION = '1.8.0'
 REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
 
+SCOOP_API_KEY = None
+
 SCAN_UPLOADS = False
 SCAN_URL = ''
 
