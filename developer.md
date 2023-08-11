@@ -368,7 +368,7 @@ Once it's running, spin up Perma... but with a slightly different command than u
 
 Then, run Perma's dev server as usual:
 
-`docker compose invoke run`
+`docker compose exec web invoke run`
 
 When you are finished, take down the Perma containers by running:
 
@@ -399,7 +399,7 @@ Once it's running, spin up Perma... but with a slightly different command than u
 
 Then, run Perma's dev server as usual:
 
-`docker compose invoke run`
+`docker compose exec web invoke run`
 
 When you are finished, take down the Perma containers by running:
 
