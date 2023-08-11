@@ -32,6 +32,7 @@ services:
     #   sh -c "sleep 10 && ./manage.py migrate && invoke run"
     volumes:
       # NAMED VOLUMES
+      - scoop_access_key:/tmp/scoop_access_key:ro
       # Use a named, persistent volume so that the node_modules directory,
       # which is created during the image's build process, and which our
       # code presently expects to be nested inside the perma_web directory,
@@ -65,6 +66,7 @@ services:
           - 'perma.test'
           - 'api.perma.test'
       perma_payments:
+      scoop_rest_api:
 
   #
   # Minio
@@ -139,9 +141,14 @@ volumes:
   postgres_data:
   redis_data:
   pp_db_data:
+  scoop_db_data:
+  scoop_access_key:
   minio_data:
 
 networks:
   default:
   perma_payments:
       name: perma-payments_default
+  scoop_rest_api:
+      name: scoop-rest-api_default
+  scoop_rest_api_internal:

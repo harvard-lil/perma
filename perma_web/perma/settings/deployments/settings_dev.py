@@ -1,6 +1,7 @@
 from .settings_common import *
 
 import os
+import re
 
 DEBUG = True
 
@@ -91,3 +92,16 @@ PERMA_PAYMENTS_ENCRYPTION_KEYS = {
 # Upload scanning
 SCAN_UPLOADS = True
 SCAN_URL = 'http://filecheck:8888/scan/'
+
+
+# Scoop
+if not SCOOP_API_KEY:
+    try:
+        # Extract the latest API key from the file.
+        # This approach could be slow if the file gets too long... but I'm not worried about it.
+        with open('/tmp/scoop_access_key/access_key.txt', 'r') as f:
+            last_line = f.readlines()[-1]
+            match = re.search(r': (.*?) ', last_line)
+            SCOOP_API_KEY = match.groups()[0]
+    except Exception:
+        print("Did not locate Scoop API Key.")
