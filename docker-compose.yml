@@ -151,3 +151,4 @@ networks:
       name: perma-payments_default
   scoop_rest_api:
       name: scoop-rest-api_default
+  scoop_rest_api_internal:

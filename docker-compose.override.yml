@@ -46,7 +46,7 @@ services:
       # by config environment variables like $MARIADB_ROOT_PASSWORD.
       - scoop_db_data:/var/lib/mysql:delegated
     networks:
-      - scoop_rest_api
+      - scoop_rest_api_internal
 
   scoop-rest-api:
     image: registry.lil.tools/harvardlil/scoop-rest-api:3-1471ea126e3cf9953a436f3fb215afa1
@@ -71,6 +71,7 @@ services:
       - scoop_access_key:/app/docker/access_keys:delegated
     networks:
       - scoop_rest_api
+      - scoop_rest_api_internal
 
   #
   # Perma Payments
