@@ -948,7 +948,28 @@ def run_next_capture():
 
 
 def capture_with_scoop(capture_job):
-    pass
+    try:
+        have_archive = False
+        # TODO: attempt a capture here!
+        # TODO: if successful, set have_archive = True
+    except SoftTimeLimitExceeded:
+        capture_job.link.tags.add('timeout-failure')
+    except:  # noqa
+        logger.exception(f"Exception while capturing job {capture_job.link_id}:")
+    finally:
+        try:
+            if have_archive:
+                inc_progress(capture_job, 1, "Saving web archive file")
+                # TODO: save warc here!
+                print(f"{capture_job.link_id} capture succeeded.")
+            else:
+                print(f"{capture_job.link_id} capture failed.")
+        except:  # noqa
+            logger.exception(f"Exception while finishing job {capture_job.link_id}:")
+        finally:
+            capture_job.link.captures.filter(status='pending').update(status='failed')
+            if capture_job.status == 'in_progress':
+                capture_job.mark_failed('Failed during capture.')
 
 
 def capture_internally(capture_job):
