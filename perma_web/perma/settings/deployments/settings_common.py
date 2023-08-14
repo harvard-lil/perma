@@ -511,7 +511,7 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 #
 # Capture
 #
-CAPTURE_ENGINE = 'perma'  # perma|scoop
+CAPTURE_ENGINE = 'perma'  # perma|scoop-api
 
 #
 # (Scoop)

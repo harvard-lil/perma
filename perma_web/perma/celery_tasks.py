@@ -936,10 +936,10 @@ def run_next_capture():
 
     if settings.CAPTURE_ENGINE == 'perma':
         capture_internally(capture_job)
-    elif settings.CAPTURE_ENGINE == 'scoop':
+    elif settings.CAPTURE_ENGINE == 'scoop-api':
         capture_with_scoop(capture_job)
     else:
-        logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop'.")
+        logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop-api'.")
 
     if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
         run_next_capture.delay()
