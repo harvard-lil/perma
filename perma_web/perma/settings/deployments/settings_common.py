@@ -628,9 +628,6 @@ CONTACT_REGISTRARS = False
 # Via https://console.developers.google.com/apis/api/geocoding_backend/overview
 GEOCODING_KEY = None
 
-REPLAYWEBPAGE_VERSION = '1.8.0'
-REPLAYWEBPAGE_SOURCE_URL = 'https://cdn.jsdelivr.net/npm/replaywebpage'
-
 # Virus Scanning
 SCAN_UPLOADS = False
 SCAN_URL = ''
