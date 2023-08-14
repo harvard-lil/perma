@@ -933,6 +933,25 @@ def run_next_capture():
     capture_job = CaptureJob.get_next_job(reserve=True)
     if not capture_job:
         return  # no jobs waiting
+
+    if settings.CAPTURE_ENGINE == 'perma':
+        capture_internally(capture_job)
+    elif settings.CAPTURE_ENGINE == 'scoop-api':
+        capture_with_scoop(capture_job)
+    else:
+        logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop-api'.")
+
+    if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
+        run_next_capture.delay()
+    else:
+        logger.info("Deployment sentinel is present, not running next capture.")
+
+
+def capture_with_scoop(capture_job):
+    pass
+
+
+def capture_internally(capture_job):
     try:
         # Start warcprox process. Warcprox is a MITM proxy server and needs to be running
         # before, during and after the headless browser.
@@ -1418,10 +1437,6 @@ def run_next_capture():
             capture_job.link.captures.filter(status='pending').update(status='failed')
             if capture_job.status == 'in_progress':
                 capture_job.mark_failed('Failed during capture.')
-    if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
-        run_next_capture.delay()
-    else:
-        logger.info("Deployment sentinel is present, not running next capture.")
 
 
 ###              ###

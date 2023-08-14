@@ -95,7 +95,7 @@ def test_python(ctx, apps=_default_tests):
     if "functional_tests" in apps:
         ctx.run("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
 
-    ctx.run(f"pytest {apps} --no-migrations --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
+    ctx.run(f"pytest {apps} --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
 
 @task
 def test_js(ctx):
