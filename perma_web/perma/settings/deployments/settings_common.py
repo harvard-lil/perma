@@ -507,8 +507,19 @@ REST_FRAMEWORK = {
 
 PLAYBACK_HOST = 'rejouer.perma.test:8080'
 
+
 #
 # Capture
+#
+CAPTURE_ENGINE = 'perma'  # perma|scoop
+
+#
+# (Scoop)
+#
+SCOOP_API_KEY = None
+
+#
+# (Perma)
 #
 
 # IP ranges we won't archive.
@@ -575,8 +586,6 @@ MAX_PROXY_QUEUE_SIZE = 500 # this is the default in https://github.com/interneta
 # should we default to private?
 PRIVATE_LINKS_ON_FAILURE = False
 PRIVATE_LINKS_IF_GENERIC_NOARCHIVE = True
-
-SCOOP_API_KEY = None
 
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
