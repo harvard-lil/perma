@@ -935,8 +935,10 @@ def run_next_capture():
         return  # no jobs waiting
 
     if settings.CAPTURE_ENGINE == 'perma':
+        logger.info(f"{capture_job.link_id}: capturing with Perma.")
         capture_internally(capture_job)
     elif settings.CAPTURE_ENGINE == 'scoop-api':
+        logger.info(f"{capture_job.link_id}: capturing with the Scoop API.")
         capture_with_scoop(capture_job)
     else:
         logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop-api'.")
