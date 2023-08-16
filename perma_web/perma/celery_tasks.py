@@ -942,6 +942,8 @@ def run_next_capture():
         capture_with_scoop(capture_job)
     else:
         logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop-api'.")
+        capture_job.link.captures.filter(status='pending').update(status='failed')
+        capture_job.mark_failed('Failed due to invalid settings.CAPTURE_ENGINE')
 
     if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
         run_next_capture.delay()
