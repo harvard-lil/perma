@@ -57,6 +57,7 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
     environment:
+      - API_DOMAIN=http://scoop-rest-api:5000
       - DATABASE_USERNAME=root
       - DATABASE_PASSWORD=password
       - DATABASE_HOST=scoop-db
