@@ -517,6 +517,7 @@ CAPTURE_ENGINE = 'perma'  # perma|scoop-api
 # (Scoop)
 #
 SCOOP_API_KEY = None
+SCOOP_API_URL = None
 
 #
 # (Perma)

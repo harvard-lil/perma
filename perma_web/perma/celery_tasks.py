@@ -60,7 +60,8 @@ from perma.utils import (url_in_allowed_ip_range,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
-    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
+    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
+    copy_file_data, date_range, send_to_scoop)
 from perma import site_scripts
 
 import logging
@@ -884,6 +885,11 @@ def save_favicons(link, successful_favicon_urls):
         ).save()
         print(f"Saved favicons {successful_favicon_urls}")
 
+
+def save_scoop_capture(link, capture_job, data):
+    pass
+
+
 def clean_up_failed_captures():
     """
         Clean up any existing jobs that are marked in_progress but must have timed out by now, based on our hard timeout
@@ -953,18 +959,79 @@ def run_next_capture():
 
 def capture_with_scoop(capture_job):
     try:
-        have_archive = False
-        # TODO: attempt a capture here!
-        # TODO: if successful, set have_archive = True
+        #
+        # WIP: attempt a capture here!
+        #
+
+         # basic setup
+        start_time = time.time()
+        link = capture_job.link
+        target_url = link.ascii_safe_url
+
+        # Get started, unless the user has deleted the capture in the meantime
+        inc_progress(capture_job, 0, "Starting capture")
+        if link.user_deleted or link.primary_capture.status != "pending":
+            capture_job.mark_completed('deleted')
+            return
+        capture_job.attempt += 1
+        capture_job.save()
+
+        # request a capture
+        inc_progress(capture_job, 0, "Capturing with the Scoop REST API")
+        # TODO: start timing Scoop here
+        _, request_data = send_to_scoop(
+            method='post',
+            path='capture',
+            json={
+                "url": target_url
+            },
+            valid_if=lambda code, data: code == 200 and \
+                        all(key in data for key in {'status', 'id_capture'}) and \
+                        data['status'] in ['pending', 'started']
+        )
+
+        # poll until done.
+        # should we impose a time limit, or let SoftTimeLimitExceeded be the cap?
+        while True:
+            # is every half a second too often? we don't want to hammer the service.
+            time.sleep(0.5)
+            # TODO: try/except for network issues here, up to some limit
+            _, data = send_to_scoop(
+                method='get',
+                path=f"capture/{request_data['id_capture']}",
+                json={
+                    "url": target_url
+                },
+                valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
+            )
+
+            if data['status'] not in ['pending', 'started']:
+                # TODO: stop timing Scoop here
+                break
+
+            print("Waiting for Scoop to finish.")
+            # TODO: consider inching the progress bar along
+
+        print(data)
+
+        # TODO: save the json we received from scoop into a new field here
+
+        if data['status'] == 'success':
+            link.primary_capture.status = 'success'
+            link.primary_capture.save(update_fields=['status'])
+
+    except HaltCaptureException:
+        print("HaltCaptureException thrown")
     except SoftTimeLimitExceeded:
         capture_job.link.tags.add('timeout-failure')
     except:  # noqa
         logger.exception(f"Exception while capturing job {capture_job.link_id}:")
     finally:
         try:
-            if have_archive:
+            if link.primary_capture.status == 'success':
                 inc_progress(capture_job, 1, "Saving web archive file")
                 # TODO: save warc here!
+                # save_scoop_capture(link, capture_job, data)
                 print(f"{capture_job.link_id} capture succeeded.")
             else:
                 print(f"{capture_job.link_id} capture failed.")

@@ -5,3 +5,6 @@ class InvalidTransmissionException(Exception):
 
 class PermaPaymentsCommunicationException(Exception):
     pass
+
+class ScoopAPIException(Exception):
+    pass
