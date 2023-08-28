@@ -887,7 +887,103 @@ def save_favicons(link, successful_favicon_urls):
 
 
 def save_scoop_capture(link, capture_job, data):
-    pass
+
+    #
+    # PRIMARY CAPTURE
+    #
+
+    # Currently recorded metadata: get page title, page description, and content type from Scoop.
+    link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
+    link.primary_capture.save(update_fields=['content_type'])
+
+    title = data['scoop_capture_summary']['pageInfo'].get('title')
+    if title:
+        # TODO: if an API user has specified a title, see if we currently override it.
+        # Comments say no.... but code suggests yes....
+        link.submitted_title = title[:2100]
+    description = data['scoop_capture_summary']['pageInfo'].get('description')
+    if description:
+        link.submitted_description=description[:300]
+    link.save(update_fields=['submitted_title', 'submitted_description'])
+
+    # TODO: update URL? could encoding/formatting/quoting/anything else have changed?
+    # link.primary_capture.url = data['scoop_capture_summary']['exchangeUrls'][0]
+
+    # TODO: save information about what version of scoop was used (required)
+    # data['scoop_capture_summary']['provenanceInfo']['software']
+    # data['scoop_capture_summary']['provenanceInfo']['version']
+    # save f"{software}: {version}" in a new field
+
+    # TODO: save the user agent, so we can more easily see which browser version was used (probably)
+    # data['scoop_capture_summary']['provenanceInfo']['userAgent']
+
+    # TODO: save whether the capture was 'complete' or 'partial', for ease of analysis (maybe)
+    # data['scoop_capture_summary']['state']
+    # data['scoop_capture_summary']['states']
+    # if scoop_state == 'COMPLETE':
+    #     archive.partial_capture = False
+    # elif scoop_state == 'PARTIAL':
+    #     archive.partial_capture = True
+    # else:
+    #     logger.error(f"Capture Job {capture_job.id} produced artifacts but reports state '{scoop_state}': how did we find ourselves here?")
+
+    #
+    # SCREENSHOT
+    #
+
+    screenshot_filename = data['scoop_capture_summary']['attachments'].get("screenshot")
+    if screenshot_filename:
+        link.screenshot_capture.status = 'success'
+        link.screenshot_capture.url = f"file:///{screenshot_filename}"
+        try:
+            assert screenshot_filename.lower().endswith('.png')
+        except AssertionError:
+            logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
+        link.screenshot_capture.save(update_fields=['status', 'url'])
+
+    #
+    # OTHER ATTACHMENTS
+    #
+
+    # TODO: create a Capture() for the provenance summary, once that is supported in the model
+    # provenance_filename = data['scoop_capture_summary']['attachments']["provenance_summary"]
+    # Capture(
+    #     link=link,
+    #     role='provenance_summary',
+    #     status='success',
+    #     record_type='resource',  # or response, whichever is accurate
+    #     url=f"file:///{provenance_filename}",
+    #     content_type='text/html; charset=utf-8',
+    # ).save()
+
+    # TODO: get favicon info, if exposed.
+    # Capture(
+    #     link=link,
+    #     role='favicon',
+    #     status='success',
+    #     record_type='response',
+    #     url=favicon_url,
+    #     content_type=favicon_content_type.lower()
+    # ).save()
+
+    #
+    # WARC
+    #
+
+    # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
+    out = tempfile.TemporaryFile('ab+')
+    try:
+      # TODO: retrieve here WARC here
+      out.write(b"Hello warc.\n")
+      out.flush()
+      link.warc_size = out.tell()
+      link.save(update_fields=['warc_size'])
+      out.seek(0)
+      default_storage.store_file(out, link.warc_storage_file(), overwrite=True)
+    finally:
+      out.close()
+
+    capture_job.mark_completed()
 
 
 def clean_up_failed_captures():
@@ -977,7 +1073,7 @@ def capture_with_scoop(capture_job):
         capture_job.save()
 
         # request a capture
-        inc_progress(capture_job, 0, "Capturing with the Scoop REST API")
+        inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
         # TODO: start timing Scoop here
         _, request_data = send_to_scoop(
             method='post',
@@ -1030,8 +1126,7 @@ def capture_with_scoop(capture_job):
         try:
             if link.primary_capture.status == 'success':
                 inc_progress(capture_job, 1, "Saving web archive file")
-                # TODO: save warc here!
-                # save_scoop_capture(link, capture_job, data)
+                save_scoop_capture(link, capture_job, data)
                 print(f"{capture_job.link_id} capture succeeded.")
             else:
                 print(f"{capture_job.link_id} capture failed.")
