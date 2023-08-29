@@ -899,9 +899,7 @@ def save_scoop_capture(link, capture_job, data):
     link.primary_capture.save(update_fields=['content_type'])
 
     title = data['scoop_capture_summary']['pageInfo'].get('title')
-    if title:
-        # TODO: if an API user has specified a title, see if we currently override it.
-        # Comments say no.... but code suggests yes....
+    if title and link.submitted_title == link.get_default_title():
         link.submitted_title = title[:2100]
     description = data['scoop_capture_summary']['pageInfo'].get('description')
     if description:
