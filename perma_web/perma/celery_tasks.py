@@ -981,7 +981,8 @@ def save_scoop_capture(link, capture_job, data):
             valid_if=lambda code, _: code == 200,
             stream=True
         )
-        for chunk in response.iter_content(chunk_size=10*1024):
+        # Use the raw response, because Python requests standard methods gunzip the file
+        for chunk in response.raw.stream(10*1024, decode_content=False):
             if chunk:
                 tmp_file.write(chunk)
         tmp_file.flush()
