@@ -842,7 +842,7 @@ def safe_get_response_json(response):
         data = {}
     return data
 
-def send_to_scoop(method, path, valid_if, json=None):
+def send_to_scoop(method, path, valid_if, json=None, stream=False):
     # Make the request
     try:
         response = requests.request(
@@ -853,7 +853,8 @@ def send_to_scoop(method, path, valid_if, json=None):
                 "Access-Key": settings.SCOOP_API_KEY
             },
             timeout=10,
-            allow_redirects=False
+            allow_redirects=False,
+            stream=stream
         )
     except requests.exceptions.RequestException as e:
         raise ScoopAPIException() from e

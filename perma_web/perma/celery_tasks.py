@@ -888,6 +888,8 @@ def save_favicons(link, successful_favicon_urls):
 
 def save_scoop_capture(link, capture_job, data):
 
+    inc_progress(capture_job, 1, "Saving metadata")
+
     #
     # PRIMARY CAPTURE
     #
@@ -969,19 +971,26 @@ def save_scoop_capture(link, capture_job, data):
     #
     # WARC
     #
-
     # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
-    out = tempfile.TemporaryFile('ab+')
-    try:
-        # TODO: retrieve here WARC here
-        out.write(b"Hello warc.\n")
-        out.flush()
-        link.warc_size = out.tell()
+    with tempfile.TemporaryFile('ab+') as tmp_file:
+
+        inc_progress(capture_job, 1, "Downloading web archive file")
+        response, _ = send_to_scoop(
+            method="get",
+            path=f"artifact/{data['id_capture']}/archive.warc.gz",
+            valid_if=lambda code, _: code == 200,
+            stream=True
+        )
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                tmp_file.write(chunk)
+        tmp_file.flush()
+        link.warc_size = tmp_file.tell()
         link.save(update_fields=['warc_size'])
-        out.seek(0)
-        default_storage.store_file(out, link.warc_storage_file(), overwrite=True)
-    finally:
-        out.close()
+        tmp_file.seek(0)
+
+        inc_progress(capture_job, 1, "Saving web archive file")
+        default_storage.store_file(tmp_file, link.warc_storage_file(), overwrite=True)
 
     capture_job.mark_completed()
 
@@ -1087,7 +1096,7 @@ def capture_with_scoop(capture_job):
             # is every half a second too often? we don't want to hammer the service.
             time.sleep(0.5)
             # TODO: try/except for network issues here, up to some limit
-            _, data = send_to_scoop(
+            _, poll_data = send_to_scoop(
                 method='get',
                 path=f"capture/{request_data['id_capture']}",
                 json={
@@ -1096,18 +1105,18 @@ def capture_with_scoop(capture_job):
                 valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
             )
 
-            if data['status'] not in ['pending', 'started']:
+            if poll_data['status'] not in ['pending', 'started']:
                 # TODO: stop timing Scoop here
                 break
 
             print("Waiting for Scoop to finish.")
             # TODO: consider inching the progress bar along
 
-        print(data)
+        print(poll_data)
 
         # TODO: save the json we received from scoop into a new field here
 
-        if data['status'] == 'success':
+        if poll_data['status'] == 'success':
             link.primary_capture.status = 'success'
             link.primary_capture.save(update_fields=['status'])
 
@@ -1120,8 +1129,7 @@ def capture_with_scoop(capture_job):
     finally:
         try:
             if link.primary_capture.status == 'success':
-                inc_progress(capture_job, 1, "Saving web archive file")
-                save_scoop_capture(link, capture_job, data)
+                save_scoop_capture(link, capture_job, poll_data)
                 print(f"{capture_job.link_id} capture succeeded.")
             else:
                 print(f"{capture_job.link_id} capture failed.")
