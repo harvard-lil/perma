@@ -54,7 +54,7 @@ from django.template.defaultfilters import pluralize
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
     CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
 from perma.email import send_self_email
-from perma.exceptions import PermaPaymentsCommunicationException
+from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
@@ -1093,20 +1093,26 @@ def capture_with_scoop(capture_job):
             json={"url": target_url},
             valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
         )
+
         # poll until done.
-        # should we impose a time limit, or let SoftTimeLimitExceeded be the cap?
+        poll_network_errors = 0
         while True:
-            # is every half a second too often? we don't want to hammer the service.
-            time.sleep(0.5)
-            # TODO: try/except for network issues here, up to some limit
-            _, poll_data = send_to_scoop(
-                method='get',
-                path=f"capture/{request_data['id_capture']}",
-                json={
-                    "url": target_url
-                },
-                valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
-            )
+            if poll_network_errors > settings.SCOOP_POLL_NETWORK_ERROR_LIMIT:
+                raise HaltCaptureException
+
+            time.sleep(settings.SCOOP_POLL_FREQUENCY)
+            try:
+                _, poll_data = send_to_scoop(
+                    method='get',
+                    path=f"capture/{request_data['id_capture']}",
+                    json={
+                        "url": target_url
+                    },
+                    valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
+                )
+            except ScoopAPINetworkException:
+                poll_network_errors = poll_network_errors + 1
+                continue
 
             if poll_data['status'] not in ['pending', 'started']:
                 # TODO: stop timing Scoop here

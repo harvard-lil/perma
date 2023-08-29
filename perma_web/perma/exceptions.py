@@ -8,3 +8,6 @@ class PermaPaymentsCommunicationException(Exception):
 
 class ScoopAPIException(Exception):
     pass
+
+class ScoopAPINetworkException(ScoopAPIException):
+    pass

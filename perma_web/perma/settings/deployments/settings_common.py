@@ -518,6 +518,8 @@ CAPTURE_ENGINE = 'perma'  # perma|scoop-api
 #
 SCOOP_API_KEY = None
 SCOOP_API_URL = None
+SCOOP_POLL_FREQUENCY = 0.5
+SCOOP_POLL_NETWORK_ERROR_LIMIT = 10
 
 #
 # (Perma)
