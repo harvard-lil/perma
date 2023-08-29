@@ -861,9 +861,11 @@ def send_to_scoop(method, path, valid_if, json=None, stream=False):
 
     # Validate the response
     try:
-        data = safe_get_response_json(response)
+        if stream:
+            data = {}
+        else:
+            data = safe_get_response_json(response)
         assert valid_if(response.status_code, data)
     except AssertionError:
         raise ScoopAPIException(f"{response.status_code}: {str(data)}")
-
     return response, data
