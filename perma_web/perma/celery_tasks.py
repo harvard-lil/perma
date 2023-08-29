@@ -941,7 +941,9 @@ def save_scoop_capture(link, capture_job, data):
             assert screenshot_filename.lower().endswith('.png')
         except AssertionError:
             logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
-        link.screenshot_capture.save(update_fields=['status', 'url'])
+        # Scoop stores attachments as 'response', so they can be listed in WACZ's page.jsonl
+        link.screenshot_capture.record_type = 'response'
+        link.screenshot_capture.save(update_fields=['status', 'url', 'record_type'])
 
     #
     # OTHER ATTACHMENTS
@@ -953,7 +955,7 @@ def save_scoop_capture(link, capture_job, data):
     #     link=link,
     #     role='provenance_summary',
     #     status='success',
-    #     record_type='resource',  # or response, whichever is accurate
+    #     record_type='response',
     #     url=f"file:///{provenance_filename}",
     #     content_type='text/html; charset=utf-8',
     # ).save()
