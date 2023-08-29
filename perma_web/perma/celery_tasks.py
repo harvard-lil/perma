@@ -973,15 +973,15 @@ def save_scoop_capture(link, capture_job, data):
     # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
     out = tempfile.TemporaryFile('ab+')
     try:
-      # TODO: retrieve here WARC here
-      out.write(b"Hello warc.\n")
-      out.flush()
-      link.warc_size = out.tell()
-      link.save(update_fields=['warc_size'])
-      out.seek(0)
-      default_storage.store_file(out, link.warc_storage_file(), overwrite=True)
+        # TODO: retrieve here WARC here
+        out.write(b"Hello warc.\n")
+        out.flush()
+        link.warc_size = out.tell()
+        link.save(update_fields=['warc_size'])
+        out.seek(0)
+        default_storage.store_file(out, link.warc_storage_file(), overwrite=True)
     finally:
-      out.close()
+        out.close()
 
     capture_job.mark_completed()
 
@@ -1059,8 +1059,8 @@ def capture_with_scoop(capture_job):
         # WIP: attempt a capture here!
         #
 
-         # basic setup
-        start_time = time.time()
+        # basic setup
+        start_time = time.time()  # noqa
         link = capture_job.link
         target_url = link.ascii_safe_url
 
@@ -1076,16 +1076,11 @@ def capture_with_scoop(capture_job):
         inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
         # TODO: start timing Scoop here
         _, request_data = send_to_scoop(
-            method='post',
-            path='capture',
-            json={
-                "url": target_url
-            },
-            valid_if=lambda code, data: code == 200 and \
-                        all(key in data for key in {'status', 'id_capture'}) and \
-                        data['status'] in ['pending', 'started']
+            method="post",
+            path="capture",
+            json={"url": target_url},
+            valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
         )
-
         # poll until done.
         # should we impose a time limit, or let SoftTimeLimitExceeded be the cap?
         while True:
