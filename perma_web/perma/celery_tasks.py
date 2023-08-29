@@ -1080,7 +1080,7 @@ def capture_with_scoop(capture_job):
 
         # Request a capture
         inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
-        # TODO: start timing Scoop here
+        scoop_start_time = time.time()
         _, request_data = send_to_scoop(
             method="post",
             path="capture",
@@ -1109,11 +1109,14 @@ def capture_with_scoop(capture_job):
                 continue
 
             if poll_data['status'] not in ['pending', 'started']:
-                # TODO: stop timing Scoop here
+                scoop_end_time = time.time()
+                # TODO: consider storing this timing
+                print(f"Scoop finished in {scoop_end_time - scoop_start_time}s.")
                 break
 
-            print("Waiting for Scoop to finish.")
-            # TODO: consider inching the progress bar along
+            # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
+            wait_time = time.time() - scoop_start_time
+            inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
 
         print(poll_data)
 
