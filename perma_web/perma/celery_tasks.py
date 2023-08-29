@@ -1065,12 +1065,8 @@ def run_next_capture():
 
 def capture_with_scoop(capture_job):
     try:
-        #
-        # WIP: attempt a capture here!
-        #
 
-        # basic setup
-        start_time = time.time()  # noqa
+        # Basic setup
         link = capture_job.link
         target_url = link.ascii_safe_url
 
@@ -1082,7 +1078,7 @@ def capture_with_scoop(capture_job):
         capture_job.attempt += 1
         capture_job.save()
 
-        # request a capture
+        # Request a capture
         inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
         # TODO: start timing Scoop here
         _, request_data = send_to_scoop(
@@ -1092,7 +1088,7 @@ def capture_with_scoop(capture_job):
             valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
         )
 
-        # poll until done.
+        # Poll until done
         poll_network_errors = 0
         while True:
             if poll_network_errors > settings.SCOOP_POLL_NETWORK_ERROR_LIMIT:
