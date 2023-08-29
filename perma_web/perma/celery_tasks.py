@@ -981,6 +981,8 @@ def save_scoop_capture(link, capture_job, data):
             valid_if=lambda code, _: code == 200,
             stream=True
         )
+        # This seems pretty slow... Can we improve? Is it an environment thing?
+        # https://linear.app/harvard-lil/issue/ENG-315/check-if-downloads-are-faster-with-shutilcopyfileobj
         for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 tmp_file.write(chunk)
