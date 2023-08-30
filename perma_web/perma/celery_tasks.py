@@ -1125,9 +1125,8 @@ def capture_with_scoop(capture_job):
             wait_time = time.time() - scoop_start_time
             inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
 
-        print(poll_data)
-
-        # TODO: save the json we received from scoop into a new field here
+        capture_job.scoop_logs = poll_data
+        capture_job.save(update_fields=['scoop_logs'])
 
         if poll_data['status'] == 'success':
             link.primary_capture.status = 'success'

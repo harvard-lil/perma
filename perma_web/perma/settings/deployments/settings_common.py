@@ -159,6 +159,7 @@ INSTALLED_APPS = (
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
     'axes',  # limit login attempts
+    'django_json_widget',
 
     # api
     'api',

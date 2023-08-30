@@ -29,7 +29,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count, Sum
+from django.db.models import Q, Max, Count, Sum, JSONField
 from django.db.models.functions import Now, Upper
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
@@ -2021,6 +2021,7 @@ class CaptureJob(models.Model):
     capture_end_time = models.DateTimeField(blank=True, null=True)
     scoop_start_time = models.DateTimeField(blank=True, null=True)
     scoop_end_time = models.DateTimeField(blank=True, null=True)
+    scoop_logs = JSONField(blank=True, null=True)
 
     superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
 

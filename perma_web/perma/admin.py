@@ -18,6 +18,7 @@ from django.utils.safestring import mark_safe
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
+from django_json_widget.widgets import JSONEditorWidget
 
 from .exceptions import PermaPaymentsCommunicationException
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, \
@@ -615,6 +616,22 @@ class FolderAdmin(MPTTModelAdmin):
         return super().get_queryset(request).select_related('owned_by', 'organization', 'sponsored_by')
 
 
+
+class CaptureJobForm(ModelForm):
+    """Override to so that Scoop logs display with a view-only JSON widget"""
+
+    class Meta:
+        model = CaptureJob
+        fields = "__all__"
+        widgets = {
+            "scoop_logs": JSONEditorWidget(options={"mode": "view", "modes": ["view"]}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.get("scoop_logs").disabled = True
+
+
 class CaptureJobAdmin(admin.ModelAdmin):
     list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'capture_time', 'scoop_time']
     list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter]
@@ -622,6 +639,7 @@ class CaptureJobAdmin(admin.ModelAdmin):
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
+    form = CaptureJobForm
 
     def get_queryset(self, request):
         return super(CaptureJobAdmin, self).get_queryset(request).select_related('link')
