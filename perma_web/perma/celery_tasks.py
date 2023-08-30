@@ -45,7 +45,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
 from django.db.models import F
-from django.db.models.functions import Greatest
+from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
 from django.http import HttpRequest
@@ -1085,6 +1085,8 @@ def capture_with_scoop(capture_job):
         # Request a capture
         inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
         scoop_start_time = time.time()
+        capture_job.scoop_start_time = Now()
+        capture_job.save(update_fields=['scoop_start_time'])
         _, request_data = send_to_scoop(
             method="post",
             path="capture",
@@ -1114,7 +1116,8 @@ def capture_with_scoop(capture_job):
 
             if poll_data['status'] not in ['pending', 'started']:
                 scoop_end_time = time.time()
-                # TODO: consider storing this timing
+                capture_job.scoop_end_time = Now()
+                capture_job.save(update_fields=['scoop_end_time'])
                 print(f"Scoop finished in {scoop_end_time - scoop_start_time}s.")
                 break
 

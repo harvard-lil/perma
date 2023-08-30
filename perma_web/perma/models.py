@@ -2019,6 +2019,8 @@ class CaptureJob(models.Model):
     step_description = models.CharField(max_length=255, blank=True, null=True)
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
+    scoop_start_time = models.DateTimeField(blank=True, null=True)
+    scoop_end_time = models.DateTimeField(blank=True, null=True)
 
     superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
 
