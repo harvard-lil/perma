@@ -906,13 +906,13 @@ def save_scoop_capture(link, capture_job, data):
         link.submitted_description=description[:300]
     link.save(update_fields=['submitted_title', 'submitted_description'])
 
+    software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
+    version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
+    capture_job.link.captured_by_software = f"{software}: {version}"
+    capture_job.link.save(update_fields=['captured_by_software'])
+
     # TODO: update URL? could encoding/formatting/quoting/anything else have changed?
     # link.primary_capture.url = data['scoop_capture_summary']['exchangeUrls'][0]
-
-    # TODO: save information about what version of scoop was used (required)
-    # data['scoop_capture_summary']['provenanceInfo']['software']
-    # data['scoop_capture_summary']['provenanceInfo']['version']
-    # save f"{software}: {version}" in a new field
 
     # TODO: save the user agent, so we can more easily see which browser version was used (probably)
     # data['scoop_capture_summary']['provenanceInfo']['userAgent']
@@ -1064,6 +1064,10 @@ def run_next_capture():
 
 
 def capture_with_scoop(capture_job):
+    capture_job.engine = 'scoop-api'
+    capture_job.save(update_fields=['engine'])
+    capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
+    capture_job.link.save(update_fields=['captured_by_software'])
     try:
 
         # Basic setup
