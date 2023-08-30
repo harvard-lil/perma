@@ -1070,10 +1070,11 @@ li.dropdown {
   right: 0;
   margin-top: 0;
   border-top: none;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
   height: auto !important;
+  max-height: 75vh;
   display: none;
   @include respond-wide {
     left: 18%;
