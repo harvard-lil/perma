@@ -1528,6 +1528,7 @@ class Link(DeletableModel):
     default_to_screenshot_view = models.BooleanField(default=False, help_text="User defaults to screenshot view.")
     bonus_link = models.BooleanField(null=True, blank=True)
 
+    captured_by_software = models.CharField(max_length=255, default='perma', db_index=True)
     warc_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
         null=True,
@@ -2006,6 +2007,10 @@ class CaptureJob(models.Model):
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='capture_jobs', on_delete=models.CASCADE)
     link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs', on_delete=models.CASCADE)
+    engine = models.CharField(max_length=255,
+                              choices=(('perma', 'perma'), ('scoop-api', 'scoop-api')),
+                              default='perma',
+                              db_index=True)
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
