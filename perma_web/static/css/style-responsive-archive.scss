@@ -1463,7 +1463,7 @@ body.modal-open {
   .tray-detail-title {
     margin-bottom: 5px;
   }
-  .temporary-options {
+  .temporary-options, .admin-only {
     background-color: $color-trans-whispergray;
   }
   input {

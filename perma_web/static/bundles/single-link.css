@@ -5311,7 +5311,7 @@ body.modal-open {
 #collapse-details .tray-detail-title {
   margin-bottom: 5px;
 }
-#collapse-details .temporary-options {
+#collapse-details .temporary-options, #collapse-details .admin-only {
   background-color: rgba(100, 100, 100, 0.07);
 }
 #collapse-details input {

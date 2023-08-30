@@ -144,6 +144,12 @@
             </label>
           </fieldset>
         </div>
+        {% if request.user.is_staff %}
+          <div class="tray-detail-group admin-only">
+            <dt class="tray-detail-title">Captured by</dt>
+            <dd class="tray-detail-entry">{{link.captured_by_software}}</dd>
+          </div>
+        {% endif %}
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">
