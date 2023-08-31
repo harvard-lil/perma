@@ -894,7 +894,6 @@ def save_scoop_capture(link, capture_job, data):
     # PRIMARY CAPTURE
     #
 
-    # Currently recorded metadata: get page title, page description, and content type from Scoop.
     link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
     link.primary_capture.save(update_fields=['content_type'])
 
@@ -904,13 +903,16 @@ def save_scoop_capture(link, capture_job, data):
     description = data['scoop_capture_summary']['pageInfo'].get('description')
     if description:
         link.submitted_description=description[:300]
-    link.save(update_fields=['submitted_title', 'submitted_description'])
-
     software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
     version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
     link.captured_by_software = f"{software}: {version}"
     link.captured_by_browser = data['scoop_capture_summary']['provenanceInfo']['userAgent']
-    link.save(update_fields=['captured_by_software', 'captured_by_browser'])
+    link.save(update_fields=[
+        'submitted_title',
+        'submitted_description',
+        'captured_by_software',
+        'captured_by_browser'
+    ])
 
     # TODO: update URL? could encoding/formatting/quoting/anything else have changed?
     # link.primary_capture.url = data['scoop_capture_summary']['exchangeUrls'][0]
