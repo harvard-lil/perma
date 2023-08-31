@@ -618,7 +618,7 @@ class FolderAdmin(MPTTModelAdmin):
 
 
 class CaptureJobForm(ModelForm):
-    """Override to so that Scoop logs display with a view-only JSON widget"""
+    """Override so that Scoop logs display with a view-only JSON widget"""
 
     class Meta:
         model = CaptureJob
