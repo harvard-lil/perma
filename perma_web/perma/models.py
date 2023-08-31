@@ -1849,6 +1849,10 @@ class Link(DeletableModel):
     def favicon_capture(self):
         return self.captures.filter(role='favicon').first()
 
+    @cached_property
+    def provenance_summary_capture(self):
+        return self.captures.filter(role='provenance_summary').first()
+
     def write_uploaded_file(self, uploaded_file, cache_break=False):
         """
             Given a file uploaded by a user, create a Capture record and warc.
@@ -1933,7 +1937,12 @@ class Link(DeletableModel):
 
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=(('primary','primary'),('screenshot','screenshot'),('favicon','favicon')))
+    role = models.CharField(max_length=18, choices=(
+        ('primary','primary'),
+        ('screenshot','screenshot'),
+        ('favicon','favicon'),
+        ('provenance_summary', 'provenance_summary'),
+    ))
     status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
     url = models.CharField(max_length=2100, blank=True, null=True)
     record_type = models.CharField(max_length=10, choices=(

@@ -943,16 +943,15 @@ def save_scoop_capture(link, capture_job, data):
     # OTHER ATTACHMENTS
     #
 
-    # TODO: create a Capture() for the provenance summary, once that is supported in the model
-    # provenance_filename = data['scoop_capture_summary']['attachments']["provenance_summary"]
-    # Capture(
-    #     link=link,
-    #     role='provenance_summary',
-    #     status='success',
-    #     record_type='response',
-    #     url=f"file:///{provenance_filename}",
-    #     content_type='text/html; charset=utf-8',
-    # ).save()
+    provenance_filename = data['scoop_capture_summary']['attachments']["provenanceSummary"]
+    Capture(
+        link=link,
+        role='provenance_summary',
+        status='success',
+        record_type='response',
+        url=f"file:///{provenance_filename}",
+        content_type='text/html; charset=utf-8',
+    ).save()
 
     # TODO: get favicon info, if exposed.
     # Capture(
