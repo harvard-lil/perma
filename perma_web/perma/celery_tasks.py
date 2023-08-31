@@ -917,16 +917,6 @@ def save_scoop_capture(link, capture_job, data):
     # TODO: update URL? could encoding/formatting/quoting/anything else have changed?
     # link.primary_capture.url = data['scoop_capture_summary']['exchangeUrls'][0]
 
-    # TODO: save whether the capture was 'complete' or 'partial', for ease of analysis (maybe)
-    # data['scoop_capture_summary']['state']
-    # data['scoop_capture_summary']['states']
-    # if scoop_state == 'COMPLETE':
-    #     archive.partial_capture = False
-    # elif scoop_state == 'PARTIAL':
-    #     archive.partial_capture = True
-    # else:
-    #     logger.error(f"Capture Job {capture_job.id} produced artifacts but reports state '{scoop_state}': how did we find ourselves here?")
-
     #
     # SCREENSHOT
     #
@@ -1126,7 +1116,10 @@ def capture_with_scoop(capture_job):
             inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
 
         capture_job.scoop_logs = poll_data
-        capture_job.save(update_fields=['scoop_logs'])
+        states = poll_data['scoop_capture_summary']['states']
+        state = poll_data['scoop_capture_summary']['state']
+        capture_job.scoop_state = states[state]
+        capture_job.save(update_fields=['scoop_logs', 'scoop_state'])
 
         if poll_data['status'] == 'success':
             link.primary_capture.status = 'success'

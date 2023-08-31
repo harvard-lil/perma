@@ -633,8 +633,8 @@ class CaptureJobForm(ModelForm):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'capture_time', 'scoop_time']
-    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter]
+    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'capture_time', 'scoop_time', 'scoop_state']
+    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state']
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
     paginator = FasterAdminPaginator
