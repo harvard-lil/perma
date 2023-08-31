@@ -908,14 +908,12 @@ def save_scoop_capture(link, capture_job, data):
 
     software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
     version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
-    capture_job.link.captured_by_software = f"{software}: {version}"
-    capture_job.link.save(update_fields=['captured_by_software'])
+    link.captured_by_software = f"{software}: {version}"
+    link.captured_by_browser = data['scoop_capture_summary']['provenanceInfo']['userAgent']
+    link.save(update_fields=['captured_by_software', 'captured_by_browser'])
 
     # TODO: update URL? could encoding/formatting/quoting/anything else have changed?
     # link.primary_capture.url = data['scoop_capture_summary']['exchangeUrls'][0]
-
-    # TODO: save the user agent, so we can more easily see which browser version was used (probably)
-    # data['scoop_capture_summary']['provenanceInfo']['userAgent']
 
     # TODO: save whether the capture was 'complete' or 'partial', for ease of analysis (maybe)
     # data['scoop_capture_summary']['state']
@@ -1177,6 +1175,8 @@ def capture_internally(capture_job):
         proxy = False
 
         capture_user_agent = user_agent_for_domain(link.url_details.netloc)
+        link.captured_by_browser = capture_user_agent
+        link.save(update_fields=['captured_by_browser'])
         print(f"Using user-agent: {capture_user_agent}")
 
         if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):

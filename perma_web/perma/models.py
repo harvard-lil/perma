@@ -1529,6 +1529,7 @@ class Link(DeletableModel):
     bonus_link = models.BooleanField(null=True, blank=True)
 
     captured_by_software = models.CharField(max_length=255, default='perma', db_index=True)
+    captured_by_browser = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     warc_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
         null=True,
@@ -1876,8 +1877,9 @@ class Link(DeletableModel):
             uploaded_file.file.seek(0)
             write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
         self.captured_by_software = 'upload'
+        self.captured_by_browser = None
         self.warc_size = warc_size[0]
-        self.save(update_fields=['captured_by_software', 'warc_size'])
+        self.save(update_fields=['captured_by_software', 'captured_by_browser', 'warc_size'])
         capture.save()
 
     def safe_delete_warc(self):

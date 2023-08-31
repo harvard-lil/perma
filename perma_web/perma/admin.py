@@ -568,13 +568,13 @@ class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'file_size']
     list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'file_size', 'replacement_link', 'tags')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'captured_by_browser', 'file_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size', 'captured_by_software', 'archive_timestamp']
+    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size', 'captured_by_software', 'captured_by_browser', 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
