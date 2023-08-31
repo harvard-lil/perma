@@ -39,7 +39,7 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from .exceptions import InvalidTransmissionException, ScoopAPIException
+from .exceptions import InvalidTransmissionException, ScoopAPIException, ScoopAPINetworkException
 
 logger = logging.getLogger(__name__)
 warn = logger.warn
@@ -857,7 +857,7 @@ def send_to_scoop(method, path, valid_if, json=None, stream=False):
             stream=stream
         )
     except requests.exceptions.RequestException as e:
-        raise ScoopAPIException() from e
+        raise ScoopAPINetworkException() from e
 
     # Validate the response
     try:
