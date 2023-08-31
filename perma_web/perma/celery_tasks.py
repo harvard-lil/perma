@@ -953,16 +953,6 @@ def save_scoop_capture(link, capture_job, data):
         content_type='text/html; charset=utf-8',
     ).save()
 
-    # TODO: get favicon info, if exposed.
-    # Capture(
-    #     link=link,
-    #     role='favicon',
-    #     status='success',
-    #     record_type='response',
-    #     url=favicon_url,
-    #     content_type=favicon_content_type.lower()
-    # ).save()
-
     #
     # WARC
     #
