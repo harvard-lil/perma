@@ -515,20 +515,15 @@ class AuthenticatedLinkListView(BaseView):
                 ).save()
 
                 # create screenshot placeholder
-                #
-                # TODO: when capturing with Scoop, we should not pre-populate
-                # url and content_type, and possibly should switch record_type
-                # to 'response', if that is how it is recorded in Scoop's WARCs.
-                # We could also consider not creating this placeholder at all.
-                #
-                Capture(
-                    link=link,
-                    role='screenshot',
-                    status='pending',
-                    record_type='resource',
-                    url=f"file:///{link.guid}/cap.png",
-                    content_type='image/png',
-                ).save()
+                if settings.CAPTURE_ENGINE == 'perma':
+                    Capture(
+                        link=link,
+                        role='screenshot',
+                        status='pending',
+                        record_type='resource',
+                        url=f"file:///{link.guid}/cap.png",
+                        content_type='image/png',
+                    ).save()
 
 
                 # kick off capture tasks -- no need for guid since it'll work through the queue

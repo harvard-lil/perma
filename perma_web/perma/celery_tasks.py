@@ -929,15 +929,18 @@ def save_scoop_capture(link, capture_job, data):
 
     screenshot_filename = data['scoop_capture_summary']['attachments'].get("screenshot")
     if screenshot_filename:
-        link.screenshot_capture.status = 'success'
-        link.screenshot_capture.url = f"file:///{screenshot_filename}"
+        Capture(
+            link=link,
+            role='screenshot',
+            status='success',
+            record_type='response',
+            url=f"file:///{screenshot_filename}",
+            content_type='image/png',
+        ).save()
         try:
             assert screenshot_filename.lower().endswith('.png')
         except AssertionError:
             logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
-        # Scoop stores attachments as 'response', so they can be listed in WACZ's page.jsonl
-        link.screenshot_capture.record_type = 'response'
-        link.screenshot_capture.save(update_fields=['status', 'url', 'record_type'])
 
     #
     # OTHER ATTACHMENTS
