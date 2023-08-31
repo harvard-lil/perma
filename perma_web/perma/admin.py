@@ -18,6 +18,7 @@ from django.utils.safestring import mark_safe
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
+from django_json_widget.widgets import JSONEditorWidget
 
 from .exceptions import PermaPaymentsCommunicationException
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, \
@@ -564,16 +565,16 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'internet_archive_upload_status', 'file_size']
-    list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'internet_archive_upload_status']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'file_size']
+    list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'file_size', 'replacement_link', 'tags')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'captured_by_browser', 'file_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size']  #, 'archive_timestamp']
+    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'file_size', 'captured_by_software', 'captured_by_browser', 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
@@ -615,13 +616,30 @@ class FolderAdmin(MPTTModelAdmin):
         return super().get_queryset(request).select_related('owned_by', 'organization', 'sponsored_by')
 
 
+
+class CaptureJobForm(ModelForm):
+    """Override so that Scoop logs display with a view-only JSON widget"""
+
+    class Meta:
+        model = CaptureJob
+        fields = "__all__"
+        widgets = {
+            "scoop_logs": JSONEditorWidget(options={"mode": "view", "modes": ["view"]}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.get("scoop_logs").disabled = True
+
+
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url']
-    list_filter = [CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter]
+    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'capture_time', 'scoop_time', 'scoop_state']
+    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state']
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
+    form = CaptureJobForm
 
     def get_queryset(self, request):
         return super(CaptureJobAdmin, self).get_queryset(request).select_related('link')
@@ -634,6 +652,16 @@ class CaptureJobAdmin(admin.ModelAdmin):
     def link_taglist(self, obj):
         if obj.link:
             return ", ".join(o.name for o in obj.link.tags.all())
+        return None
+
+    def capture_time(self, obj):
+        if obj.capture_start_time and obj.capture_end_time:
+            return obj.capture_end_time - obj.capture_start_time
+        return None
+
+    def scoop_time(self, obj):
+        if obj.scoop_start_time and obj.scoop_end_time:
+            return obj.scoop_end_time - obj.scoop_start_time
         return None
 
 

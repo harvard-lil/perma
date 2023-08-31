@@ -159,6 +159,7 @@ INSTALLED_APPS = (
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
     'axes',  # limit login attempts
+    'django_json_widget',
 
     # api
     'api',
@@ -517,6 +518,9 @@ CAPTURE_ENGINE = 'perma'  # perma|scoop-api
 # (Scoop)
 #
 SCOOP_API_KEY = None
+SCOOP_API_URL = None
+SCOOP_POLL_FREQUENCY = 0.5
+SCOOP_POLL_NETWORK_ERROR_LIMIT = 10
 
 #
 # (Perma)

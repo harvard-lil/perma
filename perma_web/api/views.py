@@ -515,14 +515,15 @@ class AuthenticatedLinkListView(BaseView):
                 ).save()
 
                 # create screenshot placeholder
-                Capture(
-                    link=link,
-                    role='screenshot',
-                    status='pending',
-                    record_type='resource',
-                    url=f"file:///{link.guid}/cap.png",
-                    content_type='image/png',
-                ).save()
+                if settings.CAPTURE_ENGINE == 'perma':
+                    Capture(
+                        link=link,
+                        role='screenshot',
+                        status='pending',
+                        record_type='resource',
+                        url=f"file:///{link.guid}/cap.png",
+                        content_type='image/png',
+                    ).save()
 
 
                 # kick off capture tasks -- no need for guid since it'll work through the queue

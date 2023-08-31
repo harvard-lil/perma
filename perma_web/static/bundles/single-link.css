@@ -4885,10 +4885,11 @@ li.dropdown {
   right: 0;
   margin-top: 0;
   border-top: none;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
   height: auto !important;
+  max-height: 75vh;
   display: none;
 }
 @media only screen and (min-width: 1200px) {
@@ -5310,7 +5311,7 @@ body.modal-open {
 #collapse-details .tray-detail-title {
   margin-bottom: 5px;
 }
-#collapse-details .temporary-options {
+#collapse-details .temporary-options, #collapse-details .admin-only {
   background-color: rgba(100, 100, 100, 0.07);
 }
 #collapse-details input {

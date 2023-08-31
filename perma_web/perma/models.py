@@ -29,7 +29,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count, Sum
+from django.db.models import Q, Max, Count, Sum, JSONField
 from django.db.models.functions import Now, Upper
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
@@ -1528,6 +1528,8 @@ class Link(DeletableModel):
     default_to_screenshot_view = models.BooleanField(default=False, help_text="User defaults to screenshot view.")
     bonus_link = models.BooleanField(null=True, blank=True)
 
+    captured_by_software = models.CharField(max_length=255, default='perma', db_index=True)
+    captured_by_browser = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     warc_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
         null=True,
@@ -1847,6 +1849,10 @@ class Link(DeletableModel):
     def favicon_capture(self):
         return self.captures.filter(role='favicon').first()
 
+    @cached_property
+    def provenance_summary_capture(self):
+        return self.captures.filter(role='provenance_summary').first()
+
     def write_uploaded_file(self, uploaded_file, cache_break=False):
         """
             Given a file uploaded by a user, create a Capture record and warc.
@@ -1874,8 +1880,10 @@ class Link(DeletableModel):
         with preserve_perma_warc(self.guid, self.creation_timestamp, self.warc_storage_file(), warc_size) as warc:
             uploaded_file.file.seek(0)
             write_resource_record_from_asset(uploaded_file.file.read(), warc_url, mime_type, warc)
+        self.captured_by_software = 'upload'
+        self.captured_by_browser = None
         self.warc_size = warc_size[0]
-        self.save(update_fields=['warc_size'])
+        self.save(update_fields=['captured_by_software', 'captured_by_browser', 'warc_size'])
         capture.save()
 
     def safe_delete_warc(self):
@@ -1929,7 +1937,12 @@ class Link(DeletableModel):
 
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=(('primary','primary'),('screenshot','screenshot'),('favicon','favicon')))
+    role = models.CharField(max_length=18, choices=(
+        ('primary','primary'),
+        ('screenshot','screenshot'),
+        ('favicon','favicon'),
+        ('provenance_summary', 'provenance_summary'),
+    ))
     status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
     url = models.CharField(max_length=2100, blank=True, null=True)
     record_type = models.CharField(max_length=10, choices=(
@@ -2006,6 +2019,10 @@ class CaptureJob(models.Model):
     submitted_url = models.CharField(max_length=2100, blank=True, null=False)
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='capture_jobs', on_delete=models.CASCADE)
     link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs', on_delete=models.CASCADE)
+    engine = models.CharField(max_length=255,
+                              choices=(('perma', 'perma'), ('scoop-api', 'scoop-api')),
+                              default='perma',
+                              db_index=True)
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
@@ -2013,6 +2030,10 @@ class CaptureJob(models.Model):
     step_description = models.CharField(max_length=255, blank=True, null=True)
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
+    scoop_start_time = models.DateTimeField(blank=True, null=True)
+    scoop_end_time = models.DateTimeField(blank=True, null=True)
+    scoop_logs = JSONField(blank=True, null=True)
+    scoop_state = models.CharField(max_length=255, blank=True, null=True, db_index=True)
 
     superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
 

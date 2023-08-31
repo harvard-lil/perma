@@ -45,7 +45,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
 from django.db.models import F
-from django.db.models.functions import Greatest
+from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
 from django.http import HttpRequest
@@ -54,13 +54,14 @@ from django.template.defaultfilters import pluralize
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
     CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
 from perma.email import send_self_email
-from perma.exceptions import PermaPaymentsCommunicationException
+from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
     user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
-    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching, copy_file_data, date_range)
+    ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
+    copy_file_data, date_range, send_to_scoop)
 from perma import site_scripts
 
 import logging
@@ -884,6 +885,105 @@ def save_favicons(link, successful_favicon_urls):
         ).save()
         print(f"Saved favicons {successful_favicon_urls}")
 
+
+def save_scoop_capture(link, capture_job, data):
+
+    inc_progress(capture_job, 1, "Saving metadata")
+
+    #
+    # PRIMARY CAPTURE
+    #
+
+    link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
+    link.primary_capture.save(update_fields=['content_type'])
+
+    title = data['scoop_capture_summary']['pageInfo'].get('title')
+    if title and link.submitted_title == link.get_default_title():
+        link.submitted_title = title[:2100]
+    description = data['scoop_capture_summary']['pageInfo'].get('description')
+    if description:
+        link.submitted_description=description[:300]
+    software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
+    version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
+    link.captured_by_software = f"{software}: {version}"
+    link.captured_by_browser = data['scoop_capture_summary']['provenanceInfo']['userAgent']
+    link.save(update_fields=[
+        'submitted_title',
+        'submitted_description',
+        'captured_by_software',
+        'captured_by_browser'
+    ])
+
+    # See if the primary URL has been munged in any way since we last saw it.
+    if link.primary_capture.url != data['scoop_capture_summary']['exchangeUrls'][0]:
+        logger.warning(f"Target URL for {link.guid} reformatted from {link.primary_capture.url} to {data['scoop_capture_summary']['exchangeUrls'][0]}. Please investigate.")
+        # Example:
+        #
+        # Target URL for Y8YR-9L2B reformatted from
+        # http://ko.wikipedia.org/wiki/위키백과:대문 to
+        # https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8.
+
+    #
+    # SCREENSHOT
+    #
+
+    screenshot_filename = data['scoop_capture_summary']['attachments'].get("screenshot")
+    if screenshot_filename:
+        Capture(
+            link=link,
+            role='screenshot',
+            status='success',
+            record_type='response',
+            url=f"file:///{screenshot_filename}",
+            content_type='image/png',
+        ).save()
+        try:
+            assert screenshot_filename.lower().endswith('.png')
+        except AssertionError:
+            logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
+
+    #
+    # OTHER ATTACHMENTS
+    #
+
+    provenance_filename = data['scoop_capture_summary']['attachments']["provenanceSummary"]
+    Capture(
+        link=link,
+        role='provenance_summary',
+        status='success',
+        record_type='response',
+        url=f"file:///{provenance_filename}",
+        content_type='text/html; charset=utf-8',
+    ).save()
+
+    #
+    # WARC
+    #
+    # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
+    with tempfile.TemporaryFile('ab+') as tmp_file:
+
+        inc_progress(capture_job, 1, "Downloading web archive file")
+        response, _ = send_to_scoop(
+            method="get",
+            path=f"artifact/{data['id_capture']}/archive.warc.gz",
+            valid_if=lambda code, _: code == 200,
+            stream=True
+        )
+        # Use the raw response, because Python requests standard methods gunzip the file
+        for chunk in response.raw.stream(10*1024, decode_content=False):
+            if chunk:
+                tmp_file.write(chunk)
+        tmp_file.flush()
+        link.warc_size = tmp_file.tell()
+        link.save(update_fields=['warc_size'])
+        tmp_file.seek(0)
+
+        inc_progress(capture_job, 1, "Saving web archive file")
+        default_storage.store_file(tmp_file, link.warc_storage_file(), overwrite=True)
+
+    capture_job.mark_completed()
+
+
 def clean_up_failed_captures():
     """
         Clean up any existing jobs that are marked in_progress but must have timed out by now, based on our hard timeout
@@ -935,11 +1035,15 @@ def run_next_capture():
         return  # no jobs waiting
 
     if settings.CAPTURE_ENGINE == 'perma':
+        logger.info(f"{capture_job.link_id}: capturing with Perma.")
         capture_internally(capture_job)
     elif settings.CAPTURE_ENGINE == 'scoop-api':
+        logger.info(f"{capture_job.link_id}: capturing with the Scoop API.")
         capture_with_scoop(capture_job)
     else:
         logger.error(f"Invalid settings.CAPTURE_ENGINE: '{settings.CAPTURE_ENGINE}'. Allowed values: 'perma' or 'scoop-api'.")
+        capture_job.link.captures.filter(status='pending').update(status='failed')
+        capture_job.mark_failed('Failed due to invalid settings.CAPTURE_ENGINE')
 
     if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
         run_next_capture.delay()
@@ -948,7 +1052,96 @@ def run_next_capture():
 
 
 def capture_with_scoop(capture_job):
-    pass
+    capture_job.engine = 'scoop-api'
+    capture_job.save(update_fields=['engine'])
+    capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
+    capture_job.link.save(update_fields=['captured_by_software'])
+    try:
+
+        # Basic setup
+        link = capture_job.link
+        target_url = link.ascii_safe_url
+
+        # Get started, unless the user has deleted the capture in the meantime
+        inc_progress(capture_job, 0, "Starting capture")
+        if link.user_deleted or link.primary_capture.status != "pending":
+            capture_job.mark_completed('deleted')
+            return
+        capture_job.attempt += 1
+        capture_job.save()
+
+        # Request a capture
+        inc_progress(capture_job, 1, "Capturing with the Scoop REST API")
+        scoop_start_time = time.time()
+        capture_job.scoop_start_time = Now()
+        capture_job.save(update_fields=['scoop_start_time'])
+        _, request_data = send_to_scoop(
+            method="post",
+            path="capture",
+            json={"url": target_url},
+            valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
+        )
+
+        # Poll until done
+        poll_network_errors = 0
+        while True:
+            if poll_network_errors > settings.SCOOP_POLL_NETWORK_ERROR_LIMIT:
+                raise HaltCaptureException
+
+            time.sleep(settings.SCOOP_POLL_FREQUENCY)
+            try:
+                _, poll_data = send_to_scoop(
+                    method='get',
+                    path=f"capture/{request_data['id_capture']}",
+                    json={
+                        "url": target_url
+                    },
+                    valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
+                )
+            except ScoopAPINetworkException:
+                poll_network_errors = poll_network_errors + 1
+                continue
+
+            if poll_data['status'] not in ['pending', 'started']:
+                scoop_end_time = time.time()
+                capture_job.scoop_end_time = Now()
+                capture_job.save(update_fields=['scoop_end_time'])
+                print(f"Scoop finished in {scoop_end_time - scoop_start_time}s.")
+                break
+
+            # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
+            wait_time = time.time() - scoop_start_time
+            inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
+
+        capture_job.scoop_logs = poll_data
+        states = poll_data['scoop_capture_summary']['states']
+        state = poll_data['scoop_capture_summary']['state']
+        capture_job.scoop_state = states[state]
+        capture_job.save(update_fields=['scoop_logs', 'scoop_state'])
+
+        if poll_data['status'] == 'success':
+            link.primary_capture.status = 'success'
+            link.primary_capture.save(update_fields=['status'])
+
+    except HaltCaptureException:
+        print("HaltCaptureException thrown")
+    except SoftTimeLimitExceeded:
+        capture_job.link.tags.add('timeout-failure')
+    except:  # noqa
+        logger.exception(f"Exception while capturing job {capture_job.link_id}:")
+    finally:
+        try:
+            if link.primary_capture.status == 'success':
+                save_scoop_capture(link, capture_job, poll_data)
+                print(f"{capture_job.link_id} capture succeeded.")
+            else:
+                print(f"{capture_job.link_id} capture failed.")
+        except:  # noqa
+            logger.exception(f"Exception while finishing job {capture_job.link_id}:")
+        finally:
+            capture_job.link.captures.filter(status='pending').update(status='failed')
+            if capture_job.status == 'in_progress':
+                capture_job.mark_failed('Failed during capture.')
 
 
 def capture_internally(capture_job):
@@ -975,6 +1168,8 @@ def capture_internally(capture_job):
         proxy = False
 
         capture_user_agent = user_agent_for_domain(link.url_details.netloc)
+        link.captured_by_browser = capture_user_agent
+        link.save(update_fields=['captured_by_browser'])
         print(f"Using user-agent: {capture_user_agent}")
 
         if settings.PROXY_CAPTURES and any(domain in link.url_details.netloc for domain in settings.DOMAINS_TO_PROXY):

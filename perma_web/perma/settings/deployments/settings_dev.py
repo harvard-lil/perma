@@ -95,6 +95,7 @@ SCAN_URL = 'http://filecheck:8888/scan/'
 
 
 # Scoop
+SCOOP_API_URL = 'http://scoop-rest-api:5000/'
 if not SCOOP_API_KEY:
     try:
         # Extract the latest API key from the file.

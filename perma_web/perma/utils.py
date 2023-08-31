@@ -39,7 +39,7 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from .exceptions import InvalidTransmissionException
+from .exceptions import InvalidTransmissionException, ScoopAPIException, ScoopAPINetworkException
 
 logger = logging.getLogger(__name__)
 warn = logger.warn
@@ -829,3 +829,43 @@ def date_range(start_date, end_date, delta):
     while current <= end_date:
         yield current
         current += delta
+
+
+#
+# Scoop Helpers
+#
+
+def safe_get_response_json(response):
+    try:
+        data = response.json()
+    except ValueError:
+        data = {}
+    return data
+
+def send_to_scoop(method, path, valid_if, json=None, stream=False):
+    # Make the request
+    try:
+        response = requests.request(
+            method,
+            settings.SCOOP_API_URL + path,
+            json=json,
+            headers={
+                "Access-Key": settings.SCOOP_API_KEY
+            },
+            timeout=10,
+            allow_redirects=False,
+            stream=stream
+        )
+    except requests.exceptions.RequestException as e:
+        raise ScoopAPINetworkException() from e
+
+    # Validate the response
+    try:
+        if stream:
+            data = {}
+        else:
+            data = safe_get_response_json(response)
+        assert valid_if(response.status_code, data)
+    except AssertionError:
+        raise ScoopAPIException(f"{response.status_code}: {str(data)}")
+    return response, data
