@@ -278,10 +278,10 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
         self.successful_delete(self.in_progress_link_url, user=self.registrar_user)
 
 
-class LinkAuthorizationTransationTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
+class LinkAuthorizationTransactionTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
 
     def setUp(self):
-        super(LinkAuthorizationTransationTestCase, self).setUp()
+        super(LinkAuthorizationTransactionTestCase, self).setUp()
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
 
