@@ -567,7 +567,7 @@ MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
 DISABLE_DEV_SHM = False
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.110 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.140 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
 PERMABOT_USER_AGENT_SUFFIX = "(Perma.cc bot)"
 DOMAINS_REQUIRING_UNIQUE_USER_AGENT = []
