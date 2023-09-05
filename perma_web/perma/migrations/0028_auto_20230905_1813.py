@@ -23,7 +23,7 @@ def fixup_private_reason(apps, schema_editor):
 
 def reverse_fixup_private_reason(apps, schema_editor):
     Link = apps.get_model('perma', 'Link')
-    print("Migrating 'meta_generic' to 'old_policy'.")
+    print("Migrating 'meta' to 'old_policy'.")
     Link.objects.filter(
         private_reason='meta'
     ).update(
