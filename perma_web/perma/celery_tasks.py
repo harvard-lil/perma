@@ -58,7 +58,7 @@ from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetwor
 from perma.utils import (url_in_allowed_ip_range,
     preserve_perma_warc, write_warc_records_recorded_from_web,
     write_resource_record_from_asset,
-    user_agent_for_domain, Sec1TLSAdapter, remove_whitespace,
+    Sec1TLSAdapter, remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
     copy_file_data, date_range, send_to_scoop)
@@ -1167,7 +1167,7 @@ def capture_internally(capture_job):
         stop = False
         proxy = False
 
-        capture_user_agent = user_agent_for_domain(link.url_details.netloc)
+        capture_user_agent = settings.CAPTURE_USER_AGENT
         link.captured_by_browser = capture_user_agent
         link.save(update_fields=['captured_by_browser'])
         print(f"Using user-agent: {capture_user_agent}")
