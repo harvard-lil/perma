@@ -152,9 +152,11 @@ def stats(request, stat_type=None):
             'total_link_count': Link.objects.count(),
             'private_link_count': Link.objects.filter(is_private=True).count(),
             'private_user_direction': Link.objects.filter(is_private=True, private_reason='user').count(),
-            'private_policy': Link.objects.filter(is_private=True, private_reason='policy').count(),
-            'private_old_policy': Link.objects.filter(is_private=True, private_reason='old_policy').count(),
+            'private_domain': Link.objects.filter(is_private=True, private_reason='domain').count(),
+            'private_meta': Link.objects.filter(is_private=True, private_reason='meta').count(),
+            'private_meta_perma': Link.objects.filter(is_private=True, private_reason='meta_perma').count(),
             'private_takedown': Link.objects.filter(is_private=True, private_reason='takedown').count(),
+            'private_flagged': Link.objects.filter(is_private=True, private_reason='flagged').count(),
             'private_meta_failure': Link.objects.filter(is_private=True, private_reason='failure').count(),
             'links_w_meta_failure_tag': Link.objects.filter(tags__name__in=['meta-tag-retrieval-failure']).count(),
             'links_w_timeout_failure_tag': Link.objects.filter(tags__name__in=['timeout-failure']).count(),
@@ -167,10 +169,14 @@ def stats(request, stat_type=None):
         out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_user_percentage_of_total'] = round(100.0*out['private_user_direction']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_user_percentage_of_private'] = round(100.0*out['private_user_direction']/out['private_link_count'], 1) if out['private_link_count'] else 0
-        out['private_policy_percentage_of_total'] = round(100.0*out['private_policy']/out['total_link_count'], 1) if out['total_link_count'] else 0
-        out['private_policy_percentage_of_private'] = round(100.0*out['private_policy']/out['private_link_count'], 1) if out['private_link_count'] else 0
-        out['private_old_policy_percentage_of_total'] = round(100.0*out['private_old_policy']/out['total_link_count'], 1) if out['total_link_count'] else 0
-        out['private_old_policy_percentage_of_private'] = round(100.0*out['private_old_policy']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_domain_percentage_of_total'] = round(100.0*out['private_domain']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_domain_percentage_of_private'] = round(100.0*out['private_domain']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_meta_perma_percentage_of_total'] = round(100.0*out['private_meta_perma']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_meta_perma_percentage_of_private'] = round(100.0*out['private_meta_perma']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_meta_percentage_of_total'] = round(100.0*out['private_meta']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_meta_percentage_of_private'] = round(100.0*out['private_meta']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_flagged_percentage_of_total'] = round(100.0*out['private_flagged']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_flagged_percentage_of_private'] = round(100.0*out['private_flagged']/out['private_link_count'], 1) if out['private_link_count'] else 0
         out['private_takedown_percentage_of_total'] = round(100.0*out['private_takedown']/out['total_link_count'], 1) if out['total_link_count'] else 0
         out['private_takedown_percentage_of_private'] = round(100.0*out['private_takedown']/out['private_link_count'], 1) if out['private_link_count'] else 0
         out['private_meta_failure_percentage_of_total'] = round(100.0*out['private_meta_failure']/out['total_link_count'], 1) if out['total_link_count'] else 0

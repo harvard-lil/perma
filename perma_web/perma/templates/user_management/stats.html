@@ -85,19 +85,30 @@
       </div>
 
       <div class="row">
-        <div class="col-sm-3">Private links (by policy):</div>
-        <div class="col-sm-9">{{ private_policy }} ({{ private_policy_percentage_of_private }}% of private, {{ private_policy_percentage_of_total }}% of total)</div>
+        <div class="col-sm-3">Private links (domain):</div>
+        <div class="col-sm-9">{{ private_domain }} ({{ private_domain_percentage_of_private }}% of private, {{ private_domain_percentage_of_total }}% of total)</div>
       </div>
 
       <div class="row">
-        <div class="col-sm-3">Private links (by legacy policy):</div>
-        <div class="col-sm-9">{{ private_old_policy }} ({{ private_old_policy_percentage_of_private }}% of private, {{ private_old_policy_percentage_of_total }}% of total)</div>
+        <div class="col-sm-3">Private links (Perma-specific meta):</div>
+        <div class="col-sm-9">{{ private_meta_perma }} ({{ private_meta_perma_percentage_of_private }}% of private, {{ private_meta_perma_percentage_of_total }}% of total)</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Private links (generic meta):</div>
+        <div class="col-sm-9">{{ private_meta }} ({{ private_meta_percentage_of_private }}% of private, {{ private_meta_percentage_of_total }}% of total)</div>
       </div>
 
       <div class="row">
         <div class="col-sm-3">Private links (takedowns):</div>
         <div class="col-sm-9">{{ private_takedown }} ({{ private_takedown_percentage_of_private }}% of private, {{ private_takedown_percentage_of_total }}% of total)</div>
       </div>
+
+      <div class="row">
+        <div class="col-sm-3">Private links (flagged):</div>
+        <div class="col-sm-9">{{ private_flagged }} ({{ private_flagged_percentage_of_private }}% of private, {{ private_flagged_percentage_of_total }}% of total)</div>
+      </div>
+
 
       <div class="row">
         <div class="col-sm-3">Private links (meta tag failure):</div>
