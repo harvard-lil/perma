@@ -326,13 +326,6 @@ def parse_user_agent(user_agent_str):
     # {'brand': None, 'model': None, 'family': 'Other'}
     return user_agent_parser.ParseUserAgent(user_agent_str)
 
-def user_agent_for_domain(target_domain):
-    capture_user_agent = settings.CAPTURE_USER_AGENT
-    if any(domain in target_domain for domain in settings.DOMAINS_REQUIRING_UNIQUE_USER_AGENT):
-        capture_user_agent = capture_user_agent + f" {settings.PERMA_USER_AGENT_SUFFIX}"
-    if any(domain in target_domain for domain in settings.DOMAINS_REQUIRING_BOT_USER_AGENT):
-        capture_user_agent = capture_user_agent + f" {settings.PERMABOT_USER_AGENT_SUFFIX}"
-    return capture_user_agent
 
 ### pdf handling on mobile ###
 
