@@ -513,6 +513,7 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 # Capture
 #
 CAPTURE_ENGINE = 'perma'  # perma|scoop-api
+PRIVATE_BY_POLICY_DOMAINS = []
 
 #
 # (Scoop)
@@ -582,10 +583,6 @@ RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load b
 SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
 MAX_PROXY_THREADS = 100
 MAX_PROXY_QUEUE_SIZE = 500 # this is the default in https://github.com/internetarchive/warcprox/blob/ee6bc151e1758a50f8af2b8f2d9746aa56ec95fb/warcprox/main.py#L192
-# If technical problems prevent proper analysis of a capture,
-# should we default to private?
-PRIVATE_LINKS_ON_FAILURE = False
-PRIVATE_LINKS_IF_GENERIC_NOARCHIVE = True
 
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3

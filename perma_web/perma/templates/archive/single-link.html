@@ -211,10 +211,9 @@
               (Private reason: {{ link.get_private_reason_display }})
             {% else %}
               <select name="private_reason">
-                <option value="user"> At user direction</option>
-                <option value="policy"> Perma-specific robots.txt or noarchive meta tag</option>
-                <option value="old_policy"> Generic robots.txt or noarchive meta tag (old policy)</option>
-                <option value="takedown"> At content owner's request</option>
+                <option value="user"> At user direction</option>>
+                <option value="flagged"> Contains flagged content</option>
+                <option value="takedown"> Takedown at content owner's request</option>
               </select>
             {% endif %}
           {% endif %}

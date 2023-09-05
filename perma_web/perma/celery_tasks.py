@@ -508,31 +508,7 @@ def parse_headers(msg):
     """
     Given an http.client.HTTPMessage, returns a parsed dict
     """
-    headers = CaseInsensitiveDict(msg.items())
-    # Reset headers['x-robots-tag'], so that we can handle the
-    # possibilility that multiple x-robots directives might be included
-    # https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
-    # e.g.
-    # HTTP/1.1 200 OK
-    # Date: Tue, 25 May 2010 21:42:43 GMT
-    # (...)
-    # X-Robots-Tag: googlebot: nofollow
-    # X-Robots-Tag: otherbot: noindex, nofollow
-    # (...)
-    # Join with a semi-colon, not a comma, so that multiple agents can
-    # be recovered. As of 12/14/16, there doesn't appear to be any spec
-    # describing how to do this properly (since commas don't work).
-    # Since parsed response headers aren't archived, this convenience is
-    # fine. However, it's worth keeping track of the situation.
-    robots_directives = []
-    # https://bugs.python.org/issue5053
-    # https://bugs.python.org/issue13425
-    directives = msg.get_all('x-robots-tag')
-    if directives:
-        for directive in directives:
-            robots_directives.append(directive.replace("\n", "").replace("\r", ""))
-    headers['x-robots-tag'] = ";".join(robots_directives)
-    return headers
+    return CaseInsensitiveDict(msg.items())
 
 
 ### CAPTURE COMPONENTS ###
@@ -550,26 +526,6 @@ def get_post_load_function(current_url):
             return post_load_function
     return None
 
-# x-robots headers
-
-def xrobots_blacklists_perma(robots_directives):
-    darchive = False
-    if robots_directives:
-        for directive in robots_directives.split(";"):
-            parsed = directive.lower().split(":")
-            # respect tags that target all crawlers (no user-agent specified)
-            if settings.PRIVATE_LINKS_IF_GENERIC_NOARCHIVE and len(parsed) == 1:
-                if "noarchive" in parsed:
-                    darchive = True
-            # look for perma user-agent
-            elif len(parsed) == 2:
-                if parsed[0] == "perma" and "noarchive" in parsed[1]:
-                    darchive = True
-            # if the directive is poorly formed, do our best
-            else:
-                if "perma" in directive and "noarchive" in directive:
-                    darchive = True
-    return darchive
 
 # page metadata
 
@@ -603,12 +559,6 @@ def get_meta_tags(dom_tree):
 def get_title(dom_tree):
     return dom_tree('head > title').text()
 
-def meta_tag_analysis_failed(link):
-    """What to do if analysis of a link's meta tags fails"""
-    if settings.PRIVATE_LINKS_ON_FAILURE:
-        safe_save_fields(link, is_private=True, private_reason='failure')
-    print("Meta tag retrieval failure.")
-    link.tags.add('meta-tag-retrieval-failure')
 
 # robots.txt
 
@@ -619,16 +569,6 @@ def robots_txt_thread(link, target_url, content_url, thread_list, proxy_address,
         print("Couldn't reach robots.txt")
         return
     print("Robots.txt fetched.")
-
-    # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
-    content = str(robots_txt_response.content, 'utf-8')
-    if 'Perma' in content:
-        # We found Perma specifically mentioned
-        rp = urllib.robotparser.RobotFileParser()
-        rp.parse([line.strip() for line in content.split('\n')])
-        if not rp.can_fetch('Perma', target_url):
-            safe_save_fields(link, is_private=True, private_reason='policy')
-            print("Robots.txt disallows Perma.")
 
 # favicons
 
@@ -821,14 +761,6 @@ def teardown(link, thread_list, browser, display, warcprox_controller, warcprox_
 
 
 def process_metadata(metadata, link):
-    ## Privacy Related ##
-    meta_tag = metadata['meta_tags'].get('perma')
-    if settings.PRIVATE_LINKS_IF_GENERIC_NOARCHIVE and not meta_tag:
-        meta_tag = metadata['meta_tags'].get('robots')
-    if meta_tag and 'noarchive' in meta_tag.lower():
-        safe_save_fields(link, is_private=True, private_reason='policy')
-        print("Meta found, darchiving")
-
     ## Page Description ##
     description_meta_tag = metadata['meta_tags'].get('description')
     if description_meta_tag:
@@ -913,6 +845,13 @@ def save_scoop_capture(link, capture_job, data):
         'captured_by_software',
         'captured_by_browser'
     ])
+
+    # Make this link private by policy, if the captured domain is on the list.
+    # For now, just check the primary URL, since Scoop does not yet expose the URL
+    # that the capture request resolved to.
+    content_url = data['scoop_capture_summary']['exchangeUrls'][0]
+    if any(domain in content_url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
+        safe_save_fields(link, is_private=True, private_reason='domain')
 
     # See if the primary URL has been munged in any way since we last saw it.
     if link.primary_capture.url != data['scoop_capture_summary']['exchangeUrls'][0]:
@@ -1476,7 +1415,6 @@ def capture_internally(capture_job):
                         content_url = str(response.url, 'utf-8')
                         content_type = getattr(response, 'content_type', None)
                         content_type = content_type.lower() if content_type else 'text/html; charset=utf-8'
-                        robots_directives = response.parsed_headers.get('x-robots-tag')
                         have_html = content_type and content_type.startswith('text/html')
                         break
 
@@ -1492,6 +1430,11 @@ def capture_internally(capture_job):
                 inc_progress(capture_job, wait_time/RESOURCE_LOAD_TIMEOUT, "Fetching target URL")
                 time.sleep(1)
 
+        # Make this link private by policy, if the content_url domain is on the list
+        print("Checking content URL ...")
+        if any(domain in content_url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
+            safe_save_fields(link, is_private=True, private_reason='domain')
+
         print("Fetching robots.txt ...")
         add_thread(thread_list, robots_txt_thread, args=(
             link,
@@ -1503,11 +1446,6 @@ def capture_internally(capture_job):
             proxied_responses,
             capture_user_agent
         ))
-
-        inc_progress(capture_job, 1, "Checking x-robots-tag directives.")
-        if xrobots_blacklists_perma(robots_directives):
-            safe_save_fields(link, is_private=True, private_reason='policy')
-            print("x-robots-tag found, darchiving")
 
         if have_html:
 
@@ -1615,8 +1553,6 @@ def capture_internally(capture_job):
             if have_html:
                 if page_metadata:
                     process_metadata(page_metadata, link)
-                else:
-                    meta_tag_analysis_failed(link)
 
             if have_content:
                 inc_progress(capture_job, 1, "Saving web archive file")
