@@ -1539,7 +1539,15 @@ class Link(DeletableModel):
     )
 
     is_private = models.BooleanField(default=False)
-    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Perma-specific robots.txt or meta tag'), ('old_policy','Generic robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
+    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(
+        ('domain', 'At the request of the domain owner'),
+        ('meta_perma','Perma-specific robots.txt or meta tag'),
+        ('meta','Generic robots.txt or meta tag'),
+        ('user','At user direction'),
+        ('takedown','At request of content owner'),
+        ('failure','Analysis of meta tags failed'),
+        ('flagged','Contains flagged content')
+    ))
     is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")

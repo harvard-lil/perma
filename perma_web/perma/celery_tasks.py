@@ -1423,6 +1423,10 @@ def capture_internally(capture_job):
                 inc_progress(capture_job, wait_time/RESOURCE_LOAD_TIMEOUT, "Fetching target URL")
                 time.sleep(1)
 
+        # Make this link private by policy, if the content_url domain is on the list
+        print("Checking content URL ...")
+        if any(domain in content_url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
+            safe_save_fields(link, is_private=True, private_reason='domain')
 
         print("Fetching robots.txt ...")
         add_thread(thread_list, robots_txt_thread, args=(

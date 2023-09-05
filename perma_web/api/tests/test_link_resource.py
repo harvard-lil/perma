@@ -541,6 +541,17 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertEqual(bonus_links, 1)
 
 
+    @override_settings(PRIVATE_BY_POLICY_DOMAINS=['perma.test'])
+    def test_should_dark_archive_if_domain_in_setting(self):
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html"},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertTrue(link.private_reason == 'domain')
+
+
     def test_media_capture_in_iframes(self):
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
