@@ -846,6 +846,13 @@ def save_scoop_capture(link, capture_job, data):
         'captured_by_browser'
     ])
 
+    # Make this link private by policy, if the captured domain is on the list.
+    # For now, just check the primary URL, since Scoop does not yet expose the URL
+    # that the capture request resolved to.
+    content_url = data['scoop_capture_summary']['exchangeUrls'][0]
+    if any(domain in content_url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
+        safe_save_fields(link, is_private=True, private_reason='domain')
+
     # See if the primary URL has been munged in any way since we last saw it.
     if link.primary_capture.url != data['scoop_capture_summary']['exchangeUrls'][0]:
         logger.warning(f"Target URL for {link.guid} reformatted from {link.primary_capture.url} to {data['scoop_capture_summary']['exchangeUrls'][0]}. Please investigate.")
