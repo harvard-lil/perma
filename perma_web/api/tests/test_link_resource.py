@@ -8,8 +8,6 @@ from django.urls import reverse
 from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
 from io import StringIO
-import json
-import urllib.parse
 import re
 from mock import patch
 
