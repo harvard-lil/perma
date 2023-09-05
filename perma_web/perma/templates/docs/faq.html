@@ -194,24 +194,7 @@ This section of the user guide provides answers to common questions about Perma.
           and it does not make its archives available in search engines. It simply saves a copy of a single page at the direction of a user, as though the user visited your page and used the "Save as ..." function of their browser.
         </p>
         <p class="body-text">
-          If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes.
-        </p>
-        <p class="body-text">
-          To prevent online archives for entire sections of your site,
-          use a configuration in your robots.txt file like the one below:
-        </p>
-        <div class="code-block">
-          <p class="body-text">User-agent: Perma</p>
-          <p class="body-text">Disallow: /private-stuff/</p>
-        </div>
-        <p class="body-text">
-          To prevent online archives for a single page, use the following meta tag:
-         </p>
-        <div class="code-block">
-          <p class="body-text">&lt;meta name="Perma" content="noarchive"&gt;</p>
-        </div>
-        <p class="body-text">
-          With either or both of these rules in place, Perma.cc will still allow the user to store
+          If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes. Please <a href="{% url 'contact' %}?subject=%20Please%20Make%20My%20Site%20Private">contact us</a>. Perma.cc will still allow the user to store
           the requested page in library archives, but will not display it at the perma.cc website.
         </p>
       </div>
