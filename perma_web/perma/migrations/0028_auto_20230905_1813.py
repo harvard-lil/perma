@@ -8,7 +8,7 @@ def fixup_private_reason(apps, schema_editor):
     Instead of 'policy' and 'old_policy', use descriptive keys
     """
     Link = apps.get_model('perma', 'Link')
-    print("Migrating 'old_policy' to 'meta_generic'.")
+    print("Migrating 'old_policy' to 'meta'.")
     Link.objects.filter(
         private_reason='old_policy'
     ).update(
