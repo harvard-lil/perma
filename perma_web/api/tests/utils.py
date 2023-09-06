@@ -71,6 +71,15 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
                 self.send_header(header, value)
         return SimpleHTTPRequestHandler.end_headers(self)
 
+    def parse_request(self):
+        super().parse_request()
+        # SimpleHTTPRequestHandler can only handle relative paths,
+        # but under some circumstances, requests can arrive here
+        # with full URLs.
+        if self.path.startswith("http://"):
+            self.path = urllib.parse.urlparse(self.path).path
+        return True
+
 
 def log_api_call(func):
     """
@@ -405,7 +414,7 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
         # start server
         for i in range(100):
             try:
-                cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
+                cls._httpd = TestHTTPServer(('0.0.0.0', cls.server_port), TestHTTPRequestHandler)
                 break
             except socket.error:
                 cls.server_port += 1

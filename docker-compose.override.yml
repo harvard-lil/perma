@@ -70,6 +70,7 @@ services:
       - CREATE_ACCESS_KEY_WITH_LABEL=dev  # create a new access key each time the container starts
     volumes:
       - scoop_access_key:/app/docker/access_keys:delegated
+      - ./services/docker/scoop-rest-api/config.py:/app/scoop_rest_api/config.py
     networks:
       - scoop_rest_api
       - scoop_rest_api_internal
