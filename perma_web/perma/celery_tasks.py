@@ -1062,6 +1062,8 @@ def capture_with_scoop(capture_job):
         if poll_data['status'] == 'success':
             link.primary_capture.status = 'success'
             link.primary_capture.save(update_fields=['status'])
+        else:
+            logger.error(f"Scoop capture failed: {poll_data}")
 
     except HaltCaptureException:
         print("HaltCaptureException thrown")
