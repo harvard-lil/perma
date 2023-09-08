@@ -85,18 +85,29 @@ class LinkResourceTestMixin():
     def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False):
 
         def find_recording_in_warc(index, capture_url, content_type):
+            warc_content_type = f"application/http;{ '' if settings.CAPTURE_ENGINE == 'perma' else ' '}msgtype=response"
             return next(
                 (entry for entry in index if
-                    entry['content-type'] == 'application/http;msgtype=response' and
-                    entry['http:content-type'].split(';',1)[0] == content_type.split(';',1)[0] and
+                    entry['content-type'] == warc_content_type and
+                    entry.get('http:content-type', '').split(';',1)[0] == content_type.split(';',1)[0] and
                     re.fullmatch(r'^{}/?$'.format(capture_url), entry['warc-target-uri'])),
                 None
             )
 
+        # Perma uses resource records for attachments and uploads
         def find_file_in_warc(index, capture_url, content_type):
             return next(
                 (entry for entry in index if
                     entry['content-type'] ==  content_type and
+                    re.fullmatch(r'^{}/?$'.format(capture_url), entry['warc-target-uri'])),
+                None
+            )
+
+        # Scoop uses response records for attachments
+        def find_attachment_in_warc(index, capture_url):
+            return next(
+                (entry for entry in index if
+                    entry['content-type'] == 'application/http; msgtype=response' and
                     re.fullmatch(r'^{}/?$'.format(capture_url), entry['warc-target-uri'])),
                 None
             )
@@ -119,7 +130,10 @@ class LinkResourceTestMixin():
         if check_screenshot:
             self.assertEqual(link.screenshot_capture.status, 'success')
             self.assertTrue(link.screenshot_capture.content_type, "Capture is missing a content type.")
-            self.assertTrue(find_file_in_warc(index, link.screenshot_capture.url, link.screenshot_capture.content_type))
+            if settings.CAPTURE_ENGINE == 'perma':
+                self.assertTrue(find_file_in_warc(index, link.screenshot_capture.url, link.screenshot_capture.content_type))
+            else:
+                self.assertTrue(find_attachment_in_warc(index, link.screenshot_capture.url))
 
 
 class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
@@ -375,8 +389,9 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         link = Link.objects.get(guid=obj['guid'])
         self.assertRecordsInWarc(link, check_screenshot=True)
 
-        # test favicon captured via meta tag
-        self.assertIn("favicon_meta.ico", link.favicon_capture.url)
+        if settings.CAPTURE_ENGINE == 'perma':
+            # test favicon captured via meta tag
+            self.assertIn("favicon_meta.ico", link.favicon_capture.url)
 
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
@@ -560,16 +575,20 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         # verify that all images in src and srcset were found and captured
-        expected_records = (
+        expected_records = [
             # test_media_a.html
             ("test.wav", "audio/x-wav"), ("test2.wav", "audio/x-wav"),
             # test_media_b.html
             ("test.mp4", "video/mp4"), ("test2.mp4", "video/mp4"),
             # test_media_c.html
-            ("test.swf", "application/vnd.adobe.flash.movie"), ("test2.swf", "application/vnd.adobe.flash.movie"), ("test3.swf", "application/vnd.adobe.flash.movie"),
-            ("test1.jpg", "image/jpeg"), ("test2.png", "image/png"), ("test_fallback.jpg", "image/jpeg"),
+            ("test1.jpg", "image/jpeg"), ("test2.png", "image/png"),
             ("wide1.png", "image/png"), ("wide2.png", "image/png"), ("narrow.png", "image/png")
-        )
+        ]
+        if settings.CAPTURE_ENGINE == 'perma':
+            expected_records = expected_records + [
+                ("test.swf", "application/vnd.adobe.flash.movie"), ("test2.swf", "application/vnd.adobe.flash.movie"), ("test3.swf", "application/vnd.adobe.flash.movie"),
+                ("test_fallback.jpg", "image/jpeg"),
+            ]
         link = Link.objects.get(guid=obj['guid'])
         self.assertRecordsInWarc(link, expected_records=expected_records)
 

@@ -49,7 +49,7 @@ services:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:7-974e653a08dc26b20cce869e19be944c
+    image: registry.lil.tools/harvardlil/scoop-rest-api:8-f3ce2f4ae83e6728b83c9690341de980
     init: true
     tty: true
     depends_on:
@@ -70,6 +70,7 @@ services:
       - CREATE_ACCESS_KEY_WITH_LABEL=dev  # create a new access key each time the container starts
     volumes:
       - scoop_access_key:/app/docker/access_keys:delegated
+      - ./services/docker/scoop-rest-api/config.py:/app/scoop_rest_api/config.py
     networks:
       - scoop_rest_api
       - scoop_rest_api_internal

@@ -67,6 +67,8 @@ services:
           - 'api.perma.test'
       perma_payments:
       scoop_rest_api:
+        aliases:
+          - 'perma.test'
 
   #
   # Minio

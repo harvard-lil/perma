@@ -1053,14 +1053,17 @@ def capture_with_scoop(capture_job):
             inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
 
         capture_job.scoop_logs = poll_data
-        states = poll_data['scoop_capture_summary']['states']
-        state = poll_data['scoop_capture_summary']['state']
-        capture_job.scoop_state = states[state]
+        if poll_data.get('scoop_capture_summary'):
+            states = poll_data['scoop_capture_summary']['states']
+            state = poll_data['scoop_capture_summary']['state']
+            capture_job.scoop_state = states[state]
         capture_job.save(update_fields=['scoop_logs', 'scoop_state'])
 
         if poll_data['status'] == 'success':
             link.primary_capture.status = 'success'
             link.primary_capture.save(update_fields=['status'])
+        else:
+            logger.error(f"Scoop capture failed: {poll_data}")
 
     except HaltCaptureException:
         print("HaltCaptureException thrown")
