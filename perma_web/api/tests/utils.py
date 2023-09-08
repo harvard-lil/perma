@@ -39,6 +39,9 @@ def copy_file_or_dir(src, dst):
 
 
 def index_warc_file(warc_file):
+    # Note: warcio will NOT locate the HTTP headers of WARC response records
+    # who use the file:/// protocol.... which is to say, Scoop attachments
+    # https://github.com/webrecorder/warcio/blob/aa702cb321621b233c6e5d2a4780151282a778be/warcio/recordloader.py#L183-L185
     index_file = StringIO()
     indexer = Indexer("warc-target-uri,content-type,http:content-type,http:status", warc_file, index_file)
     indexer.process_one(warc_file, index_file, '')
