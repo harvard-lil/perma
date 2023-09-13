@@ -396,12 +396,20 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
-
         self.assertEqual(link.submitted_description, "Test description.")
+        if settings.CAPTURE_ENGINE == 'perma':
+            software_pattern = '^perma$'
+        else:
+            software_pattern = r'scoop @ harvard library innovation lab: \d+\.\d+.\d+'
+        self.assertRegex(link.captured_by_software, software_pattern)
+        if settings.CAPTURE_ENGINE == 'perma':
+            expected_size = 7400
+        else:
+            expected_size = 7200
+        self.assertLessEqual(abs(link.warc_size-expected_size), 100)
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
-
 
     @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
     def test_should_create_archive_from_pdf_url(self, allowed):
@@ -688,3 +696,30 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         link = Link.objects.get(guid=obj['guid'])
         self.assertEqual(link.capture_job.status, 'completed')
         self.assertEqual(link.primary_capture.status, 'success')
+
+    def test_custom_title_not_overridden(self):
+        custom_title = 'The spiciest of test pages'
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'title': custom_title,
+                                   },
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertRecordsInWarc(link)
+        self.assertEqual(link.submitted_title, custom_title)
+        self.assertEqual(link.submitted_description, "Test description.")
+
+    def test_no_title_or_description_found(self):
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/no-title-or-description-test.html"
+                                   },
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertRecordsInWarc(link)
+        self.assertEqual(link.submitted_title, link.get_default_title())
+        self.assertIsNone(link.submitted_description)
+
