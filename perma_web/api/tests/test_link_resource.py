@@ -388,6 +388,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertRecordsInWarc(link, check_screenshot=True)
+        self.assertTrue(link.primary_capture.content_type.startswith('text/html'))
 
         if settings.CAPTURE_ENGINE == 'perma':
             # test favicon captured via meta tag
@@ -415,6 +416,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertRecordsInWarc(link)
+        self.assertEqual(link.primary_capture.content_type, 'application/pdf')
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_org.shared_folder.pk).exists())
