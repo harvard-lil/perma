@@ -82,7 +82,7 @@ class LinkResourceTestMixin():
             'private_reason',
         ]
 
-    def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False):
+    def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False, check_provenance_summary=False):
 
         def find_recording_in_warc(index, capture_url, content_type):
             warc_content_type = f"application/http;{ '' if settings.CAPTURE_ENGINE == 'perma' else ' '}msgtype=response"
@@ -134,6 +134,12 @@ class LinkResourceTestMixin():
                 self.assertTrue(find_file_in_warc(index, link.screenshot_capture.url, link.screenshot_capture.content_type))
             else:
                 self.assertTrue(find_attachment_in_warc(index, link.screenshot_capture.url))
+
+        # repeat for the provenance summary
+        if check_provenance_summary:
+            self.assertEqual(link.provenance_summary_capture.status, 'success')
+            self.assertTrue(link.provenance_summary_capture.content_type, "Capture is missing a content type.")
+            self.assertTrue(find_attachment_in_warc(index, link.provenance_summary_capture.url))
 
 
 class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
@@ -387,7 +393,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertRecordsInWarc(link, check_screenshot=True)
+        self.assertRecordsInWarc(link, check_screenshot=True, check_provenance_summary=(settings.CAPTURE_ENGINE == 'scoop-api'))
         self.assertTrue(link.primary_capture.content_type.startswith('text/html'))
 
         if settings.CAPTURE_ENGINE == 'perma':
@@ -423,7 +429,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertRecordsInWarc(link)
+        self.assertRecordsInWarc(link, check_provenance_summary=(settings.CAPTURE_ENGINE == 'scoop-api'))
         self.assertEqual(link.primary_capture.content_type, 'application/pdf')
 
         # check folder
