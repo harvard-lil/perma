@@ -9,9 +9,12 @@ from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
 from io import StringIO
 import re
+from requests.exceptions import RequestException
+from requests import request as orig_request
 from mock import patch
+import pytest
 
-from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file
+from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, return_on_call, MockResponse
 from perma.models import Link, LinkUser, Folder
 
 
@@ -24,6 +27,10 @@ class LinkResourceTestMixin():
                 'fixtures/api_keys.json']
 
     rejected_status_code = 400  # Bad Request
+
+    @pytest.fixture(autouse=True)
+    def _pass_fixtures(self, capsys):
+        self.capsys = capsys
 
     def setUp(self):
         super(LinkResourceTestMixin, self).setUp()
@@ -82,7 +89,7 @@ class LinkResourceTestMixin():
             'private_reason',
         ]
 
-    def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False):
+    def assertRecordsInWarc(self, link, upload=False, expected_records=None, check_screenshot=False, check_provenance_summary=False):
 
         def find_recording_in_warc(index, capture_url, content_type):
             warc_content_type = f"application/http;{ '' if settings.CAPTURE_ENGINE == 'perma' else ' '}msgtype=response"
@@ -134,6 +141,12 @@ class LinkResourceTestMixin():
                 self.assertTrue(find_file_in_warc(index, link.screenshot_capture.url, link.screenshot_capture.content_type))
             else:
                 self.assertTrue(find_attachment_in_warc(index, link.screenshot_capture.url))
+
+        # repeat for the provenance summary
+        if check_provenance_summary:
+            self.assertEqual(link.provenance_summary_capture.status, 'success')
+            self.assertTrue(link.provenance_summary_capture.content_type, "Capture is missing a content type.")
+            self.assertTrue(find_attachment_in_warc(index, link.provenance_summary_capture.url))
 
 
 class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
@@ -387,7 +400,8 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertRecordsInWarc(link, check_screenshot=True)
+        self.assertRecordsInWarc(link, check_screenshot=True, check_provenance_summary=(settings.CAPTURE_ENGINE == 'scoop-api'))
+        self.assertTrue(link.primary_capture.content_type.startswith('text/html'))
 
         if settings.CAPTURE_ENGINE == 'perma':
             # test favicon captured via meta tag
@@ -395,12 +409,20 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
-
         self.assertEqual(link.submitted_description, "Test description.")
+        if settings.CAPTURE_ENGINE == 'perma':
+            software_pattern = '^perma$'
+        else:
+            software_pattern = r'scoop @ harvard library innovation lab: \d+\.\d+.\d+'
+        self.assertRegex(link.captured_by_software, software_pattern)
+        if settings.CAPTURE_ENGINE == 'perma':
+            expected_size = 7400
+        else:
+            expected_size = 7200
+        self.assertLessEqual(abs(link.warc_size-expected_size), 100)
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
-
 
     @patch('perma.models.Registrar.link_creation_allowed', autospec=True)
     def test_should_create_archive_from_pdf_url(self, allowed):
@@ -414,7 +436,8 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                    user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertRecordsInWarc(link)
+        self.assertRecordsInWarc(link, check_provenance_summary=(settings.CAPTURE_ENGINE == 'scoop-api'))
+        self.assertEqual(link.primary_capture.content_type, 'application/pdf')
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_org.shared_folder.pk).exists())
@@ -686,3 +709,132 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         link = Link.objects.get(guid=obj['guid'])
         self.assertEqual(link.capture_job.status, 'completed')
         self.assertEqual(link.primary_capture.status, 'success')
+
+    def test_custom_title_not_overridden(self):
+        custom_title = 'The spiciest of test pages'
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'title': custom_title,
+                                   },
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertRecordsInWarc(link)
+        self.assertEqual(link.submitted_title, custom_title)
+        self.assertEqual(link.submitted_description, "Test description.")
+
+    def test_no_title_or_description_found(self):
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/no-title-or-description-test.html"
+                                   },
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertRecordsInWarc(link)
+        self.assertEqual(link.submitted_title, link.get_default_title())
+        self.assertIsNone(link.submitted_description)
+
+
+    ############################
+    # Scoop network conditions #
+    ############################
+
+    if settings.CAPTURE_ENGINE == 'scoop-api':
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_initial_network_error(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 1, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'failed')
+            self.assertEqual(link.capture_job.status, 'failed')
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_over_capacity(self, mockrequest):
+            # https://github.com/harvard-lil/scoop-rest-api/blob/3115af8d6cb5eb623140f460b293e66a0c0d9b1e/scoop_rest_api/views/capture.py#L41
+            mockrequest.return_value = MockResponse({"error": "Capture server is over capacity."}, 429)
+            with self.assertLogs('celery.django', level='ERROR') as logs:
+                obj = self.successful_post(self.list_url,
+                                           data={
+                                               'url': self.server_url + "/test.html"
+                                           },
+                                           user=self.org_user)
+                link = Link.objects.get(guid=obj['guid'])
+                self.assertEqual(link.primary_capture.status, 'failed')
+                self.assertEqual(link.capture_job.status, 'failed')
+
+                log_string = " ".join(logs.output)
+                self.assertIn("perma.exceptions.ScoopAPIException", log_string)
+                self.assertIn("429", log_string)
+                self.assertIn("Capture server is over capacity", log_string)
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_transient_polling_error_handled(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 3, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'success')
+            self.assertEqual(link.capture_job.status, 'completed')
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_polling_error_limit_exceeded(self, mockrequest):
+            mockrequest.side_effect = raise_after_call(orig_request, 2, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'failed')
+            self.assertEqual(link.capture_job.status, 'failed')
+            captured = self.capsys.readouterr()
+            self.assertIn("HaltCaptureException thrown\n", captured.out)
+
+
+    ############################
+    # Scoop simulated failures #
+    ############################
+
+    if settings.CAPTURE_ENGINE == 'scoop-api':
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_hung(self, mockrequest):
+            # from https://perma-stage.org/admin/perma/capturejob/2059/change/
+            mockrequest.side_effect = return_on_call(orig_request, 2, MockResponse({
+                "url": "https://www.nytimes.com/",
+                "status": "failed",
+                "id_capture": "2ca5dad1-20fd-4550-9129-a0ce64ecc662",
+                "stderr_logs": None,
+                "stdout_logs": None,
+                "callback_url": None,
+                "ended_timestamp": "Wed, 20 Sep 2023 15:57:44 GMT",
+                "created_timestamp": "Wed, 20 Sep 2023 15:56:34 GMT",
+                "started_timestamp": "Wed, 20 Sep 2023 15:56:34 GMT",
+                "scoop_capture_summary": None},
+                200
+            ))
+            with self.assertLogs('celery.django', level='ERROR') as logs:
+                obj = self.successful_post(self.list_url,
+                                           data={
+                                               'url': self.server_url + "/test.html"
+                                           },
+                                           user=self.org_user)
+                link = Link.objects.get(guid=obj['guid'])
+                self.assertEqual(link.primary_capture.status, 'failed')
+                self.assertEqual(link.capture_job.status, 'failed')
+
+                log_string = " ".join(logs.output)
+                self.assertTrue(log_string.endswith("'scoop_capture_summary': None}"))
