@@ -25,6 +25,64 @@ import perma.celery_tasks
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
 
+class MockResponse:
+    def __init__(self, json_data, status_code):
+        self.json_data = json_data
+        self.status_code = status_code
+
+    def json(self):
+        return self.json_data
+
+def raise_on_call(func, call_count, exc=Exception):
+    """
+    Raise an exception, after a function is called a certain number of times.
+
+    Example:
+
+    >>> def f(): pass
+    >>> bomb = raise_on_call(f, 3, ValueError('I exploded'))
+    >>> bomb()
+    >>> bomb()
+    >>> with assert_raises(ValueError):
+    ...     bomb()
+    >>> bomb()
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.calls += 1
+        if wrapper.calls == call_count:
+            raise exc
+        return func(*args, **kwargs)
+    wrapper.calls = 0
+    return wrapper
+
+
+def raise_after_call(func, call_count, exc=Exception):
+    """
+    Raise an exception, after a function is called a certain number of times,
+    and continue raising it on subsequent calls.
+
+    Example:
+
+    >>> def f(): pass
+    >>> bomb = raise_on_call(f, 3, ValueError('I exploded'))
+    >>> bomb()
+    >>> bomb()
+    >>> with assert_raises(ValueError):
+    ...     bomb()
+    >>> with assert_raises(ValueError):
+    ...     bomb()
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.calls += 1
+        if wrapper.calls >= call_count:
+            raise exc
+        return func(*args, **kwargs)
+    wrapper.calls = 0
+    return wrapper
+
+
 def copy_file_or_dir(src, dst):
     dst_dir = os.path.abspath(os.path.dirname(dst))
     if not os.path.isdir(dst_dir):

@@ -9,9 +9,12 @@ from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
 from io import StringIO
 import re
+from requests.exceptions import RequestException
+from requests import request as orig_request
 from mock import patch
+import pytest
 
-from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file
+from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, MockResponse
 from perma.models import Link, LinkUser, Folder
 
 
@@ -24,6 +27,10 @@ class LinkResourceTestMixin():
                 'fixtures/api_keys.json']
 
     rejected_status_code = 400  # Bad Request
+
+    @pytest.fixture(autouse=True)
+    def _pass_fixtures(self, capsys):
+        self.capsys = capsys
 
     def setUp(self):
         super(LinkResourceTestMixin, self).setUp()
@@ -729,3 +736,69 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertEqual(link.submitted_title, link.get_default_title())
         self.assertIsNone(link.submitted_description)
 
+
+    ############################
+    # Scoop network conditions #
+    ############################
+
+    if settings.CAPTURE_ENGINE == 'scoop-api':
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_initial_network_error(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 1, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'failed')
+            self.assertEqual(link.capture_job.status, 'failed')
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_over_capacity(self, mockrequest):
+            # https://github.com/harvard-lil/scoop-rest-api/blob/3115af8d6cb5eb623140f460b293e66a0c0d9b1e/scoop_rest_api/views/capture.py#L41
+            mockrequest.return_value = MockResponse({"error": "Capture server is over capacity."}, 429)
+            with self.assertLogs('celery.django', level='ERROR') as logs:
+                obj = self.successful_post(self.list_url,
+                                           data={
+                                               'url': self.server_url + "/test.html"
+                                           },
+                                           user=self.org_user)
+                link = Link.objects.get(guid=obj['guid'])
+                self.assertEqual(link.primary_capture.status, 'failed')
+                self.assertEqual(link.capture_job.status, 'failed')
+
+                log_string = " ".join(logs.output)
+                self.assertIn("perma.exceptions.ScoopAPIException", log_string)
+                self.assertIn("429", log_string)
+                self.assertIn("Capture server is over capacity", log_string)
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_transient_polling_error_handled(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 3, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'success')
+            self.assertEqual(link.capture_job.status, 'completed')
+
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_request_polling_error_limit_exceeded(self, mockrequest):
+            mockrequest.side_effect = raise_after_call(orig_request, 2, RequestException)
+            obj = self.successful_post(self.list_url,
+                                       data={
+                                           'url': self.server_url + "/test.html"
+                                       },
+                                       user=self.org_user)
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.primary_capture.status, 'failed')
+            self.assertEqual(link.capture_job.status, 'failed')
+            captured = self.capsys.readouterr()
+            self.assertIn("HaltCaptureException thrown\n", captured.out)
