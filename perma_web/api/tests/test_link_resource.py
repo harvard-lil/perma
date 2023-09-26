@@ -14,7 +14,7 @@ from requests import request as orig_request
 from mock import patch
 import pytest
 
-from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, MockResponse
+from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, return_on_call, MockResponse
 from perma.models import Link, LinkUser, Folder
 
 
@@ -802,3 +802,39 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             self.assertEqual(link.capture_job.status, 'failed')
             captured = self.capsys.readouterr()
             self.assertIn("HaltCaptureException thrown\n", captured.out)
+
+
+    ############################
+    # Scoop simulated failures #
+    ############################
+
+    if settings.CAPTURE_ENGINE == 'scoop-api':
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_capture_hung(self, mockrequest):
+            # from https://perma-stage.org/admin/perma/capturejob/2059/change/
+            mockrequest.side_effect = return_on_call(orig_request, 2, MockResponse({
+                "url": "https://www.nytimes.com/",
+                "status": "failed",
+                "id_capture": "2ca5dad1-20fd-4550-9129-a0ce64ecc662",
+                "stderr_logs": None,
+                "stdout_logs": None,
+                "callback_url": None,
+                "ended_timestamp": "Wed, 20 Sep 2023 15:57:44 GMT",
+                "created_timestamp": "Wed, 20 Sep 2023 15:56:34 GMT",
+                "started_timestamp": "Wed, 20 Sep 2023 15:56:34 GMT",
+                "scoop_capture_summary": None},
+                200
+            ))
+            with self.assertLogs('celery.django', level='ERROR') as logs:
+                obj = self.successful_post(self.list_url,
+                                           data={
+                                               'url': self.server_url + "/test.html"
+                                           },
+                                           user=self.org_user)
+                link = Link.objects.get(guid=obj['guid'])
+                self.assertEqual(link.primary_capture.status, 'failed')
+                self.assertEqual(link.capture_job.status, 'failed')
+
+                log_string = " ".join(logs.output)
+                self.assertTrue(log_string.endswith("'scoop_capture_summary': None}"))

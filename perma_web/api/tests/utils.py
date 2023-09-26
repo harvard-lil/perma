@@ -65,7 +65,7 @@ def raise_after_call(func, call_count, exc=Exception):
     Example:
 
     >>> def f(): pass
-    >>> bomb = raise_on_call(f, 3, ValueError('I exploded'))
+    >>> bomb = raise_after_call(f, 3, ValueError('I exploded'))
     >>> bomb()
     >>> bomb()
     >>> with assert_raises(ValueError):
@@ -78,6 +78,28 @@ def raise_after_call(func, call_count, exc=Exception):
         wrapper.calls += 1
         if wrapper.calls >= call_count:
             raise exc
+        return func(*args, **kwargs)
+    wrapper.calls = 0
+    return wrapper
+
+
+def return_on_call(func, call_count, val=None):
+    """
+    Return a particular response, after a function is called a certain number of times.
+
+    Example:
+
+    >>> def f(): pass
+    >>> bomb = return_on_call(f, 3, 'I exploded')
+    >>> bomb()
+    >>> bomb()
+    >>> assert bomb() == "I exploded"
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.calls += 1
+        if wrapper.calls >= call_count:
+            return val
         return func(*args, **kwargs)
     wrapper.calls = 0
     return wrapper
