@@ -23,7 +23,7 @@ services:
     networks:
       - default
   web:
-    image: registry.lil.tools/harvardlil/perma-web:78-6f1769f494a91b6e8a2a302383b76d3d
+    image: registry.lil.tools/harvardlil/perma-web:79-d3ef310b86a46b6eec26f020e94246ed
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -113,7 +113,7 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:3-8ce71c739143ded5a4194a2314f3e723-upgrade-preview
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:4-a5e9864366f88b9024d03d66e60f6a2b
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
