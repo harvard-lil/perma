@@ -22,7 +22,7 @@ def test_contact(page, urls, mailoutbox) -> None:
 
 
 def test_contact_no_js(page, urls, mailoutbox, caplog) -> None:
-    """The Contact form should submit, but be rejected"""
+    """The Contact form should submit, but be rejected."""
     msg = "I've got important things to say."
     email = "functional_test_user@example.com"
 
@@ -45,7 +45,7 @@ def test_contact_no_js(page, urls, mailoutbox, caplog) -> None:
 
 
 def test_contact_no_js_logged_in(logged_in_user, urls, mailoutbox, caplog) -> None:
-    """The Contact form should submit, but be rejected"""
+    """The Contact form should submit, and not be rejected despite no JS."""
     msg = "I've got important things to say."
 
     logged_in_user.goto(urls.contact)
