@@ -182,6 +182,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SAMESITE = 'Lax'
 # This defaults to 'SAMEORIGIN' w/ Django 2, but was changed to 'DENY' in Django 3
 X_FRAME_OPTIONS = 'DENY'
+REQUIRE_JS_FORM_SUBMISSIONS = True
 
 #
 # Authentication

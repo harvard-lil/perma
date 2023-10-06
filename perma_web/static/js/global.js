@@ -68,3 +68,13 @@ $('.collapse').on('shown.bs.collapse', function () {
   $(this).find('input[type="text"]').focus();
 });
 
+// add trap to contact and report forms
+$('.contact-form form').submit(function() {
+  $(this).append('<input type="hidden" name="javascript" value="true"> ');
+});
+
+// add trap to signup forms
+$('.signup-learnMore-form form').submit(function() {
+  $(this).append('<input type="hidden" name="javascript" value="true"> ');
+});
+

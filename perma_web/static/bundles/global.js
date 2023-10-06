@@ -1138,6 +1138,14 @@ $('.collapse').on('shown.bs.collapse', function () {
   var _context;
 
   _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context = $(this)).call(_context, 'input[type="text"]').focus();
+}); // add trap to contact and report forms
+
+$('.contact-form form').submit(function () {
+  $(this).append('<input type="hidden" name="javascript" value="true"> ');
+}); // add trap to signup forms
+
+$('.signup-learnMore-form form').submit(function () {
+  $(this).append('<input type="hidden" name="javascript" value="true"> ');
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 

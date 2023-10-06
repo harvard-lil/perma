@@ -1442,7 +1442,7 @@ def libraries(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_library_instructions', 'a-telephone'):
+        if something_took_the_bait := check_honeypot(request, 'register_library_instructions', 'a-telephone', check_js=True):
             return something_took_the_bait
 
         registrar_form = LibraryRegistrarForm(request.POST, request.FILES, prefix ="b")
@@ -1510,7 +1510,7 @@ def sign_up(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
         form = UserForm(request.POST)
@@ -1531,7 +1531,7 @@ def sign_up_courts(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
         form = CreateUserFormWithCourt(request.POST)
@@ -1577,7 +1577,7 @@ def sign_up_faculty(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
         form = CreateUserFormWithUniversity(request.POST)
@@ -1602,7 +1602,7 @@ def sign_up_firm(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
         form = CreateUserFormWithFirm(request.POST)
@@ -1647,7 +1647,7 @@ def sign_up_journals(request):
     """
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions'):
+        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
         form = CreateUserFormWithUniversity(request.POST)

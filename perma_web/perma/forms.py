@@ -1,6 +1,7 @@
 from axes.utils import reset as reset_login_attempts
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms import ModelForm
@@ -16,12 +17,21 @@ logger = logging.getLogger(__name__)
 
 ### HELPERS ###
 
-def check_honeypot(request, redirect_to_view, honey_pot_fieldname='telephone'):
-    # the honeypot field should be display: none, so should never be filled out except by spam bots.
-    if request.POST.get(honey_pot_fieldname):
+def check_honeypot(request, redirect_to_view, honey_pot_fieldname='telephone', check_js=False):
+    def reject_request():
         user_ip = get_client_ip(request)
         logger.info(f"Suppressing invalid form submission from {user_ip}: {request.POST}")
         return HttpResponseRedirect(reverse(redirect_to_view))
+
+    # the honeypot field should be display: none, so should never be filled out except by spam bots.
+    if request.POST.get(honey_pot_fieldname):
+        return reject_request()
+
+    # and if we are being particular... you have to have submitted this form via JS
+    if check_js and request.user.is_anonymous and settings.REQUIRE_JS_FORM_SUBMISSIONS:
+        if not request.POST.get('javascript'):
+            return reject_request()
+
 
 class OrganizationField(forms.ModelMultipleChoiceField):
     def __init__(self,
