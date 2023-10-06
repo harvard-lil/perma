@@ -569,7 +569,7 @@ MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
 DISABLE_DEV_SHM = False
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.132 Safari/537.36"
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.149 Safari/537.36"
 PROXY_CAPTURES = False
 PROXY_ADDRESS = 'localhost:9050'
 DOMAINS_TO_PROXY = []
