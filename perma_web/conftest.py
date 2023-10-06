@@ -108,6 +108,7 @@ URL_MAP = {
     'homepage': reverse('landing'),
     'login': reverse('user_management_limited_login'),
     'about': reverse('about'),
+    'contact': reverse('contact'),
     'folders': reverse('create_link'),
 }
 

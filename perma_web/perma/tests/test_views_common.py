@@ -435,6 +435,7 @@ class CommonViewsTestCase(PermaTestCase):
     ###   Does the contact form submit as expected?
     ###
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_standard_submit_fail(self):
         '''
             Blank submission should fail and, for most users, request
@@ -447,6 +448,7 @@ class CommonViewsTestCase(PermaTestCase):
                                      error_keys = ['email', 'box2'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_org_user_submit_fail(self):
         '''
             Org users are special. Blank submission should fail
@@ -460,6 +462,7 @@ class CommonViewsTestCase(PermaTestCase):
                                      error_keys = ['email', 'box2', 'registrar'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_standard_submit_required(self):
         '''
             All fields, including custom subject and referer
@@ -482,6 +485,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [self.our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': self.from_email})
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_standard_submit_required_with_spam_catcher(self):
         '''
             All fields, including custom subject and referer
@@ -496,6 +500,7 @@ class CommonViewsTestCase(PermaTestCase):
 
         self.assertEqual(len(mail.outbox), 0)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_standard_submit_no_optional(self):
         '''
             All fields except custom subject and referer
@@ -515,6 +520,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [self.our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': self.from_email})
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_org_user_submit_invalid(self):
         '''
             Org users get extra fields. Registrar must be a valid choice.
@@ -528,6 +534,7 @@ class CommonViewsTestCase(PermaTestCase):
                                      error_keys = ['registrar'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_org_user_submit(self):
         '''
             Should be sent to registrar users.
@@ -554,6 +561,7 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertEqual(message.cc, [self.our_address, self.from_email] )
             self.assertEqual(message.reply_to, [self.from_email])
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_org_user_affiliation_string(self):
         '''
             Verify org affiliations are printed correctly
@@ -568,6 +576,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn("Affiliations: Another Library's Journal (Another Library), A Third Journal (Test Library)", message.body)
         self.assertIn("Logged in: true", message.body)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_contact_reg_user_affiliation_string(self):
         '''
             Verify registrar affiliations are printed correctly
@@ -589,6 +598,7 @@ class CommonViewsTestCase(PermaTestCase):
         response = self.get('report').content
         self.assertIn(b"Report Inappropriate Content", response)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_report_empty_post(self):
         self.submit_form(
             'report',
@@ -600,6 +610,7 @@ class CommonViewsTestCase(PermaTestCase):
             ]
         )
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_report_post_with_spam_catcher1(self):
         self.submit_form(
             'report',
@@ -614,7 +625,7 @@ class CommonViewsTestCase(PermaTestCase):
         )
         self.assertEqual(len(mail.outbox), 0)
 
-
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_report_post_with_spam_catcher2(self):
         self.submit_form(
             'report',
@@ -631,6 +642,7 @@ class CommonViewsTestCase(PermaTestCase):
     # Report form, as a person
     #
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_report_post_with_basic_fields(self):
         self.submit_form(
             'report',
@@ -650,6 +662,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn('some-string-that-could-be-a-guid', message.body)
         self.assertIn("Logged in: false", message.body)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_report_email_prepopulated_for_logged_in_user(self):
         response = self.get('report', user='test_another_library_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')

@@ -385,7 +385,7 @@ def contact(request):
 
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'contact_thanks'):
+        if something_took_the_bait := check_honeypot(request, 'contact_thanks', check_js=True):
             return something_took_the_bait
 
         form = handle_registrar_fields(ContactForm(request.POST))
@@ -492,7 +492,7 @@ def report(request):
 
     if request.method == 'POST':
 
-        if something_took_the_bait := check_honeypot(request, 'contact_thanks'):
+        if something_took_the_bait := check_honeypot(request, 'contact_thanks', check_js=True):
             return something_took_the_bait
 
         form = ReportForm(request.POST)

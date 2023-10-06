@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.core import mail
 from django.conf import settings
 from django.db import IntegrityError
+from django.test import override_settings
 from django.utils import timezone
 
 from mock import patch, sentinel
@@ -1833,6 +1834,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': user['raw_email']})
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_library_render(self):
         '''
            Does the library signup form display as expected?
@@ -1904,6 +1906,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_library_submit_success(self):
         '''
            Does the library signup form submit as expected? Success cases.
@@ -1956,6 +1959,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib, existing_lib_user)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_library_form_honeypot(self):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
@@ -1971,6 +1975,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(Registrar.objects.filter(name=new_lib['name']).exists())
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_library_submit_failure(self):
         '''
            Does the library signup form submit as expected? Failures.
@@ -2044,6 +2049,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': court_email})
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_court_success(self):
         '''
             Does the court signup form submit as expected? Success cases.
@@ -2122,6 +2128,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_court_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_court_form_honeypot(self):
         new_court = self.new_court()
         new_user = self.new_court_user()
@@ -2134,6 +2141,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_court_failure(self):
         '''
             Does the court signup form submit as expected? Failure cases.
@@ -2176,6 +2184,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.recipients(), [our_address])
         self.assertDictEqual(message.extra_headers, {'Reply-To': firm_email})
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_success(self):
         '''
             Does the firm signup form submit as expected? Success cases.
@@ -2254,6 +2263,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_form_honeypot(self):
         new_firm = self.new_firm()
         new_user = self.new_firm_user()
@@ -2266,6 +2276,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_failure(self):
         '''
             Does the firm signup form submit as expected? Failure cases.
@@ -2298,6 +2309,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                  'first': 'Joe',
                  'last': 'Yacobówski' }
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_journal_success(self):
         '''
             Does the journal signup form submit as expected? Success cases.
@@ -2332,6 +2344,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_journal_form_honeypot(self):
         new_journal = self.new_journal()
         new_user = self.new_journal_user()
@@ -2343,6 +2356,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_journal_failure(self):
         '''
             Does the journal signup form submit as expected? Failure cases.
@@ -2393,6 +2407,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                  'last': 'Yacobówski',
                  'requested_account_note': 'Journal {}'.format(rand) }
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_faculty_success(self):
         '''
             Does the faculty signup form submit as expected? Success cases.
@@ -2426,6 +2441,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_faculty_form_honeypot(self):
         new_user = self.new_faculty_user()
         self.submit_form('sign_up_faculty',
@@ -2436,6 +2452,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_faculty_failure(self):
         '''
             Does the faculty signup form submit as expected? Failure cases.
@@ -2484,6 +2501,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         activation_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
         return activation_url
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_account_creation_views(self):
         # user registration
         new_user_raw_email = self.randomize_capitalization("new_email@test.com")
@@ -2532,6 +2550,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_raw_email, 'password': 'Anewpass1'}, follow=True, secure=True)
         self.assertContains(response, 'Enter any URL to preserve it forever')
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_signup_with_existing_email_rejected(self):
         self.assertEqual(LinkUser.objects.filter(email__iexact=self.registrar_user.email).count(), 1)
         self.submit_form('sign_up',
@@ -2542,6 +2561,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                  error_keys=['email'])
         self.assertEqual(LinkUser.objects.filter(email__iexact=self.registrar_user.email).count(), 1)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_user_form_honeypot(self):
         new_user_email = "new_email@test.com"
         self.submit_form('sign_up',
