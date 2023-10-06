@@ -47,7 +47,6 @@ def test_contact_no_js(page, urls, mailoutbox, caplog) -> None:
 def test_contact_no_js_logged_in(logged_in_user, urls, mailoutbox, caplog) -> None:
     """The Contact form should submit, but be rejected"""
     msg = "I've got important things to say."
-    email = "functional_test_user@example.com"
 
     logged_in_user.goto(urls.contact)
     # Remove the form's submit event listener
