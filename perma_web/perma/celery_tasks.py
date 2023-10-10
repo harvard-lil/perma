@@ -847,11 +847,11 @@ def save_scoop_capture(link, capture_job, data):
     ])
 
     # Make this link private by policy, if the captured domain is on the list.
-    # For now, just check the primary URL, since Scoop does not yet expose the URL
-    # that the capture request resolved to.
-    content_url = data['scoop_capture_summary']['exchangeUrls'][0]
-    if any(domain in content_url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
-        safe_save_fields(link, is_private=True, private_reason='domain')
+    target_url = data['scoop_capture_summary']['targetUrl']
+    content_url = data['scoop_capture_summary']['targetUrlResolved']
+    for url in [target_url, content_url]:
+        if any(domain in url for domain in settings.PRIVATE_BY_POLICY_DOMAINS):
+            safe_save_fields(link, is_private=True, private_reason='domain')
 
     # See if the primary URL has been munged in any way since we last saw it.
     if link.primary_capture.url != data['scoop_capture_summary']['exchangeUrls'][0]:
