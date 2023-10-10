@@ -4,6 +4,7 @@ from dateutil.tz import tzutc
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
+import uuid
 from timegate.utils import closest
 from warcio.timeutils import datetime_to_http_date
 from werkzeug.http import parse_date
@@ -393,7 +394,7 @@ def contact(request):
         if form.is_valid():
             # Assemble info for email
             from_address = form.cleaned_data['email']
-            subject = "[perma-contact] " + form.cleaned_data['subject']
+            subject = f"[perma-contact] {form.cleaned_data['subject']} ({str(uuid.uuid4())})"
             context = {
                 "message": form.cleaned_data['box2'],
                 "from_address": from_address,
@@ -499,7 +500,7 @@ def report(request):
         if form.is_valid():
             if form.cleaned_data['guid']:
                 from_address = form.cleaned_data['email']
-                subject = "[perma-contact] Reporting Inappropriate Content"
+                subject = f"[perma-contact] Reporting Inappropriate Content ({str(uuid.uuid4())})"
                 context = {
                     "reason": form.cleaned_data['reason'],
                     "source": form.cleaned_data['source'],
