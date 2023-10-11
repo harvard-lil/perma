@@ -101,8 +101,8 @@ if settings.DEBUG and hasattr(settings, 'DEBUG_TOOLBAR_CONFIG'):
     urlpatterns += [re_path(r'^__debug__/', include(debug_toolbar.urls))]
 
 # views that only load when running our tests:
-# if settings.TESTING:
-from .tests import views as test_views
-urlpatterns += [
-    re_path(r'tests/redirect-to-file$', test_views.redirect_to_file, name='redirect_to_file')
-]
+if settings.TESTING:
+    from .tests import views as test_views
+    urlpatterns += [
+        re_path(r'tests/redirect-to-file$', test_views.redirect_to_file, name='redirect_to_file')
+    ]
