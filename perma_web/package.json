@@ -45,7 +45,7 @@
     "moment": "^2.27.0",
     "node-gyp": "^8.4.1",
     "p5": "^0.5.16",
-    "postcss": "^7.0.39",
+    "postcss": "^8.4.31",
     "postcss-loader": "^4.3.0",
     "resolve-url-loader": "*",
     "sass": "*",
