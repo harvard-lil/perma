@@ -146,8 +146,14 @@
         </div>
         {% if request.user.is_staff %}
           <div class="tray-detail-group admin-only">
-            <dt class="tray-detail-title">Captured by</dt>
-            <dd class="tray-detail-entry">{{link.captured_by_software}}</dd>
+            <dt class="tray-detail-title">Source</dt>
+            {% if link.captured_by_software == 'upload' %}
+              <dd class="tray-detail-entry">User Upload</dd>
+            {% elif link.captured_by_software == 'perma' %}
+              <dd class="tray-detail-entry">Captured by Perma (internal)</dd>
+            {% else %}
+              <dd class="tray-detail-entry">Captured by Scoop</dd>
+            {% endif %}
           </div>
         {% endif %}
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
