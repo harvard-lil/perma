@@ -8698,6 +8698,9 @@ div.cont-reading + div.overview div.overview-module-content {
 .reading-body li + li {
   margin-top: 1em;
 }
+.reading-body li + li.tight {
+  margin-top: 0;
+}
 
 div.warning {
   background-color: red;
