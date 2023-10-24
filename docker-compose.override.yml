@@ -105,7 +105,7 @@ services:
     # alter config as desired, in the usual way, then comment in this volume
     # and re-run docker-compose up
     # volumes:
-    #   - ./services/docker/perma-payments/settings.py:/perma-payments/config/settings/settings.py
+    #   - ./services/docker/perma-payments/settings.py:/app/web/config/settings/settings.py
     networks:
       - default
       - perma_payments
