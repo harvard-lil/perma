@@ -146,9 +146,22 @@
         </div>
         {% if request.user.is_staff %}
           <div class="tray-detail-group admin-only">
-            <dt class="tray-detail-title">Captured by</dt>
-            <dd class="tray-detail-entry">{{link.captured_by_software}}</dd>
+            <dt class="tray-detail-title">Source</dt>
+            {% if link.captured_by_software == 'upload' %}
+              <dd class="tray-detail-entry">User Upload</dd>
+            {% elif link.captured_by_software == 'perma' %}
+              <dd class="tray-detail-entry">Captured by Perma (internal)</dd>
+            {% else %}
+              <dd class="tray-detail-entry">Captured by Scoop</dd>
+            {% endif %}
           </div>
+        {% else %}
+          {% if link.captured_by_software == 'upload' %}
+            <div class="tray-detail-group">
+              <dt class="tray-detail-title">Source</dt>
+              <dd class="tray-detail-entry">User Upload</dd>
+            </div>
+          {% endif %}
         {% endif %}
           {% if can_delete  and not link.capture_job.status == 'in_progress' %}
             <div class="tray-detail-group temporary-options">
@@ -183,6 +196,12 @@
             <dt class="tray-detail-title">Description</dt>
             <dd class="tray-detail-entry">{{link.submitted_description}}</dd>
           </div>
+          {% if link.captured_by_software == 'upload' %}
+            <div class="tray-detail-group">
+              <dt class="tray-detail-title">Source</dt>
+              <dd class="tray-detail-entry">User Upload</dd>
+            </div>
+          {% endif %}
         {% endif %}
         {% comment %}
           {% if link.organization %}
