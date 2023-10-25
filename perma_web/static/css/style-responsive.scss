@@ -2205,6 +2205,9 @@ div.cont-reading + div.overview {
     + li {
       margin-top: 1em;
     }
+    + li.tight {
+      margin-top: 0;
+    }
   }
 }
 
