@@ -2462,6 +2462,10 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
+    if to_queue < 0:
+        logger.error(f"Something is amiss with the IA upload process: InternetArchiveItem.inflight_task_count ({InternetArchiveItem.inflight_task_count()}) is larger than settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS.")
+        return
+
     if to_queue:
 
         total_queued = 0
