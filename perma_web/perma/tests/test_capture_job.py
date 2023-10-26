@@ -24,6 +24,45 @@ def create_capture_job(user, human=True):
     return capture_job
 
 
+def test_job_queue_order(link_user_factory, pending_capture_job_factory):
+    """ Jobs should be processed round-robin, one per user. """
+
+    user_one = link_user_factory()
+    user_two = link_user_factory()
+
+    jobs = [
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_two, human=True),
+
+        pending_capture_job_factory(created_by=user_two),
+
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_one, human=True),
+        pending_capture_job_factory(created_by=user_two, human=True),
+    ]
+
+    expected_order = [
+        0, 3,  # u1, u2
+        1, 8,  # u1, u2
+        2, 5, 6, 7,  # remaining u1 jobs
+        4  # robots queue
+    ]
+
+    # test CaptureJob.queue_position
+    for i, job in enumerate(jobs):
+        queue_position = job.queue_position()
+        expected_queue_position = expected_order.index(i)+1
+        assert queue_position == expected_queue_position, f"Job {i} has queue position {queue_position}, should be {expected_queue_position}."
+
+    # test CaptureJob.get_next_job
+    expected_next_jobs = [jobs[i] for i in expected_order]
+    next_jobs = [CaptureJob.get_next_job(reserve=True) for i in range(len(jobs))]
+    assert next_jobs == expected_next_jobs
+
+
 @pytest.mark.django_db(transaction=True)
 def test_race_condition_prevented(pending_capture_job_factory):
     """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
@@ -96,40 +135,3 @@ class CaptureJobTestCase(TransactionTestCase):
         self.user_two = LinkUser.objects.get(pk=2)
 
         self.maxDiff = None  # let assertListEqual compare large lists
-
-    ### TESTS ###
-
-    def test_job_queue_order(self):
-        """ Jobs should be processed round-robin, one per user. """
-
-        jobs = [
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_two),
-
-            create_capture_job(self.user_two, human=False),
-
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_two),
-        ]
-
-        expected_order = [
-            0, 3,  # u1, u2
-            1, 8,  # u1, u2
-            2, 5, 6, 7,  # remaining u1 jobs
-            4  # robots queue
-        ]
-
-        # test CaptureJob.queue_position
-        for i, job in enumerate(jobs):
-            queue_position = job.queue_position()
-            expected_queue_position = expected_order.index(i)+1
-            self.assertEqual(queue_position, expected_queue_position, "Job %s has queue position %s, should be %s." % (i, queue_position, expected_queue_position))
-
-        # test CaptureJob.get_next_job
-        expected_next_jobs = [jobs[i] for i in expected_order]
-        next_jobs = [CaptureJob.get_next_job(reserve=True) for i in range(len(jobs))]
-        self.assertListEqual(next_jobs, expected_next_jobs)
