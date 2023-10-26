@@ -5,23 +5,11 @@ import pytest
 
 from django.conf import settings
 from django.db import connections
-from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.settings import api_settings
 
-from perma.models import CaptureJob, Link, LinkUser
+from perma.models import CaptureJob
 from perma.celery_tasks import clean_up_failed_captures
-
-# TODO:
-# - check retry behavior
-
-# lives outside CaptureJobTestCase so it can be used by other tests
-def create_capture_job(user, human=True):
-    link = Link(created_by=user, submitted_url="http://example.com")
-    link.save()
-    capture_job = CaptureJob(created_by=user, link=link, human=human, status='pending')
-    capture_job.save()
-    return capture_job
 
 
 def test_job_queue_order(link_user_factory, pending_capture_job_factory):
@@ -119,19 +107,3 @@ def test_hard_timeout(pending_capture_job):
 
     # failed jobs will have a message indicating failure reason
     assert json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0] == "Timed out."
-
-
-class CaptureJobTestCase(TransactionTestCase):
-
-    fixtures = [
-        'fixtures/users.json',
-        'fixtures/folders.json',
-    ]
-
-    def setUp(self):
-        super(CaptureJobTestCase, self).setUp()
-
-        self.user_one = LinkUser.objects.get(pk=1)
-        self.user_two = LinkUser.objects.get(pk=2)
-
-        self.maxDiff = None  # let assertListEqual compare large lists
