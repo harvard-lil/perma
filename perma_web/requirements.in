@@ -79,6 +79,7 @@ PyNaCl                                  # encryption
 beautifulsoup4                          # parses html of responses
 coverage                                # record code coverage
 django-admin-smoke-tests                # basic tests for the Django admin
+factory-boy                             # create django model fixtures on demand
 fakeredis[lua]                          # simulate redis backend for tests
 flake8                                  # code linting
 hypothesis                              # run tests with lots of generated input
@@ -88,6 +89,7 @@ pytest-django                           # tools for django in pytest
 pytest-django-ordering                  # runs transaction-wrapped tests before table truncating tests
 pytest-xdist                            # run tests in parallel
 pytest                                  # test runner
+pyhumps                                 # a helper for dealing with camel case and snake case
 pytest-playwright                       # integration tests
 pytest-django-liveserver-ssl            # integration tests w/SSL
 django-extensions                       # runserver_plus for SSL
