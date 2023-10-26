@@ -23,7 +23,7 @@ services:
     networks:
       - default
   web:
-    image: registry.lil.tools/harvardlil/perma-web:85-dddaf74b9e88222dc833f1615b550ecd
+    image: registry.lil.tools/harvardlil/perma-web:86-dd298a2d7cfacddb5ab6a3d8aebf1401
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
