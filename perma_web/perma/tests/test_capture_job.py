@@ -22,6 +22,30 @@ def create_capture_job(user, human=True):
     return capture_job
 
 
+def test_hard_timeout(pending_capture_job):
+
+    # simulate a failed run_next_capture()
+    job = CaptureJob.get_next_job(reserve=True)
+
+    # capture_start_time should be set accurately on the server side
+    assert (job.capture_start_time - timezone.now()).total_seconds() < 60
+
+    # clean_up_failed_captures shouldn't affect job, since timeout hasn't passed
+    clean_up_failed_captures()
+    job.refresh_from_db()
+    assert job.status == "in_progress"
+
+    # once job is sufficiently old, clean_up_failed_captures should mark it as failed
+    job.capture_start_time -= timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT+60)
+    job.save()
+    clean_up_failed_captures()
+    job.refresh_from_db()
+    assert job.status == "failed"
+
+    # failed jobs will have a message indicating failure reason
+    assert json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0] == "Timed out."
+
+
 class CaptureJobTestCase(TransactionTestCase):
 
     fixtures = [
@@ -99,26 +123,3 @@ class CaptureJobTestCase(TransactionTestCase):
         self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
         CaptureJob.TEST_ALLOW_RACE = False
 
-    def test_hard_timeout(self):
-        create_capture_job(self.user_one)
-
-        # simulate a failed run_next_capture()
-        job = CaptureJob.get_next_job(reserve=True)
-
-        # capture_start_time should be set accurately on the server side
-        self.assertLess((job.capture_start_time - timezone.now()).total_seconds(), 60)
-
-        # clean_up_failed_captures shouldn't affect job, since timeout hasn't passed
-        clean_up_failed_captures()
-        job.refresh_from_db()
-        self.assertEqual(job.status, "in_progress")
-
-        # once job is sufficiently old, clean_up_failed_captures should mark it as failed
-        job.capture_start_time -= timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT+60)
-        job.save()
-        clean_up_failed_captures()
-        job.refresh_from_db()
-        self.assertEqual(job.status, "failed")
-
-        # failed jobs will have a message indicating failure reason
-        self.assertEqual(json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0], "Timed out.")
