@@ -342,6 +342,14 @@ executing==0.8.3 \
     --hash=sha256:c6554e21c6b060590a6d3be4b82fb78f8f0194d809de5ea7df1c093763311501 \
     --hash=sha256:d1eef132db1b83649a3905ca6dd8897f71ac6f8cac79a7e58a1a09cf137546c9
     # via stack-data
+factory-boy==3.3.0 \
+    --hash=sha256:a2cdbdb63228177aa4f1c52f4b6d83fab2b8623bf602c7dedd7eb83c0f69c04c \
+    --hash=sha256:bc76d97d1a65bbd9842a6d722882098eb549ec8ee1081f9fb2e8ff29f0c300f1
+    # via -r requirements.in
+faker==19.12.0 \
+    --hash=sha256:5990380a8ee81cf189d6b85d5fdc1fb43772cb136aca0385a08ff24ef01b9fdf \
+    --hash=sha256:91438f6b1713274ec3f24970ba303617be86ce5caf6f6a0776f1d04777b6ff5f
+    # via factory-boy
 fakeredis[lua]==2.10.2 \
     --hash=sha256:6377c27bc557be46089381d43fd670aece46672d091a494f73ab4c96c34022b3 \
     --hash=sha256:e2a95fbda7b11188c117d68b0f9eecc00600cb449ccf3362a15fc03cf9e2477d
@@ -849,6 +857,10 @@ pygments==2.15.1 \
     --hash=sha256:8ace4d3c1dd481894b2005f560ead0f9f19ee64fe983366be1a21e171d12775c \
     --hash=sha256:db2db3deb4b4179f399a09054b023b6a586b76499d36965813c71aa8ed7b5fd1
     # via ipython
+pyhumps==3.8.0 \
+    --hash=sha256:060e1954d9069f428232a1adda165db0b9d8dfdce1d265d36df7fbff540acfd6 \
+    --hash=sha256:498026258f7ee1a8e447c2e28526c0bea9407f9a59c03260aee4bd6c04d681a3
+    # via -r requirements.in
 pynacl==1.5.0 \
     --hash=sha256:06b8f6fa7f5de8d5d2f7573fe8c863c051225a27b61e6860fd047b1775807858 \
     --hash=sha256:0c84947a22519e013607c9be43706dd42513f9e6ae5d39d3613ca1e142fba44d \
@@ -932,6 +944,7 @@ python-dateutil==2.8.2 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
     # via
     #   botocore
+    #   faker
     #   timegate
 python-slugify==6.1.2 \
     --hash=sha256:272d106cb31ab99b3496ba085e3fea0e9e76dcde967b5e9992500d1f785ce4e1 \

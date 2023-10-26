@@ -1,6 +1,13 @@
 from .utils import ApiResourceTestCase
-from perma.tests.test_capture_job import create_capture_job
-from perma.models import LinkUser, Link
+from perma.models import LinkUser, Link, CaptureJob
+
+
+def create_capture_job(user, human=True):
+    link = Link(created_by=user, submitted_url="http://example.com")
+    link.save()
+    capture_job = CaptureJob(created_by=user, link=link, human=human, status='pending')
+    capture_job.save()
+    return capture_job
 
 
 class CurrentUserAuthorizationTestCase(ApiResourceTestCase):

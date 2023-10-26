@@ -149,3 +149,132 @@ def logged_in_user(page, urls, user):
     password.type(user.password)
     page.locator("button.btn.login").click()
     return page
+
+
+###              ###
+### New Fixtures ###
+###              ###
+
+# As we modernize the test suite, we can start putting new fixtures here.
+# The separation should make it easier to work out, going forward, what can be deleted.
+
+import factory
+from factory.django import DjangoModelFactory
+import humps
+
+from datetime import timezone as tz
+from django.db.models import signals
+
+from perma.models import LinkUser, Link, CaptureJob
+
+
+### internal helpers ###
+
+# functions used within this file to set up fixtures
+
+def register_factory(cls):
+    """
+    Decorator to take a factory class and inject test fixtures. For example,
+        @register_factory
+        class UserFactory
+    will inject the fixtures "user_factory" (equivalent to UserFactory) and "user" (equivalent to UserFactory()).
+    This is basically the same as the @register decorator provided by the pytest_factoryboy package,
+    but because it's simpler it seems to work better with RelatedFactory and SubFactory.
+    """
+    snake_case_name = humps.decamelize(cls.__name__)
+
+    @pytest.fixture
+    def factory_fixture(db):
+        return cls
+
+    @pytest.fixture
+    def instance_fixture(db):
+        return cls()
+
+    globals()[snake_case_name] = factory_fixture
+    globals()[snake_case_name.rsplit('_factory', 1)[0]] = instance_fixture
+
+    return cls
+
+
+### model factories ###
+
+@register_factory
+class LinkUserFactory(DjangoModelFactory):
+    class Meta:
+        model = LinkUser
+
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+    email = factory.Sequence(lambda n: 'user%s@example.com' % n)
+    is_active = True
+    is_confirmed=True
+
+    password = factory.PostGenerationMethodCall('set_password', 'pass')
+
+
+@register_factory
+class CaptureJobFactory(DjangoModelFactory):
+    class Meta:
+        model = CaptureJob
+        exclude = ('create_link',)
+
+    created_by = factory.SubFactory(LinkUserFactory)
+    submitted_url = factory.Faker('url')
+
+    create_link = True
+    link = factory.Maybe(
+        'create_link',
+        yes_declaration=factory.RelatedFactory(
+            'conftest.LinkFactory',
+            factory_related_name='capture_job',
+            create_pending_capture_job=False,
+            created_by=factory.SelfAttribute('..created_by'),
+            submitted_url=factory.SelfAttribute('..submitted_url'),
+        ),
+        no_declaration=None
+    )
+
+
+@register_factory
+class InvalidCaptureJobFactory(CaptureJobFactory):
+    submitted_url = 'not-a-valid-url'
+    status = 'invalid'
+    message = {'url': ['Not a valid URL.']}
+    create_link = False
+
+
+@register_factory
+class PendingCaptureJobFactory(CaptureJobFactory):
+    status = 'pending'
+
+
+@register_factory
+class InProgressCaptureJobFactory(PendingCaptureJobFactory):
+    status = 'in_progress'
+    capture_start_time = factory.Faker('future_datetime', end_date='+1m', tzinfo=tz.utc)
+    step_count = factory.Faker('pyfloat', min_value=1, max_value=10)
+    step_description = factory.Faker('text', max_nb_chars=15)
+
+
+@register_factory
+@factory.django.mute_signals(signals.pre_save)
+class LinkFactory(DjangoModelFactory):
+    class Meta:
+        model = Link
+        exclude = ('create_pending_capture_job', 'created_by')
+
+    created_by = factory.SubFactory(LinkUserFactory)
+    submitted_url = factory.Faker('url')
+
+    create_pending_capture_job = True
+    capture_job = factory.Maybe(
+        'create_pending_capture_job',
+        yes_declaration=factory.SubFactory(
+            PendingCaptureJobFactory,
+            created_by=factory.SelfAttribute('..created_by'),
+            submitted_url=factory.SelfAttribute('..submitted_url'),
+            create_link=False
+        ),
+        no_declaration=None
+    )
