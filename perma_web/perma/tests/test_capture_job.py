@@ -1,8 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import json
-from multiprocessing.pool import ThreadPool
+import pytest
 
 from django.conf import settings
+from django.db import connections
 from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.settings import api_settings
@@ -20,6 +22,40 @@ def create_capture_job(user, human=True):
     capture_job = CaptureJob(created_by=user, link=link, human=human, status='pending')
     capture_job.save()
     return capture_job
+
+
+@pytest.mark.django_db(transaction=True)
+def test_race_condition_prevented(pending_capture_job_factory):
+    """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
+    jobs = [
+        pending_capture_job_factory(),
+        pending_capture_job_factory()
+    ]
+
+    def get_next_job(i):
+        job = CaptureJob.get_next_job(reserve=True)
+        for connection in connections.all():
+            connection.close()
+        return job
+
+    CaptureJob.TEST_PAUSE_TIME = .1
+    with ThreadPoolExecutor(max_workers=2) as e:
+        fetched_jobs = e.map(get_next_job, range(2))
+    CaptureJob.TEST_PAUSE_TIME = 0
+
+    assert set(jobs) == set(fetched_jobs)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_race_condition_not_prevented(pending_capture_job_factory):
+    """
+        Make sure that test_race_condition_prevented is passing for the right reason --
+        should fail if race condition protection is disabled.
+    """
+    CaptureJob.TEST_ALLOW_RACE = True
+    with pytest.raises(AssertionError, match="Extra items in the left set"):
+        test_race_condition_prevented(pending_capture_job_factory)
+    CaptureJob.TEST_ALLOW_RACE = False
 
 
 def test_hard_timeout(pending_capture_job):
@@ -97,29 +133,3 @@ class CaptureJobTestCase(TransactionTestCase):
         expected_next_jobs = [jobs[i] for i in expected_order]
         next_jobs = [CaptureJob.get_next_job(reserve=True) for i in range(len(jobs))]
         self.assertListEqual(next_jobs, expected_next_jobs)
-
-    def test_race_condition_prevented(self):
-        """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
-        jobs = [
-            create_capture_job(self.user_one),
-            create_capture_job(self.user_one)
-        ]
-
-        def get_next_job(i):
-            return CaptureJob.get_next_job(reserve=True)
-
-        CaptureJob.TEST_PAUSE_TIME = .1
-        fetched_jobs = ThreadPool(2).map(get_next_job, range(2))
-        CaptureJob.TEST_PAUSE_TIME = 0
-
-        self.assertSetEqual(set(jobs), set(fetched_jobs))
-
-    def test_race_condition_not_prevented(self):
-        """
-            Make sure that test_race_condition_prevented is passing for the right reason --
-            should fail if race condition protection is disabled.
-        """
-        CaptureJob.TEST_ALLOW_RACE = True
-        self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
-        CaptureJob.TEST_ALLOW_RACE = False
-
