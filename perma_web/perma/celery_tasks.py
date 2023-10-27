@@ -1067,6 +1067,9 @@ def capture_with_scoop(capture_job):
             if poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
                 capture_job.link.tags.add('scoop-load-failure')
+            elif not poll_data['stderr_logs'] and not poll_data['stdout_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
+                capture_job.link.tags.add('scoop-silent-failure')
             else:
                 logger.error(f"Scoop capture failed: {poll_data}")
 
