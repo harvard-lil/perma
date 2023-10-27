@@ -1063,7 +1063,12 @@ def capture_with_scoop(capture_job):
             link.primary_capture.status = 'success'
             link.primary_capture.save(update_fields=['status'])
         else:
-            logger.error(f"Scoop capture failed: {poll_data}")
+            didnt_load = "ERROR Navigation to page failed (about:blank)"
+            if poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
+                capture_job.link.tags.add('scoop-load-failure')
+            else:
+                logger.error(f"Scoop capture failed: {poll_data}")
 
     except HaltCaptureException:
         print("HaltCaptureException thrown")
