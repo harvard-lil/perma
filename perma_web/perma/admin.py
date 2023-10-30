@@ -93,6 +93,16 @@ class LinkIDFilter(InputFilter):
             return queryset.filter(link__guid__icontains=value)
 
 
+class ScoopJobIDFilter(InputFilter):
+    parameter_name = 'scoop_job_id'
+    title = 'Scoop Job ID'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(scoop_logs__id_capture=value)
+
+
 class TagFilter(InputFilter):
     parameter_name = 'tag'
     title = 'tag'
@@ -101,6 +111,15 @@ class TagFilter(InputFilter):
         value = self.value()
         if value:
             return queryset.filter(tags__name__icontains=value)
+
+class LinkTagFilter(InputFilter):
+    parameter_name = 'linktag'
+    title = 'link tag'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(link__tags__name__icontains=value)
 
 
 class MessageFilter(InputFilter):
@@ -633,8 +652,8 @@ class CaptureJobForm(ModelForm):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'scoop_state']
-    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state']
+    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'scoop_state', 'scoop_job_id']
+    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', LinkTagFilter, MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state', ScoopJobIDFilter]
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
     paginator = FasterAdminPaginator
@@ -649,10 +668,15 @@ class CaptureJobAdmin(admin.ModelAdmin):
             return obj.link.creation_timestamp
         return None
 
-    def link_taglist(self, obj):
-        if obj.link:
-            return ", ".join(o.name for o in obj.link.tags.all())
+    def scoop_job_id(self, obj):
+        if obj.scoop_logs:
+            return obj.scoop_logs['id_capture']
         return None
+
+    # def link_taglist(self, obj):
+    #     if obj.link:
+    #         return ", ".join(o.name for o in obj.link.tags.all())
+    #     return None
 
     # def capture_time(self, obj):
     #     if obj.capture_start_time and obj.capture_end_time:
