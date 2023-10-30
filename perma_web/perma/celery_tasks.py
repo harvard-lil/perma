@@ -829,16 +829,20 @@ def save_scoop_capture(link, capture_job, data):
     link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
     link.primary_capture.save(update_fields=['content_type'])
 
-    title = data['scoop_capture_summary']['pageInfo'].get('title')
-    if title and link.submitted_title == link.get_default_title():
-        link.submitted_title = title[:2100]
-    description = data['scoop_capture_summary']['pageInfo'].get('description')
-    if description:
-        link.submitted_description=description[:300]
-    link.save(update_fields=[
-        'submitted_title',
-        'submitted_description'
-    ])
+    if data['scoop_capture_summary'].get('pageInfo'):
+        title = data['scoop_capture_summary']['pageInfo'].get('title')
+        if title and link.submitted_title == link.get_default_title():
+            link.submitted_title = title[:2100]
+        description = data['scoop_capture_summary']['pageInfo'].get('description')
+        if description:
+            link.submitted_description=description[:300]
+        link.save(update_fields=[
+            'submitted_title',
+            'submitted_description'
+        ])
+    else:
+        link.tags.add('scoop-missing-pageinfo')
+        logger.warning(f"{capture_job.link_id}: Scoop metadata does not contain pageInfo ({data['id_capture']}).")
 
     # Make this link private by policy, if the captured domain is on the list.
     target_url = data['scoop_capture_summary']['targetUrl']
