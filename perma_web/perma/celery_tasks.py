@@ -835,15 +835,9 @@ def save_scoop_capture(link, capture_job, data):
     description = data['scoop_capture_summary']['pageInfo'].get('description')
     if description:
         link.submitted_description=description[:300]
-    software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
-    version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
-    link.captured_by_software = f"{software}: {version}"
-    link.captured_by_browser = data['scoop_capture_summary']['provenanceInfo']['userAgent']
     link.save(update_fields=[
         'submitted_title',
-        'submitted_description',
-        'captured_by_software',
-        'captured_by_browser'
+        'submitted_description'
     ])
 
     # Make this link private by policy, if the captured domain is on the list.
@@ -884,16 +878,28 @@ def save_scoop_capture(link, capture_job, data):
     #
     # OTHER ATTACHMENTS
     #
+    provenance_filename = data['scoop_capture_summary']['attachments'].get("provenanceSummary")
+    if provenance_filename:
+        Capture(
+            link=link,
+            role='provenance_summary',
+            status='success',
+            record_type='response',
+            url=f"file:///{provenance_filename}",
+            content_type='text/html; charset=utf-8',
+        ).save()
 
-    provenance_filename = data['scoop_capture_summary']['attachments']["provenanceSummary"]
-    Capture(
-        link=link,
-        role='provenance_summary',
-        status='success',
-        record_type='response',
-        url=f"file:///{provenance_filename}",
-        content_type='text/html; charset=utf-8',
-    ).save()
+        software = data['scoop_capture_summary']['provenanceInfo']['software'].lower()
+        version = data['scoop_capture_summary']['provenanceInfo']['version'].lower()
+        link.captured_by_software = f"{software}: {version}"
+        link.captured_by_browser = data['scoop_capture_summary']['provenanceInfo']['userAgent']
+        link.save(update_fields=[
+            'captured_by_software',
+            'captured_by_browser'
+        ])
+    else:
+        link.tags.add('scoop-missing-provenance')
+        logger.warning(f"{capture_job.link_id}: Scoop warc does not contain provenance summary ({data['id_capture']}).")
 
     #
     # WARC
