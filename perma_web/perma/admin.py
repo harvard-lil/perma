@@ -633,7 +633,7 @@ class CaptureJobForm(ModelForm):
 
 
 class CaptureJobAdmin(admin.ModelAdmin):
-    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'capture_time', 'scoop_time', 'scoop_state']
+    list_display = ['id', 'engine', 'status', 'superseded', 'message', 'created_by_id', 'link_id', 'human', 'submitted_url', 'scoop_state']
     list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state']
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
@@ -654,15 +654,15 @@ class CaptureJobAdmin(admin.ModelAdmin):
             return ", ".join(o.name for o in obj.link.tags.all())
         return None
 
-    def capture_time(self, obj):
-        if obj.capture_start_time and obj.capture_end_time:
-            return obj.capture_end_time - obj.capture_start_time
-        return None
+    # def capture_time(self, obj):
+    #     if obj.capture_start_time and obj.capture_end_time:
+    #         return obj.capture_end_time - obj.capture_start_time
+    #     return None
 
-    def scoop_time(self, obj):
-        if obj.scoop_start_time and obj.scoop_end_time:
-            return obj.scoop_end_time - obj.scoop_start_time
-        return None
+    # def scoop_time(self, obj):
+    #     if obj.scoop_start_time and obj.scoop_end_time:
+    #         return obj.scoop_end_time - obj.scoop_start_time
+    #     return None
 
 
 class LinkBatchAdmin(admin.ModelAdmin):
