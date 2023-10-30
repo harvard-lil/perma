@@ -829,7 +829,7 @@ def save_scoop_capture(link, capture_job, data):
     link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
     link.primary_capture.save(update_fields=['content_type'])
 
-    if data['scoop_capture_summary'].get('pageInfo'):
+    if 'pageInfo' in data['scoop_capture_summary']:
         title = data['scoop_capture_summary']['pageInfo'].get('title')
         if title and link.submitted_title == link.get_default_title():
             link.submitted_title = title[:2100]
