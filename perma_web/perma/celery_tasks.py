@@ -1064,7 +1064,7 @@ def capture_with_scoop(capture_job):
 
             # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
             wait_time = time.time() - scoop_start_time
-            inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
+            inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
 
         capture_job.scoop_logs = poll_data
         if poll_data.get('scoop_capture_summary'):
