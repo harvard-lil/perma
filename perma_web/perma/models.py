@@ -2041,6 +2041,7 @@ class CaptureJob(models.Model):
     scoop_start_time = models.DateTimeField(blank=True, null=True)
     scoop_end_time = models.DateTimeField(blank=True, null=True)
     scoop_logs = JSONField(blank=True, null=True)
+    scoop_job_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     scoop_state = models.CharField(max_length=255, blank=True, null=True, db_index=True)
 
     superseded = models.BooleanField(default=False, help_text='A user upload has made this CaptureJob irrelevant to the playback of its related Link')
