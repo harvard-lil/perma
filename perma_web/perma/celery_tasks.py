@@ -1031,6 +1031,10 @@ def capture_with_scoop(capture_job):
             valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
         )
 
+        # Save the Scoop job id for our records
+        capture_job.scoop_job_id = request_data['id_capture']
+        capture_job.save(update_fields=['scoop_job_id'])
+
         # Poll until done
         poll_network_errors = 0
         while True:
@@ -1041,7 +1045,7 @@ def capture_with_scoop(capture_job):
             try:
                 _, poll_data = send_to_scoop(
                     method='get',
-                    path=f"capture/{request_data['id_capture']}",
+                    path=f"capture/{capture_job.scoop_job_id}",
                     json={
                         "url": target_url
                     },
@@ -1060,7 +1064,7 @@ def capture_with_scoop(capture_job):
 
             # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
             wait_time = time.time() - scoop_start_time
-            inc_progress(capture_job, min(wait_time/60, 0.99), "Waiting for Scoop to finish")
+            inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
 
         capture_job.scoop_logs = poll_data
         if poll_data.get('scoop_capture_summary'):

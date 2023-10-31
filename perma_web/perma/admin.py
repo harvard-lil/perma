@@ -100,7 +100,7 @@ class ScoopJobIDFilter(InputFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(scoop_logs__id_capture=value)
+            return queryset.filter(scoop_job_id=value)
 
 
 class TagFilter(InputFilter):
@@ -666,11 +666,6 @@ class CaptureJobAdmin(admin.ModelAdmin):
     def link_creation_timestamp(self, obj):
         if obj.link:
             return obj.link.creation_timestamp
-        return None
-
-    def scoop_job_id(self, obj):
-        if obj.scoop_logs:
-            return obj.scoop_logs['id_capture']
         return None
 
     # def link_taglist(self, obj):
