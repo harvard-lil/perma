@@ -826,7 +826,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                 "scoop_capture_summary": None},
                 200
             ))
-            with self.assertLogs('celery.django', level='ERROR') as logs:
+            with self.assertLogs('celery.django', level='WARNING') as logs:
                 obj = self.successful_post(self.list_url,
                                            data={
                                                'url': self.server_url + "/test.html"
@@ -836,5 +836,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                 self.assertEqual(link.primary_capture.status, 'failed')
                 self.assertEqual(link.capture_job.status, 'failed')
 
+                self.assertTrue('scoop-silent-failure' in [tag.name for tag in link.tags.all()])
                 log_string = " ".join(logs.output)
-                self.assertTrue(log_string.endswith("'scoop_capture_summary': None}"))
+                self.assertTrue("Scoop failed without logs" in log_string)
