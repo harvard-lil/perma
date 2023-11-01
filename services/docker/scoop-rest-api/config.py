@@ -1,5 +1,5 @@
-# This is the default config.py from the Scoop REST API as of 9/6/2023
-# https://github.com/harvard-lil/scoop-rest-api/blob/31c541432fd8e31a04c6e0c5667beb28decfc3ec/scoop_rest_api/config.py
+# This is the default config.py from the Scoop REST API as of 11/1/2023
+# https://github.com/harvard-lil/scoop-rest-api/blob/26dfc224aafabb53b4af5a44ef9b29cd79d1de82/scoop_rest_api/config.py
 # We only use it to override the blocklist: we disable it to allow the capturing of
 # localhost in our test suite.
 
@@ -11,15 +11,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-#
-# Temporary
-#
-SCREEN_API_TOKEN = ""
-""" (Temporary) screen-api.lil.tools token. """
-
-if "SCREEN_API_TOKEN" in os.environ:
-    SCREEN_API_TOKEN = os.environ["SCREEN_API_TOKEN"]
 
 #
 # Security settings
@@ -134,9 +125,9 @@ SCOOP_CLI_OPTIONS = {
     "--capture-certificates-as-attachment": "false",
     "--provenance-summary": "true",
     "--attachments-bypass-limits": "true",
-    "--capture-timeout": 40 * 1000,
-    "--load-timeout": 15 * 1000,
-    "--network-idle-timeout": 15 * 1000,
+    "--capture-timeout": 45 * 1000,
+    "--load-timeout": 20 * 1000,
+    "--network-idle-timeout": 20 * 1000,
     "--behaviors-timeout": 15 * 1000,
     "--capture-video-as-attachment-timeout": 20 * 1000,
     "--capture-certificates-as-attachment-timeout": 10 * 1000,
@@ -151,7 +142,7 @@ SCOOP_CLI_OPTIONS = {
     # "--user-agent-suffix": "",
     # "--blocklist": "/https?:\/\/localhost/,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,192.0.0.0/29,192.0.2.0/24,192.88.99.0/24,192.168.0.0/16,198.18.0.0/15,198.51.100.0/24,203.0.113.0/24,224.0.0.0/4,240.0.0.0/4,255.255.255.255/32,::/128,::1/128,::ffff:0:0/96,100::/64,64:ff9b::/96,2001::/32,2001:10::/28,2001:db8::/32,2002::/16,fc00::/7,fe80::/10,ff00::/8",  # noqa
     "--blocklist": "",
-    "--public-ip-resolver-endpoint": "https://myip.lil.tools",
+    "--public-ip-resolver-endpoint": "https://icanhazip.com",
 }
 """
     Options passed to the Scoop CLI during capture.
@@ -160,3 +151,6 @@ SCOOP_CLI_OPTIONS = {
     Options which cannot be set at config level are listed here:
     - utils.config_check.EXCLUDED_SCOOP_CLI_OPTIONS
 """
+
+SCOOP_TIMEOUT_FUSE = 30
+""" Number of seconds to wait before "killing" a Scoop progress after capture timeout. """
