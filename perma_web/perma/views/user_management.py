@@ -329,17 +329,17 @@ def stats(request, stat_type=None):
 
                 out[range_name] = {
                     "completed": completed,
-                    "completed_percent": completed/denominator * 100,
+                    "completed_percent": round(completed/denominator * 100, 1),
                     "failed": failed,
-                    "failed_percent": failed/denominator * 100,
+                    "failed_percent": round(failed/denominator * 100, 1),
                     "celery_timeout": celery_timeout,
-                    "celery_timeout_percent": celery_timeout/denominator * 100,
+                    "celery_timeout_percent": round(celery_timeout/denominator * 100, 1),
                     "mystery_error": mystery_error,
-                    "mystery_error_percent": mystery_error/denominator * 100,
+                    "mystery_error_percent": round(mystery_error/denominator * 100, 1),
                     "timeout": timeout,
-                    "timeout_percent": timeout/denominator * 100,
+                    "timeout_percent": round(timeout/denominator * 100, 1),
                     "didnt_load": didnt_load,
-                    "didnt_load_percent": didnt_load/denominator * 100,
+                    "didnt_load_percent": round(didnt_load/denominator * 100, 1),
                 }
 
             else:
