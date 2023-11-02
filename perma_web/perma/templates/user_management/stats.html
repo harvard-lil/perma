@@ -10,6 +10,7 @@
       <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
       <li><a href="#rate-limits-pane" data-toggle="tab">Internet Archive</a></li>
       <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
+      <li><a href="#capture-error-pane" data-toggle="tab">Capture Errors</a></li>
       <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
       <li><a href="#random-pane" data-toggle="tab">Random</a></li>
       <li><a href="#emails-pane" data-toggle="tab">Users by Domain</a></li>
@@ -40,6 +41,13 @@
         <br>
         <hr>
         <div id="job_queue">Loading...</div>
+      </div>
+
+      <div class="tab-pane" id="capture-error-pane">
+        <h3 class="body-ah">Capture errors</h3>
+        <button type="button" id="refresh-capture-errors">Refresh</button>&nbsp;<button type="button" id="auto-refresh-capture-errors">Start Auto-Refresh (every 15s)</button><span id="capture-errors-status"></span>
+        <br><br>
+        <div id="capture_errors">Loading...</div>
       </div>
 
 
@@ -337,6 +345,86 @@
               </dl>
             </div>
           {{/each}}
+        </div>
+    </script>
+
+    <script id="capture_errors-template" type="text/x-handlebars-template">
+      <div class="row">
+
+        <div class="col-sm-3">
+          <h4>Last hour</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.last_hour.completed }}  ({{ this.last_hour.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.last_hour.failed }}  ({{ this.last_hour.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.last_hour.celery_timeout }}  ({{ this.last_hour.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.last_hour.mystery_error }}  ({{ this.last_hour.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.last_hour.timeout }}  ({{ this.last_hour.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.last_hour.didnt_load }}  ({{ this.last_hour.didnt_load_percent}}%)</dd>
+          </dl>
+        </div>
+
+        <div class="col-sm-3">
+          <h4>Last 3 hours</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.last_3_hrs.completed }}  ({{ this.last_3_hrs.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.last_3_hrs.failed }}  ({{ this.last_3_hrs.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.last_3_hrs.celery_timeout }}  ({{ this.last_3_hrs.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.last_3_hrs.mystery_error }}  ({{ this.last_3_hrs.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.last_3_hrs.timeout }}  ({{ this.last_3_hrs.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.last_3_hrs.didnt_load }}  ({{ this.last_3_hrs.didnt_load_percent}}%)</dd>
+          </dl>
+        </div>
+
+        <div class="col-sm-3">
+          <h4>Last 24 hrs</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.last_24_hrs.completed }}  ({{ this.last_24_hrs.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.last_24_hrs.failed }}  ({{ this.last_24_hrs.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.last_24_hrs.celery_timeout }}  ({{ this.last_24_hrs.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.last_24_hrs.mystery_error }}  ({{ this.last_24_hrs.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.last_24_hrs.timeout }}  ({{ this.last_24_hrs.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.last_24_hrs.didnt_load }}  ({{ this.last_24_hrs.didnt_load_percent}}%)</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="row">
+
+        <div class="col-sm-3">
+          <h4>Last hour, previous day</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.last_hour_on_previous_day.completed }}  ({{ this.last_hour_on_previous_day.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.last_hour_on_previous_day.failed }}  ({{ this.last_hour_on_previous_day.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.last_hour_on_previous_day.celery_timeout }}  ({{ this.last_hour_on_previous_day.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.last_hour_on_previous_day.mystery_error }}  ({{ this.last_hour_on_previous_day.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.last_hour_on_previous_day.timeout }}  ({{ this.last_hour_on_previous_day.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.last_hour_on_previous_day.didnt_load }}  ({{ this.last_hour_on_previous_day.didnt_load_percent}}%)</dd>
+          </dl>
+        </div>
+
+        <div class="col-sm-3">
+          <h4>Last 3 hours, previous day</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.last_3_hrs_on_previous_day.completed }}  ({{ this.last_3_hrs_on_previous_day.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.last_3_hrs_on_previous_day.failed }}  ({{ this.last_3_hrs_on_previous_day.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.last_3_hrs_on_previous_day.celery_timeout }}  ({{ this.last_3_hrs_on_previous_day.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.last_3_hrs_on_previous_day.mystery_error }}  ({{ this.last_3_hrs_on_previous_day.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.last_3_hrs_on_previous_day.timeout }}  ({{ this.last_3_hrs_on_previous_day.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.last_3_hrs_on_previous_day.didnt_load }}  ({{ this.last_3_hrs_on_previous_day.didnt_load_percent}}%)</dd>
+          </dl>
+        </div>
+
+
+        <div class="col-sm-3">
+          <h4>Previous 24 hrs</h4>
+          <dl class="dl-horizontal">
+            <dt>Completed:</dt><dd>{{ this.previous_24_hrs.completed }}  ({{ this.previous_24_hrs.completed_percent}}%)</dd>
+            <dt>Failed:</dt><dd>{{ this.previous_24_hrs.failed }}  ({{ this.previous_24_hrs.failed_percent}}%)</dd>
+            <dt>Killed by Celery:</dt><dd>{{ this.previous_24_hrs.celery_timeout }}  ({{ this.previous_24_hrs.celery_timeout_percent}}%)</dd>
+            <dt>Mystery error:</dt><dd>{{ this.previous_24_hrs.mystery_error }}  ({{ this.previous_24_hrs.mystery_error_percent}}%)</dd>
+            <dt>Scoop timeout:</dt><dd>{{ this.previous_24_hrs.timeout }}  ({{ this.previous_24_hrs.timeout_percent}}%)</dd>
+            <dt>URL didn't load:</dt><dd>{{ this.previous_24_hrs.didnt_load }}  ({{ this.previous_24_hrs.didnt_load_percent}}%)</dd>
+          </dl>
         </div>
     </script>
   {% endverbatim %}

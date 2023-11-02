@@ -1259,6 +1259,7 @@ function fillSection(name, callback) {
   });
 }
 
+fillSection("capture_errors");
 fillSection("celery_queues");
 fillSection("celery");
 fillSection("rate_limits");
@@ -1340,6 +1341,41 @@ document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('cl
   } else {
     capture_jobs_refresh = refresh_capture_jobs();
     e.target.innerText = 'Stop Auto-Refresh';
+  }
+}); // Refresh the capture errors once, on button press
+// or, start auto-refreshing every 15s, when the other button is pressed
+
+function refresh_capture_errors() {
+  var status = document.getElementById('capture-errors-status');
+  status.innerText = 'Refreshing...';
+  fillSection("capture_errors", function () {
+    status.innerText = 'Refreshed!';
+
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
+      return status.innerText = '';
+    }, 2000);
+  });
+}
+
+function auto_refresh_capture_errors() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    refresh_capture_errors();
+  }, 15000);
+}
+
+document.getElementById('refresh-capture-errors').addEventListener('click', function (e) {
+  refresh_capture_errors();
+});
+var capture_errors_refresh = null;
+document.getElementById('auto-refresh-capture-errors').addEventListener('click', function (e) {
+  if (capture_errors_refresh) {
+    clearInterval(capture_errors_refresh);
+    capture_errors_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 15s)';
+  } else {
+    e.target.innerText = 'Stop Auto-Refresh';
+    refresh_capture_errors();
+    capture_errors_refresh = auto_refresh_capture_errors();
   }
 }); // Select the tab specified in the hash, if present on page load
 
