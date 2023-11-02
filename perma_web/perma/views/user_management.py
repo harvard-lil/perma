@@ -243,6 +243,122 @@ def stats(request, stat_type=None):
         out['total_ia_queue'] = r.llen('ia')
         out['total_ia_readonly_queue'] =  r.llen('ia-readonly')
 
+    elif stat_type == 'capture_errors':
+
+        # Set up time ranges
+        now = timezone.now()
+        last_24_hrs = (
+            now - timedelta(days=1),
+            now
+        )
+        previous_24_hrs = (
+            now - timedelta(days=2),
+            now - timedelta(days=1)
+        )
+        last_hour = (
+            now - timedelta(hours=1),
+            now
+        )
+        last_hour_on_previous_day = (
+            now - timedelta(days=1) - timedelta(hours=1),
+            now - timedelta(days=1)
+        )
+        last_3_hrs = (
+            now - timedelta(hours=3),
+            now
+        )
+        last_3_hrs_on_previous_day = (
+            now - timedelta(days=1) - timedelta(hours=3),
+            now - timedelta(hours=3)
+        )
+        ranges = {
+            "last_24_hrs": last_24_hrs,
+            "previous_24_hrs": previous_24_hrs,
+            "last_hour": last_hour,
+            "last_hour_on_previous_day": last_hour_on_previous_day,
+            "last_3_hrs": last_3_hrs,
+            "last_3_hrs_on_previous_day": last_3_hrs_on_previous_day
+        }
+
+        out = {}
+
+        for range_name, range_tuple in ranges.items():
+
+            #
+            # Get Totals
+            #
+
+            completed = CaptureJob.objects.filter(
+                engine='scoop-api',
+                status='completed',
+                capture_start_time__range=range_tuple
+            ).count()
+
+            failed = CaptureJob.objects.filter(
+                engine='scoop-api',
+                status='failed',
+                capture_start_time__range=range_tuple
+            ).count()
+
+            denominator = completed + failed
+
+            #
+            # Get By Error Type
+            #
+            if denominator:
+
+                celery_timeout = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['timeout-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
+                mystery_error = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-stopped-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
+                timeout = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-silent-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
+                didnt_load = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-load-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
+                out[range_name] = {
+                    "completed": completed,
+                    "completed_percent": completed/denominator * 100,
+                    "failed": failed,
+                    "failed_percent": failed/denominator * 100,
+                    "celery_timeout": celery_timeout,
+                    "celery_timeout_percent": celery_timeout/denominator * 100,
+                    "mystery_error": mystery_error,
+                    "mystery_error_percent": mystery_error/denominator * 100,
+                    "timeout": timeout,
+                    "timeout_percent": timeout/denominator * 100,
+                    "didnt_load": didnt_load,
+                    "didnt_load_percent": didnt_load/denominator * 100,
+                }
+
+            else:
+
+                out[range_name] = {
+                    "completed": 0,
+                    "completed_percent": 0,
+                    "failed": 0,
+                    "failed_percent": 0,
+                    "celery_timeout": 0,
+                    "celery_timeout_percent": 0,
+                    "mystery_error": 0,
+                    "mystery_error_percent": 0,
+                    "timeout": 0,
+                    "timeout_percent": 0,
+                    "didnt_load": 0,
+                    "didnt_load_percent": 0,
+                }
+
     if out:
         return JsonResponse(out)
 

@@ -15,6 +15,7 @@ function fillSection(name, callback){
   });
 }
 
+fillSection("capture_errors");
 fillSection("celery_queues");
 fillSection("celery");
 fillSection("rate_limits");
@@ -87,6 +88,37 @@ document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('cl
     e.target.innerText = 'Stop Auto-Refresh';
   }
 })
+
+
+// Refresh the capture errors once, on button press
+// or, start auto-refreshing every 15s, when the other button is pressed
+function refresh_capture_errors(){
+  let status = document.getElementById('capture-errors-status')
+  status.innerText = 'Refreshing...';
+  fillSection("capture_errors", () => {
+    status.innerText = 'Refreshed!';
+    setTimeout(()=> status.innerText = '', 2000);
+  });
+}
+function auto_refresh_capture_errors(){
+  return setInterval(function(){ refresh_capture_errors()}, 15000);
+}
+document.getElementById('refresh-capture-errors').addEventListener('click', (e) => {
+  refresh_capture_errors()
+})
+let capture_errors_refresh = null;
+document.getElementById('auto-refresh-capture-errors').addEventListener('click', (e) => {
+  if (capture_errors_refresh){
+    clearInterval(capture_errors_refresh);
+    capture_errors_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 15s)';
+  } else {
+    e.target.innerText = 'Stop Auto-Refresh';
+    refresh_capture_errors()
+    capture_errors_refresh = auto_refresh_capture_errors();
+  }
+})
+
 
 
 // Select the tab specified in the hash, if present on page load
