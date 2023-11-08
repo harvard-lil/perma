@@ -269,7 +269,7 @@ def stats(request, stat_type=None):
         )
         last_3_hrs_on_previous_day = (
             now - timedelta(days=1) - timedelta(hours=3),
-            now - timedelta(hours=3)
+            now - timedelta(days=1)
         )
         ranges = {
             "last_24_hrs": last_24_hrs,
