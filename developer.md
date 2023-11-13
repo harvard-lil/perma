@@ -383,7 +383,7 @@ It just means that Perma Payments is still running: the network is maintained un
 
 ## Scoop
 
-We are in the process of rolling out a capture process using LIL's newly-developed web archiving tool [Scoop](https://github.com/harvard-lil/scoop). When complete, Perma capture requests will call out to the [Scoop REST API](https://github.com/harvard-lil/scoop-rest-api/), which will produce the requested WARC/WACZ and return it to Perma, replacing Perma's current internal capturing mechanism.
+We are in the process of rolling out a capture process using LIL's newly-developed web archiving tool [Scoop](https://github.com/harvard-lil/scoop). When complete, Perma capture requests will call out to the [Scoop REST API](https://github.com/harvard-lil/perma-scoop-api/), which will produce the requested WARC/WACZ and return it to Perma, replacing Perma's current internal capturing mechanism.
 
 By default, Perma's `docker-compose` file will spin up a local Scoop REST API for you to experiment with.
 
@@ -391,7 +391,7 @@ By default, Perma's `docker-compose` file will spin up a local Scoop REST API fo
 
 You may also decide to run both services by running `docker compose` in both repositories simultaneously, with a tweaked Perma network config.
 
-First, head over to the [`Scoop REST API` repo](https://github.com/harvard-lil/scoop-rest-api/) for instructions on how to spin that up.
+First, head over to the [`Scoop REST API` repo](https://github.com/harvard-lil/perma-scoop-api/) for instructions on how to spin that up.
 
 Once it's running, spin up Perma... but with a slightly different command than usual, so that it doesn't try to create its own Scoop REST API, but instead uses the already-running one:
 
