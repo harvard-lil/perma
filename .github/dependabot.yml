@@ -1,0 +1,12 @@
+version: 2
+registries:
+  lil-registry:
+    type: docker-registry
+    url: https://registry.lil.tools
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    registries:
+      - lil-registry
+    schedule:
+      interval: "daily"
