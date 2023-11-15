@@ -277,3 +277,30 @@ class LinkFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
+
+
+### fixtures for testing utils ###
+
+@pytest.fixture
+def spoof_perma_payments_post():
+    data = {
+        'encrypted_data': {"timestamp": 1504884268.560902, "desired_field": "desired_field"},
+    }
+    assert 'encrypted_data' in data
+    assert 'timestamp' in data['encrypted_data']
+    assert 'desired_field' in data['encrypted_data']
+    return data
+
+
+@pytest.fixture
+def one_two_three_dict():
+    data = {
+        'one': 'one',
+        'two': 'two',
+        'three': 'three'
+    }
+    assert 'one' in data
+    assert 'two' in data
+    assert 'three' in data
+    assert 'four' not in data
+    return data
