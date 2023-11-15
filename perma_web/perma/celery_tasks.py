@@ -252,8 +252,6 @@ def run_next_capture():
 
 
 def capture_with_scoop(capture_job):
-    capture_job.engine = 'scoop-api'
-    capture_job.save(update_fields=['engine'])
     capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
     capture_job.link.save(update_fields=['captured_by_software'])
     try:

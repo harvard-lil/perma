@@ -2023,7 +2023,7 @@ class CaptureJob(models.Model):
     link_batch = models.ForeignKey('LinkBatch', blank=True, null=True, related_name='capture_jobs', on_delete=models.CASCADE)
     engine = models.CharField(max_length=255,
                               choices=(('perma', 'perma'), ('scoop-api', 'scoop-api')),
-                              default='perma',
+                              default='scoop-api',
                               db_index=True)
 
     # reporting
