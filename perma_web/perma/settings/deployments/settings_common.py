@@ -515,18 +515,10 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 #
 CAPTURE_ENGINE = 'scoop-api'  # perma|scoop-api
 PRIVATE_BY_POLICY_DOMAINS = []
-
-#
-# (Scoop)
-#
 SCOOP_API_KEY = None
 SCOOP_API_URL = None
 SCOOP_POLL_FREQUENCY = 0.5
 SCOOP_POLL_NETWORK_ERROR_LIMIT = 10
-
-#
-# (Perma)
-#
 
 # IP ranges we won't archive.
 # Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
@@ -564,26 +556,15 @@ BANNED_IP_RANGES = [
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 
-# Max image size for screenshots and thumbnails
-MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
-
-CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
-DISABLE_DEV_SHM = False
+# Used by requests, when validating submitted URLs
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.105 Safari/537.36"
-PROXY_CAPTURES = False
-PROXY_ADDRESS = 'localhost:9050'
-DOMAINS_TO_PROXY = []
-PROXY_POST_LOAD_DELAY = 5
 CAPTURE_HEADERS = {
     "Accept": "*/*",
     "Accept-Encoding": "*",
     "Accept-Language": "*",
     "Connection": "keep-alive"
 }
-RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
-SHUTDOWN_GRACE_PERIOD = 10 # seconds to allow slow threads to finish before we complete the capture job
-MAX_PROXY_THREADS = 100
-MAX_PROXY_QUEUE_SIZE = 500 # this is the default in https://github.com/internetarchive/warcprox/blob/ee6bc151e1758a50f8af2b8f2d9746aa56ec95fb/warcprox/main.py#L192
+RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for website to respond during URL validation
 
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
