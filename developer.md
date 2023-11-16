@@ -12,7 +12,6 @@ See the [installation documentation](./install.md) to get up and running.
      - [Run a particular test (python only)](#run-a-particular-test-python-only)
      - [Update the python dependencies](#update-the-python-dependencies)
      - [Update the node dependencies](#update-the-node-dependencies)
-     - [Update Chromium](#update-chromium)
      - [Migrate the database](#migrate-the-database)
      - [Reset the database](#reset-the-database)
      - [Run arbitrary commands](#run-arbitrary-commands)
@@ -106,13 +105,6 @@ To upgrade a single requirement to the latest version:
 Make your changes in `packages.json`. Then run `update.sh`, a convenience
 script that will create a new `npm-shrinkwrap.json` and will rebuild the
 Docker image with the new dependencies installed.
-
-### Update Chromium
-
-If there's an update to Chromium, set the new version in the
-`ENV CHROMIUM_VERSION` line in `perma_web/Dockerfile` and run
-`bash update_chromium.sh` to rebuild the containers, install the new browser,
-and update the capture user agent.
 
 ### Migrate the database
 
@@ -383,17 +375,17 @@ It just means that Perma Payments is still running: the network is maintained un
 
 ## Scoop
 
-We are in the process of rolling out a capture process using LIL's newly-developed web archiving tool [Scoop](https://github.com/harvard-lil/scoop). When complete, Perma capture requests will call out to the [Scoop REST API](https://github.com/harvard-lil/perma-scoop-api/), which will produce the requested WARC/WACZ and return it to Perma, replacing Perma's current internal capturing mechanism.
+Perma's web archives are produced using [Scoop](https://github.com/harvard-lil/scoop): Perma capture requests call out to the [Scoop API](https://github.com/harvard-lil/perma-scoop-api/), which capture the requested website and return a WARC/WACZ to Perma.
 
-By default, Perma's `docker-compose` file will spin up a local Scoop REST API for you to experiment with.
+By default, Perma's `docker-compose` file will spin up a local Scoop API for you to experiment with.
 
 ### Working with both repositories simultaneously
 
 You may also decide to run both services by running `docker compose` in both repositories simultaneously, with a tweaked Perma network config.
 
-First, head over to the [`Scoop REST API` repo](https://github.com/harvard-lil/perma-scoop-api/) for instructions on how to spin that up.
+First, head over to the [`Scoop API` repo](https://github.com/harvard-lil/perma-scoop-api/) for instructions on how to spin that up.
 
-Once it's running, spin up Perma... but with a slightly different command than usual, so that it doesn't try to create its own Scoop REST API, but instead uses the already-running one:
+Once it's running, spin up Perma... but with a slightly different command than usual, so that it doesn't try to create its own Scoop API, but instead uses the already-running one:
 
 - `docker compose -f docker-compose.yml up -d`
 
@@ -407,5 +399,5 @@ When you are finished, take down the Perma containers by running:
 
 Don't worry if you get the following error:
 
-`ERROR: error while removing network: network scoop-rest-api_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
-The Scoop REST API is still running: the network is maintained until both projects are down. Head back over to the Scoop REST API repo and run `docker compose down` there... and you're done.
+`ERROR: error while removing network: network perma-scoop-api_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
+The Scoop API is still running: the network is maintained until both projects are down. Head back over to the Scoop API repo and run `docker compose down` there... and you're done.

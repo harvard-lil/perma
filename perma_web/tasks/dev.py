@@ -50,13 +50,8 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
         print("\nStarting background celery process.")
         commands.append("watchmedo auto-restart -d ./ -p '*.py' -R -- celery -A perma worker --loglevel=info -Q celery,background,ia,ia-readonly -B -n w1@%h")
 
-    if settings.PROXY_CAPTURES:
-        print("\nStarting Tor service in the background.")
-        commands.append('tor')
-
     # Only run the webpack background process in debug mode -- with debug False, dev server uses static assets,
     # and running webpack just messes up the webpack stats file.
-    # Similarly, don't download fresh replayweb.page assets, to avoid confusion.
     if settings.DEBUG:
         commands.append('npm start')
 

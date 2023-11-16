@@ -31,21 +31,11 @@ RUN apt-get update \
         \
         postgresql-client \
         libpq-dev \
-        xvfb \
         libffi-dev \
         libjpeg62-turbo-dev \
-        libfontconfig1 \
         imagemagick \
         libmagickwand-dev \
-        ttf-mscorefonts-installer fonts-roboto  `# commonly used web fonts for better screen shots` \
-        libnss3-tools                           `# for certutil` \
-        tor                                     `# for optional use as a proxy`
-
-# Install a cert for use by warcprox
-COPY perma_web/perma-warcprox-ca.pem /perma/perma_web
-RUN mkdir -p $HOME/.pki/nssdb \
-    && certutil -d $HOME/.pki/nssdb -N --empty-password \
-    && certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n 'warcprox CA cert' -i perma-warcprox-ca.pem
+        libnss3-tools                           `# for certutil`
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
 RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.3-deb-1nodesource1_$(dpkg --print-architecture).deb \
@@ -65,17 +55,24 @@ RUN pip install pip==22.0.4 \
     && pip install -r /perma/perma_web/requirements.txt \
     && rm /perma/perma_web/requirements.txt
 
-# Install Chromium and driver
-COPY perma_web/lil-archive-keyring.gpg /usr/share/keyrings/lil-archive-keyring.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/lil-archive-keyring.gpg] https://repo.lil.tools/ bullseye-security updates/main" > /etc/apt/sources.list.d/lil-chromium.list
-
-ENV CHROMIUM_VERSION=119.0.6045.105-1~deb11u1
-RUN apt-get update && apt-get install -y chromium=${CHROMIUM_VERSION} \
-    chromium-common=${CHROMIUM_VERSION} \
-    chromium-driver=${CHROMIUM_VERSION} \
-    chromium-l10n=${CHROMIUM_VERSION} \
-    chromium-sandbox=${CHROMIUM_VERSION}
-
 # Install Playwright browsers for integration tests
-RUN apt install --no-install-recommends libdbus-glib-1-2
-RUN playwright install chromium firefox
+RUN  apt-get update && apt install -y --no-install-recommends libdbus-glib-1-2 \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libatspi2.0-0 \
+    libwayland-client0
+
+RUN mkdir -p $HOME/.pki/nssdb \
+    && certutil -d $HOME/.pki/nssdb -N --empty-password \
+    && playwright install chromium firefox

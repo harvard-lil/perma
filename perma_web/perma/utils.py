@@ -15,14 +15,12 @@ import operator
 import os
 import requests
 import ssl
-import socket
 import string
 import surt
 import tempdir
 import tempfile
 from ua_parser import user_agent_parser
 import unicodedata
-from urllib.parse import urlparse
 from urllib3 import poolmanager
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
@@ -261,15 +259,6 @@ def ip_in_allowed_ip_range(ip):
         if IPAddress(ip) in IPNetwork(banned_ip_range):
             return False
     return True
-
-def url_in_allowed_ip_range(url):
-    """ Return False if url resolves to a blocked IP. """
-    hostname = urlparse(url).netloc.split(':')[0]
-    try:
-        ip = socket.gethostbyname(hostname)
-    except socket.gaierror:
-        return False
-    return ip_in_allowed_ip_range(ip)
 
 def get_client_ip(request):
     return request.META[settings.CLIENT_IP_HEADER]
@@ -583,13 +572,6 @@ def make_detailed_warcinfo(filename, guid, coll_title, coll_desc, rec_title, pag
     writer.write_record(record)
 
     return writer.get_contents()
-
-
-def write_warc_records_recorded_from_web(source_file_handle, out_file):
-    """
-    Copies a series of pre-recorded WARC Request/Response records to out_file
-    """
-    copy_file_data(source_file_handle, out_file)
 
 
 def write_resource_record_from_asset(data, url, content_type, out_file, extra_headers=None):
