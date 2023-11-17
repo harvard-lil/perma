@@ -161,11 +161,17 @@ import factory
 from factory.django import DjangoModelFactory
 import humps
 
-from datetime import timezone as tz
+from decimal import Decimal
+from datetime import timezone as tz, datetime
+from dateutil.relativedelta import relativedelta
 from django.db.models import signals
+from django.utils import timezone
 
-from perma.models import LinkUser, Link, CaptureJob
+from perma.models import Registrar, LinkUser, Link, CaptureJob
+from perma.utils import pp_date_from_post
 
+
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
 
 ### internal helpers ###
 
@@ -199,6 +205,49 @@ def register_factory(cls):
 ### model factories ###
 
 @register_factory
+class RegistrarFactory(DjangoModelFactory):
+    class Meta:
+        model = Registrar
+
+    name = factory.Faker('company')
+    email = factory.Faker('company_email')
+    website = factory.Faker('url')
+
+    # Default to "approved" in the fixtures for convenience
+    status = 'approved'
+
+
+@register_factory
+class PendingRegistrarFactory(RegistrarFactory):
+    status = 'pending'
+
+
+@register_factory
+class DeniedRegistrarFactory(RegistrarFactory):
+    status = 'denied'
+
+
+@register_factory
+class NonpayingRegistrarFactory(RegistrarFactory):
+    pass
+
+
+@register_factory
+class PayingRegistrarFactory(RegistrarFactory):
+    nonpaying = False
+    cached_subscription_status = "Sentinel Status"
+    cached_paid_through = GENESIS
+    base_rate = Decimal(100.00)
+    in_trial = False
+
+
+@register_factory
+class PayingLimitedRegistrarFactory(PayingRegistrarFactory):
+    unlimited = False
+
+
+
+@register_factory
 class LinkUserFactory(DjangoModelFactory):
     class Meta:
         model = LinkUser
@@ -206,10 +255,27 @@ class LinkUserFactory(DjangoModelFactory):
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     email = factory.Sequence(lambda n: 'user%s@example.com' % n)
+
+    # Default to confirmed and active in the fixtures for convenience
     is_active = True
-    is_confirmed=True
+    is_confirmed = True
 
     password = factory.PostGenerationMethodCall('set_password', 'pass')
+
+
+@register_factory
+class NonpayingUserFactory(LinkUserFactory):
+    nonpaying = True
+
+
+@register_factory
+class PayingUserFactory(LinkUserFactory):
+    nonpaying = False
+    cached_subscription_status = "Sentinel Status"
+    cached_paid_through = GENESIS
+    cached_subscription_rate = Decimal(0.01)
+    base_rate = Decimal(100.00)
+    in_trial = False
 
 
 @register_factory
@@ -261,7 +327,7 @@ class InProgressCaptureJobFactory(PendingCaptureJobFactory):
 class LinkFactory(DjangoModelFactory):
     class Meta:
         model = Link
-        exclude = ('create_pending_capture_job', 'created_by')
+        exclude = ('create_pending_capture_job',)
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
@@ -277,6 +343,165 @@ class LinkFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
+
+
+### fixtures for testing customer interactions
+
+@pytest.fixture
+def customers(paying_registrar_factory, paying_user_factory):
+    return [
+        paying_registrar_factory(),
+        paying_user_factory()
+    ]
+
+
+@pytest.fixture
+def noncustomers(nonpaying_registrar_factory, nonpaying_user_factory):
+    return [
+        nonpaying_registrar_factory(),
+        nonpaying_user_factory()
+    ]
+
+
+@pytest.fixture
+def user_with_links(link_user, link_factory):
+    # a user with 6 personal links, made at intervals
+    today = timezone.now()
+    earlier_this_month = today.replace(day=1)
+    within_the_last_year = today - relativedelta(months=6)
+    over_a_year_ago = today - relativedelta(years=1, days=2)
+    three_years_ago = today - relativedelta(years=3)
+
+    link_factory(creation_timestamp=today, created_by=link_user)
+    link_factory(creation_timestamp=earlier_this_month, created_by=link_user)
+    link_factory(creation_timestamp=within_the_last_year, created_by=link_user)
+    link_factory(creation_timestamp=over_a_year_ago, created_by=link_user)
+    link_factory(creation_timestamp=three_years_ago, created_by=link_user)
+
+    return link_user
+
+
+@pytest.fixture
+def user_with_links_this_month_before_the_15th(link_user, link_factory):
+    # for use in testing mid-month link count limits
+    link_factory(creation_timestamp=timezone.now().replace(day=1), created_by=link_user)
+    link_factory(creation_timestamp=timezone.now().replace(day=2), created_by=link_user)
+    link_factory(creation_timestamp=timezone.now().replace(day=3), created_by=link_user)
+    link_factory(creation_timestamp=timezone.now().replace(day=4), created_by=link_user)
+    link_factory(creation_timestamp=timezone.now().replace(day=14), created_by=link_user)
+
+    return link_user
+
+
+@pytest.fixture
+def active_cancelled_subscription():
+    return {
+        'status': "Canceled",
+        'paid_through': timezone.now() + relativedelta(years=1)
+    }
+
+@pytest.fixture
+def expired_cancelled_subscription():
+    return {
+        'status': "Canceled",
+        'paid_through': timezone.now() + relativedelta(years=-1)
+    }
+
+
+@pytest.fixture
+def spoof_pp_response_wrong_pk():
+    def f(customer):
+        data = {
+            "customer_pk": "not_the_pk",
+            "customer_type": customer.customer_type
+        }
+        assert customer.pk != data['customer_pk']
+        return data
+    return f
+
+
+@pytest.fixture
+def spoof_pp_response_wrong_type():
+    def f(customer):
+        data = {
+            "customer_pk": customer.pk,
+            "customer_type": "not_the_type"
+        }
+        assert customer.customer_type != data['customer_type']
+        return data
+    return f
+
+
+@pytest.fixture
+def spoof_pp_response_no_subscription():
+    def f(customer):
+        return {
+            "customer_pk": customer.pk,
+            "customer_type": customer.customer_type,
+            "subscription": None,
+            "purchases": []
+        }
+    return f
+
+
+@pytest.fixture
+def spoof_pp_response_no_subscription_two_purchases():
+    def f(customer):
+        return {
+            "customer_pk": customer.pk,
+            "customer_type": customer.customer_type,
+            "subscription": None,
+            "purchases": [{
+                "id": 1,
+                "link_quantity": "10"
+            },{
+                "id": 2,
+                "link_quantity": "50"
+            }]
+        }
+    return f
+
+
+@pytest.fixture
+def spoof_pp_response_subscription():
+    def f(customer):
+        return {
+            "customer_pk": customer.pk,
+            "customer_type": customer.customer_type,
+            "subscription": {
+                "status": "Sentinel Status",
+                "rate": "9999.99",
+                "frequency": "sample",
+                "paid_through": "1970-01-21T00:00:00.000000Z",
+                "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
+                "link_limit": "unlimited",
+                "reference_number": "PERMA-1237-6200"
+            },
+            "purchases": []
+        }
+    return f
+
+
+@pytest.fixture
+def spoof_pp_response_subscription_with_pending_change():
+    def f(customer):
+        response = {
+            "customer_pk": customer.pk,
+            "customer_type": customer.customer_type,
+            "subscription": {
+                "status": "Sentinel Status",
+                "rate": "9999.99",
+                "frequency": "sample",
+                "paid_through": "9999-01-21T00:00:00.000000Z",
+                "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
+                "link_limit": "unlimited",
+                "reference_number": "PERMA-1237-6201"
+            },
+            "purchases": []
+        }
+        assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
+        return response
+    return f
 
 
 ### fixtures for testing utils ###
