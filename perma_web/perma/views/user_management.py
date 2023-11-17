@@ -312,8 +312,13 @@ def stats(request, stat_type=None):
                     creation_timestamp__range=range_tuple
                 ).count()
 
-                mystery_error = Link.objects.all_with_deleted().filter(
-                    tags__name__in=['scoop-stopped-failure'],
+                proxy_error = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-proxy-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
+                blocklist_error = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-blocklist-failure'],
                     creation_timestamp__range=range_tuple
                 ).count()
 
@@ -334,8 +339,10 @@ def stats(request, stat_type=None):
                     "failed_percent": round(failed/denominator * 100, 1),
                     "celery_timeout": celery_timeout,
                     "celery_timeout_percent": round(celery_timeout/denominator * 100, 1),
-                    "mystery_error": mystery_error,
-                    "mystery_error_percent": round(mystery_error/denominator * 100, 1),
+                    "proxy_error": proxy_error,
+                    "proxy_error_percent": round(proxy_error/denominator * 100, 1),
+                    "blocklist_error": blocklist_error,
+                    "blocklist_error_percent": round(blocklist_error/denominator * 100, 1),
                     "timeout": timeout,
                     "timeout_percent": round(timeout/denominator * 100, 1),
                     "didnt_load": didnt_load,
@@ -351,8 +358,10 @@ def stats(request, stat_type=None):
                     "failed_percent": 0,
                     "celery_timeout": 0,
                     "celery_timeout_percent": 0,
-                    "mystery_error": 0,
-                    "mystery_error_percent": 0,
+                    "proxy_error": 0,
+                    "proxy_error_percent": 0,
+                    "blocklist_error": 0,
+                    "blocklist_error_percent": 0,
                     "timeout": 0,
                     "timeout_percent": 0,
                     "didnt_load": 0,
