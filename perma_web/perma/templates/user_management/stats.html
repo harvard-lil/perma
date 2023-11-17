@@ -357,7 +357,8 @@
             <dt>Completed:</dt><dd>{{ this.last_hour.completed }}  ({{ this.last_hour.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.last_hour.failed }}  ({{ this.last_hour.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.last_hour.celery_timeout }}  ({{ this.last_hour.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.last_hour.mystery_error }}  ({{ this.last_hour.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.last_hour.proxy_error }}  ({{ this.last_hour.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.last_hour.blocklist_error }}  ({{ this.last_hour.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.last_hour.timeout }}  ({{ this.last_hour.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.last_hour.didnt_load }}  ({{ this.last_hour.didnt_load_percent}}%)</dd>
           </dl>
@@ -369,7 +370,8 @@
             <dt>Completed:</dt><dd>{{ this.last_3_hrs.completed }}  ({{ this.last_3_hrs.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.last_3_hrs.failed }}  ({{ this.last_3_hrs.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.last_3_hrs.celery_timeout }}  ({{ this.last_3_hrs.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.last_3_hrs.mystery_error }}  ({{ this.last_3_hrs.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.last_3_hrs.proxy_error }}  ({{ this.last_3_hrs.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.last_3_hrs.blocklist_error }}  ({{ this.last_3_hrs.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.last_3_hrs.timeout }}  ({{ this.last_3_hrs.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.last_3_hrs.didnt_load }}  ({{ this.last_3_hrs.didnt_load_percent}}%)</dd>
           </dl>
@@ -381,7 +383,8 @@
             <dt>Completed:</dt><dd>{{ this.last_24_hrs.completed }}  ({{ this.last_24_hrs.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.last_24_hrs.failed }}  ({{ this.last_24_hrs.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.last_24_hrs.celery_timeout }}  ({{ this.last_24_hrs.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.last_24_hrs.mystery_error }}  ({{ this.last_24_hrs.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.last_24_hrs.proxy_error }}  ({{ this.last_24_hrs.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.last_24_hrs.blocklist_error }}  ({{ this.last_24_hrs.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.last_24_hrs.timeout }}  ({{ this.last_24_hrs.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.last_24_hrs.didnt_load }}  ({{ this.last_24_hrs.didnt_load_percent}}%)</dd>
           </dl>
@@ -396,7 +399,8 @@
             <dt>Completed:</dt><dd>{{ this.last_hour_on_previous_day.completed }}  ({{ this.last_hour_on_previous_day.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.last_hour_on_previous_day.failed }}  ({{ this.last_hour_on_previous_day.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.last_hour_on_previous_day.celery_timeout }}  ({{ this.last_hour_on_previous_day.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.last_hour_on_previous_day.mystery_error }}  ({{ this.last_hour_on_previous_day.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.last_hour_on_previous_day.proxy_error }}  ({{ this.last_hour_on_previous_day.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.last_hour_on_previous_day.blocklist_error }}  ({{ this.last_hour_on_previous_day.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.last_hour_on_previous_day.timeout }}  ({{ this.last_hour_on_previous_day.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.last_hour_on_previous_day.didnt_load }}  ({{ this.last_hour_on_previous_day.didnt_load_percent}}%)</dd>
           </dl>
@@ -408,7 +412,8 @@
             <dt>Completed:</dt><dd>{{ this.last_3_hrs_on_previous_day.completed }}  ({{ this.last_3_hrs_on_previous_day.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.last_3_hrs_on_previous_day.failed }}  ({{ this.last_3_hrs_on_previous_day.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.last_3_hrs_on_previous_day.celery_timeout }}  ({{ this.last_3_hrs_on_previous_day.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.last_3_hrs_on_previous_day.mystery_error }}  ({{ this.last_3_hrs_on_previous_day.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.last_3_hrs_on_previous_day.proxy_error }}  ({{ this.last_3_hrs_on_previous_day.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.last_3_hrs_on_previous_day.blocklist_error }}  ({{ this.last_3_hrs_on_previous_day.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.last_3_hrs_on_previous_day.timeout }}  ({{ this.last_3_hrs_on_previous_day.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.last_3_hrs_on_previous_day.didnt_load }}  ({{ this.last_3_hrs_on_previous_day.didnt_load_percent}}%)</dd>
           </dl>
@@ -421,7 +426,8 @@
             <dt>Completed:</dt><dd>{{ this.previous_24_hrs.completed }}  ({{ this.previous_24_hrs.completed_percent}}%)</dd>
             <dt>Failed:</dt><dd>{{ this.previous_24_hrs.failed }}  ({{ this.previous_24_hrs.failed_percent}}%)</dd>
             <dt>Killed by Celery:</dt><dd>{{ this.previous_24_hrs.celery_timeout }}  ({{ this.previous_24_hrs.celery_timeout_percent}}%)</dd>
-            <dt>Mystery error:</dt><dd>{{ this.previous_24_hrs.mystery_error }}  ({{ this.previous_24_hrs.mystery_error_percent}}%)</dd>
+            <dt>Proxy error:</dt><dd>{{ this.previous_24_hrs.proxy_error }}  ({{ this.previous_24_hrs.proxy_error_percent}}%)</dd>
+            <dt>Blocklist error:</dt><dd>{{ this.previous_24_hrs.blocklist_error }}  ({{ this.previous_24_hrs.blocklist_error_percent}}%)</dd>
             <dt>Scoop timeout:</dt><dd>{{ this.previous_24_hrs.timeout }}  ({{ this.previous_24_hrs.timeout_percent}}%)</dd>
             <dt>URL didn't load:</dt><dd>{{ this.previous_24_hrs.didnt_load }}  ({{ this.previous_24_hrs.didnt_load_percent}}%)</dd>
           </dl>

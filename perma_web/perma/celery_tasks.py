@@ -327,12 +327,17 @@ def capture_with_scoop(capture_job):
             link.primary_capture.save(update_fields=['status'])
         else:
             didnt_load = "ERROR Navigation to page failed (about:blank)"
+            proxy_error = "ERROR An error occurred during capture setup"
+            blocklist_error = "TypeError: Cannot read properties of undefined (reading 'match')"
             if poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
                 capture_job.link.tags.add('scoop-load-failure')
-            elif not poll_data['stderr_logs'] and poll_data['stdout_logs'] and poll_data['stdout_logs'].endswith(' created.\n'):
-                logger.warning(f"{capture_job.link_id}: Scoop stopped after tmp folder creation.")
-                capture_job.link.tags.add('scoop-stopped-failure')
+            elif poll_data['stderr_logs'] and proxy_error in poll_data['stderr_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed during capture setup.")
+                capture_job.link.tags.add('scoop-proxy-failure')
+            elif poll_data['stderr_logs'] and blocklist_error in poll_data['stderr_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed while checking the blocklist.")
+                capture_job.link.tags.add('scoop-blocklist-failure')
             elif not poll_data['stderr_logs'] and not poll_data['stdout_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
                 capture_job.link.tags.add('scoop-silent-failure')
