@@ -619,7 +619,7 @@ def manage_single_registrar_user_reactivate(request, user_id):
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_sponsored_user(request):
-    return list_users_in_group(request, 'sponsored_user')
+    return list_sponsored_users(request)
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_single_sponsored_user(request, user_id):
@@ -793,6 +793,89 @@ def list_users_in_group(request, group_name):
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
     return render(request, 'user_management/manage_users.html', context)
+
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def list_sponsored_users(request, group_name='sponsored_user'):
+    """
+        Show list of sponsored users. Adapted from `list_users_in_group` for improved performance.
+    """
+
+    from perma.models import Sponsorship
+
+    registrars = None
+    registrar_filter = request.GET.get('registrar', '')
+    if request.user.is_registrar_user():
+        sponsorships = Sponsorship.objects.filter(registrar=request.user.registrar)
+    else:
+        sponsorships = Sponsorship.objects.all()
+        registrars = Registrar.objects.exclude(sponsorships=None).order_by('name')
+
+        # handle registrar filter
+        if registrar_filter:
+            sponsorships = sponsorships.filter(registrar_id=registrar_filter)
+            registrar_filter = Registrar.objects.get(pk=registrar_filter)
+
+    # handle sponsorship status filter:
+    sponsorship_status = request.GET.get('sponsorship_status', '')
+    if sponsorship_status:
+        sponsorships = sponsorships.filter(status=sponsorship_status)
+
+    sponsorship_ids = sponsorships.values_list('id', flat=True)
+    users = LinkUser.objects.distinct().filter(sponsorships__in=sponsorship_ids).prefetch_related('sponsorships', 'sponsorships__registrar')
+
+    # handle user status filter
+    status = request.GET.get('status', '')
+    if status:
+        if status == 'active':
+            users = users.filter(is_confirmed=True, is_active=True)
+        elif status == 'deactivated':
+            users = users.filter(is_confirmed=True, is_active=False)
+        elif status == 'unactivated':
+            users = users.filter(is_confirmed=False, is_active=False)
+
+    # handle sorting
+    users, sort = apply_sort_order(request, users, valid_member_sorts)
+
+    # handle search
+    users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name'])
+
+    # get total counts
+    active_users = users.filter(is_active=True, is_confirmed=True).count()
+    deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
+    unactivated_users = users.count() - active_users - deactivated_users
+
+    total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
+
+    # handle pagination
+    users = apply_pagination(request, users)
+
+    context = {
+        'this_page': f'users_{group_name}s',
+        'users': users,
+        'active_users': active_users,
+        'deactivated_users': deactivated_users if request.user.is_staff else None,  # only expose to staff, for unknown historical reasons
+        'unactivated_users': unactivated_users,
+        'total_created_links_count': total_created_links_count,
+        'registrars': registrars,
+        'group_name':group_name,
+        'pretty_group_name':group_name.replace('_', ' ').capitalize(),
+        'user_list_url':f'user_management_manage_{group_name}',
+        'reactivate_user_url':f'user_management_manage_single_{group_name}_reactivate',
+        'single_user_url':f'user_management_manage_single_{group_name}',
+        'delete_user_url':f'user_management_manage_single_{group_name}_delete',
+        'add_user_url':f'user_management_{group_name}_add_user',
+
+        'sort': sort,
+        'search_query': search_query,
+        'registrar_filter': registrar_filter,
+        'status': status,
+        'sponsorship_status': sponsorship_status
+    }
+    context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
+
+    return render(request, 'user_management/manage_users.html', context)
+
 
 def edit_user_in_group(request, user_id, group_name):
     """
