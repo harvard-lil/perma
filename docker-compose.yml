@@ -113,7 +113,7 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:4-a5e9864366f88b9024d03d66e60f6a2b
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:5-14853706630a07e835ebb9da840ece83
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:

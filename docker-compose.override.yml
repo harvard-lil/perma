@@ -24,7 +24,7 @@ services:
         RELEASE: v0.1.7
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:4-a5e9864366f88b9024d03d66e60f6a2b
+          - registry.lil.tools/harvardlil/wacz-exhibitor:5-14853706630a07e835ebb9da840ece83
         platforms:
           - linux/amd64
           - linux/arm64
