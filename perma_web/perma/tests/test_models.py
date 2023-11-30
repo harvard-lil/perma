@@ -1145,6 +1145,135 @@ def test_get_bonus_packages(prep, mock_datetime, paying_user):
     ]
 
 
+#
+# Organization privacy
+#
+
+def test_new_orgs_are_public_by_default(db):
+    r = Registrar()
+    r.save()
+    o = Organization(registrar=r)
+    o.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert not r.orgs_private_by_default
+    assert not o.default_to_private
+
+def test_new_orgs_respect_registrar_default_privacy_policy(db):
+    r = Registrar(orgs_private_by_default=True)
+    r.save()
+    o = Organization(registrar=r)
+    o.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert r.orgs_private_by_default
+    assert o.default_to_private
+
+def test_existing_org_privacy_unaffected_by_registrar_change(db):
+    r = Registrar()
+    r.save()
+    o = Organization(registrar=r)
+    o.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert not r.orgs_private_by_default
+    assert not o.default_to_private
+
+    r.orgs_private_by_default = True
+    r.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert r.orgs_private_by_default
+    assert not o.default_to_private
+
+    r.orgs_private_by_default = False
+    r.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert not r.orgs_private_by_default
+    assert not o.default_to_private
+
+def test_org_privacy_does_not_revert_to_registrar_default_on_save(db):
+    r = Registrar(orgs_private_by_default=True)
+    r.save()
+    o = Organization(registrar=r)
+    o.save()
+    r.refresh_from_db()
+    o.refresh_from_db()
+    assert r.orgs_private_by_default
+    assert o.default_to_private
+
+    o.default_to_private = False
+    o.save()
+    o.refresh_from_db()
+    assert not o.default_to_private
+
+    o.name = 'A New Name'
+    o.save()
+    o.refresh_from_db()
+    assert o.name == 'A New Name'
+    assert not o.default_to_private
+
+
+#
+# Cached folder paths
+#
+
+def test_new_folder_path_is_cached(db):
+    f1 = Folder()
+    f1.save()
+    f1.refresh_from_db()
+    assert str(f1.pk) == f1.cached_path
+    f2 = Folder(parent=f1)
+    f2.save()
+    f2.refresh_from_db()
+    assert f'{f1.pk}-{f2.pk}' == f2.cached_path
+
+def test_folders_cached_paths_updated_when_moved(db):
+    # f1
+    # f2
+    # f3 -> f3_1
+    f1 = Folder(name=1)
+    f1.save()
+    f1.refresh_from_db()
+    f2 = Folder(parent=f1, name='2')
+    f2.save()
+    f2.refresh_from_db()
+    f3 = Folder(parent=f1, name='3')
+    f3.save()
+    f3.refresh_from_db()
+    f3_1 = Folder(parent=f3, name='3_1')
+    f3_1.save()
+    f3_1.refresh_from_db()
+    assert f'{f1.pk}-{f3.pk}' == f3.cached_path
+    assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+
+    # f1
+    # f2 -> f3 -> f3_1
+    f3.parent_id = f2.pk
+    f3.save()
+    f3.refresh_from_db()
+    f3_1.refresh_from_db()
+    assert f'{f1.pk}-{f2.pk}-{f3.pk}' == f3.cached_path
+    assert f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+
+    # and back
+    f3.parent_id = f1.pk
+    f3.save()
+    f3.refresh_from_db()
+    f3_1.refresh_from_db()
+    assert f'{f1.pk}-{f3.pk}' == f3.cached_path
+    assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+
+def test_cached_path_is_set_for_new_orgs(db):
+    r = Registrar()
+    r.save()
+    o = Organization(registrar=r)
+    o.save()
+    o.refresh_from_db()
+    assert o.shared_folder.cached_path
+
+
 # Fixtures
 
 def complex_user_with_bonus_link(in_subfolder=False):
@@ -1166,125 +1295,6 @@ def complex_user_with_bonus_link(in_subfolder=False):
 # Tests
 
 class ModelsTestCase(PermaTestCase):
-
-    def test_new_orgs_are_public_by_default(db):
-        r = Registrar()
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert not r.orgs_private_by_default
-        assert not o.default_to_private
-
-    def test_new_orgs_respect_registrar_default_privacy_policy(db):
-        r = Registrar(orgs_private_by_default=True)
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert r.orgs_private_by_default
-        assert o.default_to_private
-
-    def test_existing_org_privacy_unaffected_by_registrar_change(db):
-        r = Registrar()
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert not r.orgs_private_by_default
-        assert not o.default_to_private
-
-        r.orgs_private_by_default = True
-        r.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert r.orgs_private_by_default
-        assert not o.default_to_private
-
-        r.orgs_private_by_default = False
-        r.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert not r.orgs_private_by_default
-        assert not o.default_to_private
-
-    def test_org_privacy_does_not_revert_to_registrar_default_on_save(db):
-        r = Registrar(orgs_private_by_default=True)
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        r.refresh_from_db()
-        o.refresh_from_db()
-        assert r.orgs_private_by_default
-        assert o.default_to_private
-
-        o.default_to_private = False
-        o.save()
-        o.refresh_from_db()
-        assert not o.default_to_private
-
-        o.name = 'A New Name'
-        o.save()
-        o.refresh_from_db()
-        assert o.name == 'A New Name'
-        assert not o.default_to_private
-
-    def test_new_folder_path_is_cached(db):
-        f1 = Folder()
-        f1.save()
-        f1.refresh_from_db()
-        assert str(f1.pk) == f1.cached_path
-        f2 = Folder(parent=f1)
-        f2.save()
-        f2.refresh_from_db()
-        assert f'{f1.pk}-{f2.pk}' == f2.cached_path
-
-    def test_folders_cached_paths_updated_when_moved(db):
-        # f1
-        # f2
-        # f3 -> f3_1
-        f1 = Folder(name=1)
-        f1.save()
-        f1.refresh_from_db()
-        f2 = Folder(parent=f1, name='2')
-        f2.save()
-        f2.refresh_from_db()
-        f3 = Folder(parent=f1, name='3')
-        f3.save()
-        f3.refresh_from_db()
-        f3_1 = Folder(parent=f3, name='3_1')
-        f3_1.save()
-        f3_1.refresh_from_db()
-        assert f'{f1.pk}-{f3.pk}' == f3.cached_path
-        assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
-
-        # f1
-        # f2 -> f3 -> f3_1
-        f3.parent_id = f2.pk
-        f3.save()
-        f3.refresh_from_db()
-        f3_1.refresh_from_db()
-        assert f'{f1.pk}-{f2.pk}-{f3.pk}' == f3.cached_path
-        assert f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
-
-        # and back
-        f3.parent_id = f1.pk
-        f3.save()
-        f3.refresh_from_db()
-        f3_1.refresh_from_db()
-        assert f'{f1.pk}-{f3.pk}' == f3.cached_path
-        assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
-
-    def test_cached_path_is_set_for_new_orgs(db):
-        r = Registrar()
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        o.refresh_from_db()
-        assert o.shared_folder.cached_path
 
     def test_link_count_in_time_period_no_links(self):
         '''
