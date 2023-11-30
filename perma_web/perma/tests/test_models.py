@@ -1,6 +1,4 @@
 from collections import defaultdict
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from django.conf import settings
 from django.test import override_settings
@@ -21,117 +19,1133 @@ from perma.models import (
 from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month, today_next_year
 
 from .utils import PermaTestCase
+from conftest import GENESIS
+import pytest
+
+
+#
+# Related to Perma Payments
+#
+
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_none_and_no_network_call_if_nonpaying(post, noncustomers):
+    # also verify that their value of in_trial is unchanged by the call
+    for noncustomer in noncustomers:
+        in_trial = noncustomer.in_trial
+        assert noncustomer.get_subscription() is None
+        noncustomer.refresh_from_db()
+        assert in_trial == noncustomer.in_trial
+        assert post.call_count == 0
+
+
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_raises_on_non_200(post, customers):
+    post.return_value.ok = False
+    for customer in customers:
+        with pytest.raises(PermaPaymentsCommunicationException):
+            customer.get_subscription()
+        assert post.call_count == 1
+        post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_verifies_transmission_valid(post, process, customers):
+    post.return_value.status_code = 200
+    post.return_value.json.return_value = sentinel.json
+    for customer in customers:
+        # This will raise an exception further down in the function;
+        # we don't care at this point
+        with pytest.raises(Exception):
+            customer.get_subscription()
+        assert post.call_count == 1
+        process.assert_called_once_with(sentinel.json, FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
+        post.reset_mock()
+        process.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_raises_if_unexpected_customer_pk(post, process, customers, spoof_pp_response_wrong_pk):
+    post.return_value.status_code = 200
+    for customer in customers:
+        process.return_value = spoof_pp_response_wrong_pk(customer)
+        with pytest.raises(InvalidTransmissionException):
+            customer.get_subscription()
+        assert post.call_count == 1
+        post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_raises_if_unexpected_registrar_type(post, process, customers, spoof_pp_response_wrong_type):
+    post.return_value.status_code = 200
+    for customer in customers:
+        process.return_value = spoof_pp_response_wrong_type(customer)
+        with pytest.raises(InvalidTransmissionException):
+            customer.get_subscription()
+        assert post.call_count == 1
+        post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_no_subscription(post, process, customers, spoof_pp_response_no_subscription):
+    post.return_value.status_code = 200
+    for customer in customers:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+            # artificially set this for the purpose of this test
+            customer.cached_subscription_started = timezone.now()
+            customer.save()
+            customer.refresh_from_db()
+            assert customer.cached_subscription_started
+
+            process.return_value = spoof_pp_response_no_subscription(customer)
+            assert customer.get_subscription() is None
+            assert not customer.cached_subscription_started
+            assert post.call_count == 1
+            assert credited.call_count == 0
+            post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_no_subscription_purchased_bonus(post, process, customers, spoof_pp_response_no_subscription_two_purchases):
+    post.return_value.status_code = 200
+    for customer in customers:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+            from_pp = spoof_pp_response_no_subscription_two_purchases(customer)
+            process.return_value = from_pp
+            assert customer.get_subscription() is None
+            assert not customer.cached_subscription_started
+            assert post.call_count == 1
+            credited.assert_called_once_with(from_pp['purchases'])
+            post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_happy_path_sets_customer_trial_period_to_false(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription):
+    post.return_value.status_code = 200
+    for customer in [paying_limited_registrar, paying_user]:
+        # artificially set this for the purpose of this test
+        customer.in_trial = True
+        customer.cached_subscription_started = None
+        customer.save()
+        customer.refresh_from_db()
+        assert customer.in_trial
+        assert not customer.cached_subscription_started
+
+        response = spoof_pp_response_subscription(customer)
+        process.return_value = response
+        customer.get_subscription()
+        customer.refresh_from_db()
+
+        assert not customer.in_trial
+        assert customer.cached_subscription_started
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_happy_path_no_change_pending(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription):
+    post.return_value.status_code = 200
+    for customer in [paying_limited_registrar, paying_user]:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+            response = spoof_pp_response_subscription(customer)
+            process.return_value = response
+            subscription = customer.get_subscription()
+            customer.refresh_from_db()
+            assert customer.cached_subscription_status == response['subscription']['status']
+            assert subscription == {
+                'status': response['subscription']['status'],
+                'link_limit': response['subscription']['link_limit'],
+                'rate': response['subscription']['rate'],
+                'frequency': response['subscription']['frequency'],
+                'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
+                'pending_change': None,
+                'reference_number': response['subscription']['reference_number']
+            }
+            assert post.call_count == 1
+            assert credited.call_count == 0
+            post.reset_mock()
+
+
+@patch('perma.models.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.requests.post', autospec=True)
+def test_get_subscription_happy_path_with_pending_change(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription_with_pending_change):
+    post.return_value.status_code = 200
+    for customer in [paying_limited_registrar, paying_user]:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+            response = spoof_pp_response_subscription_with_pending_change(customer)
+            process.return_value = response
+            subscription = customer.get_subscription()
+            customer.refresh_from_db()
+            assert customer.cached_subscription_status == response['subscription']['status']
+            assert subscription == {
+                'status': response['subscription']['status'],
+                'link_limit': str(customer.link_limit),
+                'rate': str(customer.cached_subscription_rate),
+                'frequency': customer.link_limit_period,
+                'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+                'reference_number': response['subscription']['reference_number'],
+                'pending_change': {
+                    'rate': response['subscription']['rate'],
+                    'link_limit': response['subscription']['link_limit'],
+                    'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
+                }
+            }
+            assert str(customer.link_limit) != response['subscription']['link_limit']
+            assert str(customer.cached_subscription_rate) != response['subscription']['rate']
+            assert post.call_count == 1
+            assert credited.call_count == 0
+            post.reset_mock()
+
+
+#
+# Link limits and bonus links
+#
+
+def test_bonus_links_arent_counted_against_personal_total(link_user, link_factory):
+    remaining, _, bonus = link_user.get_links_remaining()
+
+    personal_links = 5
+    bonus_links = 2
+    for _ in range(personal_links):
+        link_factory(created_by=link_user)
+    for _ in range(bonus_links):
+        link_factory(created_by=link_user, bonus_link=True)
+    now_remaining, _, now_bonus = link_user.get_links_remaining()
+    assert now_remaining == remaining - personal_links
+    assert now_remaining == 5
+    assert now_remaining != remaining - personal_links - bonus_links
+    assert remaining - personal_links - bonus_links == 3
+
+
+#
+# Link limit / subscription related tests for individual (non-sponsored) users
+#
+
+def test_new_user_gets_default_link_limit(link_user):
+    assert link_user.link_limit == settings.DEFAULT_CREATE_LIMIT
+    assert link_user.link_limit_period == settings.DEFAULT_CREATE_LIMIT_PERIOD
+
+
+def test_one_time_link_limit_new(user_with_links):
+    assert not user_with_links.unlimited
+    assert not user_with_links.cached_subscription_started
+    assert user_with_links.links_remaining_in_period('once', 6) ==  1
+    assert user_with_links.links_remaining_in_period('once', 5) ==  0
+
+
+@patch('perma.models.timezone', autospec=True)
+def test_one_time_link_limit_with_midmonth_subscription1(mocked_timezone, user_with_links_this_month_before_the_15th):
+    fifteenth_of_month = timezone.now().replace(day=15)
+    mocked_timezone.now.return_value = fifteenth_of_month
+
+    u = user_with_links_this_month_before_the_15th
+    u.cached_subscription_started = fifteenth_of_month
+    u.save()
+    u.refresh_from_db()
+
+    assert not u.unlimited
+    assert u.links_remaining_in_period('once', 6) == 6
+    assert u.links_remaining_in_period('once', 5) == 5
+    assert mocked_timezone.now.call_count == 2
+
+
+@patch('perma.models.timezone', autospec=True)
+def test_one_time_link_limit_with_midmonth_subscription2(mocked_timezone, user_with_links_this_month_before_the_15th):
+    fifteenth_of_month = timezone.now().replace(day=15)
+    fifth_of_month = timezone.now().replace(day=5)
+    mocked_timezone.now.return_value = fifteenth_of_month
+
+    u = user_with_links_this_month_before_the_15th
+    u.cached_subscription_started = fifth_of_month
+    u.save()
+    u.refresh_from_db()
+
+    assert not u.unlimited
+    assert u.links_remaining_in_period('once', 6) == 5
+    assert u.links_remaining_in_period('once', 5) == 4
+    assert mocked_timezone.now.call_count == 2
+
+
+def test_monthly_link_limit(user_with_links):
+    assert not user_with_links.unlimited
+    assert user_with_links.links_remaining_in_period('monthly', 3) == 1
+    assert user_with_links.links_remaining_in_period('monthly', 2) == 0
+
+
+@patch('perma.models.timezone', autospec=True)
+def test_monthly_link_limit_with_midmonth_subscription1(mocked_timezone, user_with_links_this_month_before_the_15th):
+    fifteenth_of_month = timezone.now().replace(day=15)
+    mocked_timezone.now.return_value = fifteenth_of_month
+
+    u = user_with_links_this_month_before_the_15th
+    u.cached_subscription_started = fifteenth_of_month
+    u.save()
+
+    assert not u.unlimited
+    assert u.links_remaining_in_period('monthly', 3) == 3
+    assert u.links_remaining_in_period('monthly', 2) == 2
+    assert mocked_timezone.now.call_count == 2
+
+
+@patch('perma.models.timezone', autospec=True)
+def test_monthly_link_limit_with_midmonth_subscription2(mocked_timezone, user_with_links_this_month_before_the_15th):
+    fifteenth_of_month = timezone.now().replace(day=15)
+    fifth_of_month = timezone.now().replace(day=5)
+    mocked_timezone.now.return_value = fifteenth_of_month
+
+    u = user_with_links_this_month_before_the_15th
+    u.cached_subscription_started = fifth_of_month
+    u.save()
+
+    assert not u.unlimited
+    assert u.links_remaining_in_period('monthly', 3) == 2
+    assert u.links_remaining_in_period('monthly', 2) == 1
+    assert mocked_timezone.now.call_count == 2
+
+
+def test_annual_link_limit(user_with_links):
+    assert not user_with_links.unlimited
+    assert user_with_links.links_remaining_in_period('annually', 4) == 1
+    assert user_with_links.links_remaining_in_period('annually', 3) == 0
+
+
+def test_unlimited_user_link_limit(user_with_links):
+    user_with_links.unlimited = True
+    assert user_with_links.links_remaining_in_period('once', 1) == float("inf")
+    assert user_with_links.links_remaining_in_period('monthly', 1) == float("inf")
+    assert user_with_links.links_remaining_in_period('annually', 1) == float("inf")
+
+    user_with_links.unlimited = False
+    assert user_with_links.links_remaining_in_period('once', 1) != float("inf")
+    assert user_with_links.links_remaining_in_period('monthly', 1) != float("inf")
+    assert user_with_links.links_remaining_in_period('annually', 1) != float("inf")
+
+
+def test_override_for_unlimited_user_link_limit(user_with_links):
+    user_with_links.unlimited = True
+
+    assert user_with_links.links_remaining_in_period('once', 1) == float("inf")
+    assert user_with_links.links_remaining_in_period('monthly', 1) == float("inf")
+    assert user_with_links.links_remaining_in_period('annually', 1) == float("inf")
+
+    assert user_with_links.links_remaining_in_period('once', 1, False) != float("inf")
+    assert user_with_links.links_remaining_in_period('monthly', 1, False) != float("inf")
+    assert user_with_links.links_remaining_in_period('annually', 1, False) != float("inf")
+
+
+@patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_allowed_if_nonpaying_and_under_limit(get_subscription, get_links_remaining, nonpaying_user):
+    get_links_remaining.return_value = (1, 'some period', 0)
+
+    assert nonpaying_user.link_creation_allowed()
+    assert get_subscription.call_count == 0
+    assert get_links_remaining.call_count == 1
+
+
+@patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_denied_if_nonpaying_and_over_limit(get_subscription, get_links_remaining, nonpaying_user):
+    get_links_remaining.return_value = (0, 'some period', 0)
+
+    assert not nonpaying_user.link_creation_allowed()
+    assert get_subscription.call_count == 0
+    assert get_links_remaining.call_count == 1
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_allowed_checks_cached_if_pp_down(get_subscription, is_active, paying_user):
+    get_subscription.side_effect = PermaPaymentsCommunicationException
+
+    assert paying_user.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_user)
+    is_active.assert_called_once_with({
+        'status': 'Sentinel Status',
+        'paid_through': GENESIS
+    })
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_allowed_if_no_subscription_and_under_limit(get_subscription, links_remaining_in_period, paying_user):
+    get_subscription.return_value = None
+    links_remaining_in_period.return_value = 1
+    assert paying_user.link_creation_allowed()
+    assert get_subscription.call_count == 1
+    links_remaining_in_period.assert_called_once_with(paying_user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_denied_if_no_subscription_and_over_limit(get_subscription, links_remaining_in_period, paying_user):
+    get_subscription.return_value = None
+    links_remaining_in_period.return_value = 0
+    assert not paying_user.link_creation_allowed()
+    assert get_subscription.call_count == 1
+    links_remaining_in_period.assert_called_once_with(paying_user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.subscription_has_problem', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_disallowed_if_subscription_inactive_and_over_limit(get_subscription, has_problem, is_active, links_remaining_in_period, paying_user):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = False
+    has_problem.return_value = True
+    links_remaining_in_period.return_value = 0
+
+    assert not paying_user.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_user)
+    is_active.assert_called_once_with(sentinel.subscription)
+    links_remaining_in_period.assert_called_once_with(paying_user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.subscription_has_problem', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_allowed_if_subscription_inactive_and_under_limit(get_subscription, has_problem, is_active, links_remaining_in_period, paying_user):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = False
+    has_problem.return_value = True
+    links_remaining_in_period.return_value = paying_user.link_limit + 1
+
+    assert paying_user.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_user)
+    is_active.assert_called_once_with(sentinel.subscription)
+    links_remaining_in_period.assert_called_once_with(paying_user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_allowed_if_subscription_active_and_under_limit(get_subscription, is_active, links_remaining_in_period, paying_user):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = True
+    links_remaining_in_period.return_value = 1
+
+    assert paying_user.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_user)
+    is_active.assert_called_once_with(sentinel.subscription)
+    links_remaining_in_period.assert_called_once_with(paying_user, paying_user.link_limit_period, paying_user.link_limit)
+
+
+@patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_user_link_creation_disallowed_if_subscription_active_and_under_limit(get_subscription, is_active, links_remaining_in_period, paying_user):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = True
+    links_remaining_in_period.return_value = 0
+
+    assert not paying_user.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_user)
+    is_active.assert_called_once_with(sentinel.subscription)
+    links_remaining_in_period.assert_called_once_with(paying_user, paying_user.link_limit_period, paying_user.link_limit)
+
+
+#
+# Link limit / subscription related tests for registrars
+#
+
+@patch('perma.models.Registrar.get_subscription', autospec=True)
+def test_registrar_link_creation_always_allowed_if_nonpaying(get_subscription, nonpaying_registrar):
+    assert nonpaying_registrar.link_creation_allowed()
+    assert get_subscription.call_count == 0
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.Registrar.get_subscription', autospec=True)
+def test_registrar_link_creation_allowed_checks_cached_if_pp_down(get_subscription, is_active, paying_registrar):
+    get_subscription.side_effect = PermaPaymentsCommunicationException
+    paying_registrar.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_registrar)
+    is_active.assert_called_once_with({
+        'status': 'Sentinel Status',
+        'paid_through': GENESIS
+    })
+
+
+@patch('perma.models.Registrar.get_subscription', autospec=True)
+def test_registrar_link_creation_disallowed_if_no_subscription(get_subscription, paying_registrar):
+    get_subscription.return_value = None
+    assert not paying_registrar.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_registrar)
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.subscription_has_problem', autospec=True)
+@patch('perma.models.Registrar.get_subscription', autospec=True)
+def test_registrar_link_creation_disallowed_if_subscription_inactive(get_subscription, has_problem, is_active, paying_registrar):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = False
+    has_problem.return_value = True
+    assert not paying_registrar.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_registrar)
+    is_active.assert_called_once_with(sentinel.subscription)
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+@patch('perma.models.Registrar.get_subscription', autospec=True)
+def test_registrar_link_creation_allowed_if_subscription_active(get_subscription, is_active, paying_registrar):
+    get_subscription.return_value = sentinel.subscription
+    is_active.return_value = True
+    assert paying_registrar.link_creation_allowed()
+    get_subscription.assert_called_once_with(paying_registrar)
+    is_active.assert_called_once_with(sentinel.subscription)
+
+
+#
+# Annotating Tiers with Prices and Dates
+#
+
+# check monthly tiers for customers with no subscriptions
+
+def test_annotate_tier_monthly_no_subscription_first_of_month(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = None
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == customer.base_rate * tier['rate_ratio']
+        assert tier['recurring_amount'] == tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+def test_annotate_tier_monthly_no_subscription_mid_month(customers):
+    now = GENESIS.replace(day=16)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = None
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == (customer.base_rate * tier['rate_ratio'] / 31 * 16).quantize(Decimal('.01'))
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+def test_annotate_tier_monthly_no_subscription_last_of_month(is_active, customers):
+    is_active.return_value = True
+
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = None
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == (customer.base_rate * tier['rate_ratio'] / 31).quantize(Decimal('.01'))
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+# check upgrading/downgrading not allowed if you have a non-active subscription
+# (for instance, on hold due to lapsed payments), whatever the tier
+
+def test_annotate_tier_change_disallowed_with_inactive_monthly_subscription(customers):
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Sentinel Status',
+        'rate': '0.10',
+        'frequency': 'monthly',
+        'paid_through': next_month
+    }
+
+    for customer in customers:
+        for tier in settings.TIERS[customer.customer_type]:
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            assert tier['type'] == 'unavailable'
+
+
+def test_annotate_tier_change_disallowed_with_inactive_annual_subscription(customers):
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Sentinel Status',
+        'rate': '0.10',
+        'frequency': 'annually',
+        'paid_through': next_year
+    }
+
+    for customer in customers:
+        for tier in settings.TIERS[customer.customer_type]:
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            assert tier['type'] == 'unavailable'
+
+
+@patch('perma.models.subscription_is_active', autospec=True)
+def test_annotate_tier_change_disallowed_with_pending_downgrade(is_active, customers):
+    is_active.return_value = True
+
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Sentinel Status',
+        'rate': '0.10',
+        'frequency': 'monthly',
+        'paid_through': next_year,
+        'pending_change': True
+    }
+
+    for customer in customers:
+        for tier in settings.TIERS[customer.customer_type]:
+            customer.annotate_tier(tier, subscription, now, next_month, next_year)
+            assert tier['type'] == 'unavailable'
+
+
+# check upgrade monthly tiers for customers with subscriptions
+
+def test_annotate_tier_monthly_active_subscription_upgrade_first_of_month(customers):
+    '''
+    Observe, if this change of recurring_amount DOES get picked up by CyberSource
+    in time for today's recurring charge, then the customer will be overcharged.
+    We would need to refund them tier['amount'].
+    '''
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'monthly',
+        'link_limit': 0
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate'])
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+def test_annotate_tier_monthly_active_subscription_upgrade_mid_month(customers):
+    now = GENESIS.replace(day=16)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'monthly',
+        'link_limit': 0
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == ((customer.base_rate * tier['rate_ratio'] / 31 * 16) - (Decimal(subscription['rate']) / 31 * 16)).quantize(Decimal('.01'))
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+def test_annotate_tier_monthly_active_subscription_upgrade_last_of_month(customers):
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'monthly',
+        'link_limit': 0
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == ((customer.base_rate * tier['rate_ratio'] / 31) - (Decimal(subscription['rate']) / 31 )).quantize(Decimal('.01'))
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+# check downgrade monthly tiers for customers with subscriptions, amount and recurring not equal, amount == 0
+
+def test_annotate_tier_monthly_active_subscription_downgrade_first_of_month(customers):
+    '''
+    Observe, this does NOT affect the current month at all.... too late
+    to do without risking overcharging people.
+    '''
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'monthly',
+        'link_limit': 9999
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == next_month.timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0')
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+def test_annotate_tier_monthly_active_subscription_downgrade_mid_month(customers):
+    now = GENESIS.replace(day=16)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'monthly',
+        'link_limit': 9999
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == next_month.timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0')
+        assert tier['recurring_amount']!= tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+def test_annotate_tier_monthly_active_subscription_downgrade_last_of_month(customers):
+    now = GENESIS.replace(day=31)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'monthly',
+        'link_limit': 9999
+    }
+    for customer in customers:
+        tier = {
+            'period': 'monthly',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == next_month.timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0')
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == next_month
+
+
+# check annual tiers for customers with no subscriptions
+
+def test_annotate_tier_annually_no_subscription(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = None
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == customer.base_rate * tier['rate_ratio']
+        assert tier['recurring_amount'] == tier['todays_charge']
+        assert tier['next_payment'] == next_year
+
+
+# check upgrade annual tiers for customers with current subscriptions, amount and recurring not equal, amount correct
+
+def test_annotate_tier_annually_active_subscription_upgrade_same_day(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'annually',
+        'paid_through': next_year,
+        'link_limit': 0
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate'])
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+def test_annotate_tier_annually_active_subscription_upgrade_midyear(customers):
+    now = GENESIS.replace(day=30, month=12)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'annually',
+        'paid_through': today_next_year(GENESIS.replace(day=1)),
+        'link_limit': 0
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == ((customer.base_rate * tier['rate_ratio'] / 365 * 2) - (Decimal(subscription['rate']) / 365 * 2 )).quantize(Decimal('.01'))
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+def test_annotate_tier_annually_active_subscription_upgrade_on_anniversary(customers):
+    '''
+    Observe, if this change of recurring_amount DOES NOT get picked up by CyberSource
+    in time for today's recurring charge, then the customer will not be charged
+    for this upgrade for a whole year LOL!
+    We'll need to manually charge them the difference between the tiers.
+    Why do I have this working the opposite way for months and years?
+    '''
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '0.10',
+        'frequency': 'annually',
+        'paid_through': now,
+        'link_limit': 0
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'upgrade'
+        assert tier['link_limit_effective_timestamp'] == now.timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0.00')
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+# check downgrade annual tiers for customers with subscriptions
+
+def test_annotate_tier_annually_active_subscription_downgrade_same_day(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'annually',
+        'paid_through': next_year,
+        'link_limit': 9999
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == subscription['paid_through'].timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0.00')
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+def test_annotate_tier_annually_active_subscription_downgrade_midyear(customers):
+    now = GENESIS.replace(day=30, month=12)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'annually',
+        'paid_through': today_next_year(GENESIS.replace(day=1)),
+        'link_limit': 9999
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == subscription['paid_through'].timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0.00')
+        assert tier['recurring_amount'] != tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+def test_annotate_tier_annually_active_subscription_downgrade_on_anniversary(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    subscription = {
+        'status': 'Current',
+        'rate': '9999.10',
+        'frequency': 'annually',
+        'paid_through': now,
+        'link_limit': 9999
+
+    }
+    for customer in customers:
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'downgrade'
+        assert tier['link_limit_effective_timestamp'] == subscription['paid_through'].timestamp()
+        assert Decimal(tier['todays_charge']) == Decimal('0.00')
+        assert tier['recurring_amount']!= tier['todays_charge']
+        assert tier['next_payment'] == subscription['paid_through']
+
+
+# check warnings
+
+def test_annotate_tier_hides_more_expensive_option_from_grandfathered_customer(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    for customer in customers:
+        subscription = {
+            'status': 'Current',
+            'rate': str(customer.base_rate * 5),
+            'frequency': 'annually',
+            'paid_through': now,
+            'link_limit': 500
+        }
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 10
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'unavailable'
+
+
+def test_annotate_tier_hides_similar_tier_from_higher_paying_customer(customers):
+    now = GENESIS.replace(day=1)
+    next_month = first_day_of_next_month(now)
+    next_year = today_next_year(now)
+    for customer in customers:
+        subscription = {
+            'status': 'Current',
+            'rate': str(customer.base_rate * 10),
+            'frequency': 'annually',
+            'paid_through': now,
+            'link_limit': 500
+        }
+        tier = {
+            'period': 'annually',
+            'link_limit': 500,
+            'rate_ratio': 5
+        }
+        customer.annotate_tier(tier, subscription, now, next_month, next_year)
+        assert tier['type'] == 'unavailable'
+
+
+@override_settings(TIERS={
+    'Individual': [defaultdict(str) for i in range(3)],
+    'Registrar': [defaultdict(str) for i in range(3)]
+})
+@patch('perma.models.LinkUser.annotate_tier', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_get_subscription_info_normal(get_subscription, annotate_tier, paying_user):
+    now = GENESIS.replace(day=1)
+    subscription = {
+        'status': 'Current',
+        'rate': str(paying_user.base_rate * 5),
+        'frequency': 'monthly',
+        'paid_through': now.replace(day=15),
+        'link_limit': 500
+    }
+    get_subscription.return_value = subscription
+    account = paying_user.get_subscription_info(now)
+    assert 'customer' in account
+    assert subscription == account['subscription']
+    assert 'tiers' in account
+    assert annotate_tier.call_count == len(settings.TIERS[paying_user.customer_type])
+    assert 'can_change_tiers' in account
+
+
+@patch('perma.models.LinkUser.annotate_tier', autospec=True)
+@patch('perma.models.LinkUser.get_subscription', autospec=True)
+def test_get_subscription_info_downgrade_pending(get_subscription, annotate_tier, paying_user):
+    now = GENESIS.replace(day=1)
+    subscription = {
+        'status': 'Current',
+        'rate': str(paying_user.base_rate * 5),
+        'frequency': 'monthly',
+        'paid_through': now.replace(day=15),
+        'link_limit': 500,
+        'pending_change': {
+            'rate': str(paying_user.base_rate * 1),
+            'link_limit': 100,
+            'effective': now.replace(day=31)
+        }
+    }
+    get_subscription.return_value = subscription
+    account = paying_user.get_subscription_info(now)
+    assert 'customer' in account
+    assert subscription == account['subscription']
+    assert len(account['tiers']) == 1
+    assert account['tiers'][0]['limit'] == subscription['link_limit']
+    assert account['tiers'][0]['rate'] == subscription['rate']
+    assert account['tiers'][0]['required_fields']['amount'] == '0.00'
+    assert account['tiers'][0]['required_fields']['link_limit_effective_timestamp'] == now.timestamp()
+    assert annotate_tier.call_count == 0
+    assert account['can_change_tiers']
+
+
+def test_subscription_is_active_with_active_status():
+    for status in ACTIVE_SUBSCRIPTION_STATUSES:
+        assert subscription_is_active({
+            'status': status,
+            'paid_through': 'some datetime'
+        })
+
+
+def test_subscription_is_active_with_paid_up_canceled(active_cancelled_subscription):
+    assert subscription_is_active(active_cancelled_subscription)
+
+
+def test_subscription_is_active_with_expired_canceled(expired_cancelled_subscription):
+    assert not subscription_is_active(expired_cancelled_subscription)
+
+
+#
+# crediting users for one-time purchases
+#
+
+@patch('perma.models.requests.post', autospec=True)
+def test_credit_for_purchased_links_increments_for_all(post, paying_user, spoof_pp_response_no_subscription_two_purchases):
+    post.return_value.ok = True
+
+    purchases = spoof_pp_response_no_subscription_two_purchases(paying_user)["purchases"]
+    credited = paying_user.credit_for_purchased_links(purchases)
+    assert post.call_count == 2
+
+    assert credited == 60
+
+
+@patch('perma.models.requests.post', autospec=True)
+def test_credit_for_purchased_links_reverses_if_acknowledgment_fails(post, paying_user, spoof_pp_response_no_subscription_two_purchases):
+    post.return_value.ok = False
+
+    purchases = spoof_pp_response_no_subscription_two_purchases(paying_user)["purchases"]
+    credited = paying_user.credit_for_purchased_links(purchases)
+    assert post.call_count == 2
+
+    assert credited == 0
+    assert post.call_count == 2
+
+
+#
+# Bonus packages info
+#
+
+@patch.object(perma.models, 'datetime')
+@patch('perma.models.prep_for_perma_payments', autospec=True)
+def test_get_bonus_packages(prep, mock_datetime, paying_user):
+    perma.models.datetime.utcnow.return_value = GENESIS
+    prep.return_value.decode.return_value = sentinel.string
+
+    packages = paying_user.get_bonus_packages()
+
+    prep.assert_any_call({'timestamp': 0.0, 'customer_pk': paying_user.pk, 'customer_type': 'Individual', 'amount': '15.00', 'link_quantity': 10})
+    prep.assert_any_call({'timestamp': 0.0, 'customer_pk': paying_user.pk, 'customer_type': 'Individual', 'amount': '30.00', 'link_quantity': 100})
+    prep.assert_any_call({'timestamp': 0.0, 'customer_pk': paying_user.pk, 'customer_type': 'Individual', 'amount': '125.00', 'link_quantity': 500})
+    assert packages == [
+        {
+            'amount': '15.00',
+            'link_quantity': 10,
+            'unit_cost': 1.5,
+            'encrypted_data': sentinel.string
+        }, {
+            'amount': '30.00',
+            'link_quantity': 100,
+            'unit_cost': 0.3,
+            'encrypted_data': sentinel.string
+        }, {
+            'amount': '125.00',
+            'link_quantity': 500,
+            'unit_cost': 0.25,
+            'encrypted_data': sentinel.string
+        }
+    ]
 
 
 # Fixtures
-
-GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
-
-FAKE_TIERS = {
-    'Individual': [defaultdict(str) for i in range(3)],
-    'Registrar': [defaultdict(str) for i in range(3)]
-}
-
-def nonpaying_registrar():
-    registrar = Registrar()
-    registrar.save()
-    registrar.refresh_from_db()
-    assert registrar.nonpaying
-    return registrar
-
-def paying_registrar():
-    registrar = Registrar(
-        nonpaying=False,
-        cached_subscription_status="Sentinel Status",
-        cached_paid_through=GENESIS,
-        base_rate=Decimal(100.00),
-        in_trial=False
-    )
-    registrar.save()
-    registrar.refresh_from_db()
-    assert not registrar.nonpaying
-    assert registrar.unlimited
-    return registrar
-
-def paying_limited_registrar():
-    registrar = Registrar(
-        nonpaying=False,
-        cached_subscription_status="Sentinel Status",
-        cached_paid_through=GENESIS,
-        cached_subscription_rate=Decimal(0.01),
-        base_rate=Decimal(100.00),
-        unlimited=False,
-        in_trial=False
-    )
-    registrar.save()
-    registrar.refresh_from_db()
-    assert not registrar.nonpaying
-    assert not registrar.unlimited
-    return registrar
-
-def nonpaying_user():
-    user = LinkUser(
-        nonpaying=True
-    )
-    user.save()
-    user.refresh_from_db()
-    assert user.nonpaying
-    return user
-
-def paying_user():
-    user = LinkUser(
-        nonpaying=False,
-        cached_subscription_status="Sentinel Status",
-        cached_paid_through=GENESIS,
-        cached_subscription_rate=Decimal(0.01),
-        base_rate=Decimal(100.00),
-        in_trial=False
-    )
-    user.save()
-    user.refresh_from_db()
-    assert not user.nonpaying
-    return user
-
-def customers():
-    return [paying_registrar(), paying_user()]
-
-def noncustomers():
-    return [nonpaying_registrar(), nonpaying_user()]
-
-def user_with_links():
-    # a user with 6 personal links, made at intervals
-    user = LinkUser()
-    user.save()
-    today = timezone.now()
-    earlier_this_month = today.replace(day=1)
-    within_the_last_year = today - relativedelta(months=6)
-    over_a_year_ago = today - relativedelta(years=1, days=2)
-    three_years_ago = today - relativedelta(years=3)
-    links = [
-        Link(creation_timestamp=today, guid="AAAA-AAAA", created_by=user),
-        Link(creation_timestamp=earlier_this_month, guid="BBBB-BBBB", created_by=user),
-        Link(creation_timestamp=within_the_last_year, guid="DDDD-DDDDD", created_by=user),
-        Link(creation_timestamp=over_a_year_ago, guid="EEEE-EEEE", created_by=user),
-        Link(creation_timestamp=three_years_ago, guid="FFFF-FFFF", created_by=user),
-    ]
-    for link in links:
-        link.save()
-    return user
-
-def user_with_links_this_month_before_the_15th():
-    # for use in testing mid-month link count limits
-    user = LinkUser()
-    user.save()
-    links = [
-        Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=user),
-        Link(creation_timestamp=timezone.now().replace(day=2), guid="BBBB-BBBB", created_by=user),
-        Link(creation_timestamp=timezone.now().replace(day=3), guid="DDDD-DDDDD", created_by=user),
-        Link(creation_timestamp=timezone.now().replace(day=4), guid="EEEE-EEEE", created_by=user),
-        Link(creation_timestamp=timezone.now().replace(day=14), guid="FFFF-FFFF", created_by=user),
-    ]
-    for link in links:
-        link.save()
-    return user
 
 def complex_user_with_bonus_link(in_subfolder=False):
     user = LinkUser(link_limit=2, bonus_links=0)
@@ -148,90 +1162,6 @@ def complex_user_with_bonus_link(in_subfolder=False):
     user.refresh_from_db()
     return user, bonus_link
 
-def spoof_pp_response_wrong_pk(customer):
-    data = {
-        "customer_pk": "not_the_pk",
-        "customer_type": customer.customer_type
-    }
-    assert customer.pk != data['customer_pk']
-    return data
-
-def spoof_pp_response_wrong_type(customer):
-    data = {
-        "customer_pk": customer.pk,
-        "customer_type": "not_the_type"
-    }
-    assert customer.customer_type != data['customer_type']
-    return data
-
-def spoof_pp_response_no_subscription(customer):
-    return {
-        "customer_pk": customer.pk,
-        "customer_type": customer.customer_type,
-        "subscription": None,
-        "purchases": []
-    }
-
-def spoof_pp_response_no_subscription_two_purchases(customer):
-    return {
-        "customer_pk": customer.pk,
-        "customer_type": customer.customer_type,
-        "subscription": None,
-        "purchases": [{
-            "id": 1,
-            "link_quantity": "10"
-        },{
-            "id": 2,
-            "link_quantity": "50"
-        }]
-    }
-
-
-def spoof_pp_response_subscription(customer):
-    return {
-        "customer_pk": customer.pk,
-        "customer_type": customer.customer_type,
-        "subscription": {
-            "status": "Sentinel Status",
-            "rate": "9999.99",
-            "frequency": "sample",
-            "paid_through": "1970-01-21T00:00:00.000000Z",
-            "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
-            "link_limit": "unlimited",
-            "reference_number": "PERMA-1237-6200"
-        },
-        "purchases": []
-    }
-
-def spoof_pp_response_subscription_with_pending_change(customer):
-    response = {
-        "customer_pk": customer.pk,
-        "customer_type": customer.customer_type,
-        "subscription": {
-            "status": "Sentinel Status",
-            "rate": "9999.99",
-            "frequency": "sample",
-            "paid_through": "9999-01-21T00:00:00.000000Z",
-            "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
-            "link_limit": "unlimited",
-            "reference_number": "PERMA-1237-6201"
-        },
-        "purchases": []
-    }
-    assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
-    return response
-
-def active_cancelled_subscription():
-    return {
-        'status': "Canceled",
-        'paid_through': timezone.now() + relativedelta(years=1)
-    }
-
-def expired_cancelled_subscription():
-    return {
-        'status': "Canceled",
-        'paid_through': timezone.now() + relativedelta(years=-1)
-    }
 
 # Tests
 
@@ -570,1050 +1500,6 @@ class ModelsTestCase(PermaTestCase):
         self.assertEqual(r.most_active_org_this_year(), o2)
 
     #
-    # Related to Perma Payments
-    #
-
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_none_and_no_network_call_if_nonpaying(self, post):
-        # also verify that their value of in_trial is unchanged by the call
-        for noncustomer in noncustomers():
-            in_trial = noncustomer.in_trial
-            self.assertIsNone(noncustomer.get_subscription())
-            noncustomer.refresh_from_db()
-            self.assertEqual(in_trial, noncustomer.in_trial)
-            self.assertEqual(post.call_count, 0)
-
-
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_raises_on_non_200(self, post):
-        post.return_value.ok = False
-        for customer in customers():
-            with self.assertRaises(PermaPaymentsCommunicationException):
-                customer.get_subscription()
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_verifies_transmission_valid(self, post, process):
-        post.return_value.status_code = 200
-        post.return_value.json.return_value = sentinel.json
-        for customer in customers():
-            # This will raise an exception further down in the function;
-            # we don't care at this point
-            with self.assertRaises(Exception):
-                customer.get_subscription()
-            self.assertEqual(post.call_count, 1)
-            process.assert_called_once_with(sentinel.json, FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_subscription'])
-            post.reset_mock()
-            process.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_raises_if_unexpected_customer_pk(self, post, process):
-        post.return_value.status_code = 200
-        for customer in customers():
-            process.return_value = spoof_pp_response_wrong_pk(customer)
-            with self.assertRaises(InvalidTransmissionException):
-                customer.get_subscription()
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_raises_if_unexpected_registrar_type(self, post, process):
-        post.return_value.status_code = 200
-        for customer in customers():
-            process.return_value = spoof_pp_response_wrong_type(customer)
-            with self.assertRaises(InvalidTransmissionException):
-                customer.get_subscription()
-            self.assertEqual(post.call_count, 1)
-            post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_no_subscription(self, post, process):
-        post.return_value.status_code = 200
-        for customer in customers():
-            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
-                # artificially set this for the purpose of this test
-                customer.cached_subscription_started = timezone.now()
-                customer.save()
-                customer.refresh_from_db()
-                self.assertTrue(customer.cached_subscription_started)
-
-                process.return_value = spoof_pp_response_no_subscription(customer)
-                self.assertIsNone(customer.get_subscription())
-                self.assertFalse(customer.cached_subscription_started)
-                self.assertEqual(post.call_count, 1)
-                self.assertEqual(credited.call_count, 0)
-                post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_no_subscription_purchased_bonus(self, post, process):
-        post.return_value.status_code = 200
-        for customer in customers():
-            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
-                from_pp = spoof_pp_response_no_subscription_two_purchases(customer)
-                process.return_value = from_pp
-                self.assertIsNone(customer.get_subscription())
-                self.assertFalse(customer.cached_subscription_started)
-                self.assertEqual(post.call_count, 1)
-                credited.assert_called_once_with(from_pp['purchases'])
-                post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_happy_path_sets_customer_trial_period_to_false(self, post, process):
-        post.return_value.status_code = 200
-        for customer in [paying_limited_registrar(), paying_user()]:
-            # artificially set this for the purpose of this test
-            customer.in_trial = True
-            customer.cached_subscription_started = None
-            customer.save()
-            customer.refresh_from_db()
-            self.assertTrue(customer.in_trial)
-            self.assertFalse(customer.cached_subscription_started)
-
-            response = spoof_pp_response_subscription(customer)
-            process.return_value = response
-            customer.get_subscription()
-            customer.refresh_from_db()
-
-            self.assertFalse(customer.in_trial)
-            self.assertTrue(customer.cached_subscription_started)
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_happy_path_no_change_pending(self, post, process):
-        post.return_value.status_code = 200
-        for customer in [paying_limited_registrar(), paying_user()]:
-            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
-                response = spoof_pp_response_subscription(customer)
-                process.return_value = response
-                subscription = customer.get_subscription()
-                customer.refresh_from_db()
-                self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
-                self.assertEqual(subscription, {
-                    'status': response['subscription']['status'],
-                    'link_limit': response['subscription']['link_limit'],
-                    'rate': response['subscription']['rate'],
-                    'frequency': response['subscription']['frequency'],
-                    'paid_through': pp_date_from_post('1970-01-21T00:00:00.000000Z'),
-                    'pending_change': None,
-                    'reference_number': response['subscription']['reference_number']
-                })
-                self.assertEqual(post.call_count, 1)
-                self.assertEqual(credited.call_count, 0)
-                post.reset_mock()
-
-
-    @patch('perma.models.process_perma_payments_transmission', autospec=True)
-    @patch('perma.models.requests.post', autospec=True)
-    def test_get_subscription_happy_path_with_pending_change(self, post, process):
-        post.return_value.status_code = 200
-        for customer in [paying_limited_registrar(), paying_user()]:
-            with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
-                response = spoof_pp_response_subscription_with_pending_change(customer)
-                process.return_value = response
-                subscription = customer.get_subscription()
-                customer.refresh_from_db()
-                self.assertEqual(customer.cached_subscription_status, response['subscription']['status'])
-                self.assertEqual(subscription, {
-                    'status': response['subscription']['status'],
-                    'link_limit': str(customer.link_limit),
-                    'rate': str(customer.cached_subscription_rate),
-                    'frequency': customer.link_limit_period,
-                    'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
-                    'reference_number': response['subscription']['reference_number'],
-                    'pending_change': {
-                        'rate': response['subscription']['rate'],
-                        'link_limit': response['subscription']['link_limit'],
-                        'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
-                    }
-                })
-                self.assertNotEqual(str(customer.link_limit), response['subscription']['link_limit'])
-                self.assertNotEqual(str(customer.cached_subscription_rate), response['subscription']['rate'])
-                self.assertEqual(post.call_count, 1)
-                self.assertEqual(credited.call_count, 0)
-                post.reset_mock()
-
-    ### Annotating Tiers with Prices and Dates
-
-    # check monthly tiers for customers with no subscriptions
-
-    def test_annotate_tier_monthly_no_subscription_first_of_month(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = None
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'])
-            self.assertEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    def test_annotate_tier_monthly_no_subscription_mid_month(self):
-        now = GENESIS.replace(day=16)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = None
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), (customer.base_rate * tier['rate_ratio'] / 31 * 16).quantize(Decimal('.01')))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_monthly_no_subscription_last_of_month(self, is_active):
-        is_active.return_value = True
-
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = None
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), (customer.base_rate * tier['rate_ratio'] / 31).quantize(Decimal('.01')))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    # check upgrading/downgrading not allowed if you have a non-active subscription
-    # (for instance, on hold due to lapsed payments), whatever the tier
-
-    def test_annotate_tier_change_disallowed_with_inactive_monthly_subscription(self):
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Sentinel Status',
-            'rate': '0.10',
-            'frequency': 'monthly',
-            'paid_through': next_month
-        }
-
-        for customer in customers():
-            for tier in settings.TIERS[customer.customer_type]:
-                customer.annotate_tier(tier, subscription, now, next_month, next_year)
-                self.assertEqual(tier['type'], 'unavailable')
-
-
-    def test_annotate_tier_change_disallowed_with_inactive_annual_subscription(self):
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Sentinel Status',
-            'rate': '0.10',
-            'frequency': 'annually',
-            'paid_through': next_year
-        }
-
-        for customer in customers():
-            for tier in settings.TIERS[customer.customer_type]:
-                customer.annotate_tier(tier, subscription, now, next_month, next_year)
-                self.assertEqual(tier['type'], 'unavailable')
-
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    def test_annotate_tier_change_disallowed_with_pending_downgrade(self, is_active):
-        is_active.return_value = True
-
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Sentinel Status',
-            'rate': '0.10',
-            'frequency': 'monthly',
-            'paid_through': next_year,
-            'pending_change': True
-        }
-
-        for customer in customers():
-            for tier in settings.TIERS[customer.customer_type]:
-                customer.annotate_tier(tier, subscription, now, next_month, next_year)
-                self.assertEqual(tier['type'], 'unavailable')
-
-    # check upgrade monthly tiers for customers with subscriptions
-
-    def test_annotate_tier_monthly_active_subscription_upgrade_first_of_month(self):
-        '''
-        Observe, if this change of recurring_amount DOES get picked up by CyberSource
-        in time for today's recurring charge, then the customer will be overcharged.
-        We would need to refund them tier['amount'].
-        '''
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'monthly',
-            'link_limit': 0
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate']))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    def test_annotate_tier_monthly_active_subscription_upgrade_mid_month(self):
-        now = GENESIS.replace(day=16)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'monthly',
-            'link_limit': 0
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 31 * 16) - (Decimal(subscription['rate']) / 31 * 16)).quantize(Decimal('.01')))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    def test_annotate_tier_monthly_active_subscription_upgrade_last_of_month(self):
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'monthly',
-            'link_limit': 0
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 31) - (Decimal(subscription['rate']) / 31 )).quantize(Decimal('.01')))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    # check downgrade monthly tiers for customers with subscriptions, amount and recurring not equal, amount == 0
-
-    def test_annotate_tier_monthly_active_subscription_downgrade_first_of_month(self):
-        '''
-        Observe, this does NOT affect the current month at all.... too late
-        to do without risking overcharging people.
-        '''
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'monthly',
-            'link_limit': 9999
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    def test_annotate_tier_monthly_active_subscription_downgrade_mid_month(self):
-        now = GENESIS.replace(day=16)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'monthly',
-            'link_limit': 9999
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    def test_annotate_tier_monthly_active_subscription_downgrade_last_of_month(self):
-        now = GENESIS.replace(day=31)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'monthly',
-            'link_limit': 9999
-        }
-        for customer in customers():
-            tier = {
-                'period': 'monthly',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], next_month.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_month)
-
-
-    # check annual tiers for customers with no subscriptions
-
-    def test_annotate_tier_annually_no_subscription(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = None
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'])
-            self.assertEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], next_year)
-
-
-    # check upgrade annual tiers for customers with current subscriptions, amount and recurring not equal, amount correct
-
-    def test_annotate_tier_annually_active_subscription_upgrade_same_day(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'annually',
-            'paid_through': next_year,
-            'link_limit': 0
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), customer.base_rate * tier['rate_ratio'] - Decimal(subscription['rate']))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    def test_annotate_tier_annually_active_subscription_upgrade_midyear(self):
-        now = GENESIS.replace(day=30, month=12)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'annually',
-            'paid_through': today_next_year(GENESIS.replace(day=1)),
-            'link_limit': 0
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), ((customer.base_rate * tier['rate_ratio'] / 365 * 2) - (Decimal(subscription['rate']) / 365 * 2 )).quantize(Decimal('.01')))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    def test_annotate_tier_annually_active_subscription_upgrade_on_anniversary(self):
-        '''
-        Observe, if this change of recurring_amount DOES NOT get picked up by CyberSource
-        in time for today's recurring charge, then the customer will not be charged
-        for this upgrade for a whole year LOL!
-        We'll need to manually charge them the difference between the tiers.
-        Why do I have this working the opposite way for months and years?
-        '''
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '0.10',
-            'frequency': 'annually',
-            'paid_through': now,
-            'link_limit': 0
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'upgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], now.timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    # check downgrade annual tiers for customers with subscriptions
-
-    def test_annotate_tier_annually_active_subscription_downgrade_same_day(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'annually',
-            'paid_through': next_year,
-            'link_limit': 9999
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    def test_annotate_tier_annually_active_subscription_downgrade_midyear(self):
-        now = GENESIS.replace(day=30, month=12)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'annually',
-            'paid_through': today_next_year(GENESIS.replace(day=1)),
-            'link_limit': 9999
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    def test_annotate_tier_annually_active_subscription_downgrade_on_anniversary(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        subscription = {
-            'status': 'Current',
-            'rate': '9999.10',
-            'frequency': 'annually',
-            'paid_through': now,
-            'link_limit': 9999
-
-        }
-        for customer in customers():
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'downgrade')
-            self.assertEqual(tier['link_limit_effective_timestamp'], subscription['paid_through'].timestamp())
-            self.assertEqual(Decimal(tier['todays_charge']), Decimal('0.00'))
-            self.assertNotEqual(tier['recurring_amount'], tier['todays_charge'])
-            self.assertEqual(tier['next_payment'], subscription['paid_through'])
-
-
-    # check warnings
-
-    def test_annotate_tier_hides_more_expensive_option_from_grandfathered_customer(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        for customer in customers():
-            subscription = {
-                'status': 'Current',
-                'rate': str(customer.base_rate * 5),
-                'frequency': 'annually',
-                'paid_through': now,
-                'link_limit': 500
-            }
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 10
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'unavailable')
-
-
-    def test_annotate_tier_hides_similar_tier_from_higher_paying_customer(self):
-        now = GENESIS.replace(day=1)
-        next_month = first_day_of_next_month(now)
-        next_year = today_next_year(now)
-        for customer in customers():
-            subscription = {
-                'status': 'Current',
-                'rate': str(customer.base_rate * 10),
-                'frequency': 'annually',
-                'paid_through': now,
-                'link_limit': 500
-            }
-            tier = {
-                'period': 'annually',
-                'link_limit': 500,
-                'rate_ratio': 5
-            }
-            customer.annotate_tier(tier, subscription, now, next_month, next_year)
-            self.assertEqual(tier['type'], 'unavailable')
-
-
-    @override_settings(TIERS=FAKE_TIERS)
-    @patch('perma.models.LinkUser.annotate_tier', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_get_subscription_info_normal(self, get_subscription, annotate_tier):
-        now = GENESIS.replace(day=1)
-        customer = paying_user()
-        subscription = {
-            'status': 'Current',
-            'rate': str(customer.base_rate * 5),
-            'frequency': 'monthly',
-            'paid_through': now.replace(day=15),
-            'link_limit': 500
-        }
-        get_subscription.return_value = subscription
-        account = customer.get_subscription_info(now)
-        self.assertIn('customer', account)
-        self.assertEqual(subscription, account['subscription'])
-        self.assertIn('tiers', account)
-        self.assertEqual(annotate_tier.call_count, len(settings.TIERS[customer.customer_type]))
-        self.assertIn('can_change_tiers', account)
-
-    @patch('perma.models.LinkUser.annotate_tier', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_get_subscription_info_downgrade_pending(self, get_subscription, annotate_tier):
-        now = GENESIS.replace(day=1)
-        customer = paying_user()
-        subscription = {
-            'status': 'Current',
-            'rate': str(customer.base_rate * 5),
-            'frequency': 'monthly',
-            'paid_through': now.replace(day=15),
-            'link_limit': 500,
-            'pending_change': {
-                'rate': str(customer.base_rate * 1),
-                'link_limit': 100,
-                'effective': now.replace(day=31)
-            }
-        }
-        get_subscription.return_value = subscription
-        account = customer.get_subscription_info(now)
-        self.assertIn('customer', account)
-        self.assertEqual(subscription, account['subscription'])
-        self.assertEqual(len(account['tiers']), 1)
-        self.assertEqual(account['tiers'][0]['limit'], subscription['link_limit'])
-        self.assertEqual(account['tiers'][0]['rate'], subscription['rate'])
-        self.assertEqual(account['tiers'][0]['required_fields']['amount'], '0.00')
-        self.assertEqual(account['tiers'][0]['required_fields']['link_limit_effective_timestamp'], now.timestamp())
-        self.assertEqual(annotate_tier.call_count, 0)
-        self.assertTrue(account['can_change_tiers'])
-
-
-    def test_subscription_is_active_with_active_status(self):
-        for status in ACTIVE_SUBSCRIPTION_STATUSES:
-            self.assertTrue(subscription_is_active({
-                'status': status,
-                'paid_through': 'some datetime'
-            }))
-
-    def test_subscription_is_active_with_paid_up_canceled(self):
-        self.assertTrue(subscription_is_active(active_cancelled_subscription()))
-
-    def test_subscription_is_active_with_expired_canceled(self):
-        self.assertFalse(subscription_is_active(expired_cancelled_subscription()))
-
-    #
-    # crediting users for one-time purchases
-    #
-
-    def credit_a_customer_for_purchases(self, post):
-        customer = paying_user()
-        purchases = spoof_pp_response_no_subscription_two_purchases(customer)["purchases"]
-        credited = customer.credit_for_purchased_links(purchases)
-        self.assertEqual(post.call_count, 2)
-        return credited
-
-
-    @patch('perma.models.requests.post', autospec=True)
-    def test_credit_for_purchased_links_increments_for_all(self, post):
-        post.return_value.ok = True
-        credited = self.credit_a_customer_for_purchases(post)
-        self.assertEqual(credited, 60)
-
-
-    @patch('perma.models.requests.post', autospec=True)
-    def test_credit_for_purchased_links_reverses_if_acknoledgment_fails(self, post):
-        post.return_value.ok = False
-        credited = self.credit_a_customer_for_purchases(post)
-        self.assertEqual(credited, 0)
-        self.assertEqual(post.call_count, 2)
-
-
-    #
-    # Bonus packages info
-    #
-
-    @patch.object(perma.models, 'datetime')
-    @patch('perma.models.prep_for_perma_payments', autospec=True)
-    def test_get_bonus_packages(self, prep, mock_datetime):
-        customer = paying_user()
-        perma.models.datetime.utcnow.return_value = GENESIS
-        prep.return_value.decode.return_value = sentinel.string
-
-        packages = customer.get_bonus_packages()
-
-        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '15.00', 'link_quantity': 10})
-        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '30.00', 'link_quantity': 100})
-        prep.assert_any_call({'timestamp': 0.0, 'customer_pk': customer.pk, 'customer_type': 'Individual', 'amount': '125.00', 'link_quantity': 500})
-        self.assertEqual(packages, [
-            {
-                'amount': '15.00',
-                'link_quantity': 10,
-                'unit_cost': 1.5,
-                'encrypted_data': sentinel.string
-            }, {
-                'amount': '30.00',
-                'link_quantity': 100,
-                'unit_cost': 0.3,
-                'encrypted_data': sentinel.string
-            }, {
-                'amount': '125.00',
-                'link_quantity': 500,
-                'unit_cost': 0.25,
-                'encrypted_data': sentinel.string
-            }
-        ])
-
-
-    #
-    # Link limit / subscription related tests for individual (non-sponsored) users
-    #
-
-    def test_new_user_gets_default_link_limit(self):
-        u = LinkUser()
-        u.save()
-        self.assertEqual(u.link_limit, settings.DEFAULT_CREATE_LIMIT)
-        self.assertEqual(u.link_limit_period, settings.DEFAULT_CREATE_LIMIT_PERIOD)
-
-
-    def test_one_time_link_limit(self):
-        u = user_with_links()
-        self.assertFalse(u.unlimited)
-        self.assertFalse(u.cached_subscription_started)
-        self.assertEqual(u.links_remaining_in_period('once', 6), 1)
-        self.assertEqual(u.links_remaining_in_period('once', 5), 0)
-
-
-    @patch('perma.models.timezone', autospec=True)
-    def test_one_time_link_limit_with_midmonth_subscription1(self, mocked_timezone):
-        fifteenth_of_month = timezone.now().replace(day=15)
-        mocked_timezone.now.return_value = fifteenth_of_month
-
-        u = user_with_links_this_month_before_the_15th()
-        u.cached_subscription_started = fifteenth_of_month
-        u.save()
-
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('once', 6), 6)
-        self.assertEqual(u.links_remaining_in_period('once', 5), 5)
-        self.assertEqual(mocked_timezone.now.call_count, 2)
-
-
-    @patch('perma.models.timezone', autospec=True)
-    def test_one_time_link_limit_with_midmonth_subscription2(self, mocked_timezone):
-        fifteenth_of_month = timezone.now().replace(day=15)
-        fifth_of_month = timezone.now().replace(day=5)
-        mocked_timezone.now.return_value = fifteenth_of_month
-
-        u = user_with_links_this_month_before_the_15th()
-        u.cached_subscription_started = fifth_of_month
-        u.save()
-
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('once', 6), 5)
-        self.assertEqual(u.links_remaining_in_period('once', 5), 4)
-        self.assertEqual(mocked_timezone.now.call_count, 2)
-
-
-    def test_monthly_link_limit(self):
-        u = user_with_links()
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('monthly', 3), 1)
-        self.assertEqual(u.links_remaining_in_period('monthly', 2), 0)
-
-
-    @patch('perma.models.timezone', autospec=True)
-    def test_monthly_link_limit_with_midmonth_subscription1(self, mocked_timezone):
-        fifteenth_of_month = timezone.now().replace(day=15)
-        mocked_timezone.now.return_value = fifteenth_of_month
-
-        u = user_with_links_this_month_before_the_15th()
-        u.cached_subscription_started = fifteenth_of_month
-        u.save()
-
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('monthly', 3), 3)
-        self.assertEqual(u.links_remaining_in_period('monthly', 2), 2)
-        self.assertEqual(mocked_timezone.now.call_count, 2)
-
-
-    @patch('perma.models.timezone', autospec=True)
-    def test_monthly_link_limit_with_midmonth_subscription2(self, mocked_timezone):
-        fifteenth_of_month = timezone.now().replace(day=15)
-        fifth_of_month = timezone.now().replace(day=5)
-        mocked_timezone.now.return_value = fifteenth_of_month
-
-        u = user_with_links_this_month_before_the_15th()
-        u.cached_subscription_started = fifth_of_month
-        u.save()
-
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('monthly', 3), 2)
-        self.assertEqual(u.links_remaining_in_period('monthly', 2), 1)
-        self.assertEqual(mocked_timezone.now.call_count, 2)
-
-
-    def test_annual_link_limit(self):
-        u = user_with_links()
-        self.assertFalse(u.unlimited)
-        self.assertEqual(u.links_remaining_in_period('annually', 4), 1)
-        self.assertEqual(u.links_remaining_in_period('annually', 3), 0)
-
-
-    def test_unlimited_user_link_limit(self):
-        u = user_with_links()
-        u.unlimited = True
-        self.assertEqual(u.links_remaining_in_period('once', 1), float("inf"))
-        self.assertEqual(u.links_remaining_in_period('monthly', 1), float("inf"))
-        self.assertEqual(u.links_remaining_in_period('annually', 1), float("inf"))
-        u.unlimited = False
-        self.assertNotEqual(u.links_remaining_in_period('once', 1), float("inf"))
-        self.assertNotEqual(u.links_remaining_in_period('monthly', 1), float("inf"))
-        self.assertNotEqual(u.links_remaining_in_period('annually', 1), float("inf"))
-
-
-    def test_override_for_unlimited_user_link_limit(self):
-        u = user_with_links()
-        u.unlimited = True
-        self.assertNotEqual(u.links_remaining_in_period('once', 1, False), float("inf"))
-        self.assertNotEqual(u.links_remaining_in_period('monthly', 1, False), float("inf"))
-        self.assertNotEqual(u.links_remaining_in_period('annually', 1, False), float("inf"))
-
-
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_nonpaying_and_under_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = (1, 'some period', 0)
-        user = nonpaying_user()
-        self.assertTrue(user.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 0)
-        self.assertEqual(get_links_remaining.call_count, 1)
-
-
-    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_denied_if_nonpaying_and_over_limit(self, get_subscription, get_links_remaining):
-        get_links_remaining.return_value = (0, 'some period', 0)
-        user = nonpaying_user()
-        self.assertFalse(user.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 0)
-        self.assertEqual(get_links_remaining.call_count, 1)
-
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
-        get_subscription.side_effect = PermaPaymentsCommunicationException
-        customer = paying_user()
-        customer.link_creation_allowed()
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with({
-            'status': 'Sentinel Status',
-            'paid_through': GENESIS
-        })
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_no_subscription_and_under_limit(self, get_subscription, links_remaining_in_period):
-        get_subscription.return_value = None
-        user = paying_user()
-        links_remaining_in_period.return_value = 1
-        self.assertTrue(user.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 1)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_denied_if_no_subscription_and_over_limit(self, get_subscription, links_remaining_in_period):
-        get_subscription.return_value = None
-        user = paying_user()
-        links_remaining_in_period.return_value = 0
-        self.assertFalse(user.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 1)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.subscription_has_problem', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_disallowed_if_subscription_inactive_and_over_limit(self, get_subscription, has_problem, is_active, links_remaining_in_period):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = False
-        has_problem.return_value = True
-        user = paying_user()
-        links_remaining_in_period.return_value = 0
-        self.assertFalse(user.link_creation_allowed())
-        get_subscription.assert_called_once_with(user)
-        is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.subscription_has_problem', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_subscription_inactive_and_under_limit(self, get_subscription, has_problem, is_active, links_remaining_in_period):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = False
-        has_problem.return_value = True
-        user = paying_user()
-        links_remaining_in_period.return_value = user.link_limit + 1
-        self.assertTrue(user.link_creation_allowed())
-        get_subscription.assert_called_once_with(user)
-        is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(user, settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, False)
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_allowed_if_subscription_active_and_under_limit(self, get_subscription, is_active, links_remaining_in_period):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = True
-        links_remaining_in_period.return_value = 1
-        customer = paying_user()
-        self.assertTrue(customer.link_creation_allowed())
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(customer, customer.link_limit_period, customer.link_limit)
-
-
-    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.LinkUser.get_subscription', autospec=True)
-    def test_user_link_creation_disallowed_if_subscription_active_and_under_limit(self, get_subscription, is_active, links_remaining_in_period):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = True
-        links_remaining_in_period.return_value = 0
-        customer = paying_user()
-        self.assertFalse(customer.link_creation_allowed())
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with(sentinel.subscription)
-        links_remaining_in_period.assert_called_once_with(customer, customer.link_limit_period, customer.link_limit)
-
-
-    #
     # Limk limit for sponsored users
     #
 
@@ -1628,75 +1514,9 @@ class ModelsTestCase(PermaTestCase):
 
 
     #
-    # Link limits and bonus links
-    #
-
-    def test_bonus_links_arent_counted_against_personal_total(self):
-        user = LinkUser()
-        user.save()
-        remaining, _, bonus = user.get_links_remaining()
-
-        personal_links = 5
-        bonus_links = 2
-        for _ in range(personal_links):
-            Link(created_by=user).save()
-        for _ in range(bonus_links):
-            Link(created_by=user, bonus_link=True).save()
-        now_remaining, _, now_bonus = user.get_links_remaining()
-        self.assertEqual(now_remaining, remaining - personal_links)
-        self.assertNotEqual(now_remaining, remaining - personal_links - bonus_links)
-
-
-    #
     # Link limit / subscription related tests for registrars
     #
 
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_always_allowed_if_nonpaying(self, get_subscription):
-        registrar = nonpaying_registrar()
-        self.assertTrue(registrar.link_creation_allowed())
-        self.assertEqual(get_subscription.call_count, 0)
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_allowed_checks_cached_if_pp_down(self, get_subscription, is_active):
-        get_subscription.side_effect = PermaPaymentsCommunicationException
-        customer = paying_registrar()
-        customer.link_creation_allowed()
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with({
-            'status': 'Sentinel Status',
-            'paid_through': GENESIS
-        })
-
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_disallowed_if_no_subscription(self, get_subscription):
-        get_subscription.return_value = None
-        r = paying_registrar()
-        self.assertFalse(r.link_creation_allowed())
-        get_subscription.assert_called_once_with(r)
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.subscription_has_problem', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_disallowed_if_subscription_inactive(self, get_subscription, has_problem, is_active):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = False
-        has_problem.return_value = True
-        registrar = paying_registrar()
-        self.assertFalse(registrar.link_creation_allowed())
-        get_subscription.assert_called_once_with(registrar)
-        is_active.assert_called_once_with(sentinel.subscription)
-
-    @patch('perma.models.subscription_is_active', autospec=True)
-    @patch('perma.models.Registrar.get_subscription', autospec=True)
-    def test_registrar_link_creation_allowed_if_subscription_active(self, get_subscription, is_active):
-        get_subscription.return_value = sentinel.subscription
-        is_active.return_value = True
-        customer = paying_registrar()
-        self.assertTrue(customer.link_creation_allowed())
-        get_subscription.assert_called_once_with(customer)
-        is_active.assert_called_once_with(sentinel.subscription)
 
     def test_renaming_registrar_renames_top_level_sponsored_folders(self):
         new_name = 'A New Name'
