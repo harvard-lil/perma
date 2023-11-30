@@ -1258,8 +1258,8 @@ class ModelsTestCase(PermaTestCase):
         f3_1 = Folder(parent=f3, name='3_1')
         f3_1.save()
         f3_1.refresh_from_db()
-        f'{f1.pk}-{f3.pk}' == f3.cached_path
-        f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+        assert f'{f1.pk}-{f3.pk}' == f3.cached_path
+        assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
         # f1
         # f2 -> f3 -> f3_1
@@ -1267,16 +1267,16 @@ class ModelsTestCase(PermaTestCase):
         f3.save()
         f3.refresh_from_db()
         f3_1.refresh_from_db()
-        f'{f1.pk}-{f2.pk}-{f3.pk}' == f3.cached_path
-        f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+        assert f'{f1.pk}-{f2.pk}-{f3.pk}' == f3.cached_path
+        assert f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
         # and back
         f3.parent_id = f1.pk
         f3.save()
         f3.refresh_from_db()
         f3_1.refresh_from_db()
-        f'{f1.pk}-{f3.pk}' == f3.cached_path
-        f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
+        assert f'{f1.pk}-{f3.pk}' == f3.cached_path
+        assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
     def test_cached_path_is_set_for_new_orgs(db):
         r = Registrar()
