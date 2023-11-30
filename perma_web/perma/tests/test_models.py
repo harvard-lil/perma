@@ -1167,82 +1167,82 @@ def complex_user_with_bonus_link(in_subfolder=False):
 
 class ModelsTestCase(PermaTestCase):
 
-    def test_new_orgs_are_public_by_default(self):
+    def test_new_orgs_are_public_by_default(db):
         r = Registrar()
         r.save()
         o = Organization(registrar=r)
         o.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertFalse(r.orgs_private_by_default)
-        self.assertFalse(o.default_to_private)
+        assert not r.orgs_private_by_default
+        assert not o.default_to_private
 
-    def test_new_orgs_respect_registrar_default_privacy_policy(self):
+    def test_new_orgs_respect_registrar_default_privacy_policy(db):
         r = Registrar(orgs_private_by_default=True)
         r.save()
         o = Organization(registrar=r)
         o.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertTrue(r.orgs_private_by_default)
-        self.assertTrue(o.default_to_private)
+        assert r.orgs_private_by_default
+        assert o.default_to_private
 
-    def test_existing_org_privacy_unaffected_by_registrar_change(self):
+    def test_existing_org_privacy_unaffected_by_registrar_change(db):
         r = Registrar()
         r.save()
         o = Organization(registrar=r)
         o.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertFalse(r.orgs_private_by_default)
-        self.assertFalse(o.default_to_private)
+        assert not r.orgs_private_by_default
+        assert not o.default_to_private
 
         r.orgs_private_by_default = True
         r.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertTrue(r.orgs_private_by_default)
-        self.assertFalse(o.default_to_private)
+        assert r.orgs_private_by_default
+        assert not o.default_to_private
 
         r.orgs_private_by_default = False
         r.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertFalse(r.orgs_private_by_default)
-        self.assertFalse(o.default_to_private)
+        assert not r.orgs_private_by_default
+        assert not o.default_to_private
 
-    def test_org_privacy_does_not_revert_to_registrar_default_on_save(self):
+    def test_org_privacy_does_not_revert_to_registrar_default_on_save(db):
         r = Registrar(orgs_private_by_default=True)
         r.save()
         o = Organization(registrar=r)
         o.save()
         r.refresh_from_db()
         o.refresh_from_db()
-        self.assertTrue(r.orgs_private_by_default)
-        self.assertTrue(o.default_to_private)
+        assert r.orgs_private_by_default
+        assert o.default_to_private
 
         o.default_to_private = False
         o.save()
         o.refresh_from_db()
-        self.assertFalse(o.default_to_private)
+        assert not o.default_to_private
 
         o.name = 'A New Name'
         o.save()
         o.refresh_from_db()
-        self.assertEqual(o.name, 'A New Name')
-        self.assertFalse(o.default_to_private)
+        assert o.name == 'A New Name'
+        assert not o.default_to_private
 
-    def test_new_folder_path_is_cached(self):
+    def test_new_folder_path_is_cached(db):
         f1 = Folder()
         f1.save()
         f1.refresh_from_db()
-        self.assertEqual(str(f1.pk), f1.cached_path)
+        assert str(f1.pk) == f1.cached_path
         f2 = Folder(parent=f1)
         f2.save()
         f2.refresh_from_db()
-        self.assertEqual(f'{f1.pk}-{f2.pk}', f2.cached_path)
+        assert f'{f1.pk}-{f2.pk}' == f2.cached_path
 
-    def test_folders_cached_paths_updated_when_moved(self):
+    def test_folders_cached_paths_updated_when_moved(db):
         # f1
         # f2
         # f3 -> f3_1
@@ -1258,8 +1258,8 @@ class ModelsTestCase(PermaTestCase):
         f3_1 = Folder(parent=f3, name='3_1')
         f3_1.save()
         f3_1.refresh_from_db()
-        self.assertEqual(f'{f1.pk}-{f3.pk}', f3.cached_path)
-        self.assertEqual(f'{f1.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+        f'{f1.pk}-{f3.pk}' == f3.cached_path
+        f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
         # f1
         # f2 -> f3 -> f3_1
@@ -1267,18 +1267,18 @@ class ModelsTestCase(PermaTestCase):
         f3.save()
         f3.refresh_from_db()
         f3_1.refresh_from_db()
-        self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}', f3.cached_path)
-        self.assertEqual(f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+        f'{f1.pk}-{f2.pk}-{f3.pk}' == f3.cached_path
+        f'{f1.pk}-{f2.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
         # and back
         f3.parent_id = f1.pk
         f3.save()
         f3.refresh_from_db()
         f3_1.refresh_from_db()
-        self.assertEqual(f'{f1.pk}-{f3.pk}', f3.cached_path)
-        self.assertEqual(f'{f1.pk}-{f3.pk}-{f3_1.pk}', f3_1.cached_path)
+        f'{f1.pk}-{f3.pk}' == f3.cached_path
+        f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
 
-    def test_cached_path_is_set_for_new_orgs(self):
+    def test_cached_path_is_set_for_new_orgs(db):
         r = Registrar()
         r.save()
         o = Organization(registrar=r)
