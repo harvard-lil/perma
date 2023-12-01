@@ -1386,7 +1386,6 @@ def test_most_active_org_in_time_period_no_links(registrar, organization_factory
     organization_factory(registrar=registrar)
     organization_factory(registrar=registrar)
     assert most_active_org_in_time_period(registrar.organizations) is None
-    # assert isinstance(most_active_org_in_time_period(registrar.organizations), (Organization, type(None)))
 
 
 def test_most_active_org_in_time_period_invalid_dates(registrar):
