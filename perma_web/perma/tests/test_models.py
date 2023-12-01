@@ -16,7 +16,7 @@ from perma.models import (
     most_active_org_in_time_period,
     subscription_is_active
 )
-from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month, today_next_year
+from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month, today_next_year, years_ago_today
 
 from .utils import PermaTestCase
 from conftest import GENESIS
@@ -1274,6 +1274,192 @@ def test_cached_path_is_set_for_new_orgs(db):
     assert o.shared_folder.cached_path
 
 
+#
+# Assess Link Counts
+#
+
+def test_link_count_in_time_period_no_links():
+    '''
+        If no links in period, should return 0
+    '''
+    no_links = Link.objects.none()
+    assert link_count_in_time_period(no_links) == 0
+
+
+def test_link_count_period_invalid_dates():
+    '''
+        If end date is before start date, should raise an exception
+    '''
+    no_links = Link.objects.none()
+    now = tz_datetime(timezone.now().year, 1, 1)
+    later = today_next_year(now)
+    with pytest.raises(ValueError):
+        link_count_in_time_period(no_links, later, now)
+
+
+def test_link_count_period_equal_dates(link_user, link_factory):
+    '''
+        If end date = start date, links are only counted once
+    '''
+    now = tz_datetime(timezone.now().year, 1, 1)
+    link = link_factory(creation_timestamp=now, guid="AAAA-AAAA", created_by=link_user)
+
+    links = Link.objects.filter(pk=link.pk)
+    assert len(links) == 1
+    assert link_count_in_time_period(links, now, now) == len(links)
+
+
+def test_link_count_valid_period(link_user, link_factory):
+    '''
+        Should include links created only in the target year
+    '''
+    now = tz_datetime(timezone.now().year, 1, 1)
+    two_years_ago = years_ago_today(now, 2)
+    three_years_ago = years_ago_today(now, 3)
+    link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE"]
+    # older
+    link_factory(creation_timestamp=three_years_ago, guid=link_pks[0], created_by=link_user)
+    # old
+    link_factory(creation_timestamp=two_years_ago, guid=link_pks[1], created_by=link_user)
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[2], created_by=link_user)
+    link_factory(creation_timestamp=now, guid=link_pks[3], created_by=link_user)
+    link_factory(creation_timestamp=now, guid=link_pks[4], created_by=link_user)
+
+    links = Link.objects.filter(pk__in=link_pks)
+    assert len(links) == 5
+    assert link_count_in_time_period(links, three_years_ago, two_years_ago) == 2
+
+
+def test_org_link_count_this_year(registrar, organization_factory, link_user, link_factory):
+    '''
+        Should include links created this year and exclude links
+        older than that.
+    '''
+    o = organization_factory(registrar=registrar)
+    assert o.link_count_this_year() == 0
+
+    now = tz_datetime(timezone.now().year, 1, 1)
+    two_years_ago = years_ago_today(now, 2)
+    link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC"]
+    # too early
+    link_factory(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=link_user, organization=o)
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[1], created_by=link_user, organization=o)
+    link_factory(creation_timestamp=now, guid=link_pks[2], created_by=link_user, organization=o)
+    links = Link.objects.filter(pk__in=link_pks)
+    assert len(links) == 3
+    assert o.link_count_this_year() == 2
+
+
+def test_registrar_link_count_this_year(registrar, organization_factory, link_user, link_factory):
+    '''
+        Should include links created this year and exclude links
+        older than that. Should work across all its orgs.
+    '''
+    o1 = organization_factory(registrar=registrar)
+    o2 = organization_factory(registrar=registrar)
+
+    now = tz_datetime(timezone.now().year, 1, 1)
+    two_years_ago = years_ago_today(now, 2)
+    link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD"]
+    # too early
+    link_factory(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=link_user, organization=o1)
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[1], created_by=link_user, organization=o1)
+    link_factory(creation_timestamp=now, guid=link_pks[2], created_by=link_user, organization=o1)
+    link_factory(creation_timestamp=now, guid=link_pks[3], created_by=link_user, organization=o2)
+
+    links = Link.objects.filter(pk__in=link_pks)
+    assert len(links) == 4
+    assert registrar.link_count_this_year() == 3
+
+
+#
+# Assess org activity
+#
+
+def test_most_active_org_in_time_period_no_links(registrar, organization_factory):
+    '''
+        If no orgs with links in period, should return None
+    '''
+    organization_factory(registrar=registrar)
+    organization_factory(registrar=registrar)
+    assert most_active_org_in_time_period(registrar.organizations) is None
+    # assert isinstance(most_active_org_in_time_period(registrar.organizations), (Organization, type(None)))
+
+
+def test_most_active_org_in_time_period_invalid_dates(registrar):
+    '''
+        If end date is before start date, should raise an exception
+    '''
+    now = tz_datetime(timezone.now().year, 1, 1)
+    later = tz_datetime(now.year + 1, 1, 1)
+    with pytest.raises(ValueError):
+        most_active_org_in_time_period(registrar.organizations, later, now)
+
+
+def test_most_active_org_in_time_period_valid_period(registrar, organization_factory, link_user, link_factory):
+    '''
+        Should include links created only in the target year
+    '''
+    now = tz_datetime(timezone.now().year, 1, 1)
+    two_years_ago = years_ago_today(now, 2)
+    three_years_ago = years_ago_today(now, 3)
+
+    o1 = organization_factory(registrar=registrar)
+    o2 = organization_factory(registrar=registrar)
+    link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE"]
+
+    # too early
+    link_factory(creation_timestamp=three_years_ago, guid=link_pks[0], organization=o1, created_by=link_user)
+    link_factory(creation_timestamp=three_years_ago, guid=link_pks[1], organization=o1, created_by=link_user)
+
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[2], organization=o1, created_by=link_user)
+    link_factory(creation_timestamp=now, guid=link_pks[3], organization=o2, created_by=link_user)
+    link_factory(creation_timestamp=now, guid=link_pks[4], organization=o2, created_by=link_user)
+
+    # organization 1 was more active in the past
+    assert most_active_org_in_time_period(registrar.organizations, three_years_ago, two_years_ago) == o1
+    # but organization 2 was more active during the period in question
+    assert most_active_org_in_time_period(registrar.organizations, two_years_ago) == o2
+    # with a total of three links, organization 1 has been more active over all
+    assert most_active_org_in_time_period(registrar.organizations) == o1
+
+
+def test_registrar_most_active_org_this_year(registrar, organization_factory, link_user, link_factory):
+    '''
+        Should return the org (whole object)with the most links
+        created this year, or None if it has no orgs with links
+        created this year.
+    '''
+    assert registrar.most_active_org_this_year() is None
+
+    o1 = organization_factory(registrar=registrar)
+    o2 = organization_factory(registrar=registrar)
+
+    now = tz_datetime(timezone.now().year, 1, 1)
+    two_years_ago = years_ago_today(now, 2)
+    link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE", "FFFF-FFFF"]
+    # too early
+    link_factory(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=link_user, organization=o1)
+    assert registrar.most_active_org_this_year() is None
+
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[1], created_by=link_user, organization=o1)
+    link_factory(creation_timestamp=now, guid=link_pks[2], created_by=link_user, organization=o1)
+    link_factory(creation_timestamp=now, guid=link_pks[3], created_by=link_user, organization=o2)
+
+    assert registrar.most_active_org_this_year() == o1
+
+    # now
+    link_factory(creation_timestamp=now, guid=link_pks[4], created_by=link_user, organization=o2)
+    link_factory(creation_timestamp=now, guid=link_pks[5], created_by=link_user, organization=o2)
+
+    assert registrar.most_active_org_this_year() == o2
+
+
 # Fixtures
 
 def complex_user_with_bonus_link(in_subfolder=False):
@@ -1296,221 +1482,8 @@ def complex_user_with_bonus_link(in_subfolder=False):
 
 class ModelsTestCase(PermaTestCase):
 
-    def test_link_count_in_time_period_no_links(self):
-        '''
-            If no links in period, should return 0
-        '''
-        no_links = Link.objects.none()
-        self.assertEqual(link_count_in_time_period(no_links), 0)
-
-    def test_link_count_period_invalid_dates(self):
-        '''
-            If end date is before start date, should raise an exception
-        '''
-        no_links = Link.objects.none()
-        now = tz_datetime(timezone.now().year, 1, 1)
-        later = tz_datetime(timezone.now().year + 1, 1, 1)
-        with self.assertRaises(ValueError):
-            link_count_in_time_period(no_links, later, now)
-
-    def test_link_count_period_equal_dates(self):
-        '''
-            If end date = start date, links are only counted once
-        '''
-        now = tz_datetime(timezone.now().year, 1, 1)
-        user = LinkUser()
-        user.save()
-        link = Link(creation_timestamp=now, guid="AAAA-AAAA", created_by=user)
-        link.save()
-
-        links = Link.objects.filter(pk=link.pk)
-        self.assertEqual(len(links), 1)
-        self.assertEqual(link_count_in_time_period(links, now, now), len(links))
-
-    def test_link_count_valid_period(self):
-        '''
-            Should include links created only in the target year
-        '''
-        now = tz_datetime(timezone.now().year, 1, 1)
-        two_years_ago = tz_datetime(now.year - 2, 1, 1)
-        three_years_ago = tz_datetime(now.year - 3, 1, 1)
-        user = LinkUser()
-        user.save()
-        link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE"]
-        older= Link(creation_timestamp=three_years_ago, guid=link_pks[0], created_by=user)
-        older.save()
-        old = Link(creation_timestamp=two_years_ago, guid=link_pks[1], created_by=user)
-        old.save()
-        now1 = Link(creation_timestamp=now, guid=link_pks[2], created_by=user)
-        now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[3], created_by=user)
-        now2.save()
-        now3 = Link(creation_timestamp=now, guid=link_pks[4], created_by=user)
-        now3.save()
-
-        links = Link.objects.filter(pk__in=link_pks)
-        self.assertEqual(len(links), 5)
-        self.assertEqual(link_count_in_time_period(links, three_years_ago, two_years_ago), 2)
-
-    def test_org_link_count_this_year(self):
-        '''
-            Should include links created this year and exclude links
-            older than that.
-        '''
-        r = Registrar()
-        r.save()
-        o = Organization(registrar=r)
-        o.save()
-        self.assertEqual(o.link_count_this_year(), 0)
-
-        now = tz_datetime(timezone.now().year, 1, 1)
-        two_years_ago = tz_datetime(now.year - 2, 1, 1)
-        user = LinkUser()
-        user.save()
-        link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC"]
-        too_early = Link(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=user, organization=o)
-        too_early.save()
-        now1 = Link(creation_timestamp=now, guid=link_pks[1], created_by=user, organization=o)
-        now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[2], created_by=user, organization=o)
-        now2.save()
-
-        links = Link.objects.filter(pk__in=link_pks)
-        self.assertEqual(len(links), 3)
-        self.assertEqual(o.link_count_this_year(), 2)
-
-    def test_registrar_link_count_this_year(self):
-        '''
-            Should include links created this year and exclude links
-            older than that. Should work across all its orgs.
-        '''
-        r = Registrar()
-        r.save()
-        o1 = Organization(registrar=r)
-        o1.save()
-        o2 = Organization(registrar=r)
-        o2.save()
-
-        now = tz_datetime(timezone.now().year, 1, 1)
-        two_years_ago = tz_datetime(now.year - 2, 1, 1)
-        user = LinkUser()
-        user.save()
-        link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD"]
-        too_early = Link(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=user, organization=o1)
-        too_early.save()
-        now1 = Link(creation_timestamp=now, guid=link_pks[1], created_by=user, organization=o1)
-        now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[2], created_by=user, organization=o1)
-        now2.save()
-        now3 = Link(creation_timestamp=now, guid=link_pks[3], created_by=user, organization=o2)
-        now3.save()
-
-        links = Link.objects.filter(pk__in=link_pks)
-        self.assertEqual(len(links), 4)
-        self.assertEqual(r.link_count_this_year(), 3)
-
-    def test_most_active_org_in_time_period_no_links(self):
-        '''
-            If no orgs with links in period, should return None
-        '''
-        r = Registrar()
-        r.save()
-        o1 = Organization(registrar=r)
-        o1.save()
-        o2 = Organization(registrar=r)
-        o2.save()
-        self.assertEqual(type(most_active_org_in_time_period(r.organizations)), type(None))
-
-    def test_most_active_org_in_time_period_invalid_dates(self):
-        '''
-            If end date is before start date, should raise an exception
-        '''
-        r = Registrar()
-        r.save()
-        now = tz_datetime(timezone.now().year, 1, 1)
-        later = tz_datetime(now.year + 1, 1, 1)
-        with self.assertRaises(ValueError):
-            most_active_org_in_time_period(r.organizations, later, now)
-
-    def test_most_active_org_in_time_period_valid_period(self):
-        '''
-            Should include links created only in the target year
-        '''
-        now = tz_datetime(timezone.now().year, 1, 1)
-        two_years_ago = tz_datetime(now.year - 2, 1, 1)
-        three_years_ago = tz_datetime(now.year - 3, 1, 1)
-
-        r = Registrar()
-        r.save()
-        o1 = Organization(registrar=r)
-        o1.save()
-        o2 = Organization(registrar=r)
-        o2.save()
-        user = LinkUser()
-        user.save()
-        link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE"]
-
-        too_early1 = Link(creation_timestamp=three_years_ago, guid=link_pks[0], organization=o1, created_by=user)
-        too_early1.save()
-        too_early2 = Link(creation_timestamp=three_years_ago, guid=link_pks[1], organization=o1, created_by=user)
-        too_early2.save()
-
-        now1 = Link(creation_timestamp=now, guid=link_pks[2], organization=o1, created_by=user)
-        now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[3], organization=o2, created_by=user)
-        now2.save()
-        now3 = Link(creation_timestamp=now, guid=link_pks[4], organization=o2, created_by=user)
-        now3.save()
-
-        # organization 1 was more active in the past
-        self.assertEqual(most_active_org_in_time_period(r.organizations, three_years_ago, two_years_ago), o1)
-        # but organization 2 was more active during the period in question
-        self.assertEqual(most_active_org_in_time_period(r.organizations, two_years_ago), o2)
-        # with a total of three links, organization 1 has been more active over all
-        self.assertEqual(most_active_org_in_time_period(r.organizations), o1)
-
-    def test_registrar_most_active_org_this_year(self):
-        '''
-            Should return the org (whole object)with the most links
-            created this year, or None if it has no orgs with links
-            created this year.
-        '''
-        r = Registrar()
-        r.save()
-        self.assertEqual(type(r.most_active_org_this_year()), type(None))
-
-        o1 = Organization(registrar=r)
-        o1.save()
-        o2 = Organization(registrar=r)
-        o2.save()
-
-        now = tz_datetime(timezone.now().year, 1, 1)
-        two_years_ago = tz_datetime(now.year - 2, 1, 1)
-        user = LinkUser()
-        user.save()
-        link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC", "DDDD-DDDD", "EEEE-EEEE", "FFFF-FFFF"]
-        too_early = Link(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=user, organization=o1)
-        too_early.save()
-        self.assertEqual(type(r.most_active_org_this_year()), type(None))
-
-        now1 = Link(creation_timestamp=now, guid=link_pks[1], created_by=user, organization=o1)
-        now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[2], created_by=user, organization=o1)
-        now2.save()
-        now3 = Link(creation_timestamp=now, guid=link_pks[3], created_by=user, organization=o2)
-        now3.save()
-
-        self.assertEqual(r.most_active_org_this_year(), o1)
-
-        now4 = Link(creation_timestamp=now, guid=link_pks[4], created_by=user, organization=o2)
-        now4.save()
-        now5 = Link(creation_timestamp=now, guid=link_pks[5], created_by=user, organization=o2)
-        now5.save()
-
-        self.assertEqual(r.most_active_org_this_year(), o2)
-
     #
-    # Limk limit for sponsored users
+    # Link limit for sponsored users
     #
 
     def test_sponsored_links_not_counted_against_personal_total(self):

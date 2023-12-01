@@ -167,7 +167,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import signals
 from django.utils import timezone
 
-from perma.models import Registrar, LinkUser, Link, CaptureJob
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
 from perma.utils import pp_date_from_post
 
 
@@ -245,6 +245,14 @@ class PayingRegistrarFactory(RegistrarFactory):
 class PayingLimitedRegistrarFactory(PayingRegistrarFactory):
     unlimited = False
 
+
+@register_factory
+class OrganizationFactory(DjangoModelFactory):
+    class Meta:
+        model = Organization
+
+    name = factory.Faker('company')
+    registrar = factory.SubFactory(RegistrarFactory)
 
 
 @register_factory

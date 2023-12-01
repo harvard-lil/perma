@@ -279,6 +279,9 @@ def today_next_year(now):
     # relativedelta handles leap years: 2/29 -> 2/28
     return now + relativedelta(years=1)
 
+def years_ago_today(now, years_ago):
+    # pass in how many years ago from now
+    return now - relativedelta(years=years_ago)
 
 ### addresses ###
 
