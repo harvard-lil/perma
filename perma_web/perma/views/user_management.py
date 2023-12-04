@@ -322,6 +322,11 @@ def stats(request, stat_type=None):
                     creation_timestamp__range=range_tuple
                 ).count()
 
+                playwright_error = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-playwright-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
                 timeout = Link.objects.all_with_deleted().filter(
                     tags__name__in=['scoop-silent-failure'],
                     creation_timestamp__range=range_tuple
@@ -343,6 +348,8 @@ def stats(request, stat_type=None):
                     "proxy_error_percent": round(proxy_error/denominator * 100, 1),
                     "blocklist_error": blocklist_error,
                     "blocklist_error_percent": round(blocklist_error/denominator * 100, 1),
+                    "playwright_error": playwright_error,
+                    "playwright_error_percent": round(playwright_error/denominator * 100, 1),
                     "timeout": timeout,
                     "timeout_percent": round(timeout/denominator * 100, 1),
                     "didnt_load": didnt_load,
@@ -362,6 +369,8 @@ def stats(request, stat_type=None):
                     "proxy_error_percent": 0,
                     "blocklist_error": 0,
                     "blocklist_error_percent": 0,
+                    "playwright_error": 0,
+                    "playwright_error_percent": 0,
                     "timeout": 0,
                     "timeout_percent": 0,
                     "didnt_load": 0,

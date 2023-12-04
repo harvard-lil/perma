@@ -329,6 +329,7 @@ def capture_with_scoop(capture_job):
             didnt_load = "ERROR Navigation to page failed (about:blank)"
             proxy_error = "ERROR An error occurred during capture setup"
             blocklist_error = "TypeError: Cannot read properties of undefined (reading 'match')"
+            playwright_error = "${arg.guid} was not bound in the connection"
             if poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
                 capture_job.link.tags.add('scoop-load-failure')
@@ -338,6 +339,9 @@ def capture_with_scoop(capture_job):
             elif poll_data['stderr_logs'] and blocklist_error in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed while checking the blocklist.")
                 capture_job.link.tags.add('scoop-blocklist-failure')
+            elif poll_data['stderr_logs'] and playwright_error in poll_data['stderr_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed with a Playwright error.")
+                capture_job.link.tags.add('scoop-playwright-failure')
             elif not poll_data['stderr_logs'] and not poll_data['stdout_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
                 capture_job.link.tags.add('scoop-silent-failure')
