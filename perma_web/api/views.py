@@ -511,7 +511,7 @@ class AuthenticatedLinkListView(BaseView):
                     role='primary',
                     status='pending',
                     record_type='response',
-                    url=link.submitted_url,
+                    url=link.ascii_safe_url,
                 ).save()
 
                 # create screenshot placeholder
