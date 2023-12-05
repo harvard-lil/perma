@@ -1,5 +1,5 @@
-# This is the default config.py from the Scoop REST API as of 11/1/2023
-# https://github.com/harvard-lil/scoop-rest-api/blob/26dfc224aafabb53b4af5a44ef9b29cd79d1de82/scoop_rest_api/config.py
+# This is the default config.py from the Scoop REST API as of 12/5/2023
+# https://github.com/harvard-lil/perma-scoop-api/blob/709d9a96a904698143c811989e37ce91a4265448/scoop_rest_api/config.py
 # We only use it to override the blocklist: we disable it to allow the capturing of
 # localhost in our test suite.
 
@@ -80,6 +80,7 @@ TEMPORARY_STORAGE_PATH = "./storage"
 TEMPORARY_STORAGE_EXPIRATION = 60 * 60 * 24
 """ How long should temporary files be stored for? (In seconds). Can be provided via an environment variable. """  # noqa
 
+DEPLOYMENT_SENTINEL_PATH = "/tmp/deployment-pending"
 
 #
 # API-wide settings
@@ -152,5 +153,5 @@ SCOOP_CLI_OPTIONS = {
     - utils.config_check.EXCLUDED_SCOOP_CLI_OPTIONS
 """
 
-SCOOP_TIMEOUT_FUSE = 30
+SCOOP_TIMEOUT_FUSE = 35
 """ Number of seconds to wait before "killing" a Scoop progress after capture timeout. """
