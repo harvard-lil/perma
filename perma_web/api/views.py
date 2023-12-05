@@ -716,7 +716,11 @@ class LinkBatchesListView(BaseView):
 
     def get(self, request, format=None):
         """ List link batches for user. """
-        return self.simple_list(request, serializer_class=DetailedLinkBatchSerializer)
+        return self.simple_list(
+            request,
+            queryset=self.queryset.filter(created_by=request.user.pk),
+            serializer_class=DetailedLinkBatchSerializer
+        )
 
     def post(self, request, format=None):
         """ Create link batch. """
