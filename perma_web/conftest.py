@@ -167,7 +167,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import signals
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship
 from perma.utils import pp_date_from_post
 
 
@@ -269,6 +269,36 @@ class LinkUserFactory(DjangoModelFactory):
     is_confirmed = True
 
     password = factory.PostGenerationMethodCall('set_password', 'pass')
+
+
+@register_factory
+class RegistrarUserFactory(LinkUserFactory):
+    registrar = factory.SubFactory(RegistrarFactory)
+
+
+# SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
+# and before SponsoredUserFactory
+@register_factory
+class SponsorshipFactory(DjangoModelFactory):
+    class Meta:
+        model = Sponsorship
+
+    user = factory.SubFactory(LinkUserFactory)
+    registrar = factory.SubFactory(RegistrarFactory)
+    created_by = factory.SubFactory(
+        RegistrarUserFactory,
+        registrar=factory.SelfAttribute('..registrar')
+    )
+
+
+@register_factory
+class SponsoredUserFactory(LinkUserFactory):
+
+    sponsorships = factory.RelatedFactoryList(
+        SponsorshipFactory,
+        size=1,
+        factory_related_name='user'
+    )
 
 
 @register_factory

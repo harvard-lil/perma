@@ -1459,6 +1459,21 @@ def test_registrar_most_active_org_this_year(registrar, organization_factory, li
     assert registrar.most_active_org_this_year() == o2
 
 
+#
+# Link limit for sponsored users
+#
+
+def test_sponsored_links_not_counted_against_personal_total(sponsored_user, link_factory):
+    breakpoint()
+    assert sponsored_user.get_links_remaining()[0] == 10
+    link = link_factory(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
+
+    assert sponsored_user.get_links_remaining()[0] == 9
+    link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
+    assert sponsored_user.get_links_remaining()[0] == 10
+
+
+
 # Fixtures
 
 def complex_user_with_bonus_link(in_subfolder=False):
@@ -1480,19 +1495,6 @@ def complex_user_with_bonus_link(in_subfolder=False):
 # Tests
 
 class ModelsTestCase(PermaTestCase):
-
-    #
-    # Link limit for sponsored users
-    #
-
-    def test_sponsored_links_not_counted_against_personal_total(self):
-        sponsored_user = LinkUser.objects.get(email='test_sponsored_user@example.com')
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
-        link = Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
-        link.save()
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 8)
-        link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
 
 
     #
