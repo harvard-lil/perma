@@ -22,12 +22,10 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
-from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
     CaptureJob, InternetArchiveItem, InternetArchiveFile
-from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
     remove_whitespace,

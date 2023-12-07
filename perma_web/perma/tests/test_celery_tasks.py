@@ -1,5 +1,3 @@
-from django.core import mail
-
 from django.test import override_settings
 from perma.celery_tasks import update_stats
 

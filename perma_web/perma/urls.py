@@ -9,7 +9,7 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import user_management, common, service, link_management, error_management
+from .views import user_management, common, service, link_management
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
