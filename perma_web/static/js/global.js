@@ -16,7 +16,6 @@ if (settings.USE_SENTRY) {
 
 var FastClick = require('fastclick');
 
-var ErrorHandler = require('./error-handler.js');
 var Helpers = require('./helpers/general.helpers.js');
 require('./helpers/fix-links.js');  // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 
@@ -33,9 +32,6 @@ require('bootstrap-js/tab');       // make tabs work (used on /manage/stats)
 
 // initialize fastclick
 FastClick.attach(document.body);
-
-// initialize airbrake
-ErrorHandler.init();
 
 // set up jquery to properly set CSRF header on AJAX post
 // via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax

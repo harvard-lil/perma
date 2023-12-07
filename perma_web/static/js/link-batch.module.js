@@ -2,7 +2,6 @@ let Spinner = require('spin.js');
 
 let APIModule = require('./helpers/api.module.js');
 var DOMHelpers = require('./helpers/dom.helpers.js');
-var ErrorHandler = require('./error-handler.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let Helpers = require('./helpers/general.helpers.js');
@@ -79,7 +78,6 @@ function render_batch(links_in_batch, folder_path) {
 };
 
 function handle_error(error){
-    ErrorHandler.airbrake.notify(error);
     clearInterval(interval);
     APIModule.showError(error);
     $modal.modal("hide");

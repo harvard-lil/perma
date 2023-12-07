@@ -1,4 +1,3 @@
-var ErrorHandler = require('../error-handler.js');
 var Helpers = require('./general.helpers.js');
 
 // Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
@@ -42,9 +41,9 @@ export function getErrorMessage (jqXHR) {
   if (jqXHR.status == 400 && jqXHR.responseText) {
     try {
       message = stringFromNestedObject(JSON.parse(jqXHR.responseText));
-    } catch (SyntaxError) {
+    } catch (err) {
       // bad json in responseText
-      ErrorHandler.airbrake.notify(SyntaxError);
+      console.error(err);
     }
   } else if (jqXHR.status == 401) {
     message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";

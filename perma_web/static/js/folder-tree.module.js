@@ -5,7 +5,6 @@ require('jstree-css/default/style.min.css');
 let APIModule = require('./helpers/api.module.js');
 let Helpers = require('./helpers/general.helpers.js');
 let DOMHelpers = require('./helpers/dom.helpers.js');
-let ErrorHandler = require('./error-handler.js');
 
 let localStorageKey = Helpers.variables.localStorageKey;
 let allowedEventsCount = 0;
@@ -57,7 +56,7 @@ export function folderListFromUrl() {
       folder_list.forEach(i => {if(isNaN(i)) throw "Invalid folder list"});
       return folder_list
     } catch (err) {
-      ErrorHandler.airbrake.notify(err);
+      console.error(err);
     }
     return [];
   }
