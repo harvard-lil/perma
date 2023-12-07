@@ -2409,38 +2409,3 @@ class MinuteStats(models.Model):
     organizations_sum = models.IntegerField(default=0)
     registrars_sum = models.IntegerField(default=0)
 
-
-class UncaughtError(models.Model):
-    current_url = models.TextField(blank=True, null=True)
-    user_agent = models.TextField(blank=True, null=True)
-    stack = models.TextField(blank=True, null=True)
-    message = models.TextField(blank=True, null=True)
-    user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(default=timezone.now)
-
-    resolved = models.BooleanField(default=False)
-    resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.id}: {self.message}"
-
-    def format_for_reading(self):
-        formatted = {
-            'id': self.id,
-            'user_agent': self.user_agent,
-            'created_at': self.created_at,
-            'message': self.message,
-            'current_url': self.current_url,
-        }
-
-        if self.stack:
-            try:
-                formatted['stack'] = json.loads(self.stack)[0]
-            except IndexError:
-                logger.warn(f"No stacktrace for js error {self.id}")
-            except ValueError:
-                logger.warn(f"Stacktrace for js error {self.id} is invalid json")
-        if self.user:
-            formatted['user'] = self.user.id
-
-        return formatted

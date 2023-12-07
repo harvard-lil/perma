@@ -26,7 +26,7 @@ from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
-    CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
+    CaptureJob, InternetArchiveItem, InternetArchiveFile
 from perma.email import send_self_email
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
@@ -438,24 +438,6 @@ def cache_playback_status(link_guid):
     link.cached_can_play_back = link.can_play_back()
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
-
-
-@shared_task()
-def send_js_errors():
-    """
-    finds all uncaught JS errors recorded in the last week, sends a report if errors exist
-    """
-    errors = UncaughtError.objects.filter(
-        created_at__gte=timezone.now() - timedelta(days=7),
-        resolved=False)
-
-    if errors:
-        formatted_errors = [err.format_for_reading() for err in errors]
-        send_self_email("Uncaught Javascript errors",
-                         HttpRequest(),
-                         'email/admin/js_errors.txt',
-                         {'errors': formatted_errors})
-        return errors
 
 
 @shared_task()

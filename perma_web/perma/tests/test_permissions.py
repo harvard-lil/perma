@@ -38,9 +38,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_organization_user_reactivate', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_user_reactivate', {'kwargs':{'user_id': 4}}],
                     ['user_management_manage_single_sponsored_user_delete', {'kwargs':{'user_id': 20}}],
-                    ['user_management_manage_single_sponsored_user_reactivate', {'kwargs':{'user_id': 20}}],
-                    ['error_management_get_all'],
-                    ['error_management_resolve', {'success_status': 404}],
+                    ['user_management_manage_single_sponsored_user_reactivate', {'kwargs':{'user_id': 20}}]
                 ],
                 'allowed': {'test_admin_user@example.com'},
             },
