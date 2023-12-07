@@ -1565,12 +1565,6 @@
         "indent-string": "^4.0.0"
       }
     },
-    "airbrake-js": {
-      "version": "0.5.9",
-      "resolved": "https://registry.npmjs.org/airbrake-js/-/airbrake-js-0.5.9.tgz",
-      "integrity": "sha512-PGlDzoODscA/w9FHeq0ss3VUkXHZxinJNh/gGxRzynMJAM3afpyAmDpyc/TnoMns4u51UdPN9LmyjDzrPtRLqA==",
-      "dev": true
-    },
     "ajv": {
       "version": "6.12.6",
       "resolved": "https://registry.npmjs.org/ajv/-/ajv-6.12.6.tgz",
