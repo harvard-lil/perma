@@ -33,7 +33,7 @@ django-settings-context-processor       # make settings available in templates
 
 
 # assets
-django-webpack-loader<1.0.0             # frontend assets building
+django-webpack-loader~=1.0              # frontend assets building
 Pillow                                  # Used by the Django admin for ImageField display
 whitenoise                              # serve static assets
 
