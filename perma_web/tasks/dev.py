@@ -72,32 +72,6 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
                 os.kill(proc.pid, signal.SIGKILL)
 
 
-_default_tests = "functional_tests perma api lockss"
-
-@task
-def test(ctx, apps=_default_tests):
-    """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
-    test_python(ctx, apps)
-    if apps == _default_tests:
-        test_js(ctx)
-
-@task
-def test_python(ctx, apps=_default_tests):
-    """ Run Python tests. """
-
-    # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
-    # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps:
-        ctx.run("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
-
-    ctx.run(f"pytest {apps} --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
-
-@task
-def test_js(ctx):
-    """ Run Javascript tests. """
-    ctx.run("npm test")
-
-
 @task
 def pip_compile(ctx, args=''):
     # run pip-compile
