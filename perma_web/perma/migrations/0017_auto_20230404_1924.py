@@ -11,7 +11,7 @@ def backfill_last_login(apps, schema_editor):
     updated = LinkUser.objects.filter(
         is_confirmed=True
     ).exclude(
-        last_login__gt='2023-04-03'
+        last_login__gt='2023-04-03 00:00:00+00:00'
     ).update(
         last_login=Subquery (
             AccessLog.objects.filter(
