@@ -70,7 +70,8 @@ Press `CONTROL-C` to stop the server.
 
 ### Run the tests
 
-`d invoke test`
+`d pytest`
+`d npm test`
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more
 information about testing Perma.
@@ -102,9 +103,14 @@ To upgrade a single requirement to the latest version:
 
 ### Update the node dependencies
 
-Make your changes in `packages.json`. Then run `update.sh`, a convenience
-script that will create a new `npm-shrinkwrap.json` and will rebuild the
-Docker image with the new dependencies installed.
+Install new packages: `d npm install --save-dev package_name`
+Uninstall new packages: `d npm uninstall package_name`
+
+Update a single package:
+- if necessary, change the pinned version in package.json
+- `d npm update package_name`
+
+Update all dependencies: ``
 
 ### Migrate the database
 
@@ -292,8 +298,6 @@ Javascript tests live in `spec/`.
 
 See the [Common tasks and commands](#common-tasks-and-commands) for the
 common techniques for running the tests.
-
-The `d invoke test` command also generates handy coverage information. You can access it by running `d coverage report`.
 
 
 ### Linting with flake8
