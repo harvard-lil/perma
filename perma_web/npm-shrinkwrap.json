@@ -5292,10 +5292,46 @@
       "integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==",
       "dev": true
     },
+    "lodash.assign": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/lodash.assign/-/lodash.assign-4.2.0.tgz",
+      "integrity": "sha512-hFuH8TY+Yji7Eja3mGiuAxBqLagejScbG8GbG0j6o9vzn0YL14My+ktnqtZgFTosKymC9/44wP6s7xyuLfnClw==",
+      "dev": true
+    },
     "lodash.debounce": {
       "version": "4.0.8",
       "resolved": "https://registry.npmjs.org/lodash.debounce/-/lodash.debounce-4.0.8.tgz",
       "integrity": "sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==",
+      "dev": true
+    },
+    "lodash.defaults": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/lodash.defaults/-/lodash.defaults-4.2.0.tgz",
+      "integrity": "sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==",
+      "dev": true
+    },
+    "lodash.foreach": {
+      "version": "4.5.0",
+      "resolved": "https://registry.npmjs.org/lodash.foreach/-/lodash.foreach-4.5.0.tgz",
+      "integrity": "sha512-aEXTF4d+m05rVOAUG3z4vZZ4xVexLKZGF0lIxuHZ1Hplpk/3B6Z1+/ICICYRLm7c41Z2xiejbkCkJoTlypoXhQ==",
+      "dev": true
+    },
+    "lodash.frompairs": {
+      "version": "4.0.1",
+      "resolved": "https://registry.npmjs.org/lodash.frompairs/-/lodash.frompairs-4.0.1.tgz",
+      "integrity": "sha512-dvqe2I+cO5MzXCMhUnfYFa9MD+/760yx2aTAN1lqEcEkf896TxgrX373igVdqSJj6tQd0jnSLE1UMuKufqqxFw==",
+      "dev": true
+    },
+    "lodash.get": {
+      "version": "4.4.2",
+      "resolved": "https://registry.npmjs.org/lodash.get/-/lodash.get-4.4.2.tgz",
+      "integrity": "sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==",
+      "dev": true
+    },
+    "lodash.topairs": {
+      "version": "4.3.0",
+      "resolved": "https://registry.npmjs.org/lodash.topairs/-/lodash.topairs-4.3.0.tgz",
+      "integrity": "sha512-qrRMbykBSEGdOgQLJJqVSdPWMD7Q+GJJ5jMRfQYb+LTLsw3tYVIabnCzRqTJb2WTo17PG5gNzXuFaZgYH/9SAQ==",
       "dev": true
     },
     "log4js": {
@@ -9500,39 +9536,18 @@
       }
     },
     "webpack-bundle-tracker": {
-      "version": "0.0.93",
-      "resolved": "https://registry.npmjs.org/webpack-bundle-tracker/-/webpack-bundle-tracker-0.0.93.tgz",
-      "integrity": "sha512-t5XQFj4C4N6SZbIorsDXwRow16kNkEIJa6H5RtNpnSJTnMOkFgDJ7dgowObzkXABGG52guoLKvlmfMe0i7o7+g==",
+      "version": "1.8.1",
+      "resolved": "https://registry.npmjs.org/webpack-bundle-tracker/-/webpack-bundle-tracker-1.8.1.tgz",
+      "integrity": "sha512-X1qtXG4ue92gjWQO2VhLVq8HDEf9GzUWE0OQyAQObVEZsFB1SUtSQ7o47agF5WZIaHfJUTKak4jEErU0gzoPcQ==",
       "dev": true,
       "requires": {
-        "mkdirp": "^0.5.1",
-        "strip-ansi": "^2.0.1"
-      },
-      "dependencies": {
-        "ansi-regex": {
-          "version": "1.1.1",
-          "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-1.1.1.tgz",
-          "integrity": "sha512-q5i8bFLg2wDfsuR56c1NzlJFPzVD+9mxhDrhqOGigEFa87OZHlF+9dWeGWzVTP/0ECiA/JUGzfzRr2t3eYORRw==",
-          "dev": true
-        },
-        "mkdirp": {
-          "version": "0.5.6",
-          "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.6.tgz",
-          "integrity": "sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==",
-          "dev": true,
-          "requires": {
-            "minimist": "^1.2.6"
-          }
-        },
-        "strip-ansi": {
-          "version": "2.0.1",
-          "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-2.0.1.tgz",
-          "integrity": "sha512-2h8q2CP3EeOhDJ+jd932PRMpa3/pOJFGoF22J1U/DNbEK2gSW2DqeF46VjCXsSQXhC+k/l8/gaaRBQKL6hUPfQ==",
-          "dev": true,
-          "requires": {
-            "ansi-regex": "^1.0.0"
-          }
-        }
+        "lodash.assign": "^4.2.0",
+        "lodash.defaults": "^4.2.0",
+        "lodash.foreach": "^4.5.0",
+        "lodash.frompairs": "^4.0.1",
+        "lodash.get": "^4.4.2",
+        "lodash.topairs": "^4.3.0",
+        "strip-ansi": "^6.0.0"
       }
     },
     "webpack-cli": {

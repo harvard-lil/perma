@@ -55,7 +55,7 @@
     "waypoints": "^4.0.1",
     "webpack": "^4.46.0",
     "webpack-bundle-size-analyzer": "^2.7.0",
-    "webpack-bundle-tracker": "0.0.93",
+    "webpack-bundle-tracker": "^1.8.1",
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
