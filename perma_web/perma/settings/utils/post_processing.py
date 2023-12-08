@@ -58,10 +58,6 @@ def post_process_settings(settings):
             'task': 'perma.celery_tasks.update_stats',
             'schedule': crontab(minute='*'),
         },
-        'send-js-errors': {
-            'task': 'perma.celery_tasks.send_js_errors',
-            'schedule': crontab(hour='10', minute='0', day_of_week=1)
-        },
         'run-next-capture': {
             'task': 'perma.celery_tasks.run_next_capture',
             'schedule': crontab(minute='*'),

@@ -1049,8 +1049,8 @@ module.exports = function (argument) {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(57);
-__webpack_require__(200);
-module.exports = __webpack_require__(201);
+__webpack_require__(187);
+module.exports = __webpack_require__(188);
 
 
 /***/ }),
@@ -1079,23 +1079,21 @@ if (settings.USE_SENTRY) {
 
 var FastClick = __webpack_require__(156);
 
-var ErrorHandler = __webpack_require__(157);
+var Helpers = __webpack_require__(157);
 
-var Helpers = __webpack_require__(170);
-
-__webpack_require__(195); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
+__webpack_require__(182); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 
 
-__webpack_require__(196); // make menus work
+__webpack_require__(183); // make menus work
 
 
-__webpack_require__(197); // make menu toggle for small screen work
+__webpack_require__(184); // make menu toggle for small screen work
 
 
-__webpack_require__(198); // make carousels work
+__webpack_require__(185); // make carousels work
 
 
-__webpack_require__(199); // make tabs work (used on /manage/stats)
+__webpack_require__(186); // make tabs work (used on /manage/stats)
 // We used to use modernizr but have currently dropped it.
 // If we want to include it again this is where to put it --
 //    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
@@ -1103,9 +1101,7 @@ __webpack_require__(199); // make tabs work (used on /manage/stats)
 // initialize fastclick
 
 
-FastClick.attach(document.body); // initialize airbrake
-
-ErrorHandler.init(); // set up jquery to properly set CSRF header on AJAX post
+FastClick.attach(document.body); // set up jquery to properly set CSRF header on AJAX post
 // via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 
 $.ajaxSetup({
@@ -24705,1000 +24701,6 @@ var __WEBPACK_AMD_DEFINE_RESULT__;;(function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($, __webpack_provided_window_dot_jQuery, jQuery) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resolve", function() { return resolve; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "airbrake", function() { return airbrake; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
-var airbrakeJs = __webpack_require__(158);
-
-var airbrakeJs_instrumentation_jquery = __webpack_require__(169);
-
-function resolve(error_id) {
-  $.ajax({
-    type: 'POST',
-    url: '/manage/errors/resolve',
-    data: {
-      'error_id': error_id
-    }
-  });
-}
-var airbrake = undefined;
-function init() {
-  airbrake = new airbrakeJs({
-    reporter: 'xhr',
-    host: '/errors/new?'
-  });
-  window.onerror = airbrake.onerror; // in debug mode, monkey-patch airbrake.notify() to log the error to the console
-
-  if (typeof settings !== 'undefined' && settings.DEBUG) {
-    airbrake.notify = function (err) {
-      console.error(err.error ? err.error.stack : err);
-      return this.__proto__.notify.apply(this, arguments); // call real notify() method
-    };
-  } // add listener for jquery errors
-
-
-  if (__webpack_provided_window_dot_jQuery) {
-    airbrakeJs_instrumentation_jquery(airbrake, jQuery);
-  }
-}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58), __webpack_require__(58), __webpack_require__(58)))
-
-/***/ }),
-/* 158 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {(function() {
-  var Client, Promise, makeOnErrorHandler, merge;
-
-  __webpack_require__(159);
-
-  merge = __webpack_require__(160);
-
-  Promise = __webpack_require__(161);
-
-  makeOnErrorHandler = function(notifier) {
-    return function(message, file, line, column, error) {
-      if (error) {
-        return notifier.notify(error);
-      } else {
-        return notifier.notify({
-          error: {
-            message: message,
-            fileName: file,
-            lineNumber: line,
-            columnNumber: column || 0
-          }
-        });
-      }
-    };
-  };
-
-  Client = (function() {
-    function Client(opts) {
-      var reporter;
-      if (opts == null) {
-        opts = {};
-      }
-      this._projectId = opts.projectId || 0;
-      this._projectKey = opts.projectKey || '';
-      this._host = opts.host || 'https://api.airbrake.io';
-      this._processor = null;
-      this._reporters = [];
-      this._filters = [];
-      if (opts.processor !== void 0) {
-        this._processor = opts.processor;
-      } else {
-        this._processor = __webpack_require__(162);
-      }
-      if (opts.reporter !== void 0) {
-        this.addReporter(opts.reporter);
-      } else {
-        if ('withCredentials' in new global.XMLHttpRequest()) {
-          reporter = 'compat';
-        } else {
-          reporter = 'jsonp';
-        }
-        this.addReporter(reporter);
-      }
-      this.addFilter(__webpack_require__(163));
-      this.onerror = makeOnErrorHandler(this);
-      if ((global.onerror == null) && opts.onerror !== false) {
-        global.onerror = this.onerror;
-      }
-    }
-
-    Client.prototype.setProject = function(id, key) {
-      this._projectId = id;
-      return this._projectKey = key;
-    };
-
-    Client.prototype.setHost = function(host) {
-      return this._host = host;
-    };
-
-    Client.prototype.addContext = function(context) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: addContext is deprecated, please use addFilter');
-        }
-      }
-      return this.addFilter(function(notice) {
-        notice.context = merge({}, context, notice.context);
-        return notice;
-      });
-    };
-
-    Client.prototype.setEnvironmentName = function(envName) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: setEnvironmentName is deprecated, please use addFilter');
-        }
-      }
-      return this.addFilter(function(notice) {
-        if (notice.context.environment == null) {
-          notice.context.environment = envName;
-        }
-        return notice;
-      });
-    };
-
-    Client.prototype.addParams = function(params) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: addParams is deprecated, please use addFilter');
-        }
-      }
-      return this.addFilter(function(notice) {
-        notice.params = merge({}, params, notice.params);
-        return notice;
-      });
-    };
-
-    Client.prototype.addEnvironment = function(env) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: addEnvironment is deprecated, please use addFilter');
-        }
-      }
-      return this.addFilter(function(notice) {
-        notice.environment = merge({}, env, notice.environment);
-        return notice;
-      });
-    };
-
-    Client.prototype.addSession = function(session) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: addSession is deprecated, please use addFilter');
-        }
-      }
-      return this.addFilter(function(notice) {
-        notice.session = merge({}, session, notice.session);
-        return notice;
-      });
-    };
-
-    Client.prototype.addReporter = function(reporter) {
-      switch (reporter) {
-        case 'compat':
-          reporter = __webpack_require__(164);
-          break;
-        case 'xhr':
-          reporter = __webpack_require__(167);
-          break;
-        case 'jsonp':
-          reporter = __webpack_require__(168);
-      }
-      return this._reporters.push(reporter);
-    };
-
-    Client.prototype.addFilter = function(filter) {
-      return this._filters.push(filter);
-    };
-
-    Client.prototype.notify = function(err) {
-      var defContext, promise, ref;
-      defContext = {
-        language: 'JavaScript',
-        sourceMapEnabled: true
-      };
-      if ((ref = global.navigator) != null ? ref.userAgent : void 0) {
-        defContext.userAgent = global.navigator.userAgent;
-      }
-      if (global.location) {
-        defContext.url = String(global.location);
-        defContext.rootDirectory = global.location.protocol + '//' + global.location.host;
-      }
-      promise = new Promise();
-      this._processor(err.error || err, (function(_this) {
-        return function(processorName, errInfo) {
-          var filterFn, j, k, len, len1, n, notice, opts, ref1, ref2, reporterFn;
-          notice = {
-            errors: [errInfo],
-            context: merge(defContext, err.context),
-            params: err.params || {},
-            environment: err.environment || {},
-            session: err.session || {}
-          };
-          notice.context.notifier = {
-            name: 'airbrake-js-' + processorName,
-            version: '0.5.9',
-            url: 'https://github.com/airbrake/airbrake-js'
-          };
-          ref1 = _this._filters;
-          for (j = 0, len = ref1.length; j < len; j++) {
-            filterFn = ref1[j];
-            n = filterFn(notice);
-            if (n === null || n === false) {
-              return;
-            }
-            if (n.errors != null) {
-              notice = n;
-            } else {
-              if (typeof console !== "undefined" && console !== null) {
-                if (typeof console.warn === "function") {
-                  console.warn('airbrake: filter must return notice or null to ignore the notice');
-                }
-              }
-            }
-          }
-          opts = {
-            projectId: _this._projectId,
-            projectKey: _this._projectKey,
-            host: _this._host
-          };
-          ref2 = _this._reporters;
-          for (k = 0, len1 = ref2.length; k < len1; k++) {
-            reporterFn = ref2[k];
-            reporterFn(notice, opts, promise);
-          }
-        };
-      })(this));
-      return promise;
-    };
-
-    Client.prototype.push = function(err) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn('airbrake: push is deprecated, please use notify');
-        }
-      }
-      return this.notify(err);
-    };
-
-    Client.prototype._wrapArguments = function(args) {
-      var arg, i, j, len;
-      for (i = j = 0, len = args.length; j < len; i = ++j) {
-        arg = args[i];
-        if (typeof arg === 'function') {
-          args[i] = this.wrap(arg);
-        }
-      }
-      return args;
-    };
-
-    Client.prototype.wrap = function(fn) {
-      var airbrakeWrapper, prop, self;
-      if (fn.__airbrake__) {
-        return fn;
-      }
-      self = this;
-      airbrakeWrapper = function() {
-        var args, exc;
-        args = self._wrapArguments(arguments);
-        try {
-          return fn.apply(this, args);
-        } catch (_error) {
-          exc = _error;
-          args = Array.prototype.slice.call(arguments);
-          self.notify({
-            error: exc,
-            params: {
-              "arguments": args
-            }
-          });
-        }
-      };
-      for (prop in fn) {
-        if (fn.hasOwnProperty(prop)) {
-          airbrakeWrapper[prop] = fn[prop];
-        }
-      }
-      airbrakeWrapper.__airbrake__ = true;
-      airbrakeWrapper.__inner__ = fn;
-      return airbrakeWrapper;
-    };
-
-    return Client;
-
-  })();
-
-  module.exports = Client;
-
-}).call(this);
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(7)))
-
-/***/ }),
-/* 159 */
-/***/ (function(module, exports) {
-
-(function() {
-  var base;
-
-  if ((base = Array.prototype).indexOf == null) {
-    base.indexOf = function(obj, start) {
-      var i, j, ref, ref1;
-      start = start || 0;
-      for (i = j = ref = start, ref1 = this.length; ref <= ref1 ? j < ref1 : j > ref1; i = ref <= ref1 ? ++j : --j) {
-        if (this[i] === obj) {
-          return i;
-        }
-      }
-      return -1;
-    };
-  }
-
-}).call(this);
-
-
-/***/ }),
-/* 160 */
-/***/ (function(module, exports) {
-
-(function() {
-  var merge;
-
-  merge = function() {
-    var dst, i, key, len, obj, objs;
-    objs = Array.prototype.slice.call(arguments);
-    dst = objs.shift() || {};
-    for (i = 0, len = objs.length; i < len; i++) {
-      obj = objs[i];
-      for (key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          dst[key] = obj[key];
-        }
-      }
-    }
-    return dst;
-  };
-
-  module.exports = merge;
-
-}).call(this);
-
-
-/***/ }),
-/* 161 */
-/***/ (function(module, exports) {
-
-(function() {
-  var Promise;
-
-  Promise = (function() {
-    function Promise(executor) {
-      var reject, resolve;
-      this._onResolved = [];
-      this._onRejected = [];
-      resolve = (function(_this) {
-        return function() {
-          return _this.resolve.apply(_this, arguments);
-        };
-      })(this);
-      reject = (function(_this) {
-        return function() {
-          return _this.reject.apply(_this, arguments);
-        };
-      })(this);
-      if (executor != null) {
-        executor(resolve, reject);
-      }
-    }
-
-    Promise.prototype.then = function(onResolved, onRejected) {
-      if (onResolved) {
-        if (this._resolvedWith != null) {
-          onResolved(this._resolvedWith);
-        }
-        this._onResolved.push(onResolved);
-      }
-      if (onRejected) {
-        if (this._rejectedWith != null) {
-          onRejected(this._resolvedWith);
-        }
-        this._onRejected.push(onRejected);
-      }
-      return this;
-    };
-
-    Promise.prototype["catch"] = function(onRejected) {
-      if (this._rejectedWith != null) {
-        onRejected(this._rejectedWith);
-      }
-      this._onRejected.push(onRejected);
-      return this;
-    };
-
-    Promise.prototype.resolve = function() {
-      var fn, i, len, ref;
-      this._resolvedWith = arguments;
-      ref = this._onResolved;
-      for (i = 0, len = ref.length; i < len; i++) {
-        fn = ref[i];
-        fn.apply(this, this._resolvedWith);
-      }
-      return this;
-    };
-
-    Promise.prototype.reject = function() {
-      var fn, i, len, ref;
-      this._rejectedWith = arguments;
-      ref = this._onRejected;
-      for (i = 0, len = ref.length; i < len; i++) {
-        fn = ref[i];
-        fn.apply(this, this._rejectedWith);
-      }
-      return this;
-    };
-
-    return Promise;
-
-  })();
-
-  module.exports = Promise;
-
-}).call(this);
-
-
-/***/ }),
-/* 162 */
-/***/ (function(module, exports) {
-
-(function() {
-  var processor, rules, typeMessageRe;
-
-  rules = [
-    {
-      name: 'v8',
-      re: /^\s*at\s(.+?)\s\((?:(?:(.+):(\d+):(\d+))|(.+))\)$/,
-      fn: function(m) {
-        return {
-          "function": m[1],
-          file: m[2] || m[5],
-          line: m[3] && parseInt(m[3], 10) || 0,
-          column: m[4] && parseInt(m[4], 10) || 0
-        };
-      }
-    }, {
-      name: 'firefox30',
-      re: /^(.*)@(.+):(\d+):(\d+)$/,
-      fn: function(m) {
-        var evaledRe, file, func, mm;
-        func = m[1];
-        file = m[2];
-        evaledRe = /^(\S+)\s(line\s\d+\s>\seval.*)$/;
-        if (mm = file.match(evaledRe)) {
-          if (func.length > 0) {
-            func = func + ' ' + mm[2];
-          } else {
-            func = mm[2];
-          }
-          file = mm[1];
-        }
-        return {
-          "function": func,
-          file: file,
-          line: parseInt(m[3], 10),
-          column: parseInt(m[4], 10)
-        };
-      }
-    }, {
-      name: 'firefox14',
-      re: /^(.*)@(.+):(\d+)$/,
-      fn: function(m, i, e) {
-        var column;
-        if (i === 0) {
-          column = e.columnNumber || 0;
-        } else {
-          column = 0;
-        }
-        return {
-          "function": m[1],
-          file: m[2],
-          line: parseInt(m[3], 10),
-          column: column
-        };
-      }
-    }, {
-      name: 'v8-short',
-      re: /^\s*at\s(.+):(\d+):(\d+)$/,
-      fn: function(m) {
-        return {
-          "function": '',
-          file: m[1],
-          line: parseInt(m[2], 10),
-          column: parseInt(m[3], 10)
-        };
-      }
-    }, {
-      name: 'phantomjs',
-      re: /^\s*at\s(.+):(\d+)$/,
-      fn: function(m) {
-        return {
-          "function": '',
-          file: m[1],
-          line: parseInt(m[2], 10),
-          column: 0
-        };
-      }
-    }, {
-      name: 'default',
-      re: /.+/,
-      fn: function(m) {
-        return {
-          "function": m[0],
-          file: '',
-          line: 0,
-          column: 0
-        };
-      }
-    }
-  ];
-
-  typeMessageRe = /^\S+:\s.+$/;
-
-  processor = function(e, cb) {
-    var backtrace, i, j, k, len, len1, line, lines, m, msg, processorName, rule, stack, type, uncaughtExcRe;
-    processorName = 'nostack';
-    stack = e.stack || '';
-    lines = stack.split('\n');
-    backtrace = [];
-    for (i = j = 0, len = lines.length; j < len; i = ++j) {
-      line = lines[i];
-      if (line === '') {
-        continue;
-      }
-      for (k = 0, len1 = rules.length; k < len1; k++) {
-        rule = rules[k];
-        m = line.match(rule.re);
-        if (!m) {
-          continue;
-        }
-        processorName = rule.name;
-        backtrace.push(rule.fn(m, i, e));
-        break;
-      }
-    }
-    if ((processorName === 'v8' || processorName === 'v8-short') && backtrace.length > 0 && backtrace[0]["function"].match(typeMessageRe)) {
-      backtrace = backtrace.slice(1);
-    }
-    if (backtrace.length === 0 && ((e.fileName != null) || (e.lineNumber != null) || (e.columnNumber != null))) {
-      backtrace.push({
-        "function": '',
-        file: e.fileName || '',
-        line: parseInt(e.lineNumber, 10) || 0,
-        column: parseInt(e.columnNumber, 10) || 0
-      });
-    }
-    if (backtrace.length === 0 && ((e.filename != null) || (e.lineno != null) || (e.column != null) || (e.colno != null))) {
-      backtrace.push({
-        "function": '',
-        file: e.filename || '',
-        line: parseInt(e.lineno, 10) || 0,
-        column: parseInt(e.column || e.colno, 10) || 0
-      });
-    }
-    if (e.message != null) {
-      msg = e.message;
-    } else {
-      msg = String(e);
-    }
-    if ((e.name != null) && e.name !== '') {
-      type = e.name;
-    } else {
-      uncaughtExcRe = /^Uncaught\s(.+?):\s(.+)$/;
-      m = msg.match(uncaughtExcRe);
-      if (m) {
-        type = m[1];
-        msg = m[2];
-      } else {
-        type = '';
-      }
-    }
-    if (type === '' && msg === '' && backtrace.length === 0) {
-      if (typeof console !== "undefined" && console !== null) {
-        if (typeof console.warn === "function") {
-          console.warn("airbrake: can't process error", e);
-        }
-      }
-      return;
-    }
-    return cb(processorName, {
-      'type': type,
-      'message': msg,
-      'backtrace': backtrace
-    });
-  };
-
-  module.exports = processor;
-
-}).call(this);
-
-
-/***/ }),
-/* 163 */
-/***/ (function(module, exports) {
-
-(function() {
-  var IGNORED_MESSAGES, filter,
-    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  IGNORED_MESSAGES = ['Script error', 'Script error.'];
-
-  filter = function(notice) {
-    var msg;
-    msg = notice.errors[0].message;
-    if (indexOf.call(IGNORED_MESSAGES, msg) >= 0) {
-      return null;
-    }
-    return notice;
-  };
-
-  module.exports = filter;
-
-}).call(this);
-
-
-/***/ }),
-/* 164 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {(function() {
-  var jsonifyNotice, report;
-
-  jsonifyNotice = __webpack_require__(165);
-
-  report = function(notice, opts, promise) {
-    var payload, req, url;
-    url = opts.host + "/api/v3/projects/" + opts.projectId + "/create-notice?key=" + opts.projectKey;
-    payload = jsonifyNotice(notice);
-    req = new global.XMLHttpRequest();
-    req.open('POST', url, true);
-    req.send(payload);
-    return req.onreadystatechange = function() {
-      var resp;
-      if (req.readyState === 4 && req.status === 200) {
-        resp = JSON.parse(req.responseText);
-        notice.id = resp.id;
-        return promise.resolve(notice);
-      }
-    };
-  };
-
-  module.exports = report;
-
-}).call(this);
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(7)))
-
-/***/ }),
-/* 165 */
-/***/ (function(module, exports, __webpack_require__) {
-
-(function() {
-  var jsonifyNotice, truncate, truncateObj;
-
-  truncate = __webpack_require__(166);
-
-  truncateObj = function(obj, n) {
-    var dst, key;
-    if (n == null) {
-      n = 1000;
-    }
-    dst = {};
-    for (key in obj) {
-      dst[key] = truncate(obj[key], n = n);
-    }
-    return dst;
-  };
-
-  jsonifyNotice = function(notice, n, maxLength) {
-    var err, s;
-    if (n == null) {
-      n = 1000;
-    }
-    if (maxLength == null) {
-      maxLength = 64000;
-    }
-    while (true) {
-      notice.params = truncateObj(notice.params, n = n);
-      notice.environment = truncateObj(notice.environment, n = n);
-      notice.session = truncateObj(notice.session, n = n);
-      s = JSON.stringify(notice);
-      if (s.length < maxLength) {
-        return s;
-      }
-      if (n === 0) {
-        break;
-      }
-      n = Math.floor(n / 2);
-    }
-    err = new Error("airbrake-js: cannot jsonify notice (length=" + s.length + " maxLength=" + maxLength + ")");
-    err.params = {
-      json: s.slice(0, +Math.floor(n / 2) + 1 || 9e9) + '...'
-    };
-    throw err;
-  };
-
-  module.exports = jsonifyNotice;
-
-}).call(this);
-
-
-/***/ }),
-/* 166 */
-/***/ (function(module, exports) {
-
-(function() {
-  var getAttr, truncate;
-
-  getAttr = function(obj, attr) {
-    var exc;
-    try {
-      return obj[attr];
-    } catch (_error) {
-      exc = _error;
-      return void 0;
-    }
-  };
-
-  truncate = function(value, n, depth) {
-    var fn, getPath, keys, nn, seen;
-    if (n == null) {
-      n = 1000;
-    }
-    if (depth == null) {
-      depth = 5;
-    }
-    nn = 0;
-    keys = [];
-    seen = [];
-    getPath = function(value) {
-      var i, index, j, path, ref;
-      index = seen.indexOf(value);
-      path = [keys[index]];
-      for (i = j = ref = index; ref <= 0 ? j <= 0 : j >= 0; i = ref <= 0 ? ++j : --j) {
-        if (seen[i] && getAttr(seen[i], path[0]) === value) {
-          value = seen[i];
-          path.unshift(keys[i]);
-        }
-      }
-      return '~' + path.join('.');
-    };
-    fn = function(value, key, dd) {
-      var dst, el, i, j, len, val;
-      if (key == null) {
-        key = '';
-      }
-      if (dd == null) {
-        dd = 0;
-      }
-      nn++;
-      if (nn > n) {
-        return '[Truncated]';
-      }
-      if (value === null || value === void 0) {
-        return value;
-      }
-      switch (typeof value) {
-        case 'boolean':
-        case 'number':
-        case 'string':
-        case 'function':
-          return value;
-        case 'object':
-          break;
-        default:
-          return String(value);
-      }
-      if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof Date || value instanceof RegExp) {
-        return value;
-      }
-      if (seen.indexOf(value) >= 0) {
-        return "[Circular " + (getPath(value)) + "]";
-      }
-      dd++;
-      if (dd > depth) {
-        return '[Truncated]';
-      }
-      keys.push(key);
-      seen.push(value);
-      nn--;
-      if (Object.prototype.toString.apply(value) === '[object Array]') {
-        dst = [];
-        for (i = j = 0, len = value.length; j < len; i = ++j) {
-          el = value[i];
-          nn++;
-          if (nn >= n) {
-            break;
-          }
-          dst.push(fn(el, key = i, dd));
-        }
-        return dst;
-      }
-      dst = {};
-      for (key in value) {
-        if (!Object.prototype.hasOwnProperty.call(value, key)) {
-          continue;
-        }
-        nn++;
-        if (nn >= n) {
-          break;
-        }
-        val = getAttr(value, key);
-        if (val !== void 0) {
-          dst[key] = fn(val, key = key, dd);
-        }
-      }
-      return dst;
-    };
-    return fn(value);
-  };
-
-  module.exports = truncate;
-
-}).call(this);
-
-
-/***/ }),
-/* 167 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {(function() {
-  var jsonifyNotice, report;
-
-  jsonifyNotice = __webpack_require__(165);
-
-  report = function(notice, opts, promise) {
-    var payload, req, url;
-    url = opts.host + "/api/v3/projects/" + opts.projectId + "/notices?key=" + opts.projectKey;
-    payload = jsonifyNotice(notice);
-    req = new global.XMLHttpRequest();
-    req.open('POST', url, true);
-    req.setRequestHeader('Content-Type', 'application/json');
-    req.send(payload);
-    return req.onreadystatechange = function() {
-      var resp;
-      if (req.readyState === 4 && req.status === 201) {
-        resp = JSON.parse(req.responseText);
-        notice.id = resp.id;
-        return promise.resolve(notice);
-      }
-    };
-  };
-
-  module.exports = report;
-
-}).call(this);
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(7)))
-
-/***/ }),
-/* 168 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {(function() {
-  var cbCount, jsonifyNotice, report;
-
-  jsonifyNotice = __webpack_require__(165);
-
-  cbCount = 0;
-
-  report = function(notice, opts, promise) {
-    var cbName, document, head, payload, removeScript, script, url;
-    cbCount++;
-    cbName = 'airbrakeCb' + String(cbCount);
-    global[cbName] = function(resp) {
-      var _;
-      notice.id = resp.id;
-      promise.resolve(notice);
-      try {
-        return delete global[cbName];
-      } catch (_error) {
-        _ = _error;
-        return global[cbName] = void 0;
-      }
-    };
-    payload = encodeURIComponent(jsonifyNotice(notice));
-    url = opts.host + "/api/v3/projects/" + opts.projectId + "/create-notice?key=" + opts.projectKey + "&callback=" + cbName + "&body=" + payload;
-    document = global.document;
-    head = document.getElementsByTagName('head')[0];
-    script = document.createElement('script');
-    script.src = url;
-    removeScript = function() {
-      return head.removeChild(script);
-    };
-    script.onload = removeScript;
-    script.onerror = removeScript;
-    return head.appendChild(script);
-  };
-
-  module.exports = report;
-
-}).call(this);
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(7)))
-
-/***/ }),
-/* 169 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {(function() {
-  var instrumentJQuery;
-
-  instrumentJQuery = function(client, jq) {
-    var jqCallbacks, jqEventAdd, jqReady, wrapArguments;
-    if (jq == null) {
-      jq = global.jQuery;
-    }
-    wrapArguments = function(args) {
-      var arg, i, j, len, type;
-      for (i = j = 0, len = args.length; j < len; i = ++j) {
-        arg = args[i];
-        type = typeof arg;
-        if (type === 'function') {
-          args[i] = client.wrap(arg);
-        } else if (arg && arg.length && type !== 'string') {
-          args[i] = wrapArguments(arg);
-        }
-      }
-      return args;
-    };
-    jqEventAdd = jq.event.add;
-    jq.event.add = function(elem, types, handler, data, selector) {
-      if (handler.handler) {
-        if (!handler.handler.guid) {
-          handler.handler.guid = jq.guid++;
-        }
-        handler.handler = client.wrap(handler.handler);
-      } else {
-        if (!handler.guid) {
-          handler.guid = jq.guid++;
-        }
-        handler = client.wrap(handler);
-      }
-      return jqEventAdd(elem, types, handler, data, selector);
-    };
-    jqCallbacks = jq.Callbacks;
-    jq.Callbacks = function(options) {
-      var cb, cbAdd;
-      cb = jqCallbacks(options);
-      cbAdd = cb.add;
-      cb.add = function() {
-        return cbAdd.apply(this, wrapArguments(arguments));
-      };
-      return cb;
-    };
-    jqReady = jq.fn.ready;
-    jq.fn.ready = function(fn) {
-      return jqReady(client.wrap(fn));
-    };
-    return jq;
-  };
-
-  module.exports = instrumentJQuery;
-
-}).call(this);
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(7)))
-
-/***/ }),
-/* 170 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sendFormData", function() { return sendFormData; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "informUser", function() { return informUser; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setCookie", function() { return setCookie; });
@@ -25710,11 +24712,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "variables", function() { return variables; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "jsonLocalStorage", function() { return jsonLocalStorage; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "triggerOnWindow", function() { return triggerOnWindow; });
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(171);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(158);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(181);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(168);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(191);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(178);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__);
 
 
@@ -25826,37 +24828,37 @@ function triggerOnWindow(message, data) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
-/* 171 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(172);
+module.exports = __webpack_require__(159);
 
 /***/ }),
-/* 172 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var parent = __webpack_require__(173);
+var parent = __webpack_require__(160);
 
 module.exports = parent;
 
 
 /***/ }),
-/* 173 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(174);
+__webpack_require__(161);
 var path = __webpack_require__(27);
 
 module.exports = path.Object.keys;
 
 
 /***/ }),
-/* 174 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $ = __webpack_require__(5);
 var toObject = __webpack_require__(43);
-var nativeKeys = __webpack_require__(175);
+var nativeKeys = __webpack_require__(162);
 var fails = __webpack_require__(10);
 
 var FAILS_ON_PRIMITIVES = fails(function () { nativeKeys(1); });
@@ -25871,11 +24873,11 @@ $({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES }, {
 
 
 /***/ }),
-/* 175 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var internalObjectKeys = __webpack_require__(176);
-var enumBugKeys = __webpack_require__(180);
+var internalObjectKeys = __webpack_require__(163);
+var enumBugKeys = __webpack_require__(167);
 
 // `Object.keys` method
 // https://tc39.es/ecma262/#sec-object.keys
@@ -25886,14 +24888,14 @@ module.exports = Object.keys || function keys(O) {
 
 
 /***/ }),
-/* 176 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var uncurryThis = __webpack_require__(11);
 var hasOwn = __webpack_require__(42);
 var toIndexedObject = __webpack_require__(18);
-var indexOf = __webpack_require__(177).indexOf;
-var hiddenKeys = __webpack_require__(179);
+var indexOf = __webpack_require__(164).indexOf;
+var hiddenKeys = __webpack_require__(166);
 
 var push = uncurryThis([].push);
 
@@ -25912,11 +24914,11 @@ module.exports = function (object, names) {
 
 
 /***/ }),
-/* 177 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toIndexedObject = __webpack_require__(18);
-var toAbsoluteIndex = __webpack_require__(178);
+var toAbsoluteIndex = __webpack_require__(165);
 var lengthOfArrayLike = __webpack_require__(65);
 
 // `Array.prototype.{ indexOf, includes }` methods implementation
@@ -25950,7 +24952,7 @@ module.exports = {
 
 
 /***/ }),
-/* 178 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toIntegerOrInfinity = __webpack_require__(67);
@@ -25968,14 +24970,14 @@ module.exports = function (index, length) {
 
 
 /***/ }),
-/* 179 */
+/* 166 */
 /***/ (function(module, exports) {
 
 module.exports = {};
 
 
 /***/ }),
-/* 180 */
+/* 167 */
 /***/ (function(module, exports) {
 
 // IE8- don't enum bug keys
@@ -25991,26 +24993,26 @@ module.exports = [
 
 
 /***/ }),
-/* 181 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(182);
+module.exports = __webpack_require__(169);
 
 /***/ }),
-/* 182 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var parent = __webpack_require__(183);
+var parent = __webpack_require__(170);
 
 module.exports = parent;
 
 
 /***/ }),
-/* 183 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isPrototypeOf = __webpack_require__(28);
-var method = __webpack_require__(184);
+var method = __webpack_require__(171);
 
 var StringPrototype = String.prototype;
 
@@ -26022,24 +25024,24 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 184 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(185);
+__webpack_require__(172);
 var entryVirtual = __webpack_require__(76);
 
 module.exports = entryVirtual('String').trim;
 
 
 /***/ }),
-/* 185 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $ = __webpack_require__(5);
-var $trim = __webpack_require__(186).trim;
-var forcedStringTrimMethod = __webpack_require__(189);
+var $trim = __webpack_require__(173).trim;
+var forcedStringTrimMethod = __webpack_require__(176);
 
 // `String.prototype.trim` method
 // https://tc39.es/ecma262/#sec-string.prototype.trim
@@ -26051,13 +25053,13 @@ $({ target: 'String', proto: true, forced: forcedStringTrimMethod('trim') }, {
 
 
 /***/ }),
-/* 186 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var uncurryThis = __webpack_require__(11);
 var requireObjectCoercible = __webpack_require__(21);
-var toString = __webpack_require__(187);
-var whitespaces = __webpack_require__(188);
+var toString = __webpack_require__(174);
+var whitespaces = __webpack_require__(175);
 
 var replace = uncurryThis(''.replace);
 var whitespace = '[' + whitespaces + ']';
@@ -26088,7 +25090,7 @@ module.exports = {
 
 
 /***/ }),
-/* 187 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(6);
@@ -26103,7 +25105,7 @@ module.exports = function (argument) {
 
 
 /***/ }),
-/* 188 */
+/* 175 */
 /***/ (function(module, exports) {
 
 // a string of all valid unicode whitespaces
@@ -26112,12 +25114,12 @@ module.exports = '\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u2000\u2001\u
 
 
 /***/ }),
-/* 189 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var PROPER_FUNCTION_NAME = __webpack_require__(190).PROPER;
+var PROPER_FUNCTION_NAME = __webpack_require__(177).PROPER;
 var fails = __webpack_require__(10);
-var whitespaces = __webpack_require__(188);
+var whitespaces = __webpack_require__(175);
 
 var non = '\u200B\u0085\u180E';
 
@@ -26133,7 +25135,7 @@ module.exports = function (METHOD_NAME) {
 
 
 /***/ }),
-/* 190 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var DESCRIPTORS = __webpack_require__(14);
@@ -26156,25 +25158,25 @@ module.exports = {
 
 
 /***/ }),
-/* 191 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(192);
+module.exports = __webpack_require__(179);
 
 /***/ }),
-/* 192 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var parent = __webpack_require__(193);
+var parent = __webpack_require__(180);
 
 module.exports = parent;
 
 
 /***/ }),
-/* 193 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(194);
+__webpack_require__(181);
 var path = __webpack_require__(27);
 var apply = __webpack_require__(8);
 
@@ -26188,7 +25190,7 @@ module.exports = function stringify(it, replacer, space) {
 
 
 /***/ }),
-/* 194 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $ = __webpack_require__(5);
@@ -26239,7 +25241,7 @@ if ($stringify) {
 
 
 /***/ }),
-/* 195 */
+/* 182 */
 /***/ (function(module, exports) {
 
 /**
@@ -26277,7 +25279,7 @@ if ($stringify) {
 })();
 
 /***/ }),
-/* 196 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -26449,7 +25451,7 @@ if ($stringify) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
-/* 197 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -26668,7 +25670,7 @@ if ($stringify) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
-/* 198 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -26921,7 +25923,7 @@ if ($stringify) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
-/* 199 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -27083,13 +26085,13 @@ if ($stringify) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
-/* 200 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
 
 /***/ }),
-/* 201 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin

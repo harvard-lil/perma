@@ -9,7 +9,7 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import user_management, common, service, link_management, error_management
+from .views import user_management, common, service, link_management
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
@@ -155,11 +155,6 @@ urlpatterns = [
     re_path(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', user_management.organization_user_leave_organization, name='user_management_organization_user_leave_organization'),
     #    re_path(r'^manage/users/?$', 'manage.users', name='manage_users'),
     #    re_path(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
-
-    # error management
-    re_path(r'^manage/errors/resolve/?$', error_management.resolve, name='error_management_resolve'),
-    re_path(r'^manage/errors/?$', error_management.get_all, name='error_management_get_all'),
-    re_path(r'^errors/new/?$', error_management.post_new, name='error_management_post_new'),
 
     # memento support
     re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
