@@ -158,7 +158,7 @@ def logged_in_user(page, urls, user):
 # The separation should make it easier to work out, going forward, what can be deleted.
 
 import factory
-from factory.django import DjangoModelFactory
+from factory.django import DjangoModelFactory, Password
 import humps
 
 from decimal import Decimal
@@ -268,7 +268,7 @@ class LinkUserFactory(DjangoModelFactory):
     is_active = True
     is_confirmed = True
 
-    password = factory.PostGenerationMethodCall('set_password', 'pass')
+    password = Password('pass')
 
 
 @register_factory
@@ -291,6 +291,7 @@ class CaptureJobFactory(DjangoModelFactory):
     class Meta:
         model = CaptureJob
         exclude = ('create_link',)
+        skip_postgeneration_save=True
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
@@ -307,6 +308,8 @@ class CaptureJobFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
+    # Required to update CaptureJob.link_id from None, after the Link is generated
+    _ = factory.PostGenerationMethodCall("save")
 
 
 @register_factory
