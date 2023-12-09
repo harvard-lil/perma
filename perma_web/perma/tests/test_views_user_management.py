@@ -4,7 +4,6 @@ from django.core import mail
 from django.conf import settings
 from django.db import IntegrityError
 from django.test import override_settings
-from django.utils import timezone
 
 from mock import patch, sentinel
 
@@ -16,12 +15,12 @@ from .utils import PermaTestCase
 from random import random
 import re
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone as tz
 
 
 # Fixtures
 
-GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 
 def spoof_current_monthly_subscription():
     return {

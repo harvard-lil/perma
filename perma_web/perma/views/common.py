@@ -1,6 +1,5 @@
 from ratelimit.decorators import ratelimit
-from datetime import timedelta
-from dateutil.tz import tzutc
+from datetime import timedelta, timezone as tz
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
@@ -310,7 +309,7 @@ def timegate(request, url):
             return HttpResponseBadRequest('Invalid value for Accept-Datetime.')
     else:
         accept_datetime = timezone.now()
-    accept_datetime = accept_datetime.replace(tzinfo=tzutc())
+    accept_datetime = accept_datetime.replace(tzinfo=tz.utc)
 
     target, target_datetime = closest([m.values() for m in data['mementos']['list']], accept_datetime)
 

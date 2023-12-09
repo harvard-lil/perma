@@ -162,7 +162,7 @@ from factory.django import DjangoModelFactory, Password
 import humps
 
 from decimal import Decimal
-from datetime import timezone as tz, datetime
+from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.db.models import signals
 from django.utils import timezone
@@ -171,7 +171,7 @@ from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
 from perma.utils import pp_date_from_post
 
 
-GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 
 ### internal helpers ###
 

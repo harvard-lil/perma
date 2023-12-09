@@ -1,9 +1,9 @@
 # After updating this file, run `invoke pip-compile` to update requirements.txt.
-# To update a single dependency, pass pip-compile args to fab. For example: invoke pip-compile '-P django'
+# To update a single dependency, pass pip-compile args to invoke. For example: invoke pip-compile --args "-P package_name"
 
 # general
 celery                                  # task queue
-Django~=4.0.0
+Django~=4.1.0
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
 invoke                                  # task automation
