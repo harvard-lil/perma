@@ -596,12 +596,7 @@ class Registrar(CustomerModel):
     status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
     orgs_private_by_default = models.BooleanField(default=False, help_text="Whether new orgs created for this registrar default to private links.")
 
-    show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
-    partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
-    logo = models.ImageField(upload_to=logo_file_path, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True, null=True)
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
     manual_sort_order = models.IntegerField(default=0, db_index=True)
 
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)

@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from perma.models import WeekStats, MinuteStats
-from perma.utils import get_lat_long, user_passes_test_or_403
 
 def stats_sums(request):
     """
@@ -90,15 +89,3 @@ def bookmarklet_create(request):
     tocapture = request.GET.get('url', '')
     add_url = f"{reverse('create_link')}?url={tocapture}"
     return redirect(add_url)
-
-@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
-def coordinates_from_address(request):
-    """ Return {lat:#, lng:#, success: True} of any address or {success: False} if lookup fails."""
-    address = request.GET.get('address', '')
-    if address:
-        try:
-            (lat, lng) = get_lat_long(address)
-            return JsonResponse({'lat': lat, 'lng': lng, 'success': True})
-        except TypeError:
-            pass
-    return JsonResponse({'success': False})

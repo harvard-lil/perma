@@ -47,7 +47,6 @@ urlpatterns = [
     re_path(r'^service/stats/sums/?$', service.stats_sums, name='service_stats_sums'),
     re_path(r'^service/stats/now/?$', service.stats_now, name='service_stats_now'),
     re_path(r'^service/bookmarklet-create/?$', service.bookmarklet_create, name='service_bookmarklet_create'),
-    re_path(r'^service/get-coordinates/?$', service.coordinates_from_address, name='service_coordinates_from_address'),
     #re_path(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, service.get_thumbnail, name='service_get_thumbnail'),
 
     # Session/account management

@@ -285,33 +285,6 @@ def years_ago_today(now, years_ago):
 
 ### addresses ###
 
-def get_lat_long(address):
-    r = None
-    try:
-        r = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'address': address, 'key':settings.GEOCODING_KEY})
-    except Exception as e:
-        warn(f"Error connecting to geocoding API: {e}")
-    if r and r.status_code == 200:
-        rj = r.json()
-        status = rj['status']
-        if status == 'OK':
-            results = rj['results']
-            if len(results) == 1:
-                (lat, lng) = (results[0]['geometry']['location']['lat'], results[0]['geometry']['location']['lng'])
-                return (lat, lng)
-            else:
-                warn("Multiple locations returned for address.")
-        elif status == 'ZERO_RESULTS':
-            warn("No location returned for address.")
-        elif status == 'REQUEST_DENIED':
-            warn("Geocoding API request denied.")
-        elif status == 'OVER_QUERY_LIMIT':
-            warn("Geocoding API request over query limit.")
-        else:
-            warn(f"Unknown response from geocoding API: {status}")
-    else:
-        warn(f"Error connecting to geocoding API: {r.status_code}")
-
 
 def parse_user_agent(user_agent_str):
     # if user_agent_str is unparseable, will return:

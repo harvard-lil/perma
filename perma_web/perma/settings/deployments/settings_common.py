@@ -615,10 +615,6 @@ CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'
 # Directs contact form to registrar users under certain circumstances
 CONTACT_REGISTRARS = False
 
-# If using geocoding
-# Via https://console.developers.google.com/apis/api/geocoding_backend/overview
-GEOCODING_KEY = None
-
 # Virus Scanning
 SCAN_UPLOADS = False
 SCAN_URL = ''

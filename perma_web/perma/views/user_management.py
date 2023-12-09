@@ -55,7 +55,7 @@ from perma.forms import (
     UserUpdateProfileForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
-    ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
+    ratelimit_ip_key, user_passes_test_or_403, prep_for_perma_payments,
     get_complete_ia_rate_limiting_info)
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
@@ -1686,16 +1686,6 @@ def libraries(request):
         if form_is_valid:
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
-            address = registrar_form.cleaned_data.get('address', '')
-            if settings.GEOCODING_KEY and address:
-                try:
-                    (lat, lng) = get_lat_long(address)
-                    new_registrar.latitude = lat
-                    new_registrar.longitude = lng
-                    new_registrar.save(update_fields=["latitude", "longitude"])
-                except TypeError:
-                    # get_lat_long returned None
-                    pass
             if user_form:
                 new_user = user_form.save(commit=False)
                 new_user.pending_registrar = new_registrar
