@@ -1,4 +1,6 @@
 from axes.utils import reset as reset_login_attempts
+import string
+import secrets
 
 from django import forms
 from django.conf import settings
@@ -160,7 +162,18 @@ class UserForm(forms.ModelForm):
     def save(self, commit=True):
         # save user, and set a password so that the password_reset flow can be
         # used for email confirmation
-        self.instance.set_password(LinkUser.objects.make_random_password(length=20))
+
+        def make_random_password(len=20):
+            #  from https://docs.python.org/3/library/secrets.html#recipes-and-best-practices
+            alphabet = string.ascii_letters + string.digits
+            while True:
+                password = ''.join(secrets.choice(alphabet) for i in range(len))
+                if (any(c.islower() for c in password) and
+                        any(c.isupper() for c in password) and
+                        sum(c.isdigit() for c in password) >= 3):
+                    return password
+
+        self.instance.set_password(make_random_password())
         user = forms.ModelForm.save(self, commit)
         return user
 

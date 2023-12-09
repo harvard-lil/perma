@@ -23,6 +23,21 @@ Page.screenshot = full_page_screenshot
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
+# patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
+# https://github.com/django/django/commit/823a9e6bac38d38f7b0347497b833eec732bd384
+from pytest_django_liveserver_ssl.live_server_ssl_helper import HTTPSLiveServerThread, SecureHTTPServer, WSGIRequestHandler
+def _create_server(self, connections_override=None):
+    return SecureHTTPServer(
+        (self.host, self.port),
+        WSGIRequestHandler,
+        allow_reuse_address=False,
+        connections_override=connections_override,
+        certificate=self.certificate_file,
+        key=self.key_file,
+    )
+HTTPSLiveServerThread._create_server = _create_server
+
+
 # shadow this fixture from  pytest_django_liveserver_ssl so that it doesn't request the admin client (which doesn't work with our fixture situation)
 @pytest.fixture()
 def live_server_ssl_clients_for_patch(client):
@@ -95,11 +110,11 @@ def cleanup_storage():
     yield
     storage = boto3.resource(
         's3',
-        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        endpoint_url=settings.STORAGES["default"]["OPTIONS"]["endpoint_url"],
+        aws_access_key_id=settings.STORAGES["default"]["OPTIONS"]["access_key"],
+        aws_secret_access_key=settings.STORAGES["default"]["OPTIONS"]["secret_key"],
         verify=False
-    ).Bucket(settings.AWS_STORAGE_BUCKET_NAME)
+    ).Bucket(settings.STORAGES["default"]["OPTIONS"]["bucket_name"])
     storage.objects.delete()
 
 

@@ -207,7 +207,7 @@ be sure to use the following settings when referring to disk locations and URLs 
 * MEDIA_URL: URL to retrieve user-generated assets (e.g. '/media/')
 
 The \_ROOT settings may have different meanings depending on the storage backend. For example,
-if DEFAULT_FILE_STORAGE is set to use the Amazon S3 storage backend,
+STORAGES["default"] is set to use the Amazon S3 storage backend,
 then MEDIA_ROOT would just be '/generated/' and would be relative to the root of the S3 bucket.
 
 In templates, use the `{% static %}` tag and MEDIA_URL:

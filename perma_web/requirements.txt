@@ -27,7 +27,9 @@ attrs==21.4.0 \
 azure-core==1.23.1 \
     --hash=sha256:28a01dfbaf0a6812c4e2a82d1642ea30956a9739f25bc77c9b23b91f4ea68f0f \
     --hash=sha256:c3e8a9a3ec9d89f59b5d5b2f19d19a30d76a5b5c0cee3788ecad3cb72b9bd028
-    # via azure-storage-blob
+    # via
+    #   azure-storage-blob
+    #   django-storages
 azure-storage-blob==12.11.0 \
     --hash=sha256:49535b3190bb69d0d9ff7a383246b14da4d2b1bdff60cae5f9173920c67ca7ee \
     --hash=sha256:f3dfa605aefb453e7489328b76811a937a411761d7a1613a58c3975c556ec778
@@ -226,9 +228,9 @@ decorator==5.1.1 \
     # via
     #   ipdb
     #   ipython
-django==4.1.13 \
-    --hash=sha256:04ab3f6f46d084a0bba5a2c9a93a3a2eb3fe81589512367a75f79ee8acf790ce \
-    --hash=sha256:94a3f471e833c8f124ee7a2de11e92f633991d975e3fa5bdd91e8abd66426318
+django==4.2.8 \
+    --hash=sha256:6cb5dcea9e3d12c47834d32156b8841f533a4493c688e2718cafd51aa430ba6d \
+    --hash=sha256:d69d5e36cc5d9f4eb4872be36c622878afcdce94062716cf3e25bcedcb168b62
     # via
     #   -r requirements.in
     #   django-admin-smoke-tests
@@ -297,9 +299,9 @@ django-simple-history==3.0.0 \
     --hash=sha256:66fe76c560054be393c52b1799661e104fbe372918d37d151e5d41c676158118 \
     --hash=sha256:a312adfe8fbec4c450b08e641b11249a8a589a7e7d1ba2404764b8b5bed53552
     # via -r requirements.in
-django-storages[azure]==1.12.3 \
-    --hash=sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84 \
-    --hash=sha256:a475edb2f0f04c4f7e548919a751ecd50117270833956ed5bd585c0575d2a5e7
+django-storages[azure]==1.14.2 \
+    --hash=sha256:1db759346b52ada6c2efd9f23d8241ecf518813eb31db9e2589207174f58f6ad \
+    --hash=sha256:51b36af28cc5813b98d5f3dfe7459af638d84428c8df4a03990c7d74d1bea4e5
     # via -r requirements.in
 django-taggit==5.0.1 \
     --hash=sha256:a0ca8a28b03c4b26c2630fd762cb76ec39b5e41abf727a7b66f897a625c5e647 \
@@ -978,9 +980,9 @@ six==1.16.0 \
     #   requests-file
     #   surt
     #   warcio
-sorl-thumbnail==12.7 \
-    --hash=sha256:c56cd651feab3bdc415d5301600198e2e70c08234dad48b8f6cfa4746cc102c7 \
-    --hash=sha256:fbe6dfd66a1aceb7e0203895ff5622775e50266f8d8cfd841fe1500bd3e19018
+sorl-thumbnail==12.10.0 \
+    --hash=sha256:733eb2eee392d4a874f88fb3ed6f0572fa9c361b06e0411b83e435ba69c51f52 \
+    --hash=sha256:de95a49217fdfeced222fa3ceaa01d312ee2f8aad56ba34d6c70f2dee9a84938
     # via -r requirements.in
 sortedcontainers==2.4.0 \
     --hash=sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88 \

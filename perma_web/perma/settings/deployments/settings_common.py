@@ -38,6 +38,19 @@ USE_I18N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
+STORAGES = {
+    "default": {
+        "BACKEND": 'perma.storage_backends.S3MediaStorage',
+        "OPTIONS": {
+            "signature_version": 's3v4',
+            "default_acl": 'private'
+        }
+    },
+    "staticfiles": {
+        "BACKEND": 'perma.storage_backends.StaticStorage',
+    },
+}
+
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
@@ -53,9 +66,6 @@ STATICFILES_FINDERS = (         # how to look for static files
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# static files config
-STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/',
@@ -66,9 +76,6 @@ WEBPACK_LOADER = {
 # user-generated files / default_storage config
 MEDIA_URL = '/this-setting-is-not-in-use-in-any-deployments/'
 MEDIA_ROOT ='generated/'
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_DEFAULT_ACL = 'private'
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 WARC_PRESIGNED_URL_EXPIRES = 15 * 60
 
