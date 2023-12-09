@@ -1554,10 +1554,6 @@ class Link(DeletableModel):
         "InternetArchiveItem", through="InternetArchiveFile", related_name="links"
     )
 
-    thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
-        ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
-
-
     objects = LinkManager()
     tracker = FieldTracker()
     history = HistoricalRecords()
@@ -1766,63 +1762,6 @@ class Link(DeletableModel):
     def warc_presigned_url_relative(self):
         parsed = urlparse(self.warc_presigned_url())
         return f'{parsed.path}?{parsed.query}'.lstrip('/')
-
-    # def get_thumbnail(self, image_data=None):
-    #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
-    #         return None
-    #
-    #     thumbnail_path = os.path.join(settings.THUMBNAIL_STORAGE_PATH, self.guid_as_path(), 'thumbnail.png')
-    #
-    #     if self.thumbnail_status == 'generated' and default_storage.exists(thumbnail_path):
-    #         return default_storage.open(thumbnail_path)
-    #
-    #     try:
-    #
-    #         warc_url = None
-    #         image = None
-    #
-    #         if image_data:
-    #             image = Image(blob=image_data)
-    #         else:
-    #
-    #             if self.screenshot_capture and self.screenshot_capture.status == 'success':
-    #                 warc_url = self.screenshot_capture.url
-    #             else:
-    #                 pdf_capture = self.captures.filter(content_type__istartswith='application/pdf').first()
-    #                 if pdf_capture:
-    #                     warc_url = pdf_capture.url
-    #
-    #             if warc_url:
-    #                 self.thumbnail_status = 'generating'
-    #                 self.save(update_fields=['thumbnail_status'])
-    #
-    #                 headers, data = self.replay_url(warc_url)
-    #                 temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
-    #                 for chunk in data:
-    #                     temp_file.write(chunk)
-    #                 temp_file.flush()
-    #                 image = Image(filename=temp_file.name + "[0]")  # [0] limits ImageMagick to first page of PDF
-    #
-    #         if image:
-    #             with imagemagick_temp_dir():
-    #                 with image as opened_img:
-    #                     opened_img.transform(resize='600')
-    #                     # opened_img.resize(600,600)
-    #                     with Image(width=600, height=600) as dst_image:
-    #                         dst_image.composite(opened_img, 0, 0)
-    #                         dst_image.compression_quality = 60
-    #                         default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
-    #
-    #             self.thumbnail_status = 'generated'
-    #             self.save(update_fields=['thumbnail_status'])
-    #
-    #             return default_storage.open(thumbnail_path)
-    #
-    #     except Exception as e:
-    #         print "Thumbnail generation failed for %s: %s" % (self.guid, e)
-    #
-    #     self.thumbnail_status = 'failed'
-    #     self.save(update_fields=['thumbnail_status'])
 
     def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()

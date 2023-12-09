@@ -156,7 +156,6 @@ INSTALLED_APPS = (
     # third party apps
     'ratelimit',
     'mptt',
-    'sorl.thumbnail',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
@@ -574,16 +573,6 @@ RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for website to respond during URL v
 # to catch up, during first playback, before raising an error?
 WARC_AVAILABLE_RETRIES = 9
 CHECK_WARC_BEFORE_PLAYBACK = False
-
-# Sorl settings. This relates to our thumbnail creation.
-# The prod and dev configs are considerably different. See those configs for details.
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
-THUMBNAIL_FORMAT = 'PNG'
-THUMBNAIL_COLORSPACE = None
-# Temporarily work around for https://github.com/jazzband/sorl-thumbnail/issues/476
-TEMPLATE_DEBUG = False
-# Relative to MEDIA_ROOT
-THUMBNAIL_STORAGE_PATH = 'thumbnails'
 
 # tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests

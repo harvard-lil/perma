@@ -32,9 +32,6 @@ RUN apt-get update \
         postgresql-client \
         libpq-dev \
         libffi-dev \
-        libjpeg62-turbo-dev \
-        imagemagick \
-        libmagickwand-dev \
         libnss3-tools                           `# for certutil`
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
@@ -71,7 +68,9 @@ RUN  apt-get update && apt install -y --no-install-recommends libdbus-glib-1-2 \
     libgbm1 \
     libasound2 \
     libatspi2.0-0 \
-    libwayland-client0
+    libwayland-client0 \
+    libpango-1.0-0 \
+    libcairo2
 
 RUN mkdir -p $HOME/.pki/nssdb \
     && certutil -d $HOME/.pki/nssdb -N --empty-password \
