@@ -3,12 +3,11 @@
 
 # general
 celery                                  # task queue
-Django~=3.2
+Django~=4.0.0
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
 invoke                                  # task automation
 netaddr                                 # to check archive IPs against banned ranges
-pytz                                    # timezone helper
 requests
 tqdm                                    # progress bar in dev invoke tasks
 Werkzeug

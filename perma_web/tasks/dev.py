@@ -9,7 +9,6 @@ import itertools
 import json
 import os
 from pathlib import Path
-import pytz
 import re
 import requests
 import signal
@@ -419,11 +418,11 @@ def check_storage(ctx, start_date=None):
         # use first archive date
         start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
     elif re.match(r'^\d\d\d\d-\d\d-\d\d$', start_date):
-        start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d").astimezone(timezone.utc)
     else:
         print("Bad argument")
         return
-    end_datetime = pytz.utc.localize(datetime.now())
+    end_datetime = timezone.now()
 
     # The abstraction of multiple storages is an artifact of the
     # transition to S3 for storage; although it's conceivable that we'd
@@ -465,7 +464,7 @@ def check_storage(ctx, start_date=None):
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        if (not start_date) or (start_datetime <= pytz.utc.localize(datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')) < end_datetime):
+                        if (not start_date) or (start_datetime <= datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ').astimezone(timezone.utc) < end_datetime):
                             # here we chop off the prefix aka storage.location
                             path = f.key[(len(storage.location)):]
                             # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
@@ -486,7 +485,7 @@ def check_storage(ctx, start_date=None):
                         # it yields a 3-tuple (dirpath, dirnames, filenames)" -- so:
                         for filename in f[2]:
                             full_path = os.path.join(f[0], filename)
-                            if (not start_date) or (start_datetime <= pytz.utc.localize(storage.modified_time(full_path)) < end_datetime):
+                            if (not start_date) or (start_datetime <= storage.modified_time(full_path).astimezone(timezone.utc) < end_datetime):
                                 # here we chop off the prefix, whether storage._root_path or storage.base_location
                                 path = full_path[len(base):]
                                 # note that etags are not always md5sums, but should be in these cases; we can rewrite
