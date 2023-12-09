@@ -21,7 +21,6 @@
     "compass-mixins": "^0.12.10",
     "core-js": "^3.6.5",
     "css-loader": "^3.6.0",
-    "datamaps": "^0.5.9",
     "expose-loader": "^0.7.5",
     "fastclick": "^1.0.6",
     "file-loader": "^5.1.0",
