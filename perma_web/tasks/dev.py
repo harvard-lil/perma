@@ -1,6 +1,6 @@
 from collections import defaultdict
 import csv
-from datetime import date, datetime, timedelta, timezone as tz
+from datetime import date, datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 import hashlib
 from invoke import task
