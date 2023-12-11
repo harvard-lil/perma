@@ -2270,37 +2270,3 @@ class InternetArchiveFile(models.Model):
         self.cached_submitted_url = None
         self.cached_perma_url = None
 
-
-
-#########################
-# Stats related models
-#########################
-
-class WeekStats(models.Model):
-    """
-    Our stats dashboard displays weekly stats. Let's house those here.
-    """
-
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True)
-
-
-    links_sum = models.IntegerField(default=0)
-    users_sum = models.IntegerField(default=0)
-    organizations_sum = models.IntegerField(default=0)
-    registrars_sum = models.IntegerField(default=0)
-
-
-class MinuteStats(models.Model):
-    """
-    To see how the flag is blowing in Perma land, we log sums
-    for key points activity each minute
-    """
-
-    creation_timestamp = models.DateTimeField(auto_now_add=True)
-
-    links_sum = models.IntegerField(default=0)
-    users_sum = models.IntegerField(default=0)
-    organizations_sum = models.IntegerField(default=0)
-    registrars_sum = models.IntegerField(default=0)
-

@@ -607,7 +607,6 @@ USE_ANALYTICS = False
 USE_ANALYTICS_VIEWS = [
     'landing',
     'about',
-    'stats',
     'copyright_policy',
     'terms_of_service',
     'privacy_policy',

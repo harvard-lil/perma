@@ -180,14 +180,6 @@
     "single-link.js.map": {
       "name": "single-link.js.map",
       "path": "/perma/perma_web/static/bundles/single-link.js.map"
-    },
-    "stats.js": {
-      "name": "stats.js",
-      "path": "/perma/perma_web/static/bundles/stats.js"
-    },
-    "stats.js.map": {
-      "name": "stats.js.map",
-      "path": "/perma/perma_web/static/bundles/stats.js.map"
     }
   },
   "chunks": {
@@ -224,10 +216,6 @@
     "single-link-permissions": [
       "single-link-permissions.js",
       "single-link-permissions.js.map"
-    ],
-    "stats": [
-      "stats.js",
-      "stats.js.map"
     ]
   }
 }

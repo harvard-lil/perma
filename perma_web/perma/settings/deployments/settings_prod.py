@@ -10,7 +10,6 @@ DEBUG = False
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERY_BEAT_JOB_NAMES = [
-    'update-stats',
     'run-next-capture',
     'sync_subscriptions_from_perma_payments',
     'cache_playback_status_for_new_links',

@@ -44,10 +44,7 @@ urlpatterns = [
     re_path(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
 
     #Services
-    re_path(r'^service/stats/sums/?$', service.stats_sums, name='service_stats_sums'),
-    re_path(r'^service/stats/now/?$', service.stats_now, name='service_stats_now'),
     re_path(r'^service/bookmarklet-create/?$', service.bookmarklet_create, name='service_bookmarklet_create'),
-    #re_path(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, service.get_thumbnail, name='service_get_thumbnail'),
 
     # Session/account management
     re_path(r'^login/?$', user_management.limited_login, {'template_name': 'registration/login.html'}, name='user_management_limited_login'),
