@@ -151,7 +151,6 @@ INSTALLED_APPS = (
     # our apps
     'perma',
     'reporting',
-    'lockss',
 
     # third party apps
     'ratelimit',
@@ -578,15 +577,10 @@ CHECK_WARC_BEFORE_PLAYBACK = False
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
 TESTING = False
 
-### LOCKSS ###
+### MIRRORS ###
 
 from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
-
-LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"
-LOCKSS_CRAWL_INTERVAL = "12h"
-LOCKSS_QUORUM = 3
-LOCKSS_DEBUG_IPS = False
 
 #
 # Email

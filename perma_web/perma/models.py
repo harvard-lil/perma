@@ -1426,13 +1426,6 @@ class LinkQuerySet(QuerySet):
             user_deleted=False,
         )
 
-    def visible_to_lockss(self):
-        """
-            Expose the bundled WARC after the required wait period,
-            if capture succeeded, unless deleted or made private by the user or by admins.
-        """
-        return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
-
     def visible_to_memento(self):
         return self.discoverable().filter(cached_can_play_back=True)
 
