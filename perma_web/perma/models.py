@@ -29,7 +29,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
 from django.db.models import Q, Max, Count, Sum, JSONField
-from django.db.models.functions import Now, Upper
+from django.db.models.functions import Now, Upper, TruncDate
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
 from django.template.defaultfilters import truncatechars
@@ -1442,62 +1442,29 @@ class LinkQuerySet(QuerySet):
     def ineligible_for_ia(self):
         return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
 
-    def ia_upload_pending(self, date_string=None, limit=100):
+    def ia_upload_pending(self, date_string, limit=100):
         # Get all Links we think should have been uploaded to IA,
         # and then filter out the ones that have already been uploaded
         # to a "daily" item.
-        #
-        # Do so with our own SQL because the SQL generated from the
-        # intuitive ORM query proved to be impossibly slow.
-        # links = Link.objects.visible_to_ia().filter(
-        #     creation_timestamp__date=InternetArchiveItem.date(date_string)
-        # ).exclude(
-        #     internet_archive_items__span__isempty=False
-        # )
-        date_clause = '''
-          AND (
-            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
-          )
-        '''
-        limit_clause = "LIMIT %s"
-        sql = f'''
-            WITH links_with_daily_items AS (
-                SELECT
-                  perma_link.guid
-                FROM
-                  perma_link
-                  INNER JOIN perma_internetarchivefile ON
-                    perma_link.guid = perma_internetarchivefile.link_id
-                  INNER JOIN perma_internetarchiveitem ON
-                    perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
-                WHERE
-                  isempty(
-                    perma_internetarchiveitem.span
-                  ) = False
+        if date_string > "2022-10-03":
+            # No links created after 2022-10-03 were uploaded to IA as individual Items:
+            # use a simplified query
+            logger.debug("Running simple IA eligibility query.")
+            query = Link.objects.filter(
+                creation_timestamp__date=date_string
+            ).visible_to_ia().filter(
+                internet_archive_files=None
             )
-
-            SELECT
-              perma_link.guid
-            FROM
-              perma_link
-              LEFT JOIN links_with_daily_items ON
-                   perma_link.guid = links_with_daily_items.guid
-            WHERE
-              links_with_daily_items.guid IS NULL
-              AND (
-                perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
-              )
-              {date_clause if date_string else ''}
-            {limit_clause if limit else ''}
-        '''
-
-        params = []
-        if date_string:
-            params.append(date_string)
+        else:
+            logger.debug("Running full IA eligibility query.")
+            query = Link.objects.filter(
+                creation_timestamp__date=date_string
+            ).visible_to_ia().exclude(
+                internet_archive_items__span__isempty=False
+            )
         if limit:
-            params.append(str(limit))
-
-        return self.model.objects.raw(sql, params)
+            query = query[:limit]
+        return query
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1563,6 +1530,7 @@ class Link(DeletableModel):
     class Meta:
         indexes = [
             models.Index(fields=['user_deleted', 'is_private', 'is_unlisted', 'cached_can_play_back', 'internet_archive_upload_status']),
+            models.Index('user_deleted', TruncDate('creation_timestamp'), 'is_private', 'is_unlisted', 'cached_can_play_back', name="ia_eligible_for_date_idx"),
             models.Index(fields=['creation_timestamp']),
             models.Index(fields=['submitted_url_surt']),
             GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
