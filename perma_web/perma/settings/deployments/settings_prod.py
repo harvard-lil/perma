@@ -22,12 +22,6 @@ CELERY_BEAT_JOB_NAMES = [
 # logging
 LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
 
-# Our sorl thumbnail settings
-# We only use this redis config in prod. dev envs use the local db.
-THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
-THUMBNAIL_REDIS_HOST = 'localhost'
-THUMBNAIL_REDIS_PORT = '6379'
-
 # caching
 CACHES["default"] = {
     "BACKEND": "django_redis.cache.RedisCache",

@@ -93,19 +93,7 @@ class LibraryRegistrarForm(ModelForm):
         self.fields['email'].label = "Library email"
         self.fields['website'].label = "Library website"
         self.fields['address'].label = "Library physical address"
-        # self.fields['logo'].label = "Library/University logo"
-        # # If you change here, please also change in clean_logo below
-        # self.fields['logo'].widget.attrs['accept'] = ".png,.jpg,.jpeg,.gif"
-        # self.fields['show_partner_status'].label = "Display us in the list of Perma.cc partners"
-        # self.fields['show_partner_status'].initial = True
 
-    # def clean(self):
-    #     logo = self.cleaned_data['logo']
-    #     if not logo or imghdr.what(logo) not in ['png', 'jpg', 'gif']:
-    #         if self.cleaned_data.get('show_partner', None):
-    #           msg = "Please include a logo (.png, .jpg, .gif)."
-    #           self.add_error('logo', msg)
-    #     return logo
 
 ### ORGANIZATION FORMS ###
 
