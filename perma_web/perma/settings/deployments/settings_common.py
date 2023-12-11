@@ -387,7 +387,7 @@ LOGGING['loggers'] = {
     # show info for our first-party apps
     **{
         app_name: {'level': 'INFO'}
-        for app_name in ('api', 'lockss', 'perma',)
+        for app_name in ('api', 'perma',)
     },
 }
 LOGGING['formatters'] = {

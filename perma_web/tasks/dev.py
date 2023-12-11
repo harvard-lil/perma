@@ -441,7 +441,7 @@ def check_storage(ctx, start_date=None):
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
-            # assemble list of links by year-month, as in lockss/views.titledb:
+            # assemble list of links by year-month
             start_month = date(year=start_datetime.year, month=start_datetime.month, day=1)
             today = date.today()
             while start_month <= today:

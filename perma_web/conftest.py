@@ -77,8 +77,7 @@ def _load_json_fixtures():
         'fixtures/users.json',
         'fixtures/api_keys.json',
         'fixtures/folders.json',
-        'fixtures/archive.json',
-        'fixtures/mirrors.json'
+        'fixtures/archive.json'
     ])
 
 
