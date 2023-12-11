@@ -1,6 +1,6 @@
 import calendar
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 import hashlib
 import json
@@ -2272,7 +2272,7 @@ class InternetArchiveItem(models.Model):
 
     @classmethod
     def datetime(cls, datetime_string):
-        return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+        return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz.utc)
 
     @classmethod
     def standard_metadata_for_date(cls, date_string):

@@ -1,14 +1,13 @@
 # After updating this file, run `invoke pip-compile` to update requirements.txt.
-# To update a single dependency, pass pip-compile args to fab. For example: invoke pip-compile '-P django'
+# To update a single dependency, pass pip-compile args to invoke. For example: invoke pip-compile --args "-P package_name"
 
 # general
 celery                                  # task queue
-Django~=3.2
+Django~=4.2.0
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
 invoke                                  # task automation
 netaddr                                 # to check archive IPs against banned ranges
-pytz                                    # timezone helper
 requests
 tqdm                                    # progress bar in dev invoke tasks
 Werkzeug
@@ -39,7 +38,7 @@ whitenoise                              # serve static assets
 
 
 # thumbnails (carousel? anything else?)
-sorl-thumbnail==12.7
+sorl-thumbnail
 Wand
 
 

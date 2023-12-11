@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as tz
 from dateutil.relativedelta import relativedelta
 from functools import wraps, reduce
 import hashlib
@@ -434,7 +434,7 @@ def process_perma_payments_transmission(transmitted_data, fields):
 
 def pp_date_from_post(posted_value):
     if posted_value:
-        return datetime.strptime(posted_value, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+        return datetime.strptime(posted_value, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=tz.utc)
     return None
 
 

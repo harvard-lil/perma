@@ -1,5 +1,5 @@
-import pytz
 from datetime import timedelta, datetime
+import zoneinfo
 
 from django.core import serializers
 from django.urls import reverse
@@ -43,7 +43,7 @@ def stats_now(request):
         midnight = offset_time.replace(hour=0, minute=0, second=0)
 
     else:
-        ny = pytz.timezone('America/New_York')
+        ny = zoneinfo.ZoneInfo('America/New_York')
         ny_now = timezone.now().astimezone(ny)
         offset_value = ny_now.utcoffset().seconds // 60
         midnight = ny_now.replace(hour=0, minute=0, second=0)
