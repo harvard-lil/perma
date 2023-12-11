@@ -54,10 +54,6 @@ def post_process_settings(settings):
             'task': 'perma.celery_tasks.cache_playback_status_for_new_links',
             'schedule': crontab(hour='*', minute='30'),
         },
-        'update-stats': {
-            'task': 'perma.celery_tasks.update_stats',
-            'schedule': crontab(minute='*'),
-        },
         'run-next-capture': {
             'task': 'perma.celery_tasks.run_next_capture',
             'schedule': crontab(minute='*'),
