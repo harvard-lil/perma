@@ -243,6 +243,7 @@ django==4.2.8 \
     #   django-redis
     #   django-storages
     #   django-taggit
+    #   django-waffle
     #   djangorestframework
     #   pytest-django-liveserver-ssl
     #   pytest-django-ordering
@@ -306,6 +307,10 @@ django-storages[azure]==1.14.2 \
 django-taggit==5.0.1 \
     --hash=sha256:a0ca8a28b03c4b26c2630fd762cb76ec39b5e41abf727a7b66f897a625c5e647 \
     --hash=sha256:edcd7db1e0f35c304e082a2f631ddac2e16ef5296029524eb792af7430cab4cc
+    # via -r requirements.in
+django-waffle==4.1.0 \
+    --hash=sha256:5979a2f3dd674ef7086480525b39651fc2045427f6d8e6a614192656d3402c5b \
+    --hash=sha256:e49d7d461d89f3bd8e53f20efe39310acca8f275c9888495e68e195345bf18b1
     # via -r requirements.in
 django-webpack-loader==1.8.1 \
     --hash=sha256:073beda18e2929fa5cd83bafbcaaf975e5945e84a17bfa81927cb6c9f5a17b94 \

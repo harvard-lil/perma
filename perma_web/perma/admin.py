@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -539,7 +538,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'raw_email', 'notes')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'groups')}),
         ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial', 'bonus_links')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
@@ -751,7 +750,6 @@ admin.StackedInline.extra = 0
 
 # remove builtin models
 admin.site.unregister(Site)
-admin.site.unregister(Group)
 
 # add our models
 admin.site.register(Link, LinkAdmin)

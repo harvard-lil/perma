@@ -6,6 +6,7 @@ celery                                  # task queue
 Django~=4.2.0
 django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
+django-waffle                           # feature flags
 invoke                                  # task automation
 netaddr                                 # to check archive IPs against banned ranges
 requests
