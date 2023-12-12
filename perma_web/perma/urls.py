@@ -21,7 +21,6 @@ urlpatterns = [
     # Common Pages
     re_path(r'^$', common.landing, name='landing'),
     re_path(r'^about/?$', common.about, name='about'),
-    re_path(r'^stats/?$', DirectTemplateView.as_view(template_name='stats.html'), name='stats'),
     re_path(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
     re_path(r'^terms-of-service/?$', DirectTemplateView.as_view(template_name='terms_of_service.html'), name='terms_of_service'),
     re_path(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
