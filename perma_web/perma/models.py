@@ -582,9 +582,6 @@ class RegistrarQuerySet(QuerySet):
     def approved(self):
         return self.filter(status="approved")
 
-def logo_file_path(instance, filename):
-    return f"registrar_logos/{instance.id}/{filename}"
-
 class Registrar(CustomerModel):
     """
     This is a library, a court, a firm, or similar.

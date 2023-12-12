@@ -20,7 +20,7 @@ guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]{6,11})'
 urlpatterns = [
     # Common Pages
     re_path(r'^$', common.landing, name='landing'),
-    re_path(r'^about/?$', common.about, name='about'),
+    re_path(r'^about/?$', DirectTemplateView.as_view(template_name='about.html'), name='about'),
     re_path(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
     re_path(r'^terms-of-service/?$', DirectTemplateView.as_view(template_name='terms_of_service.html'), name='terms_of_service'),
     re_path(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
@@ -29,14 +29,12 @@ urlpatterns = [
     re_path(r'^report/?$', common.report, name='report'),
     re_path(r'^contact/?$', common.contact, name='contact'),
     re_path(r'^contact/thanks/?$', common.contact_thanks, name='contact_thanks'),
-    #   re_path(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
-    #   re_path(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
 
     #Docs
     re_path(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     re_path(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
     re_path(r'^docs/libraries/?$', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
-    re_path(r'^docs/faq/?$', common.faq, name='docs_faq'),
+    re_path(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
     re_path(r'^docs/accounts/?$', DirectTemplateView.as_view(template_name='docs/accounts.html'), name='docs_accounts'),
 
     #Developer docs
@@ -148,15 +146,10 @@ urlpatterns = [
     re_path(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
 
     re_path(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', user_management.organization_user_leave_organization, name='user_management_organization_user_leave_organization'),
-    #    re_path(r'^manage/users/?$', 'manage.users', name='manage_users'),
-    #    re_path(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
     # memento support
     re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
     re_path(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
-
-    # serve warcs with .warc file extension for use in client-side playback
-    re_path(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
 
     # Our Perma ID catchall
     re_path(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),

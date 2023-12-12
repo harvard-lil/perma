@@ -2030,7 +2030,7 @@ def email_premium_request(request, user):
 
 def email_deletion_request(request):
     """
-    Send email to Perma.cc admins when a user requests a premium account
+    Send email to Perma.cc admins when a user requests their account be deleted
     """
     send_admin_email(
         "Perma.cc account deletion request",
