@@ -116,6 +116,7 @@ MIDDLEWARE = (
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
+    'waffle.middleware.WaffleMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
@@ -161,6 +162,7 @@ INSTALLED_APPS = (
     'webpack_loader',  # track frontend assets
     'axes',  # limit login attempts
     'django_json_widget',
+    'waffle',  # feature flags
 
     # api
     'api',

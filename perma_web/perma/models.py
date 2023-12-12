@@ -23,7 +23,7 @@ from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
 
 import django.contrib.auth.models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -795,7 +795,7 @@ class LinkUserManager(BaseUserManager):
 # where django-model-utils FieldTracker breaks the setter for overridden attributes on abstract base classes
 del AbstractBaseUser.is_active
 
-class LinkUser(CustomerModel, AbstractBaseUser):
+class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
