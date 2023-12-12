@@ -56,23 +56,10 @@ def landing(request):
     """
     if request.user.is_authenticated and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
-
     else:
-        # orgs_count = Organization.objects.count()
-        # users_count = LinkUser.objects.count()
-        # links_count = Link.objects.filter(is_private=False).count()
-
         return render(request, 'landing.html', {
             'this_page': 'landing',
-            # 'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
         })
-
-
-def stats(request):
-    """
-    The global stats
-    """
-    return render(request, 'stats.html')
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))

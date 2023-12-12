@@ -29,8 +29,6 @@ urlpatterns = [
     re_path(r'^report/?$', common.report, name='report'),
     re_path(r'^contact/?$', common.contact, name='contact'),
     re_path(r'^contact/thanks/?$', common.contact_thanks, name='contact_thanks'),
-    #   re_path(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
-    #   re_path(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
 
     #Docs
     re_path(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
@@ -148,8 +146,6 @@ urlpatterns = [
     re_path(r'^manage/sponsored-users/(?P<user_id>\d+)/links/(?P<registrar_id>\d+)/?$', user_management.manage_single_sponsored_user_links, name='user_management_manage_single_sponsored_user_links'),
 
     re_path(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', user_management.organization_user_leave_organization, name='user_management_organization_user_leave_organization'),
-    #    re_path(r'^manage/users/?$', 'manage.users', name='manage_users'),
-    #    re_path(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
     # memento support
     re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
