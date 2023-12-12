@@ -68,12 +68,6 @@ def landing(request):
         })
 
 
-def about(request):
-    """
-    The about page
-    """
-    return render(request, 'about.html')
-
 def faq(request):
     """
     The faq page
