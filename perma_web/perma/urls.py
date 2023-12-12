@@ -36,7 +36,7 @@ urlpatterns = [
     re_path(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     re_path(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
     re_path(r'^docs/libraries/?$', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
-    re_path(r'^docs/faq/?$', common.faq, name='docs_faq'),
+    re_path(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
     re_path(r'^docs/accounts/?$', DirectTemplateView.as_view(template_name='docs/accounts.html'), name='docs_accounts'),
 
     #Developer docs

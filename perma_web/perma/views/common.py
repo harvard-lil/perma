@@ -68,18 +68,6 @@ def landing(request):
         })
 
 
-def faq(request):
-    """
-    The faq page
-    """
-    registrars_count = Registrar.objects.approved().count()
-    orgs_count = Organization.objects.all().count()
-    users_count = LinkUser.objects.all().count()
-    links_count = Link.objects.filter(is_private=False).count()
-    return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
-        'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
-
-
 def stats(request):
     """
     The global stats
