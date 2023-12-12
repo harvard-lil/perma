@@ -155,9 +155,6 @@ urlpatterns = [
     re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
     re_path(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
 
-    # serve warcs with .warc file extension for use in client-side playback
-    re_path(r'^(?P<guid>[^\./]+)\.warc$', common.serve_warc, name='serve_warc'),
-
     # Our Perma ID catchall
     re_path(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
 

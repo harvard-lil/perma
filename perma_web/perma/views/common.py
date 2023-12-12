@@ -21,7 +21,7 @@ from django.views.decorators.cache import cache_control
 
 from perma.wsgi_utils import retry_on_exception
 
-from ..models import Link, Registrar, Organization, LinkUser
+from ..models import Link, Registrar
 from ..forms import ContactForm, ReportForm, check_honeypot
 from ..utils import (if_anonymous, ratelimit_ip_key,
     protocol, stream_warc_if_permissible,
@@ -221,19 +221,6 @@ def single_permalink(request, guid):
     
     logger.debug(f"Returning response for {link.guid}")
     return response
-
-
-def serve_warc(request, guid):
-    """
-    This is a redundant route for downloading a warc, for use in client-side playback,
-    which has specific requirements:
-    - the warc must be served from a URL ending in `.warc`
-    - the response cannot be streamed
-    """
-
-    canonical_guid = Link.get_canonical_guid(guid)
-    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-    return stream_warc_if_permissible(link, request.user, stream=False)
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
