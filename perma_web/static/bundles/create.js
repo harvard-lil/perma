@@ -30610,10 +30610,6 @@ var interval; // elements in the DOM, retrieved during init()
 var $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container, $batch_modal_title, $batch_progress_report, $batch_target_path, $create_batch, $create_batch_wrapper, $export_csv, $input, $input_area, $loading, $modal, $spinner, $start_button;
 
 function render_batch(links_in_batch, folder_path) {
-  var average_capture_time = average; //global var set by template
-
-  var celery_workers = workers; //global var set by template
-
   var steps = 6;
   var all_completed = true;
   var batch_progress = [];
@@ -30626,20 +30622,7 @@ function render_batch(links_in_batch, folder_path) {
 
     switch (link.status) {
       case "pending":
-        link.isPending = true; // divide into batches; each batch takes average_capture_time to complete
-
-        var waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
-
-        if (waitMinutes == Number.POSITIVE_INFINITY) {
-          link.beginsIn = null;
-        } else if (waitMinutes >= 1) {
-          var _context2;
-
-          link.beginsIn = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_1___default()(_context2 = "about ".concat(waitMinutes, " minute")).call(_context2, waitMinutes > 1 ? 's' : '', ".");
-        } else {
-          link.beginsIn = "less than 1 minute.";
-        }
-
+        link.isPending = true;
         all_completed = false;
         batch_progress.push(link.progress);
         break;
@@ -30667,9 +30650,9 @@ function render_batch(links_in_batch, folder_path) {
   var message = "Batch ".concat(percent_complete, "% complete.");
 
   if (errors > 0) {
-    var _context3;
+    var _context2;
 
-    message += _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_1___default()(_context3 = " <span>".concat(errors, " error")).call(_context3, errors > 1 ? 's' : '', ".</span>");
+    message += _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_1___default()(_context2 = " <span>".concat(errors, " error")).call(_context2, errors > 1 ? 's' : '', ".</span>");
   }
 
   $batch_progress_report.html(message);
@@ -30746,7 +30729,7 @@ function show_modal_with_batch(batch_id) {
 }
 
 function start_batch() {
-  var _context4, _context5;
+  var _context3, _context4;
 
   $input.hide();
   spinner.spin($spinner[0]);
@@ -30754,9 +30737,9 @@ function start_batch() {
   $loading.focus();
   APIModule.request('POST', '/archives/batches/', {
     "target_folder": target_folder,
-    "urls": _babel_runtime_corejs3_core_js_stable_instance_filter__WEBPACK_IMPORTED_MODULE_4___default()(_context4 = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5___default()(_context5 = $input_area.val().split("\n")).call(_context5, function (s) {
+    "urls": _babel_runtime_corejs3_core_js_stable_instance_filter__WEBPACK_IMPORTED_MODULE_4___default()(_context3 = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_5___default()(_context4 = $input_area.val().split("\n")).call(_context4, function (s) {
       return _babel_runtime_corejs3_core_js_stable_instance_trim__WEBPACK_IMPORTED_MODULE_6___default()(s).call(s);
-    })).call(_context4, Boolean),
+    })).call(_context3, Boolean),
     "human": true
   }).then(function (data) {
     show_batch(data.id);
@@ -31033,7 +31016,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     + " "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"user_deleted") : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":62},"end":{"line":8,"column":99}}})) != null ? stack1 : "")
     + "\">\n    <div class=\"row\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isError") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data,"loc":{"start":{"line":10,"column":6},"end":{"line":35,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isError") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data,"loc":{"start":{"line":10,"column":6},"end":{"line":31,"column":13}}})) != null ? stack1 : "")
     + "    </div>\n  </div>\n";
 },"2":function(container,depth0,helpers,partials,data) {
     return " _isFailed";
@@ -31065,33 +31048,13 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     + "</div>\n          <div class=\"item-subtitle\">"
     + alias3(alias2((depth0 != null ? lookupProperty(depth0,"submitted_url") : depth0), depth0))
     + "</div>\n        </div>\n        <div class=\"link-progress col col-sm-6 col-md-40 align-right item-permalink\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isPending") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(14, data, 0),"data":data,"loc":{"start":{"line":23,"column":10},"end":{"line":33,"column":17}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isPending") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data,"loc":{"start":{"line":23,"column":10},"end":{"line":29,"column":17}}})) != null ? stack1 : "")
     + "        </div>\n";
 },"7":function(container,depth0,helpers,partials,data) {
     return "<div class=\"failed_header\">Deleted</div>";
 },"9":function(container,depth0,helpers,partials,data) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"beginsIn") : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.program(12, data, 0),"data":data,"loc":{"start":{"line":24,"column":12},"end":{"line":28,"column":19}}})) != null ? stack1 : "");
-},"10":function(container,depth0,helpers,partials,data) {
-    var lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "              <span>Queued: begins in "
-    + container.escapeExpression(container.lambda((depth0 != null ? lookupProperty(depth0,"beginsIn") : depth0), depth0))
-    + "</span>\n";
-},"12":function(container,depth0,helpers,partials,data) {
     return "              <span>Queued.</span>\n";
-},"14":function(container,depth0,helpers,partials,data) {
+},"11":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -31099,8 +31062,8 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"isProcessing") : depth0),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.program(17, data, 0),"data":data,"loc":{"start":{"line":29,"column":10},"end":{"line":33,"column":10}}})) != null ? stack1 : "");
-},"15":function(container,depth0,helpers,partials,data) {
+  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"isProcessing") : depth0),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.program(14, data, 0),"data":data,"loc":{"start":{"line":25,"column":10},"end":{"line":29,"column":10}}})) != null ? stack1 : "");
+},"12":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -31109,7 +31072,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
     };
 
   return ((stack1 = container.invokePartial(__webpack_require__(370),depth0,{"name":"progress-bar","hash":{"progress":(depth0 != null ? lookupProperty(depth0,"progress") : depth0)},"data":data,"indent":"            ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
-},"17":function(container,depth0,helpers,partials,data) {
+},"14":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -31117,8 +31080,8 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"isComplete") : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":31,"column":10},"end":{"line":33,"column":10}}})) != null ? stack1 : "");
-},"18":function(container,depth0,helpers,partials,data) {
+  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"isComplete") : depth0),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":27,"column":10},"end":{"line":29,"column":10}}})) != null ? stack1 : "");
+},"15":function(container,depth0,helpers,partials,data) {
     var alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -31142,7 +31105,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
   return "<div class=\"form-group\">\n  <p>These Perma Links were added to "
     + container.escapeExpression(container.lambda((depth0 != null ? lookupProperty(depth0,"folder") : depth0), depth0))
     + "</p>\n</div>\n<div class=\"form-group\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":7,"column":0},"end":{"line":38,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"links") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":7,"column":0},"end":{"line":34,"column":9}}})) != null ? stack1 : "")
     + "</div>\n";
 },"usePartial":true,"useData":true});
 

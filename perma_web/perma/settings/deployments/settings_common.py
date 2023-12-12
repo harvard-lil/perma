@@ -431,10 +431,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SOFT_TIME_LIMIT=300
 # If a task is running longer than seven minutes, kill it
 CELERY_TASK_TIME_LIMIT = 420
-# Estimate of active celery workers
-# https://github.com/harvard-lil/perma/issues/2438
-# this value will be reset in settings.utils.post_processing
-WORKER_COUNT = 2
 
 CELERY_TASK_ROUTES = {
     'perma.celery_tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
