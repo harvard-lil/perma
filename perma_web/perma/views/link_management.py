@@ -1,12 +1,10 @@
-from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
-from django.utils import timezone
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 
-from ..models import Link, CaptureJob
+from ..models import Link
 
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
 
@@ -25,20 +23,6 @@ def create_link(request):
         if link:
             messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
-    # approximate 'average' capture time during last 24 hrs
-    # based on manage/stats
-    capture_time_fields = CaptureJob.objects.filter(
-        link__creation_timestamp__gt=(timezone.now() - timedelta(days=1)), link__creation_timestamp__lt=(timezone.now())
-    ).values(
-        'capture_start_time', 'link__creation_timestamp', 'capture_end_time'
-    ).exclude(capture_start_time=None).exclude(capture_end_time=None)
-    if capture_time_fields:
-        ctf_len = len(capture_time_fields)
-        capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
-        average = capture_times[int(ctf_len*.5)].total_seconds()
-    else:
-        average = 1
-
     # Get subscription info first, so that it is refreshed before we calculate how many links the user has left.
     subscription_status = request.user.subscription_status
     links_remaining = request.user.get_links_remaining()
@@ -49,9 +33,7 @@ def create_link(request):
         'link_creation_allowed': request.user.link_creation_allowed(),
         'subscription_status': subscription_status,
         'suppress_reminder': 'true' if 'url' in request.GET else request.COOKIES.get('suppress_reminder'),
-        'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024,
-        'workers': settings.WORKER_COUNT,
-        'average': average
+        'max_size': settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
     })
 
 
