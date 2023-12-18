@@ -230,7 +230,9 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                 errors['url'] = "URL cannot be empty."
             else:
                 if settings.VALIDATE_URL_LOCALLY:
+                    #
                     # Validate the URL using Perma's own logic
+                    #
                     try:
                         validate = URLValidator()
                         temp_link = Link(submitted_url=data['submitted_url'])
@@ -257,7 +259,34 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     except requests.TooManyRedirects:
                         errors['url'] = "URL caused a redirect loop."
                 else:
+                    #
                     # Delegate validation to the Scoop API
+                    # What might that look like?
+                    #
+                    # {"valid": False, "message": "Not a valid URL."}
+                    # {"valid": False, "message": ""URL caused a redirect loop."."}
+                    # {"valid": False, "message": "Not a valid URL."}"Couldn't resolve domain."
+                    # {"valid": False, "message": "Not a valid IP."}
+                    # {"valid": False, "message": "Couldn't load URL."}
+                    #
+                    # {"valid": True}
+                    # {"valid": True, "content_length": 1000}
+                    #
+                    # try:
+                    #     _, response_data = send_to_scoop(
+                    #         method="get",
+                    #         path="validate",
+                    #         json={"url": target_url},
+                    #         valid_if=lambda code, data: code == 200 and "valid" in data,
+                    #     )
+                    #     if not response_data["valid"]:
+                    #         errors['url'] = response_data["message"]
+                    #     elif content_length := response["data"].get('content_length'):
+                    #         if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
+                    #             errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
+                    # except ScoopAPIException:
+                    #     logger.exception(f"Scoop validation attempt failed.")
+                    #     errors['url'] = "We encountered a network error: please try again."
                     raise NotImplementedError()
 
         # check uploaded file
