@@ -229,31 +229,36 @@ class AuthenticatedLinkSerializer(LinkSerializer):
             if not data.get('submitted_url'):
                 errors['url'] = "URL cannot be empty."
             else:
-                try:
-                    validate = URLValidator()
-                    temp_link = Link(submitted_url=data['submitted_url'])
-                    validate(temp_link.ascii_safe_url)
+                if settings.VALIDATE_URL_LOCALLY:
+                    # Validate the URL using Perma's own logic
+                    try:
+                        validate = URLValidator()
+                        temp_link = Link(submitted_url=data['submitted_url'])
+                        validate(temp_link.ascii_safe_url)
 
-                    # Don't force URL resolution validation if a file is provided
-                    if not uploaded_file:
-                        if not temp_link.ip:
-                            errors['url'] = "Couldn't resolve domain."
-                        elif not ip_in_allowed_ip_range(temp_link.ip):
-                            errors['url'] = "Not a valid IP."
-                        elif not temp_link.headers:
-                            errors['url'] = "Couldn't load URL."
-                        else:
-                            # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
-                            try:
-                                if int(temp_link.headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
-                                    errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
-                            except ValueError:
-                                # content-length header wasn't an integer. Carry on.
-                                pass
-                except DjangoValidationError:
-                    errors['url'] = "Not a valid URL."
-                except requests.TooManyRedirects:
-                    errors['url'] = "URL caused a redirect loop."
+                        # Don't force URL resolution validation if a file is provided
+                        if not uploaded_file:
+                            if not temp_link.ip:
+                                errors['url'] = "Couldn't resolve domain."
+                            elif not ip_in_allowed_ip_range(temp_link.ip):
+                                errors['url'] = "Not a valid IP."
+                            elif not temp_link.headers:
+                                errors['url'] = "Couldn't load URL."
+                            else:
+                                # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
+                                try:
+                                    if int(temp_link.headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
+                                        errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
+                                except ValueError:
+                                    # content-length header wasn't an integer. Carry on.
+                                    pass
+                    except DjangoValidationError:
+                        errors['url'] = "Not a valid URL."
+                    except requests.TooManyRedirects:
+                        errors['url'] = "URL caused a redirect loop."
+                else:
+                    # Delegate validation to the Scoop API
+                    raise NotImplementedError()
 
         # check uploaded file
         if uploaded_file == '':

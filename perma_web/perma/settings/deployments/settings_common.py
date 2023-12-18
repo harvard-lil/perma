@@ -512,6 +512,7 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 #
 # Capture
 #
+VALIDATE_URL_LOCALLY = True
 CAPTURE_ENGINE = 'scoop-api'  # perma|scoop-api
 PRIVATE_BY_POLICY_DOMAINS = []
 SCOOP_API_KEY = None
