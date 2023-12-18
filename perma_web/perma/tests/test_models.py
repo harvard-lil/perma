@@ -12,6 +12,7 @@ from perma.models import (
     ACTIVE_SUBSCRIPTION_STATUSES,
     FIELDS_REQUIRED_FROM_PERMA_PAYMENTS,
     Link, Organization, Registrar, Folder,
+    Sponsorship,
     link_count_in_time_period,
     most_active_org_in_time_period,
     subscription_is_active
@@ -1522,7 +1523,8 @@ def test_move_bonus_link_to_another_personal_subfolder(complex_user_with_bonus_l
 
 def test_move_bonus_link_to_sponsored_folder(complex_user_with_bonus_link):
     user, bonus_link = complex_user_with_bonus_link
-    sponsored_folder = user.folders.get(name="Test Library")
+    sponsorship = Sponsorship.objects.get(user=user)
+    sponsored_folder = Folder.objects.get(name=sponsorship.registrar)
 
     # establish baseline
     links_remaining, _ , bonus_links = user.get_links_remaining()
@@ -1566,7 +1568,8 @@ def test_move_subfolder_with_bonus_links_to_sponsored_folder(complex_user_with_b
     user, bonus_link = complex_user_with_bonus_link
     subfolder = user.folders.get(name="Subfolder")
     bonus_link.move_to_folder_for_user(subfolder, user)
-    sponsored_folder = user.folders.get(name="Test Library")
+    sponsorship = Sponsorship.objects.get(user=user)
+    sponsored_folder = Folder.objects.get(name=sponsorship.registrar)
 
     # establish baseline
     links_remaining, _ , bonus_links = user.get_links_remaining()

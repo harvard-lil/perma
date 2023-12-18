@@ -387,6 +387,9 @@ class FolderFactory(DjangoModelFactory):
     class Meta:
         model = Folder
 
+
+@register_factory
+class SponsoredFolderFactory(FolderFactory):
     sponsored_by = factory.SubFactory(RegistrarFactory)
 
 ### fixtures for testing customer interactions
@@ -438,13 +441,13 @@ def user_with_links_this_month_before_the_15th(link_user, link_factory):
 
 
 @pytest.fixture
-def complex_user_with_bonus_link(link_user_factory, folder_factory, organization, registrar,
-                                 sponsorship_factory, link_factory, in_subfolder=False):
+def complex_user_with_bonus_link(link_user_factory, folder_factory,
+                                 organization, registrar, sponsorship_factory, link_factory):
     user = link_user_factory(link_limit=2, bonus_links=0)
     user.organizations.add(organization)
-    sponsorship_factory(registrar=registrar, user=user, created_by=user)
-    folder_factory(sponsored_by=registrar, parent=user.top_level_folders()[0], name='Test Library')
-    folder_factory(sponsored_by=None, parent=user.top_level_folders()[0], name='Subfolder')
+    registrar_user = RegistrarUserFactory(registrar=registrar)
+    sponsorship_factory(registrar=registrar, user=user, created_by=registrar_user)
+    folder_factory(parent=user.top_level_folders()[0], name='Subfolder')
     bonus_link = link_factory(created_by=user, bonus_link=True)
     user.refresh_from_db()
     return user, bonus_link
