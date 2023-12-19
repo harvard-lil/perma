@@ -20,6 +20,7 @@ def post_process_settings(settings):
                 DjangoIntegration(),
                 CeleryIntegration(),
             ],
+            enable_tracing=True,
 
             # Set traces_sample_rate to 1.0 to capture 100%
             # of transactions for performance monitoring.
