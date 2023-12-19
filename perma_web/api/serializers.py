@@ -264,7 +264,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     # What might that look like?
                     #
                     # {"valid": False, "message": "Not a valid URL."}
-                    # {"valid": False, "message": ""URL caused a redirect loop."."}
+                    # {"valid": False, "message": "URL caused a redirect loop."}
                     # {"valid": False, "message": "Not a valid URL."}"Couldn't resolve domain."
                     # {"valid": False, "message": "Not a valid IP."}
                     # {"valid": False, "message": "Couldn't load URL."}
