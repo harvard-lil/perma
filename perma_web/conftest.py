@@ -164,7 +164,6 @@ import humps
 from decimal import Decimal
 from datetime import timezone as tz, datetime
 from dateutil.relativedelta import relativedelta
-from django.db.models import signals
 from django.utils import timezone
 
 from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
@@ -331,7 +330,6 @@ class InProgressCaptureJobFactory(PendingCaptureJobFactory):
 
 
 @register_factory
-@factory.django.mute_signals(signals.pre_save)
 class LinkFactory(DjangoModelFactory):
     class Meta:
         model = Link
@@ -352,6 +350,9 @@ class LinkFactory(DjangoModelFactory):
         no_declaration=None
     )
 
+@register_factory
+class OrgLinkFactory(LinkFactory):
+    organization = factory.SubFactory(Organization)
 
 ### fixtures for testing customer interactions
 
