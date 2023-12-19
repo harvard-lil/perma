@@ -181,7 +181,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import signals
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship, Folder
 from perma.utils import pp_date_from_post
 
 
@@ -286,6 +286,36 @@ class LinkUserFactory(DjangoModelFactory):
 
 
 @register_factory
+class RegistrarUserFactory(LinkUserFactory):
+    registrar = factory.SubFactory(RegistrarFactory)
+
+
+# SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
+# and before SponsoredUserFactory
+@register_factory
+class SponsorshipFactory(DjangoModelFactory):
+    class Meta:
+        model = Sponsorship
+
+    user = factory.SubFactory(LinkUserFactory)
+    registrar = factory.SubFactory(RegistrarFactory)
+    created_by = factory.SubFactory(
+        RegistrarUserFactory,
+        registrar=factory.SelfAttribute('..registrar')
+    )
+
+
+@register_factory
+class SponsoredUserFactory(LinkUserFactory):
+
+    sponsorships = factory.RelatedFactoryList(
+        SponsorshipFactory,
+        size=1,
+        factory_related_name='user'
+    )
+
+
+@register_factory
 class NonpayingUserFactory(LinkUserFactory):
     nonpaying = True
 
@@ -369,6 +399,15 @@ class LinkFactory(DjangoModelFactory):
         no_declaration=None
     )
 
+@register_factory
+class FolderFactory(DjangoModelFactory):
+    class Meta:
+        model = Folder
+
+
+@register_factory
+class SponsoredFolderFactory(FolderFactory):
+    sponsored_by = factory.SubFactory(RegistrarFactory)
 
 ### fixtures for testing customer interactions
 
@@ -416,6 +455,19 @@ def user_with_links_this_month_before_the_15th(link_user, link_factory):
     link_factory(creation_timestamp=timezone.now().replace(day=14), created_by=link_user)
 
     return link_user
+
+
+@pytest.fixture
+def complex_user_with_bonus_link(link_user_factory, folder_factory,
+                                 organization, registrar, sponsorship_factory, link_factory):
+    user = link_user_factory(link_limit=2, bonus_links=0)
+    user.organizations.add(organization)
+    registrar_user = RegistrarUserFactory(registrar=registrar)
+    sponsorship_factory(registrar=registrar, user=user, created_by=registrar_user)
+    folder_factory(parent=user.top_level_folders()[0], name='Subfolder')
+    bonus_link = link_factory(created_by=user, bonus_link=True)
+    user.refresh_from_db()
+    return user, bonus_link
 
 
 @pytest.fixture
