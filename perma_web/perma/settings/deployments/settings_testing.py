@@ -24,7 +24,7 @@ ADMINS = (
     ("Admin's Name", 'admin@example.com'),
 )
 
-AWS_STORAGE_BUCKET_NAME += '-test'
+STORAGES["default"]["OPTIONS"]["bucket_name"] += '-test'
 
 ###############
 # Speed Hacks #
@@ -38,7 +38,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_URL = 'memory://localhost/'
 
 # faster collectstatic
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STORAGES["staticfiles"]["BACKEND"] = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Work around for https://github.com/jamesls/fakeredis/issues/234
 DJANGO_REDIS_CONNECTION_FACTORY = 'perma.tests.utils.FakeConnectionFactory'

@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -434,13 +433,12 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     form = RegistrarChangeForm
 
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
-    list_editable = ['show_partner_status', 'partner_display_name', 'address','latitude', 'longitude', 'status']
+    list_display = ['name', 'status', 'email', 'website', 'address', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
+    list_editable = ['status']
     list_filter = ('status', 'unlimited', 'nonpaying', 'cached_subscription_status')
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'status', 'tags', 'orgs_private_by_default')}),
+        (None, {'fields': ('name', 'email', 'website', 'address', 'status', 'tags', 'orgs_private_by_default')}),
         ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'bonus_links')}),
-        ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'address', 'latitude', 'longitude')}),
     )
     inlines = [
         new_class("OrganizationInline", admin.TabularInline, model=Organization,
@@ -540,7 +538,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'raw_email', 'notes')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'groups')}),
         ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial', 'bonus_links')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
@@ -752,7 +750,6 @@ admin.StackedInline.extra = 0
 
 # remove builtin models
 admin.site.unregister(Site)
-admin.site.unregister(Group)
 
 # add our models
 admin.site.register(Link, LinkAdmin)

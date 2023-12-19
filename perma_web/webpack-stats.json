@@ -1,1 +1,221 @@
-{"status":"done","chunks":{"single-link":[{"name":"single-link.css","path":"/perma/perma_web/static/bundles/single-link.css"},{"name":"single-link.js","path":"/perma/perma_web/static/bundles/single-link.js"},{"name":"single-link.css.map","path":"/perma/perma_web/static/bundles/single-link.css.map"},{"name":"single-link.js.map","path":"/perma/perma_web/static/bundles/single-link.js.map"}],"global":[{"name":"global.css","path":"/perma/perma_web/static/bundles/global.css"},{"name":"global.js","path":"/perma/perma_web/static/bundles/global.js"},{"name":"global.css.map","path":"/perma/perma_web/static/bundles/global.css.map"},{"name":"global.js.map","path":"/perma/perma_web/static/bundles/global.js.map"}],"create":[{"name":"create.css","path":"/perma/perma_web/static/bundles/create.css"},{"name":"create.js","path":"/perma/perma_web/static/bundles/create.js"},{"name":"create.css.map","path":"/perma/perma_web/static/bundles/create.css.map"},{"name":"create.js.map","path":"/perma/perma_web/static/bundles/create.js.map"}],"single-link-permissions":[{"name":"single-link-permissions.js","path":"/perma/perma_web/static/bundles/single-link-permissions.js"},{"name":"single-link-permissions.js.map","path":"/perma/perma_web/static/bundles/single-link-permissions.js.map"}],"admin-stats":[{"name":"admin-stats.js","path":"/perma/perma_web/static/bundles/admin-stats.js"},{"name":"admin-stats.js.map","path":"/perma/perma_web/static/bundles/admin-stats.js.map"}],"stats":[{"name":"stats.js","path":"/perma/perma_web/static/bundles/stats.js"},{"name":"stats.js.map","path":"/perma/perma_web/static/bundles/stats.js.map"}],"link-delete-confirm":[{"name":"link-delete-confirm.js","path":"/perma/perma_web/static/bundles/link-delete-confirm.js"},{"name":"link-delete-confirm.js.map","path":"/perma/perma_web/static/bundles/link-delete-confirm.js.map"}],"developer-docs":[{"name":"developer-docs.js","path":"/perma/perma_web/static/bundles/developer-docs.js"},{"name":"developer-docs.js.map","path":"/perma/perma_web/static/bundles/developer-docs.js.map"}]}}
+{
+  "status": "done",
+  "assets": {
+    "202a3a988ec9ee1ad746dfe980d65f26.ttf": {
+      "name": "202a3a988ec9ee1ad746dfe980d65f26.ttf",
+      "path": "/perma/perma_web/static/bundles/202a3a988ec9ee1ad746dfe980d65f26.ttf"
+    },
+    "21f212f94a9db6a0e3847c921842aa19.woff": {
+      "name": "21f212f94a9db6a0e3847c921842aa19.woff",
+      "path": "/perma/perma_web/static/bundles/21f212f94a9db6a0e3847c921842aa19.woff"
+    },
+    "235f8246df251c957a93cbdb54db932c.woff": {
+      "name": "235f8246df251c957a93cbdb54db932c.woff",
+      "path": "/perma/perma_web/static/bundles/235f8246df251c957a93cbdb54db932c.woff"
+    },
+    "257ba5031d03546f934e2a7709415bc3.gif": {
+      "name": "257ba5031d03546f934e2a7709415bc3.gif",
+      "path": "/perma/perma_web/static/bundles/257ba5031d03546f934e2a7709415bc3.gif"
+    },
+    "3026bd48214ed3e515b42d48539e0d21.ttf": {
+      "name": "3026bd48214ed3e515b42d48539e0d21.ttf",
+      "path": "/perma/perma_web/static/bundles/3026bd48214ed3e515b42d48539e0d21.ttf"
+    },
+    "30799efa5bf74129468ad4e257551dc3.eot": {
+      "name": "30799efa5bf74129468ad4e257551dc3.eot",
+      "path": "/perma/perma_web/static/bundles/30799efa5bf74129468ad4e257551dc3.eot"
+    },
+    "3dcc0e0f2287e2e955cd8ce8cb08dae0.ttf": {
+      "name": "3dcc0e0f2287e2e955cd8ce8cb08dae0.ttf",
+      "path": "/perma/perma_web/static/bundles/3dcc0e0f2287e2e955cd8ce8cb08dae0.ttf"
+    },
+    "3e5675c89f974f7811eeaf07e2dd5ba3.woff": {
+      "name": "3e5675c89f974f7811eeaf07e2dd5ba3.woff",
+      "path": "/perma/perma_web/static/bundles/3e5675c89f974f7811eeaf07e2dd5ba3.woff"
+    },
+    "3fb7ee3c46a4737ced31105b89e87f0c.eot": {
+      "name": "3fb7ee3c46a4737ced31105b89e87f0c.eot",
+      "path": "/perma/perma_web/static/bundles/3fb7ee3c46a4737ced31105b89e87f0c.eot"
+    },
+    "455808250694e5760bd92b3ce1f070b6.eot": {
+      "name": "455808250694e5760bd92b3ce1f070b6.eot",
+      "path": "/perma/perma_web/static/bundles/455808250694e5760bd92b3ce1f070b6.eot"
+    },
+    "687bde86935596544d81d404d2873e5d.gif": {
+      "name": "687bde86935596544d81d404d2873e5d.gif",
+      "path": "/perma/perma_web/static/bundles/687bde86935596544d81d404d2873e5d.gif"
+    },
+    "7f1320f7ec4f6716054d88c33235d17b.ttf": {
+      "name": "7f1320f7ec4f6716054d88c33235d17b.ttf",
+      "path": "/perma/perma_web/static/bundles/7f1320f7ec4f6716054d88c33235d17b.ttf"
+    },
+    "816d43bc217485bc52e309cd1b356880.woff": {
+      "name": "816d43bc217485bc52e309cd1b356880.woff",
+      "path": "/perma/perma_web/static/bundles/816d43bc217485bc52e309cd1b356880.woff"
+    },
+    "8b18d65d6824460ad37616723e493bcd.woff": {
+      "name": "8b18d65d6824460ad37616723e493bcd.woff",
+      "path": "/perma/perma_web/static/bundles/8b18d65d6824460ad37616723e493bcd.woff"
+    },
+    "8f9468b527d9941c6ff680a1187f720a.gif": {
+      "name": "8f9468b527d9941c6ff680a1187f720a.gif",
+      "path": "/perma/perma_web/static/bundles/8f9468b527d9941c6ff680a1187f720a.gif"
+    },
+    "901074e1322592fd0b82687d09602c9a.woff": {
+      "name": "901074e1322592fd0b82687d09602c9a.woff",
+      "path": "/perma/perma_web/static/bundles/901074e1322592fd0b82687d09602c9a.woff"
+    },
+    "94e202340e24b2cfe027ea6d3d93c35e.eot": {
+      "name": "94e202340e24b2cfe027ea6d3d93c35e.eot",
+      "path": "/perma/perma_web/static/bundles/94e202340e24b2cfe027ea6d3d93c35e.eot"
+    },
+    "a990f611f2305dc12965f186c2ef2690.eot": {
+      "name": "a990f611f2305dc12965f186c2ef2690.eot",
+      "path": "/perma/perma_web/static/bundles/a990f611f2305dc12965f186c2ef2690.eot"
+    },
+    "admin-stats.js": {
+      "name": "admin-stats.js",
+      "path": "/perma/perma_web/static/bundles/admin-stats.js"
+    },
+    "admin-stats.js.map": {
+      "name": "admin-stats.js.map",
+      "path": "/perma/perma_web/static/bundles/admin-stats.js.map"
+    },
+    "bb72c5142ae2ae4ca0f9c0653a09871c.ttf": {
+      "name": "bb72c5142ae2ae4ca0f9c0653a09871c.ttf",
+      "path": "/perma/perma_web/static/bundles/bb72c5142ae2ae4ca0f9c0653a09871c.ttf"
+    },
+    "c4c42ad89a06874362de0ca8909f101c.ttf": {
+      "name": "c4c42ad89a06874362de0ca8909f101c.ttf",
+      "path": "/perma/perma_web/static/bundles/c4c42ad89a06874362de0ca8909f101c.ttf"
+    },
+    "cb3625efa7f7697e0609b1ee54353306.eot": {
+      "name": "cb3625efa7f7697e0609b1ee54353306.eot",
+      "path": "/perma/perma_web/static/bundles/cb3625efa7f7697e0609b1ee54353306.eot"
+    },
+    "create.css": {
+      "name": "create.css",
+      "path": "/perma/perma_web/static/bundles/create.css"
+    },
+    "create.css.map": {
+      "name": "create.css.map",
+      "path": "/perma/perma_web/static/bundles/create.css.map"
+    },
+    "create.js": {
+      "name": "create.js",
+      "path": "/perma/perma_web/static/bundles/create.js"
+    },
+    "create.js.map": {
+      "name": "create.js.map",
+      "path": "/perma/perma_web/static/bundles/create.js.map"
+    },
+    "d8472f7b6012706fc028021e5a654843.ttf": {
+      "name": "d8472f7b6012706fc028021e5a654843.ttf",
+      "path": "/perma/perma_web/static/bundles/d8472f7b6012706fc028021e5a654843.ttf"
+    },
+    "developer-docs.js": {
+      "name": "developer-docs.js",
+      "path": "/perma/perma_web/static/bundles/developer-docs.js"
+    },
+    "developer-docs.js.map": {
+      "name": "developer-docs.js.map",
+      "path": "/perma/perma_web/static/bundles/developer-docs.js.map"
+    },
+    "e3b13bf771abea0c964d38193a3f7d74.gif": {
+      "name": "e3b13bf771abea0c964d38193a3f7d74.gif",
+      "path": "/perma/perma_web/static/bundles/e3b13bf771abea0c964d38193a3f7d74.gif"
+    },
+    "ecdd509cadbf1ea78b8d2e31ec52328c.eot": {
+      "name": "ecdd509cadbf1ea78b8d2e31ec52328c.eot",
+      "path": "/perma/perma_web/static/bundles/ecdd509cadbf1ea78b8d2e31ec52328c.eot"
+    },
+    "fc6efd02434e00d50e3eb6ae2bf253b0.woff": {
+      "name": "fc6efd02434e00d50e3eb6ae2bf253b0.woff",
+      "path": "/perma/perma_web/static/bundles/fc6efd02434e00d50e3eb6ae2bf253b0.woff"
+    },
+    "global.css": {
+      "name": "global.css",
+      "path": "/perma/perma_web/static/bundles/global.css"
+    },
+    "global.css.map": {
+      "name": "global.css.map",
+      "path": "/perma/perma_web/static/bundles/global.css.map"
+    },
+    "global.js": {
+      "name": "global.js",
+      "path": "/perma/perma_web/static/bundles/global.js"
+    },
+    "global.js.map": {
+      "name": "global.js.map",
+      "path": "/perma/perma_web/static/bundles/global.js.map"
+    },
+    "link-delete-confirm.js": {
+      "name": "link-delete-confirm.js",
+      "path": "/perma/perma_web/static/bundles/link-delete-confirm.js"
+    },
+    "link-delete-confirm.js.map": {
+      "name": "link-delete-confirm.js.map",
+      "path": "/perma/perma_web/static/bundles/link-delete-confirm.js.map"
+    },
+    "single-link-permissions.js": {
+      "name": "single-link-permissions.js",
+      "path": "/perma/perma_web/static/bundles/single-link-permissions.js"
+    },
+    "single-link-permissions.js.map": {
+      "name": "single-link-permissions.js.map",
+      "path": "/perma/perma_web/static/bundles/single-link-permissions.js.map"
+    },
+    "single-link.css": {
+      "name": "single-link.css",
+      "path": "/perma/perma_web/static/bundles/single-link.css"
+    },
+    "single-link.css.map": {
+      "name": "single-link.css.map",
+      "path": "/perma/perma_web/static/bundles/single-link.css.map"
+    },
+    "single-link.js": {
+      "name": "single-link.js",
+      "path": "/perma/perma_web/static/bundles/single-link.js"
+    },
+    "single-link.js.map": {
+      "name": "single-link.js.map",
+      "path": "/perma/perma_web/static/bundles/single-link.js.map"
+    }
+  },
+  "chunks": {
+    "admin-stats": [
+      "admin-stats.js",
+      "admin-stats.js.map"
+    ],
+    "create": [
+      "create.css",
+      "create.js",
+      "create.css.map",
+      "create.js.map"
+    ],
+    "developer-docs": [
+      "developer-docs.js",
+      "developer-docs.js.map"
+    ],
+    "global": [
+      "global.css",
+      "global.js",
+      "global.css.map",
+      "global.js.map"
+    ],
+    "link-delete-confirm": [
+      "link-delete-confirm.js",
+      "link-delete-confirm.js.map"
+    ],
+    "single-link": [
+      "single-link.css",
+      "single-link.js",
+      "single-link.css.map",
+      "single-link.js.map"
+    ],
+    "single-link-permissions": [
+      "single-link-permissions.js",
+      "single-link-permissions.js.map"
+    ]
+  }
+}

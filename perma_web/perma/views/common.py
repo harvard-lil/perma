@@ -1,6 +1,5 @@
 from ratelimit.decorators import ratelimit
-from datetime import timedelta
-from dateutil.tz import tzutc
+from datetime import timedelta, timezone as tz
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
 from urllib.parse import urlencode
@@ -22,7 +21,7 @@ from django.views.decorators.cache import cache_control
 
 from perma.wsgi_utils import retry_on_exception
 
-from ..models import Link, Registrar, Organization, LinkUser
+from ..models import Link, Registrar
 from ..forms import ContactForm, ReportForm, check_honeypot
 from ..utils import (if_anonymous, ratelimit_ip_key,
     protocol, stream_warc_if_permissible,
@@ -57,41 +56,10 @@ def landing(request):
     """
     if request.user.is_authenticated and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
-
     else:
-        # orgs_count = Organization.objects.count()
-        # users_count = LinkUser.objects.count()
-        # links_count = Link.objects.filter(is_private=False).count()
-
         return render(request, 'landing.html', {
             'this_page': 'landing',
-            # 'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
         })
-
-
-def about(request):
-    """
-    The about page
-    """
-    return render(request, 'about.html')
-
-def faq(request):
-    """
-    The faq page
-    """
-    registrars_count = Registrar.objects.approved().count()
-    orgs_count = Organization.objects.all().count()
-    users_count = LinkUser.objects.all().count()
-    links_count = Link.objects.filter(is_private=False).count()
-    return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
-        'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
-
-
-def stats(request):
-    """
-    The global stats
-    """
-    return render(request, 'stats.html')
 
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_permalink']))
@@ -242,19 +210,6 @@ def single_permalink(request, guid):
     return response
 
 
-def serve_warc(request, guid):
-    """
-    This is a redundant route for downloading a warc, for use in client-side playback,
-    which has specific requirements:
-    - the warc must be served from a URL ending in `.warc`
-    - the response cannot be streamed
-    """
-
-    canonical_guid = Link.get_canonical_guid(guid)
-    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-    return stream_warc_if_permissible(link, request.user, stream=False)
-
-
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['timemap']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.HOUR_LIMIT, block=True, key=ratelimit_ip_key)
@@ -310,7 +265,7 @@ def timegate(request, url):
             return HttpResponseBadRequest('Invalid value for Accept-Datetime.')
     else:
         accept_datetime = timezone.now()
-    accept_datetime = accept_datetime.replace(tzinfo=tzutc())
+    accept_datetime = accept_datetime.replace(tzinfo=tz.utc)
 
     target, target_datetime = closest([m.values() for m in data['mementos']['list']], accept_datetime)
 

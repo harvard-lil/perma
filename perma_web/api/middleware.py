@@ -12,7 +12,7 @@ class CORSMiddleware(DjangoCommonMiddleware):
         if not origin: # Set origin to `*` if none was provided.
             origin = "*"
 
-        if f"/v{settings.API_VERSION}/" in request.get_raw_uri(): # Applies to `/v1/` API urls.
+        if f"/v{settings.API_VERSION}/" in request.get_full_path(): # Applies to `/v1/` API urls.
             # Force HTTP 200 for preflight requests (?).
             # The browser doesn't pass a `Authorization` header during preflight (in most cases), our API therefore assumes this resource can't be accessed.
             if request.method == "OPTIONS" and response.status_code == 401:

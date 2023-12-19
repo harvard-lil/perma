@@ -23,6 +23,21 @@ Page.screenshot = full_page_screenshot
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
+# patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
+# https://github.com/django/django/commit/823a9e6bac38d38f7b0347497b833eec732bd384
+from pytest_django_liveserver_ssl.live_server_ssl_helper import HTTPSLiveServerThread, SecureHTTPServer, WSGIRequestHandler
+def _create_server(self, connections_override=None):
+    return SecureHTTPServer(
+        (self.host, self.port),
+        WSGIRequestHandler,
+        allow_reuse_address=False,
+        connections_override=connections_override,
+        certificate=self.certificate_file,
+        key=self.key_file,
+    )
+HTTPSLiveServerThread._create_server = _create_server
+
+
 # shadow this fixture from  pytest_django_liveserver_ssl so that it doesn't request the admin client (which doesn't work with our fixture situation)
 @pytest.fixture()
 def live_server_ssl_clients_for_patch(client):
@@ -62,8 +77,7 @@ def _load_json_fixtures():
         'fixtures/users.json',
         'fixtures/api_keys.json',
         'fixtures/folders.json',
-        'fixtures/archive.json',
-        'fixtures/mirrors.json'
+        'fixtures/archive.json'
     ])
 
 
@@ -95,11 +109,11 @@ def cleanup_storage():
     yield
     storage = boto3.resource(
         's3',
-        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        endpoint_url=settings.STORAGES["default"]["OPTIONS"]["endpoint_url"],
+        aws_access_key_id=settings.STORAGES["default"]["OPTIONS"]["access_key"],
+        aws_secret_access_key=settings.STORAGES["default"]["OPTIONS"]["secret_key"],
         verify=False
-    ).Bucket(settings.AWS_STORAGE_BUCKET_NAME)
+    ).Bucket(settings.STORAGES["default"]["OPTIONS"]["bucket_name"])
     storage.objects.delete()
 
 
@@ -158,19 +172,19 @@ def logged_in_user(page, urls, user):
 # The separation should make it easier to work out, going forward, what can be deleted.
 
 import factory
-from factory.django import DjangoModelFactory
+from factory.django import DjangoModelFactory, Password
 import humps
 
 from decimal import Decimal
-from datetime import timezone as tz, datetime
+from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship, Folder
 from perma.utils import pp_date_from_post
 
 
-GENESIS = datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
+GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 
 ### internal helpers ###
 
@@ -267,7 +281,37 @@ class LinkUserFactory(DjangoModelFactory):
     is_active = True
     is_confirmed = True
 
-    password = factory.PostGenerationMethodCall('set_password', 'pass')
+    password = Password('pass')
+
+
+@register_factory
+class RegistrarUserFactory(LinkUserFactory):
+    registrar = factory.SubFactory(RegistrarFactory)
+
+
+# SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
+# and before SponsoredUserFactory
+@register_factory
+class SponsorshipFactory(DjangoModelFactory):
+    class Meta:
+        model = Sponsorship
+
+    user = factory.SubFactory(LinkUserFactory)
+    registrar = factory.SubFactory(RegistrarFactory)
+    created_by = factory.SubFactory(
+        RegistrarUserFactory,
+        registrar=factory.SelfAttribute('..registrar')
+    )
+
+
+@register_factory
+class SponsoredUserFactory(LinkUserFactory):
+
+    sponsorships = factory.RelatedFactoryList(
+        SponsorshipFactory,
+        size=1,
+        factory_related_name='user'
+    )
 
 
 @register_factory
@@ -290,6 +334,7 @@ class CaptureJobFactory(DjangoModelFactory):
     class Meta:
         model = CaptureJob
         exclude = ('create_link',)
+        skip_postgeneration_save=True
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
@@ -306,6 +351,8 @@ class CaptureJobFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
+    # Required to update CaptureJob.link_id from None, after the Link is generated
+    _ = factory.PostGenerationMethodCall("save")
 
 
 @register_factory
@@ -350,9 +397,22 @@ class LinkFactory(DjangoModelFactory):
         no_declaration=None
     )
 
+
 @register_factory
 class OrgLinkFactory(LinkFactory):
     organization = factory.SubFactory(Organization)
+
+
+@register_factory
+class FolderFactory(DjangoModelFactory):
+    class Meta:
+        model = Folder
+
+
+@register_factory
+class SponsoredFolderFactory(FolderFactory):
+    sponsored_by = factory.SubFactory(RegistrarFactory)
+
 
 ### fixtures for testing customer interactions
 
@@ -400,6 +460,19 @@ def user_with_links_this_month_before_the_15th(link_user, link_factory):
     link_factory(creation_timestamp=timezone.now().replace(day=14), created_by=link_user)
 
     return link_user
+
+
+@pytest.fixture
+def complex_user_with_bonus_link(link_user_factory, folder_factory,
+                                 organization, registrar, sponsorship_factory, link_factory):
+    user = link_user_factory(link_limit=2, bonus_links=0)
+    user.organizations.add(organization)
+    registrar_user = RegistrarUserFactory(registrar=registrar)
+    sponsorship_factory(registrar=registrar, user=user, created_by=registrar_user)
+    folder_factory(parent=user.top_level_folders()[0], name='Subfolder')
+    bonus_link = link_factory(created_by=user, bonus_link=True)
+    user.refresh_from_db()
+    return user, bonus_link
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 from collections import defaultdict
 import csv
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 import hashlib
 from invoke import task
@@ -9,7 +9,6 @@ import itertools
 import json
 import os
 from pathlib import Path
-import pytz
 import re
 import requests
 import signal
@@ -28,7 +27,7 @@ from django.http import HttpRequest
 from django.utils import timezone
 
 from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
-from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organization, Registrar, WeekStats
+from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organization, Registrar
 
 
 import logging
@@ -72,32 +71,6 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
                 os.kill(proc.pid, signal.SIGKILL)
 
 
-_default_tests = "functional_tests perma api lockss"
-
-@task
-def test(ctx, apps=_default_tests):
-    """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
-    test_python(ctx, apps)
-    if apps == _default_tests:
-        test_js(ctx)
-
-@task
-def test_python(ctx, apps=_default_tests):
-    """ Run Python tests. """
-
-    # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
-    # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
-    if "functional_tests" in apps:
-        ctx.run("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
-
-    ctx.run(f"pytest {apps} --ds=perma.settings.deployments.settings_testing --cov --cov-config=setup.cfg --cov-report= ")
-
-@task
-def test_js(ctx):
-    """ Run Javascript tests. """
-    ctx.run("npm test")
-
-
 @task
 def pip_compile(ctx, args=''):
     # run pip-compile
@@ -120,56 +93,6 @@ def init_db(ctx):
     """
     ctx.run("python manage.py migrate")
     ctx.run("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
-
-
-@task
-def build_week_stats(ctx):
-    """
-        A temporary helper to populate our weekly stats
-    """
-    # regenerate all weekly stats
-    WeekStats.objects.all().delete()
-
-    oldest_link = Link.objects.earliest('creation_timestamp')
-
-    # this is always the end date in our range, usually a saturday
-    date_of_stats = oldest_link.creation_timestamp
-
-    # this is the start date in our range, always a sunday
-    start_date = date_of_stats
-
-    links_this_week = 0
-    users_this_week = 0
-    orgs_this_week = 0
-    registrars_this_week = 0
-
-    while date_of_stats < timezone.now():
-        links_this_week += Link.objects.filter(creation_timestamp__year=date_of_stats.year,
-            creation_timestamp__month=date_of_stats.month, creation_timestamp__day=date_of_stats.day).count()
-
-        users_this_week += LinkUser.objects.filter(date_joined__year=date_of_stats.year,
-            date_joined__month=date_of_stats.month, date_joined__day=date_of_stats.day).count()
-
-        orgs_this_week += Organization.objects.filter(date_created__year=date_of_stats.year,
-            date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
-
-        registrars_this_week += Registrar.objects.approved().filter(date_created__year=date_of_stats.year,
-            date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
-
-        # if this is a saturday, write our sums and reset our counts
-        if date_of_stats.weekday() == 5:
-            week_of_stats = WeekStats(start_date=start_date, end_date=date_of_stats, links_sum=links_this_week,
-                users_sum=users_this_week, organizations_sum=orgs_this_week, registrars_sum=registrars_this_week)
-            week_of_stats.save()
-
-            links_this_week = 0
-            users_this_week = 0
-            orgs_this_week = 0
-            registrars_this_week = 0
-
-            start_date = date_of_stats + timedelta(days=1)
-
-        date_of_stats += timedelta(days=1)
 
 
 @task
@@ -445,11 +368,11 @@ def check_storage(ctx, start_date=None):
         # use first archive date
         start_datetime = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
     elif re.match(r'^\d\d\d\d-\d\d-\d\d$', start_date):
-        start_datetime = pytz.utc.localize(datetime.strptime(start_date, "%Y-%m-%d"))
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d").astimezone(tz.utc)
     else:
         print("Bad argument")
         return
-    end_datetime = pytz.utc.localize(datetime.now())
+    end_datetime = timezone.now()
 
     # The abstraction of multiple storages is an artifact of the
     # transition to S3 for storage; although it's conceivable that we'd
@@ -468,7 +391,7 @@ def check_storage(ctx, start_date=None):
         print("Building link cache ...")
         with open(link_cache, 'w') as tmp_file:
             capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
-            # assemble list of links by year-month, as in lockss/views.titledb:
+            # assemble list of links by year-month
             start_month = date(year=start_datetime.year, month=start_datetime.month, day=1)
             today = date.today()
             while start_month <= today:
@@ -491,7 +414,7 @@ def check_storage(ctx, start_date=None):
                 if hasattr(storage, 'bucket'):
                     # S3
                     for f in storage.bucket.list('generated/warcs/'):
-                        if (not start_date) or (start_datetime <= pytz.utc.localize(datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')) < end_datetime):
+                        if (not start_date) or (start_datetime <= datetime.strptime(f.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ').astimezone(tz.utc) < end_datetime):
                             # here we chop off the prefix aka storage.location
                             path = f.key[(len(storage.location)):]
                             # etag is a string like u'"3ea8c903d9991d466ec437d1789379a6"', so we need to
@@ -512,7 +435,7 @@ def check_storage(ctx, start_date=None):
                         # it yields a 3-tuple (dirpath, dirnames, filenames)" -- so:
                         for filename in f[2]:
                             full_path = os.path.join(f[0], filename)
-                            if (not start_date) or (start_datetime <= pytz.utc.localize(storage.modified_time(full_path)) < end_datetime):
+                            if (not start_date) or (start_datetime <= storage.modified_time(full_path).astimezone(tz.utc) < end_datetime):
                                 # here we chop off the prefix, whether storage._root_path or storage.base_location
                                 path = full_path[len(base):]
                                 # note that etags are not always md5sums, but should be in these cases; we can rewrite

@@ -10,11 +10,13 @@ LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')
 
 # user-generated files
-AWS_S3_ENDPOINT_URL = 'https://perma.minio.test:9000'
-AWS_ACCESS_KEY_ID = 'accesskey'
-AWS_SECRET_ACCESS_KEY = 'secretkey'
-AWS_STORAGE_BUCKET_NAME = 'perma-storage'
-AWS_S3_VERIFY = False
+
+
+STORAGES["default"]["OPTIONS"]["endpoint_url"] = 'https://perma.minio.test:9000'
+STORAGES["default"]["OPTIONS"]["access_key"] = 'accesskey'
+STORAGES["default"]["OPTIONS"]["secret_key"] = 'secretkey'
+STORAGES["default"]["OPTIONS"]["bucket_name"] = 'perma-storage'
+STORAGES["default"]["OPTIONS"]["verify"] = False
 
 # static files
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
@@ -58,11 +60,6 @@ try:
     )
 except ImportError:
     pass
-
-
-# Our Sorl thumbnail stuff. In prod we use Redis, we'll just use
-# the local uncached DB here in dev.
-THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.cached_db_kvstore.KVStore'
 
 
 #

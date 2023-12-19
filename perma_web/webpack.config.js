@@ -25,7 +25,6 @@ module.exports = {
     'single-link-permissions': './static/js/single-link-permissions.module',
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
-    'stats': './static/js/stats',
     'admin-stats': './static/js/admin-stats',
   },
 

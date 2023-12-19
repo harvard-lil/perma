@@ -10,8 +10,6 @@ DEBUG = False
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERY_BEAT_JOB_NAMES = [
-    'update-stats',
-    'send-js-errors',
     'run-next-capture',
     'sync_subscriptions_from_perma_payments',
     'cache_playback_status_for_new_links',
@@ -22,12 +20,6 @@ CELERY_BEAT_JOB_NAMES = [
 
 # logging
 LOGGING['handlers']['file']['filename'] = '/var/log/perma/perma.log'
-
-# Our sorl thumbnail settings
-# We only use this redis config in prod. dev envs use the local db.
-THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
-THUMBNAIL_REDIS_HOST = 'localhost'
-THUMBNAIL_REDIS_PORT = '6379'
 
 # caching
 CACHES["default"] = {

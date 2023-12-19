@@ -1,6 +1,6 @@
 import calendar
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 import hashlib
 import json
@@ -23,13 +23,13 @@ from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
 
 import django.contrib.auth.models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
 from django.db.models import Q, Max, Count, Sum, JSONField
-from django.db.models.functions import Now, Upper
+from django.db.models.functions import Now, Upper, TruncDate
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
 from django.template.defaultfilters import truncatechars
@@ -582,9 +582,6 @@ class RegistrarQuerySet(QuerySet):
     def approved(self):
         return self.filter(status="approved")
 
-def logo_file_path(instance, filename):
-    return f"registrar_logos/{instance.id}/{filename}"
-
 class Registrar(CustomerModel):
     """
     This is a library, a court, a firm, or similar.
@@ -596,12 +593,7 @@ class Registrar(CustomerModel):
     status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
     orgs_private_by_default = models.BooleanField(default=False, help_text="Whether new orgs created for this registrar default to private links.")
 
-    show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
-    partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
-    logo = models.ImageField(upload_to=logo_file_path, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True, null=True)
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
     manual_sort_order = models.IntegerField(default=0, db_index=True)
 
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
@@ -800,7 +792,7 @@ class LinkUserManager(BaseUserManager):
 # where django-model-utils FieldTracker breaks the setter for overridden attributes on abstract base classes
 del AbstractBaseUser.is_active
 
-class LinkUser(CustomerModel, AbstractBaseUser):
+class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -1431,13 +1423,6 @@ class LinkQuerySet(QuerySet):
             user_deleted=False,
         )
 
-    def visible_to_lockss(self):
-        """
-            Expose the bundled WARC after the required wait period,
-            if capture succeeded, unless deleted or made private by the user or by admins.
-        """
-        return self.filter(cached_can_play_back=True).exclude(private_reason__in=['user', 'takedown'])
-
     def visible_to_memento(self):
         return self.discoverable().filter(cached_can_play_back=True)
 
@@ -1447,62 +1432,29 @@ class LinkQuerySet(QuerySet):
     def ineligible_for_ia(self):
         return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
 
-    def ia_upload_pending(self, date_string=None, limit=100):
+    def ia_upload_pending(self, date_string, limit=100):
         # Get all Links we think should have been uploaded to IA,
         # and then filter out the ones that have already been uploaded
         # to a "daily" item.
-        #
-        # Do so with our own SQL because the SQL generated from the
-        # intuitive ORM query proved to be impossibly slow.
-        # links = Link.objects.visible_to_ia().filter(
-        #     creation_timestamp__date=InternetArchiveItem.date(date_string)
-        # ).exclude(
-        #     internet_archive_items__span__isempty=False
-        # )
-        date_clause = '''
-          AND (
-            (perma_link.creation_timestamp AT TIME ZONE 'UTC')::DATE = %s
-          )
-        '''
-        limit_clause = "LIMIT %s"
-        sql = f'''
-            WITH links_with_daily_items AS (
-                SELECT
-                  perma_link.guid
-                FROM
-                  perma_link
-                  INNER JOIN perma_internetarchivefile ON
-                    perma_link.guid = perma_internetarchivefile.link_id
-                  INNER JOIN perma_internetarchiveitem ON
-                    perma_internetarchivefile.item_id = perma_internetarchiveitem.identifier
-                WHERE
-                  isempty(
-                    perma_internetarchiveitem.span
-                  ) = False
+        if date_string > "2022-10-03":
+            # No links created after 2022-10-03 were uploaded to IA as individual Items:
+            # use a simplified query
+            logger.debug("Running simple IA eligibility query.")
+            query = Link.objects.filter(
+                creation_timestamp__date=date_string
+            ).visible_to_ia().filter(
+                internet_archive_files=None
             )
-
-            SELECT
-              perma_link.guid
-            FROM
-              perma_link
-              LEFT JOIN links_with_daily_items ON
-                   perma_link.guid = links_with_daily_items.guid
-            WHERE
-              links_with_daily_items.guid IS NULL
-              AND (
-                perma_link.user_deleted = False AND perma_link.is_private = False AND perma_link.is_unlisted = False AND perma_link.cached_can_play_back = True
-              )
-              {date_clause if date_string else ''}
-            {limit_clause if limit else ''}
-        '''
-
-        params = []
-        if date_string:
-            params.append(date_string)
+        else:
+            logger.debug("Running full IA eligibility query.")
+            query = Link.objects.filter(
+                creation_timestamp__date=date_string
+            ).visible_to_ia().exclude(
+                internet_archive_items__span__isempty=False
+            )
         if limit:
-            params.append(str(limit))
-
-        return self.model.objects.raw(sql, params)
+            query = query[:limit]
+        return query
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
@@ -1559,10 +1511,6 @@ class Link(DeletableModel):
         "InternetArchiveItem", through="InternetArchiveFile", related_name="links"
     )
 
-    thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
-        ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
-
-
     objects = LinkManager()
     tracker = FieldTracker()
     history = HistoricalRecords()
@@ -1572,6 +1520,7 @@ class Link(DeletableModel):
     class Meta:
         indexes = [
             models.Index(fields=['user_deleted', 'is_private', 'is_unlisted', 'cached_can_play_back', 'internet_archive_upload_status']),
+            models.Index('user_deleted', TruncDate('creation_timestamp'), 'is_private', 'is_unlisted', 'cached_can_play_back', name="ia_eligible_for_date_idx"),
             models.Index(fields=['creation_timestamp']),
             models.Index(fields=['submitted_url_surt']),
             GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
@@ -1599,8 +1548,16 @@ class Link(DeletableModel):
 
     @cached_property
     def ascii_safe_url(self):
-        """ Encoded URL as string rather than unicode. """
-        return requests.utils.requote_uri(self.submitted_url)
+        """URL as encoded internally by python requests"""
+        try:
+            # Attempt to quote the URL as well as possible:
+            # - percent encoding
+            # - unicode domains to punycode
+            # - etc.
+            return requests.Request('GET', self.submitted_url).prepare().url
+        except requests.exceptions.RequestException:
+            # If that fails, just percent encode everything for safety
+            return requests.utils.requote_uri(self.submitted_url)
 
     @cached_property
     def url_details(self):
@@ -1763,63 +1720,6 @@ class Link(DeletableModel):
     def warc_presigned_url_relative(self):
         parsed = urlparse(self.warc_presigned_url())
         return f'{parsed.path}?{parsed.query}'.lstrip('/')
-
-    # def get_thumbnail(self, image_data=None):
-    #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
-    #         return None
-    #
-    #     thumbnail_path = os.path.join(settings.THUMBNAIL_STORAGE_PATH, self.guid_as_path(), 'thumbnail.png')
-    #
-    #     if self.thumbnail_status == 'generated' and default_storage.exists(thumbnail_path):
-    #         return default_storage.open(thumbnail_path)
-    #
-    #     try:
-    #
-    #         warc_url = None
-    #         image = None
-    #
-    #         if image_data:
-    #             image = Image(blob=image_data)
-    #         else:
-    #
-    #             if self.screenshot_capture and self.screenshot_capture.status == 'success':
-    #                 warc_url = self.screenshot_capture.url
-    #             else:
-    #                 pdf_capture = self.captures.filter(content_type__istartswith='application/pdf').first()
-    #                 if pdf_capture:
-    #                     warc_url = pdf_capture.url
-    #
-    #             if warc_url:
-    #                 self.thumbnail_status = 'generating'
-    #                 self.save(update_fields=['thumbnail_status'])
-    #
-    #                 headers, data = self.replay_url(warc_url)
-    #                 temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
-    #                 for chunk in data:
-    #                     temp_file.write(chunk)
-    #                 temp_file.flush()
-    #                 image = Image(filename=temp_file.name + "[0]")  # [0] limits ImageMagick to first page of PDF
-    #
-    #         if image:
-    #             with imagemagick_temp_dir():
-    #                 with image as opened_img:
-    #                     opened_img.transform(resize='600')
-    #                     # opened_img.resize(600,600)
-    #                     with Image(width=600, height=600) as dst_image:
-    #                         dst_image.composite(opened_img, 0, 0)
-    #                         dst_image.compression_quality = 60
-    #                         default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
-    #
-    #             self.thumbnail_status = 'generated'
-    #             self.save(update_fields=['thumbnail_status'])
-    #
-    #             return default_storage.open(thumbnail_path)
-    #
-    #     except Exception as e:
-    #         print "Thumbnail generation failed for %s: %s" % (self.guid, e)
-    #
-    #     self.thumbnail_status = 'failed'
-    #     self.save(update_fields=['thumbnail_status'])
 
     def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()
@@ -2264,7 +2164,7 @@ class InternetArchiveItem(models.Model):
 
     @classmethod
     def datetime(cls, datetime_string):
-        return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+        return datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz.utc)
 
     @classmethod
     def standard_metadata_for_date(cls, date_string):
@@ -2367,72 +2267,3 @@ class InternetArchiveFile(models.Model):
         self.cached_submitted_url = None
         self.cached_perma_url = None
 
-
-
-#########################
-# Stats related models
-#########################
-
-class WeekStats(models.Model):
-    """
-    Our stats dashboard displays weekly stats. Let's house those here.
-    """
-
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True)
-
-
-    links_sum = models.IntegerField(default=0)
-    users_sum = models.IntegerField(default=0)
-    organizations_sum = models.IntegerField(default=0)
-    registrars_sum = models.IntegerField(default=0)
-
-
-class MinuteStats(models.Model):
-    """
-    To see how the flag is blowing in Perma land, we log sums
-    for key points activity each minute
-    """
-
-    creation_timestamp = models.DateTimeField(auto_now_add=True)
-
-    links_sum = models.IntegerField(default=0)
-    users_sum = models.IntegerField(default=0)
-    organizations_sum = models.IntegerField(default=0)
-    registrars_sum = models.IntegerField(default=0)
-
-
-class UncaughtError(models.Model):
-    current_url = models.TextField(blank=True, null=True)
-    user_agent = models.TextField(blank=True, null=True)
-    stack = models.TextField(blank=True, null=True)
-    message = models.TextField(blank=True, null=True)
-    user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(default=timezone.now)
-
-    resolved = models.BooleanField(default=False)
-    resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.id}: {self.message}"
-
-    def format_for_reading(self):
-        formatted = {
-            'id': self.id,
-            'user_agent': self.user_agent,
-            'created_at': self.created_at,
-            'message': self.message,
-            'current_url': self.current_url,
-        }
-
-        if self.stack:
-            try:
-                formatted['stack'] = json.loads(self.stack)[0]
-            except IndexError:
-                logger.warn(f"No stacktrace for js error {self.id}")
-            except ValueError:
-                logger.warn(f"Stacktrace for js error {self.id} is invalid json")
-        if self.user:
-            formatted['user'] = self.user.id
-
-        return formatted

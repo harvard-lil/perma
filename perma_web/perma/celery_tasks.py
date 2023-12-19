@@ -22,12 +22,10 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
-from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 
-from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, Capture, \
-    CaptureJob, UncaughtError, InternetArchiveItem, InternetArchiveFile
-from perma.email import send_self_email
+from perma.models import LinkUser, Link, Capture, \
+    CaptureJob, InternetArchiveItem, InternetArchiveFile
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
     remove_whitespace,
@@ -329,6 +327,7 @@ def capture_with_scoop(capture_job):
             didnt_load = "ERROR Navigation to page failed (about:blank)"
             proxy_error = "ERROR An error occurred during capture setup"
             blocklist_error = "TypeError: Cannot read properties of undefined (reading 'match')"
+            playwright_error = "${arg.guid} was not bound in the connection"
             if poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
                 capture_job.link.tags.add('scoop-load-failure')
@@ -338,6 +337,9 @@ def capture_with_scoop(capture_job):
             elif poll_data['stderr_logs'] and blocklist_error in poll_data['stderr_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed while checking the blocklist.")
                 capture_job.link.tags.add('scoop-blocklist-failure')
+            elif poll_data['stderr_logs'] and playwright_error in poll_data['stderr_logs']:
+                logger.warning(f"{capture_job.link_id}: Scoop failed with a Playwright error.")
+                capture_job.link.tags.add('scoop-playwright-failure')
             elif not poll_data['stderr_logs'] and not poll_data['stdout_logs']:
                 logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
                 capture_job.link.tags.add('scoop-silent-failure')
@@ -369,55 +371,6 @@ def capture_with_scoop(capture_job):
 ### HOUSEKEEPING ###
 ###              ###
 
-@shared_task()
-def update_stats():
-    """
-    run once per minute by celerybeat. logs our minute-by-minute activity,
-    and also rolls our weekly stats (perma.models.WeekStats)
-    """
-
-    # On the first minute of the new week, roll our weekly stats entry
-    now = timezone.now()
-    if now.weekday() == 6 and now.hour == 0 and now.minute == 0:
-        week_to_close = WeekStats.objects.latest('start_date')
-        week_to_close.end_date = now
-        week_to_close.save()
-        new_week = WeekStats(start_date=now)
-        new_week.save()
-
-
-    # We only need to keep a day of data for our visualization.
-    # TODO: this is 1560 minutes is 26 hours, that likely doesn't
-    # cover everyone outside of the east coast. Our vis should
-    # be timezone aware. Fix this.
-    if MinuteStats.objects.all().count() == 1560:
-        MinuteStats.objects.all()[0].delete()
-
-
-    # Add our new minute measurements
-    a_minute_ago = now - timedelta(seconds=60)
-
-    links_sum = Link.objects.filter(creation_timestamp__gt=a_minute_ago).count()
-    users_sum = LinkUser.objects.filter(date_joined__gt=a_minute_ago).count()
-    organizations_sum = Organization.objects.filter(date_created__gt=a_minute_ago).count()
-    registrars_sum = Registrar.objects.approved().filter(date_created__gt=a_minute_ago).count()
-
-    new_minute_stat = MinuteStats(links_sum=links_sum, users_sum=users_sum,
-        organizations_sum=organizations_sum, registrars_sum=registrars_sum)
-    new_minute_stat.save()
-
-
-    # Add our minute activity to our current weekly sum
-    if links_sum or users_sum or organizations_sum or registrars_sum:
-        current_week = WeekStats.objects.latest('start_date')
-        current_week.end_date = now
-        current_week.links_sum += links_sum
-        current_week.users_sum += users_sum
-        current_week.organizations_sum += organizations_sum
-        current_week.registrars_sum += registrars_sum
-        current_week.save()
-
-
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def cache_playback_status_for_new_links():
     links = Link.objects.permanent().filter(cached_can_play_back__isnull=True)
@@ -434,24 +387,6 @@ def cache_playback_status(link_guid):
     link.cached_can_play_back = link.can_play_back()
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
-
-
-@shared_task()
-def send_js_errors():
-    """
-    finds all uncaught JS errors recorded in the last week, sends a report if errors exist
-    """
-    errors = UncaughtError.objects.filter(
-        created_at__gte=timezone.now() - timedelta(days=7),
-        resolved=False)
-
-    if errors:
-        formatted_errors = [err.format_for_reading() for err in errors]
-        send_self_email("Uncaught Javascript errors",
-                         HttpRequest(),
-                         'email/admin/js_errors.txt',
-                         {'errors': formatted_errors})
-        return errors
 
 
 @shared_task()

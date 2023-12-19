@@ -2,7 +2,6 @@ let Spinner = require('spin.js');
 
 let APIModule = require('./helpers/api.module.js');
 var DOMHelpers = require('./helpers/dom.helpers.js');
-var ErrorHandler = require('./error-handler.js');
 let FolderTreeModule = require('./folder-tree.module.js');
 let FolderSelectorHelper = require('./helpers/folder-selector.helper.js');
 let Helpers = require('./helpers/general.helpers.js');
@@ -24,8 +23,6 @@ let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_containe
 
 
 function render_batch(links_in_batch, folder_path) {
-    const average_capture_time = average; //global var set by template
-    const celery_workers = workers; //global var set by template
     const steps = 6;
 
     let all_completed = true;
@@ -37,15 +34,6 @@ function render_batch(links_in_batch, folder_path) {
         switch(link.status){
             case "pending":
                 link.isPending = true;
-                // divide into batches; each batch takes average_capture_time to complete
-                let waitMinutes = Math.round(Math.floor(link.queue_position / celery_workers) * average_capture_time / 60);
-                if (waitMinutes == Number.POSITIVE_INFINITY){
-                    link.beginsIn = null;
-                } else if (waitMinutes >= 1){
-                    link.beginsIn = `about ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''}.`;
-                } else {
-                    link.beginsIn = `less than 1 minute.`;
-                }
                 all_completed = false;
                 batch_progress.push(link.progress);
                 break;
@@ -79,7 +67,6 @@ function render_batch(links_in_batch, folder_path) {
 };
 
 function handle_error(error){
-    ErrorHandler.airbrake.notify(error);
     clearInterval(interval);
     APIModule.showError(error);
     $modal.modal("hide");

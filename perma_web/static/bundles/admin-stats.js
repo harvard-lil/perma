@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 552);
+/******/ 	return __webpack_require__(__webpack_require__.s = 388);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -404,15 +404,7 @@ module.exports = function (namespace, method) {
 
 /***/ }),
 
-/***/ 27:
-/***/ (function(module, exports) {
-
-module.exports = {};
-
-
-/***/ }),
-
-/***/ 278:
+/***/ 265:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -496,6 +488,14 @@ function hasScrolled(elem) {
   return elem.children().first().position().top < 0;
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
+
+/***/ }),
+
+/***/ 27:
+/***/ (function(module, exports) {
+
+module.exports = {};
+
 
 /***/ }),
 
@@ -671,38 +671,7 @@ module.exports = function (input, pref) {
 
 /***/ }),
 
-/***/ 37:
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(6);
-var shared = __webpack_require__(38);
-var hasOwn = __webpack_require__(42);
-var uid = __webpack_require__(44);
-var NATIVE_SYMBOL = __webpack_require__(30);
-var USE_SYMBOL_AS_UID = __webpack_require__(29);
-
-var WellKnownSymbolsStore = shared('wks');
-var Symbol = global.Symbol;
-var symbolFor = Symbol && Symbol['for'];
-var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol : Symbol && Symbol.withoutSetter || uid;
-
-module.exports = function (name) {
-  if (!hasOwn(WellKnownSymbolsStore, name) || !(NATIVE_SYMBOL || typeof WellKnownSymbolsStore[name] == 'string')) {
-    var description = 'Symbol.' + name;
-    if (NATIVE_SYMBOL && hasOwn(Symbol, name)) {
-      WellKnownSymbolsStore[name] = Symbol[name];
-    } else if (USE_SYMBOL_AS_UID && symbolFor) {
-      WellKnownSymbolsStore[name] = symbolFor(description);
-    } else {
-      WellKnownSymbolsStore[name] = createWellKnownSymbol(description);
-    }
-  } return WellKnownSymbolsStore[name];
-};
-
-
-/***/ }),
-
-/***/ 373:
+/***/ 360:
 /***/ (function(module, exports, __webpack_require__) {
 
 /**!
@@ -737,20 +706,51 @@ this.decorators.push("return fn;"),d?this.decorators=Function.apply(this,["fn","
 
 /***/ }),
 
-/***/ 377:
+/***/ 364:
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(378);
+module.exports = __webpack_require__(365);
 
 /***/ }),
 
-/***/ 378:
+/***/ 365:
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(4);
 var path = __webpack_require__(27);
 
 module.exports = path.setInterval;
+
+
+/***/ }),
+
+/***/ 37:
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(6);
+var shared = __webpack_require__(38);
+var hasOwn = __webpack_require__(42);
+var uid = __webpack_require__(44);
+var NATIVE_SYMBOL = __webpack_require__(30);
+var USE_SYMBOL_AS_UID = __webpack_require__(29);
+
+var WellKnownSymbolsStore = shared('wks');
+var Symbol = global.Symbol;
+var symbolFor = Symbol && Symbol['for'];
+var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol : Symbol && Symbol.withoutSetter || uid;
+
+module.exports = function (name) {
+  if (!hasOwn(WellKnownSymbolsStore, name) || !(NATIVE_SYMBOL || typeof WellKnownSymbolsStore[name] == 'string')) {
+    var description = 'Symbol.' + name;
+    if (NATIVE_SYMBOL && hasOwn(Symbol, name)) {
+      WellKnownSymbolsStore[name] = Symbol[name];
+    } else if (USE_SYMBOL_AS_UID && symbolFor) {
+      WellKnownSymbolsStore[name] = symbolFor(description);
+    } else {
+      WellKnownSymbolsStore[name] = createWellKnownSymbol(description);
+    }
+  } return WellKnownSymbolsStore[name];
+};
 
 
 /***/ }),
@@ -771,6 +771,211 @@ var store = __webpack_require__(40);
   source: 'https://github.com/zloirock/core-js'
 });
 
+
+/***/ }),
+
+/***/ 388:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(364);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+var DOMHelpers = __webpack_require__(265);
+
+var HandlebarsHelpers = __webpack_require__(389);
+
+function fillSection(name, callback) {
+  $.getJSON(location.pathname + "/" + name).then(function (data) {
+    if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
+      // If no data was returned, don't redraw the section.
+      return;
+    }
+
+    DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
+
+    if (callback) {
+      callback();
+    }
+  });
+}
+
+fillSection("capture_errors");
+fillSection("celery_queues");
+fillSection("celery");
+fillSection("rate_limits");
+fillSection("job_queue");
+fillSection("days");
+fillSection("random");
+fillSection("emails"); // Refresh the celery queue job counts automatically
+
+_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+  fillSection("celery_queues");
+}, 2000); // Start refreshing the list of celery works and the jobs they are processing on button press
+
+
+function refresh_celery_jobs() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    fillSection("celery");
+  }, 2000);
+}
+
+var celery_tasks_refresh = null;
+document.getElementById('toggle-tasks-auto-refresh').addEventListener('click', function (e) {
+  if (celery_tasks_refresh) {
+    clearInterval(celery_tasks_refresh);
+    celery_tasks_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 2s)';
+  } else {
+    celery_tasks_refresh = refresh_celery_jobs();
+    e.target.innerText = 'Stop Auto-Refresh';
+  }
+}); // Refresh the rate limits once, on button press
+// or, start auto-refreshing every 20s, when the other button is pressed
+
+function refresh_rate_limits() {
+  var status = document.getElementById('rate-limits-status');
+  status.innerText = 'Refreshing...';
+  fillSection("rate_limits", function () {
+    status.innerText = 'Refreshed!';
+
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
+      return status.innerText = '';
+    }, 2000);
+  });
+}
+
+function auto_refresh_rate_limits() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    refresh_rate_limits();
+  }, 15000);
+}
+
+document.getElementById('refresh-rate-limits').addEventListener('click', function (e) {
+  refresh_rate_limits();
+});
+var rate_limits_refresh = null;
+document.getElementById('auto-refresh-rate-limits').addEventListener('click', function (e) {
+  if (rate_limits_refresh) {
+    clearInterval(rate_limits_refresh);
+    rate_limits_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 15s)';
+  } else {
+    e.target.innerText = 'Stop Auto-Refresh';
+    refresh_rate_limits();
+    rate_limits_refresh = auto_refresh_rate_limits();
+  }
+}); // Start refreshing the list of capture jobs on button press
+
+function refresh_capture_jobs() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    fillSection("job_queue");
+  }, 2000);
+}
+
+var capture_jobs_refresh = null;
+document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('click', function (e) {
+  if (capture_jobs_refresh) {
+    clearInterval(capture_jobs_refresh);
+    capture_jobs_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 2s)';
+  } else {
+    capture_jobs_refresh = refresh_capture_jobs();
+    e.target.innerText = 'Stop Auto-Refresh';
+  }
+}); // Refresh the capture errors once, on button press
+// or, start auto-refreshing every 15s, when the other button is pressed
+
+function refresh_capture_errors() {
+  var status = document.getElementById('capture-errors-status');
+  status.innerText = 'Refreshing...';
+  fillSection("capture_errors", function () {
+    status.innerText = 'Refreshed!';
+
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
+      return status.innerText = '';
+    }, 2000);
+  });
+}
+
+function auto_refresh_capture_errors() {
+  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+    refresh_capture_errors();
+  }, 15000);
+}
+
+document.getElementById('refresh-capture-errors').addEventListener('click', function (e) {
+  refresh_capture_errors();
+});
+var capture_errors_refresh = null;
+document.getElementById('auto-refresh-capture-errors').addEventListener('click', function (e) {
+  if (capture_errors_refresh) {
+    clearInterval(capture_errors_refresh);
+    capture_errors_refresh = null;
+    e.target.innerText = 'Start Auto-Refresh (every 15s)';
+  } else {
+    e.target.innerText = 'Stop Auto-Refresh';
+    refresh_capture_errors();
+    capture_errors_refresh = auto_refresh_capture_errors();
+  }
+}); // Select the tab specified in the hash, if present on page load
+
+if (window.location.hash) {
+  var tabNav = document.querySelector("a[href=\"".concat(window.location.hash, "\"]"));
+
+  if (tabNav) {
+    tabNav.click();
+  }
+}
+
+document.querySelector('.nav-tabs').addEventListener('click', function (e) {
+  window.location.hash = e.target.hash;
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
+
+/***/ }),
+
+/***/ 389:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderTemplate", function() { return renderTemplate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compileTemplate", function() { return compileTemplate; });
+var Handlebars = __webpack_require__(360);
+/*
+Using handlebar's compile method to generate templates on the fly
+*/
+
+
+var templateCache = {};
+function renderTemplate(templateId, args) {
+  args = args || {};
+  var $this = $(templateId);
+
+  if (!templateCache[templateId]) {
+    templateCache[templateId] = Handlebars.compile($this.html());
+  }
+
+  return templateCache[templateId](args);
+}
+/* simple wrapper around Handlebars.compile() to cache the compiled templates */
+
+function compileTemplate(templateId) {
+  var $this = $(templateId);
+
+  if ($this.length) {
+    var template = Handlebars.compile($this.html());
+    templateCache[templateId] = template;
+    return template;
+  }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
 
@@ -1225,211 +1430,6 @@ module.exports = function (passed, required) {
   return passed;
 };
 
-
-/***/ }),
-
-/***/ 552:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(377);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
-
-
-
-var DOMHelpers = __webpack_require__(278);
-
-var HandlebarsHelpers = __webpack_require__(553);
-
-function fillSection(name, callback) {
-  $.getJSON(location.pathname + "/" + name).then(function (data) {
-    if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))) {
-      // If no data was returned, don't redraw the section.
-      return;
-    }
-
-    DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
-
-    if (callback) {
-      callback();
-    }
-  });
-}
-
-fillSection("capture_errors");
-fillSection("celery_queues");
-fillSection("celery");
-fillSection("rate_limits");
-fillSection("job_queue");
-fillSection("days");
-fillSection("random");
-fillSection("emails"); // Refresh the celery queue job counts automatically
-
-_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-  fillSection("celery_queues");
-}, 2000); // Start refreshing the list of celery works and the jobs they are processing on button press
-
-
-function refresh_celery_jobs() {
-  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-    fillSection("celery");
-  }, 2000);
-}
-
-var celery_tasks_refresh = null;
-document.getElementById('toggle-tasks-auto-refresh').addEventListener('click', function (e) {
-  if (celery_tasks_refresh) {
-    clearInterval(celery_tasks_refresh);
-    celery_tasks_refresh = null;
-    e.target.innerText = 'Start Auto-Refresh (every 2s)';
-  } else {
-    celery_tasks_refresh = refresh_celery_jobs();
-    e.target.innerText = 'Stop Auto-Refresh';
-  }
-}); // Refresh the rate limits once, on button press
-// or, start auto-refreshing every 20s, when the other button is pressed
-
-function refresh_rate_limits() {
-  var status = document.getElementById('rate-limits-status');
-  status.innerText = 'Refreshing...';
-  fillSection("rate_limits", function () {
-    status.innerText = 'Refreshed!';
-
-    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
-      return status.innerText = '';
-    }, 2000);
-  });
-}
-
-function auto_refresh_rate_limits() {
-  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-    refresh_rate_limits();
-  }, 15000);
-}
-
-document.getElementById('refresh-rate-limits').addEventListener('click', function (e) {
-  refresh_rate_limits();
-});
-var rate_limits_refresh = null;
-document.getElementById('auto-refresh-rate-limits').addEventListener('click', function (e) {
-  if (rate_limits_refresh) {
-    clearInterval(rate_limits_refresh);
-    rate_limits_refresh = null;
-    e.target.innerText = 'Start Auto-Refresh (every 15s)';
-  } else {
-    e.target.innerText = 'Stop Auto-Refresh';
-    refresh_rate_limits();
-    rate_limits_refresh = auto_refresh_rate_limits();
-  }
-}); // Start refreshing the list of capture jobs on button press
-
-function refresh_capture_jobs() {
-  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-    fillSection("job_queue");
-  }, 2000);
-}
-
-var capture_jobs_refresh = null;
-document.getElementById('toggle-capture-jobs-auto-refresh').addEventListener('click', function (e) {
-  if (capture_jobs_refresh) {
-    clearInterval(capture_jobs_refresh);
-    capture_jobs_refresh = null;
-    e.target.innerText = 'Start Auto-Refresh (every 2s)';
-  } else {
-    capture_jobs_refresh = refresh_capture_jobs();
-    e.target.innerText = 'Stop Auto-Refresh';
-  }
-}); // Refresh the capture errors once, on button press
-// or, start auto-refreshing every 15s, when the other button is pressed
-
-function refresh_capture_errors() {
-  var status = document.getElementById('capture-errors-status');
-  status.innerText = 'Refreshing...';
-  fillSection("capture_errors", function () {
-    status.innerText = 'Refreshed!';
-
-    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
-      return status.innerText = '';
-    }, 2000);
-  });
-}
-
-function auto_refresh_capture_errors() {
-  return _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-    refresh_capture_errors();
-  }, 15000);
-}
-
-document.getElementById('refresh-capture-errors').addEventListener('click', function (e) {
-  refresh_capture_errors();
-});
-var capture_errors_refresh = null;
-document.getElementById('auto-refresh-capture-errors').addEventListener('click', function (e) {
-  if (capture_errors_refresh) {
-    clearInterval(capture_errors_refresh);
-    capture_errors_refresh = null;
-    e.target.innerText = 'Start Auto-Refresh (every 15s)';
-  } else {
-    e.target.innerText = 'Stop Auto-Refresh';
-    refresh_capture_errors();
-    capture_errors_refresh = auto_refresh_capture_errors();
-  }
-}); // Select the tab specified in the hash, if present on page load
-
-if (window.location.hash) {
-  var tabNav = document.querySelector("a[href=\"".concat(window.location.hash, "\"]"));
-
-  if (tabNav) {
-    tabNav.click();
-  }
-}
-
-document.querySelector('.nav-tabs').addEventListener('click', function (e) {
-  window.location.hash = e.target.hash;
-});
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
-
-/***/ }),
-
-/***/ 553:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderTemplate", function() { return renderTemplate; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compileTemplate", function() { return compileTemplate; });
-var Handlebars = __webpack_require__(373);
-/*
-Using handlebar's compile method to generate templates on the fly
-*/
-
-
-var templateCache = {};
-function renderTemplate(templateId, args) {
-  args = args || {};
-  var $this = $(templateId);
-
-  if (!templateCache[templateId]) {
-    templateCache[templateId] = Handlebars.compile($this.html());
-  }
-
-  return templateCache[templateId](args);
-}
-/* simple wrapper around Handlebars.compile() to cache the compiled templates */
-
-function compileTemplate(templateId) {
-  var $this = $(templateId);
-
-  if ($this.length) {
-    var template = Handlebars.compile($this.html());
-    templateCache[templateId] = template;
-    return template;
-  }
-}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(58)))
 
 /***/ }),
 

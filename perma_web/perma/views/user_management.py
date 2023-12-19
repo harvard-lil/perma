@@ -55,7 +55,7 @@ from perma.forms import (
     UserUpdateProfileForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
-    ratelimit_ip_key, get_lat_long, user_passes_test_or_403, prep_for_perma_payments,
+    ratelimit_ip_key, user_passes_test_or_403, prep_for_perma_payments,
     get_complete_ia_rate_limiting_info)
 from perma.email import send_admin_email, send_user_email
 from perma.exceptions import PermaPaymentsCommunicationException
@@ -322,6 +322,11 @@ def stats(request, stat_type=None):
                     creation_timestamp__range=range_tuple
                 ).count()
 
+                playwright_error = Link.objects.all_with_deleted().filter(
+                    tags__name__in=['scoop-playwright-failure'],
+                    creation_timestamp__range=range_tuple
+                ).count()
+
                 timeout = Link.objects.all_with_deleted().filter(
                     tags__name__in=['scoop-silent-failure'],
                     creation_timestamp__range=range_tuple
@@ -343,6 +348,8 @@ def stats(request, stat_type=None):
                     "proxy_error_percent": round(proxy_error/denominator * 100, 1),
                     "blocklist_error": blocklist_error,
                     "blocklist_error_percent": round(blocklist_error/denominator * 100, 1),
+                    "playwright_error": playwright_error,
+                    "playwright_error_percent": round(playwright_error/denominator * 100, 1),
                     "timeout": timeout,
                     "timeout_percent": round(timeout/denominator * 100, 1),
                     "didnt_load": didnt_load,
@@ -362,6 +369,8 @@ def stats(request, stat_type=None):
                     "proxy_error_percent": 0,
                     "blocklist_error": 0,
                     "blocklist_error_percent": 0,
+                    "playwright_error": 0,
+                    "playwright_error_percent": 0,
                     "timeout": 0,
                     "timeout_percent": 0,
                     "didnt_load": 0,
@@ -1677,16 +1686,6 @@ def libraries(request):
         if form_is_valid:
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
-            address = registrar_form.cleaned_data.get('address', '')
-            if settings.GEOCODING_KEY and address:
-                try:
-                    (lat, lng) = get_lat_long(address)
-                    new_registrar.latitude = lat
-                    new_registrar.longitude = lng
-                    new_registrar.save(update_fields=["latitude", "longitude"])
-                except TypeError:
-                    # get_lat_long returned None
-                    pass
             if user_form:
                 new_user = user_form.save(commit=False)
                 new_user.pending_registrar = new_registrar
@@ -2031,7 +2030,7 @@ def email_premium_request(request, user):
 
 def email_deletion_request(request):
     """
-    Send email to Perma.cc admins when a user requests a premium account
+    Send email to Perma.cc admins when a user requests their account be deleted
     """
     send_admin_email(
         "Perma.cc account deletion request",

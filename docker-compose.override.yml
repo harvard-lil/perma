@@ -7,7 +7,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:93-6e092a74419bd1435b84979e13c42564
+          - registry.lil.tools/harvardlil/perma-web:99-b57fd5d788d62358317a8166a02af9b1
         platforms:
           - linux/amd64
           - linux/arm64
@@ -48,7 +48,7 @@ services:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:49-ede02b53aea1e3288ba0f892844dbfe0
+    image: registry.lil.tools/harvardlil/scoop-rest-api:50-395846bdca4194fadbc79ff86b1a1cf4
     init: true
     tty: true
     depends_on:

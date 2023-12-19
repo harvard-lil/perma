@@ -35,12 +35,21 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
-
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+STORAGES = {
+    "default": {
+        "BACKEND": 'perma.storage_backends.S3MediaStorage',
+        "OPTIONS": {
+            "signature_version": 's3v4',
+            "default_acl": 'private'
+        }
+    },
+    "staticfiles": {
+        "BACKEND": 'perma.storage_backends.StaticStorage',
+    },
+}
 
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
@@ -57,9 +66,6 @@ STATICFILES_FINDERS = (         # how to look for static files
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# static files config
-STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/',
@@ -70,9 +76,6 @@ WEBPACK_LOADER = {
 # user-generated files / default_storage config
 MEDIA_URL = '/this-setting-is-not-in-use-in-any-deployments/'
 MEDIA_ROOT ='generated/'
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_DEFAULT_ACL = 'private'
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 WARC_PRESIGNED_URL_EXPIRES = 15 * 60
 
@@ -113,6 +116,7 @@ MIDDLEWARE = (
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
+    'waffle.middleware.WaffleMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
@@ -148,18 +152,17 @@ INSTALLED_APPS = (
     # our apps
     'perma',
     'reporting',
-    'lockss',
 
     # third party apps
     'ratelimit',
     'mptt',
-    'sorl.thumbnail',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
     'axes',  # limit login attempts
     'django_json_widget',
+    'waffle',  # feature flags
 
     # api
     'api',
@@ -385,7 +388,7 @@ LOGGING['loggers'] = {
     # show info for our first-party apps
     **{
         app_name: {'level': 'INFO'}
-        for app_name in ('api', 'lockss', 'perma',)
+        for app_name in ('api', 'perma',)
     },
 }
 LOGGING['formatters'] = {
@@ -428,10 +431,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SOFT_TIME_LIMIT=300
 # If a task is running longer than seven minutes, kill it
 CELERY_TASK_TIME_LIMIT = 420
-# Estimate of active celery workers
-# https://github.com/harvard-lil/perma/issues/2438
-# this value will be reset in settings.utils.post_processing
-WORKER_COUNT = 2
 
 CELERY_TASK_ROUTES = {
     'perma.celery_tasks.sync_subscriptions_from_perma_payments': {'queue': 'background'},
@@ -513,6 +512,7 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 #
 # Capture
 #
+VALIDATE_URL_LOCALLY = True
 CAPTURE_ENGINE = 'scoop-api'  # perma|scoop-api
 PRIVATE_BY_POLICY_DOMAINS = []
 SCOOP_API_KEY = None
@@ -572,29 +572,14 @@ RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for website to respond during URL v
 WARC_AVAILABLE_RETRIES = 9
 CHECK_WARC_BEFORE_PLAYBACK = False
 
-# Sorl settings. This relates to our thumbnail creation.
-# The prod and dev configs are considerably different. See those configs for details.
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
-THUMBNAIL_FORMAT = 'PNG'
-THUMBNAIL_COLORSPACE = None
-# Temporarily work around for https://github.com/jazzband/sorl-thumbnail/issues/476
-TEMPLATE_DEBUG = False
-# Relative to MEDIA_ROOT
-THUMBNAIL_STORAGE_PATH = 'thumbnails'
-
 # tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
 TESTING = False
 
-### LOCKSS ###
+### MIRRORS ###
 
 from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
-
-LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"
-LOCKSS_CRAWL_INTERVAL = "12h"
-LOCKSS_QUORUM = 3
-LOCKSS_DEBUG_IPS = False
 
 #
 # Email
@@ -612,10 +597,6 @@ CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'
 # Directs contact form to registrar users under certain circumstances
 CONTACT_REGISTRARS = False
 
-# If using geocoding
-# Via https://console.developers.google.com/apis/api/geocoding_backend/overview
-GEOCODING_KEY = None
-
 # Virus Scanning
 SCAN_UPLOADS = False
 SCAN_URL = ''
@@ -625,7 +606,6 @@ USE_ANALYTICS = False
 USE_ANALYTICS_VIEWS = [
     'landing',
     'about',
-    'stats',
     'copyright_policy',
     'terms_of_service',
     'privacy_policy',

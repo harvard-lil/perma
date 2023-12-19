@@ -11,14 +11,14 @@ import perma.models
 from perma.models import (
     ACTIVE_SUBSCRIPTION_STATUSES,
     FIELDS_REQUIRED_FROM_PERMA_PAYMENTS,
-    Link, LinkUser, Organization, Registrar, Folder, Sponsorship,
+    Link, Organization, Registrar, Folder,
+    Sponsorship,
     link_count_in_time_period,
     most_active_org_in_time_period,
     subscription_is_active
 )
 from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month, today_next_year, years_ago_today
 
-from .utils import PermaTestCase
 from conftest import GENESIS
 import pytest
 
@@ -1459,178 +1459,156 @@ def test_registrar_most_active_org_this_year(registrar, organization_factory, li
     assert registrar.most_active_org_this_year() == o2
 
 
-# Fixtures
+#
+# Link limit for sponsored users
+#
 
-def complex_user_with_bonus_link(in_subfolder=False):
-    user = LinkUser(link_limit=2, bonus_links=0)
-    user.save()
-    user.organizations.add(Organization.objects.get(pk=1))
-    sponsorship = Sponsorship(registrar=Registrar.objects.get(pk=1), user=user, created_by=user)
-    sponsorship.save()
-    subfolder = Folder(parent=user.top_level_folders()[0], name='Subfolder')
-    subfolder.save()
-    bonus_link = Link(created_by=user, bonus_link=True)
-    bonus_link.save()
-    if in_subfolder:
-        bonus_link.move_to_folder_for_user(subfolder, user)
+def test_sponsored_links_not_counted_against_personal_total(sponsored_user, link_factory):
+    assert sponsored_user.get_links_remaining()[0] == 10
+    link = link_factory(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
+
+    assert sponsored_user.get_links_remaining()[0] == 9
+    link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
+    assert sponsored_user.get_links_remaining()[0] == 10
+
+
+#
+# Link limit / subscription related tests for registrars
+#
+
+
+def test_renaming_registrar_renames_top_level_sponsored_folders(registrar, sponsorship_factory):
+    new_name = 'A New Name'
+    sponsorship_factory(registrar=registrar)
+    sponsored_folders = Folder.objects.filter(sponsored_by=registrar).prefetch_related('parent')
+    assert registrar.name != new_name and sponsored_folders
+    for folder in sponsored_folders:
+        if folder.parent.is_sponsored_root_folder:
+            assert folder.name == registrar.name
+        else:
+            assert folder.name != registrar.name
+    registrar.name = new_name
+    # You need to save if you use refresh_from_db
+    registrar.save()
+    registrar.refresh_from_db()
+    sponsored_folders = sponsored_folders.all()  # hack to refresh queryset
+    assert registrar.name == new_name and sponsored_folders
+    for folder in sponsored_folders:
+        if folder.parent.is_sponsored_root_folder:
+            assert folder.name == registrar.name
+        else:
+            assert folder.name == registrar.name
+
+#
+# Moving bonus links around
+#
+
+def test_move_bonus_link_to_another_personal_subfolder(complex_user_with_bonus_link):
+    user, bonus_link = complex_user_with_bonus_link
+    subfolder = user.folders.get(name="Subfolder")
+
+    # establish baseline
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
+
+    bonus_link.move_to_folder_for_user(subfolder, user)
     user.refresh_from_db()
-    return user, bonus_link
+
+    # assert that nothing changed
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
 
 
-# Tests
+def test_move_bonus_link_to_sponsored_folder(complex_user_with_bonus_link):
+    user, bonus_link = complex_user_with_bonus_link
+    sponsorship = Sponsorship.objects.get(user=user)
+    sponsored_folder = Folder.objects.get(name=sponsorship.registrar)
 
-class ModelsTestCase(PermaTestCase):
+    # establish baseline
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
 
-    #
-    # Link limit for sponsored users
-    #
+    bonus_link.move_to_folder_for_user(sponsored_folder, user)
+    user.refresh_from_db()
 
-    def test_sponsored_links_not_counted_against_personal_total(self):
-        sponsored_user = LinkUser.objects.get(email='test_sponsored_user@example.com')
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
-        link = Link(creation_timestamp=timezone.now().replace(day=1), guid="AAAA-AAAA", created_by=sponsored_user)
-        link.save()
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 8)
-        link.move_to_folder_for_user(sponsored_user.sponsorships.first().folders.first(), sponsored_user)
-        self.assertEqual(sponsored_user.get_links_remaining()[0], 9)
+    # the user should be credited for the bonus link
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 1
 
+    # the link should no longer be a bonus link
+    bonus_link.refresh_from_db()
+    assert not bonus_link.bonus_link
 
-    #
-    # Link limit / subscription related tests for registrars
-    #
+def test_move_bonus_link_to_org_folder(complex_user_with_bonus_link):
+    user, bonus_link = complex_user_with_bonus_link
+    org_folder = Folder.objects.get(name="Test Journal")
 
+    # establish baseline
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
 
-    def test_renaming_registrar_renames_top_level_sponsored_folders(self):
-        new_name = 'A New Name'
-        registrar = Registrar.objects.get(id=1)
-        sponsored_folders = Folder.objects.filter(sponsored_by=registrar).prefetch_related('parent')
-        self.assertTrue(registrar.name != new_name and sponsored_folders)
-        for folder in sponsored_folders:
-            if folder.parent.is_sponsored_root_folder:
-                self.assertEqual(folder.name, registrar.name)
-            else:
-                self.assertNotEqual(folder.name, registrar.name)
-        registrar.name = new_name
-        registrar.save()
-        registrar.refresh_from_db()
-        sponsored_folders = sponsored_folders.all()  # hack to refresh queryset
-        self.assertTrue(registrar.name == new_name and sponsored_folders)
-        for folder in sponsored_folders:
-            if folder.parent.is_sponsored_root_folder:
-                self.assertEqual(folder.name, registrar.name)
-            else:
-                self.assertNotEqual(folder.name, registrar.name)
+    bonus_link.move_to_folder_for_user(org_folder, user)
+    user.refresh_from_db()
 
+    # the user should be credited for the bonus link
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 1
 
-    #
-    # Moving bonus links around
-    #
+    # the link should no longer be a bonus link
+    bonus_link.refresh_from_db()
+    assert not bonus_link.bonus_link
 
-    def test_move_bonus_link_to_another_personal_subfolder(self):
-        user, bonus_link = complex_user_with_bonus_link()
-        subfolder = user.folders.get(name="Subfolder")
+def test_move_subfolder_with_bonus_links_to_sponsored_folder(complex_user_with_bonus_link):
+    user, bonus_link = complex_user_with_bonus_link
+    subfolder = user.folders.get(name="Subfolder")
+    bonus_link.move_to_folder_for_user(subfolder, user)
+    sponsorship = Sponsorship.objects.get(user=user)
+    sponsored_folder = Folder.objects.get(name=sponsorship.registrar)
 
-        # establish baseline
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
+    # establish baseline
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
 
-        bonus_link.move_to_folder_for_user(subfolder, user)
-        user.refresh_from_db()
+    subfolder.parent = sponsored_folder
+    subfolder.save()
+    user.refresh_from_db()
 
-        # assert that nothing changed
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
+    # the user should be credited for the bonus link
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 1
 
+    # the link should no longer be a bonus link
+    bonus_link.refresh_from_db()
+    assert not bonus_link.bonus_link
 
-    def test_move_bonus_link_to_sponsored_folder(self):
-        user, bonus_link = complex_user_with_bonus_link()
-        sponsored_folder = user.folders.get(name="Test Library")
+def test_move_subfolder_with_bonus_links_to_org_folder(complex_user_with_bonus_link):
+    user, bonus_link = complex_user_with_bonus_link
+    subfolder = user.folders.get(name="Subfolder")
+    bonus_link.move_to_folder_for_user(subfolder, user)
+    org_folder = Folder.objects.get(name="Test Journal")
 
-        # establish baseline
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
+    # establish baseline
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 0
 
-        bonus_link.move_to_folder_for_user(sponsored_folder, user)
-        user.refresh_from_db()
+    subfolder.parent = org_folder
+    subfolder.save()
+    user.refresh_from_db()
 
-        # the user should be credited for the bonus link
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 1)
+    # the user should be credited for the bonus link
+    links_remaining, _ , bonus_links = user.get_links_remaining()
+    assert links_remaining == 2
+    assert bonus_links == 1
 
-        # the link should no longer be a bonus link
-        bonus_link.refresh_from_db()
-        self.assertFalse(bonus_link.bonus_link)
-
-
-    def test_move_bonus_link_to_org_folder(self):
-        user, bonus_link = complex_user_with_bonus_link()
-        org_folder = Folder.objects.get(name="Test Journal")
-
-        # establish baseline
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
-
-        bonus_link.move_to_folder_for_user(org_folder, user)
-        user.refresh_from_db()
-
-        # the user should be credited for the bonus link
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 1)
-
-        # the link should no longer be a bonus link
-        bonus_link.refresh_from_db()
-        self.assertFalse(bonus_link.bonus_link)
-
-
-    def test_move_subfolder_with_bonus_links_to_sponsored_folder(self):
-        user, bonus_link = complex_user_with_bonus_link(in_subfolder=True)
-        subfolder = user.folders.get(name="Subfolder")
-        sponsored_folder = user.folders.get(name="Test Library")
-
-        # establish baseline
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
-
-        subfolder.parent = sponsored_folder
-        subfolder.save()
-        user.refresh_from_db()
-
-        # the user should be credited for the bonus link
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 1)
-
-        # the link should no longer be a bonus link
-        bonus_link.refresh_from_db()
-        self.assertFalse(bonus_link.bonus_link)
-
-
-    def test_move_subfolder_with_bonus_links_to_org_folder(self):
-        user, bonus_link = complex_user_with_bonus_link(in_subfolder=True)
-        subfolder = user.folders.get(name="Subfolder")
-        org_folder = Folder.objects.get(name="Test Journal")
-
-        # establish baseline
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 0)
-
-        subfolder.parent = org_folder
-        subfolder.save()
-        user.refresh_from_db()
-
-        # the user should be credited for the bonus link
-        links_remaining, _ , bonus_links = user.get_links_remaining()
-        self.assertEqual(links_remaining, 2)
-        self.assertEqual(bonus_links, 1)
-
-        # the link should no longer be a bonus link
-        bonus_link.refresh_from_db()
-        self.assertFalse(bonus_link.bonus_link)
+    # the link should no longer be a bonus link
+    bonus_link.refresh_from_db()
+    assert not bonus_link.bonus_link
