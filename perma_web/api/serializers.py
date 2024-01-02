@@ -277,7 +277,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                             if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
                                 errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
                     except ScoopAPIException:
-                        logger.exception(f"Scoop validation attempt failed.")
+                        logger.exception("Scoop validation attempt failed.")
                         errors['url'] = "We encountered a network error: please try again."
 
         # check uploaded file

@@ -2,7 +2,6 @@ import os
 import requests
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase, ApiResourceLiveServerTestCase
 from perma.models import Link, LinkUser
-from django.conf import settings
 from django.test.utils import override_settings
 
 
