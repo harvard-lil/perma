@@ -2,6 +2,7 @@ import os
 import requests
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase, ApiResourceLiveServerTestCase
 from perma.models import Link, LinkUser
+from django.conf import settings
 from django.test.utils import override_settings
 
 
@@ -91,11 +92,12 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
     # URLs #
     ########
 
-    @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
+    @override_settings(BANNED_IP_RANGES=["127.0.0.0/8"])
     def test_should_reject_invalid_ip(self):
-        self.rejected_post(self.list_url,
-                           user=self.org_user,
-                           data={'url': self.server_url})
+        resp = self.rejected_post(self.list_url,
+                                  user=self.org_user,
+                                  data={'url': "http://127.0.0.0"})
+        self.assertIn(b"Not a valid IP", resp.content)
 
     @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
     def test_should_reject_large_url(self):
@@ -129,7 +131,9 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
 class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestCase):
 
     def test_should_reject_file_redirecting_url_without_exception(self):
-        url = f'{self.live_server_url}/api/tests/redirect-to-file'
+
+        domain = f"http://perma.test:{self.live_server_url.split(':')[-1]}"
+        url = f'{domain}/api/tests/redirect-to-file'
 
         # verify that the test route redirects as expected
         redirects = self.client.get(url)

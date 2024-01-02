@@ -1,14 +1,13 @@
-# This is the default config.py from the Scoop REST API as of 12/5/2023
-# https://github.com/harvard-lil/perma-scoop-api/blob/709d9a96a904698143c811989e37ce91a4265448/scoop_rest_api/config.py
-# We only use it to override the blocklist: we disable it to allow the capturing of
-# localhost in our test suite.
+# This is the default config.py from the Scoop REST API as of 1/2/2024
+# https://github.com/harvard-lil/perma-scoop-api/blob/86b757b15c1c91e0c5a99a74bf82dcedde9d780f/scoop_rest_api/config.py
+# We only use it to override the blocklist, to allow the capturing of docker-hosted pages in our test suite.
 
 """
 `config` module: App-wide settings.
 """
-import os
-
 from dotenv import load_dotenv
+import os
+from playwright.sync_api import sync_playwright
 
 load_dotenv()
 
@@ -115,6 +114,37 @@ PROCESSES_PROXY_PORT = 9000
 DOWNGRADE_TO_WARC = True
 """ If True, Scoop will generate WARCs instead of WACZ files. """
 
+BANNED_IP_RANGES = [
+    "0.0.0.0/8",
+    "10.0.0.0/8",
+    "100.64.0.0/10",
+    "127.0.0.0/8",
+    "169.254.0.0/16",
+    "172.16.0.0/12",
+    "192.0.0.0/29",
+    "192.0.2.0/24",
+    "192.88.99.0/24",
+    # "192.168.0.0/16",
+    "198.18.0.0/15",
+    "198.51.100.0/24",
+    "203.0.113.0/24",
+    "224.0.0.0/4",
+    "240.0.0.0/4",
+    "255.255.255.255/32",
+    "::/128",
+    "::1/128",
+    "::ffff:0:0/96",
+    "100::/64",
+    "64:ff9b::/96",
+    "2001::/32",
+    "2001:10::/28",
+    "2001:db8::/32",
+    "2002::/16",
+    "fc00::/7",
+    "fe80::/10",
+    "ff00::/8",
+]
+
 SCOOP_CLI_OPTIONS = {
     "--log-level": "info",
     # "--signing-url": "https://authsign.lil.tools/sign",
@@ -141,8 +171,7 @@ SCOOP_CLI_OPTIONS = {
     "--run-site-specific-behaviors": "true",
     "--headless": "false",  # Note: `xvfb-run --auto-servernum --` prefix may be needed if false.
     # "--user-agent-suffix": "",
-    # "--blocklist": "/https?:\/\/localhost/,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,192.0.0.0/29,192.0.2.0/24,192.88.99.0/24,192.168.0.0/16,198.18.0.0/15,198.51.100.0/24,203.0.113.0/24,224.0.0.0/4,240.0.0.0/4,255.255.255.255/32,::/128,::1/128,::ffff:0:0/96,100::/64,64:ff9b::/96,2001::/32,2001:10::/28,2001:db8::/32,2002::/16,fc00::/7,fe80::/10,ff00::/8",  # noqa
-    "--blocklist": "",
+    "--blocklist": f"/https?:\/\/localhost/,{','.join(BANNED_IP_RANGES)}",  # noqa
     "--public-ip-resolver-endpoint": "https://icanhazip.com",
 }
 """
@@ -155,3 +184,18 @@ SCOOP_CLI_OPTIONS = {
 
 SCOOP_TIMEOUT_FUSE = 35
 """ Number of seconds to wait before "killing" a Scoop progress after capture timeout. """
+
+
+#
+# Validation settings
+#
+with sync_playwright() as playwright:
+    VALIDATION_USER_AGENT = playwright.devices['Desktop Chrome']['user_agent']
+
+VALIDATION_EXTRA_HEADERS = {
+    "Accept": "*/*",
+    "Accept-Encoding": "*",
+    "Accept-Language": "*",
+    "Connection": "keep-alive"
+}
+VALIDATION_TIMEOUT = 45

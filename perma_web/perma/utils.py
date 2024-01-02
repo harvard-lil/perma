@@ -793,7 +793,7 @@ def safe_get_response_json(response):
         data = {}
     return data
 
-def send_to_scoop(method, path, valid_if, json=None, stream=False):
+def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10):
     # Make the request
     try:
         response = requests.request(
@@ -803,7 +803,7 @@ def send_to_scoop(method, path, valid_if, json=None, stream=False):
             headers={
                 "Access-Key": settings.SCOOP_API_KEY
             },
-            timeout=10,
+            timeout=timeout,
             allow_redirects=False,
             stream=stream
         )
