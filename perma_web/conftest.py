@@ -229,6 +229,13 @@ class RegistrarFactory(DjangoModelFactory):
     # Default to "approved" in the fixtures for convenience
     status = 'approved'
 
+    organizations = factory.RelatedFactoryList(
+        'conftest.OrganizationFactory',
+        size=1,
+        factory_related_name='registrar'
+    )
+
+
 
 @register_factory
 class PendingRegistrarFactory(RegistrarFactory):
@@ -482,11 +489,28 @@ def complex_user_with_bonus_link(link_user_factory, folder_factory,
 
 
 @pytest.fixture
+def org_user_factory(link_user, organization):
+    def f(orgs=None):
+        if orgs:
+            link_user.organizations.set(orgs)
+        else:
+            link_user.organizations.add(organization)
+        return link_user
+    return f
+
+
+@pytest.fixture
+def org_user(org_user_factory):
+    return org_user_factory()
+
+
+@pytest.fixture
 def active_cancelled_subscription():
     return {
         'status': "Canceled",
         'paid_through': timezone.now() + relativedelta(years=1)
     }
+
 
 @pytest.fixture
 def expired_cancelled_subscription():
