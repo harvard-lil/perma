@@ -11,24 +11,23 @@ def test_link_count_regular_user(link_user, link_factory):
     link_user.refresh_from_db()
     assert link_count == link_user.link_count
 
-def test_link_count_for_orgs(organization, link_user, org_link_factory):
+def test_link_count_for_orgs(organization, org_user_factory, link_factory):
     """ We do some link count tallying on save. Let's make sure
     we're adjusting the counts on the orgs """
 
-    org_to_which_user_belongs = organization
-    link_user.organizations.set([org_to_which_user_belongs])
-    link_count = org_to_which_user_belongs.link_count
-    link = org_link_factory(created_by=link_user, submitted_url="http://example.com", organization=org_to_which_user_belongs)
+    org_user = org_user_factory(organizations = ([organization]))
+    link_count = organization.link_count
+    link = link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
     link.save()
 
-    org_to_which_user_belongs.refresh_from_db()
-    assert link_count + 1 == org_to_which_user_belongs.link_count
+    organization.refresh_from_db()
+    assert link_count + 1 == organization.link_count
 
     link.safe_delete()
     link.save()
 
-    org_to_which_user_belongs.refresh_from_db()
-    assert link_count == org_to_which_user_belongs.link_count
+    organization.refresh_from_db()
+    assert link_count == organization.link_count
 
 
 def test_link_count_for_registrars(registrar, link_user_factory, organization_factory, org_link_factory):

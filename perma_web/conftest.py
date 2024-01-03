@@ -330,6 +330,17 @@ class PayingUserFactory(LinkUserFactory):
 
 
 @register_factory
+class OrgUserFactory(LinkUserFactory):
+
+    @factory.post_generation
+    def organizations(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+
+        self.organizations.add(*extracted)
+
+
+@register_factory
 class CaptureJobFactory(DjangoModelFactory):
     class Meta:
         model = CaptureJob
@@ -396,11 +407,6 @@ class LinkFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
-
-
-@register_factory
-class OrgLinkFactory(LinkFactory):
-    organization = factory.SubFactory(Organization)
 
 
 @register_factory
