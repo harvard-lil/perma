@@ -10,18 +10,15 @@ import json
 import logging
 from nacl import encoding
 from nacl.public import Box, PrivateKey, PublicKey
-from netaddr import IPAddress, IPNetwork
 import operator
 import os
 import requests
-import ssl
 import string
 import surt
 import tempdir
 import tempfile
 from ua_parser import user_agent_parser
 import unicodedata
-from urllib3 import poolmanager
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
@@ -45,33 +42,6 @@ warn = logger.warn
 
 def protocol():
     return "https://" if settings.SECURE_SSL_REDIRECT else "http://"
-
-
-### requests helpers ###
-
-class Sec1TLSAdapter(requests.adapters.HTTPAdapter):
-    """
-    Debian Buster and its version of OpenSSL evidently set a minimum TLS version of 1.2,
-    and there's a problem that results in SSL: DH_KEY_TOO_SMALL errors, for some websites.
-    Lower the security standard for our requests, per https://github.com/psf/requests/issues/4775
-    """
-
-    def init_poolmanager(self, connections, maxsize, block=False):
-        """Create and initialize the urllib3 PoolManager."""
-        ctx = ssl.create_default_context()
-        ctx.set_ciphers('DEFAULT@SECLEVEL=1')
-
-        # for whatever reason, required for verify=False
-        ctx.check_hostname = False
-        self.poolmanager = poolmanager.PoolManager(
-                num_pools=connections,
-                maxsize=maxsize,
-                block=block,
-                ssl_version=ssl.PROTOCOL_TLS,
-                ssl_context=ctx)
-
-    def cert_verify(self, conn, url, verify, cert):
-        super().cert_verify(conn, url, False, cert)
 
 
 ### login helpers ###
@@ -249,16 +219,6 @@ def ratelimit_ip_key(group, request):
     return get_client_ip(request)
 
 ### security ###
-
-def ip_in_allowed_ip_range(ip):
-    """ Return False if ip is blocked. """
-    if not ip:
-        return False
-    ip = IPAddress(ip)
-    for banned_ip_range in settings.BANNED_IP_RANGES:
-        if IPAddress(ip) in IPNetwork(banned_ip_range):
-            return False
-    return True
 
 def get_client_ip(request):
     return request.META[settings.CLIENT_IP_HEADER]
