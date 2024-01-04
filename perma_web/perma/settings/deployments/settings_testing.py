@@ -124,3 +124,5 @@ TIERS = {
         }
     ]
 }
+
+VALIDATE_URL_LOCALLY = False
