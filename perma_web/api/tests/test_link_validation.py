@@ -1,8 +1,15 @@
 import os
 import requests
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase, ApiResourceLiveServerTestCase
-from perma.models import Link, LinkUser
+from requests.exceptions import RequestException
+from requests import request as orig_request
+from mock import patch
+
+from django.conf import settings
 from django.test.utils import override_settings
+
+from .utils import raise_on_call
+from perma.models import Link, LinkUser
 
 
 class LinkValidationMixin():
@@ -124,6 +131,26 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
                                user=self.org_user,
                                data={'url': self.server_url + '/test.html',
                                      'file': test_file})
+
+    ####################
+    # Network Failures #
+    ####################
+    if not settings.VALIDATE_URL_LOCALLY:
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_validation_request_hangs(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 1, RequestException)
+            with self.assertLogs('api.serializers', level='ERROR') as logs:
+                # verify that the request does not raise an exception, but
+                # rather, returns BadRequest
+                resp = self.rejected_post(self.list_url,
+                                          user=self.org_user,
+                                          data={'url': 'whatever'})
+                self.assertIn(b"We encountered a network error: please try again", resp.content)
+
+                log_string = " ".join(logs.output)
+                self.assertTrue("Scoop validation attempt failed" in log_string)
+
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
