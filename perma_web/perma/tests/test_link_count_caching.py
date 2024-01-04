@@ -1,67 +1,48 @@
-from perma.models import Link, LinkUser
+def test_link_count_regular_user(link_user, link_factory):
+    """ We do some link count tallying on save """
+    link_count = link_user.link_count
+    link = link_factory(created_by=link_user, submitted_url="http://example.com")
+    link_user.refresh_from_db()
+    assert link_count + 1 == link_user.link_count
 
-from .utils import PermaTestCase
+    link.safe_delete()
+    link.save()
 
-class LinkCountCachingTestCase(PermaTestCase):
+    link_user.refresh_from_db()
+    assert link_count == link_user.link_count
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.regular_user = LinkUser.objects.get(pk=4)
-        cls.org_user = LinkUser.objects.get(pk=3)
-        cls.registrar_user = LinkUser.objects.get(pk=2)
+def test_link_count_for_orgs(org_user, link_factory):
+    """ We do some link count tallying on save. Let's make sure
+    we're adjusting the counts on the orgs """
+    organization = org_user.organizations.first()
+    link_count = organization.link_count
+    link = link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
+    link.save()
 
-    ### TESTS ###
+    organization.refresh_from_db()
+    assert link_count + 1 == organization.link_count
 
-    def test_link_count_regular_user(self):
-        """ We do some link count tallying on save """
+    link.safe_delete()
+    link.save()
 
-        link_count = self.regular_user.link_count
-        link = Link(created_by=self.regular_user, submitted_url="http://example.com")
-        link.save()
-
-        self.regular_user.refresh_from_db()
-        self.assertEqual(link_count + 1, self.regular_user.link_count)
-
-        link.safe_delete()
-        link.save()
-
-        self.regular_user.refresh_from_db()
-        self.assertEqual(link_count, self.regular_user.link_count)
+    organization.refresh_from_db()
+    assert link_count == organization.link_count
 
 
-    def test_link_count_for_orgs(self):
-        """ We do some link count tallying on save. Let's make sure
-        we're adjusting the counts on the orgs """
+def test_link_count_for_registrars(registrar_user, link_factory):
+    """ We do some link count tallying on save. Let's make sure
+    we're adjusting the counts on the registrars """
 
-        org_to_which_user_belongs = self.org_user.organizations.all().first()
-        link_count = org_to_which_user_belongs.link_count
-        link = Link(created_by=self.org_user, submitted_url="http://example.com", organization=org_to_which_user_belongs)
-        link.save()
+    org_managed_by_registrar = registrar_user.registrar.organizations.first()
+    link_count = registrar_user.registrar.link_count
+    link = link_factory(created_by=registrar_user, submitted_url="http://example.com", organization=org_managed_by_registrar)
+    link.save()
 
-        org_to_which_user_belongs.refresh_from_db()
-        self.assertEqual(link_count + 1, org_to_which_user_belongs.link_count)
+    registrar_user.registrar.refresh_from_db()
+    assert link_count + 1 == registrar_user.registrar.link_count
 
-        link.safe_delete()
-        link.save()
+    link.safe_delete()
+    link.save()
 
-        org_to_which_user_belongs.refresh_from_db()
-        self.assertEqual(link_count, org_to_which_user_belongs.link_count)
-
-    def test_link_count_for_registrars(self):
-        """ We do some link count tallying on save. Let's make sure
-        we're adjusting the counts on the registrars """
-
-        registrar_to_which_user_belongs = self.registrar_user.registrar
-        link_count = registrar_to_which_user_belongs.link_count
-        org_managed_by_registrar = registrar_to_which_user_belongs.organizations.all().first()
-        link = Link(created_by=self.registrar_user, submitted_url="http://example.com", organization=org_managed_by_registrar)
-        link.save()
-
-        registrar_to_which_user_belongs.refresh_from_db()
-        self.assertEqual(link_count + 1, registrar_to_which_user_belongs.link_count)
-
-        link.safe_delete()
-        link.save()
-
-        registrar_to_which_user_belongs.refresh_from_db()
-        self.assertEqual(link_count, registrar_to_which_user_belongs.link_count)
+    registrar_user.registrar.refresh_from_db()
+    assert link_count == registrar_user.registrar.link_count

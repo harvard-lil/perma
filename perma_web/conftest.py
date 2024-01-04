@@ -178,7 +178,6 @@ import humps
 from decimal import Decimal
 from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
-from django.db.models import signals
 from django.utils import timezone
 
 from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship, Folder
@@ -229,6 +228,13 @@ class RegistrarFactory(DjangoModelFactory):
 
     # Default to "approved" in the fixtures for convenience
     status = 'approved'
+
+    organizations = factory.RelatedFactoryList(
+        'conftest.OrganizationFactory',
+        size=1,
+        factory_related_name='registrar'
+    )
+
 
 
 @register_factory
@@ -378,7 +384,6 @@ class InProgressCaptureJobFactory(PendingCaptureJobFactory):
 
 
 @register_factory
-@factory.django.mute_signals(signals.pre_save)
 class LinkFactory(DjangoModelFactory):
     class Meta:
         model = Link
@@ -399,6 +404,7 @@ class LinkFactory(DjangoModelFactory):
         no_declaration=None
     )
 
+
 @register_factory
 class FolderFactory(DjangoModelFactory):
     class Meta:
@@ -408,6 +414,7 @@ class FolderFactory(DjangoModelFactory):
 @register_factory
 class SponsoredFolderFactory(FolderFactory):
     sponsored_by = factory.SubFactory(RegistrarFactory)
+
 
 ### fixtures for testing customer interactions
 
@@ -471,11 +478,28 @@ def complex_user_with_bonus_link(link_user_factory, folder_factory,
 
 
 @pytest.fixture
+def org_user_factory(link_user, organization):
+    def f(orgs=None):
+        if orgs:
+            link_user.organizations.set(orgs)
+        else:
+            link_user.organizations.add(organization)
+        return link_user
+    return f
+
+
+@pytest.fixture
+def org_user(org_user_factory):
+    return org_user_factory()
+
+
+@pytest.fixture
 def active_cancelled_subscription():
     return {
         'status': "Canceled",
         'paid_through': timezone.now() + relativedelta(years=1)
     }
+
 
 @pytest.fixture
 def expired_cancelled_subscription():
