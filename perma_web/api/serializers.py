@@ -4,8 +4,9 @@ from django.core.validators import URLValidator
 import requests
 from rest_framework import serializers
 
+from perma.exceptions import ScoopAPIException
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, LinkBatch
-from perma.utils import ip_in_allowed_ip_range
+from perma.utils import ip_in_allowed_ip_range, send_to_scoop
 
 from .utils import get_mime_type, mime_type_lookup, reverse_api_view
 
@@ -261,33 +262,23 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                 else:
                     #
                     # Delegate validation to the Scoop API
-                    # What might that look like?
                     #
-                    # {"valid": False, "message": "Not a valid URL."}
-                    # {"valid": False, "message": "URL caused a redirect loop."}
-                    # {"valid": False, "message": "Couldn't resolve domain."}
-                    # {"valid": False, "message": "Not a valid IP."}
-                    # {"valid": False, "message": "Couldn't load URL."}
-                    #
-                    # {"valid": True}
-                    # {"valid": True, "content_length": 1000}
-                    #
-                    # try:
-                    #     _, response_data = send_to_scoop(
-                    #         method="get",
-                    #         path="validate",
-                    #         json={"url": target_url},
-                    #         valid_if=lambda code, data: code == 200 and "valid" in data,
-                    #     )
-                    #     if not response_data["valid"]:
-                    #         errors['url'] = response_data["message"]
-                    #     elif content_length := response["data"].get('content_length'):
-                    #         if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
-                    #             errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
-                    # except ScoopAPIException:
-                    #     logger.exception(f"Scoop validation attempt failed.")
-                    #     errors['url'] = "We encountered a network error: please try again."
-                    raise NotImplementedError()
+                    try:
+                        _, response_data = send_to_scoop(
+                            method="post",
+                            path="validate",
+                            json={"url": Link.get_ascii_safe_url(data['submitted_url'])},
+                            timeout=settings.RESOURCE_LOAD_TIMEOUT + 2,
+                            valid_if=lambda code, data: code == 200 and "valid" in data,
+                        )
+                        if not response_data["valid"]:
+                            errors['url'] = response_data["message"]
+                        elif content_length := response_data.get('content_length'):
+                            if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
+                                errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
+                    except ScoopAPIException:
+                        logger.exception("Scoop validation attempt failed.")
+                        errors['url'] = "We encountered a network error: please try again."
 
         # check uploaded file
         if uploaded_file == '':

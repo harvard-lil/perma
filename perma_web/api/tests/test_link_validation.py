@@ -1,8 +1,15 @@
 import os
 import requests
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase, ApiResourceLiveServerTestCase
-from perma.models import Link, LinkUser
+from requests.exceptions import RequestException
+from requests import request as orig_request
+from mock import patch
+
+from django.conf import settings
 from django.test.utils import override_settings
+
+from .utils import raise_on_call
+from perma.models import Link, LinkUser
 
 
 class LinkValidationMixin():
@@ -91,11 +98,12 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
     # URLs #
     ########
 
-    @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
+    @override_settings(BANNED_IP_RANGES=["127.0.0.0/8"])
     def test_should_reject_invalid_ip(self):
-        self.rejected_post(self.list_url,
-                           user=self.org_user,
-                           data={'url': self.server_url})
+        resp = self.rejected_post(self.list_url,
+                                  user=self.org_user,
+                                  data={'url': "http://127.0.0.0"})
+        self.assertIn(b"Not a valid IP", resp.content)
 
     @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
     def test_should_reject_large_url(self):
@@ -124,12 +132,34 @@ class LinkValidationTransactionTestCase(LinkValidationMixin, ApiResourceTransact
                                data={'url': self.server_url + '/test.html',
                                      'file': test_file})
 
+    ####################
+    # Network Failures #
+    ####################
+    if not settings.VALIDATE_URL_LOCALLY:
+
+        @patch('perma.utils.requests.request', autospec=True)
+        def test_scoop_validation_request_hangs(self, mockrequest):
+            mockrequest.side_effect = raise_on_call(orig_request, 1, RequestException)
+            with self.assertLogs('api.serializers', level='ERROR') as logs:
+                # verify that the request does not raise an exception, but
+                # rather, returns BadRequest
+                resp = self.rejected_post(self.list_url,
+                                          user=self.org_user,
+                                          data={'url': 'whatever'})
+                self.assertIn(b"We encountered a network error: please try again", resp.content)
+
+                log_string = " ".join(logs.output)
+                self.assertTrue("Scoop validation attempt failed" in log_string)
+
+
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class LinkValidationLiveTestCase(LinkValidationMixin, ApiResourceLiveServerTestCase):
 
     def test_should_reject_file_redirecting_url_without_exception(self):
-        url = f'{self.live_server_url}/api/tests/redirect-to-file'
+
+        domain = f"http://perma.test:{self.live_server_url.split(':')[-1]}"
+        url = f'{domain}/api/tests/redirect-to-file'
 
         # verify that the test route redirects as expected
         redirects = self.client.get(url)

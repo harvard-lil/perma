@@ -404,7 +404,7 @@ class AuthenticatedLinkListView(BaseView):
 
         capture_job = CaptureJob(
             human=human,
-            submitted_url=submitted_url,
+            submitted_url=submitted_url[:2100],
             created_by=request.user
         )
 

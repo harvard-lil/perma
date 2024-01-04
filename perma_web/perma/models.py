@@ -1546,18 +1546,23 @@ class Link(DeletableModel):
     def ia_identifier(self):
         return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
-    @cached_property
-    def ascii_safe_url(self):
+    @classmethod
+    def get_ascii_safe_url(cls, submitted_url):
         """URL as encoded internally by python requests"""
         try:
             # Attempt to quote the URL as well as possible:
             # - percent encoding
             # - unicode domains to punycode
             # - etc.
-            return requests.Request('GET', self.submitted_url).prepare().url
+            return requests.Request('GET', submitted_url).prepare().url
         except requests.exceptions.RequestException:
             # If that fails, just percent encode everything for safety
-            return requests.utils.requote_uri(self.submitted_url)
+            return requests.utils.requote_uri(submitted_url)
+
+    @cached_property
+    def ascii_safe_url(self):
+        """URL as encoded internally by python requests"""
+        return self.get_ascii_safe_url(self.submitted_url)
 
     @cached_property
     def url_details(self):
