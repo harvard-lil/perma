@@ -564,7 +564,9 @@ CAPTURE_HEADERS = {
     "Accept-Language": "*",
     "Connection": "keep-alive"
 }
-RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for website to respond during URL validation
+# Seconds to wait for website to respond during URL validation:
+# set to the Scoop API's own 502 threshold, currently 60s, plus two seconds for network conditions
+RESOURCE_LOAD_TIMEOUT = 60 + 2
 
 # We're finding that warcs aren't always available for download from S3
 # instantly, immediately after upload. How long do we want to wait for S3
