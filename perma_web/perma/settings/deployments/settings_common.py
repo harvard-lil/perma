@@ -512,7 +512,6 @@ PLAYBACK_HOST = 'rejouer.perma.test:8080'
 #
 # Capture
 #
-VALIDATE_URL_LOCALLY = True
 CAPTURE_ENGINE = 'scoop-api'  # perma|scoop-api
 PRIVATE_BY_POLICY_DOMAINS = []
 SCOOP_API_KEY = None
@@ -520,50 +519,9 @@ SCOOP_API_URL = None
 SCOOP_POLL_FREQUENCY = 0.5
 SCOOP_POLL_NETWORK_ERROR_LIMIT = 10
 
-# IP ranges we won't archive.
-# Via http://en.wikipedia.org/wiki/Reserved_IP_addresses
-BANNED_IP_RANGES = [
-    "0.0.0.0/8",
-    "10.0.0.0/8",
-    "100.64.0.0/10",
-    "127.0.0.0/8",
-    "169.254.0.0/16",
-    "172.16.0.0/12",
-    "192.0.0.0/29",
-    "192.0.2.0/24",
-    "192.88.99.0/24",
-    "192.168.0.0/16",
-    "198.18.0.0/15",
-    "198.51.100.0/24",
-    "203.0.113.0/24",
-    "224.0.0.0/4",
-    "240.0.0.0/4",
-    "255.255.255.255/32",
-    "::/128",
-    "::1/128",
-    "::ffff:0:0/96",
-    "100::/64",
-    "64:ff9b::/96",
-    "2001::/32",
-    "2001:10::/28",
-    "2001:db8::/32",
-    "2002::/16",
-    "fc00::/7",
-    "fe80::/10",
-    "ff00::/8",
-]
-
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 
-# Used by requests, when validating submitted URLs
-CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.105 Safari/537.36"
-CAPTURE_HEADERS = {
-    "Accept": "*/*",
-    "Accept-Encoding": "*",
-    "Accept-Language": "*",
-    "Connection": "keep-alive"
-}
 # Seconds to wait for website to respond during URL validation:
 # set to the Scoop API's own 502 threshold, currently 60s, plus two seconds for network conditions
 RESOURCE_LOAD_TIMEOUT = 60 + 2

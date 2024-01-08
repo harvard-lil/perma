@@ -17,7 +17,6 @@ import pytest
 from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, return_on_call, MockResponse
 from perma.models import Link, LinkUser, Folder
 
-validation_api_calls = 0 if settings.VALIDATE_URL_LOCALLY else 1
 
 class LinkResourceTestMixin():
 
@@ -743,7 +742,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         @patch('perma.utils.requests.request', autospec=True)
         def test_scoop_capture_request_initial_network_error(self, mockrequest):
-            mockrequest.side_effect = raise_on_call(orig_request, 1 + validation_api_calls, RequestException)
+            mockrequest.side_effect = raise_on_call(orig_request, 2, RequestException)
             obj = self.successful_post(self.list_url,
                                        data={
                                            'url': self.server_url + "/test.html"
@@ -757,7 +756,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         @patch('perma.utils.requests.request', autospec=True)
         def test_scoop_capture_request_over_capacity(self, mockrequest):
             # https://github.com/harvard-lil/scoop-rest-api/blob/3115af8d6cb5eb623140f460b293e66a0c0d9b1e/scoop_rest_api/views/capture.py#L41
-            mockrequest.side_effect = return_on_call(orig_request, 1 + validation_api_calls, MockResponse(
+            mockrequest.side_effect = return_on_call(orig_request, 2, MockResponse(
                 {"error": "Capture server is over capacity."},
                 429
             ))
@@ -779,7 +778,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         @patch('perma.utils.requests.request', autospec=True)
         def test_scoop_capture_request_transient_polling_error_handled(self, mockrequest):
-            mockrequest.side_effect = raise_on_call(orig_request, 3 + validation_api_calls, RequestException)
+            mockrequest.side_effect = raise_on_call(orig_request, 4, RequestException)
             obj = self.successful_post(self.list_url,
                                        data={
                                            'url': self.server_url + "/test.html"
@@ -792,7 +791,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
         @patch('perma.utils.requests.request', autospec=True)
         def test_scoop_capture_request_polling_error_limit_exceeded(self, mockrequest):
-            mockrequest.side_effect = raise_after_call(orig_request, 2 + validation_api_calls, RequestException)
+            mockrequest.side_effect = raise_after_call(orig_request, 3, RequestException)
             obj = self.successful_post(self.list_url,
                                        data={
                                            'url': self.server_url + "/test.html"
@@ -814,7 +813,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         @patch('perma.utils.requests.request', autospec=True)
         def test_scoop_capture_hung(self, mockrequest):
             # from https://perma-stage.org/admin/perma/capturejob/2059/change/
-            mockrequest.side_effect = return_on_call(orig_request, 2 + validation_api_calls, MockResponse({
+            mockrequest.side_effect = return_on_call(orig_request, 3, MockResponse({
                 "url": "https://www.nytimes.com/",
                 "status": "failed",
                 "id_capture": "2ca5dad1-20fd-4550-9129-a0ce64ecc662",

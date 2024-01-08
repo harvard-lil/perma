@@ -14,7 +14,6 @@ import json
 from io import StringIO
 from warcio.indexer import Indexer
 
-from django.test.utils import override_settings
 from django.conf import settings
 from django.test import LiveServerTestCase, TransactionTestCase, TestCase, SimpleTestCase
 from django.utils.functional import cached_property
@@ -205,7 +204,6 @@ class LoggingAPIClient(APIClient):
         return super(LoggingAPIClient, self).delete(*args, **kwargs, secure=True)
 
 
-@override_settings(BANNED_IP_RANGES=[])
 class ApiResourceTestCaseMixin(SimpleTestCase):
 
     # TODO: Using the regular ROOT_URLCONF avoids a problem where failing tests print useless error messages,
