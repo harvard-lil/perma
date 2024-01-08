@@ -268,7 +268,7 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                             method="post",
                             path="validate",
                             json={"url": Link.get_ascii_safe_url(data['submitted_url'])},
-                            timeout=settings.RESOURCE_LOAD_TIMEOUT + 15,
+                            timeout=settings.RESOURCE_LOAD_TIMEOUT,
                             valid_if=lambda code, data: code == 200 and "valid" in data,
                         )
                         if not response_data["valid"]:
