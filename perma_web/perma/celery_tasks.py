@@ -124,15 +124,6 @@ def save_scoop_capture(link, capture_job, data):
                 'private_reason'
             ])
 
-    # See if the primary URL has been munged in any way since we last saw it.
-    if link.primary_capture.url != data['scoop_capture_summary']['exchangeUrls'][0]:
-        logger.warning(f"Target URL for {link.guid} reformatted from {link.primary_capture.url} to {data['scoop_capture_summary']['exchangeUrls'][0]}. Please investigate.")
-        # Example:
-        #
-        # Target URL for Y8YR-9L2B reformatted from
-        # http://ko.wikipedia.org/wiki/위키백과:대문 to
-        # https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8.
-
     #
     # SCREENSHOT
     #
