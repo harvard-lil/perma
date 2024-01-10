@@ -503,22 +503,24 @@ def perma_client():
     session_key = settings.SESSION_COOKIE_NAME
 
     class UserClient(Client):
-        def request(self, *args, **kwargs):
+        def generic(self, *args, **kwargs):
             as_user = kwargs.pop("as_user", None)
+            kwargs['secure'] = True
+
             if as_user:
                 # If as_user is provided, store the current value of the session cookie, call force_login, and then
                 # reset the current value after the request is over.
                 previous_session = self.cookies.get(session_key)
                 self.force_login(as_user)
                 try:
-                    return super().request(*args, **kwargs)
+                    return super().generic(*args, **kwargs)
                 finally:
                     if previous_session:
                         self.cookies[session_key] = previous_session
                     else:
                         self.cookies.pop(session_key)
             else:
-                return super().request(*args, **kwargs)
+                return super().generic(*args, **kwargs)
 
     return UserClient()
 
