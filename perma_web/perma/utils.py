@@ -761,7 +761,8 @@ def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10):
             settings.SCOOP_API_URL + path,
             json=json,
             headers={
-                "Access-Key": settings.SCOOP_API_KEY
+                "Access-Key": settings.SCOOP_API_KEY,
+                "User-Agent": settings.SCOOP_API_USERAGENT
             },
             timeout=timeout,
             allow_redirects=False,
