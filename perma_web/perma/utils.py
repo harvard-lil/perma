@@ -779,7 +779,7 @@ def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10):
             data = safe_get_response_json(response)
         assert valid_if(response.status_code, data)
     except AssertionError:
-        if response.status_code == 403:
+        if response.status_code in [403, 502]:
             cleaned_content = response.content.replace(b'\n', b' ').strip()
             logger.warning(f"Unexpected {response.status_code}: {response.headers}: {cleaned_content}.")
         raise ScoopAPIException(f"{response.status_code}: {str(data)}")
