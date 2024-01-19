@@ -8,7 +8,6 @@ import os
 import logging
 import random
 import re
-import socket
 from urllib.parse import urlparse
 import simple_history
 import requests
@@ -44,7 +43,7 @@ from taggit.managers import TaggableManager
 from taggit.models import CommonGenericTaggedItemBase, TaggedItemBase
 
 from .exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
-from .utils import (Sec1TLSAdapter, tz_datetime,
+from .utils import (tz_datetime,
     prep_for_perma_payments, process_perma_payments_transmission,
     pp_date_from_post,
     first_day_of_next_month, today_next_year, preserve_perma_warc,
@@ -1546,62 +1545,27 @@ class Link(DeletableModel):
     def ia_identifier(self):
         return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
 
-    @cached_property
-    def ascii_safe_url(self):
+    @classmethod
+    def get_ascii_safe_url(cls, submitted_url):
         """URL as encoded internally by python requests"""
         try:
             # Attempt to quote the URL as well as possible:
             # - percent encoding
             # - unicode domains to punycode
             # - etc.
-            return requests.Request('GET', self.submitted_url).prepare().url
+            return requests.Request('GET', submitted_url).prepare().url
         except requests.exceptions.RequestException:
             # If that fails, just percent encode everything for safety
-            return requests.utils.requote_uri(self.submitted_url)
+            return requests.utils.requote_uri(submitted_url)
+
+    @cached_property
+    def ascii_safe_url(self):
+        """URL as encoded internally by python requests"""
+        return self.get_ascii_safe_url(self.submitted_url)
 
     @cached_property
     def url_details(self):
         return urlparse(self.ascii_safe_url)
-
-    @cached_property
-    def ip(self):
-        try:
-            return socket.gethostbyname(self.url_details.netloc.split(':')[0])
-        except socket.gaierror:
-            return False
-
-    @cached_property
-    def headers(self):
-        try:
-            with requests.Session() as s:
-                # Break noisily if requests mediates anything but http and https
-                assert list(s.adapters.keys()) == ['https://', 'http://']
-
-                # Lower our standards for the required TLS security level
-                s.mount('https://', Sec1TLSAdapter())
-                request = requests.Request(
-                    'GET',
-                    self.ascii_safe_url,
-                    headers={'User-Agent': settings.CAPTURE_USER_AGENT, **settings.CAPTURE_HEADERS}
-                )
-                response = s.send(
-                    request.prepare(),
-                    timeout=settings.RESOURCE_LOAD_TIMEOUT,
-                    stream=True  # we're only looking at the headers
-                )
-                response.close()
-                return response.headers
-        except (requests.ConnectionError, requests.Timeout, requests.exceptions.InvalidSchema, requests.exceptions.InvalidURL):
-            # ConectionError and Timeout are self-explanatory.
-            # InvalidSchema is raised if the retrieved URL uses a protocol not handled by
-            # requests' adapters (https://github.com/psf/requests/blob/master/requests/sessions.py#L419).
-            # While we can validate the target URL in advance, it may redirect to any arbitrary schema,
-            # for instance, file://, which will raise InvalidSchema.
-            # Similarly, InvalidURL is raised when requests cannot parse the target of a redirect.
-            # (https://github.com/psf/requests/blob/8149e9fe54c36951290f198e90d83c8a0498289c/requests/models.py#L383)
-            # We return False, to indicate in all cases that we did not successfully retrieve
-            # any headers, rather than propagating the exception.
-            return False
 
     def get_default_title(self):
         return self.url_details.netloc

@@ -8,7 +8,7 @@ django-ratelimit                        # IP-based rate-limiting
 django-axes==5.27.0                     # limit login attempts
 django-waffle                           # feature flags
 invoke                                  # task automation
-netaddr                                 # to check archive IPs against banned ranges
+netaddr                                 # used to check for trusted proxies
 requests
 tqdm                                    # progress bar in dev invoke tasks
 Werkzeug
