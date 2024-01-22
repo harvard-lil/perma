@@ -236,7 +236,6 @@ class RegistrarFactory(DjangoModelFactory):
     )
 
 
-
 @register_factory
 class PendingRegistrarFactory(RegistrarFactory):
     status = 'pending'
@@ -491,6 +490,39 @@ def org_user_factory(link_user, organization):
 @pytest.fixture
 def org_user(org_user_factory):
     return org_user_factory()
+
+
+@pytest.fixture
+def perma_client():
+    """
+    A version of the Django test client that allows us to specify a user login for a particular request with an
+    `as_user` parameter, like `client.get(url, as_user=user).
+    """
+    from django.test.client import Client
+
+    session_key = settings.SESSION_COOKIE_NAME
+
+    class UserClient(Client):
+        def generic(self, *args, **kwargs):
+            as_user = kwargs.pop("as_user", None)
+            kwargs['secure'] = True
+
+            if as_user:
+                # If as_user is provided, store the current value of the session cookie, call force_login, and then
+                # reset the current value after the request is over.
+                previous_session = self.cookies.get(session_key)
+                self.force_login(as_user)
+                try:
+                    return super().generic(*args, **kwargs)
+                finally:
+                    if previous_session:
+                        self.cookies[session_key] = previous_session
+                    else:
+                        self.cookies.pop(session_key)
+            else:
+                return super().generic(*args, **kwargs)
+
+    return UserClient()
 
 
 @pytest.fixture
