@@ -3,7 +3,6 @@ from django.urls import reverse
 
 from mock import patch
 
-# from .utils import PermaTestCase
 
 from perma.views.link_management import Link
 
