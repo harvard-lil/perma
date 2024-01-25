@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from perma.models import LinkUser
 
-from conftest import TEST_USER_PASSWORD, randomize_capitalization, submit_form, log_in_user
+from conftest import TEST_USER_PASSWORD, randomize_capitalization, submit_form
 
 
 def attempt_login(perma_client, username, password, expect_success=True):
@@ -61,7 +61,7 @@ def test_logout(perma_client, link_user):
     """
 
     # Login with our client and logout with our view
-    log_in_user(perma_client, user=link_user.email, password=TEST_USER_PASSWORD)
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
     assert '_auth_user_id' in perma_client.session
     perma_client.get(reverse('logout'))
     submit_form(perma_client, 'logout')
@@ -72,7 +72,7 @@ def test_password_change(perma_client, link_user):
     Let's make sure we can login and change our password
     """
 
-    log_in_user(perma_client, user=link_user.email, password=TEST_USER_PASSWORD)
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
     assert '_auth_user_id' in perma_client.session
 
     perma_client.post(reverse('password_change'),
@@ -83,13 +83,13 @@ def test_password_change(perma_client, link_user):
     perma_client.logout()
 
     # Try to login with our old password
-    log_in_user(perma_client, user=link_user.email, password=TEST_USER_PASSWORD)
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD, expect_success=False)
     assert '_auth_user_id' not in perma_client.session
 
     perma_client.logout()
 
     # Try to login with our new password
-    log_in_user(perma_client, user=link_user.email, password='Changed-password1')
+    attempt_login(perma_client, link_user.email, 'Changed-password1')
     assert '_auth_user_id' in perma_client.session
 
 @override_settings(AXES_FAILURE_LIMIT=2)
@@ -102,7 +102,7 @@ def test_locked_out_after_limit(perma_client, link_user):
     assert response.status_code == 403
     assert 'Too Many Attempts' in str(response.content)
 
-    response = log_in_user(perma_client, user=link_user.email, password='Anewpass1')
+    response = attempt_login(perma_client, link_user.email, 'Anewpass1', expect_success=False)
     assert response.status_code == 403
     assert 'Too Many Attempts' in str(response.content)
     assert '_auth_user_id' not in perma_client.session
@@ -114,7 +114,7 @@ def test_lockout_expires_after_cooloff(perma_client, link_user):
     assert response.status_code == 403
     assert 'Too Many Attempts' in str(response.content)
     sleep(2)
-    log_in_user(perma_client, user=link_user.email, password=TEST_USER_PASSWORD)
+    attempt_login(perma_client, link_user.email,TEST_USER_PASSWORD)
     assert '_auth_user_id' in perma_client.session
 
 

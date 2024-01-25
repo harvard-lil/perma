@@ -686,11 +686,6 @@ def randomize_capitalization(s):
     return ''.join(choice((str.upper, str.lower))(c) for c in s)
 
 
-def log_in_user(client, user, password=TEST_USER_PASSWORD):
-    client.logout()
-    return client.post(reverse('user_management_limited_login'), {'username': user, 'password': password}, secure=True)
-
-
 def submit_form(client,
                 view_name,
                 data={},
