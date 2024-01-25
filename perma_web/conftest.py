@@ -294,19 +294,19 @@ class LinkUserFactory(DjangoModelFactory):
 
 
 @register_factory
-class RegistrarUserFactory(LinkUserFactory):
-    registrar = factory.SubFactory(RegistrarFactory)
-
-
-@register_factory
-class DeactivatedRegistrarUserFactory(RegistrarUserFactory):
+class DeactivatedUserFactory(LinkUserFactory):
     is_active = False
 
 
 @register_factory
-class UnactivatedRegistrarUserFactory(RegistrarUserFactory):
+class UnactivatedUserFactory(LinkUserFactory):
     is_active = False
     is_confirmed = False
+
+
+@register_factory
+class RegistrarUserFactory(LinkUserFactory):
+    registrar = factory.SubFactory(RegistrarFactory)
 
 
 # SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,

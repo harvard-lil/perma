@@ -33,7 +33,6 @@ def test_login(perma_client, link_user):
     assert LinkUser.objects.filter(email__iexact=link_user.email).count() == 1
 
     attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
-
     perma_client.logout()
     attempt_login(perma_client, link_user.email.upper(), TEST_USER_PASSWORD)
     perma_client.logout()
@@ -41,16 +40,16 @@ def test_login(perma_client, link_user):
     perma_client.logout()
     attempt_login(perma_client, randomize_capitalization(link_user.email), TEST_USER_PASSWORD)
 
-def test_deactived_user_login(perma_client, deactivated_registrar_user):
+def test_deactived_user_login(perma_client, deactivated_user):
     submit_form(perma_client, 'user_management_limited_login',
-                    data = {'username': deactivated_registrar_user.email,
+                    data = {'username': deactivated_user.email,
                             'password': TEST_USER_PASSWORD},
                     success_url=reverse('user_management_account_is_deactivated'))
     assert '_auth_user_id' not in perma_client.session
 
-def test_unactived_user_login(perma_client, unactivated_registrar_user):
+def test_unactived_user_login(perma_client, unactivated_user):
     submit_form(perma_client, 'user_management_limited_login',
-                        data = {'username': unactivated_registrar_user.email,
+                        data = {'username': unactivated_user.email,
                                 'password': 'pass'},
                         success_url=reverse('user_management_not_active'))
     assert '_auth_user_id' not in perma_client.session
@@ -77,8 +76,7 @@ def test_password_change(perma_client, link_user):
 
     perma_client.post(reverse('password_change'),
         {'old_password':TEST_USER_PASSWORD, 'new_password1':'Changed-password1',
-        'new_password2':'Changed-password1'},
-        secure=True)
+        'new_password2':'Changed-password1'})
 
     perma_client.logout()
 
