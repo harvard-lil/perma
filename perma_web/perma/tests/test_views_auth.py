@@ -1,6 +1,8 @@
+from axes.models import AccessAttempt
 import datetime
 from time import sleep
 
+from django.core import mail
 from django.test.utils import override_settings
 from django.urls import reverse
 
@@ -116,32 +118,34 @@ def test_lockout_expires_after_cooloff(perma_client, link_user):
     assert '_auth_user_id' in perma_client.session
 
 
-# @override_settings(AXES_FAILURE_LIMIT=2)
-# def test_login_attempts_reset(self):
-#     # lock the user out
-#     self.attempt_login(self.email, self.wrong_password, expect_success=False)
-#     response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-#     self.assertContains(response, 'Too Many Attempts', status_code=403)
-#     self.assertContains(response, 'Reset my password', status_code=403)
-#     aa = AccessAttempt.objects.get(username=self.email)
-#     self.assertEqual(aa.failures_since_start, 2)
+@override_settings(AXES_FAILURE_LIMIT=2)
+def test_login_attempts_reset(perma_client, link_user):
+    # lock the user out
+    attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 403
+    assert 'Too Many Attempts' in str(response.content)
+    assert 'Reset my password' in str(response.content)
+    aa = AccessAttempt.objects.get(username=link_user.email)
+    assert aa.failures_since_start == 2
 
-#     # get the reset password email/link
-#     self.client.post(reverse('password_reset'), {"email": self.email}, secure=True)
-#     message = mail.outbox[0]
-#     reset_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
+    # get the reset password email/link
+    perma_client.post(reverse('password_reset'), {"email": link_user.email})
+    message = mail.outbox[0]
+    reset_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
 
-#     # go through with the reset
-#     response = self.client.get(reset_url, follow=True, secure=True)
-#     post_url = response.redirect_chain[0][0]
-#     response = self.client.post(post_url, {'new_password1': self.new_password, 'new_password2': self.new_password}, follow=True, secure=True)
-#     self.assertContains(response, 'Your password has been set')
-#     self.assertFalse(AccessAttempt.objects.filter(username=self.email).exists())
+    # go through with the reset
+    response = perma_client.get(reset_url, follow=True)
+    post_url = response.redirect_chain[0][0]
+    response = perma_client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, follow=True, secure=True)
+    assert 'Your password has been set' in str(response.content)
+    assert not AccessAttempt.objects.filter(username=link_user.email).exists()
 
-#     # verify you get the normal form errors, not the lockout page,
-#     # if you fail again
-#     response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-#     self.assertContains(response, 'class="field-error"', status_code=200)
+    # verify you get the normal form errors, not the lockout page,
+    # if you fail again
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 200
+    assert 'class="field-error"' in str(response.content)
 
-#     # verify you CAN login with the new password
-#     self.log_in_user(user=self.email, password=self.new_password)
+    # verify you CAN login with the new password
+    attempt_login(perma_client, link_user.email, 'Anewpass1')
