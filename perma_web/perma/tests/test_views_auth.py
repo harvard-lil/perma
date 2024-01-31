@@ -63,7 +63,6 @@ def test_logout(perma_client, link_user):
 
     # Login with our client and logout with our view
     attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
-    assert '_auth_user_id' in perma_client.session
     perma_client.get(reverse('logout'))
     submit_form(perma_client, 'logout')
     assert '_auth_user_id' not in perma_client.session
@@ -74,7 +73,6 @@ def test_password_change(perma_client, link_user):
     """
 
     attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
-    assert '_auth_user_id' in perma_client.session
 
     perma_client.post(reverse('password_change'),
         {'old_password':TEST_USER_PASSWORD, 'new_password1':'Changed-password1',
@@ -84,13 +82,11 @@ def test_password_change(perma_client, link_user):
 
     # Try to login with our old password
     attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD, expect_success=False)
-    assert '_auth_user_id' not in perma_client.session
 
     perma_client.logout()
 
     # Try to login with our new password
     attempt_login(perma_client, link_user.email, 'Changed-password1')
-    assert '_auth_user_id' in perma_client.session
 
 @override_settings(AXES_FAILURE_LIMIT=2)
 def test_locked_out_after_limit(perma_client, link_user):
@@ -115,7 +111,6 @@ def test_lockout_expires_after_cooloff(perma_client, link_user):
     assert 'Too Many Attempts' in str(response.content)
     sleep(2)
     attempt_login(perma_client, link_user.email,TEST_USER_PASSWORD)
-    assert '_auth_user_id' in perma_client.session
 
 
 @override_settings(AXES_FAILURE_LIMIT=2)
