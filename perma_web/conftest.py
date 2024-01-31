@@ -2,6 +2,7 @@ import pytest
 import boto3
 from dataclasses import dataclass
 import os
+from random import choice
 import subprocess
 from django.conf import settings
 from django.core.management import call_command
@@ -185,6 +186,8 @@ from perma.utils import pp_date_from_post
 
 
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
+# this gives us a variable that we can use unhashed in tests
+TEST_USER_PASSWORD = 'pass'
 
 ### internal helpers ###
 
@@ -287,7 +290,18 @@ class LinkUserFactory(DjangoModelFactory):
     is_active = True
     is_confirmed = True
 
-    password = Password('pass')
+    password = Password(TEST_USER_PASSWORD)
+
+
+@register_factory
+class DeactivatedUserFactory(LinkUserFactory):
+    is_active = False
+
+
+@register_factory
+class UnactivatedUserFactory(LinkUserFactory):
+    is_active = False
+    is_confirmed = False
 
 
 @register_factory
@@ -662,3 +676,53 @@ def one_two_three_dict():
     assert 'three' in data
     assert 'four' not in data
     return data
+
+
+#
+# Helpers
+#
+
+def randomize_capitalization(s):
+    return ''.join(choice((str.upper, str.lower))(c) for c in s)
+
+
+def submit_form(client,
+                view_name,
+                data={},
+                success_url=None,
+                success_query=None,
+                form_keys=['form'],  # name of form objects in RequestContext returned with response
+                error_keys=[],  # keys that must appear in form error list
+                *args, **kwargs):
+    """
+        Post to a view.
+        success_url = url form should forward to after success
+        success_query = query that should return one object if form worked
+    """
+
+    if success_query:
+        assert success_query.count() != 1
+    kwargs['require_status_code'] = None
+    resp = client.post(reverse(view_name), data, *args, **kwargs)
+
+    def form_errors():
+        errors = {}
+        try:
+            for form in form_keys:
+                errors.update(resp.context[form]._errors)
+        except (TypeError, KeyError):
+            pass
+        return errors
+
+    if success_url:
+        assert resp.status_code == 302, "Form failed to forward to success url. Status: %s. Content: %s. Errors: %s." % (resp.status_code, resp.content, form_errors())
+        assert resp['Location'].endswith(success_url) is True, "Form failed to forward to %s. Instead forwarded to: %s." % (success_url, resp['Location'])
+
+    if success_query:
+        assert success_query.count() == 1
+
+    if error_keys:
+        keys = set(form_errors().keys())
+        assert set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys)
+
+    return resp

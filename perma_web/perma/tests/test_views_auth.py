@@ -1,5 +1,4 @@
 from axes.models import AccessAttempt
-from axes.utils import reset as reset_login_attempts
 import datetime
 from time import sleep
 
@@ -8,152 +7,140 @@ from django.test.utils import override_settings
 from django.urls import reverse
 
 from perma.models import LinkUser
-from .utils import PermaTestCase
+
+from conftest import TEST_USER_PASSWORD, randomize_capitalization, submit_form
 
 
-class AuthViewsTestCase(PermaTestCase):
+def attempt_login(perma_client, username, password, expect_success=True):
+    assert '_auth_user_id' not in perma_client.session
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.login_url = reverse('user_management_limited_login')
-        cls.email = 'test_user@example.com'
-        cls.password = 'pass'
-        cls.wrong_password = 'wrongpass'
-        cls.new_password = 'Anewpass1'
+    response = perma_client.post(reverse('user_management_limited_login'),
+                                 {'username': username,
+                                  'password': password})
+    if expect_success:
+        assert response.status_code == 302
+        assert 'login' not in response['Location']
+        assert '_auth_user_id' in perma_client.session
+    else:
+        assert '_auth_user_id' not in perma_client.session
+    return response
 
-    def setUp(self):
-        reset_login_attempts(username=self.email)
+def test_login(perma_client, link_user):
+    """
+    Test the login form
+    We should get redirected to the create page
+    """
+    # Login through our form and make sure we get redirected to our create page,
+    # no matter how the email address is capitalized
+    assert LinkUser.objects.filter(email__iexact=link_user.email).count() == 1
 
-    def attempt_login(self, username, password, expect_success=True):
-        self.assertNotIn('_auth_user_id', self.client.session)
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
+    perma_client.logout()
+    attempt_login(perma_client, link_user.email.upper(), TEST_USER_PASSWORD)
+    perma_client.logout()
+    attempt_login(perma_client, link_user.email.title(), TEST_USER_PASSWORD)
+    perma_client.logout()
+    attempt_login(perma_client, randomize_capitalization(link_user.email), TEST_USER_PASSWORD)
 
-        response = self.client.post(self.login_url, {'username': username, 'password': password}, secure=True)
+def test_deactived_user_login(perma_client, deactivated_user):
+    submit_form(perma_client, 'user_management_limited_login',
+                    data = {'username': deactivated_user.email,
+                            'password': TEST_USER_PASSWORD},
+                    success_url=reverse('user_management_account_is_deactivated'))
+    assert '_auth_user_id' not in perma_client.session
 
-        if expect_success:
-            self.assertEqual(response.status_code, 302)
-            self.assertFalse('login' in response['Location'])
-            self.assertIn('_auth_user_id', self.client.session)
-        else:
-            self.assertNotIn('_auth_user_id', self.client.session)
+def test_unactived_user_login(perma_client, unactivated_user):
+    submit_form(perma_client, 'user_management_limited_login',
+                        data = {'username': unactivated_user.email,
+                                'password': 'pass'},
+                        success_url=reverse('user_management_not_active'))
+    assert '_auth_user_id' not in perma_client.session
 
-        return response
+def test_logout(perma_client, link_user):
+    """
+    Test our logout link
+    """
 
-    def test_login(self):
-        """
-        Test the login form
-        We should get redirected to the create page
-        """
-        # Login through our form and make sure we get redirected to our create page,
-        # no matter how the email address is capitalized
-        self.assertEqual(LinkUser.objects.filter(email__iexact=self.email).count(), 1)
+    # Login with our client and logout with our view
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
+    perma_client.get(reverse('logout'))
+    submit_form(perma_client, 'logout')
+    assert '_auth_user_id' not in perma_client.session
 
-        self.attempt_login(self.email, self.password)
-        self.client.logout()
-        self.attempt_login(self.email.upper(), self.password)
-        self.client.logout()
-        self.attempt_login(self.email.title(), self.password)
-        self.client.logout()
-        self.attempt_login(self.randomize_capitalization(self.email), self.password)
+def test_password_change(perma_client, link_user):
+    """
+    Let's make sure we can login and change our password
+    """
 
-    def test_deactived_user_login(self):
-        self.submit_form('user_management_limited_login',
-                          data = {'username': 'deactivated_registrar_user@example.com',
-                                  'password': 'pass'},
-                          success_url=reverse('user_management_account_is_deactivated'))
-        self.assertNotIn('_auth_user_id', self.client.session)
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD)
+
+    perma_client.post(reverse('password_change'),
+        {'old_password':TEST_USER_PASSWORD, 'new_password1':'Changed-password1',
+        'new_password2':'Changed-password1'})
+
+    perma_client.logout()
+
+    # Try to login with our old password
+    attempt_login(perma_client, link_user.email, TEST_USER_PASSWORD, expect_success=False)
+
+    perma_client.logout()
+
+    # Try to login with our new password
+    attempt_login(perma_client, link_user.email, 'Changed-password1')
+
+@override_settings(AXES_FAILURE_LIMIT=2)
+def test_locked_out_after_limit(perma_client, link_user):
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 200
+    assert 'class="field-error"' in str(response.content)
+
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 403
+    assert 'Too Many Attempts' in str(response.content)
+
+    response = attempt_login(perma_client, link_user.email, 'Anewpass1', expect_success=False)
+    assert response.status_code == 403
+    assert 'Too Many Attempts' in str(response.content)
+    assert '_auth_user_id' not in perma_client.session
+
+@override_settings(AXES_FAILURE_LIMIT=1)
+@override_settings(AXES_COOLOFF_TIME=datetime.timedelta(seconds=2))
+def test_lockout_expires_after_cooloff(perma_client, link_user):
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 403
+    assert 'Too Many Attempts' in str(response.content)
+    sleep(2)
+    attempt_login(perma_client, link_user.email,TEST_USER_PASSWORD)
 
 
-    def test_unactived_user_login(self):
-        self.submit_form('user_management_limited_login',
-                          data = {'username': 'unactivated_faculty_user@example.com',
-                                  'password': 'pass'},
-                          success_url=reverse('user_management_not_active'))
-        self.assertNotIn('_auth_user_id', self.client.session)
+@override_settings(AXES_FAILURE_LIMIT=2)
+def test_login_attempts_reset(perma_client, link_user):
+    # lock the user out
+    attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 403
+    assert 'Too Many Attempts' in str(response.content)
+    assert 'Reset my password' in str(response.content)
+    aa = AccessAttempt.objects.get(username=link_user.email)
+    assert aa.failures_since_start == 2
 
-    def test_logout(self):
-        """
-        Test our logout link
-        """
+    # get the reset password email/link
+    perma_client.post(reverse('password_reset'), {"email": link_user.email})
+    message = mail.outbox[0]
+    reset_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
 
-        # Login with our client and logout with our view
-        self.log_in_user(user='test_user@example.com', password='pass')
-        self.assertIn('_auth_user_id', self.client.session)
-        self.get('logout')
-        self.submit_form('logout')
-        self.assertNotIn('_auth_user_id', self.client.session)
+    # go through with the reset
+    response = perma_client.get(reset_url, follow=True)
+    post_url = response.redirect_chain[0][0]
+    response = perma_client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, follow=True, secure=True)
+    assert 'Your password has been set' in str(response.content)
+    assert not AccessAttempt.objects.filter(username=link_user.email).exists()
 
-    def test_password_change(self):
-        """
-        Let's make sure we can login and change our password
-        """
+    # verify you get the normal form errors, not the lockout page,
+    # if you fail again
+    response = attempt_login(perma_client, link_user.email, 'wrongpass', expect_success=False)
+    assert response.status_code == 200
+    assert 'class="field-error"' in str(response.content)
 
-        self.log_in_user(user='test_user@example.com', password='pass')
-        self.assertIn('_auth_user_id', self.client.session)
-
-        self.client.post(reverse('password_change'),
-            {'old_password':'pass', 'new_password1':'Changed-password1',
-            'new_password2':'Changed-password1'},
-            secure=True)
-
-        self.client.logout()
-
-        # Try to login with our old password
-        self.log_in_user(user='test_user@example.com', password='pass')
-        self.assertNotIn('_auth_user_id', self.client.session)
-
-        self.client.logout()
-
-        # Try to login with our new password
-        self.log_in_user(user='test_user@example.com', password='Changed-password1')
-        self.assertIn('_auth_user_id', self.client.session)
-
-    @override_settings(AXES_FAILURE_LIMIT=2)
-    def test_locked_out_after_limit(self):
-        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        self.assertContains(response, 'class="field-error"', status_code=200)
-
-        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        self.assertContains(response, 'Too Many Attempts', status_code=403)
-
-        response = self.log_in_user(user=self.email, password=self.new_password)
-        self.assertContains(response, 'Too Many Attempts', status_code=403)
-        self.assertNotIn('_auth_user_id', self.client.session)
-
-    @override_settings(AXES_FAILURE_LIMIT=1)
-    @override_settings(AXES_COOLOFF_TIME=datetime.timedelta(seconds=2))
-    def test_lockout_expires_after_cooloff(self):
-        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        self.assertContains(response, 'Too Many Attempts', status_code=403)
-        sleep(2)
-        self.log_in_user(user=self.email, password=self.password)
-        self.assertIn('_auth_user_id', self.client.session)
-
-    @override_settings(AXES_FAILURE_LIMIT=2)
-    def test_login_attempts_reset(self):
-        # lock the user out
-        self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        self.assertContains(response, 'Too Many Attempts', status_code=403)
-        self.assertContains(response, 'Reset my password', status_code=403)
-        aa = AccessAttempt.objects.get(username=self.email)
-        self.assertEqual(aa.failures_since_start, 2)
-
-        # get the reset password email/link
-        self.client.post(reverse('password_reset'), {"email": self.email}, secure=True)
-        message = mail.outbox[0]
-        reset_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
-
-        # go through with the reset
-        response = self.client.get(reset_url, follow=True, secure=True)
-        post_url = response.redirect_chain[0][0]
-        response = self.client.post(post_url, {'new_password1': self.new_password, 'new_password2': self.new_password}, follow=True, secure=True)
-        self.assertContains(response, 'Your password has been set')
-        self.assertFalse(AccessAttempt.objects.filter(username=self.email).exists())
-
-        # verify you get the normal form errors, not the lockout page,
-        # if you fail again
-        response = self.attempt_login(self.email, self.wrong_password, expect_success=False)
-        self.assertContains(response, 'class="field-error"', status_code=200)
-
-        # verify you CAN login with the new password
-        self.log_in_user(user=self.email, password=self.new_password)
+    # verify you CAN login with the new password
+    attempt_login(perma_client, link_user.email, 'Anewpass1')
