@@ -1020,7 +1020,7 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         if self.is_anonymous:
             return False
         return settings.CONTACT_REGISTRARS and \
-               self.is_organization_user
+               (self.is_organization_user or self.is_sponsored_user())
 
     ### link permissions ###
 

@@ -590,6 +590,21 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn("Affiliations: Test Library (Registrar)", message.body)
         self.assertIn("Logged in: true", message.body)
 
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
+    def test_contact_sponsored_user_affiliation_string(self):
+        '''
+            Verify registrar affiliations are printed correctly
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'box2': self.message_text,
+                                   'registrar': 1 },
+                          user='test_sponsored_user@example.com')
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn("Affiliations: Test Library", message.body)
+        self.assertIn("Logged in: true", message.body)
+
     #
     # Report form, as a bot
     #
