@@ -302,11 +302,14 @@ def contact(request):
         affiliation_string = ''
         if request.user.is_authenticated:
             if request.user.registrar:
-                affiliation_string = f"{request.user.registrar.name} (Registrar)"
-            else:
+                affiliation_string += f"{request.user.registrar.name} (Registrar)"
+            elif request.user.is_organization_user:
                 affiliations = [f"{org.name} ({org.registrar.name})" for org in request.user.organizations.all().order_by('registrar')]
                 if affiliations:
                     affiliation_string = ', '.join(affiliations)
+            if request.user.is_sponsored_user():
+                affiliations = [f"{sponsorship.registrar.name}" for sponsorship in request.user.sponsorships.all().order_by('registrar')]
+                affiliation_string += ', '.join(affiliations)
         return affiliation_string
 
     def formatted_organization_list(registrar):
@@ -327,7 +330,11 @@ def contact(request):
 
     def handle_registrar_fields(form):
         if request.user.is_supported_by_registrar():
-            registrars = set(org.registrar for org in request.user.organizations.all())
+            registrars = set()
+            if request.user.is_organization_user:
+                registrars.update(org.registrar for org in request.user.organizations.all())
+            if request.user.is_sponsored_user:
+                registrars.update(sponsorship.registrar for sponsorship in request.user.sponsorships.all())
             if len(registrars) > 1:
                 form.fields['registrar'].choices = [(registrar.id, registrar.name) for registrar in registrars]
             if len(registrars) == 1:
