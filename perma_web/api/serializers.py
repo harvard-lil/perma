@@ -229,25 +229,25 @@ class AuthenticatedLinkSerializer(LinkSerializer):
             if not data.get('submitted_url'):
                 errors['url'] = "URL cannot be empty."
             else:
-                #
-                # Ask the Scoop API to validate the URL
-                #
-                try:
-                    _, response_data = send_to_scoop(
-                        method="post",
-                        path="validate",
-                        json={"url": Link.get_ascii_safe_url(data['submitted_url'])},
-                        timeout=settings.RESOURCE_LOAD_TIMEOUT,
-                        valid_if=lambda code, data: code == 200 and "valid" in data,
-                    )
-                    if not response_data["valid"]:
-                        errors['url'] = response_data["message"]
-                    elif content_length := response_data.get('content_length'):
-                        if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
-                            errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
-                except ScoopAPIException:
-                    logger.exception("Scoop validation attempt failed.")
-                    errors['url'] = "We encountered a network error: please try again."
+                # Don't force URL validation if a file is provided
+                if not uploaded_file:
+                    # Ask the Scoop API to validate the URL
+                    try:
+                        _, response_data = send_to_scoop(
+                            method="post",
+                            path="validate",
+                            json={"url": Link.get_ascii_safe_url(data['submitted_url'])},
+                            timeout=settings.RESOURCE_LOAD_TIMEOUT,
+                            valid_if=lambda code, data: code == 200 and "valid" in data,
+                        )
+                        if not response_data["valid"]:
+                            errors['url'] = response_data["message"]
+                        elif content_length := response_data.get('content_length'):
+                            if content_length > settings.MAX_ARCHIVE_FILE_SIZE:
+                                errors['url'] = f"Target page is too large (max size {settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024}MB)."
+                    except ScoopAPIException:
+                        logger.exception("Scoop validation attempt failed.")
+                        errors['url'] = "We encountered a network error: please try again."
 
         # check uploaded file
         if uploaded_file == '':
