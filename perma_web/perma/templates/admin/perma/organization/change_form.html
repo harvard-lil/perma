@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_related_objects %}
+  {{ block.super }}
+  <div class="module aligned">
+    <h2>Links</h2>
+    <div class="form-row">
+      <a href="{% url 'admin:perma_link_changelist' %}?organization_id={{ original.id }}">
+        View links owned by {{ original.name }}
+      </a>
+    </div>
+  </div>
+{% endblock %}
