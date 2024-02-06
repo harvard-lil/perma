@@ -71,6 +71,17 @@ class CreatedByFilter(InputFilter):
         if value:
             return queryset.filter(created_by__email__icontains=value)
 
+class OrganizationFilter(InputFilter):
+    parameter_name = 'organization_id'
+    title = 'owning organization id'
+
+    def queryset(self, request, queryset):
+        try:
+            value = int(self.value())
+        except (ValueError, TypeError):
+            value = None
+        if value:
+            return queryset.filter(organization=value)
 
 class GUIDFilter(InputFilter):
     parameter_name = 'guid'
@@ -433,16 +444,17 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     form = RegistrarChangeForm
 
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'email', 'website', 'address', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
+    list_display = ['name', 'status', 'email', 'website', 'address', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list', 'orgs_private_by_default', 'unlimited', 'nonpaying', 'cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate']
     list_editable = ['status']
-    list_filter = ('status', 'unlimited', 'nonpaying', 'cached_subscription_status')
+    list_filter = ('status', 'unlimited', 'nonpaying', 'cached_subscription_status', 'orgs_private_by_default')
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'address', 'status', 'tags', 'orgs_private_by_default')}),
         ("Tier", {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'bonus_links')}),
     )
     inlines = [
         new_class("OrganizationInline", admin.TabularInline, model=Organization,
-                  fields=['name',],
+                  fields=['name', 'default_to_private'],
+                  readonly_fields=['name'],
                   can_delete=False,
                   show_change_link=True),
         new_class("RegistrarUserInline", admin.TabularInline, model=LinkUser,
@@ -470,10 +482,10 @@ class RegistrarAdmin(SimpleHistoryAdmin):
         return ", ".join(o.name for o in obj.tags.all())
 
 class OrganizationAdmin(SimpleHistoryAdmin):
-    fields = ['name', 'registrar']
+    fields = ['name', 'registrar', 'default_to_private']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
-    list_filter = [RegistrarNameFilter, RegistrarIdFilter, 'user_deleted']
+    list_display = ['name', 'registrar', 'default_to_private', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
+    list_filter = [RegistrarNameFilter, RegistrarIdFilter, 'default_to_private', 'user_deleted']
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
@@ -582,8 +594,8 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'file_size']
-    list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, TagFilter, 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'organization_id', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'file_size']
+    list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, OrganizationFilter, TagFilter, 'cached_can_play_back', 'internet_archive_upload_status']
     fieldsets = (
         (None, {'fields': ('guid', 'capture_job', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'captured_by_browser', 'file_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
