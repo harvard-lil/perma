@@ -506,6 +506,19 @@ def manage_organization(request):
     """
 
     is_admin = request.user.is_staff
+    if is_admin:
+        form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a")
+    else:
+        form = OrganizationForm(get_form_data(request), prefix = "a")
+
+    if request.method == 'POST':
+        if form.is_valid():
+            new_org = form.save(commit=False)
+            if not is_admin:
+                new_org.registrar_id = request.user.registrar_id
+            new_org.save()
+            return HttpResponseRedirect(reverse('user_management_manage_organization'))
+
     orgs = Organization.objects.accessible_to(request.user).select_related('registrar')
 
     # add annotations
@@ -531,20 +544,6 @@ def manage_organization(request):
 
     # handle pagination
     orgs = apply_pagination(request, orgs)
-
-    if is_admin:
-        form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a")
-    else:
-        form = OrganizationForm(get_form_data(request), prefix = "a")
-
-    if request.method == 'POST':
-        if form.is_valid():
-            new_org = form.save(commit=False)
-            if not is_admin:
-                new_org.registrar_id = request.user.registrar_id
-            new_org.save()
-
-            return HttpResponseRedirect(reverse('user_management_manage_organization'))
 
     return render(request, 'user_management/manage_orgs.html', {
         'orgs': orgs,
