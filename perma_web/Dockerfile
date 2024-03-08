@@ -1,4 +1,4 @@
-FROM registry.lil.tools/library/debian:12.5
+FROM registry.lil.tools/library/python:3.11-bookworm
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -50,8 +50,8 @@ RUN npm install \
 
 # python requirements
 COPY perma_web/requirements.txt /perma/perma_web
-RUN python3 -m pip install pip==24.0 --break-system-packages \
-    && python3 -m pip install -r /perma/perma_web/requirements.txt --break-system-packages \
+RUN python3 -m pip install pip==24.0 \
+    && python3 -m pip install -r /perma/perma_web/requirements.txt \
     && rm /perma/perma_web/requirements.txt
 
 # Install Playwright browsers for integration tests
