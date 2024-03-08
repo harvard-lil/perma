@@ -1,4 +1,4 @@
-FROM registry.lil.tools/library/debian:11.3
+FROM registry.lil.tools/library/debian:12.5
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -10,8 +10,8 @@ RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web
 
 # For fonts-roboto and ttf-mscorefonts-installer
-RUN echo "deb http://deb.debian.org/debian bullseye main contrib" > /etc/apt/sources.list \
-    && echo "deb https://deb.debian.org/debian-security bullseye-security main contrib" >> /etc/apt/sources.list \
+RUN echo "deb http://deb.debian.org/debian bookworm main contrib" > /etc/apt/sources.list \
+    && echo "deb https://deb.debian.org/debian-security bookworm-security main contrib" >> /etc/apt/sources.list \
     && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
 
 # Get build dependencies and packages required by the app
@@ -32,7 +32,9 @@ RUN apt-get update \
         postgresql-client \
         libpq-dev \
         libffi-dev \
-        libnss3-tools                           `# for certutil`
+        libnss3-tools                           `# for certutil` \
+        libxml2-dev \
+        libxslt-dev
 
 # pin node version -- see https://github.com/nodesource/distributions/issues/33
 RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.3-deb-1nodesource1_$(dpkg --print-architecture).deb \
@@ -48,8 +50,8 @@ RUN npm install \
 
 # python requirements
 COPY perma_web/requirements.txt /perma/perma_web
-RUN pip install pip==22.0.4 \
-    && pip install -r /perma/perma_web/requirements.txt \
+RUN python3 -m pip install pip==24.0 --break-system-packages \
+    && python3 -m pip install -r /perma/perma_web/requirements.txt --break-system-packages \
     && rm /perma/perma_web/requirements.txt
 
 # Install Playwright browsers for integration tests
