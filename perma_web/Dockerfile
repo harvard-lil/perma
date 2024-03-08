@@ -72,7 +72,13 @@ RUN  apt-get update && apt install -y --no-install-recommends libdbus-glib-1-2 \
     libatspi2.0-0 \
     libwayland-client0 \
     libpango-1.0-0 \
-    libcairo2
+    libcairo2 \
+    libx11-xcb1 \
+    libxcursor1 \
+    libgtk-3-0 \
+    libpangocairo-1.0-0 \
+    libcairo-gobject2 \
+    libgdk-pixbuf-2.0-0
 
 RUN mkdir -p $HOME/.pki/nssdb \
     && certutil -d $HOME/.pki/nssdb -N --empty-password \
