@@ -16,7 +16,7 @@ uwsgitop                                # uWSGI monitoring
 
 
 # databases
-psycopg2==2.8.6
+psycopg2
 django-redis                            # use redis as django's cache backend
 redis                                   # Needed to bind with Redis.
 
@@ -81,6 +81,7 @@ pytest-xdist                            # run tests in parallel
 pytest                                  # test runner
 pyhumps                                 # a helper for dealing with camel case and snake case
 pytest-playwright                       # integration tests
+playwright>=1.42.0                      # (force a higher version so as to get a newer version of greenlet)
 pytest-django-liveserver-ssl            # integration tests w/SSL
 django-extensions                       # runserver_plus for SSL
 django-debug-toolbar                    # see SQL queries, monitor signals, etc.
