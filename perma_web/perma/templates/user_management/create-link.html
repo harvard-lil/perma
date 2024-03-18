@@ -1,5 +1,6 @@
 {% extends "base-responsive.html" %}
 {% load render_bundle from webpack_loader %}
+{% load waffle_tags %}
 
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
@@ -148,7 +149,9 @@
 <!-- / Your Perma Links -->
 
 {% if request.user.is_staff %}
-  <div id="vue-app"></div>
+  {% flag "vue-dashboard" %}
+    <div id="vue-app"></div>
+  {% endflag %}
 {% endif %}
 
 {% endblock %}
@@ -166,7 +169,9 @@
 
   {% render_bundle 'create' 'js' %}
   {% if request.user.is_staff %}
-    {% render_bundle 'dashboard' 'js' %}
+    {% flag "vue-dashboard" %}
+      {% render_bundle 'dashboard' 'js' %}
+    {% endflag %}
   {% endif %}
 
 {% endblock %}
