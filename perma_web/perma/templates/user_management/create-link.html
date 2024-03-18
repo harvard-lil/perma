@@ -147,6 +147,10 @@
 </div>
 <!-- / Your Perma Links -->
 
+{% if request.user.is_staff %}
+  <div id="vue-app"></div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
@@ -161,6 +165,9 @@
   </script>
 
   {% render_bundle 'create' 'js' %}
+  {% if request.user.is_staff %}
+    {% render_bundle 'dashboard' 'js' %}
+  {% endif %}
 
 {% endblock %}
 

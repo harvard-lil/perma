@@ -26,6 +26,9 @@ module.exports = {
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
     'admin-stats': './static/js/admin-stats',
+
+    // for the new Vue frontend
+    'dashboard': './frontend/pages/dashboard.js',
   },
 
   output: {
@@ -173,6 +176,8 @@ module.exports = {
       'papaparse': 'papaparse/papaparse.min.js',
 
       'jquery-form': 'jquery-form/jquery.form.js',
+
+      'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
 
