@@ -113,6 +113,14 @@
       "name": "d8472f7b6012706fc028021e5a654843.ttf",
       "path": "/perma/perma_web/static/bundles/d8472f7b6012706fc028021e5a654843.ttf"
     },
+    "dashboard.js": {
+      "name": "dashboard.js",
+      "path": "/perma/perma_web/static/bundles/dashboard.js"
+    },
+    "dashboard.js.map": {
+      "name": "dashboard.js.map",
+      "path": "/perma/perma_web/static/bundles/dashboard.js.map"
+    },
     "developer-docs.js": {
       "name": "developer-docs.js",
       "path": "/perma/perma_web/static/bundles/developer-docs.js"
@@ -192,6 +200,10 @@
       "create.js",
       "create.css.map",
       "create.js.map"
+    ],
+    "dashboard": [
+      "dashboard.js",
+      "dashboard.js.map"
     ],
     "developer-docs": [
       "developer-docs.js",
