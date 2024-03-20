@@ -3,6 +3,7 @@ var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
 var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
   context: __dirname,
@@ -62,6 +63,7 @@ module.exports = {
     // }),
 
     new MiniCssExtractPlugin(),
+    new VueLoaderPlugin()
   ],
 
   module: {
@@ -94,6 +96,13 @@ module.exports = {
           ]
         }
       },
+
+      // Vue stuff
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      },
+
 
       // inline css
       {
