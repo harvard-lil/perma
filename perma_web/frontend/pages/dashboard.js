@@ -1,10 +1,4 @@
-import { createApp, ref } from 'vue'
-
-createApp({
-  setup() {
-    const message = ref('Hello from Vue!')
-    return {
-      message
-    }
-  },
-}).mount('#vue-app')
+import { createApp, ref } from "vue";
+import App from "./App.vue";
+const app = createApp(App);
+app.mount("#vue-app");
