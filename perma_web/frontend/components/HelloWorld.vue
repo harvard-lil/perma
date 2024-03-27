@@ -4,7 +4,7 @@ import { globalStore } from '../stores/globalStore'
 </script>
 
 <template>
-    The current count for component A: {{ globalStore.count }}
+    <p>The current count for component A: {{ globalStore.count }}</p>
 
     <button @click="globalStore.increment()">
         Increment Counter
