@@ -20,6 +20,7 @@ watch(
 const handleDispatch = (name) => {
     switch (name) {
         case "increment":
+        default:
             globalStore.increment()
         break;
     }
