@@ -36,10 +36,8 @@ RUN apt-get update \
         libxml2-dev \
         libxslt-dev
 
-# pin node version -- see https://github.com/nodesource/distributions/issues/33
-RUN curl -o nodejs.deb https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.19.3-deb-1nodesource1_$(dpkg --print-architecture).deb \
-    && dpkg -i ./nodejs.deb \
-    && rm nodejs.deb
+# node.js 
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.12.0-1nodesource1
 
 # npm
 COPY perma_web/package.json /perma/perma_web
