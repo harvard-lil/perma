@@ -150,6 +150,8 @@
 
 {% if request.user.is_staff %}
   {% flag "vue-dashboard" %}
+    <div class="vanilla-div">Vanilla JavaScript Count: None</div>
+    <button class="vanilla-button">Increment Counter</button>
     <div id="vue-app"></div>
   {% endflag %}
 {% endif %}
