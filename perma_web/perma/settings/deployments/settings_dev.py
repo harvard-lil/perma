@@ -1,4 +1,5 @@
 from .settings_common import *
+from celery.schedules import crontab
 
 import os
 import re
@@ -36,6 +37,13 @@ CELERY_RESULT_BACKEND = None
 CELERY_TASK_ALWAYS_EAGER = True
 # propagate exceptions from eager tasks for easier debugging
 CELERY_TASK_EAGER_PROPAGATES = True
+
+CELERY_BEAT_SCHEDULE = {
+    'wacz-conversion-task': {
+        'task': 'perma.celery_tasks.convert_warc_to_wacz',
+        'schedule': crontab(day_of_month=30, month_of_year=3, hour=4, minute=1),
+    },
+}
 
 ### optional dev packages ###
 
