@@ -33,6 +33,10 @@ from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organi
 import logging
 logger = logging.getLogger(__name__)
 
+import glob
+import tempfile
+from perma.celery_tasks import convert
+
 @task
 def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
     """
@@ -1110,3 +1114,77 @@ def email_retained_users(ctx, reports_dir='.'):
     logger.info(f"Emailed {sent_count} users")
     if failed_list:
         logger.warning(f"Some users were not emailed: {str(failed_list)}. Check log for fatal SMTP errors.")
+
+
+# WACZ CONVERSION
+
+def save_warc(warc, warcs_dir, file_name):
+    """
+    Gets the file path
+    Get the associates file's contents from storage
+    Saves the file
+    """
+    file_path = os.path.join(f"{warcs_dir}", warc)
+    contents = default_storage.open(file_name).read()
+    with open(file_path, 'wb') as new_f:
+        new_f.write(contents)
+
+
+def get_warcs(source_csv=None, single_warc=None):
+    """
+    Gets the sample WARC ids from the CSV file or constructs from single_warc argument
+    Retrieves the associated file's contents from storage
+    Downloads them to a temp folder
+    """
+    warcs_dir = tempfile.mkdtemp()
+
+    if source_csv:
+        sample_data_guids = os.path.abspath(source_csv)
+        with open(sample_data_guids, mode='r') as file:
+            csv_file = csv.reader(file)
+            for line in csv_file:
+                save_warc(line[1], warcs_dir, f"{line[2]}/{line[1]}")
+    else:
+        # needed to do a bit of reverse engineering here to construct the warc storage file path
+        single_warc_substr = single_warc.replace('-', '')[:6]
+        folder_path_format = '/'.join(single_warc_substr[i:i + 2] for i in range(0, len(single_warc_substr), 2))
+        file_name = f"warcs/{folder_path_format}/{single_warc}/{single_warc}"
+        save_warc(single_warc, warcs_dir, file_name)
+
+    return warcs_dir
+
+
+@task
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None):
+    """
+    Downloads WARC/s to local temp folder
+    Creates local WACZ temp folder, and benchmark log file
+    Invokes celery task convert() with file, wacz directory and log file args
+    source_csv or single_warc argument is required
+    """
+    if source_csv and single_warc:
+        raise ValueError("Cannot pass source file and WARC path at the same time.")
+    elif not source_csv and not single_warc:
+        raise ValueError("Either source file or WARC path needs to be passed.")
+
+    if source_csv:
+        warcs_dir = get_warcs(source_csv, None)
+    else:
+        warcs_dir = get_warcs(None, single_warc)
+
+    warc_files = glob.glob(f"{warcs_dir}/*.warc.gz")
+    waczs_dir = tempfile.mkdtemp()
+
+    log_file = os.path.abspath(benchmark_log)
+    csv_headers = ["file_name", "conversion_status", "file_size", "duration", "error"]
+
+    with open(log_file, 'w') as lf:
+        writer = csv.DictWriter(lf, fieldnames=csv_headers)
+        writer.writeheader()
+
+    # Adding this here in case we want to compare it against the CSV file's last updated ts
+    # for a rough estimate of how long all jobs took to be processed by celery
+    logger.info(f"Benchmark CSV was created at: {datetime.now()}")
+
+    for file in warc_files:
+        convert.delay(file, waczs_dir, log_file)

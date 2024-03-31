@@ -37,9 +37,9 @@ import logging
 logger = logging.getLogger('celery.django')
 
 import csv
-import glob
 import subprocess
 import io
+import math
 
 ### ERROR REPORTING ###
 
@@ -1230,75 +1230,72 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
         logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
 
 
-### WACZ CONVERSION ###
+# WACZ CONVERSION
 
-def get_warcs():
+def format_size(bytes_val):
     """
-    Gets the sample WARC ids from the CSV file
-    Retrieves the associated file's contents from storage
-    Downloads them to a temp folder
+    Converts bytes to KB and MB
     """
-    sample_data_guids = os.path.abspath("perma/wacz_experiment/1000-a-guids.csv")
-    warcs_dir = tempfile.mkdtemp()
+    kilobytes = bytes_val / 1024
 
-    with open(sample_data_guids, mode='r') as file:
-        csv_file = csv.reader(file)
-        for lines in csv_file:
-            file_name = f"{lines[2]}/{lines[1]}"
-            file_path = os.path.join(f"{warcs_dir}", lines[1])
-            contents = default_storage.open(file_name).read()
-            with open(file_path, 'wb') as new_f:
-                new_f.write(contents)
+    if kilobytes < 1:
+        return f"{bytes_val} bytes"
+    elif kilobytes < 1024:
+        return f"{math.ceil(kilobytes)} KB"
+    else:
+        megabytes = kilobytes / 1024
+        return f"{megabytes:.2f} MB"
 
-    return warcs_dir
+
+def format_time(seconds_val):
+    """
+    Converts seconds to minutes
+    """
+    if seconds_val >= 60:
+        return f"{round(seconds_val / 60, 1)} minutes"
+    else:
+        return f"{math.ceil(seconds_val)} seconds"
+
 
 @shared_task
-def convert(input_path, output_folder):
+def convert(input_path, output_folder, benchmark_log):
     """
     Converts WARC file to WACZ
     Saves file in a temp folder
-    Saves file in storage
+    If successful, saves file in storage
     """
+    start_time = time.time()
     input_file_name = input_path.split('/')[-1]
     output_path = f"{output_folder}/{input_file_name.split('.')[0]}.wacz"
     js_wacz_call = subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
                                   capture_output=True, check=True, text=True)
+    end_time = time.time()
+    duration = format_time(end_time - start_time)
+    file_size = format_size(os.path.getsize(input_path))
 
-    """
-    Added for A24C-RXK4.warc.gz case where js-wacz logs content-length too small
-    even though the conversion succeeds at the end
-    """
-    if 'WACZ file ready' not in js_wacz_call.stdout:
-        logging.error(js_wacz_call.stderr)
-        raise Exception("Error converting file to WACZ")
+    with open(benchmark_log, 'a') as log_file:
+        row = {
+            "file_name": input_file_name,
+            "conversion_status": '',
+            "file_size": file_size,
+            "duration": duration,
+            "error": ''
+        }
+        writer = csv.DictWriter(log_file, fieldnames=row.keys())
+
+        # TODO: Tweak this to check for exit code 1 when js-wacz is released
+        if not js_wacz_call.stderr:
+            row["conversion_status"] = "Success"
+            writer.writerow(row)
+        else:
+            row["conversion_status"] = "Failure"
+            row["error"] = js_wacz_call.stderr
+            writer.writerow(row)
+            logger.error(js_wacz_call.stderr)
+            raise Exception("Error converting file to WACZ")
 
     file_name = f"waczs/{output_path.split('/')[-1]}"
 
-    with open(output_path, 'rb') as local_file:
-        content = local_file.read()
+    with open(output_path, 'rb') as wacz_file:
+        content = wacz_file.read()
         default_storage.save(file_name, io.BytesIO(content))
-
-
-@shared_task
-def convert_warc_to_wacz():
-    """
-    Triggered by CELERY_BEAT_SCHEDULE schedule
-    For each warc.gz file, triggers convert()
-    """
-    warcs_dir = get_warcs()
-    warc_files = glob.glob(f"{warcs_dir}/*.warc.gz")
-    waczs_dir = tempfile.mkdtemp()
-
-    for file in warc_files:
-        logging.info(f"Processing {file}")
-        convert.delay(file, waczs_dir)
-
-    # I see in Celery docs that if the result_backend is set, we can access the result state of the tasks
-    # Could this be disabled in Dev? If it was enabled, we would be able to track the number of successful/failing jobs
-    # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-backend
-
-    # result = group(convert.s(file, waczs_dir) for file in warc_files)()
-    # logging(result.completed_count())
-
-
-
