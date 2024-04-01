@@ -1267,8 +1267,18 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
     start_time = time.time()
     input_file_name = input_path.split('/')[-1]
     output_path = f"{output_folder}/{input_file_name.split('.')[0]}.wacz"
-    js_wacz_call = subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
-                                  capture_output=True, check=True, text=True)
+    exception_occured = False
+    error_output = ''
+
+    try:
+        subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
+                                      capture_output=True, check=True, text=True)
+    except subprocess.CalledProcessError as e:
+        exception_occured = False
+        error_output = e.stderr
+        logger.error("Subprocess js-wacz command returned: ", e.returncode)
+        logger.error("Error output is: ", e.stderr)
+
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = format_time(raw_duration)
@@ -1289,16 +1299,14 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
         }
         writer = csv.DictWriter(log_file, fieldnames=row.keys())
 
-        # TODO: Tweak this to check for exit code 1 when js-wacz is released
-        if not js_wacz_call.stderr:
+        if exception_occured:
+            row["conversion_status"] = "Failure"
+            row["error"] = error_output
+            writer.writerow(row)
+            raise Exception("Error converting file to WACZ")
+        else:
             row["conversion_status"] = "Success"
             writer.writerow(row)
-        else:
-            row["conversion_status"] = "Failure"
-            row["error"] = js_wacz_call.stderr
-            writer.writerow(row)
-            logger.error(js_wacz_call.stderr)
-            raise Exception("Error converting file to WACZ")
 
     file_name = f"waczs/{output_path.split('/')[-1]}"
 
