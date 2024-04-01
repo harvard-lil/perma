@@ -1,9 +1,7 @@
 <script setup>
-import HelloWorld from './HelloWorld.vue'
-import HelloWorldB from './HelloWorldB.vue';
+import CreateLink from './CreateLink.vue';
 </script>
 
 <template>
-    <HelloWorld />
-    <HelloWorldB />
+    <CreateLink />
 </template>
