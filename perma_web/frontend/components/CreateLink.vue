@@ -9,7 +9,7 @@ const handleCreateLink = async () => {
     globalStore.updateCapture('isValidating')
 
     const formData = {
-        url: userLink,
+        url: userLink.value,
         human: true
     }
 
@@ -24,7 +24,7 @@ const handleCreateLink = async () => {
                 },
                 method: "POST",
                 credentials: "same-origin",
-                body: formData
+                body: JSON.stringify(formData)
             })
 
         if (!response?.ok) {
