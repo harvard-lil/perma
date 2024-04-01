@@ -1258,7 +1258,7 @@ def format_time(seconds_val):
 
 
 @shared_task
-def convert(input_path, output_folder, benchmark_log):
+def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
     """
     Converts WARC file to WACZ
     Saves file in a temp folder
@@ -1270,15 +1270,21 @@ def convert(input_path, output_folder, benchmark_log):
     js_wacz_call = subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
                                   capture_output=True, check=True, text=True)
     end_time = time.time()
-    duration = format_time(end_time - start_time)
-    file_size = format_size(os.path.getsize(input_path))
+    raw_duration = end_time - start_time
+    duration = format_time(raw_duration)
+    warc_size = format_size(os.path.getsize(input_path))
+    wacz_size = format_size(os.path.getsize(output_path))
 
     with open(benchmark_log, 'a') as log_file:
         row = {
             "file_name": input_file_name,
             "conversion_status": '',
-            "file_size": file_size,
+            "warc_size": warc_size,
+            "raw_warc_size": os.path.getsize(input_path),  # bytes
+            "wacz_size": wacz_size,
+            "raw_wacz_size": os.path.getsize(output_path),  # bytes
             "duration": duration,
+            "raw_duration": raw_duration,  # seconds
             "error": ''
         }
         writer = csv.DictWriter(log_file, fieldnames=row.keys())
