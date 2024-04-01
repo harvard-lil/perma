@@ -65,3 +65,5 @@ perma_web/*.pem
 perma_web/*.crt
 perma_web/*.key
 perma_web/*.conf
+
+perma_web/perma/wacz_experiment/*
