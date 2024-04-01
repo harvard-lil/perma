@@ -11,6 +11,15 @@
 
 {% block mainContent %}
 
+ <!-- vue app -->
+ {% if request.user.is_staff %}
+  {% flag "vue-dashboard" %}
+  <div class="vanilla-div">Vanilla JavaScript Count: None</div>
+  <button class="vanilla-button">Increment Counter</button>
+    <div id="vue-app"></div>
+  {% endflag %}
+{% endif %}
+
   <!-- regular link creation -->
   <div id="create-item-container" class="container cont-full-bleed">
     <div class="container cont-fixed">
@@ -147,14 +156,6 @@
   </div>
 </div>
 <!-- / Your Perma Links -->
-
-{% if request.user.is_staff %}
-  {% flag "vue-dashboard" %}
-    <div class="vanilla-div">Vanilla JavaScript Count: None</div>
-    <button class="vanilla-button">Increment Counter</button>
-    <div id="vue-app"></div>
-  {% endflag %}
-{% endif %}
 
 {% endblock %}
 
