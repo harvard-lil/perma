@@ -31,22 +31,11 @@ export function setCookie (cname, cvalue, exdays) {
     document.cookie = cname + "=" + cvalue + "; " + expires;
 }
 
-
-
-export function getCookie (name) {
-  var cookieValue;
-  if (document.cookie) {
-    var cookies = document.cookie.split(';');
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = $.trim(cookies[i]);
-      // Does this cookie string begin with the name we want?
-      if (cookie.substring(0, name.length + 1) == (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+export function getCookie(name) {
+  let matches = document.cookie.match(new RegExp(
+      "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
 export function csrfSafeMethod (method) {
