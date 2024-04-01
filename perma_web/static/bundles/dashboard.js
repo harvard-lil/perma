@@ -34746,9 +34746,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(598);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(523);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(656);
-/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(261);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(282);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(523);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(656);
+/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(261);
+
 
 
 
@@ -34759,20 +34762,20 @@ __webpack_require__.r(__webpack_exports__);
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
-    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])('');
+    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])('');
     var handleCreateLink = /*#__PURE__*/function () {
       var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee() {
         var formData, csrf, response;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].updateCaptureErrorMessage('');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].updateCapture('isValidating');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCaptureErrorMessage('');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('isValidating');
               formData = {
-                url: userLink,
+                url: userLink.value,
                 human: true
               };
-              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_4__["getCookie"])("csrftoken");
+              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__["getCookie"])("csrftoken");
               _context.prev = 4;
               _context.next = 7;
               return fetch("/archives/", {
@@ -34782,7 +34785,7 @@ __webpack_require__.r(__webpack_exports__);
                 },
                 method: "POST",
                 credentials: "same-origin",
-                body: formData
+                body: _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default()(formData)
               });
             case 7:
               response = _context.sent;
@@ -34797,8 +34800,8 @@ __webpack_require__.r(__webpack_exports__);
             case 12:
               _context.prev = 12;
               _context.t0 = _context["catch"](4);
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].updateCapture('urlError');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].updateCaptureErrorMessage(_context.t0);
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('urlError');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCaptureErrorMessage(_context.t0);
             case 16:
             case "end":
               return _context.stop();
@@ -34812,12 +34815,12 @@ __webpack_require__.r(__webpack_exports__);
     var __returned__ = {
       userLink: userLink,
       handleCreateLink: handleCreateLink,
-      ref: vue__WEBPACK_IMPORTED_MODULE_2__["ref"],
+      ref: vue__WEBPACK_IMPORTED_MODULE_3__["ref"],
       get globalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"];
       },
       get getCookie() {
-        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_4__["getCookie"];
+        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__["getCookie"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
