@@ -1145,10 +1145,10 @@ def get_warcs_for_conversion(source_csv=None, single_warc=None):
             for line in csv_file:
                 save_warc_for_conversion(line[1], warcs_dir, f"{line[2]}/{line[1]}")
     else:
-        # needed to do a bit of reverse engineering here to construct the warc storage file path
-        single_warc_substr = single_warc.replace('-', '')[:6]
-        folder_path_format = '/'.join(single_warc_substr[i:i + 2] for i in range(0, len(single_warc_substr), 2))
-        file_name = f"warcs/{folder_path_format}/{single_warc}/{single_warc}"
+        warc_substr = single_warc.split('.')[0]
+        link_object = Link.objects.get(guid=warc_substr)
+        warc_storage_path = link_object.warc_storage_file()
+        file_name = f"{warc_storage_path}/{single_warc}"
         save_warc_for_conversion(single_warc, warcs_dir, file_name)
 
     return warcs_dir
