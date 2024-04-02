@@ -1260,7 +1260,7 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
         subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
                                       capture_output=True, check=True, text=True)
     except subprocess.CalledProcessError as e:
-        exception_occurred = False
+        exception_occurred = True
         error_output = e.stderr
         logger.error("Subprocess js-wacz command returned: ", e.returncode)
         logger.error("Error output is: ", e.stderr)
