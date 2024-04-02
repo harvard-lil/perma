@@ -34778,7 +34778,7 @@ __webpack_require__.r(__webpack_exports__);
               csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__["getCookie"])("csrftoken");
               _context.prev = 4;
               _context.next = 7;
-              return fetch("/archives/", {
+              return fetch("/api/v1/archives/", {
                 headers: {
                   "X-CSRFToken": csrf,
                   "Content-Type": "application/json"

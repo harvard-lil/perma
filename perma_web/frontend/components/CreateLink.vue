@@ -16,7 +16,7 @@ const handleCreateLink = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
-        const response = await fetch("/archives/",
+        const response = await fetch("/api/v1/archives/",
             {
                 headers: {
                     "X-CSRFToken": csrf,
