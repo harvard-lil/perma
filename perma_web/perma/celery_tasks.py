@@ -23,6 +23,7 @@ from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
 from django.template.defaultfilters import pluralize
+from django.template.defaultfilters import filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
     CaptureJob, InternetArchiveItem, InternetArchiveFile
@@ -1232,21 +1233,6 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
 # WACZ CONVERSION
 
-def format_size(bytes_val):
-    """
-    Converts bytes to KB and MB
-    """
-    kilobytes = bytes_val / 1024
-
-    if kilobytes < 1:
-        return f"{bytes_val} bytes"
-    elif kilobytes < 1024:
-        return f"{math.ceil(kilobytes)} KB"
-    else:
-        megabytes = kilobytes / 1024
-        return f"{megabytes:.2f} MB"
-
-
 def format_time(seconds_val):
     """
     Converts seconds to minutes
@@ -1267,14 +1253,14 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
     start_time = time.time()
     input_file_name = input_path.split('/')[-1]
     output_path = f"{output_folder}/{input_file_name.split('.')[0]}.wacz"
-    exception_occured = False
+    exception_occurred = False
     error_output = ''
 
     try:
         subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
                                       capture_output=True, check=True, text=True)
     except subprocess.CalledProcessError as e:
-        exception_occured = False
+        exception_occurred = False
         error_output = e.stderr
         logger.error("Subprocess js-wacz command returned: ", e.returncode)
         logger.error("Error output is: ", e.stderr)
@@ -1282,8 +1268,8 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = format_time(raw_duration)
-    warc_size = format_size(os.path.getsize(input_path))
-    wacz_size = format_size(os.path.getsize(output_path))
+    warc_size = filesizeformat(os.path.getsize(input_path))
+    wacz_size = filesizeformat(os.path.getsize(output_path))
 
     with open(benchmark_log, 'a') as log_file:
         row = {
@@ -1299,7 +1285,7 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
         }
         writer = csv.DictWriter(log_file, fieldnames=row.keys())
 
-        if exception_occured:
+        if exception_occurred:
             row["conversion_status"] = "Failure"
             row["error"] = error_output
             writer.writerow(row)

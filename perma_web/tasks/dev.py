@@ -1121,7 +1121,7 @@ def email_retained_users(ctx, reports_dir='.'):
 def save_warc_for_conversion(warc, warcs_dir, file_name):
     """
     Gets the file path
-    Get the associates file's contents from storage
+    Get the associated file's contents from storage
     Saves the file
     """
     file_path = os.path.join(f"{warcs_dir}", warc)
