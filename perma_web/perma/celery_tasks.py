@@ -22,8 +22,7 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
-from django.template.defaultfilters import pluralize
-from django.template.defaultfilters import filesizeformat
+from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
     CaptureJob, InternetArchiveItem, InternetArchiveFile
@@ -1233,7 +1232,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
 # WACZ CONVERSION
 
-def format_time(seconds_val):
+def seconds_to_minutes(seconds_val):
     """
     Converts seconds to minutes
     """
@@ -1243,14 +1242,13 @@ def format_time(seconds_val):
         return f"{math.ceil(seconds_val)} seconds"
 
 
-def save_warc_to_temp(input_guid):
+def save_warc_to_temp(input_guid, storage_file):
     """
     Gets the file path
     Get the associated file's contents from storage
     Saves as temp file
     """
-    warc_storage_path = Link.objects.get(guid=input_guid).warc_storage_file()
-    contents = default_storage.open(warc_storage_path).read()
+    contents = default_storage.open(storage_file).read()
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{input_guid}.warc.gz") as temp_warc_file:
         temp_warc_file.write(contents)
@@ -1278,7 +1276,8 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     If successful, saves file in storage
     """
     start_time = time.time()
-    warc_file_path = save_warc_to_temp(input_guid)
+    warc_object = Link.objects.get(guid=input_guid)
+    warc_file_path = save_warc_to_temp(input_guid, warc_object.warc_storage_file())
     output_path = create_wacz_temp_path(input_guid)
     exception_occurred = False
     error_output = ''
@@ -1294,8 +1293,8 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
 
     end_time = time.time()
     raw_duration = end_time - start_time
-    duration = format_time(raw_duration)
-    warc_size = Link.objects.get(guid=input_guid).warc_size
+    duration = seconds_to_minutes(raw_duration)
+    warc_size = warc_object.warc_size
     formatted_warc_size = filesizeformat(warc_size)
     wacz_size = filesizeformat(os.path.getsize(output_path))
 
