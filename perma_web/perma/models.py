@@ -1673,6 +1673,9 @@ class Link(DeletableModel):
     def warc_storage_file(self):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.warc.gz')
 
+    def wacz_storage_file(self):
+        return os.path.join(settings.WACZ_STORAGE_DIR, self.guid_as_path(), f'{self.guid}.wacz')
+
     def warc_presigned_url(self):
         # Specify that warcs should have content-type 'application/gzip' so that archives are fetched correctly by the playback service worker.
         # (All warcs from before summer 2022 were uploaded with content-type 'application/octet-stream' and content-encoding 'gzip')

@@ -1243,22 +1243,49 @@ def format_time(seconds_val):
         return f"{math.ceil(seconds_val)} seconds"
 
 
-@shared_task
-def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
+def save_warc_to_temp(input_guid):
     """
+    Gets the file path
+    Get the associated file's contents from storage
+    Saves as temp file
+    """
+    warc_storage_path = Link.objects.get(guid=input_guid).warc_storage_file()
+    contents = default_storage.open(warc_storage_path).read()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{input_guid}.warc.gz") as temp_warc_file:
+        temp_warc_file.write(contents)
+
+    return temp_warc_file.name
+
+
+def create_wacz_temp_path(input_guid):
+    """
+    Creates temp file for wacz
+    """
+    wacz_suffix = f"_{input_guid}.wacz"
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=wacz_suffix) as temp_wacz_file:
+        pass
+
+    return temp_wacz_file.name
+
+
+@shared_task
+def convert_warc_to_wacz(input_guid, benchmark_log):
+    """
+    Downloads WARC file to temp dir
     Converts WARC file to WACZ
-    Saves file in a temp folder
+    Logs conversion metrics
     If successful, saves file in storage
     """
     start_time = time.time()
-    input_file_name = input_path.split('/')[-1]
-    output_path = f"{output_folder}/{input_file_name.split('.')[0]}.wacz"
+    warc_file_path = save_warc_to_temp(input_guid)
+    output_path = create_wacz_temp_path(input_guid)
     exception_occurred = False
     error_output = ''
 
     try:
-        subprocess.run(["npx", "js-wacz", "create", "-f", input_path, "-o", output_path],
-                                      capture_output=True, check=True, text=True)
+        subprocess.run(["npx", "js-wacz", "create", "-f", warc_file_path, "-o", output_path], capture_output=True,
+                       check=True, text=True)
     except subprocess.CalledProcessError as e:
         exception_occurred = True
         error_output = e.stderr
@@ -1268,15 +1295,15 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = format_time(raw_duration)
-    warc_size = filesizeformat(os.path.getsize(input_path))
+    warc_size = filesizeformat(os.path.getsize(warc_file_path))
     wacz_size = filesizeformat(os.path.getsize(output_path))
 
     with open(benchmark_log, 'a') as log_file:
         row = {
-            "file_name": input_file_name,
+            "file_name": input_guid,
             "conversion_status": '',
             "warc_size": warc_size,
-            "raw_warc_size": os.path.getsize(input_path),  # bytes
+            "raw_warc_size": os.path.getsize(warc_file_path),  # bytes
             "wacz_size": wacz_size,
             "raw_wacz_size": os.path.getsize(output_path),  # bytes
             "duration": duration,
@@ -1294,8 +1321,11 @@ def convert_warc_to_wacz(input_path, output_folder, benchmark_log):
             row["conversion_status"] = "Success"
             writer.writerow(row)
 
-    file_name = f"waczs/{output_path.split('/')[-1]}"
+    wacz_storage_path = Link.objects.get(guid=input_guid).wacz_storage_file()
 
     with open(output_path, 'rb') as wacz_file:
         content = wacz_file.read()
-        default_storage.save(file_name, io.BytesIO(content))
+        default_storage.save(wacz_storage_path, io.BytesIO(content))
+
+    os.remove(warc_file_path)
+    os.remove(output_path)
