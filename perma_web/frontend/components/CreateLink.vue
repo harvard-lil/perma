@@ -7,9 +7,17 @@ import { getCookie } from '../../static/js/helpers/general.helpers'
 const userLink = ref('')
 const userLinkGUID = ref('')
 const userLinkProgressBar = ref(0)
+
+const readyStates = ["ready", "urlError", "validationError"]
+const isReady = readyStates.includes(globalStore.captureStatus)
+
 let progressInterval;
 
 const handleArchiveRequest = async () => {
+    if (!isReady) {
+        return
+    }
+
     globalStore.updateCaptureErrorMessage('')
     globalStore.updateCapture('isValidating')
 
@@ -83,7 +91,7 @@ const handleProgressUpdate = async () => {
     }
 }
 
-watch(userLinkGUID, async () => {
+watch(userLinkGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })

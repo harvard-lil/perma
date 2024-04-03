@@ -34897,15 +34897,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(598);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(282);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(510);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(496);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(523);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(656);
-/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(261);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(658);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(282);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(510);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(496);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(523);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(656);
+/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(261);
+
 
 
 
@@ -34921,9 +34924,11 @@ __webpack_require__.r(__webpack_exports__);
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
-    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])('');
-    var userLinkGUID = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])('');
-    var userLinkProgressBar = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])(0);
+    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_6__["ref"])('');
+    var userLinkGUID = Object(vue__WEBPACK_IMPORTED_MODULE_6__["ref"])('');
+    var userLinkProgressBar = Object(vue__WEBPACK_IMPORTED_MODULE_6__["ref"])(0);
+    var readyStates = ["ready", "urlError", "validationError"];
+    var isReady = _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default()(readyStates).call(readyStates, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureStatus);
     var progressInterval;
     var handleArchiveRequest = /*#__PURE__*/function () {
       var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee() {
@@ -34931,15 +34936,21 @@ __webpack_require__.r(__webpack_exports__);
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage('');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isValidating');
+              if (isReady) {
+                _context.next = 2;
+                break;
+              }
+              return _context.abrupt("return");
+            case 2:
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCaptureErrorMessage('');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('isValidating');
               formData = {
                 url: userLink.value,
                 human: true
               };
-              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__["getCookie"])("csrftoken");
-              _context.prev = 4;
-              _context.next = 7;
+              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_8__["getCookie"])("csrftoken");
+              _context.prev = 6;
+              _context.next = 9;
               return fetch("/api/v1/archives/", {
                 headers: {
                   "X-CSRFToken": csrf,
@@ -34947,36 +34958,36 @@ __webpack_require__.r(__webpack_exports__);
                 },
                 method: "POST",
                 credentials: "same-origin",
-                body: _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default()(formData)
+                body: _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_3___default()(formData)
               });
-            case 7:
+            case 9:
               response = _context.sent;
               if (response !== null && response !== void 0 && response.ok) {
-                _context.next = 10;
+                _context.next = 12;
                 break;
               }
               throw new Error(response.statusText);
-            case 10:
-              _context.next = 12;
-              return response.json();
             case 12:
+              _context.next = 14;
+              return response.json();
+            case 14:
               _yield$response$json = _context.sent;
               guid = _yield$response$json.guid;
               // Needed to poll Perma about the capture status of a link
               userLinkGUID.value = guid;
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isQueuing');
-              _context.next = 22;
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('isQueuing');
+              _context.next = 24;
               break;
-            case 18:
-              _context.prev = 18;
-              _context.t0 = _context["catch"](4);
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('urlError');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage(_context.t0);
-            case 22:
+            case 20:
+              _context.prev = 20;
+              _context.t0 = _context["catch"](6);
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('urlError');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCaptureErrorMessage(_context.t0);
+            case 24:
             case "end":
               return _context.stop();
           }
-        }, _callee, null, [[4, 18]]);
+        }, _callee, null, [[6, 20]]);
       }));
       return function handleArchiveRequest() {
         return _ref2.apply(this, arguments);
@@ -35011,8 +35022,8 @@ __webpack_require__.r(__webpack_exports__);
               _context2.prev = 12;
               _context2.t0 = _context2["catch"](0);
               clearInterval(progressInterval);
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('captureError');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage(_context2.t0);
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('captureError');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCaptureErrorMessage(_context2.t0);
             case 17:
             case "end":
               return _context2.stop();
@@ -35036,13 +35047,13 @@ __webpack_require__.r(__webpack_exports__);
               step_count = _yield$handleCaptureS.step_count;
               status = _yield$handleCaptureS.status;
               if (status === 'in_progress') {
-                _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isUploading');
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('isUploading');
                 userLinkProgressBar.value = step_count / 5 * 100;
               }
               if (status === 'completed') {
                 clearInterval(progressInterval);
-                _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('success');
-                window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default()(_context3 = "".concat(window.location.origin, "/")).call(_context3, userLinkGUID.value);
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('success');
+                window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4___default()(_context3 = "".concat(window.location.origin, "/")).call(_context3, userLinkGUID.value);
               }
             case 7:
             case "end":
@@ -35054,25 +35065,19 @@ __webpack_require__.r(__webpack_exports__);
         return _ref4.apply(this, arguments);
       };
     }();
-    Object(vue__WEBPACK_IMPORTED_MODULE_5__["watch"])(userLinkGUID, /*#__PURE__*/_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee4() {
-      return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee4$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            handleProgressUpdate();
-            progressInterval = _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4___default()(handleProgressUpdate, 2000);
-          case 2:
-          case "end":
-            return _context5.stop();
-        }
-      }, _callee4);
-    })));
-    Object(vue__WEBPACK_IMPORTED_MODULE_5__["onBeforeUnmount"])(function () {
+    Object(vue__WEBPACK_IMPORTED_MODULE_6__["watch"])(userLinkGUID, function () {
+      handleProgressUpdate();
+      progressInterval = _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_5___default()(handleProgressUpdate, 2000);
+    });
+    Object(vue__WEBPACK_IMPORTED_MODULE_6__["onBeforeUnmount"])(function () {
       clearInterval(progressInterval);
     });
     var __returned__ = {
       userLink: userLink,
       userLinkGUID: userLinkGUID,
       userLinkProgressBar: userLinkProgressBar,
+      readyStates: readyStates,
+      isReady: isReady,
       get progressInterval() {
         return progressInterval;
       },
@@ -35082,14 +35087,14 @@ __webpack_require__.r(__webpack_exports__);
       handleArchiveRequest: handleArchiveRequest,
       handleCaptureStatus: handleCaptureStatus,
       handleProgressUpdate: handleProgressUpdate,
-      ref: vue__WEBPACK_IMPORTED_MODULE_5__["ref"],
-      watch: vue__WEBPACK_IMPORTED_MODULE_5__["watch"],
-      onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_5__["onBeforeUnmount"],
+      ref: vue__WEBPACK_IMPORTED_MODULE_6__["ref"],
+      watch: vue__WEBPACK_IMPORTED_MODULE_6__["watch"],
+      onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_6__["onBeforeUnmount"],
       get globalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"];
       },
       get getCookie() {
-        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__["getCookie"];
+        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_8__["getCookie"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
@@ -38111,6 +38116,186 @@ exports.default = (sfc, props) => {
         target[key] = val;
     }
     return target;
+};
+
+
+/***/ }),
+/* 658 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(659);
+
+/***/ }),
+/* 659 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var parent = __webpack_require__(660);
+
+module.exports = parent;
+
+
+/***/ }),
+/* 660 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var isPrototypeOf = __webpack_require__(31);
+var arrayMethod = __webpack_require__(661);
+var stringMethod = __webpack_require__(663);
+
+var ArrayPrototype = Array.prototype;
+var StringPrototype = String.prototype;
+
+module.exports = function (it) {
+  var own = it.includes;
+  if (it === ArrayPrototype || (isPrototypeOf(ArrayPrototype, it) && own === ArrayPrototype.includes)) return arrayMethod;
+  if (typeof it == 'string' || it === StringPrototype || (isPrototypeOf(StringPrototype, it) && own === StringPrototype.includes)) {
+    return stringMethod;
+  } return own;
+};
+
+
+/***/ }),
+/* 661 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+__webpack_require__(662);
+var getBuiltInPrototypeMethod = __webpack_require__(83);
+
+module.exports = getBuiltInPrototypeMethod('Array', 'includes');
+
+
+/***/ }),
+/* 662 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(6);
+var $includes = __webpack_require__(268).includes;
+var fails = __webpack_require__(11);
+var addToUnscopables = __webpack_require__(82);
+
+// FF99+ bug
+var BROKEN_ON_SPARSE = fails(function () {
+  // eslint-disable-next-line es/no-array-prototype-includes -- detection
+  return !Array(1).includes();
+});
+
+// `Array.prototype.includes` method
+// https://tc39.es/ecma262/#sec-array.prototype.includes
+$({ target: 'Array', proto: true, forced: BROKEN_ON_SPARSE }, {
+  includes: function includes(el /* , fromIndex = 0 */) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
+addToUnscopables('includes');
+
+
+/***/ }),
+/* 663 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+__webpack_require__(664);
+var getBuiltInPrototypeMethod = __webpack_require__(83);
+
+module.exports = getBuiltInPrototypeMethod('String', 'includes');
+
+
+/***/ }),
+/* 664 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(6);
+var uncurryThis = __webpack_require__(14);
+var notARegExp = __webpack_require__(665);
+var requireObjectCoercible = __webpack_require__(23);
+var toString = __webpack_require__(278);
+var correctIsRegExpLogic = __webpack_require__(667);
+
+var stringIndexOf = uncurryThis(''.indexOf);
+
+// `String.prototype.includes` method
+// https://tc39.es/ecma262/#sec-string.prototype.includes
+$({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }, {
+  includes: function includes(searchString /* , position = 0 */) {
+    return !!~stringIndexOf(
+      toString(requireObjectCoercible(this)),
+      toString(notARegExp(searchString)),
+      arguments.length > 1 ? arguments[1] : undefined
+    );
+  }
+});
+
+
+/***/ }),
+/* 665 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var isRegExp = __webpack_require__(666);
+
+var $TypeError = TypeError;
+
+module.exports = function (it) {
+  if (isRegExp(it)) {
+    throw new $TypeError("The method doesn't accept regular expressions");
+  } return it;
+};
+
+
+/***/ }),
+/* 666 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var isObject = __webpack_require__(27);
+var classof = __webpack_require__(13);
+var wellKnownSymbol = __webpack_require__(40);
+
+var MATCH = wellKnownSymbol('match');
+
+// `IsRegExp` abstract operation
+// https://tc39.es/ecma262/#sec-isregexp
+module.exports = function (it) {
+  var isRegExp;
+  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : classof(it) === 'RegExp');
+};
+
+
+/***/ }),
+/* 667 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var wellKnownSymbol = __webpack_require__(40);
+
+var MATCH = wellKnownSymbol('match');
+
+module.exports = function (METHOD_NAME) {
+  var regexp = /./;
+  try {
+    '/./'[METHOD_NAME](regexp);
+  } catch (error1) {
+    try {
+      regexp[MATCH] = false;
+      return '/./'[METHOD_NAME](regexp);
+    } catch (error2) { /* empty */ }
+  } return false;
 };
 
 
