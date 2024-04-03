@@ -89,8 +89,36 @@
 /* 1 */,
 /* 2 */,
 /* 3 */,
-/* 4 */,
-/* 5 */,
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// TODO: Remove this module from `core-js@4` since it's split to modules listed below
+__webpack_require__(5);
+__webpack_require__(60);
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(6);
+var global = __webpack_require__(7);
+var schedulersFix = __webpack_require__(56);
+
+var setInterval = schedulersFix(global.setInterval, true);
+
+// Bun / IE9- setInterval additional parameters fix
+// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
+$({ global: true, bind: true, forced: global.setInterval !== setInterval }, {
+  setInterval: setInterval
+});
+
+
+/***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1159,8 +1187,54 @@ module.exports = function (argument) {
 
 
 /***/ }),
-/* 56 */,
-/* 57 */,
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var global = __webpack_require__(7);
+var apply = __webpack_require__(9);
+var isCallable = __webpack_require__(15);
+var ENGINE_IS_BUN = __webpack_require__(57);
+var USER_AGENT = __webpack_require__(35);
+var arraySlice = __webpack_require__(58);
+var validateArgumentsLength = __webpack_require__(59);
+
+var Function = global.Function;
+// dirty IE9- and Bun 0.3.0- checks
+var WRAP = /MSIE .\./.test(USER_AGENT) || ENGINE_IS_BUN && (function () {
+  var version = global.Bun.version.split('.');
+  return version.length < 3 || version[0] === '0' && (version[1] < 3 || version[1] === '3' && version[2] === '0');
+})();
+
+// IE9- / Bun 0.3.0- setTimeout / setInterval / setImmediate additional parameters fix
+// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
+// https://github.com/oven-sh/bun/issues/1633
+module.exports = function (scheduler, hasTimeArg) {
+  var firstParamIndex = hasTimeArg ? 2 : 1;
+  return WRAP ? function (handler, timeout /* , ...arguments */) {
+    var boundArgs = validateArgumentsLength(arguments.length, 1) > firstParamIndex;
+    var fn = isCallable(handler) ? handler : Function(handler);
+    var params = boundArgs ? arraySlice(arguments, firstParamIndex) : [];
+    var callback = boundArgs ? function () {
+      apply(fn, this, params);
+    } : fn;
+    return hasTimeArg ? scheduler(callback, timeout) : scheduler(callback);
+  } : scheduler;
+};
+
+
+/***/ }),
+/* 57 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/* global Bun -- Bun case */
+module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'string';
+
+
+/***/ }),
 /* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1186,7 +1260,25 @@ module.exports = function (passed, required) {
 
 
 /***/ }),
-/* 60 */,
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(6);
+var global = __webpack_require__(7);
+var schedulersFix = __webpack_require__(56);
+
+var setTimeout = schedulersFix(global.setTimeout, true);
+
+// Bun / IE9- setTimeout additional parameters fix
+// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
+$({ global: true, bind: true, forced: global.setTimeout !== setTimeout }, {
+  setTimeout: setTimeout
+});
+
+
+/***/ }),
 /* 61 */,
 /* 62 */,
 /* 63 */,
@@ -15350,8 +15442,24 @@ module.exports = {
 /* 493 */,
 /* 494 */,
 /* 495 */,
-/* 496 */,
-/* 497 */,
+/* 496 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(497);
+
+/***/ }),
+/* 497 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+__webpack_require__(4);
+var path = __webpack_require__(30);
+
+module.exports = path.setInterval;
+
+
+/***/ }),
 /* 498 */,
 /* 499 */,
 /* 500 */,
@@ -15364,10 +15472,52 @@ module.exports = {
 /* 507 */,
 /* 508 */,
 /* 509 */,
-/* 510 */,
-/* 511 */,
-/* 512 */,
-/* 513 */,
+/* 510 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(511);
+
+/***/ }),
+/* 511 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var parent = __webpack_require__(512);
+
+module.exports = parent;
+
+
+/***/ }),
+/* 512 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var isPrototypeOf = __webpack_require__(31);
+var method = __webpack_require__(513);
+
+var ArrayPrototype = Array.prototype;
+
+module.exports = function (it) {
+  var own = it.concat;
+  return it === ArrayPrototype || (isPrototypeOf(ArrayPrototype, it) && own === ArrayPrototype.concat) ? method : own;
+};
+
+
+/***/ }),
+/* 513 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+__webpack_require__(306);
+var getBuiltInPrototypeMethod = __webpack_require__(83);
+
+module.exports = getBuiltInPrototypeMethod('Array', 'concat');
+
+
+/***/ }),
 /* 514 */,
 /* 515 */,
 /* 516 */,
@@ -34670,38 +34820,41 @@ var _hoisted_2 = {
   class: "container cont-fixed"
 };
 var _hoisted_3 = {
-  class: "container cont-full-bleed cont-sm-fixed"
+  key: 0
 };
 var _hoisted_4 = {
+  class: "container cont-full-bleed cont-sm-fixed"
+};
+var _hoisted_5 = {
   class: "form-priority",
   id: "linker"
 };
-var _hoisted_5 = {
+var _hoisted_6 = {
   class: "form-priority-fieldset"
 };
-var _hoisted_6 = {
+var _hoisted_7 = {
   class: "wrapper"
 };
-var _hoisted_7 = {
+var _hoisted_8 = {
   class: "create-errors container cont-fixed"
 };
-var _hoisted_8 = {
+var _hoisted_9 = {
   key: 0,
   id: "error-container"
 };
-var _hoisted_9 = {
+var _hoisted_10 = {
   class: "message-large"
 };
-var _hoisted_10 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", {
+var _hoisted_11 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", {
   class: "message"
 }, "We’re unable to create your Perma Link.", -1 /* HOISTED */);
-var _hoisted_11 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", null, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("You can "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
+var _hoisted_12 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", null, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("You can "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
   id: "upload-form-button"
 }, "upload your own archive"), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
   href: "/contact"
 }, "contact us about this error.")], -1 /* HOISTED */);
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("h2", null, "Capture status: " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.globalStore.captureStatus), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" debug only ")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_3, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("form", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("fieldset", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("input", {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("h2", null, "Capture status: " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.globalStore.captureStatus), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" debug only "), $setup.globalStore.captureStatus === 'isUploading' ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("h2", _hoisted_3, "Capture progress: " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.userLinkProgressBar), 1 /* TEXT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" debug only ")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("form", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("fieldset", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
       return $setup.userLink = $event;
     }),
@@ -34715,12 +34868,12 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     "data-original-title": "Start building your library",
     "data-html": "true",
     "data-trigger": "manual"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_7, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_0__["withModifiers"])($setup.handleArchiveRequest, ["prevent"]),
     class: "btn btn-large btn-info _active-when-valid",
     id: "addlink",
     type: "submit"
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" Create Perma Link "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" <div v-if=\"globalStore.captureStatus === 'isQueuing'\" id=\"capture-status\">Creating your\n                                Perma Link</div> ")])])])]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_7, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", _hoisted_8, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", _hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_10, _hoisted_11])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" Create Perma Link "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" <div v-if=\"globalStore.captureStatus === 'isQueuing'\" id=\"capture-status\">Creating your\n                                Perma Link</div> ")])])])]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_8, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", _hoisted_9, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", _hoisted_10, Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_11, _hoisted_12])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -34746,41 +34899,45 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(282);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(523);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(656);
-/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(261);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(510);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(496);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(523);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(656);
+/* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(261);
 
 
 
 
 
 
-// import { Spinner } from 'spin.js'
-// Cannot import spinner like this just yet
+
+
+// import * as spinner from 'spin.js'
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   __name: 'CreateLink',
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
-    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])('');
-    var userLinkGUID = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])('');
-    var userLinkStepCount = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(0);
-    // const spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
-
+    var userLink = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])('');
+    var userLinkGUID = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])('');
+    var userLinkProgressBar = Object(vue__WEBPACK_IMPORTED_MODULE_5__["ref"])(0);
+    var progressInterval;
     var handleArchiveRequest = /*#__PURE__*/function () {
       var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee() {
         var formData, csrf, response, _yield$response$json, guid;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCaptureErrorMessage('');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('isValidating');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage('');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isValidating');
               formData = {
                 url: userLink.value,
                 human: true
               };
-              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__["getCookie"])("csrftoken");
+              csrf = Object(_static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__["getCookie"])("csrftoken");
               _context.prev = 4;
               _context.next = 7;
               return fetch("/api/v1/archives/", {
@@ -34807,14 +34964,14 @@ __webpack_require__.r(__webpack_exports__);
               guid = _yield$response$json.guid;
               // Needed to poll Perma about the capture status of a link
               userLinkGUID.value = guid;
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('isQueuing');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isQueuing');
               _context.next = 22;
               break;
             case 18:
               _context.prev = 18;
               _context.t0 = _context["catch"](4);
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('urlError');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCaptureErrorMessage(_context.t0);
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('urlError');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage(_context.t0);
             case 22:
             case "end":
               return _context.stop();
@@ -34825,17 +34982,9 @@ __webpack_require__.r(__webpack_exports__);
         return _ref2.apply(this, arguments);
       };
     }();
-
-    // Example test watch function
-    // Not in use just yet
-    Object(vue__WEBPACK_IMPORTED_MODULE_3__["watch"])(userLinkStepCount, function (count, prevCount) {
-      console.log(count, prevCount);
-    });
-
-    // We'll make use of this in a watch function
     var handleCaptureStatus = /*#__PURE__*/function () {
       var _ref3 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee2(guid) {
-        var response, status;
+        var response, jobStatus;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -34853,16 +35002,18 @@ __webpack_require__.r(__webpack_exports__);
               _context2.next = 8;
               return response.json();
             case 8:
-              status = _context2.sent;
+              jobStatus = _context2.sent;
               return _context2.abrupt("return", {
-                step_count: status.step_count
+                step_count: jobStatus.step_count,
+                status: jobStatus.status
               });
             case 12:
               _context2.prev = 12;
               _context2.t0 = _context2["catch"](0);
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCapture('captureError');
-              _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"].updateCaptureErrorMessage(_context2.t0);
-            case 16:
+              clearInterval(progressInterval);
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('captureError');
+              _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCaptureErrorMessage(_context2.t0);
+            case 17:
             case "end":
               return _context2.stop();
           }
@@ -34872,19 +35023,73 @@ __webpack_require__.r(__webpack_exports__);
         return _ref3.apply(this, arguments);
       };
     }();
+    var handleProgressUpdate = /*#__PURE__*/function () {
+      var _ref4 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee3() {
+        var _yield$handleCaptureS, step_count, status, _context3;
+        return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee3$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return handleCaptureStatus(userLinkGUID.value);
+            case 2:
+              _yield$handleCaptureS = _context4.sent;
+              step_count = _yield$handleCaptureS.step_count;
+              status = _yield$handleCaptureS.status;
+              if (status === 'in_progress') {
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('isUploading');
+                userLinkProgressBar.value = step_count / 5 * 100;
+              }
+              if (status === 'completed') {
+                clearInterval(progressInterval);
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"].updateCapture('success');
+                window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default()(_context3 = "".concat(window.location.origin, "/")).call(_context3, userLinkGUID.value);
+              }
+            case 7:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee3);
+      }));
+      return function handleProgressUpdate() {
+        return _ref4.apply(this, arguments);
+      };
+    }();
+    Object(vue__WEBPACK_IMPORTED_MODULE_5__["watch"])(userLinkGUID, /*#__PURE__*/_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee4() {
+      return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee4$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            handleProgressUpdate();
+            progressInterval = _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_4___default()(handleProgressUpdate, 2000);
+          case 2:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee4);
+    })));
+    Object(vue__WEBPACK_IMPORTED_MODULE_5__["onBeforeUnmount"])(function () {
+      clearInterval(progressInterval);
+    });
     var __returned__ = {
       userLink: userLink,
       userLinkGUID: userLinkGUID,
-      userLinkStepCount: userLinkStepCount,
+      userLinkProgressBar: userLinkProgressBar,
+      get progressInterval() {
+        return progressInterval;
+      },
+      set progressInterval(v) {
+        progressInterval = v;
+      },
       handleArchiveRequest: handleArchiveRequest,
       handleCaptureStatus: handleCaptureStatus,
-      ref: vue__WEBPACK_IMPORTED_MODULE_3__["ref"],
-      watch: vue__WEBPACK_IMPORTED_MODULE_3__["watch"],
+      handleProgressUpdate: handleProgressUpdate,
+      ref: vue__WEBPACK_IMPORTED_MODULE_5__["ref"],
+      watch: vue__WEBPACK_IMPORTED_MODULE_5__["watch"],
+      onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_5__["onBeforeUnmount"],
       get globalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["globalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_6__["globalStore"];
       },
       get getCookie() {
-        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_5__["getCookie"];
+        return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_7__["getCookie"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {

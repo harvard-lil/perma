@@ -1,14 +1,13 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
-// import { Spinner } from 'spin.js'
-// Cannot import spinner like this just yet
+// import * as spinner from 'spin.js'
 
 const userLink = ref('')
 const userLinkGUID = ref('')
-const userLinkStepCount = ref(0)
-// const spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px' });
+const userLinkProgressBar = ref(0)
+let progressInterval;
 
 const handleArchiveRequest = async () => {
     globalStore.updateCaptureErrorMessage('')
@@ -39,7 +38,6 @@ const handleArchiveRequest = async () => {
 
         const { guid } = await response.json() // Needed to poll Perma about the capture status of a link
         userLinkGUID.value = guid
-
         globalStore.updateCapture('isQueuing')
 
     } catch (error) {
@@ -48,13 +46,6 @@ const handleArchiveRequest = async () => {
     }
 };
 
-// Example test watch function
-// Not in use just yet
-watch(userLinkStepCount, (count, prevCount) => {
-    console.log(count, prevCount)
-})
-
-// We'll make use of this in a watch function
 const handleCaptureStatus = async (guid) => {
     try {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
@@ -63,16 +54,43 @@ const handleCaptureStatus = async (guid) => {
             throw new Error(response.statusText) // We will handle this more in-depth later
         }
 
-        const status = await response.json()
+        const jobStatus = await response.json()
+
         return {
-            step_count: status.step_count
+            step_count: jobStatus.step_count,
+            status: jobStatus.status
         }
 
     } catch (error) {
+        clearInterval(progressInterval);
         globalStore.updateCapture('captureError')
         globalStore.updateCaptureErrorMessage(error)
     }
 }
+
+const handleProgressUpdate = async () => {
+    const { step_count, status } = await handleCaptureStatus(userLinkGUID.value);
+
+    if (status === 'in_progress') {
+        globalStore.updateCapture('isUploading')
+        userLinkProgressBar.value = step_count / 5 * 100
+    }
+
+    if (status === 'completed') {
+        clearInterval(progressInterval)
+        globalStore.updateCapture('success')
+        window.location.href = `${window.location.origin}/${userLinkGUID.value}`
+    }
+}
+
+watch(userLinkGUID, async () => {
+    handleProgressUpdate()
+    progressInterval = setInterval(handleProgressUpdate, 2000);
+})
+
+onBeforeUnmount(() => {
+    clearInterval(progressInterval)
+});
 
 </script>
 
@@ -81,6 +99,8 @@ const handleCaptureStatus = async (guid) => {
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
             <h2>Capture status: {{ globalStore.captureStatus }}</h2> <!-- debug only -->
+            <h2 v-if="globalStore.captureStatus === 'isUploading'">Capture progress: {{ userLinkProgressBar }}</h2>
+            <!-- debug only -->
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" id="linker">
