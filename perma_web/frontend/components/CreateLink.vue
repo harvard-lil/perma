@@ -66,7 +66,8 @@ const handleCaptureStatus = async (guid) => {
 
         return {
             step_count: jobStatus.step_count,
-            status: jobStatus.status
+            status: jobStatus.status,
+            error: jobStatus.status === 'failed' ? JSON.parse(jobStatus.message).error[0] : '' // We will handle this more in-depth later, too
         }
 
     } catch (error) {
@@ -77,7 +78,7 @@ const handleCaptureStatus = async (guid) => {
 }
 
 const handleProgressUpdate = async () => {
-    const { step_count, status } = await handleCaptureStatus(userLinkGUID.value);
+    const { step_count, status, error } = await handleCaptureStatus(userLinkGUID.value);
 
     if (status === 'in_progress') {
         globalStore.updateCapture('isUploading')
@@ -88,6 +89,12 @@ const handleProgressUpdate = async () => {
         clearInterval(progressInterval)
         globalStore.updateCapture('success')
         window.location.href = `${window.location.origin}/${userLinkGUID.value}`
+    }
+
+    if (status === 'failed') {
+        clearInterval(progressInterval)
+        globalStore.updateCapture('captureError')
+        globalStore.updateCaptureErrorMessage(error)
     }
 }
 

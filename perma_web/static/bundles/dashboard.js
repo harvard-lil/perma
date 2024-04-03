@@ -35016,7 +35016,8 @@ __webpack_require__.r(__webpack_exports__);
               jobStatus = _context2.sent;
               return _context2.abrupt("return", {
                 step_count: jobStatus.step_count,
-                status: jobStatus.status
+                status: jobStatus.status,
+                error: jobStatus.status === 'failed' ? JSON.parse(jobStatus.message).error[0] : '' // We will handle this more in-depth later, too
               });
             case 12:
               _context2.prev = 12;
@@ -35036,7 +35037,7 @@ __webpack_require__.r(__webpack_exports__);
     }();
     var handleProgressUpdate = /*#__PURE__*/function () {
       var _ref4 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee3() {
-        var _yield$handleCaptureS, step_count, status, _context3;
+        var _yield$handleCaptureS, step_count, status, error, _context3;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee3$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
@@ -35046,6 +35047,7 @@ __webpack_require__.r(__webpack_exports__);
               _yield$handleCaptureS = _context4.sent;
               step_count = _yield$handleCaptureS.step_count;
               status = _yield$handleCaptureS.status;
+              error = _yield$handleCaptureS.error;
               if (status === 'in_progress') {
                 _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('isUploading');
                 userLinkProgressBar.value = step_count / 5 * 100;
@@ -35055,7 +35057,12 @@ __webpack_require__.r(__webpack_exports__);
                 _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('success');
                 window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4___default()(_context3 = "".concat(window.location.origin, "/")).call(_context3, userLinkGUID.value);
               }
-            case 7:
+              if (status === 'failed') {
+                clearInterval(progressInterval);
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('captureError');
+                _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCaptureErrorMessage(error);
+              }
+            case 9:
             case "end":
               return _context4.stop();
           }
