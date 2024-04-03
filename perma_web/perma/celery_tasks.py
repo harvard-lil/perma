@@ -1295,15 +1295,16 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = format_time(raw_duration)
-    warc_size = filesizeformat(os.path.getsize(warc_file_path))
+    warc_size = Link.objects.get(guid=input_guid).warc_size
+    formatted_warc_size = filesizeformat(warc_size)
     wacz_size = filesizeformat(os.path.getsize(output_path))
 
     with open(benchmark_log, 'a') as log_file:
         row = {
             "file_name": input_guid,
             "conversion_status": '',
-            "warc_size": warc_size,
-            "raw_warc_size": os.path.getsize(warc_file_path),  # bytes
+            "warc_size": formatted_warc_size,
+            "raw_warc_size": warc_size,  # bytes
             "wacz_size": wacz_size,
             "raw_wacz_size": os.path.getsize(output_path),  # bytes
             "duration": duration,
