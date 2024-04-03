@@ -6,9 +6,9 @@ import { getCookie } from '../../static/js/helpers/general.helpers'
 
 const userLink = ref('')
 const userLinkGUID = ref('')
-const userLinkProgressBar = ref(0)
+const userLinkProgress = ref(0)
 
-const readyStates = ["ready", "urlError", "validationError"]
+const readyStates = ["ready", "urlError", "captureError"]
 const isReady = readyStates.includes(globalStore.captureStatus)
 
 let progressInterval;
