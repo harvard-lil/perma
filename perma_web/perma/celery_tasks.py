@@ -22,7 +22,7 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
-from django.template.defaultfilters import pluralize
+from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
     CaptureJob, InternetArchiveItem, InternetArchiveFile
@@ -36,6 +36,10 @@ from perma.utils import (
 import logging
 logger = logging.getLogger('celery.django')
 
+import csv
+import subprocess
+import io
+import math
 
 ### ERROR REPORTING ###
 
@@ -1224,3 +1228,104 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
     else:
         logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
+
+
+# WACZ CONVERSION
+
+def seconds_to_minutes(seconds_val):
+    """
+    Converts seconds to minutes
+    """
+    if seconds_val >= 60:
+        return f"{round(seconds_val / 60, 1)} minutes"
+    else:
+        return f"{math.ceil(seconds_val)} seconds"
+
+
+def save_warc_to_temp(input_guid, storage_file):
+    """
+    Gets the file path
+    Get the associated file's contents from storage
+    Saves as temp file
+    """
+    contents = default_storage.open(storage_file).read()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{input_guid}.warc.gz") as temp_warc_file:
+        temp_warc_file.write(contents)
+
+    return temp_warc_file.name
+
+
+def create_wacz_temp_path(input_guid):
+    """
+    Creates temp file for wacz
+    """
+    wacz_suffix = f"_{input_guid}.wacz"
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=wacz_suffix) as temp_wacz_file:
+        pass
+
+    return temp_wacz_file.name
+
+
+@shared_task
+def convert_warc_to_wacz(input_guid, benchmark_log):
+    """
+    Downloads WARC file to temp dir
+    Converts WARC file to WACZ
+    Logs conversion metrics
+    If successful, saves file in storage
+    """
+    start_time = time.time()
+    warc_object = Link.objects.get(guid=input_guid)
+    warc_file_path = save_warc_to_temp(input_guid, warc_object.warc_storage_file())
+    output_path = create_wacz_temp_path(input_guid)
+    exception_occurred = False
+    error_output = ''
+
+    try:
+        subprocess.run(["npx", "js-wacz", "create", "-f", warc_file_path, "-o", output_path], capture_output=True,
+                       check=True, text=True)
+    except subprocess.CalledProcessError as e:
+        exception_occurred = True
+        error_output = e.stderr
+        logger.error("Subprocess js-wacz command returned: ", e.returncode)
+        logger.error("Error output is: ", e.stderr)
+
+    end_time = time.time()
+    raw_duration = end_time - start_time
+    duration = seconds_to_minutes(raw_duration)
+    warc_size = warc_object.warc_size
+    formatted_warc_size = filesizeformat(warc_size)
+    wacz_size = filesizeformat(os.path.getsize(output_path))
+
+    with open(benchmark_log, 'a') as log_file:
+        row = {
+            "file_name": input_guid,
+            "conversion_status": '',
+            "warc_size": formatted_warc_size,
+            "raw_warc_size": warc_size,  # bytes
+            "wacz_size": wacz_size,
+            "raw_wacz_size": os.path.getsize(output_path),  # bytes
+            "duration": duration,
+            "raw_duration": raw_duration,  # seconds
+            "error": ''
+        }
+        writer = csv.DictWriter(log_file, fieldnames=row.keys())
+
+        if exception_occurred:
+            row["conversion_status"] = "Failure"
+            row["error"] = error_output
+            writer.writerow(row)
+            raise Exception("Error converting file to WACZ")
+        else:
+            row["conversion_status"] = "Success"
+            writer.writerow(row)
+
+    wacz_storage_path = Link.objects.get(guid=input_guid).wacz_storage_file()
+
+    with open(output_path, 'rb') as wacz_file:
+        content = wacz_file.read()
+        default_storage.save(wacz_storage_path, io.BytesIO(content))
+
+    os.remove(warc_file_path)
+    os.remove(output_path)

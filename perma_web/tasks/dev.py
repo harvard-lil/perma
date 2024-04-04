@@ -33,6 +33,8 @@ from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organi
 import logging
 logger = logging.getLogger(__name__)
 
+from perma.celery_tasks import convert_warc_to_wacz
+
 @task
 def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
     """
@@ -1110,3 +1112,51 @@ def email_retained_users(ctx, reports_dir='.'):
     logger.info(f"Emailed {sent_count} users")
     if failed_list:
         logger.warning(f"Some users were not emailed: {str(failed_list)}. Check log for fatal SMTP errors.")
+
+
+# WACZ CONVERSION
+
+def save_warc_for_conversion(warc, warcs_dir, file_name):
+    """
+    Gets the file path
+    Get the associated file's contents from storage
+    Saves the file
+    """
+    file_path = os.path.join(f"{warcs_dir}", warc)
+    contents = default_storage.open(file_name).read()
+    with open(file_path, 'wb') as new_f:
+        new_f.write(contents)
+
+
+@task
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None):
+    """
+    Creates log file
+    Invokes convert_warc_to_wacz() with WARC guid
+    source_csv or single_warc argument is required
+    """
+    if source_csv and single_warc:
+        raise ValueError("Cannot pass source file and WARC path at the same time.")
+    elif not source_csv and not single_warc:
+        raise ValueError("Either source file or WARC path needs to be passed.")
+
+    log_file = os.path.abspath(benchmark_log)
+    csv_headers = ["file_name", "conversion_status", "warc_size", "raw_warc_size", "wacz_size", "raw_wacz_size",
+                   "duration", "raw_duration", "error"]
+
+    with open(log_file, 'w') as lf:
+        writer = csv.DictWriter(lf, fieldnames=csv_headers)
+        writer.writeheader()
+
+    # Adding this here in case we want to compare it against the CSV file's last updated ts
+    # for a rough estimate of how long all jobs took to be processed by celery
+    logger.info(f"Benchmark CSV was created at: {datetime.now()}")
+
+    if source_csv:
+        sample_data_guids = os.path.abspath(source_csv)
+        with open(sample_data_guids, mode='r') as file:
+            csv_file = csv.reader(file)
+            for line in csv_file:
+                convert_warc_to_wacz.delay(line[0], log_file)
+    else:
+        convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
