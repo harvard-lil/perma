@@ -81,7 +81,7 @@ const handleProgressUpdate = async () => {
     const { step_count, status, error } = await handleCaptureStatus(userLinkGUID.value);
 
     if (status === 'in_progress') {
-        globalStore.updateCapture('isUploading')
+        globalStore.updateCapture('isCapturing')
         userLinkProgressBar.value = step_count / 5 * 100
     }
 
@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
             <h2>Capture status: {{ globalStore.captureStatus }}</h2> <!-- debug only -->
-            <h2 v-if="globalStore.captureStatus === 'isUploading'">Capture progress: {{ userLinkProgressBar }}</h2>
+            <h2 v-if="globalStore.captureStatus === 'isCapturing'">Capture progress: {{ userLinkProgressBar }}</h2>
             <!-- debug only -->
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
