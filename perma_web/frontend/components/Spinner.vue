@@ -2,8 +2,9 @@
 import { ref, onMounted } from 'vue'
 import * as Spinner from 'spin.js'
 
-defineProps({
+const props = defineProps({
     top: String,
+    isDisabled: Boolean
 })
 
 let spinnerRef = ref(null)
@@ -11,8 +12,13 @@ let spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 
 
 onMounted(() => {
     spinner.spin(spinnerRef.value)
+
+    if (!props.isDisabled) {
+        spinner.stop(spinnerRef.value)
+    }
 })
 </script>
 <template>
-    <div ref="spinnerRef"></div>
+    <div v-if="!isDisabled" ref="spinnerRef"></div>
+    <div v-if="isDisabled">Loading</div>
 </template>
