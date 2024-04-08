@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 // import * as spinner from 'spin.js'
@@ -9,7 +9,7 @@ const userLinkGUID = ref('')
 const userLinkProgressBar = ref(0)
 
 const readyStates = ["ready", "urlError", "captureError"]
-const isReady = readyStates.includes(globalStore.captureStatus)
+const isReady = computed(() => { readyStates.includes(globalStore.captureStatus) })
 
 let progressInterval;
 
