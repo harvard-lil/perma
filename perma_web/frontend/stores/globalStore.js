@@ -11,9 +11,4 @@ export const globalStore = reactive({
   updateCaptureErrorMessage(message) {
     this.captureErrorMessage = message
   },
-
-  count: 0,
-  increment() {
-    this.count++
-  }
 })
