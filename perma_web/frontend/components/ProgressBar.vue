@@ -1,6 +1,6 @@
 <script setup>
 
-defineProps({
+const props = defineProps({
     progress: String,
 })
 
