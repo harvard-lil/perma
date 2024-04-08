@@ -2,7 +2,6 @@
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
-// import * as spinner from 'spin.js'
 
 const userLink = ref('')
 const userLinkGUID = ref('')
@@ -129,8 +128,6 @@ onBeforeUnmount(() => {
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
                             id="addlink" type="submit">
                             Create Perma Link
-                            <!-- <div v-if="globalStore.captureStatus === 'isQueued'" id="capture-status">Creating your
-                                Perma Link</div> -->
                         </button>
                     </div>
                 </fieldset>
