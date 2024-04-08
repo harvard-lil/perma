@@ -46,7 +46,7 @@ const handleArchiveRequest = async () => {
 
         const { guid } = await response.json() // Needed to poll Perma about the capture status of a link
         userLinkGUID.value = guid
-        globalStore.updateCapture('isQueuing')
+        globalStore.updateCapture('isQueued')
 
     } catch (error) {
         globalStore.updateCapture('urlError')
@@ -129,7 +129,7 @@ onBeforeUnmount(() => {
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
                             id="addlink" type="submit">
                             Create Perma Link
-                            <!-- <div v-if="globalStore.captureStatus === 'isQueuing'" id="capture-status">Creating your
+                            <!-- <div v-if="globalStore.captureStatus === 'isQueued'" id="capture-status">Creating your
                                 Perma Link</div> -->
                         </button>
                     </div>
