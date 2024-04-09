@@ -1179,8 +1179,8 @@ module.exports = uncurryThis([].slice);
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(63);
-__webpack_require__(296);
-module.exports = __webpack_require__(297);
+__webpack_require__(287);
+module.exports = __webpack_require__(288);
 
 
 /***/ }),
@@ -1207,12 +1207,12 @@ if (settings.USE_SENTRY) {
 }
 var FastClick = __webpack_require__(260);
 var Helpers = __webpack_require__(261);
-__webpack_require__(291); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
+__webpack_require__(282); // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 
-__webpack_require__(292); // make menus work
-__webpack_require__(293); // make menu toggle for small screen work
-__webpack_require__(294); // make carousels work
-__webpack_require__(295); // make tabs work (used on /manage/stats)
+__webpack_require__(283); // make menus work
+__webpack_require__(284); // make menu toggle for small screen work
+__webpack_require__(285); // make carousels work
+__webpack_require__(286); // make tabs work (used on /manage/stats)
 
 // We used to use modernizr but have currently dropped it.
 // If we want to include it again this is where to put it --
@@ -52385,7 +52385,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "triggerOnWindow", function() { return triggerOnWindow; });
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(262);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(282);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(272);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -52663,55 +52663,30 @@ module.exports = [
 
 
 /***/ }),
-/* 272 */,
-/* 273 */,
-/* 274 */,
-/* 275 */,
-/* 276 */,
-/* 277 */,
-/* 278 */
+/* 272 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(273);
+
+/***/ }),
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var classof = __webpack_require__(79);
-
-var $String = String;
-
-module.exports = function (argument) {
-  if (classof(argument) === 'Symbol') throw new TypeError('Cannot convert a Symbol value to a string');
-  return $String(argument);
-};
-
-
-/***/ }),
-/* 279 */,
-/* 280 */,
-/* 281 */,
-/* 282 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(283);
-
-/***/ }),
-/* 283 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var parent = __webpack_require__(284);
+var parent = __webpack_require__(274);
 
 module.exports = parent;
 
 
 /***/ }),
-/* 284 */
+/* 274 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-__webpack_require__(285);
-__webpack_require__(289);
+__webpack_require__(275);
+__webpack_require__(280);
 var path = __webpack_require__(30);
 var apply = __webpack_require__(9);
 
@@ -52725,7 +52700,7 @@ module.exports = function stringify(it, replacer, space) {
 
 
 /***/ }),
-/* 285 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52734,7 +52709,7 @@ var $ = __webpack_require__(6);
 var call = __webpack_require__(18);
 var toObject = __webpack_require__(46);
 var toPrimitive = __webpack_require__(26);
-var toISOString = __webpack_require__(286);
+var toISOString = __webpack_require__(276);
 var classof = __webpack_require__(13);
 var fails = __webpack_require__(11);
 
@@ -52757,14 +52732,14 @@ $({ target: 'Date', proto: true, forced: FORCED }, {
 
 
 /***/ }),
-/* 286 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var uncurryThis = __webpack_require__(14);
 var fails = __webpack_require__(11);
-var padStart = __webpack_require__(287).start;
+var padStart = __webpack_require__(277).start;
 
 var $RangeError = RangeError;
 var $isFinite = isFinite;
@@ -52805,7 +52780,7 @@ module.exports = (fails(function () {
 
 
 /***/ }),
-/* 287 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52814,7 +52789,7 @@ module.exports = (fails(function () {
 var uncurryThis = __webpack_require__(14);
 var toLength = __webpack_require__(72);
 var toString = __webpack_require__(278);
-var $repeat = __webpack_require__(288);
+var $repeat = __webpack_require__(279);
 var requireObjectCoercible = __webpack_require__(23);
 
 var repeat = uncurryThis($repeat);
@@ -52848,7 +52823,23 @@ module.exports = {
 
 
 /***/ }),
-/* 288 */
+/* 278 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var classof = __webpack_require__(79);
+
+var $String = String;
+
+module.exports = function (argument) {
+  if (classof(argument) === 'Symbol') throw new TypeError('Cannot convert a Symbol value to a string');
+  return $String(argument);
+};
+
+
+/***/ }),
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52872,7 +52863,7 @@ module.exports = function repeat(count) {
 
 
 /***/ }),
-/* 289 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52886,7 +52877,7 @@ var fails = __webpack_require__(11);
 var isCallable = __webpack_require__(15);
 var isSymbol = __webpack_require__(28);
 var arraySlice = __webpack_require__(58);
-var getReplacerFunction = __webpack_require__(290);
+var getReplacerFunction = __webpack_require__(281);
 var NATIVE_SYMBOL = __webpack_require__(33);
 
 var $String = String;
@@ -52952,7 +52943,7 @@ if ($stringify) {
 
 
 /***/ }),
-/* 290 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52989,7 +52980,7 @@ module.exports = function (replacer) {
 
 
 /***/ }),
-/* 291 */
+/* 282 */
 /***/ (function(module, exports) {
 
 /**
@@ -53022,7 +53013,7 @@ module.exports = function (replacer) {
 })();
 
 /***/ }),
-/* 292 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -53194,7 +53185,7 @@ module.exports = function (replacer) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
 /***/ }),
-/* 293 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -53413,7 +53404,7 @@ module.exports = function (replacer) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
 /***/ }),
-/* 294 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -53666,7 +53657,7 @@ module.exports = function (replacer) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
 /***/ }),
-/* 295 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -53828,13 +53819,13 @@ module.exports = function (replacer) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
 /***/ }),
-/* 296 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
 
 /***/ }),
-/* 297 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
