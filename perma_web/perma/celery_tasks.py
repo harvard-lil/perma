@@ -40,6 +40,8 @@ import csv
 import subprocess
 import io
 import math
+import json
+import shutil
 
 ### ERROR REPORTING ###
 
@@ -1267,6 +1269,38 @@ def create_wacz_temp_path(input_guid):
     return temp_wacz_file.name
 
 
+def create_jsonl(link_object, base_dir):
+    """
+    Creates jsonl file to pass to js-wacz call
+    """
+    jsonl_rows = []
+
+    attributes_to_check = [
+        {"capture_type": link_object.primary_capture, "title": "primary_capture", "creation_ts":
+            str(link_object.creation_timestamp)},
+        {"capture_type": link_object.provenance_summary_capture, "title": "provenance_summary_capture", "creation_ts":
+            str(link_object.creation_timestamp)},
+        {"capture_type": link_object.screenshot_capture, "title": "screenshot_capture", "creation_ts":
+            str(link_object.creation_timestamp)}
+    ]
+
+    for attribute in attributes_to_check:
+        if attribute["capture_type"]:
+            row = {"title": attribute["title"], "url": attribute["capture_type"].url, "ts": attribute["creation_ts"]}
+            jsonl_rows.append(row)
+
+    if jsonl_rows:
+        jsonl_rows.insert(0, {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"})
+        file_path = os.path.join(base_dir, link_object.guid)
+        os.makedirs(file_path, exist_ok=True)
+
+        with open(f"{file_path}/pages.jsonl", 'w') as jsonl_file:
+            for item in jsonl_rows:
+                jsonl_file.write(json.dumps(item) + '\n')
+
+        return file_path
+
+
 @shared_task
 def convert_warc_to_wacz(input_guid, benchmark_log):
     """
@@ -1278,34 +1312,41 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     start_time = time.time()
     warc_object = Link.objects.get(guid=input_guid)
     warc_file_path = save_warc_to_temp(input_guid, warc_object.warc_storage_file())
-    output_path = create_wacz_temp_path(input_guid)
+    wacz_file_path = create_wacz_temp_path(input_guid)
     exception_occurred = False
+    custom_jsonl = False
     error_output = ''
+    base_dir = "perma/wacz_experiment"
+    custom_jsonl_path = create_jsonl(warc_object, base_dir)
+    subprocess_arguments = ["npx", "js-wacz", "create", "-f", warc_file_path, "-o", wacz_file_path]
+
+    if custom_jsonl_path:
+        subprocess_arguments.extend(["-p", base_dir])
+        custom_jsonl = True
 
     try:
-        subprocess.run(["npx", "js-wacz", "create", "-f", warc_file_path, "-o", output_path], capture_output=True,
-                       check=True, text=True)
+        subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True)
     except subprocess.CalledProcessError as e:
         exception_occurred = True
         error_output = e.stderr
-        logger.error("Subprocess js-wacz command returned: ", e.returncode)
-        logger.error("Error output is: ", e.stderr)
+        logger.error(f"Subprocess js-wacz command returned {e.returncode} with error {e.stderr}")
 
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = seconds_to_minutes(raw_duration)
     warc_size = warc_object.warc_size
     formatted_warc_size = filesizeformat(warc_size)
-    wacz_size = filesizeformat(os.path.getsize(output_path))
+    wacz_size = filesizeformat(os.path.getsize(wacz_file_path))
 
     with open(benchmark_log, 'a') as log_file:
         row = {
             "file_name": input_guid,
             "conversion_status": '',
+            "custom_jsonl": custom_jsonl,
             "warc_size": formatted_warc_size,
             "raw_warc_size": warc_size,  # bytes
             "wacz_size": wacz_size,
-            "raw_wacz_size": os.path.getsize(output_path),  # bytes
+            "raw_wacz_size": os.path.getsize(wacz_file_path),  # bytes
             "duration": duration,
             "raw_duration": raw_duration,  # seconds
             "error": ''
@@ -1323,9 +1364,10 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
 
     wacz_storage_path = Link.objects.get(guid=input_guid).wacz_storage_file()
 
-    with open(output_path, 'rb') as wacz_file:
+    with open(wacz_file_path, 'rb') as wacz_file:
         content = wacz_file.read()
         default_storage.save(wacz_storage_path, io.BytesIO(content))
 
     os.remove(warc_file_path)
-    os.remove(output_path)
+    os.remove(wacz_file_path)
+    shutil.rmtree(custom_jsonl_path)
