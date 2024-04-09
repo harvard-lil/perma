@@ -12699,7 +12699,7 @@ function setCookie(cname, cvalue, exdays) {
 
 // via https://javascript.info/cookie#getcookie-name
 // document.cookie returns a semicolon-separated list of all cookies
-// this function uses regexp to dynamically generate a pattern to capture and decode the value of a cookie based on it's unique name
+// this function uses regexp to dynamically generate a pattern to capture and decode the value of a cookie based on its unique name
 function getCookie(name) {
   var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
   return matches ? decodeURIComponent(matches[1]) : undefined;
