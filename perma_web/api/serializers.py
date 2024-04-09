@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import URLValidator
 import requests
 from rest_framework import serializers
 
@@ -229,9 +230,13 @@ class AuthenticatedLinkSerializer(LinkSerializer):
             if not data.get('submitted_url'):
                 errors['url'] = "URL cannot be empty."
             else:
-                # Don't force URL validation if a file is provided
-                if not uploaded_file:
-                    # Ask the Scoop API to validate the URL
+                if uploaded_file:
+                    # Validate, but don't force URL validation if a file is provided
+                    validate = URLValidator()
+                    temp_link = Link(submitted_url=data['submitted_url'])
+                    validate(temp_link.ascii_safe_url)
+                else:
+                    # Ask the Scoop API to validate and resolve the URL
                     try:
                         _, response_data = send_to_scoop(
                             method="post",
