@@ -1267,7 +1267,7 @@ def create_wacz_path(input_guid):
     return file.name
 
 
-def create_jsonl(link_object):
+def create_pages_jsonl(link_object):
     """
     Creates pages.jsonl file to pass to js-wacz call
     """
@@ -1315,7 +1315,7 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     exception_occurred = False
     custom_jsonl = False
     error_output = ''
-    jsonl_file_path = create_jsonl(warc_object)
+    jsonl_file_path = create_pages_jsonl(warc_object)
     subprocess_arguments = ["npx", "js-wacz", "create", "-f", warc_file, "-o", wacz_file_path]
 
     if jsonl_file_path:
