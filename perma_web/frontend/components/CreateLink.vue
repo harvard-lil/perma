@@ -2,13 +2,22 @@
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
+import ProgressBar from './ProgressBar.vue';
+import Spinner from './Spinner.vue';
 
 const userLink = ref('')
 const userLinkGUID = ref('')
-const userLinkProgressBar = ref(0)
+const userLinkProgressBar = ref('0%')
 
 const readyStates = ["ready", "urlError", "captureError"]
 const isReady = computed(() => { readyStates.includes(globalStore.captureStatus) })
+
+const loadingStates = ["isValidating", "isQueued", "isCapturing"]
+const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
+
+const submitButtonText = computed(() => {
+    return readyStates.includes(globalStore.captureStatus) ? 'Create Perma Link' : 'Creating your perma link'
+})
 
 let progressInterval;
 
@@ -81,7 +90,7 @@ const handleProgressUpdate = async () => {
 
     if (status === 'in_progress') {
         globalStore.updateCapture('isCapturing')
-        userLinkProgressBar.value = step_count / 5 * 100
+        userLinkProgressBar.value = `${step_count / 5 * 100}%`
     }
 
     if (status === 'completed') {
@@ -126,10 +135,16 @@ onBeforeUnmount(() => {
                         data-original-title="Start building your library" data-html="true" data-trigger="manual" />
                     <div class="wrapper">
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
-                            id="addlink" type="submit">
-                            Create Perma Link
+                            :class="{
+                '_isWorking': !readyStates.includes(globalStore.captureStatus),
+            }" id="addlink" type="submit">
+                            <Spinner v-if="isLoading" top="-20px" />
+                            {{ submitButtonText }}
+                            <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
+                                :progress="userLinkProgressBar" />
                         </button>
                     </div>
+
                 </fieldset>
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
