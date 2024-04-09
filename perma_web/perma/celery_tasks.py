@@ -41,7 +41,6 @@ import subprocess
 import io
 import math
 import json
-import shutil
 
 ### ERROR REPORTING ###
 
@@ -1244,7 +1243,7 @@ def seconds_to_minutes(seconds_val):
         return f"{math.ceil(seconds_val)} seconds"
 
 
-def save_warc_to_temp(input_guid, storage_file):
+def save_warc_for_conversion(input_guid, storage_file):
     """
     Gets the file path
     Get the associated file's contents from storage
@@ -1252,26 +1251,25 @@ def save_warc_to_temp(input_guid, storage_file):
     """
     contents = default_storage.open(storage_file).read()
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{input_guid}.warc.gz") as temp_warc_file:
-        temp_warc_file.write(contents)
+    with open(f"{input_guid}.warc.gz", "wb") as file:
+        file.write(contents)
 
-    return temp_warc_file.name
+    return file.name
 
 
-def create_wacz_temp_path(input_guid):
+def create_wacz_path(input_guid):
     """
     Creates temp file for wacz
     """
-    wacz_suffix = f"_{input_guid}.wacz"
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=wacz_suffix) as temp_wacz_file:
+    with open(f"{input_guid}.wacz", "wb") as file:
         pass
 
-    return temp_wacz_file.name
+    return file.name
 
 
-def create_jsonl(link_object, base_dir):
+def create_jsonl(link_object):
     """
-    Creates jsonl file to pass to js-wacz call
+    Creates pages.jsonl file to pass to js-wacz call
     """
     jsonl_rows = []
 
@@ -1291,10 +1289,10 @@ def create_jsonl(link_object, base_dir):
 
     if jsonl_rows:
         jsonl_rows.insert(0, {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"})
-        file_path = os.path.join(base_dir, link_object.guid)
+        file_path = os.path.join(os.getcwd(), link_object.guid)
         os.makedirs(file_path, exist_ok=True)
 
-        with open(f"{file_path}/pages.jsonl", 'w') as jsonl_file:
+        with open(f"{link_object.guid}/pages.jsonl", 'w') as jsonl_file:
             for item in jsonl_rows:
                 jsonl_file.write(json.dumps(item) + '\n')
 
@@ -1302,6 +1300,7 @@ def create_jsonl(link_object, base_dir):
 
 
 @shared_task
+@tempdir.run_in_tempdir()
 def convert_warc_to_wacz(input_guid, benchmark_log):
     """
     Downloads WARC file to temp dir
@@ -1311,21 +1310,21 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     """
     start_time = time.time()
     warc_object = Link.objects.get(guid=input_guid)
-    warc_file_path = save_warc_to_temp(input_guid, warc_object.warc_storage_file())
-    wacz_file_path = create_wacz_temp_path(input_guid)
+    warc_file = os.path.abspath(save_warc_for_conversion(input_guid, warc_object.warc_storage_file()))
+    wacz_file_path = os.path.abspath(create_wacz_path(input_guid))
     exception_occurred = False
     custom_jsonl = False
     error_output = ''
-    base_dir = "perma/wacz_experiment"
-    custom_jsonl_path = create_jsonl(warc_object, base_dir)
-    subprocess_arguments = ["npx", "js-wacz", "create", "-f", warc_file_path, "-o", wacz_file_path]
+    jsonl_file_path = create_jsonl(warc_object)
+    subprocess_arguments = ["npx", "js-wacz", "create", "-f", warc_file, "-o", wacz_file_path]
 
-    if custom_jsonl_path:
-        subprocess_arguments.extend(["-p", base_dir])
+    if jsonl_file_path:
+        subprocess_arguments.extend(["-p", jsonl_file_path])
         custom_jsonl = True
 
     try:
-        subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True)
+        # pass settings.NODE_MODULES_DIR to command so subprocess can find the node module while working in temp dir
+        subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True, cwd=settings.NODE_MODULES_DIR)
     except subprocess.CalledProcessError as e:
         exception_occurred = True
         error_output = e.stderr
@@ -1367,7 +1366,3 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     with open(wacz_file_path, 'rb') as wacz_file:
         content = wacz_file.read()
         default_storage.save(wacz_storage_path, io.BytesIO(content))
-
-    os.remove(warc_file_path)
-    os.remove(wacz_file_path)
-    shutil.rmtree(custom_jsonl_path)
