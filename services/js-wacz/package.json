@@ -1,0 +1,12 @@
+{
+  "name": "perma",
+  "version": "0.0.1",
+  "description": "Perma worker modules",
+  "scripts": {
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@harvard-lil/js-wacz": "^0.1.1"
+  }
+}

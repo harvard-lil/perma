@@ -39,12 +39,23 @@ RUN apt-get update \
 # node.js 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.12.0-1nodesource1
 
+#
 # npm
+#
+
+# frontend requirements
 COPY perma_web/package.json /perma/perma_web
 COPY perma_web/npm-shrinkwrap.json /perma/perma_web
 RUN npm install \
     && rm package.json \
     && rm npm-shrinkwrap.json
+
+# worker requirements
+COPY services/js-wacz/package.json /perma/services/js-wacz/package.json
+COPY services/js-wacz/package-lock.json /perma/services/js-wacz/package-lock.json
+RUN npm install --prefix /perma/services/js-wacz/ \
+    && rm /perma/services/js-wacz/package.json \
+    && rm /perma/services/js-wacz/package-lock.json
 
 # python requirements
 COPY perma_web/requirements.txt /perma/perma_web
