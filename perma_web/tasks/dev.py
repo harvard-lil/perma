@@ -1141,7 +1141,7 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
         raise ValueError("Either source file or WARC path needs to be passed.")
 
     log_file = os.path.abspath(benchmark_log)
-    csv_headers = ["file_name", "conversion_status", "custom_jsonl", "warc_size", "raw_warc_size", "wacz_size",
+    csv_headers = ["file_name", "conversion_status", "warc_size", "raw_warc_size", "wacz_size",
                    "raw_wacz_size", "duration", "raw_duration", "error"]
 
     with open(log_file, 'w') as lf:

@@ -38,7 +38,6 @@ logger = logging.getLogger('celery.django')
 
 import csv
 import subprocess
-import io
 import math
 import json
 
@@ -1243,62 +1242,6 @@ def seconds_to_minutes(seconds_val):
         return f"{math.ceil(seconds_val)} seconds"
 
 
-def save_warc_for_conversion(input_guid, storage_file):
-    """
-    Gets the file path
-    Get the associated file's contents from storage
-    Saves as temp file
-    """
-    contents = default_storage.open(storage_file).read()
-
-    with open(f"{input_guid}.warc.gz", "wb") as file:
-        file.write(contents)
-
-    return file.name
-
-
-def create_wacz_path(input_guid):
-    """
-    Creates temp file for wacz
-    """
-    with open(f"{input_guid}.wacz", "wb") as file:
-        pass
-
-    return file.name
-
-
-def create_pages_jsonl(link_object):
-    """
-    Creates pages.jsonl file to pass to js-wacz call
-    """
-    jsonl_rows = []
-
-    attributes_to_check = [
-        {"capture_type": link_object.primary_capture, "title": "primary_capture", "creation_ts":
-            str(link_object.creation_timestamp)},
-        {"capture_type": link_object.provenance_summary_capture, "title": "provenance_summary_capture", "creation_ts":
-            str(link_object.creation_timestamp)},
-        {"capture_type": link_object.screenshot_capture, "title": "screenshot_capture", "creation_ts":
-            str(link_object.creation_timestamp)}
-    ]
-
-    for attribute in attributes_to_check:
-        if attribute["capture_type"]:
-            row = {"title": attribute["title"], "url": attribute["capture_type"].url, "ts": attribute["creation_ts"]}
-            jsonl_rows.append(row)
-
-    if jsonl_rows:
-        jsonl_rows.insert(0, {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"})
-        file_path = os.path.join(os.getcwd(), link_object.guid)
-        os.makedirs(file_path, exist_ok=True)
-
-        with open(f"{link_object.guid}/pages.jsonl", 'w') as jsonl_file:
-            for item in jsonl_rows:
-                jsonl_file.write(json.dumps(item) + '\n')
-
-        return file_path
-
-
 @shared_task
 @tempdir.run_in_tempdir()
 def convert_warc_to_wacz(input_guid, benchmark_log):
@@ -1309,60 +1252,98 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     If successful, saves file in storage
     """
     start_time = time.time()
-    warc_object = Link.objects.get(guid=input_guid)
-    warc_file = os.path.abspath(save_warc_for_conversion(input_guid, warc_object.warc_storage_file()))
-    wacz_file_path = os.path.abspath(create_wacz_path(input_guid))
+    link = Link.objects.get(guid=input_guid)
+    cwd = os.getcwd()
+    warc_path = f"{link.guid}.warc.gz"
+    wacz_path = f"{link.guid}.wacz"
+    pages_path = "pages.jsonl"
+
+    # save a local copy of the warc file
+    with open(warc_path, "wb") as file:
+        file.write(default_storage.open(link.warc_storage_file()).read())
+
+    # prepare our custom pages.jsonl file
+    jsonl_rows = [
+        {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
+    ]
+    ts = str(link.creation_timestamp)
+    if link.primary_capture:
+        jsonl_rows.append(
+            {"title": "primary capture url", "url": link.primary_capture.url, "ts": ts}
+        )
+    if link.screenshot_capture:
+        jsonl_rows.append(
+            {"title": "screenshot url", "url": link.screenshot_capture.url, "ts": ts}
+        )
+    if link.provenance_summary_capture:
+        jsonl_rows.append(
+            {"title": "provenance summary url", "url": link.provenance_summary_capture.url, "ts": ts}
+        )
+    assert len(jsonl_rows) > 1, f"{link.guid} has neither a primary nor a screenshot capture!"
+    with open(pages_path, 'w') as file:
+        for item in jsonl_rows:
+            file.write(json.dumps(item) + '\n')
+
+    # call js-wacz in a subprocess
     exception_occurred = False
-    custom_jsonl = False
     error_output = ''
-    jsonl_file_path = create_pages_jsonl(warc_object)
-    subprocess_arguments = ["npx", "js-wacz", "create", "-f", warc_file, "-o", wacz_file_path]
-
-    if jsonl_file_path:
-        subprocess_arguments.extend(["-p", jsonl_file_path])
-        custom_jsonl = True
-
+    subprocess_arguments = [
+        "npx",
+        "js-wacz",
+        "create",
+        "-f", os.path.join(cwd, warc_path),
+        "-o", os.path.join(cwd, wacz_path),
+        "-p", cwd  # js-wacz takes the directory in which to find page.jsonl; not the path to the file itself
+    ]
     try:
-        # pass settings.NODE_MODULES_DIR to command so subprocess can find the node module while working in temp dir
+        # set cwd to settings.NODE_MODULES_DIR so subprocess can find js-wacz
         subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True, cwd=settings.NODE_MODULES_DIR)
     except subprocess.CalledProcessError as e:
         exception_occurred = True
         error_output = e.stderr
-        logger.error(f"Subprocess js-wacz command returned {e.returncode} with error {e.stderr}")
+        logger.error(f"{link.guid}: js-wacz returned {e.returncode} with error {error_output}")
 
     end_time = time.time()
     raw_duration = end_time - start_time
     duration = seconds_to_minutes(raw_duration)
-    warc_size = warc_object.warc_size
+    warc_size = link.warc_size
     formatted_warc_size = filesizeformat(warc_size)
-    wacz_size = filesizeformat(os.path.getsize(wacz_file_path))
+    try:
+        wacz_size = os.path.getsize(wacz_path)
+    except OSError:
+        wacz_size = 0
+
+    formatted_wacz_size = filesizeformat(wacz_size)
 
     with open(benchmark_log, 'a') as log_file:
         row = {
             "file_name": input_guid,
             "conversion_status": '',
-            "custom_jsonl": custom_jsonl,
             "warc_size": formatted_warc_size,
             "raw_warc_size": warc_size,  # bytes
-            "wacz_size": wacz_size,
-            "raw_wacz_size": os.path.getsize(wacz_file_path),  # bytes
+            "wacz_size": formatted_wacz_size,
+            "raw_wacz_size": wacz_size,  # bytes
             "duration": duration,
             "raw_duration": raw_duration,  # seconds
             "error": ''
         }
         writer = csv.DictWriter(log_file, fieldnames=row.keys())
 
+        wacz_size_error = False
+
         if exception_occurred:
             row["conversion_status"] = "Failure"
             row["error"] = error_output
             writer.writerow(row)
-            raise Exception("Error converting file to WACZ")
+        elif wacz_size == 0 or warc_size > wacz_size:
+            wacz_size_error = True
+            row["conversion_status"] = "Failure"
+            row["error"] = "WACZ is smaller than WARC"
+            writer.writerow(row)
         else:
             row["conversion_status"] = "Success"
             writer.writerow(row)
 
-    wacz_storage_path = Link.objects.get(guid=input_guid).wacz_storage_file()
-
-    with open(wacz_file_path, 'rb') as wacz_file:
-        content = wacz_file.read()
-        default_storage.save(wacz_storage_path, io.BytesIO(content))
+    if not exception_occurred and not wacz_size_error:
+        with open(wacz_path, 'rb') as wacz_file:
+            default_storage.save(link.wacz_storage_file(), wacz_file)
