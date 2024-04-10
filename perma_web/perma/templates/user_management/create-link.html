@@ -165,7 +165,8 @@
         links_remaining = Number({{ links_remaining }}),
         link_creation_allowed = {{ link_creation_allowed | yesno:"true,false" }},
         current_user = {{ request.user.as_json|safe }},
-        host = "{{ request.get_host }}"
+        host = "{{ request.get_host }}",
+        subscription_status = "{{ subscription_status}}"
   </script>
 
   {% render_bundle 'create' 'js' %}
