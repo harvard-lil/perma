@@ -37,7 +37,7 @@ RUN apt-get update \
         libxslt-dev
 
 # node.js 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.12.0-1nodesource1
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.12.2-1nodesource1
 
 #
 # npm
