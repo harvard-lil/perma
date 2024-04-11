@@ -2651,7 +2651,7 @@ figcaption + .img-responsive {
   }
 
 
-  #links-remaining-message,
+  .links-remaining-message,
   #browser-tools-message,
   #organization_select_form {
     margin-top: $grid * 3;
@@ -2661,7 +2661,7 @@ figcaption + .img-responsive {
     max-width: none;
     font-family: $font-hed-alt;
   }
-  #links-remaining-message,
+  .links-remaining-message,
   #browser-tools-message {
     color: $color-blue;
     font-weight: 700;
