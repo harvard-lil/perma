@@ -1296,8 +1296,8 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         "-p", cwd  # js-wacz takes the directory in which to find page.jsonl; not the path to the file itself
     ]
     try:
-        # set cwd to settings.NODE_MODULES_DIR so subprocess can find js-wacz
-        subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True, cwd=settings.NODE_MODULES_DIR)
+        # set cwd to settings.JS_WACZ_DIR so subprocess can find js-wacz
+        subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True, cwd=settings.JS_WACZ_DIR)
     except subprocess.CalledProcessError as e:
         exception_occurred = True
         error_output = e.stderr

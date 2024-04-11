@@ -7,7 +7,7 @@ from copy import deepcopy
 this_module = sys.executable if hasattr(sys, "frozen") else __file__
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
-NODE_MODULES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, 'node_modules'))
+JS_WACZ_DIR = os.path.abspath(os.path.join(SERVICES_DIR, 'js-wacz'))
 
 DATABASES = {
     'default': {

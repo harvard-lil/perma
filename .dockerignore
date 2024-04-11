@@ -6,3 +6,5 @@
 !perma_web/perma-warcprox-ca.pem
 !perma_web/lil-archive-keyring.gpg
 !playwright/requirements.txt
+!services/js-wacz/package.json
+!services/js-wacz/package-lock.json
