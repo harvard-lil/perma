@@ -51,7 +51,7 @@
           </div>
 
           {% if request.user.is_individual %}
-            <p id="links-remaining-message">
+            <p class="links-remaining-message">
               {% if subscription_status == 'problem' %}
                 Your subscription is on hold due to a <a href="{% url 'user_management_settings_usage_plan' %}">problem with your credit card</a>.<br>
               {% endif %}
@@ -166,7 +166,9 @@
         link_creation_allowed = {{ link_creation_allowed | yesno:"true,false" }},
         current_user = {{ request.user.as_json|safe }},
         host = "{{ request.get_host }}",
-        subscription_status = "{{ subscription_status}}"
+        subscription_status = "{{ subscription_status}}",
+        links_remaining_period = "{{ links_remaining_period }}",
+        is_individual = "{{ request.user.is_individual }}"
   </script>
 
   {% render_bundle 'create' 'js' %}

@@ -14,5 +14,10 @@ export const globalStore = reactive({
   subscriptionStatus: '',
   updateSubscriptionStatus(status) {
     this.subscriptionStatus = status
+  },
+
+  userTypes: '',
+  updateUserTypes(types) {
+    this.userTypes = types
   }
 })
