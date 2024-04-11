@@ -1,7 +1,7 @@
 <script setup>
 import { globalStore } from '../stores/globalStore'
 
-const subscriptionLink = "/settings/usage-plan."
+const subscriptionLink = "/settings/usage-plan/"
 const linkRenewalPeriod = links_remaining_period === 'monthly' ? ' this month.' : links_remaining_period === 'annually' ? ' this year.' : '.'
 
 const getSubscriptionText = () => {
