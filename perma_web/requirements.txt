@@ -442,9 +442,9 @@ hypothesis==6.98.17 \
     --hash=sha256:313f64b9f9f95e12c8b5342466bef7f352d2608afeeb434817c039602b45f0c4 \
     --hash=sha256:bbd227000cc21a9686a00867f031479c3812d8ab076e4af1c813f6b3a50c98f5
     # via -r requirements.in
-idna==3.3 \
-    --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
-    --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
+idna==3.7 \
+    --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
+    --hash=sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0
     # via
     #   requests
     #   tldextract
