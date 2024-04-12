@@ -1260,7 +1260,7 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
 
     # save a local copy of the warc file
     with open(warc_path, "wb") as file:
-        file.write(default_storage.open(link.warc_storage_file()).read())
+        copy_file_data(default_storage.open(link.warc_storage_file()), file)
 
     # prepare our custom pages.jsonl file
     jsonl_rows = [
