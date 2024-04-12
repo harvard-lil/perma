@@ -38,7 +38,7 @@
 
   // Build query string
   srcQuery = new URLSearchParams();
-  srcQuery.append("source", "{{ link.warc_presigned_url_relative | escapejs }}");
+  srcQuery.append("source", "{{ playback_url | escapejs }}");
   srcQuery.append("url", url);
   if (!sandbox) {
     srcQuery.append("noSandbox", "noSandbox");

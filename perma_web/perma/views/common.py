@@ -31,6 +31,8 @@ from ..email import send_admin_email, send_user_email_copy_admins
 
 import logging
 
+from waffle import flag_is_active
+
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download', 'standard']
 
@@ -158,6 +160,12 @@ def single_permalink(request, guid):
         'link_url': settings.HOST + '/' + link.guid,
         'protocol': protocol(),
     }
+
+    if flag_is_active(request, 'wacz-playback') and link.has_wacz_version():
+        context["playback_url"] = link.wacz_presigned_url_relative()
+    else:
+        context["playback_url"] = link.warc_presigned_url_relative()
+
 
     if context['can_view'] and link.can_play_back():
         if new_record:
