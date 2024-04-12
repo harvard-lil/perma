@@ -166,7 +166,6 @@ def single_permalink(request, guid):
     else:
         context["playback_url"] = link.warc_presigned_url_relative()
 
-
     if context['can_view'] and link.can_play_back():
         if new_record:
             logger.debug(f"Ensuring warc for {link.guid} has finished uploading.")
