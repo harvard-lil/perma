@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('perma', '0038_auto_20240318_2102'),
+        ('waffle', '0004_update_everyone_nullbooleanfield'),
     ]
 
     operations = [
