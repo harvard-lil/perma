@@ -1,21 +1,21 @@
 import { globalStore } from '../stores/globalStore'
 
-export const getLinksRemainingStatus = (links_remaining, is_nonpaying) => {
-    if (links_remaining !== 'Infinity') {
+export const getLinksRemainingStatus = (linksRemaining, isNonpaying) => {
+    if (linksRemaining !== Infinity) {
         return globalStore.updateLinksRemainingStatus('metered')
     }
 
-    else if (is_nonpaying) {
+    else if (isNonpaying) {
         return globalStore.updateLinksRemainingStatus('unlimited_free')
     }
 
     return globalStore.updateLinksRemainingStatus('unlimited_paid')
 }
 
-export const getUserTypes = (is_individual) => {
+export const getUserTypes = (isIndividual) => {
     let types = []
 
-    if (is_individual) {
+    if (isIndividual) {
         types = types.concat('individual')
     }
 
