@@ -27,6 +27,6 @@ const getLinksRemainingText = () => {
         </span>
         <span v-html="getLinksRemainingText()"></span>
         <a v-if="globalStore.linksRemainingStatus === 'metered' && subscription_status !== 'problem'"
-            :href="subscriptionLink">View your subscription details or get more Perma Links</a>
+            :href="subscriptionLink">View your subscription details or get more Perma Links.</a>
     </p>
 </template>
