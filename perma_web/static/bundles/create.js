@@ -29082,7 +29082,7 @@ function init() {
   $createErrors = $('.create-errors');
   $errorContainer = $('#error-container');
   $linksRemaining = $('.links-remaining');
-  $linksRemainingMessage = $('#links-remaining-message');
+  $linksRemainingMessage = $('.links-remaining-message');
   $organizationDropdown = $('#organization_select');
   $organizationDropdownButton = $('#dropdownMenu1');
   $organizationSelectForm = $('#organization_select_form');

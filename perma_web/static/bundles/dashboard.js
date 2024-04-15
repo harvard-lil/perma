@@ -35106,14 +35106,29 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _CreateLink_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(535);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(523);
+/* harmony import */ var _lib_store__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(683);
+
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   __name: 'App',
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
+    Object(vue__WEBPACK_IMPORTED_MODULE_1__["onBeforeMount"])(function () {
+      Object(_lib_store__WEBPACK_IMPORTED_MODULE_2__["getLinksRemainingStatus"])(links_remaining, is_nonpaying);
+      Object(_lib_store__WEBPACK_IMPORTED_MODULE_2__["getUserTypes"])(is_individual);
+    });
     var __returned__ = {
-      CreateLink: _CreateLink_vue__WEBPACK_IMPORTED_MODULE_0__["default"]
+      CreateLink: _CreateLink_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
+      onBeforeMount: vue__WEBPACK_IMPORTED_MODULE_1__["onBeforeMount"],
+      get getLinksRemainingStatus() {
+        return _lib_store__WEBPACK_IMPORTED_MODULE_2__["getLinksRemainingStatus"];
+      },
+      get getUserTypes() {
+        return _lib_store__WEBPACK_IMPORTED_MODULE_2__["getUserTypes"];
+      }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
       enumerable: false,
@@ -35210,7 +35225,7 @@ var _hoisted_12 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createEl
   href: "/contact"
 }, "contact us about this error.")], -1 /* HOISTED */);
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  var _context;
+  var _context, _context2;
   return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h2", null, "Capture status: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureStatus), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only "), $setup.globalStore.captureStatus === 'isCapturing' ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("h2", _hoisted_3, "Capture progress: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.userLinkProgressBar), 1 /* TEXT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("form", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
       return $setup.userLink = $event;
@@ -35238,7 +35253,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   })) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.submitButtonText) + " ", 1 /* TEXT */), $setup.globalStore.captureStatus === 'isCapturing' ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createBlock"])($setup["ProgressBar"], {
     key: 1,
     progress: $setup.userLinkProgressBar
-  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */)])])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_8, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_9, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", _hoisted_10, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_11, _hoisted_12])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
+  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */)]), _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = $setup.globalStore.userTypes).call(_context2, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createBlock"])($setup["LinkCount"], {
+    key: 0
+  })) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_8, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_9, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", _hoisted_10, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_11, _hoisted_12])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -35455,6 +35472,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(261);
 /* harmony import */ var _ProgressBar_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(667);
 /* harmony import */ var _Spinner_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(673);
+/* harmony import */ var _LinkCount_vue__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(678);
+
 
 
 
@@ -35664,7 +35683,8 @@ __webpack_require__.r(__webpack_exports__);
         return _static_js_helpers_general_helpers__WEBPACK_IMPORTED_MODULE_8__["getCookie"];
       },
       ProgressBar: _ProgressBar_vue__WEBPACK_IMPORTED_MODULE_9__["default"],
-      Spinner: _Spinner_vue__WEBPACK_IMPORTED_MODULE_10__["default"]
+      Spinner: _Spinner_vue__WEBPACK_IMPORTED_MODULE_10__["default"],
+      LinkCount: _LinkCount_vue__WEBPACK_IMPORTED_MODULE_11__["default"]
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
       enumerable: false,
@@ -38663,6 +38683,14 @@ var globalStore = Object(vue__WEBPACK_IMPORTED_MODULE_0__["reactive"])({
   captureErrorMessage: '',
   updateCaptureErrorMessage: function updateCaptureErrorMessage(message) {
     this.captureErrorMessage = message;
+  },
+  linksRemainingStatus: '',
+  updateLinksRemainingStatus: function updateLinksRemainingStatus(status) {
+    this.linksRemainingStatus = status;
+  },
+  userTypes: [],
+  updateUserTypes: function updateUserTypes(types) {
+    this.userTypes = types;
   }
 });
 
@@ -38925,6 +38953,155 @@ __webpack_require__.r(__webpack_exports__);
     return __returned__;
   }
 });
+
+/***/ }),
+/* 678 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _LinkCount_vue_vue_type_template_id_ce3483ca__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(679);
+/* harmony import */ var _LinkCount_vue_vue_type_script_setup_true_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(681);
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(672);
+/* harmony import */ var _node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+
+
+const __exports__ = /*#__PURE__*/_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2___default()(_LinkCount_vue_vue_type_script_setup_true_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_LinkCount_vue_vue_type_template_id_ce3483ca__WEBPACK_IMPORTED_MODULE_0__["render"]],['__file',"frontend/components/LinkCount.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* harmony default export */ __webpack_exports__["default"] = (__exports__);
+
+/***/ }),
+/* 679 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_0_node_modules_vue_loader_dist_templateLoader_js_ref_6_node_modules_vue_loader_dist_index_js_ref_16_0_LinkCount_vue_vue_type_template_id_ce3483ca__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(680);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_babel_loader_lib_index_js_ref_0_node_modules_vue_loader_dist_templateLoader_js_ref_6_node_modules_vue_loader_dist_index_js_ref_16_0_LinkCount_vue_vue_type_template_id_ce3483ca__WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+
+
+/***/ }),
+/* 680 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
+
+var _hoisted_1 = {
+  class: "links-remaining-message"
+};
+var _hoisted_2 = {
+  key: 0
+};
+var _hoisted_3 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("br", null, null, -1 /* HOISTED */);
+var _hoisted_4 = ["innerHTML"];
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_1, [_ctx.subscription_status === 'problem' ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("span", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" Your subscription is on hold due to a "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
+    href: $setup.subscriptionLink
+  }, "problem with your credit card"), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("."), _hoisted_3])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
+    innerHTML: $setup.getLinksRemainingText()
+  }, null, 8 /* PROPS */, _hoisted_4), $setup.globalStore.linksRemainingStatus === 'metered' && _ctx.subscription_status !== 'problem' ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("a", {
+    key: 1,
+    href: $setup.subscriptionLink
+  }, "View your subscription details or get more Perma Links.")) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]);
+}
+
+/***/ }),
+/* 681 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_0_node_modules_vue_loader_dist_index_js_ref_16_0_LinkCount_vue_vue_type_script_setup_true_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(682);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _node_modules_babel_loader_lib_index_js_ref_0_node_modules_vue_loader_dist_index_js_ref_16_0_LinkCount_vue_vue_type_script_setup_true_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* empty/unused harmony star reexport */ 
+
+/***/ }),
+/* 682 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(510);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(666);
+
+
+var subscriptionLink = "/settings/usage-plan/";
+/* harmony default export */ __webpack_exports__["default"] = ({
+  __name: 'LinkCount',
+  setup: function setup(__props, _ref) {
+    var __expose = _ref.expose;
+    __expose();
+    var linkRenewalPeriod = links_remaining_period === 'monthly' ? ' this month.' : links_remaining_period === 'annually' ? ' this year.' : '.';
+    var getLinksRemainingText = function getLinksRemainingText() {
+      var _context;
+      switch (_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].linksRemainingStatus) {
+        case 'unlimited_paid':
+          return "Your <a href=".concat(subscriptionLink, ">subscription</a> includes the creation of unlimited Perma Links.</a>");
+        case 'unlimited_free':
+          return "Your account has been upgraded to unlimited personal Perma Links.";
+        case 'metered':
+        default:
+          return _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(_context = "You have <span class=\"links-remaining\">".concat(links_remaining, "</span> remaining Perma Links")).call(_context, linkRenewalPeriod, "</span><br />");
+      }
+    };
+    var __returned__ = {
+      subscriptionLink: subscriptionLink,
+      linkRenewalPeriod: linkRenewalPeriod,
+      getLinksRemainingText: getLinksRemainingText,
+      get globalStore() {
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"];
+      }
+    };
+    Object.defineProperty(__returned__, '__isScriptSetup', {
+      enumerable: false,
+      value: true
+    });
+    return __returned__;
+  }
+});
+
+/***/ }),
+/* 683 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getLinksRemainingStatus", function() { return getLinksRemainingStatus; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getUserTypes", function() { return getUserTypes; });
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(510);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(666);
+
+
+var getLinksRemainingStatus = function getLinksRemainingStatus(linksRemaining, isNonpaying) {
+  if (linksRemaining !== Infinity) {
+    return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].updateLinksRemainingStatus('metered');
+  } else if (isNonpaying) {
+    return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].updateLinksRemainingStatus('unlimited_free');
+  }
+  return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].updateLinksRemainingStatus('unlimited_paid');
+};
+var getUserTypes = function getUserTypes(isIndividual) {
+  var types = [];
+  if (isIndividual) {
+    types = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(types).call(types, 'individual');
+  }
+  if (types.length) {
+    return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].updateUserTypes(types);
+  }
+};
 
 /***/ })
 /******/ ]);
