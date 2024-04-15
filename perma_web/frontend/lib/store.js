@@ -15,7 +15,7 @@ export const getLinksRemainingStatus = (links_remaining, is_nonpaying) => {
 export const getUserTypes = (is_individual) => {
     let types = []
 
-    if (is_individual === "False") {
+    if (is_individual === "True") {
         types = types.concat('individual')
     }
 
