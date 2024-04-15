@@ -26,8 +26,7 @@ const getLinksRemainingText = () => {
                 your credit card</a>.<br>
         </span>
         <span v-html="getLinksRemainingText()"></span>
-        <span v-if="globalStore.linksRemainingStatus === 'metered' && subscription_status !== 'problem'">
-            <a href=${subscriptionLink}>View your subscription details or get more Perma Links</a>
-        </span>
+        <a v-if="globalStore.linksRemainingStatus === 'metered' && subscription_status !== 'problem'"
+            :href="subscriptionLink">View your subscription details or get more Perma Links</a>
     </p>
 </template>
