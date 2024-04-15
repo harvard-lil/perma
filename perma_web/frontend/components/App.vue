@@ -1,10 +1,10 @@
 <script setup>
 import CreateLink from './CreateLink.vue';
 import { onBeforeMount } from 'vue'
-import { getSubscriptionStatus, getUserTypes } from '../lib/store'
+import { getLinksRemainingStatus, getUserTypes } from '../lib/store'
 
 onBeforeMount(() => {
-    getSubscriptionStatus(subscription_status)
+    getLinksRemainingStatus(links_remaining, is_nonpaying)
     getUserTypes(is_individual)
 })
 </script>

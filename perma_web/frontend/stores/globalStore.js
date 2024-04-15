@@ -11,12 +11,12 @@ export const globalStore = reactive({
     this.captureErrorMessage = message
   },
 
-  subscriptionStatus: '',
-  updateSubscriptionStatus(status) {
-    this.subscriptionStatus = status
+  linksRemainingStatus: '',
+  updateLinksRemainingStatus(status) {
+    this.linksRemainingStatus = status
   },
 
-  userTypes: '',
+  userTypes: [],
   updateUserTypes(types) {
     this.userTypes = types
   }

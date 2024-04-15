@@ -169,6 +169,7 @@
         subscription_status = "{{ subscription_status}}",
         links_remaining_period = "{{ links_remaining_period }}",
         is_individual = "{{ request.user.is_individual }}"
+        is_nonpaying = "{{ request.user.nonpaying }}"
   </script>
 
   {% render_bundle 'create' 'js' %}
