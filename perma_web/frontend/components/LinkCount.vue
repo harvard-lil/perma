@@ -14,8 +14,7 @@ const getLinksRemainingText = () => {
 
         case 'metered':
         default:
-            return `You have <span class="links-remaining">${links_remaining}</span> remaining Perma Links${linkRenewalPeriod}</span><br />
-            <a href=${subscriptionLink}>View your subscription details or get more Perma Links</a>`
+            return `You have <span class="links-remaining">${links_remaining}</span> remaining Perma Links${linkRenewalPeriod}</span><br />`
     }
 }
 </script>
@@ -23,9 +22,12 @@ const getLinksRemainingText = () => {
 <template>
     <p class="links-remaining-message">
         <span v-if="subscription_status === 'problem'">
-            Your subscription is on hold due to a <a href="">problem with
+            Your subscription is on hold due to a <a :href="subscriptionLink">problem with
                 your credit card</a>.<br>
         </span>
         <span v-html="getLinksRemainingText()"></span>
+        <span v-if="globalStore.linksRemainingStatus === 'metered' && subscription_status !== 'problem'">
+            <a href=${subscriptionLink}>View your subscription details or get more Perma Links</a>
+        </span>
     </p>
 </template>
