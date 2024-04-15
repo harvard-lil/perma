@@ -168,8 +168,8 @@
         host = "{{ request.get_host }}",
         subscription_status = "{{ subscription_status }}",
         links_remaining_period = "{{ links_remaining_period }}",
-        is_individual = "{{ request.user.is_individual }}"
-        is_nonpaying = "{{ request.user.nonpaying }}"
+        is_individual = {{ request.user.is_individual | yesno:"true,false" }},
+        is_nonpaying = {{ request.user.nonpaying | yesno:"true,false" }}
   </script>
 
   {% render_bundle 'create' 'js' %}
