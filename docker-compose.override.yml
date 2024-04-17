@@ -1,5 +1,4 @@
 # overrides for local development, not used in CI
-version: '3'
 services:
   web:
     build:
