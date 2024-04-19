@@ -1257,12 +1257,19 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     warc_path = f"{link.guid}.warc.gz"
     wacz_path = f"{link.guid}.wacz"
     pages_path = "pages.jsonl"
+    warc_not_found_error = False
 
     # save a local copy of the warc file
-    with open(warc_path, "wb") as file:
-        copy_file_data(default_storage.open(link.warc_storage_file()), file)
+    warc_save_start_time = time.time()
+    try:
+        with open(warc_path, "wb") as file:
+            copy_file_data(default_storage.open(link.warc_storage_file()), file)
+    except FileNotFoundError:
+        warc_not_found_error = True
+    warc_save_duration = time.time() - warc_save_start_time
 
     # prepare our custom pages.jsonl file
+    jsonl_prep_start_time = time.time()
     jsonl_rows = [
         {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
     ]
@@ -1283,9 +1290,11 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     with open(pages_path, 'w') as file:
         for item in jsonl_rows:
             file.write(json.dumps(item) + '\n')
+    jsonl_write_duration = time.time() - jsonl_prep_start_time
 
     # call js-wacz in a subprocess
-    exception_occurred = False
+    conversion_start_time = time.time()
+    conversion_error = False
     error_output = ''
     subprocess_arguments = [
         "npx",
@@ -1299,13 +1308,11 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         # set cwd to settings.JS_WACZ_DIR so subprocess can find js-wacz
         subprocess.run(subprocess_arguments, capture_output=True, check=True, text=True, cwd=settings.JS_WACZ_DIR)
     except subprocess.CalledProcessError as e:
-        exception_occurred = True
+        conversion_error = True
         error_output = e.stderr
         logger.error(f"{link.guid}: js-wacz returned {e.returncode} with error {error_output}")
+    conversion_duration = time.time() - conversion_start_time
 
-    end_time = time.time()
-    raw_duration = end_time - start_time
-    duration = seconds_to_minutes(raw_duration)
     warc_size = link.warc_size
     formatted_warc_size = filesizeformat(warc_size)
     try:
@@ -1314,6 +1321,8 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         wacz_size = 0
 
     formatted_wacz_size = filesizeformat(wacz_size)
+    raw_total_duration = time.time() - start_time
+    duration = seconds_to_minutes(raw_total_duration)
 
     with open(benchmark_log, 'a') as log_file:
         row = {
@@ -1324,19 +1333,23 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             "wacz_size": formatted_wacz_size,
             "raw_wacz_size": wacz_size,  # bytes
             "duration": duration,
-            "raw_duration": raw_duration,  # seconds
+            "raw_duration": raw_total_duration,  # seconds
+            "raw_warc_save_duration": warc_save_duration,
+            "raw_jsonl_write_duration": jsonl_write_duration,
+            "raw_conversion_duration": conversion_duration,
             "error": ''
         }
         writer = csv.DictWriter(log_file, fieldnames=row.keys())
 
-        wacz_size_error = False
-
-        if exception_occurred:
+        if conversion_error:
             row["conversion_status"] = "Failure"
             row["error"] = error_output
             writer.writerow(row)
+        elif warc_not_found_error:
+            row["conversion_status"] = "Failure"
+            row["error"] = "WARC is not found in storage"
+            writer.writerow(row)
         elif wacz_size == 0 or warc_size > wacz_size:
-            wacz_size_error = True
             row["conversion_status"] = "Failure"
             row["error"] = "WACZ is smaller than WARC"
             writer.writerow(row)
@@ -1344,6 +1357,5 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             row["conversion_status"] = "Success"
             writer.writerow(row)
 
-    if not exception_occurred and not wacz_size_error:
-        with open(wacz_path, 'rb') as wacz_file:
-            default_storage.save(link.wacz_storage_file(), wacz_file)
+            with open(wacz_path, 'rb') as wacz_file:
+                default_storage.save(link.wacz_storage_file(), wacz_file)
