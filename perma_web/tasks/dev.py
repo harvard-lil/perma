@@ -1175,8 +1175,8 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
             is_private=False,
             is_unlisted=False,
             cached_can_play_back=True
-        ).order_by('guid')[:batch_size]
+        ).values_list('guid', flat=True).order_by('guid')[:batch_size]
 
-        for link in links:
-            convert_warc_to_wacz.delay(link.guid, log_file)
+        for link in links.iterator():
+            convert_warc_to_wacz.delay(link, log_file)
 
