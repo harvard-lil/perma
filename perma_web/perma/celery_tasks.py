@@ -1257,15 +1257,11 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     warc_path = f"{link.guid}.warc.gz"
     wacz_path = f"{link.guid}.wacz"
     pages_path = "pages.jsonl"
-    warc_not_found_error = False
 
     # save a local copy of the warc file
     warc_save_start_time = time.time()
-    try:
-        with open(warc_path, "wb") as file:
-            copy_file_data(default_storage.open(link.warc_storage_file()), file)
-    except FileNotFoundError:
-        warc_not_found_error = True
+    with open(warc_path, "wb") as file:
+        copy_file_data(default_storage.open(link.warc_storage_file()), file)
     warc_save_duration = time.time() - warc_save_start_time
 
     # prepare our custom pages.jsonl file
@@ -1344,10 +1340,6 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         if conversion_error:
             row["conversion_status"] = "Failure"
             row["error"] = error_output
-            writer.writerow(row)
-        elif warc_not_found_error:
-            row["conversion_status"] = "Failure"
-            row["error"] = "WARC is not found in storage"
             writer.writerow(row)
         elif wacz_size == 0 or warc_size > wacz_size:
             row["conversion_status"] = "Failure"
