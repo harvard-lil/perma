@@ -1133,7 +1133,7 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
     """
     Creates log file
     Invokes convert_warc_to_wacz() with WARC guid
-    source_csv or single_warc argument is required
+    Defaults to batch_size if source_csv or single_warc isn't passed
     """
     if source_csv and single_warc:
         raise ValueError("Cannot pass source file and WARC path at the same time.")
