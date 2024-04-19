@@ -1129,20 +1129,30 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None):
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None, batch_size=1000):
     """
     Creates log file
     Invokes convert_warc_to_wacz() with WARC guid
-    source_csv or single_warc argument is required
+    Defaults to batch_size if source_csv or single_warc isn't passed
     """
     if source_csv and single_warc:
         raise ValueError("Cannot pass source file and WARC path at the same time.")
-    elif not source_csv and not single_warc:
-        raise ValueError("Either source file or WARC path needs to be passed.")
 
     log_file = os.path.abspath(benchmark_log)
-    csv_headers = ["file_name", "conversion_status", "warc_size", "raw_warc_size", "wacz_size",
-                   "raw_wacz_size", "duration", "raw_duration", "error"]
+    csv_headers = [
+        "file_name",
+        "conversion_status",
+        "warc_size",
+        "raw_warc_size",
+        "wacz_size",
+        "raw_wacz_size",
+        "duration",
+        "raw_duration",
+        "raw_warc_save_duration",
+        "raw_jsonl_write_duration",
+        "raw_conversion_duration",
+        "error"
+    ]
 
     with open(log_file, 'w') as lf:
         writer = csv.DictWriter(lf, fieldnames=csv_headers)
@@ -1158,5 +1168,15 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
             csv_file = csv.reader(file)
             for line in csv_file:
                 convert_warc_to_wacz.delay(line[0], log_file)
-    else:
+    elif single_warc:
         convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
+    else:
+        links = Link.objects.filter(
+            is_private=False,
+            is_unlisted=False,
+            cached_can_play_back=True
+        ).values_list('guid', flat=True).order_by('guid')[:batch_size]
+
+        for link in links.iterator():
+            convert_warc_to_wacz.delay(link, log_file)
+
