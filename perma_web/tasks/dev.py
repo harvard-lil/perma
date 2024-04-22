@@ -1165,15 +1165,27 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
     # for a rough estimate of how long all jobs took to be processed by celery
     logger.info(f"Benchmark CSV was created at: {datetime.now()}")
 
+    base_links_query = Link.objects.filter(
+            is_private=False,
+            is_unlisted=False,
+            cached_can_play_back=True
+    ).values_list('guid', flat=True)
+
+    links = Link.objects.none()
+
     if source_csv:
         sample_data_guids = os.path.abspath(source_csv)
         with open(sample_data_guids, mode='r') as file:
             csv_file = csv.reader(file)
             for line in csv_file:
                 convert_warc_to_wacz.delay(line[0], log_file)
-    elif single_warc:
+        return
+
+    if single_warc:
         convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
-    elif batch_range:
+        return
+
+    if batch_range:
         batch_range_start, batch_range_end = batch_range.split(':')
         batch_range_start = int(batch_range_start)
         batch_range_end = int(batch_range_end)
@@ -1181,40 +1193,14 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
         if batch_range_start >= batch_range_end:
             raise ValueError("Starting index must be smaller than ending index.")
 
-        links = Link.objects.filter(
-            is_private=False,
-            is_unlisted=False,
-            cached_can_play_back=True
-        ).values_list('guid', flat=True).order_by('guid')[batch_range_start:batch_range_end]
-
-        for link in links.iterator():
-            convert_warc_to_wacz.delay(link, log_file)
+        links = base_links_query.order_by('guid')[batch_range_start:batch_range_end]
     elif big_warcs:
-        links = Link.objects.filter(
-            is_private=False,
-            is_unlisted=False,
-            cached_can_play_back=True
-        ).order_by('-warc_size').values_list('guid')[:batch_size]
-
-        for link in links.iterator():
-            convert_warc_to_wacz.delay(link, log_file)
+        links = base_links_query.order_by('-warc_size')[:batch_size]
     elif prefix:
-        links = Link.objects.filter(
-            is_private=False,
-            is_unlisted=False,
-            cached_can_play_back=True,
-            guid__startswith=prefix
-        ).values_list('guid', flat=True).order_by('guid')[:batch_size]
-
-        for link in links.iterator():
-            convert_warc_to_wacz.delay(link, log_file)
+        links = base_links_query.filter(guid__startswith=prefix).order_by('guid')[:batch_size]
     else:
-        links = Link.objects.filter(
-            is_private=False,
-            is_unlisted=False,
-            cached_can_play_back=True
-        ).values_list('guid', flat=True).order_by('guid')[:batch_size]
+        links = base_links_query.order_by('guid')[:batch_size]
 
+    if links:
         for link in links.iterator():
             convert_warc_to_wacz.delay(link, log_file)
-
