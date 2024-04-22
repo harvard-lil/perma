@@ -1129,11 +1129,14 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None, batch_size=1000):
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None, batch_size=1000, batch_range=None,
+                              big_warcs=False, prefix=None):
     """
     Creates log file
     Invokes convert_warc_to_wacz() with WARC guid
     Defaults to batch_size if source_csv or single_warc isn't passed
+    big_warcs can be passed along with batch_size
+    prefix can be passed along with batch_size
     """
     if source_csv and single_warc:
         raise ValueError("Cannot pass source file and WARC path at the same time.")
@@ -1170,6 +1173,41 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
                 convert_warc_to_wacz.delay(line[0], log_file)
     elif single_warc:
         convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
+    elif batch_range:
+        batch_range_start, batch_range_end = batch_range.split(':')
+        batch_range_start = int(batch_range_start)
+        batch_range_end = int(batch_range_end)
+
+        if batch_range_start >= batch_range_end:
+            raise ValueError("Starting index must be smaller than ending index.")
+
+        links = Link.objects.filter(
+            is_private=False,
+            is_unlisted=False,
+            cached_can_play_back=True
+        ).values_list('guid', flat=True).order_by('guid')[batch_range_start:batch_range_end]
+
+        for link in links.iterator():
+            convert_warc_to_wacz.delay(link, log_file)
+    elif big_warcs:
+        links = Link.objects.filter(
+            is_private=False,
+            is_unlisted=False,
+            cached_can_play_back=True
+        ).order_by('-warc_size').values_list('guid')[:batch_size]
+
+        for link in links.iterator():
+            convert_warc_to_wacz.delay(link, log_file)
+    elif prefix:
+        links = Link.objects.filter(
+            is_private=False,
+            is_unlisted=False,
+            cached_can_play_back=True,
+            guid__startswith=prefix
+        ).values_list('guid', flat=True).order_by('guid')[:batch_size]
+
+        for link in links.iterator():
+            convert_warc_to_wacz.delay(link, log_file)
     else:
         links = Link.objects.filter(
             is_private=False,
