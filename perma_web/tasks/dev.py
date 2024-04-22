@@ -1201,6 +1201,5 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
     else:
         links = base_links_query.order_by('guid')[:batch_size]
 
-    if links:
-        for link in links.iterator():
-            convert_warc_to_wacz.delay(link, log_file)
+    for link in links.iterator():
+        convert_warc_to_wacz.delay(link, log_file)
