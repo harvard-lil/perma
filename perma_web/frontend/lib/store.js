@@ -24,7 +24,6 @@ export const getUserTypes = (isIndividual, user) => {
     const isSponsored = topLevelFolders.some(folder => folder.is_sponsored_root_folder)
 
     if (isOrgAffiliated) {
-        console.log('hello')
         userTypes = userTypes.concat('orgAffiliated')
     }
 
