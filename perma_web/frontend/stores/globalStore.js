@@ -19,5 +19,15 @@ export const globalStore = reactive({
   userTypes: [],
   updateUserTypes(types) {
     this.userTypes = types
+  },
+
+  selectedFolder: {
+    id: [], 
+    orgId: ''
+  },
+
+  updateFolderSelection({folderId, orgId}) {
+    this.selectedFolder.id = folderId,
+    this.selectedFolder.orgId = orgId
   }
 })
