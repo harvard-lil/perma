@@ -12,14 +12,27 @@ export const getLinksRemainingStatus = (linksRemaining, isNonpaying) => {
     return globalStore.updateLinksRemainingStatus('unlimited_paid')
 }
 
-export const getUserTypes = (isIndividual) => {
-    let types = []
-
+export const getUserTypes = (isIndividual, user) => {
     if (isIndividual) {
-        types = types.concat('individual')
+        return globalStore.updateUserTypes('individual')
     }
 
-    if (types.length) {
-        return globalStore.updateUserTypes(types)
+    let userTypes = []
+
+    const topLevelFolders = user.top_level_folders
+    const isOrgAffiliated = topLevelFolders.some(folder => !!folder.organization)
+    const isSponsored = topLevelFolders.some(folder => folder.is_sponsored_root_folder)
+
+    if (isOrgAffiliated) {
+        console.log('hello')
+        userTypes = userTypes.concat('orgAffiliated')
+    }
+
+    if (isSponsored) {
+        userTypes = userTypes.concat('sponsored')
+    }
+
+    if (userTypes.length) {
+        return globalStore.updateUserTypes(userTypes)
     }
 }

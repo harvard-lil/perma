@@ -5,7 +5,7 @@ import { getLinksRemainingStatus, getUserTypes } from '../lib/store'
 
 onBeforeMount(() => {
     getLinksRemainingStatus(links_remaining, is_nonpaying)
-    getUserTypes(is_individual)
+    getUserTypes(is_individual, current_user)
 })
 </script>
 
