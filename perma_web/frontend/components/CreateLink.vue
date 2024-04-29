@@ -5,6 +5,7 @@ import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
 import LinkCount from './LinkCount.vue';
+import FolderSelect from './FolderSelect.vue';
 
 const userLink = ref('')
 const userLinkGUID = ref('')
@@ -146,6 +147,7 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
+                    <FolderSelect />
                 </fieldset>
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
