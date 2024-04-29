@@ -1,4 +1,4 @@
-import { createApp, watch } from 'vue'
+import { createApp } from 'vue'
 import App from '../components/App.vue'
 import { globalStore } from '../stores/globalStore'
 
