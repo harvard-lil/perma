@@ -38,13 +38,11 @@ export const globalStore = reactive({
 
   organizationFolders: [],
   updateOrganizationFolders(orgFolders) {
-    console.log(orgFolders)
     this.organizationFolders = orgFolders
   },
 
   organizationFoldersById: {},
   updateOrganizationFoldersById(orgFoldersById) {
-    console.log(orgFoldersById)
     this.organizationFoldersById = orgFoldersById
   }, 
 
