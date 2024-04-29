@@ -4,7 +4,7 @@ import { onBeforeMount, watchEffect, watch } from 'vue'
 import { getLinksRemainingStatus, getUserTypes, getOrganizationFolders, getSponsoredFolders } from '../lib/store'
 import { globalStore } from '../stores/globalStore';
 
-onBeforeMount(async () => {
+onBeforeMount(() => {
     getLinksRemainingStatus(links_remaining, is_nonpaying)
     getUserTypes(is_individual, current_user)
 })
