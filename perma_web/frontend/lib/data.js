@@ -1,6 +1,6 @@
 import { reactive, toRefs } from "vue";
 
-export async function useFetch(url, options) {
+export async function useFetch(baseUrl, queryParams) {
   const state = reactive({
     isLoading: false,
     hasError: false,
@@ -8,11 +8,13 @@ export async function useFetch(url, options) {
     data: null
   })
 
+  const url = queryParams ? `${baseUrl}?${new URLSearchParams(queryParams)}` : baseUrl
+
   const fetchData = async () => {
     state.isLoading = true;
 
     try {
-      const response = await fetch(url, options);
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error('error')
