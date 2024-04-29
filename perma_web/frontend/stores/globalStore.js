@@ -11,6 +11,11 @@ export const globalStore = reactive({
     this.captureErrorMessage = message
   },
 
+  fetchErrorMessage: '',
+  updateFetchErrorMessage(message) {
+    this.fetchErrorMessage = message
+  },
+
   linksRemainingStatus: '',
   updateLinksRemainingStatus(status) {
     this.linksRemainingStatus = status
@@ -29,5 +34,22 @@ export const globalStore = reactive({
   updateFolderSelection({folderId, orgId}) {
     this.selectedFolder.id = folderId,
     this.selectedFolder.orgId = orgId
+  },
+
+  organizationFolders: [],
+  updateOrganizationFolders(orgFolders) {
+    console.log(orgFolders)
+    this.organizationFolders = orgFolders
+  },
+
+  organizationFoldersById: {},
+  updateOrganizationFoldersById(orgFoldersById) {
+    console.log(orgFoldersById)
+    this.organizationFoldersById = orgFoldersById
+  }, 
+
+  sponsoredFolders: [], 
+  updateSponsoredFolders(sponsoredFolders) {
+    this.sponsoredFolders = sponsoredFolders
   }
 })
