@@ -147,7 +147,7 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect />
+                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" />
                 </fieldset>
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
