@@ -228,6 +228,21 @@ export function handleSelectionChange (data) {
   currentFolder = data.folderId;
   currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
 
+  const updateFolderSelection = new CustomEvent("vueDispatch", {
+    bubbles: true,
+    detail: { name: 'updateFolderSelection', data: {
+      path,
+      orgId: data.orgId,
+      folderId: currentFolder,
+      sponsorId: currentSponsor,
+      isPrivate: currentFolderPrivate,
+      isReadOnly: readOnly,
+      isOutOfLinks: outOfLinks,
+    } },
+  })
+
+  document.dispatchEvent(updateFolderSelection);
+
   // update the dropdown (no-op if dropdown isn't displayed)
   let formatted_links_remaining;
   if (readOnly) {

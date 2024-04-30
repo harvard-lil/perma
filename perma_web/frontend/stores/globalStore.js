@@ -27,13 +27,23 @@ export const globalStore = reactive({
   },
 
   selectedFolder: {
+    path: [],
     id: [], 
-    orgId: ''
+    orgId: '',
+    sponsorId: '',
+    isPrivate: false,
+    isReadOnly: false,
+    isOutOfLinks: false,
   },
 
-  updateFolderSelection({folderId, orgId}) {
+  updateFolderSelection({path, folderId, orgId, sponsorId, isPrivate, isReadOnly, isOutOfLinks}) {
+    this.selectedFolder.path = path,
     this.selectedFolder.id = folderId,
-    this.selectedFolder.orgId = orgId
+    this.selectedFolder.orgId = orgId,
+    this.selectedFolder.sponsorId = sponsorId,
+    this.selectedFolder.isPrivate = isPrivate,
+    this.selectedFolder.isReadOnly = isReadOnly,
+    this.selectedFolder.isOutOfLinks = isOutOfLinks
   },
 
   organizationFolders: [],

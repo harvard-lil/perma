@@ -155,15 +155,6 @@ function setSavedFolder (node) {
       return folderTree.get_node(id).data.folder_id;
     });
     ls.setCurrent(data.organization_id, folderIds);
-    const updateFolderSelection = new CustomEvent("vueDispatch", {
-      bubbles: true,
-      detail: { name: 'updateFolderSelection', data: {
-        orgId: data.organization_id,
-        folderId: folderIds
-      } },
-    })
-
-    document.dispatchEvent(updateFolderSelection);
   }
   sendSelectionChangeEvent(node);
 }
