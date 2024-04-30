@@ -1,6 +1,6 @@
 import { reactive, toRefs } from "vue";
 
-export async function useFetch(baseUrl, options) {
+export const useFetch = async (baseUrl, options) => {
   const state = reactive({
     isLoading: false,
     hasError: false,
