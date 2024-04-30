@@ -16,6 +16,11 @@ export const globalStore = reactive({
     this.fetchErrorMessage = message
   },
 
+  linksRemaining: '',
+  updateLinksRemaining(links) {
+    this.linksRemaining = links
+  },
+
   linksRemainingStatus: '',
   updateLinksRemainingStatus(status) {
     this.linksRemainingStatus = status
@@ -36,14 +41,8 @@ export const globalStore = reactive({
     isOutOfLinks: false,
   },
 
-  updateFolderSelection({path, folderId, orgId, sponsorId, isPrivate, isReadOnly, isOutOfLinks}) {
-    this.selectedFolder.path = path,
-    this.selectedFolder.id = folderId,
-    this.selectedFolder.orgId = orgId,
-    this.selectedFolder.sponsorId = sponsorId,
-    this.selectedFolder.isPrivate = isPrivate,
-    this.selectedFolder.isReadOnly = isReadOnly,
-    this.selectedFolder.isOutOfLinks = isOutOfLinks
+  updateFolderSelection(selection) {
+    this.selectedFolder = selection
   },
 
   organizationFolders: [],
