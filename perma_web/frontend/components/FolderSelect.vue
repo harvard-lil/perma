@@ -8,8 +8,9 @@ const isSelectExpanded = ref(false)
 
 const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
 
-// Only required for admin users locally
+// Folder names are only required for admin users locally
 const personalFolderNames = ['Empty root folder', 'Personal Links']
+const personalFolderId = current_user.top_level_folders[0].id
 
 const getFolderHeader = (folder) => {
     if (folder.registrar) {
@@ -93,14 +94,16 @@ const handleClose = () => {
                     {{ linksRemaining }}
                 </span>
             </button>
-            <ul @keydown.down="handleArrowDown" @keydown.up="handleArrowUp" class="dropdown-menu selector-menu"
-                :class="{ 'open': isSelectExpanded }" aria-labelledby="dropdownMenu1">
+            <ul @keydown.down="handleArrowDown" @keydown.up="handleArrowUp" role="listbox" aria-label="Folder options"
+                class="dropdown-menu selector-menu" :class="{ 'open': isSelectExpanded }">
                 <template v-for="(folder, index) in folders">
                     <li v-if="folder.registrar !== folders[index - 1]?.registrar" class="dropdown-header"
                         :class="{ 'sponsored': folder.sponsored_by }">
                         {{ getFolderHeader(folder) }}
                     </li>
-                    <li tabindex="-1" class="dropdown-item" :data-index="index">
+                    <li tabindex="-1" class="dropdown-item" role="option" aria-selected="false" :data-index="index"
+                        :data-orgid="folder.sponsored_by ? null : folder.id"
+                        :data-folderid="folder.sponsored_by ? `[${folder.parent}, ${folder.id}]` : folder.shared_folder.id">
                         {{ folder.name }}
                         <span v-if="folder?.default_to_private" class="ui-private">(Private)</span>
                         <span v-if="folder.read_only" class="links-remaining">0</span>
@@ -109,7 +112,8 @@ const handleClose = () => {
                     </li>
                 </template>
                 <li class="dropdown-header personal">Personal Links</li>
-                <li tabindex="-1" class="dropdown-item personal-links" :data-index="folders.length">
+                <li tabindex="-1" class="dropdown-item personal-links" role="option" aria-selected="false"
+                    :data-index="folders.length" :data-folderid="personalFolderId">
                     Personal Links <span class="links-remaining">{{ globalStore.linksRemaining === Infinity ?
                 'unlimited' :
                 globalStore.linksRemaining }}</span>
