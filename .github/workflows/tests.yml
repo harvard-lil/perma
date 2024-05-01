@@ -69,7 +69,7 @@ jobs:
       ### codecov ###
       # https://github.com/codecov/codecov-action
       - name: Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
 
       # Commit built assets if necessary
       - name: Commit built assets
