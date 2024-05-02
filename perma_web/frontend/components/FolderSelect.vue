@@ -41,7 +41,6 @@ const linksRemaining = computed(() => {
 })
 
 const handleSelectToggle = () => {
-    console.log('TOGGLED')
     isSelectExpanded.value = !isSelectExpanded.value
 }
 
@@ -76,7 +75,6 @@ const handleArrowUp = (e) => {
 }
 
 const handleClose = () => {
-    console.log('CLOSED')
     isSelectExpanded.value = false
     selectButtonRef.value.focus()
 }
@@ -99,8 +97,6 @@ const handleSelection = (e) => {
     if (Array.isArray(folderId)) {
         folderId = folderId[1]
     }
-
-    console.log({ orgId, folderId })
 
     // export function triggerOnWindow(message, data) {
     //     $(window).trigger(message, data);
