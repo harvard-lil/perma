@@ -2,9 +2,12 @@
 import { computed, ref } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
+// import { triggerOnWindow } from '../../static/js/helpers/general.helpers'
 
-const selectLabel = computed(() => globalStore.selectedFolder.path.length ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
+const selectContainerRef = ref(null)
+const selectButtonRef = ref(null)
 const isSelectExpanded = ref(false)
+const selectLabel = computed(() => globalStore.selectedFolder.path.length ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
 
 const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
 
@@ -38,13 +41,11 @@ const linksRemaining = computed(() => {
 })
 
 const handleSelectToggle = () => {
+    console.log('TOGGLED')
     isSelectExpanded.value = !isSelectExpanded.value
 }
 
 // Select Event Handlers
-const selectContainerRef = ref(null)
-const selectButtonRef = ref(null)
-
 onClickOutside(selectContainerRef, () => {
     if (!isSelectExpanded) { return }
     isSelectExpanded.value = false
@@ -75,34 +76,74 @@ const handleArrowUp = (e) => {
 }
 
 const handleClose = () => {
+    console.log('CLOSED')
     isSelectExpanded.value = false
     selectButtonRef.value.focus()
+}
+
+const handleSelection = (e) => {
+    const { orgid, folderid } = e.target.dataset
+
+    if (!folderid) {
+        return handleClose()
+    }
+
+    let folderId = JSON.parse(folderid)
+    let orgId = null
+
+    // Organization folder selections
+    if (orgid) {
+        orgId = parseInt(orgid)
+    }
+
+    if (Array.isArray(folderId)) {
+        folderId = folderId[1]
+    }
+
+    console.log({ orgId, folderId })
+
+    // export function triggerOnWindow(message, data) {
+    //     $(window).trigger(message, data);
+    // }
+    // triggerOnWindow("dropdown.selectionChange", {
+    //     folderId,
+    //     orgId
+    // });
+
+    // const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
+    // window.dispatchEvent(updateSelections);
+
+    handleClose()
 }
 </script>
 
 <template>
     <div id="organization_select_form">
         <span class="label-affil">This Perma Link will be affiliated with</span>
-        <div ref="selectContainerRef" @keydown.home="handleFocus(0)" @keydown.esc="handleClose"
-            @click="handleSelectToggle" class="dropdown dropdown-affil" :class="{ 'open': isSelectExpanded }">
-            <button ref="selectButtonRef" @keydown.down.prevent="handleFocus(0)"
+        <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
+            @keydown.end.prevent="handleFocus(folders.length)" @keydown.esc="handleClose" @keydown.tab="handleClose"
+            class="dropdown dropdown-affil" :class="{ 'open': isSelectExpanded }">
+            <button ref="selectButtonRef" @keydown.down.prevent="handleFocus(0)" @click="handleSelectToggle"
                 class="dropdown-toggle selector selector-affil needsclick" type="button" id="dropdownMenu1"
-                aria-haspopup="true" :aria-expanded="isSelectExpanded">
+                aria-haspopup="listbox" :aria-expanded="isSelectExpanded">
                 {{ selectLabel }}
                 <span v-if="globalStore.selectedFolder.isPrivate" class="ui-private"></span>
                 <span v-if="showLinksRemaining" class="links-remaining">
                     {{ linksRemaining }}
                 </span>
             </button>
-            <ul @keydown.down="handleArrowDown" @keydown.up="handleArrowUp" role="listbox" aria-label="Folder options"
-                class="dropdown-menu selector-menu" :class="{ 'open': isSelectExpanded }">
+            <ul ref="selectListRef" v-if="isSelectExpanded" @keydown.down="handleArrowDown" @keydown.up="handleArrowUp"
+                @click="handleSelection" @keydown.space="handleSelection" @keydown.enter.prevent="handleSelection"
+                role="listbox" aria-label="Folder options" class="dropdown-menu selector-menu"
+                :class="{ 'open': isSelectExpanded }">
                 <template v-for="(folder, index) in folders">
-                    <li v-if="folder.registrar !== folders[index - 1]?.registrar" class="dropdown-header"
-                        :class="{ 'sponsored': folder.sponsored_by }">
+                    <li v-if="folder.registrar !== folders[index - 1]?.registrar" role="presentation"
+                        class="dropdown-header" :class="{ 'sponsored': folder.sponsored_by }">
                         {{ getFolderHeader(folder) }}
                     </li>
-                    <li tabindex="-1" class="dropdown-item" role="option" aria-selected="false" :data-index="index"
-                        :data-orgid="folder.sponsored_by ? null : folder.id"
+                    <li tabindex="-1" class="dropdown-item" role="option"
+                        :aria-selected="globalStore.selectedFolder.orgId === folder.id || globalStore.selectedFolder.path[1] === folder.name"
+                        :data-index="index" :data-orgid="folder.sponsored_by ? null : folder.id"
                         :data-folderid="folder.sponsored_by ? `[${folder.parent}, ${folder.id}]` : folder.shared_folder.id">
                         {{ folder.name }}
                         <span v-if="folder?.default_to_private" class="ui-private">(Private)</span>
@@ -111,7 +152,7 @@ const handleClose = () => {
                             :class="{ 'sponsored': folder.sponsored_by }">unlimited</span>
                     </li>
                 </template>
-                <li class="dropdown-header personal">Personal Links</li>
+                <li class="dropdown-header personal" role="presentation" aria-hidden="true">Personal Links</li>
                 <li tabindex="-1" class="dropdown-item personal-links" role="option" aria-selected="false"
                     :data-index="folders.length" :data-folderid="personalFolderId">
                     Personal Links <span class="links-remaining">{{ globalStore.linksRemaining === Infinity ?
