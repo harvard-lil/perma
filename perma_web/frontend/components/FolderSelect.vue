@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
-// import { triggerOnWindow } from '../../static/js/helpers/general.helpers'
+import { triggerOnWindow } from '../../static/js/helpers/general.helpers'
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
@@ -80,7 +80,10 @@ const handleClose = () => {
 }
 
 const handleSelection = (e) => {
-    const { orgid, folderid } = e.target.dataset
+    const isSpan = e.target.matches('span')
+    const target = isSpan ? e.target.parentElement : e.target
+
+    const { orgid, folderid } = target.dataset
 
     if (!folderid) {
         return handleClose()
@@ -101,16 +104,20 @@ const handleSelection = (e) => {
     // export function triggerOnWindow(message, data) {
     //     $(window).trigger(message, data);
     // }
-    // triggerOnWindow("dropdown.selectionChange", {
-    //     folderId,
-    //     orgId
-    // });
+    triggerOnWindow("dropdown.selectionChange", {
+        folderId,
+        orgId
+    });
 
-    // const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
-    // window.dispatchEvent(updateSelections);
+    console.log({ orgId, folderId })
+
+    // Debug only
+    const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
+    window.dispatchEvent(updateSelections);
 
     handleClose()
 }
+
 </script>
 
 <template>
@@ -129,9 +136,9 @@ const handleSelection = (e) => {
                 </span>
             </button>
             <ul ref="selectListRef" v-if="isSelectExpanded" @keydown.down="handleArrowDown" @keydown.up="handleArrowUp"
-                @click="handleSelection" @keydown.space="handleSelection" @keydown.enter.prevent="handleSelection"
-                role="listbox" aria-label="Folder options" class="dropdown-menu selector-menu"
-                :class="{ 'open': isSelectExpanded }">
+                @click.propagate="handleSelection" @keydown.space="handleSelection"
+                @keydown.enter.prevent="handleSelection" role="listbox" aria-label="Folder options"
+                class="dropdown-menu selector-menu" :class="{ 'open': isSelectExpanded }">
                 <template v-for="(folder, index) in folders">
                     <li v-if="folder.registrar !== folders[index - 1]?.registrar" role="presentation"
                         class="dropdown-header" :class="{ 'sponsored': folder.sponsored_by }">
