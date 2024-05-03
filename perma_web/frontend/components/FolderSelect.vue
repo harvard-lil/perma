@@ -159,11 +159,13 @@ const handleSelection = (e) => {
                     </li>
                 </template>
                 <li class="dropdown-header personal" role="presentation" aria-hidden="true">Personal Links</li>
-                <li tabindex="-1" class="dropdown-item personal-links" role="option" aria-selected="false"
-                    :data-index="folders.length" :data-folderid="personalFolderId">
-                    Personal Links <span class="links-remaining">{{ globalStore.linksRemaining === Infinity ?
+                <li tabindex="-1" class="dropdown-item personal-links" role="option"
+                    :aria-selected="personalFolderNames.includes(globalStore.selectedFolder.path[0])"
+                    :data-index="folders.length" :data-folderid="personalFolderId">Personal Links <span
+                        class="links-remaining">{{ globalStore.linksRemaining ===
+                Infinity ?
                 'unlimited' :
-                globalStore.linksRemaining }}</span>
+                        globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
