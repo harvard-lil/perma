@@ -11,8 +11,9 @@ const selectLabel = computed(() => globalStore.selectedFolder.path.length ? glob
 
 const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
 
-// Folder names are only required for admin users locally
+// Required for admin users locally, where admins have an "empty root folder" instead of personal links
 const personalFolderNames = ['Empty root folder', 'Personal Links']
+
 const personalFolderId = current_user.top_level_folders[0].id
 
 const getFolderHeader = (folder) => {
@@ -166,7 +167,7 @@ const handleSelection = (e) => {
                         class="links-remaining">{{ globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                globalStore.linksRemaining }}</span>
+                        globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
