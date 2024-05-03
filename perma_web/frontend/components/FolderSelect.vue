@@ -97,6 +97,7 @@ const handleSelection = (e) => {
         orgId = parseInt(orgid)
     }
 
+    // Sponsored folder selections
     if (Array.isArray(folderId)) {
         folderId = folderId[1]
     }
