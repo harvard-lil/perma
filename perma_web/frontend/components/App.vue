@@ -20,10 +20,6 @@ watchEffect(() => {
     }
 })
 
-// Debug only
-window.addEventListener('dropdown.selectionChange', function (event) {
-    console.log('Custom event triggered:', event);
-});
 </script>
 
 <template>
