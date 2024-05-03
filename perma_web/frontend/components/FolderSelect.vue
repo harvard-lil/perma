@@ -40,15 +40,15 @@ const linksRemaining = computed(() => {
     return globalStore.linksRemaining
 })
 
-const handleSelectToggle = () => {
-    isSelectExpanded.value = !isSelectExpanded.value
-}
-
 // Select Event Handlers
 onClickOutside(selectContainerRef, () => {
     if (!isSelectExpanded) { return }
     isSelectExpanded.value = false
 })
+
+const handleSelectToggle = () => {
+    isSelectExpanded.value = !isSelectExpanded.value
+}
 
 const handleFocus = (index) => {
     const itemToFocus = document.querySelector(`[data-index="${index}"]`);
@@ -166,7 +166,7 @@ const handleSelection = (e) => {
                         class="links-remaining">{{ globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                        globalStore.linksRemaining }}</span>
+                globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
