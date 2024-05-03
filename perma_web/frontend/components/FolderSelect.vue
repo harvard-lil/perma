@@ -101,17 +101,20 @@ const handleSelection = (e) => {
         folderId = folderId[1]
     }
 
-    // export function triggerOnWindow(message, data) {
+    // Debug only
+    // Should output 
+    // ƒ triggerOnWindow(message, data) {
     //     $(window).trigger(message, data);
     // }
+    console.log(triggerOnWindow)
+
+    // Calls triggerOnWindow function, but doesn't appear to fire Jquery-specific trigger event
     triggerOnWindow("dropdown.selectionChange", {
         folderId,
         orgId
-    });
+    })
 
-    console.log({ orgId, folderId })
-
-    // Debug only
+    // Call a custom event that triggers triggerOnWindow function
     const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
     window.dispatchEvent(updateSelections);
 
