@@ -97,11 +97,6 @@ const handleSelection = (e) => {
         orgId = parseInt(orgid)
     }
 
-    // Sponsored folder selections
-    if (Array.isArray(folderId)) {
-        folderId = folderId[1]
-    }
-
     // Call a custom event that triggers triggerOnWindow function
     const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
     window.dispatchEvent(updateSelections);
@@ -138,7 +133,7 @@ const handleSelection = (e) => {
                     <li tabindex="-1" class="dropdown-item" role="option"
                         :aria-selected="globalStore.selectedFolder.orgId === folder.id || globalStore.selectedFolder.path[1] === folder.name"
                         :data-index="index" :data-orgid="folder.sponsored_by ? null : folder.id"
-                        :data-folderid="folder.sponsored_by ? `[${folder.parent}, ${folder.id}]` : folder.shared_folder.id">
+                        :data-folderid="folder.sponsored_by ? `[${folder.parent},${folder.id}]` : folder.shared_folder.id">
                         {{ folder.name }}
                         <span v-if="folder?.default_to_private" class="ui-private">(Private)</span>
                         <span v-if="folder.read_only" class="links-remaining">0</span>
@@ -153,7 +148,7 @@ const handleSelection = (e) => {
                         class="links-remaining">{{ globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                        globalStore.linksRemaining }}</span>
+                globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
