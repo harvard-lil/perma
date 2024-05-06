@@ -222,7 +222,6 @@ function updateButtonPrivacy(){
 
 // Exported for access from JS tests
 export function handleSelectionChange (data) {
-  console.log(data)
   let currentOrg = data.orgId;
   let currentSponsor = data.sponsorId;
   let readOnly = data.readOnly;
@@ -338,7 +337,6 @@ function setupEventHandlers () {
   // listen for folder selection changes
   $(window).on('FolderTreeModule.selectionChange', function(evt, data){
     if (typeof data !== 'object') {
-       console.log('butts')
        data = JSON.parse(data);
     }
     handleSelectionChange(data);
