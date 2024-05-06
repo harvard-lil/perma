@@ -7,6 +7,7 @@ const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
 const isSelectExpanded = ref(false)
 const selectLabel = computed(() => globalStore.selectedFolder.path.length ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
+const selectListRef = ref(null)
 
 const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
 
@@ -51,7 +52,7 @@ const handleSelectToggle = () => {
 }
 
 const handleFocus = (index) => {
-    const itemToFocus = document.querySelector(`[data-index="${index}"]`);
+    const itemToFocus = selectListRef.value.querySelector(`[data-index="${index}"]`);
     itemToFocus.focus();
 };
 
@@ -125,7 +126,7 @@ const handleSelection = (e) => {
                 @click.propagate="handleSelection" @keydown.space="handleSelection"
                 @keydown.enter.prevent="handleSelection" role="listbox" aria-label="Folder options"
                 class="dropdown-menu selector-menu" :class="{ 'open': isSelectExpanded }">
-                <template v-for="(folder, index) in folders">
+                <template v-for="( folder, index ) in  folders ">
                     <li v-if="folder.registrar !== folders[index - 1]?.registrar" role="presentation"
                         class="dropdown-header" :class="{ 'sponsored': folder.sponsored_by }">
                         {{ getFolderHeader(folder) }}
