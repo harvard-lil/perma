@@ -5,9 +5,9 @@ import { onClickOutside } from '@vueuse/core'
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
+const selectListRef = ref(null)
 const isSelectExpanded = ref(false)
 const selectLabel = computed(() => globalStore.selectedFolder.path.length ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
-const selectListRef = ref(null)
 
 const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
 
