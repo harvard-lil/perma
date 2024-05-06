@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
-import { triggerOnWindow } from '../../static/js/helpers/general.helpers'
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
@@ -103,19 +102,6 @@ const handleSelection = (e) => {
         folderId = folderId[1]
     }
 
-    // Debug only
-    // Should output 
-    // ƒ triggerOnWindow(message, data) {
-    //     $(window).trigger(message, data);
-    // }
-    console.log(triggerOnWindow)
-
-    // Calls triggerOnWindow function, but doesn't appear to fire Jquery-specific trigger event
-    triggerOnWindow("dropdown.selectionChange", {
-        folderId,
-        orgId
-    })
-
     // Call a custom event that triggers triggerOnWindow function
     const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
     window.dispatchEvent(updateSelections);
@@ -167,7 +153,7 @@ const handleSelection = (e) => {
                         class="links-remaining">{{ globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                        globalStore.linksRemaining }}</span>
+                globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
