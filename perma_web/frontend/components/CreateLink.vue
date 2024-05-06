@@ -33,7 +33,8 @@ const handleArchiveRequest = async () => {
 
     const formData = {
         url: userLink.value,
-        human: true
+        human: true,
+        folder: globalStore.selectedFolder.folderId
     }
 
     const csrf = getCookie("csrftoken")
