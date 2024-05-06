@@ -21,7 +21,7 @@ const getFolderHeader = (folder) => {
         return folder.registrar
     }
 
-    if (folder.sponsored_by) {
+    else if (folder.sponsored_by) {
         return "Sponsored Links"
     }
 
