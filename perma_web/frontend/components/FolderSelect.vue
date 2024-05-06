@@ -118,8 +118,8 @@ const handleSelection = (e) => {
             @keydown.end.prevent="handleFocus(folders.length)" @keydown.esc="handleClose" @keydown.tab="handleClose"
             class="dropdown dropdown-affil" :class="{ 'open': isSelectExpanded }">
             <button ref="selectButtonRef" @keydown.down.prevent="handleFocus(0)" @click="handleSelectToggle"
-                class="dropdown-toggle selector selector-affil needsclick" type="button" id="dropdownMenu1"
-                aria-haspopup="listbox" :aria-expanded="isSelectExpanded">
+                class="dropdown-toggle selector selector-affil needsclick" type="button" aria-haspopup="listbox"
+                :aria-expanded="isSelectExpanded" aria-owns="folder-select-list">
                 {{ selectLabel }}
                 <span v-if="globalStore.selectedFolder.isPrivate" class="ui-private"></span>
                 <span v-if="showLinksRemaining" class="links-remaining">
@@ -153,7 +153,7 @@ const handleSelection = (e) => {
                         class="links-remaining">{{ globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                globalStore.linksRemaining }}</span>
+                        globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
