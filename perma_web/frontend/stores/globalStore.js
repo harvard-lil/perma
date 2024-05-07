@@ -40,7 +40,6 @@ export const globalStore = reactive({
     isReadOnly: false,
     isOutOfLinks: false,
   },
-
   updateFolderSelection(selection) {
     this.selectedFolder = selection
   },
