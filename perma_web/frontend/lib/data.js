@@ -15,9 +15,9 @@ export const useFetch = async (baseUrl, options) => {
 
     try {
       const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error('error')
+      
+      if (!response?.ok) {
+        throw new Error(response.statusText) 
       }
 
       state.data = await response.json()
