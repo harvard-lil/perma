@@ -136,9 +136,10 @@ const handleSelection = (e) => {
                         :data-index="index" :data-orgid="folder.sponsored_by ? null : folder.id"
                         :data-folderid="folder.sponsored_by ? `[${folder.parent},${folder.id}]` : folder.shared_folder.id">
                         {{ folder.name }}
-                        <span v-if="folder?.default_to_private" class="ui-private">(Private)</span>
-                        <span v-if="folder.read_only" class="links-remaining">0</span>
-                        <span v-else class='links-unlimited'
+                        <span v-if="folder?.default_to_private"
+                            class="dropdown-item-supplement ui-private">(Private)</span>
+                        <span v-if="folder.read_only" class="dropdown-item-supplement links-remaining">0</span>
+                        <span v-else class='dropdown-item-supplement links-unlimited'
                             :class="{ 'sponsored': folder.sponsored_by }">unlimited</span>
                     </li>
                 </template>
