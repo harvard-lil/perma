@@ -111,9 +111,6 @@ PROCESSES_PROXY_PORT = 9000
 #
 # Scoop settings
 #
-DOWNGRADE_TO_WARC = True
-""" If True, Scoop will generate WARCs instead of WACZ files. """
-
 BANNED_IP_RANGES = [
     "0.0.0.0/8",
     "10.0.0.0/8",
