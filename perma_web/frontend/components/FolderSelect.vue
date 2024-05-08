@@ -11,9 +11,6 @@ const selectLabel = computed(() => globalStore.selectedFolder.path.length ? glob
 
 const folders = computed(() => globalStore.userOrganizations.concat(globalStore.sponsoredFolders))
 
-// Required  for admin users locally, where admins have an "empty root folder" instead of personal links
-const personalFolderNames = ['Empty root folder', 'Personal Links']
-
 const personalFolderId = current_user.top_level_folders[0].id
 
 const getFolderHeader = (folder) => {
@@ -28,7 +25,7 @@ const getFolderHeader = (folder) => {
     return "Personal Links"
 }
 
-const showLinksRemaining = computed(() => personalFolderNames.includes(globalStore.selectedFolder.path[0]) || !!globalStore.selectedFolder.isReadOnly)
+const showLinksRemaining = computed(() => globalStore.selectedFolder.folderId === personalFolderId || !!globalStore.selectedFolder.isReadOnly)
 const linksRemaining = computed(() => {
     if (globalStore.selectedFolder.isReadOnly) {
         return 0
@@ -99,7 +96,10 @@ const handleSelection = (e) => {
 
 </script>
 
+
 <template>
+
+
     <div id="organization_select_form">
         <span class="label-affil">This Perma Link will be affiliated with</span>
         <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
@@ -137,7 +137,7 @@ const handleSelection = (e) => {
                 </template>
                 <li class="dropdown-header personal" role="presentation" aria-hidden="true">Personal Links</li>
                 <li tabindex="-1" class="dropdown-item personal-links" role="option"
-                    :aria-selected="personalFolderNames.includes(globalStore.selectedFolder.path[0])"
+                    :aria-selected="globalStore.selectedFolder.folderId === personalFolderId"
                     :data-index="folders.length" :data-folderid="personalFolderId">Personal Links <span
                         class="dropdown-item-supplement links-remaining">{{
                 globalStore.linksRemaining ===
