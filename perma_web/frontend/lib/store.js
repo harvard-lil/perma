@@ -33,7 +33,7 @@ export const getUserTypes = (isIndividual, isOrganizationUser, isSponsoredUser) 
     }
 }
 
-export const getOrganizationFolders = async () => {
+export const getUserOrganizations = async () => {
     const { data, error, errorMessage } = await useFetch('/api/v1/organizations', {
         limit: 300,
         order_by: 'registrar, name'
@@ -44,11 +44,7 @@ export const getOrganizationFolders = async () => {
     }
 
     if (data?.value?.objects.length) {
-        const organizationsById = data.value.objects.reduce((acc, currentValue) => {
-            return { ...acc, [currentValue.id]: currentValue }
-        }, {})
-        globalStore.updateOrganizationFolders(data.value.objects)
-        globalStore.updateOrganizationFoldersById(organizationsById)
+        globalStore.updateUserOrganizations(data.value.objects)
     }
 }
 

@@ -9,9 +9,9 @@ const selectListRef = ref(null)
 const isSelectExpanded = ref(false)
 const selectLabel = computed(() => globalStore.selectedFolder.path.length ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
 
-const folders = computed(() => globalStore.organizationFolders.concat(globalStore.sponsoredFolders))
+const folders = computed(() => globalStore.userOrganizations.concat(globalStore.sponsoredFolders))
 
-// Required for admin users locally, where admins have an "empty root folder" instead of personal links
+// Required  for admin users locally, where admins have an "empty root folder" instead of personal links
 const personalFolderNames = ['Empty root folder', 'Personal Links']
 
 const personalFolderId = current_user.top_level_folders[0].id
@@ -84,22 +84,14 @@ const handleSelection = (e) => {
     const isSpan = e.target.matches('span')
     const target = isSpan ? e.target.parentElement : e.target
 
-    const { orgid, folderid } = target.dataset
+    const { orgid: orgId, folderid: folderId } = target.dataset
 
-    if (!folderid) {
+    if (!folderId) {
         return handleClose()
     }
 
-    let folderId = JSON.parse(folderid)
-    let orgId = null
-
-    // Organization folder selections
-    if (orgid) {
-        orgId = parseInt(orgid)
-    }
-
     // Call a custom event that triggers triggerOnWindow function
-    const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId, orgId } } });
+    const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null } } });
     window.dispatchEvent(updateSelections);
 
     handleClose()
@@ -151,7 +143,7 @@ const handleSelection = (e) => {
                 globalStore.linksRemaining ===
                     Infinity ?
                     'unlimited' :
-                        globalStore.linksRemaining }}</span>
+                    globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>

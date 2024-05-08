@@ -44,15 +44,10 @@ export const globalStore = reactive({
     this.selectedFolder = selection
   },
 
-  organizationFolders: [],
-  updateOrganizationFolders(orgFolders) {
-    this.organizationFolders = orgFolders
+  userOrganizations: [],
+  updateUserOrganizations(orgs) {
+    this.userOrganizations = orgs
   },
-
-  organizationFoldersById: {},
-  updateOrganizationFoldersById(orgFoldersById) {
-    this.organizationFoldersById = orgFoldersById
-  }, 
 
   sponsoredFolders: [], 
   updateSponsoredFolders(sponsoredFolders) {

@@ -1,7 +1,7 @@
 <script setup>
 import CreateLink from './CreateLink.vue';
 import { onBeforeMount, watchEffect } from 'vue'
-import { getLinksRemainingStatus, getUserTypes, getOrganizationFolders, getSponsoredFolders } from '../lib/store'
+import { getLinksRemainingStatus, getUserTypes, getUserOrganizations, getSponsoredFolders } from '../lib/store'
 import { globalStore } from '../stores/globalStore';
 
 onBeforeMount(() => {
@@ -12,7 +12,7 @@ onBeforeMount(() => {
 
 watchEffect(() => {
     if (globalStore.userTypes.includes('orgAffiliated')) {
-        getOrganizationFolders()
+        getUserOrganizations()
     }
 
     if (globalStore.userTypes.includes('sponsored')) {
