@@ -98,8 +98,6 @@ const handleSelection = (e) => {
 
 
 <template>
-
-
     <div id="organization_select_form">
         <span class="label-affil">This Perma Link will be affiliated with</span>
         <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
