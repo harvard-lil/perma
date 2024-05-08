@@ -13,7 +13,7 @@ export const getLinksRemainingStatus = (linksRemaining, isNonpaying) => {
     return globalStore.updateLinksRemainingStatus('unlimited_paid')
 }
 
-export const getUserTypes = (isIndividual, isOrganizationUser, isSponsoredUser) => {
+export const getUserTypes = (isIndividual, isOrganizationUser, isSponsoredUser, isStaff) => {
     if (isIndividual) {
         return globalStore.updateUserTypes('individual')
     }
@@ -26,6 +26,10 @@ export const getUserTypes = (isIndividual, isOrganizationUser, isSponsoredUser) 
 
     if (isSponsoredUser) {
         userTypes = userTypes.concat('sponsored')
+    }
+
+    if (isStaff) {
+        userTypes = userTypes.concat('staff')
     }
 
     if (userTypes.length) {

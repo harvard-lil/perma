@@ -7,11 +7,11 @@ import { globalStore } from '../stores/globalStore';
 onBeforeMount(() => {
     globalStore.updateLinksRemaining(links_remaining)
     getLinksRemainingStatus(links_remaining, is_nonpaying)
-    getUserTypes(is_individual, is_organization_user, is_sponsored_user)
+    getUserTypes(is_individual, is_organization_user, is_sponsored_user, is_staff)
 })
 
 watchEffect(() => {
-    if (globalStore.userTypes.includes('orgAffiliated')) {
+    if (globalStore.userTypes.includes('orgAffiliated') || globalStore.userTypes.includes('staff')) {
         getUserOrganizations()
     }
 
