@@ -7,7 +7,7 @@ import { globalStore } from '../stores/globalStore';
 onBeforeMount(() => {
     globalStore.updateLinksRemaining(links_remaining)
     getLinksRemainingStatus(links_remaining, is_nonpaying)
-    getUserTypes(is_individual, current_user)
+    getUserTypes(is_individual, is_organization_user, is_sponsored_user)
 })
 
 watchEffect(() => {
