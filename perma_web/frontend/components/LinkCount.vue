@@ -14,7 +14,7 @@ const getLinksRemainingText = () => {
 
         case 'metered':
         default:
-            return `You have <span class="links-remaining">${links_remaining}</span> remaining Perma Links${linkRenewalPeriod}</span><br />`
+            return `You have <span class="links-remaining">${globalStore.linksRemaining}</span> remaining Perma Links${linkRenewalPeriod}</span><br />`
     }
 }
 </script>

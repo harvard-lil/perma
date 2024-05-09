@@ -169,6 +169,10 @@
         subscription_status = "{{ subscription_status }}",
         links_remaining_period = "{{ links_remaining_period }}",
         is_individual = {{ request.user.is_individual | yesno:"true,false" }},
+        is_sponsored_user = {{ request.user.is_sponsored_user | yesno:"true,false" }},
+        is_staff = {{ request.user.is_staff | yesno:"true,false" }},
+        is_organization_user = {{ request.user.is_organization_user | yesno:"true,false" }},
+        is_registrar_user = {{ request.user.is_registrar_user | yesno:"true,false" }},
         is_nonpaying = {{ request.user.nonpaying | yesno:"true,false" }}
   </script>
 

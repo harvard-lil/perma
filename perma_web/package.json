@@ -58,6 +58,7 @@
   "dependencies": {
     "@babel/runtime-corejs3": "^7.10.4",
     "@sentry/browser": "^7.5.1",
+    "@vueuse/core": "^10.9.0",
     "vue": "^3.4.21",
     "vue-loader": "^17.4.2",
     "vue-template-compiler": "^2.7.16"

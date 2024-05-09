@@ -103,6 +103,11 @@ module.exports = {
         loader: 'vue-loader'
       },
 
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: "javascript/auto"
+      },
 
       // inline css
       {
