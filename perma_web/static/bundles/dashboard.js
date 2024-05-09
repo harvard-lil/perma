@@ -35482,36 +35482,37 @@ var _hoisted_4 = {
   class: "container cont-full-bleed cont-sm-fixed"
 };
 var _hoisted_5 = {
-  class: "form-priority",
-  id: "linker"
-};
-var _hoisted_6 = {
   class: "form-priority-fieldset"
 };
-var _hoisted_7 = {
+var _hoisted_6 = {
   class: "wrapper"
 };
-var _hoisted_8 = {
+var _hoisted_7 = {
   class: "create-errors container cont-fixed"
 };
-var _hoisted_9 = {
+var _hoisted_8 = {
   key: 0,
   id: "error-container"
 };
-var _hoisted_10 = {
+var _hoisted_9 = {
   class: "message-large"
 };
-var _hoisted_11 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", {
+var _hoisted_10 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", {
   class: "message"
 }, "We’re unable to create your Perma Link.", -1 /* HOISTED */);
-var _hoisted_12 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", null, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("You can "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
+var _hoisted_11 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", null, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("You can "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
   id: "upload-form-button"
 }, "upload your own archive"), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" or "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("a", {
   href: "/contact"
 }, "contact us about this error.")], -1 /* HOISTED */);
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _context, _context2, _context3;
-  return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h2", null, "Capture status: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureStatus), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only "), $setup.globalStore.captureStatus === 'isCapturing' ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("h2", _hoisted_3, "Capture progress: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.userLinkProgressBar), 1 /* TEXT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("form", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h2", null, "Capture status: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureStatus), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only "), $setup.globalStore.captureStatus === 'isCapturing' ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("h2", _hoisted_3, "Capture progress: " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.userLinkProgressBar), 1 /* TEXT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" debug only ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("form", {
+    class: Object(vue__WEBPACK_IMPORTED_MODULE_1__["normalizeClass"])(["form-priority", {
+      '_isPrivate': $setup.globalStore.selectedFolder.isPrivate
+    }]),
+    id: "linker"
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
       return $setup.userLink = $event;
     }),
@@ -35525,7 +35526,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     "data-original-title": "Start building your library",
     "data-html": "true",
     "data-trigger": "manual"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_7, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.handleArchiveRequest, ["prevent"]),
     class: Object(vue__WEBPACK_IMPORTED_MODULE_1__["normalizeClass"])(["btn btn-large btn-info _active-when-valid", {
       '_isWorking': !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context = $setup.readyStates).call(_context, $setup.globalStore.captureStatus)
@@ -35542,7 +35543,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0
   })) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context3 = $setup.globalStore.userTypes).call(_context3, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createBlock"])($setup["FolderSelect"], {
     key: 1
-  })) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_8, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_9, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", _hoisted_10, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_11, _hoisted_12])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
+  })) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_7, [$setup.globalStore.captureErrorMessage ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_8, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("p", _hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.captureErrorMessage), 1 /* TEXT */), _hoisted_10, _hoisted_11])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)])], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -35611,7 +35612,12 @@ __webpack_require__.r(__webpack_exports__);
       return _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default()(loadingStates).call(loadingStates, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureStatus);
     });
     var submitButtonText = Object(vue__WEBPACK_IMPORTED_MODULE_6__["computed"])(function () {
-      return _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default()(readyStates).call(readyStates, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureStatus) ? 'Create Perma Link' : 'Creating your perma link';
+      if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default()(readyStates).call(readyStates, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureStatus) && _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].selectedFolder.isPrivate) {
+        return 'Create Private Perma Link';
+      } else if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_2___default()(readyStates).call(readyStates, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureStatus)) {
+        return 'Create Perma Link';
+      }
+      return 'Creating your Perma Link';
     });
     var progressInterval;
     var handleArchiveRequest = /*#__PURE__*/function () {
