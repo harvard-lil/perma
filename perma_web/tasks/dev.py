@@ -7,6 +7,7 @@ from invoke import task
 import internetarchive
 import itertools
 import json
+from mptt.managers import delegate_manager
 import os
 from pathlib import Path
 import re
@@ -130,6 +131,102 @@ def rebuild_folder_trees(ctx):
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
             print(f"Tree corruption found for user: {u}")
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
+
+@task
+def validate_folder_trees(ctx, tree_ids=None, limit=None):
+
+    def _reporting_rebuild_helper(self, node, left, tree_id, children, nodes_to_update, level):
+        """
+        Adapted from https://github.com/django-mptt/django-mptt/blob/f31cabee08db16bc8f693c2d5655a547aee78acb/mptt/managers.py#L682
+        """
+        right = left + 1
+
+        changed_any = False
+
+        for child in children[node.pk]:
+            right, changed = self._reporting_rebuild_helper(
+                Folder.objects,
+                node=child,
+                left=right,
+                tree_id=tree_id,
+                children=children,
+                nodes_to_update=nodes_to_update,
+                level=level + 1,
+            )
+            if changed:
+                changed_any = True
+
+        if node.rght != right:
+           changed_any = True
+        if node.lft != left:
+            changed_any = True
+        if node.level != level:
+            changed_any = True
+
+        setattr(node, self._rebuild_fields["left"], left)
+        setattr(node, self._rebuild_fields["right"], right)
+        setattr(node, self._rebuild_fields["level"], level)
+        setattr(node, self._rebuild_fields["tree_id"], tree_id)
+
+        nodes_to_update.append(node)
+        return right + 1, changed_any
+
+    @delegate_manager
+    def validate_tree(self, tree_id, **filters) -> None:
+        """
+        Adapted from https://github.com/django-mptt/django-mptt/blob/f31cabee08db16bc8f693c2d5655a547aee78acb/mptt/managers.py#L654
+        """
+        self._find_out_rebuild_fields()
+
+        [root] = self._get_parents(tree_id=tree_id, **filters)
+        children = self._get_children(tree_id=tree_id, **filters)
+
+        tree_id = filters.get("tree_id", 1)
+        nodes_to_update = []
+        _, changed_any = self._reporting_rebuild_helper(
+            Folder.objects,
+            node=root,
+            left=1,
+            tree_id=tree_id,
+            children=children,
+            nodes_to_update=nodes_to_update,
+            level=0,
+        )
+        return not changed_any
+
+    Folder.objects._reporting_rebuild_helper = _reporting_rebuild_helper
+    Folder.objects.validate_tree = validate_tree
+
+    if limit:
+        limit = int(limit)
+
+    if not tree_ids:
+        tree_ids = Folder.objects.order_by().distinct().values_list('tree_id', flat=True).distinct()[:limit]
+
+    results = {
+        "valid" : [],
+        "invalid": [],
+        "error": []
+    }
+    count = 0
+    for tree_id in tqdm(tree_ids):
+        try:
+            if Folder.objects.validate_tree(Folder.objects, tree_id=tree_id):
+                results["valid"].append(tree_id)
+            else:
+                results["invalid"].append(tree_id)
+        except Exception:
+            # logger.exception(f"Something way weird with {tree_id}")
+            results["error"].append(tree_id)
+        count = count + 1
+
+    print(f"Valid: {len(results['valid'])} ({len(results['valid'])/count * 100})")
+    print(f"Invalid: {len(results['invalid'])} ({len(results['invalid'])/count * 100})")
+    print(f"Errored: {len(results['error'])} ({len(results['error'])/count * 100})")
+
+    print(results['error'])
+
+
 
 
 @task
