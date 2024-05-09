@@ -6,6 +6,7 @@ import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
+import { useStorage } from '@vueuse/core'
 
 const userLink = ref('')
 const userLinkGUID = ref('')
@@ -22,6 +23,11 @@ const submitButtonText = computed(() => {
 })
 
 let progressInterval;
+
+const isToolsReminderSuppressed = useStorage('perma_tools_reminder', false)
+const handleSuppressToolsReminder = () => {
+    isToolsReminderSuppressed.value = true
+}
 
 const handleArchiveRequest = async () => {
     if (!isReady) {
@@ -127,6 +133,7 @@ onBeforeUnmount(() => {
             <h2>Capture status: {{ globalStore.captureStatus }}</h2> <!-- debug only -->
             <h2 v-if="globalStore.captureStatus === 'isCapturing'">Capture progress: {{ userLinkProgressBar }}</h2>
             <!-- debug only -->
+
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" id="linker">
@@ -150,6 +157,15 @@ onBeforeUnmount(() => {
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
                     <FolderSelect v-if="!globalStore.userTypes.includes('individual')" />
                 </fieldset>
+                <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
+                    :class="globalStore.userTypes === 'individual' ? 'limit-true' : 'limit-false'">
+                    To make Perma links more quickly, try our <a href="/settings/tools">browser tools</a>.
+                    <button @click.prevent="handleSuppressToolsReminder" type="button"
+                        class="close-browser-tools btn-link">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                </p>
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
