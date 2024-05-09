@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
                     <FolderSelect v-if="!globalStore.userTypes.includes('individual')" />
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
-                    :class="globalStore.userTypes === 'individual' ? 'limit-true' : 'limit-false'">
+                    :class="globalStore.userTypes === 'individual' && 'limit-true'">
                     To make Perma links more quickly, try our <a href="/settings/tools">browser tools</a>.
                     <button @click.prevent="handleSuppressToolsReminder" type="button"
                         class="close-browser-tools btn-link">
