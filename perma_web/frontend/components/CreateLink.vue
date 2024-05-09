@@ -18,7 +18,13 @@ const loadingStates = ["isValidating", "isQueued", "isCapturing"]
 const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
 
 const submitButtonText = computed(() => {
-    return readyStates.includes(globalStore.captureStatus) ? 'Create Perma Link' : 'Creating your perma link'
+    if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
+        return 'Create Private Perma Link'
+    }
+    else if (readyStates.includes(globalStore.captureStatus)) {
+        return 'Create Perma Link'
+    }
+    return 'Creating your Perma Link'
 })
 
 let progressInterval;
@@ -129,7 +135,7 @@ onBeforeUnmount(() => {
             <!-- debug only -->
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
-            <form class="form-priority" id="linker">
+            <form class="form-priority" :class="{ '_isPrivate': globalStore.selectedFolder.isPrivate }" id="linker">
                 <fieldset class="form-priority-fieldset">
                     <input v-model="userLink" id="rawUrl" name="url"
                         class="text-input select-on-click form-priority-input" type="text"
@@ -140,7 +146,8 @@ onBeforeUnmount(() => {
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
                             :class="{
                 '_isWorking': !readyStates.includes(globalStore.captureStatus),
-            }" id="addlink" type="submit">
+            }
+                " id="addlink" type="submit">
                             <Spinner v-if="isLoading" top="-20px" />
                             {{ submitButtonText }}
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
