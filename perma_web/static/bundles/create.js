@@ -28743,6 +28743,9 @@ function toggleInProgress() {
     Helpers.triggerOnWindow('createLink.toggleProgress');
   }
 }
+window.addEventListener('dropdown.selectionChange', function (event) {
+  Helpers.triggerOnWindow("dropdown.selectionChange", event.detail.data);
+});
 function linkSucceeded(data) {
   // we should have a GUID, and the capture job should be underway
   newGUID = data.guid;
@@ -28907,6 +28910,22 @@ function handleSelectionChange(data) {
   // update top-level variables
   currentFolder = data.folderId;
   currentFolderPrivate = organizations[currentOrg] && organizations[currentOrg]['default_to_private'];
+  var updateFolderSelection = new CustomEvent("vueDispatch", {
+    bubbles: true,
+    detail: {
+      name: 'updateFolderSelection',
+      data: {
+        path: path,
+        orgId: data.orgId,
+        folderId: currentFolder,
+        sponsorId: currentSponsor,
+        isPrivate: currentFolderPrivate,
+        isReadOnly: readOnly,
+        isOutOfLinks: outOfLinks
+      }
+    }
+  });
+  document.dispatchEvent(updateFolderSelection);
 
   // update the dropdown (no-op if dropdown isn't displayed)
   var formatted_links_remaining;
