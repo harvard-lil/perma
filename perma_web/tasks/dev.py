@@ -23,7 +23,7 @@ import time
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpRequest
 from django.utils import timezone
 
@@ -216,7 +216,6 @@ def validate_folder_trees(ctx, tree_ids=None, limit=None):
             else:
                 results["invalid"].append(tree_id)
         except Exception:
-            # logger.exception(f"Something way weird with {tree_id}")
             results["error"].append(tree_id)
         count = count + 1
 
@@ -227,6 +226,62 @@ def validate_folder_trees(ctx, tree_ids=None, limit=None):
     print(results['error'])
 
 
+@task
+def delete_redundant_personal_links_folders(ctx, dry_run=False):
+    """
+    Clean up users with two top-level Personal Links folders, due to an as-yet-undiagnosed timing issue.
+    """
+    duplicated_folders = Folder.objects.filter(
+        name='Personal Links',
+        parent__isnull=True
+    ).values(
+        'owned_by_id'
+    ).annotate(
+        owner_count=Count('owned_by_id')
+    ).filter(
+        owner_count__gt=1
+    )
+
+    users_with_duplicate_folders = LinkUser.objects.filter(
+        id__in=duplicated_folders.values_list('owned_by_id', flat=True)
+    )
+
+    skipped = 0
+    fixed_up = 0
+    mangled = 0
+
+    for user in users_with_duplicate_folders:
+
+        folders = user.folders.filter(name='Personal Links')
+
+        try:
+            assert len(folders) == 2
+            assert user.root_folder_id in [folder.id for folder in folders]
+            [redundant] = filter(lambda f: f.id != user.root_folder_id, folders)
+            assert redundant.is_empty()
+        except AssertionError:
+            print(f"Skipping user {user.id}: their situation isn't accounted for. Please investigate.")
+            skipped = skipped + 1
+            continue
+
+        if dry_run:
+            print(f"Would delete {redundant.id} and retain {user.root_folder_id} for user {user.id}.")
+            fixed_up = fixed_up + 1
+        else:
+            print(f"Deleting {redundant.id} and retaining {user.root_folder_id} for user {user.id}.")
+            deleted = redundant.delete()
+            try:
+                assert deleted[0] == 1
+                fixed_up = fixed_up + 1
+            except AssertionError:
+                print(f"We deleted more things than we intended to, for user {user.id}...: {deleted}")
+                mangled = mangled + 1
+
+    if dry_run:
+        print("\nDRY RUN:")
+    print(f"\nFixed up: {fixed_up}")
+    print(f"Skipped: {skipped}")
+    print(f"Mangled: {mangled}\n")
 
 
 @task
