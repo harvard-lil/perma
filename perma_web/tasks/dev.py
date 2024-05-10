@@ -259,6 +259,7 @@ def delete_redundant_personal_links_folders(ctx, dry_run=False):
             assert user.root_folder_id in [folder.id for folder in folders]
             [redundant] = filter(lambda f: f.id != user.root_folder_id, folders)
             assert redundant.is_empty()
+            assert not redundant.contained_links().count()
         except AssertionError:
             print(f"Skipping user {user.id}: their situation isn't accounted for. Please investigate.")
             skipped = skipped + 1
