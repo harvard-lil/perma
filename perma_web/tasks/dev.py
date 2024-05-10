@@ -286,6 +286,63 @@ def delete_redundant_personal_links_folders(ctx, dry_run=False):
 
 
 @task
+def delete_redundant_org_folders(ctx, dry_run=False):
+
+    duplicated_folders = Folder.objects.filter(
+        is_shared_folder=True
+    ).order_by().values(
+        'organization_id'
+    ).annotate(
+        org_count=Count('organization_id')
+    ).filter(
+        org_count__gt=1
+    )
+
+    orgs_with_duplicate_folders = Organization.objects.all_with_deleted().filter(
+        id__in=duplicated_folders.values_list('organization_id', flat=True)
+    )
+
+    skipped = 0
+    fixed_up = 0
+    mangled = 0
+
+    for org in orgs_with_duplicate_folders:
+
+        folders = org.folders.filter(name=org.name)
+
+        try:
+            assert len(folders) == 2
+            assert org.shared_folder_id in [folder.id for folder in folders]
+            [redundant] = filter(lambda f: f.id != org.shared_folder_id, folders)
+            assert redundant.is_empty()
+            assert not redundant.contained_links().count()
+        except AssertionError:
+            print(f"Skipping org {org.id}: its situation isn't accounted for. Please investigate.")
+            skipped = skipped + 1
+            continue
+
+        if dry_run:
+            print(f"Would delete {redundant.id} and retain {org.shared_folder_id} for org {org.id}.")
+            fixed_up = fixed_up + 1
+        else:
+            print(f"Deleting {redundant.id} and retaining {org.shared_folder_id} for org {org.id}.")
+            deleted = redundant.delete()
+            try:
+                assert deleted[0] == 1
+                fixed_up = fixed_up + 1
+            except AssertionError:
+                print(f"We deleted more things than we intended to, for org {org.id}...: {deleted}")
+                mangled = mangled + 1
+
+    if dry_run:
+        print("\nDRY RUN:")
+    print(f"\nFixed up: {fixed_up}")
+    print(f"Skipped: {skipped}")
+    print(f"Mangled: {mangled}\n")
+
+
+
+@task
 def ping_all_users(ctx, limit_to="", exclude="", batch_size=500):
     '''
        Sends an email to all our current users. See templates/email/special.txt
