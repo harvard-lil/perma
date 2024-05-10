@@ -1326,9 +1326,9 @@ class Folder(MPTTModel):
 
         if new or parent_has_changed:
             # update cached paths
-            for desendant in self.get_descendants(include_self=True):
-                desendant.cached_path = desendant.get_path()
-                desendant.save()
+            for descendant in self.get_descendants(include_self=True):
+                descendant.cached_path = descendant.get_path()
+                descendant.save()
 
 
     class MPTTMeta:
