@@ -157,7 +157,7 @@ def validate_folder_trees(ctx, tree_ids=None, limit=None):
                 changed_any = True
 
         if node.rght != right:
-           changed_any = True
+            changed_any = True
         if node.lft != left:
             changed_any = True
         if node.level != level:
