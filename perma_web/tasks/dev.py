@@ -7,6 +7,7 @@ from invoke import task
 import internetarchive
 import itertools
 import json
+from mptt.managers import delegate_manager
 import os
 from pathlib import Path
 import re
@@ -22,7 +23,7 @@ import time
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpRequest
 from django.utils import timezone
 
@@ -130,6 +131,254 @@ def rebuild_folder_trees(ctx):
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
             print(f"Tree corruption found for user: {u}")
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
+
+
+@task(iterable=['tree_ids'])
+def validate_folder_trees(ctx,
+        tree_ids=None,
+        limit=None,
+        print_invalid_ids=False,
+        print_errored_ids=False,
+        print_exceptions=False,
+        print_changed_nodes=False):
+    """
+    Report which folder trees would be altered during a rebuild.
+
+    If a tree is internally inconsistent, it is considered "invalid".
+
+    If a tree shares a tree_id with another tree, this report will classify the tree as "errored":
+    some trees like this can be repaired automatically by the full table rebuild utility, but some
+    trees need manual correction, and this report does not/cannot distinguish between the two.
+
+    Recommended usage:
+
+    1) Run first against the whole table, with minimal logging
+
+        docker compose exec web invoke dev.validate-folder-trees --print-invalid-ids --print-errored-ids
+
+    2) Then, run again with more detailed logging against particular trees or sets of trees
+
+        docker compose exec web invoke dev.validate-folder-trees --print-exceptions --tree-ids 100
+        docker compose exec web invoke dev.validate-folder-trees --print-changed-nodes --tree-ids 200
+
+    """
+
+    def _reporting_rebuild_helper(self, node, left, tree_id, children, nodes_to_update, level):
+        """
+        Adapted from https://github.com/django-mptt/django-mptt/blob/f31cabee08db16bc8f693c2d5655a547aee78acb/mptt/managers.py#L682
+        """
+        right = left + 1
+
+        changed_any = False
+
+        for child in children[node.pk]:
+            right, changed = self._reporting_rebuild_helper(
+                Folder.objects,
+                node=child,
+                left=right,
+                tree_id=tree_id,
+                children=children,
+                nodes_to_update=nodes_to_update,
+                level=level + 1,
+            )
+            if changed:
+                changed_any = True
+
+        if node.lft != left:
+            changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) lft {node.lft} -> {left}")
+        if node.rght != right:
+            changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) rght {node.rght} -> {right}")
+        if node.level != level:
+            changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) level {node.level} -> {level}")
+
+        setattr(node, self._rebuild_fields["left"], left)
+        setattr(node, self._rebuild_fields["right"], right)
+        setattr(node, self._rebuild_fields["level"], level)
+        setattr(node, self._rebuild_fields["tree_id"], tree_id)
+
+        nodes_to_update.append(node)
+        return right + 1, changed_any
+
+    @delegate_manager
+    def validate_tree(self, tree_id, **filters) -> None:
+        """
+        Adapted from https://github.com/django-mptt/django-mptt/blob/f31cabee08db16bc8f693c2d5655a547aee78acb/mptt/managers.py#L654
+        """
+        self._find_out_rebuild_fields()
+
+        [root] = self._get_parents(tree_id=tree_id, **filters)
+        children = self._get_children(tree_id=tree_id, **filters)
+
+        tree_id = filters.get("tree_id", 1)
+        nodes_to_update = []
+        _, changed_any = self._reporting_rebuild_helper(
+            Folder.objects,
+            node=root,
+            left=1,
+            tree_id=tree_id,
+            children=children,
+            nodes_to_update=nodes_to_update,
+            level=0,
+        )
+        return not changed_any
+
+    Folder.objects._reporting_rebuild_helper = _reporting_rebuild_helper
+    Folder.objects.validate_tree = validate_tree
+
+    if limit:
+        limit = int(limit)
+
+    if not tree_ids:
+        tree_ids = Folder.objects.order_by().distinct().values_list('tree_id', flat=True).distinct()[:limit]
+
+    results = {
+        "valid" : [],
+        "invalid": [],
+        "error": []
+    }
+    count = 0
+    for tree_id in tqdm(tree_ids):
+        try:
+            if Folder.objects.validate_tree(Folder.objects, tree_id=tree_id):
+                results["valid"].append(tree_id)
+            else:
+                results["invalid"].append(tree_id)
+        except Exception:
+            results["error"].append(tree_id)
+            if print_exceptions:
+                logger.exception(f"Exception validating tree_id {tree_id}")
+        count = count + 1
+
+    print(f"Valid: {len(results['valid'])} ({len(results['valid'])/count * 100})")
+    print(f"Invalid: {len(results['invalid'])} ({len(results['invalid'])/count * 100})")
+    print(f"Errored: {len(results['error'])} ({len(results['error'])/count * 100})")
+
+    if print_invalid_ids:
+        print(results['invalid'])
+
+    if print_errored_ids:
+        print(results['invalid'])
+
+
+@task
+def delete_redundant_personal_links_folders(ctx, dry_run=False):
+    """
+    Clean up users with two top-level Personal Links folders, due to an as-yet-undiagnosed timing issue.
+    """
+    duplicated_folders = Folder.objects.filter(
+        name='Personal Links',
+        parent__isnull=True
+    ).values(
+        'owned_by_id'
+    ).annotate(
+        owner_count=Count('owned_by_id')
+    ).filter(
+        owner_count__gt=1
+    )
+
+    users_with_duplicate_folders = LinkUser.objects.filter(
+        id__in=duplicated_folders.values_list('owned_by_id', flat=True)
+    )
+
+    skipped = 0
+    fixed_up = 0
+    mangled = 0
+
+    for user in users_with_duplicate_folders:
+
+        folders = user.folders.filter(name='Personal Links')
+
+        try:
+            assert len(folders) == 2
+            assert user.root_folder_id in [folder.id for folder in folders]
+            [redundant] = filter(lambda f: f.id != user.root_folder_id, folders)
+            assert redundant.is_empty()
+        except AssertionError:
+            print(f"Skipping user {user.id}: their situation isn't accounted for. Please investigate.")
+            skipped = skipped + 1
+            continue
+
+        if dry_run:
+            print(f"Would delete {redundant.id} and retain {user.root_folder_id} for user {user.id}.")
+            fixed_up = fixed_up + 1
+        else:
+            print(f"Deleting {redundant.id} and retaining {user.root_folder_id} for user {user.id}.")
+            deleted = redundant.delete()
+            try:
+                assert deleted[0] == 1
+                fixed_up = fixed_up + 1
+            except AssertionError:
+                print(f"We deleted more things than we intended to, for user {user.id}...: {deleted}")
+                mangled = mangled + 1
+
+    if dry_run:
+        print("\nDRY RUN:")
+    print(f"\nFixed up: {fixed_up}")
+    print(f"Skipped: {skipped}")
+    print(f"Mangled: {mangled}\n")
+
+
+@task
+def delete_redundant_org_folders(ctx, dry_run=False):
+    """
+    Clean up orgs with two top-level shared folders, due to an as-yet-undiagnosed timing issue.
+    """
+    duplicated_folders = Folder.objects.filter(
+        is_shared_folder=True
+    ).order_by().values(
+        'organization_id'
+    ).annotate(
+        org_count=Count('organization_id')
+    ).filter(
+        org_count__gt=1
+    )
+
+    orgs_with_duplicate_folders = Organization.objects.all_with_deleted().filter(
+        id__in=duplicated_folders.values_list('organization_id', flat=True)
+    )
+
+    skipped = 0
+    fixed_up = 0
+    mangled = 0
+
+    for org in orgs_with_duplicate_folders:
+
+        folders = org.folders.filter(name=org.name)
+
+        try:
+            assert len(folders) == 2
+            assert org.shared_folder_id in [folder.id for folder in folders]
+            [redundant] = filter(lambda f: f.id != org.shared_folder_id, folders)
+            assert redundant.is_empty()
+        except AssertionError:
+            print(f"Skipping org {org.id}: its situation isn't accounted for. Please investigate.")
+            skipped = skipped + 1
+            continue
+
+        if dry_run:
+            print(f"Would delete {redundant.id} and retain {org.shared_folder_id} for org {org.id}.")
+            fixed_up = fixed_up + 1
+        else:
+            print(f"Deleting {redundant.id} and retaining {org.shared_folder_id} for org {org.id}.")
+            deleted = redundant.delete()
+            try:
+                assert deleted[0] == 1
+                fixed_up = fixed_up + 1
+            except AssertionError:
+                print(f"We deleted more things than we intended to, for org {org.id}...: {deleted}")
+                mangled = mangled + 1
+
+    if dry_run:
+        print("\nDRY RUN:")
+    print(f"\nFixed up: {fixed_up}")
+    print(f"Skipped: {skipped}")
+    print(f"Mangled: {mangled}\n")
 
 
 @task

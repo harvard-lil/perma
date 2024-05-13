@@ -1332,7 +1332,7 @@ class Folder(MPTTModel):
 
 
     class MPTTMeta:
-        order_insertion_by = ['name']
+        order_insertion_by = ['name', 'id']
 
     def is_empty(self):
         return not self.children.exists() and not self.links.exists()
