@@ -132,8 +132,15 @@ def rebuild_folder_trees(ctx):
             print(f"Tree corruption found for user: {u}")
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
 
-@task
-def validate_folder_trees(ctx, tree_ids=None, limit=None):
+
+@task(iterable=['tree_ids'])
+def validate_folder_trees(ctx,
+        tree_ids=None,
+        limit=None,
+        print_invalid_ids=False,
+        print_errored_ids=False,
+        print_exceptions=False,
+        print_changed_nodes=False):
 
     def _reporting_rebuild_helper(self, node, left, tree_id, children, nodes_to_update, level):
         """
@@ -156,12 +163,18 @@ def validate_folder_trees(ctx, tree_ids=None, limit=None):
             if changed:
                 changed_any = True
 
-        if node.rght != right:
-            changed_any = True
         if node.lft != left:
             changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) lft {node.lft} -> {left}")
+        if node.rght != right:
+            changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) rght {node.rght} -> {right}")
         if node.level != level:
             changed_any = True
+            if print_changed_nodes:
+                print(f"node {node.id} ({node.name}) (parent {node.parent_id}) level {node.level} -> {level}")
 
         setattr(node, self._rebuild_fields["left"], left)
         setattr(node, self._rebuild_fields["right"], right)
@@ -217,13 +230,19 @@ def validate_folder_trees(ctx, tree_ids=None, limit=None):
                 results["invalid"].append(tree_id)
         except Exception:
             results["error"].append(tree_id)
+            if print_exceptions:
+                logger.exception(f"Exception validating tree_id {tree_id}")
         count = count + 1
 
     print(f"Valid: {len(results['valid'])} ({len(results['valid'])/count * 100})")
     print(f"Invalid: {len(results['invalid'])} ({len(results['invalid'])/count * 100})")
     print(f"Errored: {len(results['error'])} ({len(results['error'])/count * 100})")
 
-    print(results['error'])
+    if print_invalid_ids:
+        print(results['invalid'])
+
+    if print_errored_ids:
+        print(results['invalid'])
 
 
 @task
