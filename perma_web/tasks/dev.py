@@ -141,6 +141,27 @@ def validate_folder_trees(ctx,
         print_errored_ids=False,
         print_exceptions=False,
         print_changed_nodes=False):
+    """
+    Report which folder trees would be altered during a rebuild.
+
+    If a tree is internally inconsistent, it is considered "invalid".
+
+    If a tree shares a tree_id with another tree, this report will classify the tree as "errored":
+    some trees like this can be repaired automatically by the full table rebuild utility, but some
+    trees need manual correction, and this report does not/cannot distinguish between the two.
+
+    Recommended usage:
+
+    1) Run first against the whole table, with minimal logging
+
+        docker compose exec web invoke dev.validate-folder-trees --print-invalid-ids --print-errored-ids
+
+    2) Then, run again with more detailed logging against particular trees or sets of trees
+
+        docker compose exec web invoke dev.validate-folder-trees --print-exceptions --tree-ids 100
+        docker compose exec web invoke dev.validate-folder-trees --print-changed-nodes --tree-ids 200
+
+    """
 
     def _reporting_rebuild_helper(self, node, left, tree_id, children, nodes_to_update, level):
         """
@@ -305,7 +326,9 @@ def delete_redundant_personal_links_folders(ctx, dry_run=False):
 
 @task
 def delete_redundant_org_folders(ctx, dry_run=False):
-
+    """
+    Clean up orgs with two top-level shared folders, due to an as-yet-undiagnosed timing issue.
+    """
     duplicated_folders = Folder.objects.filter(
         is_shared_folder=True
     ).order_by().values(
@@ -356,7 +379,6 @@ def delete_redundant_org_folders(ctx, dry_run=False):
     print(f"\nFixed up: {fixed_up}")
     print(f"Skipped: {skipped}")
     print(f"Mangled: {mangled}\n")
-
 
 
 @task
