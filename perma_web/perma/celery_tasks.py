@@ -25,7 +25,7 @@ from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile
+    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
     remove_whitespace,
@@ -382,6 +382,25 @@ def cache_playback_status(link_guid):
     link.cached_can_play_back = link.can_play_back()
     if link.tracker.has_changed('cached_can_play_back'):
         link.save(update_fields=['cached_can_play_back'])
+
+
+@shared_task(acks_late=True)
+def fix_cached_folder_paths():
+    folders_with_cached_paths = Folder.objects.filter(cached_path__isnull=False)
+    queued = 0
+    for folder in folders_with_cached_paths.iterator():
+        if folder.cached_path != folder.get_path():
+            fix_cached_folder_path.delay(folder.id)
+            queued = queued + 1
+    logger.info(f"Queued {queued} folders to have their cached path fixed.")
+
+
+@shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
+def fix_cached_folder_path(folder_id):
+    folder = Folder.objects.get(id=folder_id)
+    folder.cached_path = folder.get_path()
+    if folder.tracker.has_changed('cached_path'):
+        folder.save(update_fields=['cached_path'])
 
 
 @shared_task()
