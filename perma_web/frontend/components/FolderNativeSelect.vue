@@ -24,7 +24,7 @@ const handleSelect = (e) => {
 }
 
 const selectRef = ref('')
-const selectedOption = computed(() => globalStore.selectedFolder.folderId ? `${globalStore.selectedFolder.folderId}` : props.personalFolderId)
+const selectedOption = computed(() => globalStore.selectedFolder ? globalStore.selectedFolder.folderId : 'Please select a folder')
 
 const additionalSubfolders = ref([])
 
