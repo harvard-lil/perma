@@ -12437,6 +12437,12 @@ li[data-is_sponsored_root_folder=true] > a, p li[data-is_sponsored_root_folder=t
 li[data-read_only=true] .icon-folder-close-alt:before, li[data-read_only=true] .icon-folder-open-alt:before {
   content: "🔒";
 }
+
+/* Measurements use calc so rem measurements are 1:1 with px size
+Example: calc(4rem / 16) is equal to 4px or 0.25rem */
+.u-pb-150 {
+  padding-bottom: 1.125rem;
+}
 /*!
  *  Font Awesome 3.0.2
  *  the iconic font designed for use with Twitter Bootstrap
