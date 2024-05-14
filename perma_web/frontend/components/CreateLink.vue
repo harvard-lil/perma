@@ -138,6 +138,21 @@ onBeforeUnmount(() => {
     clearInterval(progressInterval)
 });
 
+const dialogRef = ref('')
+const handleDialogOpen = () => {
+    dialogRef.value.showModal();
+}
+
+const handleDialogClose = () => {
+    dialogRef.value.close();
+}
+
+const handleDialogClick = (e) => {
+    if (e.target.classList.contains('c-dialog')) {
+        dialogRef.value.close();
+    }
+}
+
 </script>
 
 <template>
@@ -157,9 +172,7 @@ onBeforeUnmount(() => {
                 <fieldset class="form-priority-fieldset">
                     <input v-model="userLink" id="rawUrl" name="url"
                         class="text-input select-on-click form-priority-input" type="text"
-                        placeholder="Paste your URL here." data-placement="bottom"
-                        data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left."
-                        data-original-title="Start building your library" data-html="true" data-trigger="manual" />
+                        placeholder="Paste your URL here." />
                     <div class="wrapper">
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
                             :class="{
@@ -171,9 +184,12 @@ onBeforeUnmount(() => {
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />
                         </button>
+                        <p>or <button @click.prevent="handleDialogOpen" class="c-button c-button--link">create
+                                multiple links</button></p>
+
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" />
+                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect" />
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
                     :class="globalStore.userTypes === 'individual' && 'limit-true'">
@@ -196,4 +212,44 @@ onBeforeUnmount(() => {
                     about this error.</a></p>
         </div>
     </div>
+
+    <dialog class="c-dialog" ref="dialogRef" @click="handleDialogClick">
+        <div class="modal-dialog modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" @click.prevent="handleDialogClose">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only" id="loading">Close</span>
+                </button>
+                <h3 id="batch-modal-title" class="modal-title">Create A Link Batch</h3>
+            </div>
+            <!-- <div class="spinner _hide">
+                <span class="sr-only" id="loading" tabindex="-1">Loading</span>
+            </div> -->
+            <div class="modal-body">
+                <div id="batch-create-input">
+                    <div class="form-group">
+                        <FolderSelect />
+                    </div>
+                    <div class="form-group">
+                        <textarea aria-label="Paste your URLs here (one URL per line)"
+                            placeholder="Paste your URLs here (one URL per line)"></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button id="start-batch" class="btn" disabled="disabled">Create Links</button>
+                        <button class="btn cancel" @click.prevent="handleDialogClose">Cancel</button>
+                    </div>
+                </div>
+
+                <div id="batch-details-wrapper">
+                    <p id="batch-progress-report"></p>
+                    <div id="batch-details" aria-describedby="batch-progress-report"></div>
+                    <div class="form-buttons">
+                        <button class="btn cancel" data-dismiss="modal">Exit</button>
+                        <a href="#" id="export-csv" class="btn _hide" @click.prevent="handleDialogClose">Export list as
+                            CSV</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
 </template>
