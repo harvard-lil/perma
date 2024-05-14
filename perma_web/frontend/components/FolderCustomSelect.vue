@@ -101,8 +101,6 @@ const handleSelection = (e) => {
 
 
 <template>
-    {{ globalStore.selectedFolder }}
-
     <div id="organization_select_form">
         <span class="label-affil">This Perma Link will be affiliated with</span>
         <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
@@ -143,10 +141,10 @@ const handleSelection = (e) => {
                     :aria-selected="globalStore.selectedFolder.folderId === props.personalFolderId"
                     :data-index="props.folders.length" :data-folderid="props.personalFolderId">Personal Links <span
                         class="dropdown-item-supplement links-remaining">{{
-        globalStore.linksRemaining ===
-            Infinity ?
-            'unlimited' :
-                        globalStore.linksRemaining }}</span>
+                globalStore.linksRemaining ===
+                    Infinity ?
+                    'unlimited' :
+                    globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
