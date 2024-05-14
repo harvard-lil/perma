@@ -385,14 +385,24 @@ def cache_playback_status(link_guid):
 
 
 @shared_task(acks_late=True)
-def fix_cached_folder_paths():
-    folders_with_cached_paths = Folder.objects.filter(cached_path__isnull=False)
-    queued = 0
-    for folder in folders_with_cached_paths.iterator():
-        if folder.cached_path != folder.get_path():
-            fix_cached_folder_path.delay(folder.id)
-            queued = queued + 1
-    logger.info(f"Queued {queued} folders to have their cached path fixed.")
+def fix_cached_folder_paths(folder_ids=None):
+    if folder_ids:
+        folders = Folder.objects.filter(id__in=folder_ids)
+    else:
+        folders = Folder.objects.all()
+    folders = folders.values_list('id', flat=True)
+
+    queued_ids = set()
+    try:
+        for folder_id in folders:
+            fix_cached_folder_path.delay(folder_id)
+            queued_ids.add(folder_id)
+    except SoftTimeLimitExceeded:
+        not_queued_yet = set(folders) - queued_ids
+        logger.info(f"SoftTimeLimitExceeded: {len(not_queued_yet)} folders remaining.")
+        fix_cached_folder_paths.delay(list(not_queued_yet))
+
+    logger.info(f"Queued {len(queued_ids)} folders to have their cached path fixed.")
 
 
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
