@@ -11,6 +11,16 @@ export const globalStore = reactive({
     this.captureErrorMessage = message
   },
 
+  batchCaptureStatus: 'ready',
+  updateBatchCapture(state) {
+    this.batchCaptureStatus = state
+  },
+
+  batchCaptureErrorMessage: '',
+  updateBatchCaptureErrorMessage(message) {
+    this.batchCaptureErrorMessage = message
+  },
+
   fetchErrorMessage: '',
   updateFetchErrorMessage(message) {
     this.fetchErrorMessage = message
