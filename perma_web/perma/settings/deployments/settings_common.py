@@ -617,3 +617,5 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_TRACES_SAMPLE_RATE',
     'PLAYBACK_HOST'
 )
+
+TREE_PACKAGE = 'mptt'  # {'mptt', 'tree-queries'}

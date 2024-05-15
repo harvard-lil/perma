@@ -1223,7 +1223,9 @@ for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private', 'i
 for prop_name in ['is_organization_user']:
     setattr(django.contrib.auth.models.AnonymousUser, prop_name, getattr(LinkUser, prop_name))
 
-class FolderQuerySet(QuerySet):
+from tree_queries.models import TreeNode
+from tree_queries.query import TreeQuerySet
+class FolderQuerySet(TreeQuerySet, QuerySet):
     def user_access_filter(self, user):
         if user.is_staff:
             return Q()  # all
@@ -1244,8 +1246,7 @@ class FolderQuerySet(QuerySet):
 
 FolderManager = TreeManager.from_queryset(FolderQuerySet)
 
-
-class Folder(MPTTModel):
+class Folder(MPTTModel, TreeNode):
     name = models.CharField(max_length=255, null=False, blank=False)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
@@ -1276,6 +1277,35 @@ class Folder(MPTTModel):
 
     objects = FolderManager()
     tracker = FieldTracker()
+
+    #
+    # methods for use during the tree migration
+    #
+
+    def is_leaf_node(self):
+        if settings.TREE_PACKAGE == 'mptt':
+            return super().is_leaf_node()
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            return not self.children.exists()
+        raise NotImplementedError()
+
+    def get_descendants(self, include_self=False):
+        if settings.TREE_PACKAGE == 'mptt':
+            return super().get_descendants(include_self=include_self)
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            return self.descendants(include_self=include_self)
+        raise NotImplementedError()
+
+    def get_ancestors(self, include_self=False):
+        if settings.TREE_PACKAGE == 'mptt':
+            return super().get_ancestors(include_self=include_self)
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            return self.ancestors(include_self=include_self)
+        raise NotImplementedError()
+
+    #
+    # /end methods for use during the tree migration
+    #
 
     def save(self, *args, **kwargs):
 
