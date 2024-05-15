@@ -1328,22 +1328,25 @@ class Folder(MPTTModel, TreeNode):
 
         super(Folder, self).save(*args, **kwargs)
 
+        descendant_ids = list(self.get_descendants(include_self=True).values_list('id', flat=True))
+        descendants = Folder.objects.filter(id__in=descendant_ids)
+
         if parent_has_changed:
-            links = Link.objects.filter(folders__in=self.get_descendants(include_self=True))
+            links = Link.objects.filter(folders__in=descendant_ids)
             bonus_links = links.filter(bonus_link=True)
             # update read-only status
-            self.get_descendants(include_self=True).update(read_only=self.parent.read_only)
+            descendants.update(read_only=self.parent.read_only)
             # make sure that child folders share organization/sponsor/owned_by with new parent folder
             if self.parent.organization_id:
-                self.get_descendants(include_self=True).update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
+                descendants.update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
                 if links:
                     links.update(organization_id=self.parent.organization_id)
             elif self.parent.sponsored_by_id:
-                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
+                descendants.update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
                 if links:
                     links.update(organization_id=None)
             else:
-                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
+                descendants.update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
                 if links:
                     links.update(organization_id=None)
             # credit users for any bonus links they are due
@@ -1356,7 +1359,7 @@ class Folder(MPTTModel, TreeNode):
 
         if new or parent_has_changed:
             # update cached paths
-            for descendant in self.get_descendants(include_self=True):
+            for descendant in descendants:
                 descendant.cached_path = descendant.get_path()
                 descendant.save()
 
