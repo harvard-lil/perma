@@ -10,9 +10,10 @@ import { useStorage } from '@vueuse/core'
 import { useToast } from '../lib/notifications';
 import CreateLinkBatch from './CreateLinkBatch.vue';
 
-const childDialogRef = ref('')
-function handleChildDialogOpen() {
-    childDialogRef.value.handleDialogOpen();
+const batchDialogRef = ref('')
+
+const batchDialogOpen = () => {
+    batchDialogRef.value.handleOpen();
 }
 
 const userLink = ref('')
@@ -175,7 +176,7 @@ onBeforeUnmount(() => {
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />
                         </button>
-                        <p>or <button @click.prevent="handleChildDialogOpen" class="c-button c-button--link">create
+                        <p>or <button @click.prevent="batchDialogOpen" class="c-button c-button--link">create
                                 multiple links</button></p>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
@@ -203,5 +204,5 @@ onBeforeUnmount(() => {
         </div>
     </div>
 
-    <CreateLinkBatch ref="childDialogRef" />
+    <CreateLinkBatch ref="batchDialogRef" />
 </template>
