@@ -1303,6 +1303,30 @@ class Folder(MPTTModel, TreeNode):
             return self.ancestors(include_self=include_self)
         raise NotImplementedError()
 
+    def display_level(self):
+        """
+            Get hierarchical level for this folder. If this is a shared folder, level should be one higher
+            because it is displayed below user's root folder.
+        """
+        if settings.TREE_PACKAGE == 'mptt':
+            return self.level + (1 if self.organization_id else 0)
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            try:
+                return self.tree_depth + (1 if self.organization_id else 0)
+            except AttributeError:
+                return Folder.objects.with_tree_fields().get(id=self.id).tree_depth + (1 if self.organization_id else 0)
+        raise NotImplementedError()
+
+    def get_path(self):
+        if settings.TREE_PACKAGE == 'mptt':
+            return '-'.join([str(f.id) for f in self.get_ancestors(include_self=True)])
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            try:
+                return '-'.join(self.tree_path)
+            except AttributeError:
+                return '-'.join([str(i) for i in Folder.objects.with_tree_fields().get(id=self.id).tree_path])
+        raise NotImplementedError()
+
     #
     # /end methods for use during the tree migration
     #
@@ -1372,19 +1396,6 @@ class Folder(MPTTModel, TreeNode):
 
     def __str__(self):
         return self.name
-
-    def contained_links(self):
-        return Link.objects.filter(folders__in=self.get_descendants(include_self=True))
-
-    def display_level(self):
-        """
-            Get hierarchical level for this folder. If this is a shared folder, level should be one higher
-            because it is displayed below user's root folder.
-        """
-        return self.level + (1 if self.organization_id else 0)
-
-    def get_path(self):
-        return '-'.join([str(f.id) for f in self.get_ancestors(include_self=True)])
 
     def accessible_to(self, user):
         # staff can access any folder
