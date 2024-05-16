@@ -888,10 +888,26 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         """
             Get top level folders for this user, including personal folder, sponsored folder, and shared folders.
         """
+        # Personal Links
         folders = [self.root_folder]
+
+        # Sponsored Links
         if self.sponsored_root_folder:
             folders.append(self.sponsored_root_folder)
-        return folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder').order_by('name') if org]
+
+        # Org folders, if any
+        if settings.TREE_PACKAGE == 'mptt':
+            folders = folders + [org.shared_folder for org in self.get_orgs().select_related('shared_folder').order_by('name') if org]
+        elif settings.TREE_PACKAGE == 'tree_queries':
+            orgs = self.get_orgs().select_related('shared_folder').annotate(shared_folder_child_count=Count('shared_folder__children')).order_by('name')
+            for org in orgs:
+                org.shared_folder.child_count = org.shared_folder_child_count
+                folders.append(org.shared_folder)
+        else:
+            raise NotImplementedError()
+
+        return folders
+
 
     def all_folder_trees(self):
         """
@@ -1244,7 +1260,11 @@ class FolderQuerySet(TreeQuerySet, QuerySet):
         return self.filter(self.user_access_filter(user))
 
 
-FolderManager = TreeManager.from_queryset(FolderQuerySet)
+class FolderManager(TreeManager.from_queryset(FolderQuerySet)):
+
+    def get_queryset(self):
+        return super().get_queryset().annotate(child_count=Count('children'))
+
 
 class Folder(MPTTModel, TreeNode):
     name = models.CharField(max_length=255, null=False, blank=False)
@@ -1387,6 +1407,10 @@ class Folder(MPTTModel, TreeNode):
                 descendant.cached_path = descendant.get_path()
                 descendant.save()
 
+    class Meta:
+        default_manager_name = 'objects'
+        base_manager_name = 'objects'
+        ordering = ['name', 'id']
 
     class MPTTMeta:
         order_insertion_by = ['name', 'id']
