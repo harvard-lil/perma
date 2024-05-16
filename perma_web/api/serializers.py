@@ -64,10 +64,7 @@ class FolderSerializer(BaseSerializer):
         allowed_update_fields = ['name', 'parent']
 
     def get_has_children(self, folder):
-        if settings.TREE_PACKAGE == 'mptt':
-            return not folder.is_leaf_node()
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            return folder.child_count > 0
+        return not folder.is_leaf_node()
 
     def validate_name(self, name):
         if self.instance:
@@ -107,17 +104,11 @@ class FolderSerializer(BaseSerializer):
         return data
 
 
-class SharedFolderSerializer(BaseSerializer):
-    class Meta:
-        model = Folder
-        fields = ('id', 'name')
-
-
 ### ORGANIZATION ###
 
 class OrganizationSerializer(BaseSerializer):
     registrar = serializers.StringRelatedField()
-    shared_folder = SharedFolderSerializer()
+    shared_folder = FolderSerializer()
 
     class Meta:
         model = Organization
