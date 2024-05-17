@@ -27,7 +27,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count, Sum, JSONField
+from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists
 from django.db.models.functions import Now, Upper, TruncDate
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
@@ -1274,6 +1274,7 @@ class Folder(MPTTModel, TreeNode):
     # since a textual representation of the folder's ancestry is included in the folder's API serialization,
     # keep a cached copy on the model, so we don't have to constantly hit the DB
     cached_path = models.TextField()
+    cached_has_children = models.BooleanField(default=False)
 
     objects = FolderManager()
     tracker = FieldTracker()
@@ -1286,7 +1287,7 @@ class Folder(MPTTModel, TreeNode):
         if settings.TREE_PACKAGE == 'mptt':
             return super().is_leaf_node()
         elif settings.TREE_PACKAGE == 'tree_queries':
-            return not self.children.exists()
+            return not self.cached_has_children
         raise NotImplementedError()
 
     def get_descendants(self, include_self=False):
@@ -1322,7 +1323,7 @@ class Folder(MPTTModel, TreeNode):
             return '-'.join([str(f.id) for f in self.get_ancestors(include_self=True)])
         elif settings.TREE_PACKAGE == 'tree_queries':
             try:
-                return '-'.join(self.tree_path)
+                return '-'.join([str(i) for i in self.tree_path])
             except AttributeError:
                 return '-'.join([str(i) for i in Folder.objects.with_tree_fields().get(id=self.id).tree_path])
         raise NotImplementedError()
@@ -1331,62 +1332,147 @@ class Folder(MPTTModel, TreeNode):
     # /end methods for use during the tree migration
     #
 
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+            if self.parent_id:
+                Folder.objects.filter(id=self.parent_id).update(
+                    cached_has_children=Exists(
+                        Folder.objects.filter(
+                            parent_id=self.parent_id
+                        )
+                    )
+                )
+
     def save(self, *args, **kwargs):
 
         # This may need to be refactored in the future to use the new self.tracker content manager.
         new = not self.pk
         parent_has_changed = not new and self.tracker.has_changed('parent_id')
+        previous_parent_id = self.tracker.previous('parent_id') if parent_has_changed else None
 
-        if new:
-            # set read-only and ownership same as parent
-            if self.parent:
-                self.read_only = self.parent.read_only
-                if self.parent.organization:
-                    self.organization = self.parent.organization
-                elif self.parent.sponsored_by:
-                    self.sponsored_by = self.parent.sponsored_by
-                else:
-                    self.owned_by = self.parent.owned_by
-            if self.created_by and not self.owned_by and not self.organization:
-                self.owned_by = self.created_by
+        start = time.time()
+        with transaction.atomic():
+            parent = None
+            if new or parent_has_changed:
+                if self.parent_id:
+                    # Fetch the folder's parent using select_for_update so that any tree-related
+                    # fields remain consistent across simultaneous requests
+                    parent_query = Folder.objects.select_for_update().filter(id=self.parent_id)
+                    parent = parent_query[0]
 
-        super(Folder, self).save(*args, **kwargs)
+            if new:
+                # set read-only and ownership same as parent
+                if parent:
+                    self.read_only = parent.read_only
+                    if parent.organization_id:
+                        self.organization_id = parent.organization_id
+                    elif parent.sponsored_by_id:
+                        self.sponsored_by_id = parent.sponsored_by_id
+                    else:
+                        self.owned_by_id = parent.owned_by_id
+                if self.created_by_id and not self.owned_by_id and not self.organization_id:
+                    self.owned_by_id = self.created_by_id
 
-        descendant_ids = list(self.get_descendants(include_self=True).values_list('id', flat=True))
-        descendants = Folder.objects.filter(id__in=descendant_ids)
+            super_save_start = time.time()
+            super(Folder, self).save(*args, **kwargs)
+            print(f"Super saved in {time.time() - super_save_start} (up to {time.time() - start} total)")
 
-        if parent_has_changed:
-            links = Link.objects.filter(folders__in=descendant_ids)
-            bonus_links = links.filter(bonus_link=True)
-            # update read-only status
-            descendants.update(read_only=self.parent.read_only)
-            # make sure that child folders share organization/sponsor/owned_by with new parent folder
-            if self.parent.organization_id:
-                descendants.update(owned_by=None, organization=self.parent.organization_id, sponsored_by=None)
-                if links:
-                    links.update(organization_id=self.parent.organization_id)
-            elif self.parent.sponsored_by_id:
-                descendants.update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by_id=self.parent.sponsored_by_id)
-                if links:
-                    links.update(organization_id=None)
+            define_descendant_start = time.time()
+            if self.cached_has_children:
+                descendant_ids = list(self.get_descendants(include_self=True).values_list('id', flat=True))
             else:
-                descendants.update(owned_by=self.parent.owned_by_id, organization=None, sponsored_by=None)
-                if links:
-                    links.update(organization_id=None)
-            # credit users for any bonus links they are due
-            if self.parent.organization_id or self.parent.sponsored_by_id:
-                if bonus_links:
-                    user = bonus_links[0].created_by
-                    count = bonus_links.update(bonus_link=False)
-                    user.bonus_links = user.bonus_links + count
-                    user.save(update_fields=['bonus_links'])
+                descendant_ids = []
+            descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
+            print(f"Descendants defined in {time.time() - define_descendant_start}")
 
-        if new or parent_has_changed:
-            # update cached paths
-            for descendant in descendants:
-                descendant.cached_path = descendant.get_path()
-                descendant.save()
+            if parent_has_changed:
 
+                updating_descendant_start = time.time()
+                links = Link.objects.filter(folders__in=descendant_ids)
+                bonus_links = links.filter(bonus_link=True)
+                # update read-only status and
+                # make sure that child folders share organization/sponsor/owned_by with new parent folder
+                if parent.organization_id:
+                    descendants.update(
+                        read_only=parent.read_only,
+                        owned_by=None,
+                        organization=parent.organization_id,
+                        sponsored_by=None
+                    )
+                    if links:
+                        links.update(organization_id=parent.organization_id)
+                elif parent.sponsored_by_id:
+                    descendants.update(
+                        read_only=parent.read_only,
+                        owned_by=parent.owned_by_id,
+                        organization=None,
+                        sponsored_by_id=parent.sponsored_by_id
+                    )
+                    if links:
+                        links.update(organization_id=None)
+                else:
+                    descendants.update(
+                        read_only=parent.read_only,
+                        owned_by=parent.owned_by_id,
+                        organization=None,
+                        sponsored_by=None
+                    )
+                    if links:
+                        links.update(organization_id=None)
+                # credit users for any bonus links they are due
+                if parent.organization_id or parent.sponsored_by_id:
+                    if bonus_links:
+                        user = bonus_links[0].created_by
+                        count = bonus_links.update(bonus_link=False)
+                        user.bonus_links = F('bonus_links') + count
+                        user.save(update_fields=['bonus_links'])
+                print(f"Descendants updated in {time.time() - updating_descendant_start}")
+
+            if new or parent_has_changed:
+
+                updating_cached_path_start = time.time()
+                # update cached paths
+                if settings.TREE_PACKAGE == 'mptt':
+                    for descendant in descendants:
+                        descendant.cached_path = descendant.get_path()
+                        descendant.save()
+                elif settings.TREE_PACKAGE == 'tree_queries':
+                    descendants.update(
+                        cached_path=Folder.objects.with_tree_fields().filter(
+                            id=F('id')
+                        ).extra(
+                            select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
+                        ).values_list(
+                            "path_string", flat=True
+                        ).first()
+                    )
+                else:
+                    raise NotImplementedError()
+                print(f"Paths updated in {time.time() - updating_cached_path_start}")
+
+                updating_parents_start = time.time()
+                # update new parent's has_children
+                if parent:
+                    parent_query.update(
+                        cached_has_children = True
+                    )
+                # update previous parent's has_children
+                if previous_parent_id:
+                    Folder.objects.filter(
+                        id=previous_parent_id
+                    ).update(
+                        cached_has_children = Exists(
+                            Folder.objects.exclude(
+                                id=self.id
+                            ).filter(
+                                parent_id=previous_parent_id
+                            )
+                        )
+                    )
+                print(f"Parents updated in {time.time() - updating_parents_start}")
+
+        print(f"Saved {self.id} in {time.time() - start}s")
 
     class MPTTMeta:
         order_insertion_by = ['name', 'id']
