@@ -47,6 +47,13 @@ STORAGES = {
             "default_acl": 'private'
         }
     },
+    "secondary": {
+        "BACKEND": 'perma.storage_backends.S3MediaStorage',
+        "OPTIONS": {
+            "signature_version": 's3v4',
+            "default_acl": 'private'
+        }
+    },
     "staticfiles": {
         "BACKEND": 'perma.storage_backends.StaticStorage',
     },

@@ -92,6 +92,7 @@ services:
       - MINIO_ROOT_PASSWORD=secretkey
       - DATA_DIR=/data
       - BUCKET=perma-storage
+      - SECONDARY_BUCKET=perma-secondary-storage
       - MINIO_API_CORS_ALLOW_ORIGIN=https://replay.perma.test:8000
     volumes:
       - ./services/docker/minio/entrypoint.sh:/entrypoint.sh

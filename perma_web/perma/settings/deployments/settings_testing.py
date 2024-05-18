@@ -25,6 +25,7 @@ ADMINS = (
 )
 
 STORAGES["default"]["OPTIONS"]["bucket_name"] += '-test'
+STORAGES["secondary"]["OPTIONS"]["bucket_name"] += '-test'
 
 ###############
 # Speed Hacks #
