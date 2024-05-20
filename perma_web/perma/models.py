@@ -27,7 +27,7 @@ from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models, transaction
-from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists
+from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists, OuterRef
 from django.db.models.functions import Now, Upper, TruncDate
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
@@ -1276,6 +1276,9 @@ class Folder(MPTTModel, TreeNode):
     cached_path = models.TextField()
     cached_has_children = models.BooleanField(default=False)
 
+    # denormalized, a reference to the apex folder in this folder's tree
+    tree_root = models.ForeignKey('self', null=True, on_delete=models.CASCADE)
+
     objects = FolderManager()
     tracker = FieldTracker()
 
@@ -1294,7 +1297,11 @@ class Folder(MPTTModel, TreeNode):
         if settings.TREE_PACKAGE == 'mptt':
             return super().get_descendants(include_self=include_self)
         elif settings.TREE_PACKAGE == 'tree_queries':
-            return self.descendants(include_self=include_self)
+            return self.descendants(
+                include_self=include_self
+            ).tree_filter(
+                tree_root_id=self.tree_root_id
+            )
         raise NotImplementedError()
 
     def get_ancestors(self, include_self=False):
@@ -1315,7 +1322,9 @@ class Folder(MPTTModel, TreeNode):
             try:
                 return self.tree_depth + (1 if self.organization_id else 0)
             except AttributeError:
-                return Folder.objects.with_tree_fields().get(id=self.id).tree_depth + (1 if self.organization_id else 0)
+                return Folder.objects.with_tree_fields().tree_filter(
+                    tree_root_id=self.tree_root_id
+                ).get(id=self.id).tree_depth + (1 if self.organization_id else 0)
         raise NotImplementedError()
 
     def get_path(self):
@@ -1325,7 +1334,9 @@ class Folder(MPTTModel, TreeNode):
             try:
                 return '-'.join([str(i) for i in self.tree_path])
             except AttributeError:
-                return '-'.join([str(i) for i in Folder.objects.with_tree_fields().get(id=self.id).tree_path])
+                return '-'.join([str(i) for i in Folder.objects.with_tree_fields().tree_filter(
+                    tree_root_id=self.tree_root_id
+                ).get(id=self.id).tree_path])
         raise NotImplementedError()
 
     #
@@ -1371,24 +1382,40 @@ class Folder(MPTTModel, TreeNode):
                         self.sponsored_by_id = parent.sponsored_by_id
                     else:
                         self.owned_by_id = parent.owned_by_id
+                    self.tree_root_id = parent.tree_root_id
+                else:
+                    self.tree_root_id = self.id
                 if self.created_by_id and not self.owned_by_id and not self.organization_id:
                     self.owned_by_id = self.created_by_id
 
-            super_save_start = time.time()
-            super(Folder, self).save(*args, **kwargs)
-            print(f"Super saved in {time.time() - super_save_start} (up to {time.time() - start} total)")
+                # Save and refresh from db before continuing, because we need an ID
+                super().save(*args, **kwargs)
+                self.refresh_from_db()
+                descendant_ids = [self.id]
+                descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
 
-            define_descendant_start = time.time()
-            if self.cached_has_children:
-                descendant_ids = list(self.get_descendants(include_self=True).values_list('id', flat=True))
             else:
-                descendant_ids = []
-            descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
-            print(f"Descendants defined in {time.time() - define_descendant_start}")
+
+                # We find descendants on the fly by inspecting parent_id.
+                # Retrieve descendant IDs before saving, while self.parent_id is still unchanged in the DB...
+                # otherwise you won't find anything, not even self!
+                if self.cached_has_children:
+                    descendant_ids = list(
+                        self.get_descendants(
+                            include_self=True
+                        ).tree_filter(
+                            tree_root_id=self.tree_root_id
+                        ).values_list(
+                            'id', flat=True
+                        )
+                    )
+                else:
+                    descendant_ids = [self.id]
+                descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
+                super(Folder, self).save(*args, **kwargs)
 
             if parent_has_changed:
 
-                updating_descendant_start = time.time()
                 links = Link.objects.filter(folders__in=descendant_ids)
                 bonus_links = links.filter(bonus_link=True)
                 # update read-only status and
@@ -1427,17 +1454,23 @@ class Folder(MPTTModel, TreeNode):
                         count = bonus_links.update(bonus_link=False)
                         user.bonus_links = F('bonus_links') + count
                         user.save(update_fields=['bonus_links'])
-                print(f"Descendants updated in {time.time() - updating_descendant_start}")
 
             if new or parent_has_changed:
 
-                updating_cached_path_start = time.time()
                 # update cached paths
+                if parent:
+                    self.tree_root_id = parent.tree_root_id
+                else:
+                    self.tree_root_id = self.id
                 if settings.TREE_PACKAGE == 'mptt':
                     for descendant in descendants:
+                        descendant.tree_root_id = self.tree_root_id
                         descendant.cached_path = descendant.get_path()
                         descendant.save()
                 elif settings.TREE_PACKAGE == 'tree_queries':
+                    descendants.update(
+                        tree_root_id=self.tree_root_id
+                    )
                     descendants.update(
                         cached_path=Folder.objects.with_tree_fields().filter(
                             id=F('id')
@@ -1449,9 +1482,7 @@ class Folder(MPTTModel, TreeNode):
                     )
                 else:
                     raise NotImplementedError()
-                print(f"Paths updated in {time.time() - updating_cached_path_start}")
 
-                updating_parents_start = time.time()
                 # update new parent's has_children
                 if parent:
                     parent_query.update(
@@ -1470,7 +1501,6 @@ class Folder(MPTTModel, TreeNode):
                             )
                         )
                     )
-                print(f"Parents updated in {time.time() - updating_parents_start}")
 
         print(f"Saved {self.id} in {time.time() - start}s")
 
