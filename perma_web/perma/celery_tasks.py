@@ -16,7 +16,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage, storages
 from django.core.mail import mail_admins
 from django.db.models import F
 from django.db.models.functions import Greatest, Now
@@ -90,7 +90,7 @@ def inc_progress(capture_job, inc, description):
 
 ### CAPTURE COMPLETION ###
 
-def save_scoop_capture(link, capture_job, data):
+def save_scoop_capture(link, capture_job, data, storage='default'):
 
     inc_progress(capture_job, 1, "Saving metadata")
 
@@ -196,7 +196,7 @@ def save_scoop_capture(link, capture_job, data):
         tmp_file.seek(0)
 
         inc_progress(capture_job, 1, "Saving web archive file")
-        default_storage.store_file(tmp_file, link.warc_storage_file(), overwrite=True)
+        storages[storage].store_file(tmp_file, link.warc_storage_file(), overwrite=True)
 
     capture_job.mark_completed()
 

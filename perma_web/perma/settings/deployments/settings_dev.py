@@ -18,6 +18,12 @@ STORAGES["default"]["OPTIONS"]["secret_key"] = 'secretkey'
 STORAGES["default"]["OPTIONS"]["bucket_name"] = 'perma-storage'
 STORAGES["default"]["OPTIONS"]["verify"] = False
 
+STORAGES["secondary"]["OPTIONS"]["endpoint_url"] = 'https://perma.minio.test:9000'
+STORAGES["secondary"]["OPTIONS"]["access_key"] = 'accesskey'
+STORAGES["secondary"]["OPTIONS"]["secret_key"] = 'secretkey'
+STORAGES["secondary"]["OPTIONS"]["bucket_name"] = 'perma-secondary-storage'
+STORAGES["secondary"]["OPTIONS"]["verify"] = False
+
 # static files
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
 

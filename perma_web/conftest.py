@@ -108,14 +108,15 @@ def cleanup_storage():
     Empty the configured storage after each test, so that it's fresh each time.
     """
     yield
-    storage = boto3.resource(
-        's3',
-        endpoint_url=settings.STORAGES["default"]["OPTIONS"]["endpoint_url"],
-        aws_access_key_id=settings.STORAGES["default"]["OPTIONS"]["access_key"],
-        aws_secret_access_key=settings.STORAGES["default"]["OPTIONS"]["secret_key"],
-        verify=False
-    ).Bucket(settings.STORAGES["default"]["OPTIONS"]["bucket_name"])
-    storage.objects.delete()
+    for storage_option in ['default', 'secondary']:
+        storage = boto3.resource(
+            's3',
+            endpoint_url=settings.STORAGES[storage_option]["OPTIONS"]["endpoint_url"],
+            aws_access_key_id=settings.STORAGES[storage_option]["OPTIONS"]["access_key"],
+            aws_secret_access_key=settings.STORAGES[storage_option]["OPTIONS"]["secret_key"],
+            verify=False
+        ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
+        storage.objects.delete()
 
 
 URL_MAP = {
