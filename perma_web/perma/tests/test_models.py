@@ -1235,15 +1235,15 @@ def test_folders_cached_paths_updated_when_moved(db):
     # f3 -> f3_1
     f1 = Folder(name=1)
     f1.save()
-    f1.refresh_from_db()
     f2 = Folder(parent=f1, name='2')
     f2.save()
-    f2.refresh_from_db()
     f3 = Folder(parent=f1, name='3')
     f3.save()
-    f3.refresh_from_db()
     f3_1 = Folder(parent=f3, name='3_1')
     f3_1.save()
+    f1.refresh_from_db()
+    f2.refresh_from_db()
+    f3.refresh_from_db()
     f3_1.refresh_from_db()
     assert f'{f1.pk}-{f3.pk}' == f3.cached_path
     assert f'{f1.pk}-{f3.pk}-{f3_1.pk}' == f3_1.cached_path
