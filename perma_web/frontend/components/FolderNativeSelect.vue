@@ -52,7 +52,8 @@ watch(selectedOption, () => {
         <option v-for="folder in props.folders" :key="folder.folderId"
             :value="folder.sponsored_by ? folder.id : folder.shared_folder.id"
             :data-orgid="folder.sponsored_by ? null : folder.id"
-            :data-folderid="folder.sponsored_by ? `[${folder.parent},${folder.id}]` : folder.shared_folder.id">
+            :data-folderid="folder.sponsored_by ? `[${folder.parent},${folder.id}]` : folder.shared_folder.id"
+            :disabled="folder.read_only">
             {{ folder.name }}
         </option>
         <option :value="props.personalFolderId" :data-folderid="props.personalFolderId">
