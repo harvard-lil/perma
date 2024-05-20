@@ -1473,12 +1473,12 @@ class Folder(MPTTModel, TreeNode):
                     )
                     descendants.update(
                         cached_path=Folder.objects.with_tree_fields().filter(
-                            id=F('id')
+                            id=OuterRef('id')
                         ).extra(
                             select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
                         ).values_list(
                             "path_string", flat=True
-                        ).first()
+                        )[:1]
                     )
                 else:
                     raise NotImplementedError()
