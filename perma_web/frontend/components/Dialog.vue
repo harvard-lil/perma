@@ -25,7 +25,8 @@ defineExpose({
 </script>
 
 <template>
-    <dialog class="c-dialog" ref="dialogRef" @click="handleClick" @keydown.esc="handleClose" id="batch-modal">
+    <dialog class="c-dialog" ref="dialogRef" @click="props.handleClick" @keydown.esc="props.handleClose"
+        id="batch-modal">
         <slot></slot>
     </dialog>
 </template>
