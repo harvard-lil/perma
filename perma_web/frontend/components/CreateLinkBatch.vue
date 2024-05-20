@@ -191,7 +191,7 @@ defineExpose({
             </div>
             <template v-if="globalStore.batchCaptureStatus === 'isValidating'">
                 <span class="sr-only">Loading</span>
-                <Spinner top="32px" length="10" color="#222222" />
+                <Spinner top="32px" length="10" color="#222222" classList="spinner" />
             </template>
             <div class="modal-body">
 

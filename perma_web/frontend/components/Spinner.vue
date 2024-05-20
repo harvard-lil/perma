@@ -6,7 +6,8 @@ const props = defineProps({
     top: String,
     length: Number,
     color: String,
-    isDisabled: Boolean
+    isDisabled: Boolean,
+    classList: String,
 })
 
 let spinnerRef = ref(null)
@@ -19,6 +20,6 @@ onMounted(() => {
 })
 </script>
 <template>
-    <div v-if="!isDisabled" ref="spinnerRef"></div>
+    <div v-if="!isDisabled" ref="spinnerRef" :class="!!props.classList && props.classList"></div>
     <div v-if="isDisabled">Loading</div>
 </template>
