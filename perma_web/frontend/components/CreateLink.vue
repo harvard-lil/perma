@@ -176,8 +176,11 @@ onBeforeUnmount(() => {
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />
                         </button>
-                        <p>or <button @click.prevent="batchDialogOpen" class="c-button c-button--link">create
-                                multiple links</button></p>
+                        <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
+                                :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
+                                multiple
+                                links</button>
+                        </p>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
                     <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect" />

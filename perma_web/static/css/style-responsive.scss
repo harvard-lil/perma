@@ -5863,6 +5863,50 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .u-pb-150 {
   padding-bottom: calc(18rem / 16);
 }
+.c-button {
+  cursor: pointer;
+}
+
+.c-button--link, .c-button--privateLink {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: $font-hed;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.c-button--link {
+  color: #2D76EE;
+  &:hover {
+    color: $color-hover;
+  }
+}
+
+.c-button--privateLink {
+  color: $color-orange-a;
+
+  &:hover {
+    text-decoration: none;
+    color: $color-orange;
+  }
+}
+
+.c-dialog {
+  margin-block-start: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+
+  @include respond-tablet {
+    margin-block-start: 3.75rem;
+    width: unset;
+  }
+
+  &::backdrop {
+    background-color: rgba(255, 255, 255, 0.95)
+  }
+}
 
 /* CSS transition classes automatically added/removed by Vue */
 .fade-enter-active,
