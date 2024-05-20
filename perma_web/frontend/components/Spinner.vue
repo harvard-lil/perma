@@ -4,11 +4,13 @@ import * as Spinner from 'spin.js'
 
 const props = defineProps({
     top: String,
+    length: Number,
+    color: String,
     isDisabled: Boolean
 })
 
 let spinnerRef = ref(null)
-let spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: props.top ? props.top : '-20px' })
+let spinner = new Spinner({ lines: 15, length: props.length ? parseInt(props.length) : 2, width: 2, radius: 9, corners: 0, color: props.color ? props.color : '#2D76EE', trail: 50, top: props.top ? props.top : '-20px' })
 
 onMounted(() => {
     if (!props.isDisabled) {
