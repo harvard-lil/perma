@@ -1385,6 +1385,7 @@ class Folder(TreeNode):
 
             if parent_has_changed:
 
+                start_updating_cached_paths = time.time()
                 links = Link.objects.filter(folders__in=descendant_ids)
                 bonus_links = links.filter(bonus_link=True)
                 # update read-only status and
@@ -1423,6 +1424,7 @@ class Folder(TreeNode):
                         count = bonus_links.update(bonus_link=False)
                         user.bonus_links = F('bonus_links') + count
                         user.save(update_fields=['bonus_links'])
+                logger.debug(f"Updating descendants took {time.time() - start_updating_cached_paths}")
 
             if new or parent_has_changed:
 
@@ -1446,7 +1448,7 @@ class Folder(TreeNode):
                         "path_string", flat=True
                     )[:1]
                 )
-                print(f"Updating cached paths took {time.time() - start_updating_cached_paths}")
+                logger.debug(f"Updating cached paths took {time.time() - start_updating_cached_paths}")
 
                 # update new parent's has_children
                 if parent:
@@ -1467,7 +1469,7 @@ class Folder(TreeNode):
                         )
                     )
 
-        print(f"Saved {self.id} in {time.time() - start}s")
+        logger.debug(f"Saved {self.id} in {time.time() - start}s")
 
     class Meta:
         ordering = ['name', 'id']
