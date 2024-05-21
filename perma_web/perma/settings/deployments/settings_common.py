@@ -158,7 +158,6 @@ INSTALLED_APPS = (
 
     # third party apps
     'ratelimit',
-    'mptt',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
@@ -617,5 +616,3 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_TRACES_SAMPLE_RATE',
     'PLAYBACK_HOST'
 )
-
-TREE_PACKAGE = 'mptt'  # {'mptt', 'tree-queries'}

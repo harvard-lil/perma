@@ -11,10 +11,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 1,
-      "level": 0,
       "cached_path": "22"
     }
   },
@@ -30,10 +26,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 4,
-      "tree_id": 2,
-      "level": 0,
       "cached_path": "23"
     }
   },
@@ -49,10 +41,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 3,
-      "level": 0,
       "cached_path": "24"
     }
   },
@@ -68,10 +56,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 4,
-      "level": 0,
       "cached_path": "25"
     }
   },
@@ -87,10 +71,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 5,
-      "level": 0,
       "cached_path": "26"
     }
   },
@@ -106,10 +86,6 @@
       "organization": 1,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 6,
-      "tree_id": 10,
-      "level": 0,
       "cached_path": "27"
     }
   },
@@ -125,10 +101,6 @@
       "organization": 2,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 6,
-      "tree_id": 11,
-      "level": 0,
       "cached_path": "28"
     }
   },
@@ -144,10 +116,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 4,
-      "level": 1,
       "cached_path": "25-30-29"
     }
   },
@@ -163,10 +131,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 4,
-      "level": 1,
       "cached_path": "25-29-30"
     }
   },
@@ -182,10 +146,6 @@
       "organization": 3,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 6,
-      "tree_id": 12,
-      "level": 0,
       "cached_path": "31"
     }
   },
@@ -201,10 +161,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 13,
-      "level": 0,
       "cached_path": "32"
     }
   },
@@ -220,10 +176,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 14,
-      "level": 0,
       "cached_path": "33"
     }
   },
@@ -239,10 +191,6 @@
       "organization": 1,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 2,
-      "rght": 3,
-      "tree_id": 10,
-      "level": 1,
       "cached_path": "27-34"
     }
   },
@@ -258,10 +206,6 @@
       "organization": 1,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 4,
-      "rght": 5,
-      "tree_id": 10,
-      "level": 1,
       "cached_path": "27-35"
     }
   },
@@ -277,10 +221,6 @@
       "organization": 2,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 4,
-      "rght": 5,
-      "tree_id": 11,
-      "level": 1,
       "cached_path": "28-36"
     }
   },
@@ -296,10 +236,6 @@
       "organization": 2,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 2,
-      "rght": 3,
-      "tree_id": 11,
-      "level": 1,
       "cached_path": "28-37"
     }
   },
@@ -315,10 +251,6 @@
       "organization": 3,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 2,
-      "rght": 3,
-      "tree_id": 12,
-      "level": 1,
       "cached_path": "31-38"
     }
   },
@@ -334,10 +266,6 @@
       "organization": 3,
       "is_shared_folder": false,
       "is_root_folder": false,
-      "lft": 4,
-      "rght": 5,
-      "tree_id": 12,
-      "level": 1,
       "cached_path": "31-39"
     }
   },
@@ -353,10 +281,6 @@
       "organization": 4,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 6,
-      "tree_id": 15,
-      "level": 0,
       "cached_path": "40"
     }
   },
@@ -372,10 +296,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 16,
-      "level": 0,
       "cached_path": "41"
     }
   },
@@ -391,10 +311,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 17,
-      "level": 0,
       "cached_path": "42"
     }
   },
@@ -410,10 +326,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 18,
-      "level": 0,
       "cached_path": "43"
     }
   },
@@ -429,10 +341,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 19,
-      "level": 0,
       "cached_path": "44"
     }
   },
@@ -448,10 +356,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 20,
-      "level": 0,
       "cached_path": "45"
     }
   },
@@ -467,10 +371,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 21,
-      "level": 0,
       "cached_path": "46"
     }
   },
@@ -486,10 +386,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 22,
-      "level": 0,
       "cached_path": "47"
     }
   },
@@ -505,10 +401,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 23,
-      "level": 0,
       "cached_path": "48"
     }
   },
@@ -524,10 +416,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 24,
-      "level": 0,
       "cached_path": "49"
     }
   },
@@ -543,10 +431,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 25,
-      "level": 0,
       "cached_path": "50"
     }
   },
@@ -562,10 +446,6 @@
       "organization": 5,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 26,
-      "level": 0,
       "cached_path": "51"
     }
   },
@@ -581,10 +461,6 @@
       "organization": 6,
       "is_shared_folder": true,
       "is_root_folder": false,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 27,
-      "level": 0,
       "cached_path": "52"
     }
   },
@@ -600,10 +476,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 28,
-      "level": 0,
       "cached_path": "53"
     }
   },
@@ -619,10 +491,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 29,
-      "level": 0,
       "cached_path": "54"
     }
   },
@@ -638,10 +506,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 30,
-      "level": 0,
       "cached_path": "55"
     }
   },
@@ -657,10 +521,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 31,
-      "level": 0,
       "cached_path": "56"
     }
   },
@@ -676,10 +536,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 32,
-      "level": 0,
       "cached_path": "57"
     }
   },
@@ -695,10 +551,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 33,
-      "level": 0,
       "cached_path": "58"
     }
   },
@@ -715,10 +567,6 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": true,
-      "lft": 1,
-      "rght": 10,
-      "tree_id": 49,
-      "level": 0,
       "cached_path": "59"
     }
   },
@@ -736,11 +584,7 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": false,
-      "lft": 4,
-      "rght": 9,
       "parent": 59,
-      "tree_id": 49,
-      "level": 1,
       "cached_path": "59-60"
     }
   },
@@ -749,7 +593,6 @@
     "pk": 61,
     "fields": {
       "name": "Sponsored Subfolder",
-      "parent": null,
       "creation_timestamp": "2017-09-28T19:36:07Z",
       "created_by": 20,
       "owned_by": 20,
@@ -758,11 +601,7 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": false,
-      "lft": 5,
-      "rght": 8,
       "parent": 60,
-      "tree_id": 49,
-      "level": 2,
       "cached_path": "59-60-61"
     }
   },
@@ -779,10 +618,6 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": true,
-      "lft": 1,
-      "rght": 6,
-      "tree_id": 50,
-      "level": 0,
       "cached_path": "62"
     }
   },
@@ -791,7 +626,6 @@
     "pk": 63,
     "fields": {
       "name": "Test Library",
-      "parent": null,
       "creation_timestamp": "2017-09-28T19:36:07Z",
       "created_by": 22,
       "owned_by": 22,
@@ -800,11 +634,7 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": false,
-      "lft": 2,
-      "rght": 5,
       "parent": 62,
-      "tree_id": 50,
-      "level": 1,
       "read_only": true,
       "cached_path": "62-63"
     }
@@ -814,7 +644,6 @@
     "pk": 64,
     "fields": {
       "name": "Sponsored Subsubfolder",
-      "parent": null,
       "creation_timestamp": "2017-09-28T19:36:07Z",
       "created_by": 20,
       "owned_by": 20,
@@ -823,11 +652,7 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": false,
-      "lft": 6,
-      "rght": 7,
       "parent": 61,
-      "tree_id": 49,
-      "level": 3,
       "cached_path": "59-60-61-64"
     }
   },
@@ -836,7 +661,6 @@
     "pk": 65,
     "fields": {
       "name": "Inactive Sponsored Subfolder",
-      "parent": null,
       "creation_timestamp": "2017-09-28T19:36:07Z",
       "created_by": 22,
       "owned_by": 22,
@@ -845,11 +669,7 @@
       "is_shared_folder": false,
       "is_root_folder": false,
       "is_sponsored_root_folder": false,
-      "lft": 3,
-      "rght": 4,
       "parent": 63,
-      "tree_id": 50,
-      "level": 2,
       "read_only": true,
       "cached_path": "62-63-65"
     }
@@ -866,10 +686,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 51,
-      "level": 0,
       "cached_path": "66"
     }
   },
@@ -885,10 +701,6 @@
       "organization": null,
       "is_shared_folder": false,
       "is_root_folder": true,
-      "lft": 1,
-      "rght": 2,
-      "tree_id": 52,
-      "level": 0,
       "cached_path": "67"
     }
   }

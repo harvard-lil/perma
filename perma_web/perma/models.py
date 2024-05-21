@@ -17,7 +17,6 @@ import hmac
 import uuid
 from psycopg2.extras import DateTimeTZRange
 
-from mptt.managers import TreeManager
 from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
 
@@ -36,7 +35,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.decorators.debug import sensitive_variables
-from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 import surt
 from taggit.managers import TaggableManager
@@ -1225,7 +1223,7 @@ for prop_name in ['is_organization_user']:
 
 from tree_queries.models import TreeNode
 from tree_queries.query import TreeQuerySet
-class FolderQuerySet(TreeQuerySet, QuerySet):
+class FolderQuerySet(TreeQuerySet):
     def user_access_filter(self, user):
         if user.is_staff:
             return Q()  # all
@@ -1244,11 +1242,8 @@ class FolderQuerySet(TreeQuerySet, QuerySet):
         return self.filter(self.user_access_filter(user))
 
 
-FolderManager = TreeManager.from_queryset(FolderQuerySet)
-
-class Folder(MPTTModel, TreeNode):
+class Folder(TreeNode):
     name = models.CharField(max_length=255, null=False, blank=False)
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created', on_delete=models.CASCADE)
 
@@ -1279,69 +1274,43 @@ class Folder(MPTTModel, TreeNode):
     # denormalized, a reference to the apex folder in this folder's tree
     tree_root = models.ForeignKey('self', null=True, on_delete=models.CASCADE)
 
-    objects = FolderManager()
+    objects = FolderQuerySet.as_manager()
     tracker = FieldTracker()
 
-    #
-    # methods for use during the tree migration
-    #
-
     def is_leaf_node(self):
-        if settings.TREE_PACKAGE == 'mptt':
-            return super().is_leaf_node()
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            return not self.cached_has_children
-        raise NotImplementedError()
+        return not self.cached_has_children
 
     def get_descendants(self, include_self=False):
-        if settings.TREE_PACKAGE == 'mptt':
-            return super().get_descendants(include_self=include_self)
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            return self.descendants(
-                include_self=include_self
-            ).tree_filter(
-                tree_root_id=self.tree_root_id
-            )
-        raise NotImplementedError()
+        return self.descendants(
+            include_self=include_self
+        ).tree_filter(
+            tree_root_id=self.tree_root_id
+        )
 
     def get_ancestors(self, include_self=False):
-        if settings.TREE_PACKAGE == 'mptt':
-            return super().get_ancestors(include_self=include_self)
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            return self.ancestors(include_self=include_self)
-        raise NotImplementedError()
+        return self.ancestors(include_self=include_self).tree_filter(
+            tree_root_id=self.tree_root_id
+        )
 
     def display_level(self):
         """
             Get hierarchical level for this folder. If this is a shared folder, level should be one higher
             because it is displayed below user's root folder.
         """
-        if settings.TREE_PACKAGE == 'mptt':
-            return self.level + (1 if self.organization_id else 0)
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            try:
-                return self.tree_depth + (1 if self.organization_id else 0)
-            except AttributeError:
-                return Folder.objects.with_tree_fields().tree_filter(
-                    tree_root_id=self.tree_root_id
-                ).get(id=self.id).tree_depth + (1 if self.organization_id else 0)
-        raise NotImplementedError()
+        try:
+            return self.tree_depth + (1 if self.organization_id else 0)
+        except AttributeError:
+            return Folder.objects.with_tree_fields().tree_filter(
+                tree_root_id=self.tree_root_id
+            ).get(id=self.id).tree_depth + (1 if self.organization_id else 0)
 
     def get_path(self):
-        if settings.TREE_PACKAGE == 'mptt':
-            return '-'.join([str(f.id) for f in self.get_ancestors(include_self=True)])
-        elif settings.TREE_PACKAGE == 'tree_queries':
-            try:
-                return '-'.join([str(i) for i in self.tree_path])
-            except AttributeError:
-                return '-'.join([str(i) for i in Folder.objects.with_tree_fields().tree_filter(
-                    tree_root_id=self.tree_root_id
-                ).get(id=self.id).tree_path])
-        raise NotImplementedError()
-
-    #
-    # /end methods for use during the tree migration
-    #
+        try:
+            return '-'.join([str(i) for i in self.tree_path])
+        except AttributeError:
+            return '-'.join([str(i) for i in Folder.objects.with_tree_fields().tree_filter(
+                tree_root_id=self.tree_root_id
+            ).get(id=self.id).tree_path])
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -1457,31 +1426,27 @@ class Folder(MPTTModel, TreeNode):
 
             if new or parent_has_changed:
 
+                start_updating_cached_paths = time.time()
                 # update cached paths
                 if parent:
                     self.tree_root_id = parent.tree_root_id
                 else:
                     self.tree_root_id = self.id
-                if settings.TREE_PACKAGE == 'mptt':
-                    for descendant in descendants:
-                        descendant.tree_root_id = self.tree_root_id
-                        descendant.cached_path = descendant.get_path()
-                        descendant.save()
-                elif settings.TREE_PACKAGE == 'tree_queries':
-                    descendants.update(
+                descendants.update(
+                    tree_root_id=self.tree_root_id
+                )
+                descendants.update(
+                    cached_path=Folder.objects.with_tree_fields().tree_filter(
                         tree_root_id=self.tree_root_id
-                    )
-                    descendants.update(
-                        cached_path=Folder.objects.with_tree_fields().filter(
-                            id=OuterRef('id')
-                        ).extra(
-                            select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
-                        ).values_list(
-                            "path_string", flat=True
-                        )[:1]
-                    )
-                else:
-                    raise NotImplementedError()
+                    ).filter(
+                        id=OuterRef('id')
+                    ).extra(
+                        select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
+                    ).values_list(
+                        "path_string", flat=True
+                    )[:1]
+                )
+                print(f"Updating cached paths took {time.time() - start_updating_cached_paths}")
 
                 # update new parent's has_children
                 if parent:
@@ -1504,8 +1469,8 @@ class Folder(MPTTModel, TreeNode):
 
         print(f"Saved {self.id} in {time.time() - start}s")
 
-    class MPTTMeta:
-        order_insertion_by = ['name', 'id']
+    class Meta:
+        ordering = ['name', 'id']
 
     def is_empty(self):
         return not self.children.exists() and not self.links.exists()

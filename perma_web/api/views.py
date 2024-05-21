@@ -6,7 +6,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError as Django
 from django.db import transaction
 from django.db.models import Prefetch, F
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from mptt.exceptions import InvalidMove
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -212,10 +211,7 @@ class FolderDetailView(BaseView):
     def folder_update(self, request, pk, data):
         """ Helper for updating folder details -- used by patch and put methods. """
         obj = self.get_object_for_user_by_pk(request.user, pk)
-        try:
-            return self.simple_update(obj, data)
-        except InvalidMove as e:
-            raise ValidationError({"parent":[e.args[0]]})
+        return self.simple_update(obj, data)
 
     @load_parent
     def patch(self, request, pk, format=None):
