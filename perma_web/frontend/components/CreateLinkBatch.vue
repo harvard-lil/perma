@@ -80,7 +80,6 @@ const handleBatchCaptureRequest = async () => {
             })
 
         if (!response?.ok) {
-            console.log('Nothing happened successfully')
             throw new Error(response.statusText) // This is a placeholder for now
         }
 
@@ -164,7 +163,6 @@ const handleBatchFormatting = ((captureJobs) => {
 })
 
 watch(batchCaptureId, () => {
-    console.log('batch capture id updated')
     handleBatchDetailsFetch()
     progressInterval = setInterval(handleBatchDetailsFetch, 2000);
 })
