@@ -15,8 +15,7 @@ const handleSelect = (e) => {
         return
     }
 
-    // Reset subfolder selection
-    additionalSubfolders.value = []
+    resetSubfolders()
 
     // Call a custom event that triggers triggerOnWindow function
     const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null } } });
@@ -27,6 +26,9 @@ const selectRef = ref('')
 const selectedOption = computed(() => globalStore.selectedFolder ? globalStore.selectedFolder.folderId : 'Please select a folder')
 
 const additionalSubfolders = ref([])
+const resetSubfolders = () => {
+    additionalSubfolders.value = []
+}
 
 watch(selectedOption, () => {
     const selectIncludesOption = selectRef.value.querySelector(`option[value='${globalStore.selectedFolder.folderId}']`);
@@ -35,6 +37,10 @@ watch(selectedOption, () => {
         additionalSubfolders.value = [globalStore.selectedFolder]
     }
 })
+
+
+
+defineExpose({ resetSubfolders });
 
 </script>
 
