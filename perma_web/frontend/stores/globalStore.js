@@ -50,6 +50,7 @@ export const globalStore = reactive({
     isReadOnly: false,
     isOutOfLinks: false,
   },
+
   updateFolderSelection(selection) {
     this.selectedFolder = selection
   },
@@ -62,5 +63,10 @@ export const globalStore = reactive({
   sponsoredFolders: [], 
   updateSponsoredFolders(sponsoredFolders) {
     this.sponsoredFolders = sponsoredFolders
+  },
+
+  additionalSubfolder: true,
+  updateAdditionalSubfolder(value) {
+    this.additionalSubfolder = value
   }
 })

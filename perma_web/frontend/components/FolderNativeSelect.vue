@@ -15,7 +15,7 @@ const handleSelect = (e) => {
         return
     }
 
-    resetSubfolders()
+    globalStore.updateAdditionalSubfolder(false)
 
     // Call a custom event that triggers triggerOnWindow function
     const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null } } });
@@ -25,23 +25,13 @@ const handleSelect = (e) => {
 const selectRef = ref('')
 const selectedOption = computed(() => globalStore.selectedFolder ? globalStore.selectedFolder.folderId : 'Please select a folder')
 
-const additionalSubfolders = ref([])
-const resetSubfolders = () => {
-    additionalSubfolders.value = []
-}
-
 watch(selectedOption, () => {
     const selectIncludesOption = selectRef.value.querySelector(`option[value='${globalStore.selectedFolder.folderId}']`);
 
     if (!selectIncludesOption) {
-        additionalSubfolders.value = [globalStore.selectedFolder]
+        globalStore.updateAdditionalSubfolder(true)
     }
 })
-
-
-
-defineExpose({ resetSubfolders });
-
 </script>
 
 <template>
@@ -50,9 +40,9 @@ defineExpose({ resetSubfolders });
     <select ref="selectRef" name="pets" id="batch-capture-select" :selected="selectedOption" :value="selectedOption"
         @change="handleSelect">
         <option value="Please select a folder">Please select a folder</option>
-        <template v-if="additionalSubfolders.length">
-            <option v-for="folder in additionalSubfolders" :value="folder.folderId">
-                {{ folder.path[folder.path.length - 1] }}
+        <template v-if="globalStore.additionalSubfolder">
+            <option :value="globalStore.selectedFolder.folderId">
+                {{ globalStore.selectedFolder.path[globalStore.selectedFolder.path.length - 1] }}
             </option>
         </template>
         <option v-for="folder in props.folders" :key="folder.folderId"

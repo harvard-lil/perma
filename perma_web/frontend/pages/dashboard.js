@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import App from '../components/App.vue'
 import { globalStore } from '../stores/globalStore'
-import { resetSubfolders } from '../components/FolderNativeSelect.vue'
 
 createApp(App).mount('#vue-app')
 
@@ -9,9 +8,9 @@ createApp(App).mount('#vue-app')
 const handleDispatch = (name, data) => {
     switch (name) {
         case "updateFolderSelection":
-        default:
-            resetSubfolders()
-            globalStore.updateFolderSelection(data)
+        default: 
+        globalStore.updateAdditionalSubfolder(false)
+        globalStore.updateFolderSelection(data)
         break;
     }
 }
