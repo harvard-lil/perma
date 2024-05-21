@@ -5878,7 +5878,7 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 
 .c-button--link {
   color: #2D76EE;
-  &:hover {
+  &:hover, &:focus {
     color: $color-hover;
   }
 }
@@ -5886,7 +5886,7 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .c-button--privateLink {
   color: $color-orange-a;
 
-  &:hover {
+  &:hover, &:focus {
     text-decoration: none;
     color: $color-orange;
   }
