@@ -15,7 +15,6 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from django_json_widget.widgets import JSONEditorWidget
 
@@ -170,6 +169,19 @@ class NameFilter(InputFilter):
         value = self.value()
         if value:
             return queryset.filter(name__icontains=value)
+
+
+class RootFilter(InputFilter):
+    parameter_name = 'root'
+    title = 'root folder '
+
+    def queryset(self, request, queryset):
+        try:
+            value = int(self.value())
+        except (ValueError, TypeError):
+            value = None
+        if value:
+            return queryset.filter(tree_root_id=value)
 
 
 class IAIdentifierFilter(InputFilter):
@@ -633,10 +645,11 @@ class LinkAdmin(SimpleHistoryAdmin):
     file_size.admin_order_field = 'warc_size'
 
 
-class FolderAdmin(MPTTModelAdmin):
-    list_display = ['id', 'level', 'display_level', 'name', 'cached_path', 'owned_by', 'organization', 'sponsored_by', 'read_only']
-    list_filter = [NameFilter, OwnerFilter, OrgFilter]
+class FolderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'tree_root_id', 'cached_path', 'owned_by', 'organization', 'sponsored_by', 'read_only']
+    list_filter = [NameFilter, OwnerFilter, OrgFilter, RootFilter]
     raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
+    ordering = ('cached_path',)
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
