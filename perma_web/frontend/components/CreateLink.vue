@@ -126,7 +126,7 @@ const { addToast } = useToast();
 
 const toggleToast = () => {
     const date = Date.now();
-    addToast(`State changed on ${date}"!`, 'success');
+    addToast(`Toast notification ${date}`, 'success');
 }
 
 watch(userLinkGUID, () => {
