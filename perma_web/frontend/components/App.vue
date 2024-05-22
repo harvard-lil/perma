@@ -1,5 +1,6 @@
 <script setup>
 import CreateLink from './CreateLink.vue';
+import Toast from './Toast.vue';
 import { onBeforeMount, watchEffect } from 'vue'
 import { getLinksRemainingStatus, getUserTypes, getUserOrganizations, getSponsoredFolders } from '../lib/store'
 import { globalStore } from '../stores/globalStore';
@@ -23,5 +24,6 @@ watchEffect(() => {
 </script>
 
 <template>
+    <Toast />
     <CreateLink />
 </template>

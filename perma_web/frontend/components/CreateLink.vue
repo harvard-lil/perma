@@ -7,6 +7,7 @@ import Spinner from './Spinner.vue';
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
+import { useToast } from '../lib/notifications';
 
 const userLink = ref('')
 const userLinkGUID = ref('')
@@ -121,6 +122,13 @@ const handleProgressUpdate = async () => {
     }
 }
 
+const { addToast } = useToast();
+
+const toggleToast = () => {
+    const date = Date.now();
+    addToast(`State changed on ${date}"!`, 'success');
+}
+
 watch(userLinkGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
@@ -138,6 +146,7 @@ onBeforeUnmount(() => {
         <div class="container cont-fixed">
             <h2>Capture status: {{ globalStore.captureStatus }}</h2> <!-- debug only -->
             <h2 v-if="globalStore.captureStatus === 'isCapturing'">Capture progress: {{ userLinkProgressBar }}</h2>
+            <button @click="toggleToast">Toggle toast</button>
             <!-- debug only -->
 
         </div>
