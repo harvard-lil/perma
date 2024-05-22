@@ -144,7 +144,9 @@ onBeforeUnmount(() => {
     <!-- regular link creation -->
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
-            <h2>Capture status: {{ globalStore.captureStatus }}</h2> <!-- debug only -->
+
+            <!-- debug only -->
+            <h2>Capture status: {{ globalStore.captureStatus }}</h2>
             <h2 v-if="globalStore.captureStatus === 'isCapturing'">Capture progress: {{ userLinkProgressBar }}</h2>
             <button @click="toggleToast">Toggle toast</button>
             <!-- debug only -->
