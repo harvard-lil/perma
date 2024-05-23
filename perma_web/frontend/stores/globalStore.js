@@ -43,7 +43,7 @@ export const globalStore = reactive({
 
   selectedFolder: {
     path: [],
-    id: [], 
+    folderId: '', 
     orgId: '',
     sponsorId: '',
     isPrivate: false,
@@ -65,7 +65,7 @@ export const globalStore = reactive({
     this.sponsoredFolders = sponsoredFolders
   },
 
-  additionalSubfolder: true,
+  additionalSubfolder: false,
   updateAdditionalSubfolder(value) {
     this.additionalSubfolder = value
   }
