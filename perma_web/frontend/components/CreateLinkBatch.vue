@@ -17,7 +17,7 @@ const batchCSVUrl = ref('')
 const batchCaptureJobs = ref([])
 const batchCaptureSummary = ref('')
 
-const showBatchDetails = computed(() => globalStore.batchCaptureStatus !== 'ready')
+const showBatchDetails = computed(() => globalStore.batchCaptureStatus !== 'ready' && globalStore.batchCaptureStatus !== 'isValidating')
 const userSubmittedLinks = ref('')
 
 const readyStates = ["ready", "urlError", "folderSelectionError"]
