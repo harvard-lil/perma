@@ -117,15 +117,14 @@ const handleError = (error) => {
 const handleBatchDetailsFetch = async () => {
     const { data, error, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
 
-    if (error) {
-        return globalStore.updateBatchCaptureErrorMessage(errorMessage)
+    if (error || !data.value.capture_jobs) {
+        globalStore.updateBatchCapture('batchDetailsError')
+        globalStore.updateBatchCaptureErrorMessage(errorMessage)
     }
 
-    if (data.value.capture_jobs) {
-        const { allJobs, progressSummary } = handleBatchFormatting(data.value.capture_jobs)
-        batchCaptureJobs.value = allJobs
-        batchCaptureSummary.value = progressSummary
-    }
+    const { allJobs, progressSummary } = handleBatchFormatting(data.value.capture_jobs)
+    batchCaptureJobs.value = allJobs
+    batchCaptureSummary.value = progressSummary
 }
 
 const handleBatchFormatting = ((captureJobs) => {
