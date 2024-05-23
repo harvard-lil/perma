@@ -23,10 +23,15 @@ const handleSelect = (e) => {
 }
 
 const selectRef = ref('')
-const selectedOption = computed(() => globalStore.selectedFolder ? globalStore.selectedFolder.folderId : 'Please select a folder')
+const defaultFolderSelection = 'Please select a folder'
+const selectedOption = computed(() => !!globalStore.selectedFolder.folderId ? globalStore.selectedFolder.folderId : defaultFolderSelection)
 
 watch(selectedOption, () => {
-    const selectIncludesOption = selectRef.value.querySelector(`option[value='${globalStore.selectedFolder.folderId}']`);
+    if (selectedOption === defaultFolderSelection) {
+        return
+    }
+
+    const selectIncludesOption = selectRef.value.querySelector(`option[value='${globalStore.selectedFolder.folderId}']`)
 
     if (!selectIncludesOption) {
         globalStore.updateAdditionalSubfolder(true)
