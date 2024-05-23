@@ -8,6 +8,7 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
+import { getErrorFromNestedObject } from "../lib/errors"
 
 const batchDialogRef = ref('')
 
@@ -78,15 +79,17 @@ const handleArchiveRequest = async () => {
             })
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // We will handle this more in-depth later
+            const errorData = await response.json()
+            throw errorData
         }
 
-        const { guid } = await response.json() // Needed to poll Perma about the capture status of a link
+        const { guid } = await response.json()
         userLinkGUID.value = guid
         globalStore.updateCapture('isQueued')
 
-    } catch (error) {
+    } catch (errorData) {
         globalStore.updateCapture('urlError')
+        const error = getErrorFromNestedObject(errorData)
         globalStore.updateCaptureErrorMessage(error)
     }
 };
@@ -96,7 +99,8 @@ const handleCaptureStatus = async (guid) => {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // We will handle this more in-depth later
+            const errorData = await response.json()
+            throw errorData
         }
 
         const jobStatus = await response.json()
@@ -104,12 +108,13 @@ const handleCaptureStatus = async (guid) => {
         return {
             step_count: jobStatus.step_count,
             status: jobStatus.status,
-            error: jobStatus.status === 'failed' ? JSON.parse(jobStatus.message).error[0] : '' // We will handle this more in-depth later, too
+            error: jobStatus.status === 'failed' ? getErrorFromNestedObject(jobStatus) : ''
         }
 
-    } catch (error) {
+    } catch (errorData) {
         clearInterval(progressInterval);
         globalStore.updateCapture('captureError')
+        const error = getErrorFromNestedObject(errorData)
         globalStore.updateCaptureErrorMessage(error)
     }
 }
@@ -165,10 +170,10 @@ onBeforeUnmount(() => {
                 '_isWorking': !readyStates.includes(globalStore.captureStatus),
             }
                 " id="addlink" type="submit">
-                            <Spinner v-if="isLoading" top="-20px" />
+                            <!-- <Spinner v-if="isLoading" top="-20px" /> -->
                             {{ submitButtonText }}
-                            <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
-                                :progress="userLinkProgressBar" />
+                            <!-- <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
+                                :progress="userLinkProgressBar" /> -->
                         </button>
                         <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
                                 :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
