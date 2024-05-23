@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, computed } from 'vue';
+import { defineProps } from 'vue';
 import { validStates } from '../lib/consts.js'
 import ProgressBar from './ProgressBar.vue';
 
