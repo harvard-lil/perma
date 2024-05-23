@@ -60,6 +60,13 @@ const handleArchiveRequest = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
+        if (!formData.folder) {
+            // These are placeholders
+            const errorMessage = 'Missing folder selection'
+            globalStore.updateCaptureErrorMessage(errorMessage)
+            throw new Error(errorMessage)
+        }
+
         const response = await fetch("/api/v1/archives/",
             {
                 headers: {

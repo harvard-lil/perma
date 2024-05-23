@@ -20,7 +20,7 @@ const batchCaptureSummary = ref('')
 const showBatchDetails = computed(() => globalStore.batchCaptureStatus !== 'ready')
 const userSubmittedLinks = ref('')
 
-const readyStates = ["ready", "captureBatchError"]
+const readyStates = ["ready", "urlError", "folderSelectionError"]
 const isReady = computed(() => { readyStates.includes(globalStore.batchCaptureStatus) })
 
 let progressInterval;
@@ -68,6 +68,14 @@ const handleBatchCaptureRequest = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
+        if (!formData.target_folder) {
+            // These are placeholders
+            globalStore.updateBatchCapture('folderSelectionError')
+            const errorMessage = 'Missing folder selection'
+            globalStore.updateBatchCaptureErrorMessage(errorMessage)
+            throw new Error(errorMessage)
+        }
+
         const response = await fetch("/api/v1/archives/batches/",
             {
                 headers: {
@@ -107,7 +115,6 @@ const handleError = (error) => {
 }
 
 const handleBatchDetailsFetch = async () => {
-    console.log('batch details fetch initiated')
     const { data, error, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
 
     if (error) {
