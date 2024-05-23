@@ -133,7 +133,7 @@ const handleBatchFormatting = ((captureJobs) => {
         let jobDetail = {
             ...currentJob,
             progress: (currentJob.step_count / steps) * 100,
-            url: currentJob.guid ? `${window.location.hostname}/${currentJob.guid}` : null
+            url: `${window.location.hostname}/${currentJob.guid}`
         };
 
         if (transitionalStates.includes(currentJob.status)) {

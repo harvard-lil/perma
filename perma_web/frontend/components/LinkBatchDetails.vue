@@ -11,7 +11,6 @@ const props = defineProps({
   batchCSVUrl: String,
   targetFolder: String,
 })
-const currentUrl = window.location.hostname
 </script>
 
 <template>
@@ -43,8 +42,8 @@ const currentUrl = window.location.hostname
                 <span v-if="job.status === 'pending'">Queued.</span>
                 <ProgressBar v-if="job.status === 'in_progress'" :progress="`${job.progress}%`" />
                 <span v-if="job.status === 'completed'">
-                  <a class="perma no-drag" :href="`${currentUrl}/${job.guid}`">
-                    {{ `${currentUrl}/${job.guid}` }}
+                  <a class="perma no-drag" :href="`/${job.guid}`">
+                    {{ job.url }}
                   </a>
                 </span>
               </div>
