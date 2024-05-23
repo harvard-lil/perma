@@ -190,7 +190,8 @@ onBeforeUnmount(() => {
                         </p>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect" />
+                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect"
+                        selectLabel="This Perma Link will be affiliated with" />
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
                     :class="globalStore.userTypes === 'individual' && 'limit-true'">

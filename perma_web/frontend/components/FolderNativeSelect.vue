@@ -4,7 +4,8 @@ import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
     folders: Array,
-    personalFolderId: Number
+    personalFolderId: Number,
+    selectLabel: String
 })
 
 const handleSelect = (e) => {
@@ -40,8 +41,7 @@ watch(selectedOption, () => {
 </script>
 
 <template>
-    <label id="batch-target" for="batch-target-path" class="label-affil">These Perma Links will be affiliated
-        with</label>
+    <label id="batch-target" for="batch-target-path" class="label-affil">{{ props.selectLabel }}</label>
     <select ref="selectRef" name="pets" id="batch-capture-select" :selected="selectedOption" :value="selectedOption"
         @change="handleSelect">
         <option value="Please select a folder">Please select a folder</option>

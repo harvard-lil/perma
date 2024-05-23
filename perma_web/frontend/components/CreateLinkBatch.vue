@@ -201,7 +201,7 @@ defineExpose({
 
                 <div id="batch-create-input" v-if="globalStore.batchCaptureStatus === 'ready'">
                     <div class="form-group">
-                        <FolderSelect />
+                        <FolderSelect selectLabel="These Perma Links will be affiliated with" />
                     </div>
                     <div class="form-group">
                         <textarea v-model="userSubmittedLinks" aria-label="Paste your URLs here (one URL per line)"

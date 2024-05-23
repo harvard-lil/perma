@@ -6,14 +6,14 @@ import { onClickOutside } from '@vueuse/core'
 const props = defineProps({
     folders: Array,
     personalFolderId: Number,
-    selectLabel: String
+    selectLabel: String,
 })
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
 const selectListRef = ref(null)
 const isSelectExpanded = ref(false)
-const selectLabel = computed(() => !!globalStore.selectedFolder.folderId ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
+const selectedOption = computed(() => !!globalStore.selectedFolder.folderId ? globalStore.selectedFolder.path.join(" > ") : 'Please select a folder')
 
 const getFolderHeader = (folder) => {
     if (folder.registrar) {
@@ -102,14 +102,14 @@ const handleSelection = (e) => {
 
 <template>
     <div id="organization_select_form">
-        <span class="label-affil">This Perma Link will be affiliated with</span>
+        <span class="label-affil">{{ props.selectLabel }}</span>
         <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
             @keydown.end.prevent="handleFocus(props.folders.length)" @keydown.esc="handleClose"
             @keydown.tab="handleClose" class="dropdown dropdown-affil" :class="{ 'open': isSelectExpanded }">
             <button ref="selectButtonRef" @keydown.down.prevent="handleFocus(0)" @click="handleSelectToggle"
                 class="dropdown-toggle selector selector-affil needsclick" type="button" aria-haspopup="listbox"
                 :aria-expanded="isSelectExpanded" aria-owns="folder-select-list">
-                {{ selectLabel }}
+                {{ selectedOption }}
                 <span v-if="globalStore.selectedFolder.isPrivate" class="ui-private"></span>
                 <span v-if="showLinksRemaining" class="links-remaining">
                     {{ linksRemaining }}
@@ -141,10 +141,10 @@ const handleSelection = (e) => {
                     :aria-selected="globalStore.selectedFolder.folderId === props.personalFolderId"
                     :data-index="props.folders.length" :data-folderid="props.personalFolderId">Personal Links <span
                         class="dropdown-item-supplement links-remaining">{{
-                globalStore.linksRemaining ===
-                    Infinity ?
-                    'unlimited' :
-                    globalStore.linksRemaining }}</span>
+            globalStore.linksRemaining ===
+                Infinity ?
+                'unlimited' :
+                globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
