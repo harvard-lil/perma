@@ -4,7 +4,7 @@ import * as Spinner from 'spin.js'
 
 const props = defineProps({
     top: String,
-    length: Number,
+    length: String,
     color: String,
     isDisabled: Boolean,
     classList: String,
