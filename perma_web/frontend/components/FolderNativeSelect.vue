@@ -42,7 +42,7 @@ watch(selectedOption, () => {
         <option value="Please select a folder">Please select a folder</option>
         <template v-if="globalStore.additionalSubfolder">
             <option :value="globalStore.selectedFolder.folderId">
-                {{ globalStore.selectedFolder.path[globalStore.selectedFolder.path.length - 1] }}
+                {{ globalStore.selectedFolder.path.join(" > ") }}
             </option>
         </template>
         <option v-for="folder in props.folders" :key="folder.folderId"
