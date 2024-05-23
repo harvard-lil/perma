@@ -12443,6 +12443,17 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .u-pb-150 {
   padding-bottom: 1.125rem;
 }
+
+/* CSS transition classes automatically added/removed by Vue */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 /*!
  *  Font Awesome 3.0.2
  *  the iconic font designed for use with Twitter Bootstrap
