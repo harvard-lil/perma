@@ -31606,6 +31606,10 @@ var interval;
 
 // elements in the DOM, retrieved during init()
 var $batch_details, $batch_details_wrapper, $batch_history, $batch_list_container, $batch_modal_title, $batch_progress_report, $batch_target_path, $create_batch, $create_batch_wrapper, $export_csv, $input, $input_area, $loading, $modal, $spinner, $start_button;
+window.addEventListener('BatchLinkModule.batchCreated', function (event) {
+  populate_link_batch_list();
+  Helpers.triggerOnWindow("BatchLinkModule.batchCreated");
+});
 function render_batch(links_in_batch, folder_path) {
   var steps = 6;
   var all_completed = true;

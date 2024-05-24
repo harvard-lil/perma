@@ -12444,6 +12444,50 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   padding-bottom: 1.125rem;
 }
 
+.c-button {
+  cursor: pointer;
+}
+
+.c-button--link, .c-button--privateLink {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.c-button--link {
+  color: #2D76EE;
+}
+.c-button--link:hover, .c-button--link:focus {
+  color: #0092FF;
+}
+
+.c-button--privateLink {
+  color: #C65300;
+}
+.c-button--privateLink:hover, .c-button--privateLink:focus {
+  text-decoration: none;
+  color: #DD671A;
+}
+
+.c-dialog {
+  margin-block-start: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+}
+@media only screen and (min-width: 768px) {
+  .c-dialog {
+    margin-block-start: 3.75rem;
+    width: unset;
+  }
+}
+.c-dialog::backdrop {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
 /* CSS transition classes automatically added/removed by Vue */
 .fade-enter-active,
 .fade-leave-active {
