@@ -42,7 +42,7 @@ watch(selectedOption, () => {
 
 <template>
     <label id="batch-target" for="batch-target-path" class="label-affil">{{ props.selectLabel }}</label>
-    <select ref="selectRef" name="pets" id="batch-capture-select" :selected="selectedOption" :value="selectedOption"
+    <select ref="selectRef" name="folders" id="batch-capture-select" :selected="selectedOption" :value="selectedOption"
         @change="handleSelect">
         <option value="Please select a folder">Please select a folder</option>
         <template v-if="globalStore.additionalSubfolder">
