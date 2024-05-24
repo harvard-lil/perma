@@ -11,6 +11,16 @@ export const globalStore = reactive({
     this.captureErrorMessage = message
   },
 
+  batchCaptureStatus: 'ready',
+  updateBatchCapture(state) {
+    this.batchCaptureStatus = state
+  },
+
+  batchCaptureErrorMessage: '',
+  updateBatchCaptureErrorMessage(message) {
+    this.batchCaptureErrorMessage = message
+  },
+
   fetchErrorMessage: '',
   updateFetchErrorMessage(message) {
     this.fetchErrorMessage = message
@@ -33,13 +43,14 @@ export const globalStore = reactive({
 
   selectedFolder: {
     path: [],
-    id: [], 
+    folderId: '', 
     orgId: '',
     sponsorId: '',
     isPrivate: false,
     isReadOnly: false,
     isOutOfLinks: false,
   },
+
   updateFolderSelection(selection) {
     this.selectedFolder = selection
   },
@@ -52,5 +63,10 @@ export const globalStore = reactive({
   sponsoredFolders: [], 
   updateSponsoredFolders(sponsoredFolders) {
     this.sponsoredFolders = sponsoredFolders
+  },
+
+  additionalSubfolder: false,
+  updateAdditionalSubfolder(value) {
+    this.additionalSubfolder = value
   }
 })

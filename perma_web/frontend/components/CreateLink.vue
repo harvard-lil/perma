@@ -8,6 +8,13 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import { useToast } from '../lib/notifications';
+import CreateLinkBatch from './CreateLinkBatch.vue';
+
+const batchDialogRef = ref('')
+
+const batchDialogOpen = () => {
+    batchDialogRef.value.handleOpen();
+}
 
 const userLink = ref('')
 const userLinkGUID = ref('')
@@ -53,6 +60,13 @@ const handleArchiveRequest = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
+        if (!formData.folder) {
+            // These are placeholders
+            const errorMessage = 'Missing folder selection'
+            globalStore.updateCaptureErrorMessage(errorMessage)
+            throw new Error(errorMessage)
+        }
+
         const response = await fetch("/api/v1/archives/",
             {
                 headers: {
@@ -157,9 +171,7 @@ onBeforeUnmount(() => {
                 <fieldset class="form-priority-fieldset">
                     <input v-model="userLink" id="rawUrl" name="url"
                         class="text-input select-on-click form-priority-input" type="text"
-                        placeholder="Paste your URL here." data-placement="bottom"
-                        data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left."
-                        data-original-title="Start building your library" data-html="true" data-trigger="manual" />
+                        placeholder="Paste your URL here." />
                     <div class="wrapper">
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
                             :class="{
@@ -171,9 +183,15 @@ onBeforeUnmount(() => {
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />
                         </button>
+                        <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
+                                :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
+                                multiple
+                                links</button>
+                        </p>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" />
+                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect"
+                        selectLabel="This Perma Link will be affiliated with" />
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
                     :class="globalStore.userTypes === 'individual' && 'limit-true'">
@@ -196,4 +214,6 @@ onBeforeUnmount(() => {
                     about this error.</a></p>
         </div>
     </div>
+
+    <CreateLinkBatch ref="batchDialogRef" />
 </template>

@@ -8,8 +8,9 @@ createApp(App).mount('#vue-app')
 const handleDispatch = (name, data) => {
     switch (name) {
         case "updateFolderSelection":
-        default:
-            globalStore.updateFolderSelection(data)
+        default: 
+        globalStore.updateAdditionalSubfolder(false)
+        globalStore.updateFolderSelection(data)
         break;
     }
 }

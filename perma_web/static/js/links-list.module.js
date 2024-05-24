@@ -19,7 +19,7 @@ let $linkListHeader, $linkTable;
 export function init () {
   $linkTable = $('.item-rows');
   $linkListHeader = $('#link-list-header');
-
+  
   setupEventHandlers();
   setupLinksTableEventHandlers();
 }

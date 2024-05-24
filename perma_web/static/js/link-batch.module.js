@@ -21,6 +21,10 @@ let $batch_details, $batch_details_wrapper, $batch_history, $batch_list_containe
     $create_batch_wrapper, $export_csv, $input, $input_area, $loading, $modal,
     $spinner, $start_button;
 
+window.addEventListener('BatchLinkModule.batchCreated', function (event) {
+    populate_link_batch_list();
+    Helpers.triggerOnWindow("BatchLinkModule.batchCreated");
+});
 
 function render_batch(links_in_batch, folder_path) {
     const steps = 6;
