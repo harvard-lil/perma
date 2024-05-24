@@ -30,9 +30,9 @@ azure-core==1.23.1 \
     # via
     #   azure-storage-blob
     #   django-storages
-azure-storage-blob==12.11.0 \
-    --hash=sha256:49535b3190bb69d0d9ff7a383246b14da4d2b1bdff60cae5f9173920c67ca7ee \
-    --hash=sha256:f3dfa605aefb453e7489328b76811a937a411761d7a1613a58c3975c556ec778
+azure-storage-blob==12.13.1 \
+    --hash=sha256:726b86f733dc76218ce45b7a3254b61ba4f0cc3d68b7621be4985248c92ee483 \
+    --hash=sha256:899c4b8e2671812d2cf78f107556a27dbb128caaa2bb06094e72a3d5836740af
     # via django-storages
 backcall==0.2.0 \
     --hash=sha256:5cbdbf27be5e7cfadb448baf0aa95508f91f2bbc6c6437cd9cd06e2a4c215e1e \
