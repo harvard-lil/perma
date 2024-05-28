@@ -1292,18 +1292,6 @@ class Folder(TreeNode):
             tree_root_id=self.tree_root_id
         )
 
-    def display_level(self):
-        """
-            Get hierarchical level for this folder. If this is a shared folder, level should be one higher
-            because it is displayed below user's root folder.
-        """
-        try:
-            return self.tree_depth + (1 if self.organization_id else 0)
-        except AttributeError:
-            return Folder.objects.with_tree_fields().tree_filter(
-                tree_root_id=self.tree_root_id
-            ).get(id=self.id).tree_depth + (1 if self.organization_id else 0)
-
     def get_path(self):
         try:
             return '-'.join([str(i) for i in self.tree_path])
