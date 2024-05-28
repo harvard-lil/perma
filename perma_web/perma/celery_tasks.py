@@ -408,9 +408,16 @@ def fix_cached_folder_paths(folder_ids=None):
 @shared_task(acks_late=True)  # use acks_late for tasks that can be safely re-run if they fail
 def fix_cached_folder_path(folder_id):
     folder = Folder.objects.get(id=folder_id)
-    folder.cached_path = folder.get_path()
-    if folder.tracker.has_changed('cached_path'):
-        folder.save(update_fields=['cached_path'])
+    try:
+        folder.cached_path = folder.get_path()
+        if folder.tracker.has_changed('cached_path'):
+            folder.save(update_fields=['cached_path'])
+    except Folder.DoesNotExist:
+        # This exception will be thrown if a folder's cached tree_root_id is wrong.
+        folder = Folder.objects.with_tree_fields().get(id=folder_id)
+        folder.tree_root_id = folder.tree_path[0]
+        folder.cached_path = Folder.format_tree_path(folder.tree_path)
+        folder.save(update_fields=['cached_path', 'tree_root_id'])
 
 
 @shared_task()

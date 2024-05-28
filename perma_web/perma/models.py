@@ -1292,13 +1292,17 @@ class Folder(TreeNode):
             tree_root_id=self.tree_root_id
         )
 
+    @classmethod
+    def format_tree_path(cls, tree_path):
+        return '-'.join([str(i) for i in tree_path])
+
     def get_path(self):
         try:
-            return '-'.join([str(i) for i in self.tree_path])
+            return Folder.format_tree_path(self.tree_path)
         except AttributeError:
-            return '-'.join([str(i) for i in Folder.objects.with_tree_fields().tree_filter(
+            return Folder.format_tree_path(Folder.objects.with_tree_fields().tree_filter(
                 tree_root_id=self.tree_root_id
-            ).get(id=self.id).tree_path])
+            ).get(id=self.id).tree_path)
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
