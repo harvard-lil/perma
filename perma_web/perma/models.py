@@ -1292,18 +1292,6 @@ class Folder(TreeNode):
             tree_root_id=self.tree_root_id
         )
 
-    @classmethod
-    def format_tree_path(cls, tree_path):
-        return '-'.join([str(i) for i in tree_path])
-
-    def get_path(self):
-        try:
-            return Folder.format_tree_path(self.tree_path)
-        except AttributeError:
-            return Folder.format_tree_path(Folder.objects.with_tree_fields().tree_filter(
-                tree_root_id=self.tree_root_id
-            ).get(id=self.id).tree_path)
-
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             super().delete(*args, **kwargs)
@@ -1471,6 +1459,18 @@ class Folder(TreeNode):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def format_tree_path(cls, tree_path):
+        return '-'.join([str(i) for i in tree_path])
+
+    def get_path(self):
+        try:
+            return Folder.format_tree_path(self.tree_path)
+        except AttributeError:
+            return Folder.format_tree_path(Folder.objects.with_tree_fields().tree_filter(
+                tree_root_id=self.tree_root_id
+            ).get(id=self.id).tree_path)
 
     def accessible_to(self, user):
         # staff can access any folder
