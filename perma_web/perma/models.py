@@ -19,6 +19,8 @@ from psycopg2.extras import DateTimeTZRange
 
 from rest_framework.settings import api_settings
 from simple_history.models import HistoricalRecords
+from tree_queries.models import TreeNode
+from tree_queries.query import TreeQuerySet
 
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -1221,8 +1223,6 @@ for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private', 'i
 for prop_name in ['is_organization_user']:
     setattr(django.contrib.auth.models.AnonymousUser, prop_name, getattr(LinkUser, prop_name))
 
-from tree_queries.models import TreeNode
-from tree_queries.query import TreeQuerySet
 class FolderQuerySet(TreeQuerySet):
     def user_access_filter(self, user):
         if user.is_staff:
