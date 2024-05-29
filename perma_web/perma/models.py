@@ -700,7 +700,7 @@ class Organization(DeletableModel):
                 # Save here, so we have a PK if we need it below, to create the shared folder
                 super().save(*args, **kwargs)
 
-                if not self.shared_folder:
+                if not self.shared_folder_id:
                     # Create a top-level folder for this org
                     shared_folder = Folder.objects.create(
                         name=self.name,
