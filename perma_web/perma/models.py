@@ -690,29 +690,35 @@ class Organization(DeletableModel):
         ]
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            self.default_to_private = self.registrar.orgs_private_by_default
-        with self.tracker:
-            super(Organization, self).save(*args, **kwargs)
-            if not self.shared_folder:
-                # Make sure shared folder is created for each org.
-                self.create_shared_folder()
-            elif self.tracker.has_changed('name'):
-                # Rename shared folder if org name changes.
-                self.shared_folder.name = self.name
-                self.shared_folder.save()
+
+        with transaction.atomic():
+
+            if not self.pk:
+                self.default_to_private = self.registrar.orgs_private_by_default
+
+            with self.tracker:
+                # Save here, so we have a PK if we need it below, to create the shared folder
+                super().save(*args, **kwargs)
+
+                if not self.shared_folder:
+                    # Create a top-level folder for this org
+                    shared_folder = Folder.objects.create(
+                        name=self.name,
+                        organization=self,
+                        is_shared_folder=True
+                    )
+                    self.shared_folder = shared_folder
+                    # Save with super again, instead of plain save,
+                    # so we don't run through our custom logic twice
+                    super().save()
+
+                elif self.tracker.has_changed('name'):
+                    # Rename shared folder if org name changes.
+                    self.shared_folder.name = self.name
+                    self.shared_folder.save()
 
     def __str__(self):
         return self.name
-
-    def create_shared_folder(self):
-        if self.shared_folder:
-            return
-        shared_folder = Folder(name=self.name, organization=self, is_shared_folder=True)
-        shared_folder.save()
-        shared_folder.refresh_from_db()
-        self.shared_folder = shared_folder
-        self.save()
 
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization=self)
