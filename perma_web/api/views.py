@@ -195,8 +195,14 @@ class FolderListView(BaseView):
         data = request.data.copy()
         if request.parent:
             data.setdefault('parent', request.parent.pk)
-
-        return self.simple_create(data, {'created_by': request.user})
+        with transaction.atomic():
+            if data.get('parent'):
+                # Lock the parent to prevent anyone from deleting it while this operation is validated and saved.
+                parent = Folder.objects.select_for_update().get(pk=data['parent'])
+                # We don't want to insert any new folders while a tree's folders are being moved around.
+                # Since moves lock the whole subtree, we can take out the same lock, to ensure no move is underway.
+                Folder.objects.select_for_update().get(pk=parent.tree_root_id)
+            return self.simple_create(data, {'created_by': request.user})
 
 # /folders/:id
 # /folders/:parent_id/folders/:id
