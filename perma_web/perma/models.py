@@ -751,12 +751,13 @@ class Sponsorship(models.Model):
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
-        with self.tracker:
-            super().save(*args, **kwargs)
-            if not self.folders:
-                self.user.create_sponsored_folder(self.registrar)
-            if self.tracker.has_changed('status'):
-                self.folders.update(read_only=self.status == 'inactive')
+        with transaction.atomic():
+            with self.tracker:
+                super().save(*args, **kwargs)
+                if not self.folders:
+                    self.user.create_sponsored_folder(self.registrar)
+                if self.tracker.has_changed('status'):
+                    self.folders.update(read_only=self.status == 'inactive')
 
     @property
     def folders(self):
