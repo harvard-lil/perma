@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import os
 from random import choice
 import subprocess
+from django.db.models import OuterRef, Exists
 from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
@@ -80,6 +81,33 @@ def _load_json_fixtures():
         'fixtures/folders.json',
         'fixtures/archive.json'
     ])
+
+    # make sure cached_path is accurate, for Folders made from old fixtures
+    Folder.objects.update(
+        cached_path=Folder.objects.with_tree_fields().filter(
+            id=OuterRef('id')
+        ).extra(
+            select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
+        ).values_list(
+            "path_string", flat=True
+        )[:1]
+    )
+
+    # make sure tree_root_id is accurate, for Folders made from old fixtures
+    from django.db import connection
+    cursor = connection.cursor()
+    cursor.execute("UPDATE perma_folder SET tree_root_id = CAST(SPLIT_PART(cached_path, '-', 1) AS INTEGER);")
+    assert not Folder.objects.filter(cached_path=False).exists()
+    assert not Folder.objects.filter(tree_root_id__isnull=True).exists()
+
+    # make sure cached_has_children is accurate, for Folders made from old fixtures
+    Folder.objects.update(
+        cached_has_children=Exists(
+            Folder.objects.filter(
+                parent_id=OuterRef('id')
+            )
+        )
+    )
 
 
 @pytest.fixture(scope='session')

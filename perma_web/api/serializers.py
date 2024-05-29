@@ -89,6 +89,10 @@ class FolderSerializer(BaseSerializer):
                 raise serializers.ValidationError("You can't move top-level sponsored folders.")
             if self.instance.is_root_folder:
                 raise serializers.ValidationError("You can't move Personal Links folder.")
+            if self.instance.id == parent.id:
+                raise serializers.ValidationError("A node may not be made a child of itself.")
+            if parent.id in list(self.instance.get_descendants().tree_filter(tree_root__id=self.instance.tree_root_id).values_list('id', flat=True)):
+                raise serializers.ValidationError("A node may not be made a child of any of its descendants.")
         return parent
 
     def validate(self, data):

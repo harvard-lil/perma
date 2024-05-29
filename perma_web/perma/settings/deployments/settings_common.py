@@ -165,7 +165,6 @@ INSTALLED_APPS = (
 
     # third party apps
     'ratelimit',
-    'mptt',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging

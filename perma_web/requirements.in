@@ -23,7 +23,7 @@ redis                                   # Needed to bind with Redis.
 
 # models
 django-model-utils                      # soft deletion and other nice things
-django-mptt                             # trees (like our folder tree)
+django-tree-queries                     # trees (like our folder tree)
 django-simple-history                   # track changes to certain models
 django-taggit                           # add tags to model instances
 django-json-widget                      # fancy editor for JSON fields in the Django admin

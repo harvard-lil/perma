@@ -5,7 +5,8 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-import mptt.fields
+# django-mptt removed on 5/21/2024
+# import mptt.fields
 import simple_history.models
 import taggit.managers
 
@@ -144,7 +145,9 @@ class Migration(migrations.Migration):
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='folders_created', to=settings.AUTH_USER_MODEL)),
                 ('organization', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='folders', to='perma.Organization')),
                 ('owned_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='folders', to=settings.AUTH_USER_MODEL)),
-                ('parent', mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='perma.Folder')),
+                # django-mptt removed on 5/21/2024
+                # ('parent', mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='perma.Folder')),
+                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='perma.Folder')),
                 ('is_sponsored_root_folder', models.BooleanField(default=False)),
                 ('read_only', models.BooleanField(default=False)),
                 ('sponsored_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='sponsored_folders', to='perma.Registrar')),

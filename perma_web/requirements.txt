@@ -262,7 +262,6 @@ django==4.2.13 \
     #   django-debug-toolbar
     #   django-extensions
     #   django-filter
-    #   django-js-asset
     #   django-model-utils
     #   django-redis
     #   django-storages
@@ -294,20 +293,12 @@ django-ipware==4.0.2 \
     --hash=sha256:602a58325a4808bd19197fef2676a0b2da2df40d0ecf21be414b2ff48c72ad05 \
     --hash=sha256:878dbb06a87e25550798e9ef3204ed70a200dd8b15e47dcef848cf08244f04c9
     # via django-axes
-django-js-asset==2.0.0 \
-    --hash=sha256:86f9f300d682537ddaf0487dc2ab356581b8f50c069bdba91d334a46e449f923 \
-    --hash=sha256:adc1ee1efa853fad42054b540c02205344bb406c9bddf87c9e5377a41b7db90f
-    # via django-mptt
 django-json-widget==1.1.1 \
     --hash=sha256:ec948a4c379687f9c854748ba540fdbeb1b1730846ca953f186818521de7e696
     # via -r requirements.in
 django-model-utils==4.2.0 \
     --hash=sha256:a768a25c80514e0ad4e4a6f9c02c44498985f36c5dfdea47b5b1e8cf994beba6 \
     --hash=sha256:e7a95e102f9c9653427eadab980d5d59e1dea972913b9c9e01ac37f86bba0ddf
-    # via -r requirements.in
-django-mptt==0.16.0 \
-    --hash=sha256:56c9606bf0b329b5f5afd55dd8bfd073612ea1d5999b10903b09de62bee84c8e \
-    --hash=sha256:8716849ba3318d94e2e100ed0923a05c1ffdf8195f8472b690dbaf737d2af3b5
     # via -r requirements.in
 django-ratelimit==3.0.1 \
     --hash=sha256:73223d860abd5c5d7b9a807fabb39a6220068129b514be8d78044b52607ab154 \
@@ -331,6 +322,10 @@ django-storages[azure]==1.14.2 \
 django-taggit==5.0.1 \
     --hash=sha256:a0ca8a28b03c4b26c2630fd762cb76ec39b5e41abf727a7b66f897a625c5e647 \
     --hash=sha256:edcd7db1e0f35c304e082a2f631ddac2e16ef5296029524eb792af7430cab4cc
+    # via -r requirements.in
+django-tree-queries==0.19.0 \
+    --hash=sha256:05b9e3158e31612528f136b4704a8d807e14edc0b4a607a45377e6132517ba2c \
+    --hash=sha256:d1325e75f96e90b86c4316a3d63498101ec05703f4e629786b561e8aaab0e4a7
     # via -r requirements.in
 django-waffle==4.1.0 \
     --hash=sha256:5979a2f3dd674ef7086480525b39651fc2045427f6d8e6a614192656d3402c5b \
