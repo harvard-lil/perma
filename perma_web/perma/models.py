@@ -771,6 +771,8 @@ class LinkUserManager(BaseUserManager):
 
         if not email:
             raise ValueError('Users must have an email address')
+        if registrar and organization:
+            raise ValueError('Users may not have both registrar and organization affiliations.')
 
         user = self.model(
             email=self.normalize_email(email),
@@ -784,10 +786,8 @@ class LinkUserManager(BaseUserManager):
         user.set_password(password)
         user.save()
 
-        user.organizations.add(organization)
-        user.save()
-
-        user.create_root_folder()
+        if organization:
+            user.organizations.add(organization)
 
         return user
 
