@@ -873,11 +873,21 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             # If objects aren't being created via a model form where `clean` has been called,
             # make sure email is still formatted correctly.
             self.format_email_fields()
-        super().save(*args, **kwargs)
 
-        # make sure root folder is created for each user.
-        if not self.root_folder:
-            self.create_root_folder()
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            # make sure root folder is created for each user.
+            if not self.root_folder_id:
+                root_folder = Folder.objects.create(
+                    name='Personal Links',
+                    created_by=self,
+                    is_root_folder=True
+                )
+                self.root_folder = root_folder
+                # Save with super again, instead of plain save,
+                # so we don't run through our custom logic twice
+                super().save()
 
     def get_full_name(self):
         """ Use either First Last or first half of email address as user's name. """
@@ -918,19 +928,6 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             return Organization.objects.all()
 
         return Organization.objects.none()
-
-    def create_root_folder(self):
-        if self.root_folder:
-            return
-        try:
-            # this branch only used during transition to root folders -- should be removed eventually
-            root_folder = Folder.objects.filter(created_by=self, name="Personal Links", parent=None)[0]
-            root_folder.is_root_folder = True
-        except IndexError:
-            root_folder = Folder(name='Personal Links', created_by=self, is_root_folder=True)
-        root_folder.save()
-        self.root_folder = root_folder
-        self.save()
 
     def create_sponsored_root_folder(self):
         if self.sponsored_root_folder:
