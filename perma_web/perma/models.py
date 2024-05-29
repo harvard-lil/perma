@@ -930,18 +930,22 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
 
         return Organization.objects.none()
 
-    def create_sponsored_root_folder(self):
-        if self.sponsored_root_folder:
-            return
-        sponsored_root_folder = Folder(name='Sponsored Links', created_by=self, is_sponsored_root_folder=True)
-        sponsored_root_folder.save()
-        self.sponsored_root_folder = sponsored_root_folder
-        self.save()
-
     def create_sponsored_folder(self, registrar):
-        self.create_sponsored_root_folder()
-        sponsored_folder = Folder(name=registrar.name, created_by=self, parent=self.sponsored_root_folder, sponsored_by=registrar)
-        return sponsored_folder.save()
+        with transaction.atomic():
+            if not self.sponsored_root_folder_id:
+                sponsored_root_folder = Folder.objects.create(
+                    name='Sponsored Links',
+                    created_by=self,
+                    is_sponsored_root_folder=True
+                )
+                self.sponsored_root_folder = sponsored_root_folder
+                self.save()
+        Folder.objects.create(
+            name=registrar.name,
+            created_by=self,
+            parent_id=self.sponsored_root_folder_id,
+            sponsored_by=registrar
+        )
 
     def as_json(self):
         from api.serializers import LinkUserSerializer  # local import to avoid circular import
