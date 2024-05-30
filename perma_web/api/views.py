@@ -226,7 +226,17 @@ class FolderDetailView(BaseView):
         """
         if not request.parent:
             raise_general_validation_error("PUT is only valid for nested folder endpoints.")
-        return self.folder_update(request, pk, {'parent': request.parent.pk})
+
+        with transaction.atomic():
+            # Lock this folder, so no one makes new subfolders inside it, during the transaction
+            this = Folder.objects.select_for_update().get(pk=pk)
+            # Lock the current subtree, so no one moves anything else around while we are making this move
+            Folder.objects.select_for_update().get(pk=this.tree_root_id)
+            # Lock the destination subtree, if it's different, for the same reason
+            if this.tree_root_id != request.parent.tree_root_id:
+                Folder.objects.select_for_update().get(pk=request.parent.tree_root_id)
+
+            return self.folder_update(request, pk, {'parent': request.parent.pk})
 
     @load_parent
     def delete(self, request, pk, format=None):
