@@ -1314,148 +1314,159 @@ class Folder(TreeNode):
 
     def save(self, *args, **kwargs):
 
-        # This may need to be refactored in the future to use the new self.tracker content manager.
+        #
+        # Helper methods
+        #
+
+        def get_shared_fields_from_parent(parent):
+            return {
+                "tree_root_id": parent.tree_root_id,
+                "read_only": parent.read_only,
+                "owned_by_id": parent.owned_by_id,
+                "organization_id": parent.organization_id,
+                "sponsored_by_id": parent.sponsored_by_id if not parent.is_sponsored_root_folder else self.sponsored_by_id
+            }
+
+        def set_owner_for_personal_and_sponsored_folders():
+            if self.created_by_id and not self.owned_by_id and not self.organization_id:
+                self.owned_by_id = self.created_by_id
+
+        def get_own_subtree_ids():
+            if self.cached_has_children:
+                return list(
+                    self.get_descendants(
+                        include_self=True
+                    ).tree_filter(
+                        tree_root_id=self.tree_root_id
+                    ).values_list(
+                        'id', flat=True
+                    )
+                )
+            return [self.id]
+
+        def update_tree_root(id, tree_root_id):
+            Folder.objects.filter(id=id).update(
+                tree_root_id=tree_root_id
+            )
+
+        def update_cached_path(ids, tree_root_id):
+            Folder.objects.with_tree_fields().filter(
+                id__in=ids
+            ).update(
+                cached_path=Folder.objects.with_tree_fields().tree_filter(
+                    tree_root_id=tree_root_id
+                ).filter(
+                    id=OuterRef('id')
+                ).extra(
+                    select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
+                ).values_list(
+                    "path_string", flat=True
+                )[:1]
+            )
+
+        def update_parents_cached_has_children(parent_id=None, previous_parent_id=None):
+            if parent_id:
+                Folder.objects.filter(
+                    id=parent_id
+                ).update(
+                    cached_has_children = True
+                )
+            if previous_parent_id:
+                Folder.objects.filter(
+                    id=previous_parent_id
+                ).update(
+                    cached_has_children = Exists(
+                        Folder.objects.exclude(
+                            id=self.id
+                        ).filter(
+                            parent_id=previous_parent_id
+                        )
+                    )
+                )
+
+        #
+        # Save the folder
+        #
+
         new = not self.pk
         parent_has_changed = not new and self.tracker.has_changed('parent_id')
-        previous_parent_id = self.tracker.previous('parent_id') if parent_has_changed else None
 
         start = time.time()
         with transaction.atomic():
-            parent = None
-            if new or parent_has_changed:
-                if self.parent_id:
-                    # Fetch the folder's parent using select_for_update so that any tree-related
-                    # fields remain consistent across simultaneous requests
-                    parent_query = Folder.objects.select_for_update().filter(id=self.parent_id)
-                    parent = parent_query[0]
 
             if new:
-                # set read-only and ownership same as parent
-                if parent:
-                    self.read_only = parent.read_only
-                    if parent.organization_id:
-                        self.organization_id = parent.organization_id
-                    elif parent.sponsored_by_id:
-                        self.sponsored_by_id = parent.sponsored_by_id
-                    else:
-                        self.owned_by_id = parent.owned_by_id
-                    self.tree_root_id = parent.tree_root_id
-                else:
-                    self.tree_root_id = self.id
-                if self.created_by_id and not self.owned_by_id and not self.organization_id:
-                    self.owned_by_id = self.created_by_id
 
-                # Save and refresh from db before continuing, because we need an ID
+                if self.parent_id:
+
+                    # fetch the parent
+                    parent = Folder.objects.get(id=self.parent_id)
+
+                    # copy shared fields from parent
+                    for field, value in get_shared_fields_from_parent(parent).items():
+                        setattr(self, field, value)
+
+                    # set ownership, if appropriate
+                    set_owner_for_personal_and_sponsored_folders()
+
+                    # simple insert
+                    super().save(*args, **kwargs)
+
+                    # update the cached path, now that the folder has an "id"
+                    update_cached_path([self.id], parent.tree_root_id)
+
+                    # inform the parent it has a new child
+                    update_parents_cached_has_children(parent_id=parent.id)
+
+                else:
+
+                    # set ownership, if appropriate
+                    set_owner_for_personal_and_sponsored_folders()
+
+                    # simple insert
+                    super().save(*args, **kwargs)
+
+                    # update the tree root and cached path, now that the folder has an "id"
+                    update_tree_root(self.id, self.id)
+                    update_cached_path([self.id], self.id)
+
+            elif parent_has_changed:
+
+                # make note of the former parent and the new one
+                parent = Folder.objects.get(id=self.parent_id)
+                previous_parent_id = self.tracker.previous('parent_id')
+
+                # retrieve the ids of this folder and all its descendants, so we can propagate changes.
+                # do it before calling "save", while the database is still in a consistent state
+                # and tree queries work as expected
+                subtree_ids = get_own_subtree_ids()
+
+                # save the change to this folder's parent id
                 super().save(*args, **kwargs)
-                self.refresh_from_db()
-                descendant_ids = [self.id]
-                descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
+
+                # copy shared fields from parent to this folder and all its descendants
+                subtree = Folder.objects.filter(id__in=subtree_ids)
+                subtree.update(**get_shared_fields_from_parent(parent))
+
+                # update the de-normalized reference to owning org on any links in this folder's subtree
+                links = Link.objects.filter(folders__in=subtree_ids)
+                links.update(organization_id=parent.organization_id)
+
+                # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
+                bonus_links = links.filter(bonus_link=True)
+                if (parent.organization_id or parent.sponsored_by_id) and (any_link := bonus_links.first()):
+                    user = any_link.created_by
+                    count = bonus_links.update(bonus_link=False)
+                    user.bonus_links = F('bonus_links') + count
+                    user.save(update_fields=['bonus_links'])
+
+                # update the cached paths of this folder and all its descendants
+                update_cached_path(subtree_ids, parent.tree_root_id)
+
+                # now that the move is over, inform the parent it has a new child, and inform the previous parent it has one fewer
+                update_parents_cached_has_children(parent_id=parent.id, previous_parent_id=previous_parent_id)
 
             else:
-
-                # We find descendants on the fly by inspecting parent_id.
-                # Retrieve descendant IDs before saving, while self.parent_id is still unchanged in the DB...
-                # otherwise you won't find anything, not even self!
-                if self.cached_has_children:
-                    descendant_ids = list(
-                        self.get_descendants(
-                            include_self=True
-                        ).tree_filter(
-                            tree_root_id=self.tree_root_id
-                        ).values_list(
-                            'id', flat=True
-                        )
-                    )
-                else:
-                    descendant_ids = [self.id]
-                descendants = Folder.objects.with_tree_fields().filter(id__in=descendant_ids)
-                super(Folder, self).save(*args, **kwargs)
-
-            if parent_has_changed:
-
-                start_updating_cached_paths = time.time()
-                links = Link.objects.filter(folders__in=descendant_ids)
-                bonus_links = links.filter(bonus_link=True)
-                # update read-only status and
-                # make sure that child folders share organization/sponsor/owned_by with new parent folder
-                if parent.organization_id:
-                    descendants.update(
-                        read_only=parent.read_only,
-                        owned_by=None,
-                        organization=parent.organization_id,
-                        sponsored_by=None
-                    )
-                    if links:
-                        links.update(organization_id=parent.organization_id)
-                elif parent.sponsored_by_id:
-                    descendants.update(
-                        read_only=parent.read_only,
-                        owned_by=parent.owned_by_id,
-                        organization=None,
-                        sponsored_by_id=parent.sponsored_by_id
-                    )
-                    if links:
-                        links.update(organization_id=None)
-                else:
-                    descendants.update(
-                        read_only=parent.read_only,
-                        owned_by=parent.owned_by_id,
-                        organization=None,
-                        sponsored_by=None
-                    )
-                    if links:
-                        links.update(organization_id=None)
-                # credit users for any bonus links they are due
-                if parent.organization_id or parent.sponsored_by_id:
-                    if bonus_links:
-                        user = bonus_links[0].created_by
-                        count = bonus_links.update(bonus_link=False)
-                        user.bonus_links = F('bonus_links') + count
-                        user.save(update_fields=['bonus_links'])
-                logger.debug(f"Updating descendants took {time.time() - start_updating_cached_paths}")
-
-            if new or parent_has_changed:
-
-                start_updating_cached_paths = time.time()
-                # update cached paths
-                if parent:
-                    self.tree_root_id = parent.tree_root_id
-                else:
-                    self.tree_root_id = self.id
-                descendants.update(
-                    tree_root_id=self.tree_root_id
-                )
-                descendants.update(
-                    cached_path=Folder.objects.with_tree_fields().tree_filter(
-                        tree_root_id=self.tree_root_id
-                    ).filter(
-                        id=OuterRef('id')
-                    ).extra(
-                        select={"path_string" : "array_to_string((__tree.tree_path), '-')"}
-                    ).values_list(
-                        "path_string", flat=True
-                    )[:1]
-                )
-                logger.debug(f"Updating cached paths took {time.time() - start_updating_cached_paths}")
-
-                # update new parent's has_children
-                if parent:
-                    parent_query.update(
-                        cached_has_children = True
-                    )
-                # update previous parent's has_children
-                if previous_parent_id:
-                    Folder.objects.filter(
-                        id=previous_parent_id
-                    ).update(
-                        cached_has_children = Exists(
-                            Folder.objects.exclude(
-                                id=self.id
-                            ).filter(
-                                parent_id=previous_parent_id
-                            )
-                        )
-                    )
+                super().save(*args, **kwargs)
 
         logger.debug(f"Saved {self.id} in {time.time() - start}s")
 
