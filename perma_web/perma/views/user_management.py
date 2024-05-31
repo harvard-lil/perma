@@ -20,6 +20,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.tokens import default_token_generator
+from django.db import transaction
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
@@ -467,7 +468,6 @@ def manage_single_registrar(request, registrar_id):
         'form': form
     })
 
-
 @user_passes_test_or_403(lambda user: user.is_staff)
 def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
@@ -476,22 +476,25 @@ def approve_pending_registrar(request, registrar_id):
     target_registrar_user = target_registrar.pending_users.first()
 
     if request.method == 'POST':
-        new_status = request.POST.get("status")
-        if new_status in ["approved", "denied"]:
-            target_registrar.status = new_status
-            target_registrar.save()
 
-            if new_status == "approved":
-                target_registrar_user.registrar = target_registrar
-                target_registrar_user.pending_registrar = None
-                target_registrar_user.save()
-                email_approved_registrar_user(request, target_registrar_user)
+        with transaction.atomic():
 
-                messages.add_message(request, messages.SUCCESS, f'<h4>Registrar approved!</h4> <strong>{target_registrar_user.email}</strong> will receive a notification email with further instructions.', extra_tags='safe')
-            else:
-                messages.add_message(request, messages.SUCCESS, f'Registrar request for <strong>{target_registrar}</strong> denied. Please inform {target_registrar_user.email} if appropriate.', extra_tags='safe')
+            new_status = request.POST.get("status")
+            if new_status in ["approved", "denied"]:
+                target_registrar.status = new_status
+                target_registrar.save()
 
-            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+                if new_status == "approved":
+                    target_registrar_user.registrar = target_registrar
+                    target_registrar_user.pending_registrar = None
+                    target_registrar_user.save()
+                    email_approved_registrar_user(request, target_registrar_user)
+
+                    messages.add_message(request, messages.SUCCESS, f'<h4>Registrar approved!</h4> <strong>{target_registrar_user.email}</strong> will receive a notification email with further instructions.', extra_tags='safe')
+                else:
+                    messages.add_message(request, messages.SUCCESS, f'Registrar request for <strong>{target_registrar}</strong> denied. Please inform {target_registrar_user.email} if appropriate.', extra_tags='safe')
+
+        return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
     return render(request, 'user_management/approve_pending_registrar.html', {
         'target_registrar': target_registrar,

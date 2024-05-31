@@ -195,8 +195,14 @@ class FolderListView(BaseView):
         data = request.data.copy()
         if request.parent:
             data.setdefault('parent', request.parent.pk)
-
-        return self.simple_create(data, {'created_by': request.user})
+        with transaction.atomic():
+            if data.get('parent'):
+                # Lock the parent to prevent anyone from deleting it while this operation is validated and saved.
+                parent = Folder.objects.select_for_update().get(pk=data['parent'])
+                # We don't want to insert any new folders while a tree's folders are being moved around.
+                # Since moves lock the whole subtree, we can take out the same lock, to ensure no move is underway.
+                Folder.objects.select_for_update().get(pk=parent.tree_root_id)
+            return self.simple_create(data, {'created_by': request.user})
 
 # /folders/:id
 # /folders/:parent_id/folders/:id
@@ -226,7 +232,17 @@ class FolderDetailView(BaseView):
         """
         if not request.parent:
             raise_general_validation_error("PUT is only valid for nested folder endpoints.")
-        return self.folder_update(request, pk, {'parent': request.parent.pk})
+
+        with transaction.atomic():
+            # Lock this folder, so no one makes new subfolders inside it, during the transaction
+            this = Folder.objects.select_for_update().get(pk=pk)
+            # Lock the current subtree, so no one moves anything else around while we are making this move
+            Folder.objects.select_for_update().get(pk=this.tree_root_id)
+            # Lock the destination subtree, if it's different, for the same reason
+            if this.tree_root_id != request.parent.tree_root_id:
+                Folder.objects.select_for_update().get(pk=request.parent.tree_root_id)
+
+            return self.folder_update(request, pk, {'parent': request.parent.pk})
 
     @load_parent
     def delete(self, request, pk, format=None):
