@@ -648,7 +648,7 @@ class LinkAdmin(SimpleHistoryAdmin):
 class FolderAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'tree_root_id', 'cached_path', 'owned_by', 'organization', 'sponsored_by', 'read_only']
     list_filter = [NameFilter, OwnerFilter, OrgFilter, RootFilter]
-    raw_id_fields = ['parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
+    raw_id_fields = ['tree_root', 'parent', 'created_by', 'owned_by', 'organization', 'sponsored_by']
     ordering = ('cached_path',)
 
     paginator = FasterAdminPaginator
