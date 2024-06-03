@@ -17,3 +17,25 @@ export const getErrorFromNestedObject = (object) => {
   
     return getString(object) || null;
   }
+
+ export const getErrorFromResponseStatus = (status, response) => {
+    let errorMessage
+
+    switch (status) {
+        case 400:
+            errorMessage = getErrorFromNestedObject(response)
+            break;
+        case 401:
+            errorMessage = "You appear to be logged out."
+            break;
+        default:
+            errorMessage = `Error: ${status}`
+            break;
+    }
+
+    if (errorMessage.includes("Error 0")) {
+        errorMessage = "Perma.cc Temporarily Unavailable"
+    }
+
+    return errorMessage
+}

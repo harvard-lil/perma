@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, watchEffect, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
@@ -8,7 +8,7 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject } from "../lib/errors"
+import { getErrorFromNestedObject, getErrorFromResponseStatus } from "../lib/errors"
 
 const batchDialogRef = ref('')
 
@@ -25,6 +25,10 @@ const isReady = computed(() => { readyStates.includes(globalStore.captureStatus)
 
 const loadingStates = ["isValidating", "isQueued", "isCapturing"]
 const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
+
+const showUploadLink = ref(true)
+const showGeneric = ref(true)
+const showLoginLink = ref(false)
 
 const submitButtonText = computed(() => {
     if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
@@ -61,10 +65,9 @@ const handleArchiveRequest = async () => {
 
     try {
         if (!formData.folder) {
-            // These are placeholders
             const errorMessage = 'Missing folder selection'
             globalStore.updateCaptureErrorMessage(errorMessage)
-            throw new Error(errorMessage)
+            throw errorMessage
         }
 
         const response = await fetch("/api/v1/archives/",
@@ -79,20 +82,39 @@ const handleArchiveRequest = async () => {
             })
 
         if (!response?.ok) {
-            const errorData = await response.json()
-            throw errorData
+            const errorResponse = await response.json()
+            throw { status: response.status, response: errorResponse }
         }
+
+        // throw { status: 400, response: { "url": ["Error 0"] } }
 
         const { guid } = await response.json()
         userLinkGUID.value = guid
         globalStore.updateCapture('isQueued')
 
-    } catch (errorData) {
-        globalStore.updateCapture('urlError')
-        const error = getErrorFromNestedObject(errorData)
-        globalStore.updateCaptureErrorMessage(error)
+    } catch (error) {
+        handleCaptureError({ error, errorType: 'urlError' })
     }
 };
+
+const handleCaptureError = ({ error, errorType }) => {
+    let errorMessage
+
+    if (error?.response) {
+        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+    }
+
+    else if (!!error) {
+        errorMessage = error
+    }
+
+    else {
+        errorMessage = "We're sorry, we've encountered an error processing your request."
+    }
+
+    globalStore.updateCapture(errorType)
+    globalStore.updateCaptureErrorMessage(errorMessage)
+}
 
 const handleCaptureStatus = async (guid) => {
     try {
@@ -144,6 +166,32 @@ watch(userLinkGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })
+
+watchEffect(() => {
+    const errorMessage = globalStore.captureErrorMessage.value;
+
+    if (!errorMessage) {
+        return;
+    }
+
+    if (errorMessage.includes("logged out")) {
+        showLoginLink.value = true;
+    }
+
+    if (errorMessage.includes("limit")) {
+        globalStore.updateLinksRemaining(0);
+        showUploadLink.value = false;
+    }
+
+    if (errorMessage.includes("subscription")) {
+        showUploadLink.value = false;
+        showGeneric.value = false;
+    }
+
+    if (errorMessage.includes("Error 0")) {
+        showUploadLink.value = false;
+    }
+});
 
 onBeforeUnmount(() => {
     clearInterval(progressInterval)
@@ -200,9 +248,12 @@ onBeforeUnmount(() => {
 
     <div class="create-errors container cont-fixed">
         <div v-if="globalStore.captureErrorMessage" id="error-container">
-            <p class="message-large">{{ globalStore.captureErrorMessage }}</p>
-            <p class="message">We’re unable to create your Perma Link.</p>
-            <p>You can <button id="upload-form-button">upload your own archive</button> or <a href="/contact">contact us
+            <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
+                    Please <a href='/login'>login</a> to continue.
+                </span></p>
+            <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
+            <p v-if="showUploadLink">You can <button id="upload-form-button">upload your own archive</button> or <a
+                    href="/contact">contact us
                     about this error.</a></p>
         </div>
     </div>
