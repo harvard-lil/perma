@@ -97,14 +97,17 @@ const handleArchiveRequest = async () => {
 const handleCaptureError = ({ error, errorType }) => {
     let errorMessage
 
+    // Handle API-generated error messages
     if (error?.response) {
         errorMessage = getErrorFromResponseStatus(error.status, error.response)
     }
 
+    // Handle frontend-generated error messages
     else if (!!error) {
         errorMessage = error
     }
 
+    // Handle uncaught errors
     else {
         errorMessage = "We're sorry, we've encountered an error processing your request."
     }
