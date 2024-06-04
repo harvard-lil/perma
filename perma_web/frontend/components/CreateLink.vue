@@ -4,6 +4,7 @@ import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
+import CaptureError from './CaptureError.vue'
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
@@ -25,10 +26,6 @@ const isReady = computed(() => { readyStates.includes(globalStore.captureStatus)
 
 const loadingStates = ["isValidating", "isQueued", "isCapturing"]
 const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
-
-const showUploadLink = ref(true)
-const showGeneric = ref(true)
-const showLoginLink = ref(false)
 
 const submitButtonText = computed(() => {
     if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
@@ -167,32 +164,6 @@ watch(userLinkGUID, () => {
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })
 
-watchEffect(() => {
-    const errorMessage = globalStore.captureErrorMessage.value;
-
-    if (!errorMessage) {
-        return;
-    }
-
-    if (errorMessage.includes("logged out")) {
-        showLoginLink.value = true;
-    }
-
-    if (errorMessage.includes("limit")) {
-        globalStore.updateLinksRemaining(0);
-        showUploadLink.value = false;
-    }
-
-    if (errorMessage.includes("subscription")) {
-        showUploadLink.value = false;
-        showGeneric.value = false;
-    }
-
-    if (errorMessage.includes("Error 0")) {
-        showUploadLink.value = false;
-    }
-});
-
 onBeforeUnmount(() => {
     clearInterval(progressInterval)
 });
@@ -246,17 +217,7 @@ onBeforeUnmount(() => {
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
 
-    <div class="create-errors container cont-fixed">
-        <div v-if="globalStore.captureErrorMessage" id="error-container">
-            <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
-                    Please <a href='/login'>login</a> to continue.
-                </span></p>
-            <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
-            <p v-if="showUploadLink">You can <button id="upload-form-button">upload your own archive</button> or <a
-                    href="/contact">contact us
-                    about this error.</a></p>
-        </div>
-    </div>
+    <CaptureError />
 
     <CreateLinkBatch ref="batchDialogRef" />
 </template>
