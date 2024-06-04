@@ -62,7 +62,7 @@ const handleArchiveRequest = async () => {
 
     try {
         if (!formData.folder) {
-            const errorMessage = 'Missing folder selection'
+            const errorMessage = 'Missing folder selection.'
             globalStore.updateCaptureErrorMessage(errorMessage)
             throw errorMessage
         }
