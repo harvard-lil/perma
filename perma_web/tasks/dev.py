@@ -1229,17 +1229,17 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None, batch_size=1000, batch_range=None,
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, batch_size=1000, batch_range=None,
                               big_warcs=False, prefix=None):
     """
     Creates log file
-    Invokes convert_warc_to_wacz() with WARC guid
-    Defaults to batch_size if source_csv or single_warc isn't passed
+    Invokes convert_warc_to_wacz() for a set of Perma Links
+    Defaults to batch_size if source_csv or guid isn't passed
     big_warcs can be passed along with batch_size
     prefix can be passed along with batch_size
     """
-    if source_csv and single_warc:
-        raise ValueError("Cannot pass source file and WARC path at the same time.")
+    if source_csv and guid:
+        raise ValueError("Cannot pass source CSV and GUID at the same time.")
 
     log_file = os.path.abspath(benchmark_log)
     csv_headers = [
@@ -1281,8 +1281,8 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
                 convert_warc_to_wacz.delay(line[0], log_file)
         return
 
-    if single_warc:
-        convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
+    if guid:
+        convert_warc_to_wacz.delay(guid, log_file)
         return
 
     if batch_range:
