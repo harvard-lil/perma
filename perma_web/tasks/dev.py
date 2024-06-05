@@ -1229,12 +1229,15 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, big_warcs=False,
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
+                              big_warcs=False, legacy_warcs=False, old_style_guids=False,
                               batch_guid_prefix=None, batch_range=None, batch_size=None):
     """
     Creates log file
     Invokes convert_warc_to_wacz() for a set of Perma Links.
     Specify "big_warcs" to restrict queryset to Links with large filesize.
+    Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
+    Specify "old_style_guids" to restrict the queryset to Links with 11-character GUIDs.
     Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
     Specify "batch_range" or "batch_size" to slice the queryset.
     Or, provide a file with the desired GUIDs, one per line.
@@ -1284,13 +1287,20 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, bi
             for line in csv_file:
                 convert_warc_to_wacz.delay(line[0], log_file)
         return
-
     if guid:
         convert_warc_to_wacz.delay(guid, log_file)
         return
 
     if big_warcs:
         links = base_links_query.order_by('-warc_size')
+    elif legacy_warcs:
+        # Prior to 5/1/2014 we have a mix of wget, instapaper, and warcprox captures
+        # https://github.com/harvard-lil/perma/blob/develop/errata.md
+        links = base_links_query.filter(creation_timestamp__lt=datetime(2014,5,1, tzinfo=timezone.utc))
+    elif old_style_guids:
+        # On 11/22/2013 we switched from 11-character IDs to ABCD-1234 IDs.
+        # https://github.com/harvard-lil/perma/blob/develop/errata.md
+        links = base_links_query.filter(creation_timestamp__lt=datetime(2013,11,22, tzinfo=timezone.utc))
     elif batch_guid_prefix:
         links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')
     else:
