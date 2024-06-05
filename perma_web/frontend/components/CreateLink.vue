@@ -7,7 +7,6 @@ import Spinner from './Spinner.vue';
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
-import { useToast } from '../lib/notifications';
 import CreateLinkBatch from './CreateLinkBatch.vue';
 
 const batchDialogRef = ref('')
@@ -134,13 +133,6 @@ const handleProgressUpdate = async () => {
         globalStore.updateCapture('captureError')
         globalStore.updateCaptureErrorMessage(error)
     }
-}
-
-const { addToast } = useToast();
-
-const toggleToast = () => {
-    const date = Date.now();
-    addToast(`Toast notification ${date}`, 'success');
 }
 
 watch(userLinkGUID, () => {
