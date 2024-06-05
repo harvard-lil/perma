@@ -28,7 +28,7 @@ watch(
             showGeneric.value = false;
         }
 
-        else if (errorMessage.includes("Error 0")) {
+        else if (errorMessage.includes("Error 0") || errorMessage.includes("folder")) {
             showUploadLink.value = false;
         }
     }
