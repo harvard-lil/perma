@@ -8,6 +8,8 @@ import { useFetch } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import { validStates, transitionalStates } from '../lib/consts.js'
+import { folderError, getErrorFromResponseStatus, missingUrlError } from '../lib/errors';
+import { useToast } from '../lib/notifications';
 
 const defaultDialogTitle = "Create a Link Batch"
 const batchDialogTitle = ref(defaultDialogTitle)
@@ -68,12 +70,18 @@ const handleBatchCaptureRequest = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
-        if (!formData.target_folder) {
-            // These are placeholders
-            globalStore.updateBatchCapture('folderSelectionError')
-            const errorMessage = 'Missing folder selection'
+        if (!formData.urls.length) {
+            globalStore.updateBatchCapture('urlError')
+            const errorMessage = missingUrlError
             globalStore.updateBatchCaptureErrorMessage(errorMessage)
-            throw new Error(errorMessage)
+            throw errorMessage
+        }
+
+        if (!formData.target_folder) {
+            globalStore.updateBatchCapture('folderSelectionError')
+            const errorMessage = folderError
+            globalStore.updateBatchCaptureErrorMessage(errorMessage)
+            throw errorMessage
         }
 
         const response = await fetch("/api/v1/archives/batches/",
@@ -88,7 +96,8 @@ const handleBatchCaptureRequest = async () => {
             })
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // This is a placeholder for now
+            const errorResponse = await response.json()
+            throw { status: response.status, response: errorResponse }
         }
 
         const data = await response.json()
@@ -109,8 +118,9 @@ const handleBatchCaptureRequest = async () => {
 const handleError = (error) => {
     clearInterval(progressInterval)
     globalStore.updateBatchCapture('urlError')
-    globalStore.updateBatchCaptureErrorMessage(error)
-    console.log(error) // This is a placeholder
+    const errorMessage = getErrorFromResponseStatus(error)
+    toggleToast(errorMessage)
+    globalStore.updateBatchCaptureErrorMessage(errorMessage)
     handleClose()
 }
 
@@ -167,6 +177,12 @@ const handleBatchFormatting = ((captureJobs) => {
 
     return { allJobs, progressSummary }
 })
+
+const { addToast } = useToast();
+
+const toggleToast = (errorMessage) => {
+    addToast(errorMessage, 'error');
+}
 
 watch(batchCaptureId, () => {
     handleBatchDetailsFetch()

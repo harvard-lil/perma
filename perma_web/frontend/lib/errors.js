@@ -48,3 +48,7 @@ export const getErrorResponse = async (response) => {
       return { status: response.status };
   }
 };
+
+export const defaultError = "We're sorry, we've encountered an error processing your request."
+export const folderError = "Missing folder selection. Please select a folder."
+export const missingUrlError = "Missing urls. Please submit valid urls."
