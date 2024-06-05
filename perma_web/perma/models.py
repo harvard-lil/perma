@@ -1874,6 +1874,26 @@ class Link(DeletableModel):
     def provenance_summary_capture(self):
         return self.captures.filter(role='provenance_summary').first()
 
+    def get_pages_jsonl(self):
+        if self.cached_can_play_back:
+            jsonl_rows = [
+                {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
+            ]
+            ts = str(self.creation_timestamp)
+            if self.primary_capture:
+                jsonl_rows.append(
+                    {"title": "primary capture url", "url": self.primary_capture.url, "ts": ts}
+                )
+            if self.screenshot_capture:
+                jsonl_rows.append(
+                    {"title": "screenshot url", "url": self.screenshot_capture.url, "ts": ts}
+                )
+            if self.provenance_summary_capture:
+                jsonl_rows.append(
+                    {"title": "provenance summary url", "url": self.provenance_summary_capture.url, "ts": ts}
+                )
+            return "\n".join([json.dumps(row) for row in jsonl_rows])
+
     def write_uploaded_file(self, uploaded_file, cache_break=False):
         """
             Given a file uploaded by a user, create a Capture record and warc.
