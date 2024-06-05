@@ -195,10 +195,10 @@ onBeforeUnmount(() => {
                 '_isWorking': !readyStates.includes(globalStore.captureStatus),
             }
                 " id="addlink" type="submit">
-                            <!-- <Spinner v-if="isLoading" top="-20px" /> -->
+                            <Spinner v-if="isLoading" top="-20px" />
                             {{ submitButtonText }}
-                            <!-- <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
-                                :progress="userLinkProgressBar" /> -->
+                            <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
+                                :progress="userLinkProgressBar" />
                         </button>
                         <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
                                 :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
