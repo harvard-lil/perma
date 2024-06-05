@@ -9,9 +9,8 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse } from "../lib/errors"
+import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
 
-const defaultError = "We're sorry, we've encountered an error processing your request."
 const batchDialogRef = ref('')
 
 const batchDialogOpen = () => {
@@ -63,7 +62,7 @@ const handleArchiveRequest = async () => {
 
     try {
         if (!formData.folder) {
-            const errorMessage = 'Missing folder selection. Please select a folder.'
+            const errorMessage = folderError
             globalStore.updateCaptureErrorMessage(errorMessage)
             throw errorMessage
         }
