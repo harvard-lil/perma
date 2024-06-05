@@ -102,7 +102,7 @@ const handleCaptureError = ({ error, errorType }) => {
     }
 
     // Handle frontend-generated error messages
-    else if (!!error) {
+    else if (error.length) {
         errorMessage = error
     }
 
@@ -156,7 +156,7 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'failed') {
-        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(errorMessage)) : defaultError
+        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(error)) : defaultError
 
         clearInterval(progressInterval)
 
