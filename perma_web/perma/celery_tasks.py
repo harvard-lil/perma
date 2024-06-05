@@ -1291,6 +1291,9 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         else:
             return f"{math.ceil(seconds_val)} seconds"
 
+    def format_filesize(i):
+        filesizeformat(i).replace("\xa0", " ")
+
     #
     # Launch the conversions
     #
@@ -1354,13 +1357,13 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     conversion_duration = time.time() - conversion_start_time
 
     warc_size = link.warc_size
-    formatted_warc_size = filesizeformat(warc_size)
+    formatted_warc_size = format_filesize(warc_size)
     try:
         wacz_size = os.path.getsize(wacz_path)
     except OSError:
         wacz_size = 0
 
-    formatted_wacz_size = filesizeformat(wacz_size)
+    formatted_wacz_size = format_filesize(wacz_size)
     raw_total_duration = time.time() - start_time
     duration = seconds_to_minutes(raw_total_duration)
 
