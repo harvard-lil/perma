@@ -1230,7 +1230,7 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 @task
 def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, batch_size=1000, batch_range=None,
-                              big_warcs=False, prefix=None):
+                              big_warcs=False, batch_guid_prefix=None):
     """
     Creates log file
     Invokes convert_warc_to_wacz() for a set of Perma Links
@@ -1296,8 +1296,8 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, ba
         links = base_links_query.order_by('guid')[batch_range_start:batch_range_end]
     elif big_warcs:
         links = base_links_query.order_by('-warc_size')[:batch_size]
-    elif prefix:
-        links = base_links_query.filter(guid__startswith=prefix).order_by('guid')[:batch_size]
+    elif batch_guid_prefix:
+        links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')[:batch_size]
     else:
         links = base_links_query.order_by('guid')[:batch_size]
 
