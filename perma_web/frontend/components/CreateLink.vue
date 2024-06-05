@@ -11,6 +11,7 @@ import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseStatus } from "../lib/errors"
 
+const defaultError = "We're sorry, we've encountered an error processing your request."
 const batchDialogRef = ref('')
 
 const batchDialogOpen = () => {
@@ -83,8 +84,6 @@ const handleArchiveRequest = async () => {
             throw { status: response.status, response: errorResponse }
         }
 
-        // throw { status: 400, response: { "url": ["Error 0"] } }
-
         const { guid } = await response.json()
         userLinkGUID.value = guid
         globalStore.updateCapture('isQueued')
@@ -109,7 +108,7 @@ const handleCaptureError = ({ error, errorType }) => {
 
     // Handle uncaught errors
     else {
-        errorMessage = "We're sorry, we've encountered an error processing your request."
+        errorMessage = defaultError
     }
 
     globalStore.updateCapture(errorType)
@@ -121,8 +120,8 @@ const handleCaptureStatus = async (guid) => {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
         if (!response?.ok) {
-            const errorData = await response.json()
-            throw errorData
+            const errorResponse = await response.json()
+            throw { status: response.status, response: errorResponse }
         }
 
         const jobStatus = await response.json()
@@ -130,14 +129,15 @@ const handleCaptureStatus = async (guid) => {
         return {
             step_count: jobStatus.step_count,
             status: jobStatus.status,
-            error: jobStatus.status === 'failed' ? getErrorFromNestedObject(jobStatus) : ''
+            error: jobStatus.status === 'failed' ? jobStatus.message : ''
         }
 
     } catch (errorData) {
-        clearInterval(progressInterval);
-        globalStore.updateCapture('captureError')
-        const error = getErrorFromNestedObject(errorData)
-        globalStore.updateCaptureErrorMessage(error)
+        return {
+            step_count: errorData?.step_count ?? 0,
+            status: errorData?.status ? errorData?.status : 'failed',
+            error: errorData?.message ?? ''
+        };
     }
 }
 
@@ -156,9 +156,12 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'failed') {
+        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(errorMessage)) : defaultError
+
         clearInterval(progressInterval)
+
         globalStore.updateCapture('captureError')
-        globalStore.updateCaptureErrorMessage(error)
+        globalStore.updateCaptureErrorMessage(errorMessage)
     }
 }
 
