@@ -1229,17 +1229,21 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, batch_size=1000, batch_range=None,
-                              big_warcs=False, batch_guid_prefix=None):
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, big_warcs=False,
+                              batch_guid_prefix=None, batch_range=None, batch_size=None):
     """
     Creates log file
-    Invokes convert_warc_to_wacz() for a set of Perma Links
-    Defaults to batch_size if source_csv or guid isn't passed
-    big_warcs can be passed along with batch_size
-    prefix can be passed along with batch_size
+    Invokes convert_warc_to_wacz() for a set of Perma Links.
+    Specify "big_warcs" to restrict queryset to Links with large filesize.
+    Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
+    Specify "batch_range" or "batch_size" to slice the queryset.
+    Or, provide a file with the desired GUIDs, one per line.
     """
-    if source_csv and guid:
-        raise ValueError("Cannot pass source CSV and GUID at the same time.")
+    if source_csv and (guid or big_warcs or batch_guid_prefix or batch_range or batch_size):
+        raise ValueError("If source CSV is specified, no other options may be configured.")
+
+    if batch_range and batch_size:
+        raise ValueError("Cannot specify both a batch range and a batch size.")
 
     log_file = os.path.abspath(benchmark_log)
     csv_headers = [
@@ -1285,6 +1289,13 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, ba
         convert_warc_to_wacz.delay(guid, log_file)
         return
 
+    if big_warcs:
+        links = base_links_query.order_by('-warc_size')
+    elif batch_guid_prefix:
+        links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')
+    else:
+        links = base_links_query.order_by('guid')
+
     if batch_range:
         batch_range_start, batch_range_end = batch_range.split(':')
         batch_range_start = int(batch_range_start)
@@ -1293,13 +1304,9 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None, ba
         if batch_range_start >= batch_range_end:
             raise ValueError("Starting index must be smaller than ending index.")
 
-        links = base_links_query.order_by('guid')[batch_range_start:batch_range_end]
-    elif big_warcs:
-        links = base_links_query.order_by('-warc_size')[:batch_size]
-    elif batch_guid_prefix:
-        links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')[:batch_size]
-    else:
-        links = base_links_query.order_by('guid')[:batch_size]
+        links = links[batch_range_start:batch_range_end]
+    elif batch_size:
+        links = links[:int(batch_size)]
 
     for link in links.iterator():
         convert_warc_to_wacz.delay(link, log_file)
