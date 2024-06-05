@@ -1880,17 +1880,17 @@ class Link(DeletableModel):
                 {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
             ]
             ts = str(self.creation_timestamp)
-            if self.primary_capture:
+            if self.provenance_summary_capture:
                 jsonl_rows.append(
-                    {"title": "primary capture url", "url": self.primary_capture.url, "ts": ts}
+                    {"url": self.provenance_summary_capture.url, "title": "Provenance Summary", "ts": ts}
                 )
             if self.screenshot_capture:
                 jsonl_rows.append(
-                    {"title": "screenshot url", "url": self.screenshot_capture.url, "ts": ts}
+                    {"url": self.screenshot_capture.url, "title": f"Capture Time Screenshot of {self.ascii_safe_url}", "ts": ts}
                 )
-            if self.provenance_summary_capture:
+            if self.primary_capture:
                 jsonl_rows.append(
-                    {"title": "provenance summary url", "url": self.provenance_summary_capture.url, "ts": ts}
+                    {"url": self.primary_capture.url, "title": f"High-Fidelity Web Capture of {self.ascii_safe_url}", "ts": ts}
                 )
             return "\n".join([json.dumps(row) for row in jsonl_rows])
 
