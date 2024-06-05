@@ -39,7 +39,6 @@ logger = logging.getLogger('celery.django')
 import csv
 import subprocess
 import math
-import json
 
 ### ERROR REPORTING ###
 
