@@ -135,7 +135,7 @@ const handleCaptureStatus = async (guid) => {
     } catch (errorData) {
         return {
             step_count: errorData?.step_count ?? 0,
-            status: errorData?.status ? errorData?.status : 'failed',
+            status: 'failed',
             error: errorData?.message ?? ''
         };
     }
