@@ -1261,7 +1261,8 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
         "raw_warc_save_duration",
         "raw_jsonl_write_duration",
         "raw_conversion_duration",
-        "error"
+        "error",
+        "warc_checksums_match"
     ]
 
     with open(log_file, 'w') as lf:
