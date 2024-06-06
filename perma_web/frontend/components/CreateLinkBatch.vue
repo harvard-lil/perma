@@ -10,6 +10,7 @@ import Dialog from './Dialog.vue';
 import { validStates, transitionalStates } from '../lib/consts.js'
 import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError } from '../lib/errors';
 import { useToast } from '../lib/notifications';
+import { defaultError } from '../lib/errors';
 
 const defaultDialogTitle = "Create a Link Batch"
 const batchDialogTitle = ref(defaultDialogTitle)
@@ -101,6 +102,9 @@ const handleBatchCaptureRequest = async () => {
         }
 
         const data = await response.json()
+
+        // throw new Error()
+
         batchCaptureId.value = data // Triggers periodic polling
         globalStore.updateBatchCapture('isQueued')
 
@@ -118,7 +122,24 @@ const handleBatchCaptureRequest = async () => {
 const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
     globalStore.updateBatchCapture(errorType)
-    const errorMessage = getErrorFromResponseStatus(error)
+
+    let errorMessage
+
+    // Handle API-generated error messages
+    if (error?.response) {
+        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+    }
+
+    // Handle frontend-generated error messages
+    else if (error.length) {
+        errorMessage = error
+    }
+
+    // Handle uncaught errors
+    else {
+        errorMessage = defaultError
+    }
+
     toggleToast(errorMessage)
     globalStore.updateBatchCaptureErrorMessage(errorMessage)
     handleClose()
