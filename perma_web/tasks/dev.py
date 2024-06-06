@@ -1229,17 +1229,24 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=None, batch_size=1000, batch_range=None,
-                              big_warcs=False, prefix=None):
+def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
+                              big_warcs=False, legacy_warcs=False, old_style_guids=False,
+                              batch_guid_prefix=None, batch_range=None, batch_size=None):
     """
     Creates log file
-    Invokes convert_warc_to_wacz() with WARC guid
-    Defaults to batch_size if source_csv or single_warc isn't passed
-    big_warcs can be passed along with batch_size
-    prefix can be passed along with batch_size
+    Invokes convert_warc_to_wacz() for a set of Perma Links.
+    Specify "big_warcs" to restrict queryset to Links with large filesize.
+    Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
+    Specify "old_style_guids" to restrict the queryset to Links with 11-character GUIDs.
+    Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
+    Specify "batch_range" or "batch_size" to slice the queryset.
+    Or, provide a file with the desired GUIDs, one per line.
     """
-    if source_csv and single_warc:
-        raise ValueError("Cannot pass source file and WARC path at the same time.")
+    if source_csv and (guid or big_warcs or batch_guid_prefix or batch_range or batch_size):
+        raise ValueError("If source CSV is specified, no other options may be configured.")
+
+    if batch_range and batch_size:
+        raise ValueError("Cannot specify both a batch range and a batch size.")
 
     log_file = os.path.abspath(benchmark_log)
     csv_headers = [
@@ -1280,10 +1287,24 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
             for line in csv_file:
                 convert_warc_to_wacz.delay(line[0], log_file)
         return
-
-    if single_warc:
-        convert_warc_to_wacz.delay(single_warc.split('.')[0], log_file)
+    if guid:
+        convert_warc_to_wacz.delay(guid, log_file)
         return
+
+    if big_warcs:
+        links = base_links_query.order_by('-warc_size')
+    elif legacy_warcs:
+        # Prior to 5/1/2014 we have a mix of wget, instapaper, and warcprox captures
+        # https://github.com/harvard-lil/perma/blob/develop/errata.md
+        links = base_links_query.filter(creation_timestamp__lt=datetime(2014,5,1, tzinfo=timezone.utc))
+    elif old_style_guids:
+        # On 11/22/2013 we switched from 11-character IDs to ABCD-1234 IDs.
+        # https://github.com/harvard-lil/perma/blob/develop/errata.md
+        links = base_links_query.filter(creation_timestamp__lt=datetime(2013,11,22, tzinfo=timezone.utc))
+    elif batch_guid_prefix:
+        links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')
+    else:
+        links = base_links_query.order_by('guid')
 
     if batch_range:
         batch_range_start, batch_range_end = batch_range.split(':')
@@ -1293,13 +1314,9 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, single_warc=N
         if batch_range_start >= batch_range_end:
             raise ValueError("Starting index must be smaller than ending index.")
 
-        links = base_links_query.order_by('guid')[batch_range_start:batch_range_end]
-    elif big_warcs:
-        links = base_links_query.order_by('-warc_size')[:batch_size]
-    elif prefix:
-        links = base_links_query.filter(guid__startswith=prefix).order_by('guid')[:batch_size]
-    else:
-        links = base_links_query.order_by('guid')[:batch_size]
+        links = links[batch_range_start:batch_range_end]
+    elif batch_size:
+        links = links[:int(batch_size)]
 
     for link in links.iterator():
         convert_warc_to_wacz.delay(link, log_file)
