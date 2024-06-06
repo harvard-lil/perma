@@ -103,8 +103,6 @@ const handleBatchCaptureRequest = async () => {
 
         const data = await response.json()
 
-        // throw new Error()
-
         batchCaptureId.value = data // Triggers periodic polling
         globalStore.updateBatchCapture('isQueued')
 
@@ -149,8 +147,7 @@ const handleBatchDetailsFetch = async () => {
     const { data, error, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
 
     if (error || !data.value.capture_jobs) {
-        globalStore.updateBatchCapture('batchDetailsError')
-        globalStore.updateBatchCaptureErrorMessage(errorMessage)
+        handleBatchError({ error: errorMessage, errorType: "batchDetailsError" })
     }
 
     const { allJobs, progressSummary } = handleBatchFormatting(data.value.capture_jobs)
