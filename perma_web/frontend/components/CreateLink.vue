@@ -7,7 +7,6 @@ import Spinner from './Spinner.vue';
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
-import { useToast } from '../lib/notifications';
 import CreateLinkBatch from './CreateLinkBatch.vue';
 
 const batchDialogRef = ref('')
@@ -136,13 +135,6 @@ const handleProgressUpdate = async () => {
     }
 }
 
-const { addToast } = useToast();
-
-const toggleToast = () => {
-    const date = Date.now();
-    addToast(`Toast notification ${date}`, 'success');
-}
-
 watch(userLinkGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
@@ -158,13 +150,8 @@ onBeforeUnmount(() => {
     <!-- regular link creation -->
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
-
-            <!-- debug only -->
-            <h2>Capture status: {{ globalStore.captureStatus }}</h2>
-            <h2 v-if="globalStore.captureStatus === 'isCapturing'">Capture progress: {{ userLinkProgressBar }}</h2>
-            <button @click="toggleToast">Toggle toast</button>
-            <!-- debug only -->
-
+            <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
+            <p class="create-lede">Enter any URL to preserve it forever.</p>
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" :class="{ '_isPrivate': globalStore.selectedFolder.isPrivate }" id="linker">
