@@ -39,7 +39,6 @@ logger = logging.getLogger('celery.django')
 import csv
 import subprocess
 import math
-import json
 
 ### ERROR REPORTING ###
 
@@ -1294,6 +1293,11 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     wacz_path = f"{link.guid}.wacz"
     pages_path = "pages.jsonl"
 
+    # confirm this Link has a warc that should be converted
+    if not link.cached_can_play_back:
+        logger.error(f"{link.guid} is ineligible for conversion.")
+        return
+
     # save a local copy of the warc file
     warc_save_start_time = time.time()
     with open(warc_path, "wb") as file:
@@ -1301,28 +1305,10 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     warc_save_duration = time.time() - warc_save_start_time
 
     # prepare our custom pages.jsonl file
-    jsonl_prep_start_time = time.time()
-    jsonl_rows = [
-        {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
-    ]
-    ts = str(link.creation_timestamp)
-    if link.primary_capture:
-        jsonl_rows.append(
-            {"title": "primary capture url", "url": link.primary_capture.url, "ts": ts}
-        )
-    if link.screenshot_capture:
-        jsonl_rows.append(
-            {"title": "screenshot url", "url": link.screenshot_capture.url, "ts": ts}
-        )
-    if link.provenance_summary_capture:
-        jsonl_rows.append(
-            {"title": "provenance summary url", "url": link.provenance_summary_capture.url, "ts": ts}
-        )
-    assert len(jsonl_rows) > 1, f"{link.guid} has neither a primary nor a screenshot capture!"
+    pages_prep_start_time = time.time()
     with open(pages_path, 'w') as file:
-        for item in jsonl_rows:
-            file.write(json.dumps(item) + '\n')
-    jsonl_write_duration = time.time() - jsonl_prep_start_time
+        file.write(link.get_pages_jsonl() + '\n')
+    pages_write_duration = time.time() - pages_prep_start_time
 
     # call js-wacz in a subprocess
     conversion_start_time = time.time()
@@ -1367,7 +1353,7 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             "duration": duration,
             "raw_duration": raw_total_duration,  # seconds
             "raw_warc_save_duration": warc_save_duration,
-            "raw_jsonl_write_duration": jsonl_write_duration,
+            "raw_pages_write_duration": pages_write_duration,
             "raw_conversion_duration": conversion_duration,
             "error": ''
         }
