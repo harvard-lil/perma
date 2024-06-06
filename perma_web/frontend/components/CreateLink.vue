@@ -121,7 +121,7 @@ const handleCaptureStatus = async (guid) => {
 
         if (!response?.ok) {
             const errorResponse = await response.json()
-            throw { errorResponse }
+            throw { status: response.status, response: errorResponse }
         }
 
         const job = await response.json()
