@@ -1267,16 +1267,6 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
 # WACZ CONVERSION
 
-def seconds_to_minutes(seconds_val):
-    """
-    Converts seconds to minutes
-    """
-    if seconds_val >= 60:
-        return f"{round(seconds_val / 60, 1)} minutes"
-    else:
-        return f"{math.ceil(seconds_val)} seconds"
-
-
 @shared_task
 @tempdir.run_in_tempdir()
 def convert_warc_to_wacz(input_guid, benchmark_log):
@@ -1286,6 +1276,27 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     Logs conversion metrics
     If successful, saves file in storage
     """
+
+    #
+    # Helper methods
+    #
+
+    def seconds_to_minutes(seconds_val):
+        """
+        Converts seconds to minutes
+        """
+        if seconds_val >= 60:
+            return f"{round(seconds_val / 60, 1)} minutes"
+        else:
+            return f"{math.ceil(seconds_val)} seconds"
+
+    def format_filesize(i):
+        return filesizeformat(i).replace("\xa0", " ")
+
+    #
+    # Launch the conversions
+    #
+
     start_time = time.time()
     link = Link.objects.get(guid=input_guid)
     cwd = os.getcwd()
@@ -1332,13 +1343,13 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     conversion_duration = time.time() - conversion_start_time
 
     warc_size = link.warc_size
-    formatted_warc_size = filesizeformat(warc_size)
+    formatted_warc_size = format_filesize(warc_size)
     try:
         wacz_size = os.path.getsize(wacz_path)
     except OSError:
         wacz_size = 0
 
-    formatted_wacz_size = filesizeformat(wacz_size)
+    formatted_wacz_size = format_filesize(wacz_size)
     raw_total_duration = time.time() - start_time
     duration = seconds_to_minutes(raw_total_duration)
 
