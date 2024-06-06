@@ -162,7 +162,7 @@ const handleBatchFormatting = ((captureJobs) => {
     const steps = 6
     const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
         const includesError = !validStates.includes(currentJob.status)
-        const isCompleted = !transitionalStates.includes(currentJob.status)
+        const isCapturing = transitionalStates.includes(currentJob.status)
 
         let jobDetail = {
             ...currentJob,
@@ -171,7 +171,7 @@ const handleBatchFormatting = ((captureJobs) => {
             url: `${window.location.hostname}/${currentJob.guid}`
         };
 
-        if (isCompleted) {
+        if (isCapturing) {
             accumulatedJobs.completed = false;
         }
 
