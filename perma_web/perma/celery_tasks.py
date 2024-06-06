@@ -1292,7 +1292,7 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             return f"{math.ceil(seconds_val)} seconds"
 
     def format_filesize(i):
-        filesizeformat(i).replace("\xa0", " ")
+        return filesizeformat(i).replace("\xa0", " ")
 
     #
     # Launch the conversions
