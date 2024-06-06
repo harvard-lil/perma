@@ -1229,11 +1229,10 @@ def save_warc_for_conversion(warc, warcs_dir, file_name):
 
 
 @task
-def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
+def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
                               big_warcs=False, legacy_warcs=False, old_style_guids=False,
                               batch_guid_prefix=None, batch_range=None, batch_size=None):
     """
-    Creates log file
     Invokes convert_warc_to_wacz() for a set of Perma Links.
     Specify "big_warcs" to restrict queryset to Links with large filesize.
     Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
@@ -1247,27 +1246,6 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
 
     if batch_range and batch_size:
         raise ValueError("Cannot specify both a batch range and a batch size.")
-
-    log_file = os.path.abspath(benchmark_log)
-    csv_headers = [
-        "file_name",
-        "conversion_status",
-        "warc_size",
-        "raw_warc_size",
-        "wacz_size",
-        "raw_wacz_size",
-        "duration",
-        "raw_duration",
-        "raw_warc_save_duration",
-        "raw_jsonl_write_duration",
-        "raw_conversion_duration",
-        "error",
-        "warc_checksums_match"
-    ]
-
-    with open(log_file, 'w') as lf:
-        writer = csv.DictWriter(lf, fieldnames=csv_headers)
-        writer.writeheader()
 
     # Adding this here in case we want to compare it against the CSV file's last updated ts
     # for a rough estimate of how long all jobs took to be processed by celery
@@ -1286,10 +1264,10 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
         with open(sample_data_guids, mode='r') as file:
             csv_file = csv.reader(file)
             for line in csv_file:
-                convert_warc_to_wacz.delay(line[0], log_file)
+                convert_warc_to_wacz.delay(line[0])
         return
     if guid:
-        convert_warc_to_wacz.delay(guid, log_file)
+        convert_warc_to_wacz.delay(guid)
         return
 
     if big_warcs:
@@ -1320,4 +1298,4 @@ def benchmark_wacz_conversion(ctx, benchmark_log, source_csv=None, guid=None,
         links = links[:int(batch_size)]
 
     for link in links.iterator():
-        convert_warc_to_wacz.delay(link, log_file)
+        convert_warc_to_wacz.delay(link)

@@ -1,5 +1,9 @@
 import hashlib
+from io import StringIO
 import itertools
+import json
+import math
+import subprocess
 
 import os
 import os.path
@@ -38,9 +42,6 @@ from perma.utils import (
 import logging
 logger = logging.getLogger('celery.django')
 
-import csv
-import subprocess
-import math
 
 ### ERROR REPORTING ###
 
@@ -1271,7 +1272,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
 @shared_task
 @tempdir.run_in_tempdir()
-def convert_warc_to_wacz(input_guid, benchmark_log):
+def convert_warc_to_wacz(input_guid):
     """
     Downloads WARC file to temp dir
     Converts WARC file to WACZ
@@ -1345,14 +1346,15 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
     conversion_duration = time.time() - conversion_start_time
 
     warc_size = link.warc_size
-    formatted_warc_size = format_filesize(warc_size)
+
     try:
         wacz_size = os.path.getsize(wacz_path)
     except OSError:
         wacz_size = 0
 
-    formatted_wacz_size = format_filesize(wacz_size)
+    hash_check_start_time = time.time()
     if wacz_size:
+
         # retrieve S3's md5 hash of file it has
         remote_hash = default_storage.connection.Object(
             bucket_name=default_storage.bucket_name,
@@ -1377,49 +1379,46 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         warc_checksums_match =  m.hexdigest() == remote_hash
     else:
         warc_checksums_match = None
+    hash_check_duration = time.time() - hash_check_start_time
 
-    raw_total_duration = time.time() - start_time
-    duration = seconds_to_minutes(raw_total_duration)
+    total_duration = time.time() - start_time
 
-    with open(benchmark_log, 'a') as log_file:
-        row = {
-            "file_name": input_guid,
-            "conversion_status": '',
-            "warc_size": formatted_warc_size,
-            "raw_warc_size": warc_size,  # bytes
-            "wacz_size": formatted_wacz_size,
-            "raw_wacz_size": wacz_size,  # bytes
-            "duration": duration,
-            "raw_duration": raw_total_duration,  # seconds
-            "raw_warc_save_duration": warc_save_duration,
-            "raw_pages_write_duration": pages_write_duration,
-            "raw_conversion_duration": conversion_duration,
-            "error": '',
-            "warc_checksums_match": warc_checksums_match
-        }
-        if conversion_error:
-            # No WACZ to save; error message from js-wacz
-            row["conversion_status"] = "Failure"
-            row["error"] = error_output
-        elif wacz_size == 0:
-            # No WACZ to save; no error message from js-wacz
-            row["conversion_status"] = "Failure"
-            row["error"] = "No WACZ produced"
+    data = {
+        "guid": input_guid,
+        "conversion_status": '',
+        "warc_size": warc_size,
+        "warc_size_formatted": format_filesize(warc_size),
+        "wacz_size": wacz_size,
+        "wacz_size_formatted": format_filesize(wacz_size),
+        "warc_checksums_match": warc_checksums_match,
+        "total_duration_formatted": seconds_to_minutes(total_duration),
+        "total_duration": total_duration,
+        "warc_save_duration": warc_save_duration,
+        "pages_write_duration": pages_write_duration,
+        "conversion_duration": conversion_duration,
+        "hash_check_duration": hash_check_duration,
+        "error": '',
+    }
+    if conversion_error:
+        # No WACZ to save; error message from js-wacz
+        data["conversion_status"] = "Failure"
+        data["error"] = error_output
+    elif wacz_size == 0:
+        # No WACZ to save; no error message from js-wacz
+        data["conversion_status"] = "Failure"
+        data["error"] = "No WACZ produced"
+    else:
+        # A WACZ to save: keep broken ones around for study
+        if warc_size > wacz_size:
+            data["conversion_status"] = "Failure"
+            data["error"] = "WACZ is smaller than WARC"
+        elif not warc_checksums_match:
+            data["conversion_status"] = "Failure"
+            data["error"] = "The WARC embedded in the WACZ differs from the source WARC"
         else:
-            # A WACZ to save: keep broken ones around for study
-            if warc_size > wacz_size:
-                row["conversion_status"] = "Failure"
-                row["error"] = "WACZ is smaller than WARC"
-            elif not warc_checksums_match:
-                row["conversion_status"] = "Failure"
-                row["error"] = "The WARC embedded in the WACZ differs from the source WARC"
-            else:
-                row["conversion_status"] = "Success"
+            data["conversion_status"] = "Success"
 
-            with open(wacz_path, 'rb') as wacz_file:
-                default_storage.save(link.wacz_storage_file(), wacz_file)
+        with open(wacz_path, 'rb') as wacz_file:
+            default_storage.save(link.wacz_storage_file(), wacz_file)
 
-        writer = csv.DictWriter(log_file, fieldnames=row.keys())
-        writer.writerow(row)
-
-
+    default_storage.save(link.warc_to_wacz_conversion_log_file(), StringIO(json.dumps(data)))
