@@ -8,7 +8,7 @@ import { useFetch } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import { validStates, transitionalStates } from '../lib/consts.js'
-import { folderError, getErrorFromResponseStatus, missingUrlError } from '../lib/errors';
+import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError } from '../lib/errors';
 import { useToast } from '../lib/notifications';
 
 const defaultDialogTitle = "Create a Link Batch"
@@ -111,13 +111,13 @@ const handleBatchCaptureRequest = async () => {
         window.dispatchEvent(batchCreated);
 
     } catch (error) {
-        handleError(error)
+        handleBatchError({ error, errorType: 'urlError' })
     }
 };
 
-const handleError = (error) => {
+const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
-    globalStore.updateBatchCapture('urlError')
+    globalStore.updateBatchCapture(errorType)
     const errorMessage = getErrorFromResponseStatus(error)
     toggleToast(errorMessage)
     globalStore.updateBatchCaptureErrorMessage(errorMessage)
@@ -140,17 +140,21 @@ const handleBatchDetailsFetch = async () => {
 const handleBatchFormatting = ((captureJobs) => {
     const steps = 6
     const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
+        const includesError = !validStates.includes(currentJob.status)
+        const isCompleted = !transitionalStates.includes(currentJob.status)
+
         let jobDetail = {
             ...currentJob,
+            message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
             progress: (currentJob.step_count / steps) * 100,
             url: `${window.location.hostname}/${currentJob.guid}`
         };
 
-        if (transitionalStates.includes(currentJob.status)) {
+        if (isCompleted) {
             accumulatedJobs.completed = false;
         }
 
-        if (!validStates.includes(jobDetail.status)) {
+        if (includesError) {
             accumulatedJobs.errors += 1;
         }
 
