@@ -39,7 +39,7 @@ watch(
     <div class="container cont-fixed">
         <div v-if="globalStore.captureErrorMessage" id="error-container">
             <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
-                    Please <a href='/login'>login</a> to continue.
+                    Please <a href='/login'>log in</a> to continue.
                 </span></p>
             <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
             <p v-if="showUploadLink">You can <button id="upload-form-button">upload your own archive</button> or <a
