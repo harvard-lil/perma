@@ -1,3 +1,4 @@
+import hashlib
 import itertools
 
 import os
@@ -13,6 +14,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from celery.signals import task_failure
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from zipfile import ZipFile
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -1350,6 +1352,32 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         wacz_size = 0
 
     formatted_wacz_size = format_filesize(wacz_size)
+    if wacz_size:
+        # retrieve S3's md5 hash of file it has
+        remote_hash = default_storage.connection.Object(
+            bucket_name=default_storage.bucket_name,
+            key=os.path.join(settings.MEDIA_ROOT, link.warc_storage_file())
+        ).e_tag.strip('"')
+
+        # calculate the same thing for the warc inside the wacz
+        # use a blocksize of 1MB because... it's LIL tradition
+        blocksize = 2 ** 20
+        m = hashlib.md5()
+        with (
+            ZipFile(wacz_path) as zip_file,
+            zip_file.open(f"archive/{link.guid}.warc.gz") as embedded_warc
+        ):
+            while True:
+                buf = embedded_warc.read(blocksize)
+                if not buf:
+                    break
+                m.update(buf)
+
+        # see if they match
+        warc_checksums_match =  m.hexdigest() == remote_hash
+    else:
+        warc_checksums_match = None
+
     raw_total_duration = time.time() - start_time
     duration = seconds_to_minutes(raw_total_duration)
 
@@ -1366,21 +1394,32 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             "raw_warc_save_duration": warc_save_duration,
             "raw_pages_write_duration": pages_write_duration,
             "raw_conversion_duration": conversion_duration,
-            "error": ''
+            "error": '',
+            "warc_checksums_match": warc_checksums_match
         }
-        writer = csv.DictWriter(log_file, fieldnames=row.keys())
-
         if conversion_error:
+            # No WACZ to save; error message from js-wacz
             row["conversion_status"] = "Failure"
             row["error"] = error_output
-            writer.writerow(row)
-        elif wacz_size == 0 or warc_size > wacz_size:
+        elif wacz_size == 0:
+            # No WACZ to save; no error message from js-wacz
             row["conversion_status"] = "Failure"
-            row["error"] = "WACZ is smaller than WARC"
-            writer.writerow(row)
+            row["error"] = "No WACZ produced"
         else:
-            row["conversion_status"] = "Success"
-            writer.writerow(row)
+            # A WACZ to save: keep broken ones around for study
+            if warc_size > wacz_size:
+                row["conversion_status"] = "Failure"
+                row["error"] = "WACZ is smaller than WARC"
+            elif not warc_checksums_match:
+                row["conversion_status"] = "Failure"
+                row["error"] = "The WARC embedded in the WACZ differs from the source WARC"
+            else:
+                row["conversion_status"] = "Success"
 
             with open(wacz_path, 'rb') as wacz_file:
                 default_storage.save(link.wacz_storage_file(), wacz_file)
+
+        writer = csv.DictWriter(log_file, fieldnames=row.keys())
+        writer.writerow(row)
+
+
