@@ -1360,6 +1360,7 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         ).e_tag.strip('"')
 
         # calculate the same thing for the warc inside the wacz
+        # use a blocksize of 1MB because... it's LIL tradition
         blocksize = 2 ** 20
         m = hashlib.md5()
         with ZipFile(wacz_path) as zip_file:
@@ -1395,12 +1396,15 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
             "warc_checksums_match": warc_checksums_match
         }
         if conversion_error:
+            # No WACZ to save; error message from js-wacz
             row["conversion_status"] = "Failure"
             row["error"] = error_output
         elif wacz_size == 0:
+            # No WACZ to save; no error message from js-wacz
             row["conversion_status"] = "Failure"
             row["error"] = "No WACZ produced"
         else:
+            # A WACZ to save: keep broken ones around for study
             if warc_size > wacz_size:
                 row["conversion_status"] = "Failure"
                 row["error"] = "WACZ is smaller than WARC"
