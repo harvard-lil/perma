@@ -1363,13 +1363,15 @@ def convert_warc_to_wacz(input_guid, benchmark_log):
         # use a blocksize of 1MB because... it's LIL tradition
         blocksize = 2 ** 20
         m = hashlib.md5()
-        with ZipFile(wacz_path) as zip_file:
-            with zip_file.open(f"archive/{link.guid}.warc.gz") as embedded_warc:
-                while True:
-                    buf = embedded_warc.read(blocksize)
-                    if not buf:
-                        break
-                    m.update(buf)
+        with (
+            ZipFile(wacz_path) as zip_file,
+            zip_file.open(f"archive/{link.guid}.warc.gz") as embedded_warc
+        ):
+            while True:
+                buf = embedded_warc.read(blocksize)
+                if not buf:
+                    break
+                m.update(buf)
 
         # see if they match
         warc_checksums_match =  m.hexdigest() == remote_hash
