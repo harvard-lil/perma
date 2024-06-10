@@ -16,7 +16,6 @@ export const useFetch = async (baseUrl, options) => {
 
     try {
       const response = await fetch(url); 
-           
       if (!response?.ok) {
         throw new Error(response.statusText) 
       }
@@ -25,7 +24,7 @@ export const useFetch = async (baseUrl, options) => {
 
     } catch (err) {
       state.hasError = true
-      state.errorMessage = err?.message ?? defaultError
+      state.errorMessage = err?.message.length ? err.message : defaultError
     }
     state.isLoading = false
   }
