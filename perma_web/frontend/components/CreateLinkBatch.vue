@@ -146,9 +146,8 @@ const handleBatchError = ({ error, errorType }) => {
 const handleBatchDetailsFetch = async () => {
     const { data, hasError, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
 
-    if (hasError || !data?.value.capture_jobs) {
-        const loggedError = errorMessage ?? defaultError
-        console.log(loggedError)
+    if (hasError.value || !data.value.capture_jobs) {
+        console.log(errorMessage.value)
 
         /* Return nothing and continue to fetch details on an interval */
         return
