@@ -24,7 +24,7 @@ export const useFetch = async (baseUrl, options) => {
 
     } catch (err) {
       state.hasError = true
-      state.errorMessage = err.message
+      state.errorMessage = err?.message ?? ''
     }
     state.isLoading = false
   }
