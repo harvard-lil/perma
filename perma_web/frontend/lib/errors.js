@@ -39,3 +39,12 @@ export const getErrorFromNestedObject = (object) => {
 
     return errorMessage
 }
+
+export const getErrorResponse = async (response) => {
+  try {
+      const errorBody = await response.json();
+      return { status: response.status, response: errorBody }
+  } catch (error) {
+      return { status: response.status };
+  }
+};

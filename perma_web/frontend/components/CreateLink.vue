@@ -9,7 +9,7 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseStatus } from "../lib/errors"
+import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse } from "../lib/errors"
 
 const defaultError = "We're sorry, we've encountered an error processing your request."
 const batchDialogRef = ref('')
@@ -80,8 +80,8 @@ const handleArchiveRequest = async () => {
             })
 
         if (!response?.ok) {
-            const errorResponse = await response.json()
-            throw { status: response.status, response: errorResponse }
+            const errorResponse = await getErrorResponse(response)
+            throw errorResponse
         }
 
         const { guid } = await response.json()
@@ -104,6 +104,10 @@ const handleCaptureError = ({ error, errorType }) => {
     // Handle frontend-generated error messages
     else if (error.length) {
         errorMessage = error
+    }
+
+    else if (error?.status) {
+        errorMessage = `Error: ${error.status}`
     }
 
     // Handle uncaught errors
