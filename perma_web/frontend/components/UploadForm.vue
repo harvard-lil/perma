@@ -4,8 +4,8 @@ import TextInput from './TextInput.vue';
 
 const formData = ref({
     // Data is for debugging only right now
-    url: { name: 'New Perma Link URL', description: "The URL associated with this upload", placeholder: "Page URL", value: '' },
-    title: { name: "New Perma Link Title", description: "A test description for testing", placeholder: "Placeholder", value: '' },
+    url: { name: 'New Perma Link URL', type: "text", description: "The URL associated with this upload", placeholder: "Page URL", value: '' },
+    title: { name: "New Perma Link Title", type: "text", description: "A test description for testing", placeholder: "Placeholder", value: '' },
 })
 
 // Match backend format for errors, for example {file:"message",url:"message"},
@@ -25,7 +25,7 @@ const handleErrorToggle = () => {
     <form @submit.prevent>
         <div v-for="(input, key) in formData" :key="key">
             {{ formData[key].value }} <!-- Testing only -->
-            <TextInput v-model="formData[key]" :error="errors[key]" />
+            <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]" />
         </div>
         <button @click.prevent="handleErrorToggle">Toggle Error</button>
     </form>
