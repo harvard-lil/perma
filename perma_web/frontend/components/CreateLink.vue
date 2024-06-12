@@ -123,7 +123,7 @@ const handleCaptureStatus = async (guid) => {
     try {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
-        if (!response.ok) {
+        if (!response?.ok) {
             throw new Error()
         }
 
