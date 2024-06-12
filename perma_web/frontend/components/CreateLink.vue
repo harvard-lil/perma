@@ -100,13 +100,13 @@ const handleCaptureError = ({ error, errorType }) => {
         errorMessage = getErrorFromResponseStatus(error.status, error.response)
     }
 
+    else if (error?.status) {
+        errorMessage = `Error: ${error.status}`
+    }
+
     // Handle frontend-generated error messages
     else if (error.length) {
         errorMessage = error
-    }
-
-    else if (error?.status) {
-        errorMessage = `Error: ${error.status}`
     }
 
     // Handle uncaught errors
@@ -123,7 +123,7 @@ const handleCaptureStatus = async (guid) => {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
         if (!response?.ok) {
-            throw new Error()
+            throw new Error(response.status)
         }
 
         const job = await response.json()
