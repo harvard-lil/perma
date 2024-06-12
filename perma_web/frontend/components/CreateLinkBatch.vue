@@ -8,7 +8,7 @@ import { useFetch } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import { validStates, transitionalStates } from '../lib/consts.js'
-import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError } from '../lib/errors';
+import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError, getErrorResponse } from '../lib/errors';
 import { useToast } from '../lib/notifications';
 import { defaultError } from '../lib/errors';
 
@@ -97,8 +97,8 @@ const handleBatchCaptureRequest = async () => {
             })
 
         if (!response?.ok) {
-            const errorResponse = await response.json()
-            throw { status: response.status, response: errorResponse }
+            const errorResponse = await getErrorResponse(response)
+            throw errorResponse
         }
 
         const data = await response.json()
@@ -128,6 +128,10 @@ const handleBatchError = ({ error, errorType }) => {
         errorMessage = getErrorFromResponseStatus(error.status, error.response)
     }
 
+    else if (error?.status) {
+        errorMessage = `Error: ${error.status}`
+    }
+
     // Handle frontend-generated error messages
     else if (error.length) {
         errorMessage = error
@@ -148,8 +152,8 @@ const handleBatchDetailsFetch = async () => {
 
     if (hasError.value || !data.value.capture_jobs) {
         console.log(errorMessage.value)
-
         /* Return nothing and continue to fetch details on an interval */
+        /* TODO: Implement maxFailedAttempts approach to error handling for failed details fetches */
         return
     }
 
