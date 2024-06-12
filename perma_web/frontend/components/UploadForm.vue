@@ -9,14 +9,15 @@ const formData = ref({
 })
 
 // Match backend format for errors, for example {file:"message",url:"message"},
-const errors = ref({
-    url: "",
-    title: ""
-})
+const errors = ref({})
 
 // Debug only
 const handleErrorToggle = () => {
     errors.value.url = "URL cannot be empty."
+}
+
+const handleErrorReset = () => {
+    errors.value = {}
 }
 
 </script>
@@ -30,6 +31,8 @@ const handleErrorToggle = () => {
                     <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]" />
                 </div>
                 <button @click.prevent="handleErrorToggle">Toggle Error</button>
+                <button @click.prevent="handleErrorReset">Reset Errors</button>
+
             </form>
         </div>
     </div>
