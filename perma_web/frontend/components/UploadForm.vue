@@ -1,11 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import TextInput from './TextInput.vue';
+import FileInput from './FileInput.vue';
 
 const formData = ref({
     // Data is for debugging only right now
     url: { name: 'New Perma Link URL', type: "text", description: "The URL associated with this upload", placeholder: "Page URL", value: '' },
-    title: { name: "New Perma Link Title", type: "text", description: "A test description for testing", placeholder: "Placeholder", value: '' },
+    file: { name: "Choose a file", type: "file", description: ".gif, .jpg, .pdf, and .png allowed, up to 100 MB", value: '' },
 })
 
 // Match backend format for errors, for example {file:"message",url:"message"},
@@ -22,6 +23,7 @@ const handleErrorReset = () => {
 
 </script>
 
+
 <template>
     <div class="modal-content">
         <div class="modal-body">
@@ -29,6 +31,8 @@ const handleErrorReset = () => {
                 <template v-for="(_, key) in formData" :key="key">
                     {{ formData[key].value }} <!-- Testing only -->
                     <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
+                        :id="key" />
+                    <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"
                         :id="key" />
                 </template>
                 <button @click.prevent="handleErrorToggle">Toggle Error</button>
