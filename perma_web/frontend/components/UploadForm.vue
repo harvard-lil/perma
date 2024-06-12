@@ -32,7 +32,6 @@ const handleErrorReset = () => {
                 </template>
                 <button @click.prevent="handleErrorToggle">Toggle Error</button>
                 <button @click.prevent="handleErrorReset">Reset Errors</button>
-
             </form>
         </div>
     </div>
