@@ -1,14 +1,17 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, watchEffect, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
+import CaptureError from './CaptureError.vue'
 import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
+import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse } from "../lib/errors"
 
+const defaultError = "We're sorry, we've encountered an error processing your request."
 const batchDialogRef = ref('')
 
 const batchDialogOpen = () => {
@@ -60,10 +63,9 @@ const handleArchiveRequest = async () => {
 
     try {
         if (!formData.folder) {
-            // These are placeholders
-            const errorMessage = 'Missing folder selection'
+            const errorMessage = 'Missing folder selection. Please select a folder.'
             globalStore.updateCaptureErrorMessage(errorMessage)
-            throw new Error(errorMessage)
+            throw errorMessage
         }
 
         const response = await fetch("/api/v1/archives/",
@@ -78,39 +80,65 @@ const handleArchiveRequest = async () => {
             })
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // We will handle this more in-depth later
+            const errorResponse = await getErrorResponse(response)
+            throw errorResponse
         }
 
-        const { guid } = await response.json() // Needed to poll Perma about the capture status of a link
+        const { guid } = await response.json()
         userLinkGUID.value = guid
         globalStore.updateCapture('isQueued')
 
     } catch (error) {
-        globalStore.updateCapture('urlError')
-        globalStore.updateCaptureErrorMessage(error)
+        handleCaptureError({ error, errorType: 'urlError' })
     }
 };
+
+const handleCaptureError = ({ error, errorType }) => {
+    let errorMessage
+
+    // Handle API-generated error messages
+    if (error?.response) {
+        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+    }
+
+    // Handle frontend-generated error messages
+    else if (error.length) {
+        errorMessage = error
+    }
+
+    else if (error?.status) {
+        errorMessage = `Error: ${error.status}`
+    }
+
+    // Handle uncaught errors
+    else {
+        errorMessage = defaultError
+    }
+
+    globalStore.updateCapture(errorType)
+    globalStore.updateCaptureErrorMessage(errorMessage)
+}
 
 const handleCaptureStatus = async (guid) => {
     try {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // We will handle this more in-depth later
+            throw new Error()
         }
 
-        const jobStatus = await response.json()
+        const job = await response.json()
 
         return {
-            step_count: jobStatus.step_count,
-            status: jobStatus.status,
-            error: jobStatus.status === 'failed' ? JSON.parse(jobStatus.message).error[0] : '' // We will handle this more in-depth later, too
+            step_count: job.step_count,
+            status: job.status,
+            error: job.status === 'failed' ? job.message : ''
         }
 
     } catch (error) {
-        clearInterval(progressInterval);
-        globalStore.updateCapture('captureError')
-        globalStore.updateCaptureErrorMessage(error)
+        // TODO: Implement maxFailedAttempts logic here
+        console.log(error)
+        return
     }
 }
 
@@ -129,9 +157,12 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'failed') {
+        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(error)) : defaultError
+
         clearInterval(progressInterval)
+
         globalStore.updateCapture('captureError')
-        globalStore.updateCaptureErrorMessage(error)
+        globalStore.updateCaptureErrorMessage(errorMessage)
     }
 }
 
@@ -193,14 +224,7 @@ onBeforeUnmount(() => {
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
 
-    <div class="create-errors container cont-fixed">
-        <div v-if="globalStore.captureErrorMessage" id="error-container">
-            <p class="message-large">{{ globalStore.captureErrorMessage }}</p>
-            <p class="message">We’re unable to create your Perma Link.</p>
-            <p>You can <button id="upload-form-button">upload your own archive</button> or <a href="/contact">contact us
-                    about this error.</a></p>
-        </div>
-    </div>
+    <CaptureError />
 
     <CreateLinkBatch ref="batchDialogRef" />
 </template>
