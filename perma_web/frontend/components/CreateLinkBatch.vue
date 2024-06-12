@@ -8,6 +8,9 @@ import { useFetch } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import { validStates, transitionalStates } from '../lib/consts.js'
+import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError, getErrorResponse } from '../lib/errors';
+import { useToast } from '../lib/notifications';
+import { defaultError } from '../lib/errors';
 
 const defaultDialogTitle = "Create a Link Batch"
 const batchDialogTitle = ref(defaultDialogTitle)
@@ -68,12 +71,18 @@ const handleBatchCaptureRequest = async () => {
     const csrf = getCookie("csrftoken")
 
     try {
-        if (!formData.target_folder) {
-            // These are placeholders
-            globalStore.updateBatchCapture('folderSelectionError')
-            const errorMessage = 'Missing folder selection'
+        if (!formData.urls.length) {
+            globalStore.updateBatchCapture('urlError')
+            const errorMessage = missingUrlError
             globalStore.updateBatchCaptureErrorMessage(errorMessage)
-            throw new Error(errorMessage)
+            throw errorMessage
+        }
+
+        if (!formData.target_folder) {
+            globalStore.updateBatchCapture('folderSelectionError')
+            const errorMessage = folderError
+            globalStore.updateBatchCaptureErrorMessage(errorMessage)
+            throw errorMessage
         }
 
         const response = await fetch("/api/v1/archives/batches/",
@@ -88,10 +97,12 @@ const handleBatchCaptureRequest = async () => {
             })
 
         if (!response?.ok) {
-            throw new Error(response.statusText) // This is a placeholder for now
+            const errorResponse = await getErrorResponse(response)
+            throw errorResponse
         }
 
         const data = await response.json()
+
         batchCaptureId.value = data // Triggers periodic polling
         globalStore.updateBatchCapture('isQueued')
 
@@ -102,24 +113,48 @@ const handleBatchCaptureRequest = async () => {
         window.dispatchEvent(batchCreated);
 
     } catch (error) {
-        handleError(error)
+        handleBatchError({ error, errorType: 'urlError' })
     }
 };
 
-const handleError = (error) => {
+const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
-    globalStore.updateBatchCapture('urlError')
-    globalStore.updateBatchCaptureErrorMessage(error)
-    console.log(error) // This is a placeholder
+    globalStore.updateBatchCapture(errorType)
+
+    let errorMessage
+
+    // Handle API-generated error messages
+    if (error?.response) {
+        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+    }
+
+    else if (error?.status) {
+        errorMessage = `Error: ${error.status}`
+    }
+
+    // Handle frontend-generated error messages
+    else if (error.length) {
+        errorMessage = error
+    }
+
+    // Handle uncaught errors
+    else {
+        errorMessage = defaultError
+    }
+
+    toggleToast(errorMessage)
+    globalStore.updateBatchCaptureErrorMessage(errorMessage)
     handleClose()
 }
 
 const handleBatchDetailsFetch = async () => {
-    const { data, error, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
+    const { data, hasError, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
 
-    if (error || !data.value.capture_jobs) {
-        globalStore.updateBatchCapture('batchDetailsError')
-        globalStore.updateBatchCaptureErrorMessage(errorMessage)
+    if (hasError.value || !data.value.capture_jobs) {
+        console.log(errorMessage.value)
+        /* Return nothing and continue to fetch details on an interval */
+        /* TODO: Implement maxFailedAttempts approach to error handling for failed details fetches */
+        return
     }
 
     const { allJobs, progressSummary } = handleBatchFormatting(data.value.capture_jobs)
@@ -130,17 +165,21 @@ const handleBatchDetailsFetch = async () => {
 const handleBatchFormatting = ((captureJobs) => {
     const steps = 6
     const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
+        const includesError = !validStates.includes(currentJob.status)
+        const isCapturing = transitionalStates.includes(currentJob.status)
+
         let jobDetail = {
             ...currentJob,
+            message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
             progress: (currentJob.step_count / steps) * 100,
             url: `${window.location.hostname}/${currentJob.guid}`
         };
 
-        if (transitionalStates.includes(currentJob.status)) {
+        if (isCapturing) {
             accumulatedJobs.completed = false;
         }
 
-        if (!validStates.includes(jobDetail.status)) {
+        if (includesError) {
             accumulatedJobs.errors += 1;
         }
 
@@ -167,6 +206,12 @@ const handleBatchFormatting = ((captureJobs) => {
 
     return { allJobs, progressSummary }
 })
+
+const { addToast } = useToast();
+
+const toggleToast = (errorMessage) => {
+    addToast(errorMessage, 'error');
+}
 
 watch(batchCaptureId, () => {
     handleBatchDetailsFetch()

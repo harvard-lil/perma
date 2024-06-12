@@ -1,4 +1,5 @@
 import { reactive, toRefs } from "vue";
+import { defaultError } from './errors'
 
 export const useFetch = async (baseUrl, options) => {
   const state = reactive({
@@ -14,8 +15,7 @@ export const useFetch = async (baseUrl, options) => {
     state.isLoading = true;
 
     try {
-      const response = await fetch(url);
-      
+      const response = await fetch(url); 
       if (!response?.ok) {
         throw new Error(response.statusText) 
       }
@@ -24,7 +24,7 @@ export const useFetch = async (baseUrl, options) => {
 
     } catch (err) {
       state.hasError = true
-      state.errorMessage = err.message
+      state.errorMessage = err?.message.length ? err.message : defaultError
     }
     state.isLoading = false
   }

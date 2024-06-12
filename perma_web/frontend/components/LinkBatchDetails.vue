@@ -29,7 +29,7 @@ const props = defineProps({
           <div class="item-container" :class="{ '_isFailed': !validStates.includes(job.status) }">
             <div class="row">
               <div v-if="!validStates.includes(job.status)" class="link-desc col col-sm-6 col-md-60">
-                <div class="failed_header">{{ job.error_message }}</div>
+                <div class="failed_header">{{ job.message }}</div>
                 <div class="item-title">We're unable to create your Perma Link.</div>
                 <div class="item-date">submitted: {{ job.submitted_url }}</div>
               </div>
