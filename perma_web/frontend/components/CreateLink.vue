@@ -123,9 +123,8 @@ const handleCaptureStatus = async (guid) => {
     try {
         const response = await fetch(`/api/v1/user/capture_jobs/${guid}`)
 
-        if (!response?.ok) {
-            const errorResponse = await response.json()
-            throw { status: response.status, response: errorResponse }
+        if (!response.ok) {
+            throw new Error()
         }
 
         const job = await response.json()
@@ -136,12 +135,10 @@ const handleCaptureStatus = async (guid) => {
             error: job.status === 'failed' ? job.message : ''
         }
 
-    } catch (errorData) {
-        return {
-            step_count: errorData?.step_count ?? 0,
-            status: 'failed',
-            error: errorData?.message ?? ''
-        };
+    } catch (error) {
+        // TODO: Implement maxFailedAttempts logic here
+        console.log(error)
+        return
     }
 }
 
