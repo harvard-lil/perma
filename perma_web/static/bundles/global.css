@@ -12444,10 +12444,6 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   padding-bottom: 1.125rem;
 }
 
-.u-underline {
-  text-decoration: underline;
-}
-
 .c-button {
   cursor: pointer;
 }
