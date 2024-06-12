@@ -10,6 +10,7 @@ import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
+import UploadForm from './UploadForm.vue';
 
 const batchDialogRef = ref('')
 
@@ -180,6 +181,7 @@ onBeforeUnmount(() => {
     <!-- regular link creation -->
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
+            <UploadForm />
             <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
             <p class="create-lede">Enter any URL to preserve it forever.</p>
         </div>
