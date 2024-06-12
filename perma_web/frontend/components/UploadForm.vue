@@ -22,11 +22,15 @@ const handleErrorToggle = () => {
 </script>
 
 <template>
-    <form @submit.prevent>
-        <div v-for="(input, key) in formData" :key="key">
-            {{ formData[key].value }} <!-- Testing only -->
-            <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]" />
+    <div class="modal-content">
+        <div class="modal-body">
+            <form id="archive_upload_form" @submit.prevent>
+                <div v-for="(input, key) in formData" :key="key">
+                    {{ formData[key].value }} <!-- Testing only -->
+                    <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]" />
+                </div>
+                <button @click.prevent="handleErrorToggle">Toggle Error</button>
+            </form>
         </div>
-        <button @click.prevent="handleErrorToggle">Toggle Error</button>
-    </form>
+    </div>
 </template>
