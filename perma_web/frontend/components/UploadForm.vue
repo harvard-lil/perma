@@ -26,9 +26,10 @@ const handleErrorReset = () => {
     <div class="modal-content">
         <div class="modal-body">
             <form id="archive_upload_form" @submit.prevent>
-                <template v-for="(input, key) in formData" :key="key">
+                <template v-for="(_, key) in formData" :key="key">
                     {{ formData[key].value }} <!-- Testing only -->
-                    <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]" />
+                    <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
+                        :id="key" />
                 </template>
                 <button @click.prevent="handleErrorToggle">Toggle Error</button>
                 <button @click.prevent="handleErrorReset">Reset Errors</button>

@@ -1,7 +1,8 @@
 <script setup>
 const model = defineModel()
 const props = defineProps({
-    error: String
+    error: String,
+    id: String
 })
 
 </script>
@@ -10,10 +11,10 @@ const props = defineProps({
     <div class="form-group" :class="{
         'has-error': props.error
     }">
-        <label class=" control-label" :for="model.value">{{ model.name }} <span v-if="model.description"
+        <label class=" control-label" :for="props.id">{{ model.name }} <span v-if="model.description"
                 class="label-instruction">{{
         model.description }}</span></label>
-        <input v-model="model.value" :id="model.name" :name="model.name" type="text" :placeholder="model.placeholder" />
+        <input v-model="model.value" :id="props.id" :name="props.id" type="text" :placeholder="model.placeholder" />
         <span v-if="props.error" class="help-block js-warning">{{ props.error }}</span>
     </div>
 </template>
