@@ -1304,14 +1304,14 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
     Specify "log_to_file" to write the list of enqueued GUIDs to a given path. Appends.
     """
     start = time.time()
-    logger.info(f"Gathering benchmark conversion queryset.")
+    logger.info("Gathering benchmark conversion queryset.")
     guids = get_conversion_queryset(
         source_csv, guid,
         big_warcs, legacy_warcs, old_style_guids,
         batch_guid_prefix, batch_range, batch_size
     )
 
-    logger.info(f"Start launching benchmark conversions.")
+    logger.info("Start launching benchmark conversions.")
     queued = []
     for guid in guids.iterator():
         queued.append(guid)
@@ -1341,14 +1341,14 @@ def collect_conversion_logs(ctx, log_to_file,
     Or, provide a file with the desired GUIDs, one per line.
     """
     start = time.time()
-    logger.info(f"Gathering benchmark conversion queryset.")
+    logger.info("Gathering benchmark conversion queryset.")
     guids = get_conversion_queryset(
         source_csv, guid,
         big_warcs, legacy_warcs, old_style_guids,
         batch_guid_prefix, batch_range, batch_size
     )
 
-    logger.info(f"Start gathering benchmark conversion logs.")
+    logger.info("Start gathering benchmark conversion logs.")
     gathered = []
     with open(log_to_file, mode='w') as csv_file:
         fieldnames = [
