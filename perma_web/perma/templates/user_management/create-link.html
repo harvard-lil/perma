@@ -159,8 +159,11 @@
 
 {% block scripts %}
   {{ block.super }}
-
+  
   <script>
+    // Pass a global waffle object to JS
+    {% wafflejs %}
+
     var contact_url = "{% url 'contact' %}",
         links_remaining = Number({{ links_remaining }}),
         link_creation_allowed = {{ link_creation_allowed | yesno:"true,false" }},
