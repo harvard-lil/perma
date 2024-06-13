@@ -1305,21 +1305,21 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
     """
     start = time.time()
     logger.info(f"Gathering benchmark conversion queryset.")
-    links = get_conversion_queryset(
+    guids = get_conversion_queryset(
         source_csv, guid,
         big_warcs, legacy_warcs, old_style_guids,
         batch_guid_prefix, batch_range, batch_size
     )
 
     logger.info(f"Start launching benchmark conversions.")
-    guids = []
-    for link in links.iterator():
-        guids.append(link)
-        convert_warc_to_wacz.delay(link)
+    queued = []
+    for guid in guids.iterator():
+        queued.append(guid)
+        convert_warc_to_wacz.delay(guid)
 
-    logger.info(f"Done launching benchmark conversions ({len(guids)} in {time.time() - start}s).")
+    logger.info(f"Done launching benchmark conversions ({len(queued)} in {time.time() - start}s).")
     if log_to_file:
         with open(log_to_file, mode='a') as file:
-            for guid in guids:
+            for guid in queued:
                 file.write(f"{guid}\n")
 
