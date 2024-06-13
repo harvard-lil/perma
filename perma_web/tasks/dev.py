@@ -1303,20 +1303,21 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
 
     Specify "log_to_file" to write the list of enqueued GUIDs to a given path.
     """
-    logger.info(f"Gathering benchmark conversion queryset: {datetime.now()}.")
+    start = time.time()
+    logger.info(f"Gathering benchmark conversion queryset.")
     links = get_conversion_queryset(
         source_csv, guid,
         big_warcs, legacy_warcs, old_style_guids,
         batch_guid_prefix, batch_range, batch_size
     )
 
-    logger.info(f"Start launching benchmark conversions: {datetime.now()}.")
+    logger.info(f"Start launching benchmark conversions.")
     guids = []
     for link in links.iterator():
         guids.append(link)
         convert_warc_to_wacz.delay(link)
 
-    logger.info(f"Done launching benchmark conversions ({len(guids)}): {datetime.now()}.")
+    logger.info(f"Done launching benchmark conversions ({len(guids)} in {time.time() - start}s).")
     if log_to_file:
         with open(log_to_file, mode='a') as file:
             for guid in guids:
