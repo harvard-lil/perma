@@ -1,6 +1,5 @@
 import { globalStore } from '../stores/globalStore'
 import { useFetch } from '../lib/data'
-import { computed } from 'vue'
 
 export const getLinksRemainingStatus = (linksRemaining, isNonpaying) => {
     if (linksRemaining !== Infinity) {
