@@ -64,5 +64,3 @@ export const getSponsoredFolders = async () => {
         globalStore.updateSponsoredFolders(data.value.objects)
     }
 }
-
-export const isStaff = computed(() => { return globalStore.userTypes.includes('staff') })
