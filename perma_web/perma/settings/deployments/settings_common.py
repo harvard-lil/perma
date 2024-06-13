@@ -399,6 +399,10 @@ LOGGING['loggers'] = {
         app_name: {'level': 'INFO'}
         for app_name in ('api', 'perma',)
     },
+    # show info for our invoke tasks
+    'tasks': {
+        'level': 'INFO'
+    }
 }
 LOGGING['formatters'] = {
     **LOGGING['formatters'],
