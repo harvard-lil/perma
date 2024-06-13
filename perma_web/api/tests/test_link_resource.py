@@ -3,7 +3,7 @@ from glob import glob
 import os
 import dateutil.parser
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.files.storage import storages
 from django.urls import reverse
 from django.http import StreamingHttpResponse
 from django.test.utils import override_settings
@@ -124,7 +124,7 @@ class LinkResourceTestMixin():
         self.assertTrue(link.primary_capture.content_type, "Capture is missing a content type.")
 
         # create an index of the warc
-        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+        with storages[settings.WARC_STORAGE].open(link.warc_storage_file(), 'rb') as warc_file:
             index = index_warc_file(warc_file)
 
         # see if the index reports the content is in the warc

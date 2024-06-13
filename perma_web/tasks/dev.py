@@ -20,7 +20,7 @@ import time
 
 
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.files.storage import storages
 from django.db import connections
 from django.db.models import Q, Count
 from django.http import HttpRequest
@@ -424,7 +424,7 @@ def check_s3_hashes(ctx):
         print("Building remote state ...")
         remove_char_count = len(settings.SECONDARY_MEDIA_ROOT)
         with open(remote_cache_path, 'w') as tmp_file:
-            for f in tqdm(default_storage.secondary_storage.bucket.list('generated/warcs/')):
+            for f in tqdm(storages[settings.WARC_STORAGE].secondary_storage.bucket.list('generated/warcs/')):
                 key = f.key[remove_char_count:]
                 val = f.etag[1:-1]
                 tmp_file.write(f"{key}\t{val}\n")
@@ -476,17 +476,17 @@ def check_storage(ctx, start_date=None):
         return
     end_datetime = timezone.now()
 
-    # The abstraction of multiple storages is an artifact of the
-    # transition to S3 for storage; although it's conceivable that we'd
-    # want multiple storages at some point again, there's no need right now
+    # The abstraction of multiple warc storages is an artifact of the
+    # transition to S3 for warc storage; although it's conceivable that we'd
+    # want multiple warc storages at some point again, there's no need right now
     # to diverge from the Django norm. The abstraction remains here as a
     # point of historical interest.
-    storages = {'primary': {'storage': default_storage, 'lookup': {}}}
+    warc_storages = {'primary': {'storage': storages[settings.WARC_STORAGE], 'lookup': {}}}
 
     # only use cache files when all are present: link cache, and one for each storage
     link_cache = '/tmp/perma_link_cache{0}.txt'.format("" if start_date is None else start_date)
     caches = [link_cache]
-    for key in storages:
+    for key in warc_storages:
         caches.append('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date))
 
     if not all(os.path.exists(p) for p in caches):
@@ -509,9 +509,9 @@ def check_storage(ctx, start_date=None):
                     # by chopping off the prefix, whether storage.location, ._root_path, or .base_location
                 start_month += relativedelta(months=1)
 
-        print("Building storage cache{0} ...".format("s" if len(storages) > 1 else ""))
-        for key in storages:
-            storage = storages[key]['storage']
+        print("Building storage cache{0} ...".format("s" if len(warc_storages) > 1 else ""))
+        for key in warc_storages:
+            storage = warc_storages[key]['storage']
             with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date), 'w') as tmp_file:
                 if hasattr(storage, 'bucket'):
                     # S3
@@ -523,7 +523,7 @@ def check_storage(ctx, start_date=None):
                             # knock off the extra quotation marks
                             hash = f.etag[1:-1]
                             tmp_file.write(f"{path}\t{hash}\n")
-                            storages[key]['lookup'][path] = hash
+                            warc_storages[key]['lookup'][path] = hash
                 else:
                     if hasattr(storage, '_root_path'):
                         # SFTP -- no longer in use, but leaving this here to show that different storages may have
@@ -544,14 +544,14 @@ def check_storage(ctx, start_date=None):
                                 # or replace md5hash if necessary
                                 hash = md5hash(full_path, storage)
                                 tmp_file.write(f"{path}\t{hash}\n")
-                                storages[key]['lookup'][path] = hash
+                                warc_storages[key]['lookup'][path] = hash
     else:
         print("Reading storage caches ...")
-        for key in storages:
+        for key in warc_storages:
             with open('/tmp/perma_storage_cache_{0}{1}.txt'.format(key, "" if start_date is None else start_date)) as f:
                 for line in f:
                     path, hash = line[:-1].split("\t")
-                    storages[key]['lookup'][path] = hash
+                    warc_storages[key]['lookup'][path] = hash
 
     # now check ground truth against storage lookup tables
     print("Comparing link cache against storage caches ...")
@@ -559,18 +559,18 @@ def check_storage(ctx, start_date=None):
         for line in f:
             path = line[:-1]
             file_present = True
-            for key in storages:
-                if path not in storages[key]['lookup']:
+            for key in warc_storages:
+                if path not in warc_storages[key]['lookup']:
                     print(f"{path} not in {key}")
                     file_present = False
-            if file_present and len(storages) > 1:
+            if file_present and len(warc_storages) > 1:
                 hashes = []
-                for key in storages:
-                    hashes.append(storages[key]['lookup'][path])
+                for key in warc_storages:
+                    hashes.append(warc_storages[key]['lookup'][path])
                 # this looks funny (and is unnecessary here) but is faster than using set, per
                 # http://stackoverflow.com/a/3844948/4074877
                 if hashes.count(hashes[0]) != len(hashes):
-                    print("Hash mismatch for {0}: {1}".format(path, str(zip(storages.keys(), hashes))))
+                    print("Hash mismatch for {0}: {1}".format(path, str(zip(warc_storages.keys(), hashes))))
 
 
 def md5hash(path, storage):
@@ -1373,7 +1373,7 @@ def collect_conversion_logs(ctx, log_to_file,
             gathered.append(guid)
             try:
                 with (
-                    default_storage.open(Link.objects.get(guid=guid).warc_to_wacz_conversion_log_file())
+                    storages[settings.WACZ_STORAGE].open(Link.objects.get(guid=guid).warc_to_wacz_conversion_log_file())
                 ) as file:
                     writer.writerow(json.loads(file.read()))
             except FileNotFoundError:

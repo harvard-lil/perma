@@ -45,7 +45,7 @@ class CommonViewsTestCase(PermaTestCase):
     def assert_not_500(self, guid):
         # only makes sure the template renders without internal server error.
         # makes no claims about the contents of the iframe
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': guid}})
             self.assertIn(b"<iframe ", response.content)
             return response
@@ -106,7 +106,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertFalse(link.default_to_screenshot_view)
         self.assertTrue(link.capture_job.status == 'completed')
         self.assertTrue(link.captures.count())
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0007'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=image')
             self.assertIn('memento-datetime', response.headers)
@@ -115,7 +115,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_capture_only_archive_default_to_screenshot_view_true(self):
         link = Link.objects.get(guid='N1N0-33DB')
         self.assertTrue(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
             self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
@@ -124,7 +124,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_screenshot_only_archive_default_to_screenshot_view_true(self):
         link = Link.objects.get(guid='ABCD-0008')
         self.assertTrue(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0008'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), '')
 
@@ -132,7 +132,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_capture_only_archive_default_to_screenshot_view_false(self):
         link = Link.objects.get(guid='M1L0-87DB')
         self.assertFalse(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'M1L0-87DB'}}, request_kwargs={'follow': True})
             self.assertEqual(response.request.get('QUERY_STRING'), '')
 
@@ -140,7 +140,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_full_archive_default_to_screenshot_view_false(self):
         link = Link.objects.get(guid='UU32-XY8I')
         self.assertFalse(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'UU32-XY8I'}}, request_kwargs={'follow': True})
             self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), '')
@@ -149,7 +149,7 @@ class CommonViewsTestCase(PermaTestCase):
     def test_full_archive_default_to_screenshot_view_true(self):
         link = Link.objects.get(guid='F1X1-LS24')
         self.assertTrue(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'F1X1-LS24'}}, request_kwargs={'follow': True})
             self.assertTrue(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), '')
@@ -157,14 +157,14 @@ class CommonViewsTestCase(PermaTestCase):
     def test_capture_only_default_to_screenshot_view_true(self):
         link = Link.objects.get(guid='N1N0-33DB')
         self.assertTrue(link.default_to_screenshot_view)
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'N1N0-33DB'}}, request_kwargs={'follow': True})
             self.assertFalse(b'Enhance screenshot playback' in response.content)
             self.assertEqual(response.request.get('QUERY_STRING'), 'type=standard')
 
     # patch default storage so that it returns a sample warc
     def test_dark_archive(self):
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             response = self.get('single_permalink', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}}, require_status_code=403)
             self.assertIn(b"This record is private and cannot be displayed.", response.content)
             self.assertNotIn('memento-datetime', response.headers)
@@ -181,7 +181,7 @@ class CommonViewsTestCase(PermaTestCase):
     # Feature temporarily disabled
     """
     def test_redirect_to_download(self):
-        with patch('perma.models.default_storage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
+        with patch('perma.storage_backends.S3MediaStorage.open', lambda path, mode: open(os.path.join(settings.PROJECT_ROOT, 'perma/tests/assets/new_style_archive/archive.warc.gz'), 'rb')):
             # Give user option to download to view pdf if on mobile
             link = Link.objects.get(pk='7CF8-SS4G')
 

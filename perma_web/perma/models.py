@@ -26,7 +26,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.files.storage import storages
 from django.db import models, transaction
 from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists, OuterRef
 from django.db.models.functions import Now, Upper, TruncDate
@@ -1820,13 +1820,13 @@ class Link(DeletableModel):
     def warc_presigned_url(self):
         # Specify that warcs should have content-type 'application/gzip' so that archives are fetched correctly by the playback service worker.
         # (All warcs from before summer 2022 were uploaded with content-type 'application/octet-stream' and content-encoding 'gzip')
-        return default_storage.url(self.warc_storage_file(), expire=settings.WARC_PRESIGNED_URL_EXPIRES, parameters={
+        return storages[settings.WARC_STORAGE].url(self.warc_storage_file(), expire=settings.WARC_PRESIGNED_URL_EXPIRES, parameters={
                 'ResponseContentType': 'application/x-gzip',
                 'ResponseContentEncoding': ''
         })
 
     def wacz_presigned_url(self):
-        return default_storage.url(self.wacz_storage_file(), expire=settings.WACZ_PRESIGNED_URL_EXPIRES, parameters={
+        return storages[settings.WACZ_STORAGE].url(self.wacz_storage_file(), expire=settings.WACZ_PRESIGNED_URL_EXPIRES, parameters={
             'ResponseContentType': 'application/wacz',
             'ResponseContentEncoding': ''
         })
@@ -1841,7 +1841,7 @@ class Link(DeletableModel):
 
     def has_wacz_version(self):
         wacz = self.wacz_storage_file()
-        return default_storage.exists(wacz)
+        return storages[settings.WACZ_STORAGE].exists(wacz)
 
     def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()
@@ -1932,11 +1932,12 @@ class Link(DeletableModel):
 
     def safe_delete_warc(self):
         old_name = self.warc_storage_file()
-        if default_storage.exists(old_name):
+        storage = storages[settings.WARC_STORAGE]
+        if storage.exists(old_name):
             new_name = old_name.replace('.warc.gz', f'_replaced_{timezone.now().timestamp()}.warc.gz')
-            with default_storage.open(old_name) as old_file:
-                default_storage.store_file(old_file, new_name)
-            default_storage.delete(old_name)
+            with storage.open(old_name) as old_file:
+                storage.store_file(old_file, new_name)
+            storage.delete(old_name)
 
     def accessible_to(self, user):
         return user.can_edit(self)
@@ -1968,10 +1969,10 @@ class Link(DeletableModel):
             successful_metadata = False
 
         if settings.CHECK_WARC_BEFORE_PLAYBACK:
-            # I assert that the presence of a warc in default_storage means a Link
+            # I assert that the presence of a warc in storage means a Link
             # can be played back. If there is a disconnect between our metadata and
-            # the contents of default_storage... something is wrong and needs fixing.
-            has_warc = default_storage.exists(self.warc_storage_file())
+            # the contents of storage... something is wrong and needs fixing.
+            has_warc = storages[settings.WARC_STORAGE].exists(self.warc_storage_file())
             if successful_metadata != has_warc:
                 logger.error(f"Conflicting metadata about {self.guid}: has_warc={has_warc}, successful_metadata={successful_metadata}")
 

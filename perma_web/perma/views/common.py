@@ -14,7 +14,7 @@ from django.http import (HttpResponse, HttpResponseRedirect, HttpResponsePermane
     JsonResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.urls import reverse, NoReverseMatch
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.files.storage import storages
 from django.utils import timezone
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_control
@@ -170,7 +170,7 @@ def single_permalink(request, guid):
         if new_record:
             logger.debug(f"Ensuring warc for {link.guid} has finished uploading.")
             def assert_exists(filename):
-                assert default_storage.exists(filename)
+                assert storages[settings.WARC_STORAGE].exists(filename)
             try:
                 retry_on_exception(assert_exists, args=[link.warc_storage_file()], exception=AssertionError, attempts=settings.WARC_AVAILABLE_RETRIES)
             except AssertionError:
