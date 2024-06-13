@@ -12,12 +12,9 @@
 {% block mainContent %}
 
  <!-- vue app -->
- {% if request.user.is_staff %}
-  {% flag "vue-dashboard" %}
-    <div id="vue-app"></div>
-  {% endflag %}
-{% endif %}
-
+{% flag "vue-dashboard" %}
+  <div id="vue-app"></div>
+{% else %}
   <!-- regular link creation -->
   <div id="create-item-container" class="container cont-full-bleed">
     <div class="container cont-fixed">
@@ -105,7 +102,7 @@
   <div id="error-container" class="_hide"></div>
 </div>
 <!-- / our container for error messages -->
-
+{% endflag %}
 
 <!-- Your Perma Links -->
 {% if messages %}
@@ -180,11 +177,9 @@
   </script>
 
   {% render_bundle 'create' 'js' %}
-  {% if request.user.is_staff %}
-    {% flag "vue-dashboard" %}
-      {% render_bundle 'dashboard' 'js' %}
-    {% endflag %}
-  {% endif %}
+  {% flag "vue-dashboard" %}
+    {% render_bundle 'dashboard' 'js' %}
+  {% endflag %}
 
 {% endblock %}
 
