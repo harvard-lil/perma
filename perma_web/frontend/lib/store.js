@@ -1,5 +1,6 @@
 import { globalStore } from '../stores/globalStore'
 import { useFetch } from '../lib/data'
+import { computed } from 'vue'
 
 export const getLinksRemainingStatus = (linksRemaining, isNonpaying) => {
     if (linksRemaining !== Infinity) {
@@ -63,3 +64,5 @@ export const getSponsoredFolders = async () => {
         globalStore.updateSponsoredFolders(data.value.objects)
     }
 }
+
+export const isStaff = computed(() => { return globalStore.userTypes.includes('staff') })
