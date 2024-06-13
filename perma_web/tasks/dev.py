@@ -1301,7 +1301,7 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
     Specify "batch_range" or "batch_size" to slice the queryset.
     Or, provide a file with the desired GUIDs, one per line.
 
-    Specify "log_to_file" to write the list of enqueued GUIDs to a given path.
+    Specify "log_to_file" to write the list of enqueued GUIDs to a given path. Appends.
     """
     start = time.time()
     logger.info(f"Gathering benchmark conversion queryset.")
