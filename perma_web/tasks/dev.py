@@ -1323,3 +1323,61 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
             for guid in queued:
                 file.write(f"{guid}\n")
 
+
+@task
+def collect_conversion_logs(ctx, log_to_file,
+                            source_csv=None, guid=None,
+                            big_warcs=False, legacy_warcs=False, old_style_guids=False,
+                            batch_guid_prefix=None, batch_range=None, batch_size=None):
+    """
+    Gathers the logged results of convert_warc_to_wacz() for a set of Perma Links.
+    Specify the desired file path and name in "log_to_file". Overwrites.
+
+    Specify "big_warcs" to restrict queryset to Links with large filesize.
+    Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
+    Specify "old_style_guids" to restrict the queryset to Links with 11-character GUIDs.
+    Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
+    Specify "batch_range" or "batch_size" to slice the queryset.
+    Or, provide a file with the desired GUIDs, one per line.
+    """
+    start = time.time()
+    logger.info(f"Gathering benchmark conversion queryset.")
+    guids = get_conversion_queryset(
+        source_csv, guid,
+        big_warcs, legacy_warcs, old_style_guids,
+        batch_guid_prefix, batch_range, batch_size
+    )
+
+    logger.info(f"Start gathering benchmark conversion logs.")
+    gathered = []
+    with open(log_to_file, mode='w') as csv_file:
+        fieldnames = [
+            'guid',
+            'conversion_status',
+            'warc_size',
+            'warc_size_formatted',
+            'wacz_size',
+            'wacz_size_formatted',
+            'warc_checksums_match',
+            'total_duration_formatted',
+            'total_duration',
+            'warc_save_duration',
+            'pages_write_duration',
+            'conversion_duration',
+            'hash_check_duration',
+            'error'
+        ]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for guid in guids.iterator():
+            gathered.append(guid)
+            try:
+                with (
+                    default_storage.open(Link.objects.get(guid=guid).warc_to_wacz_conversion_log_file())
+                ) as file:
+                    writer.writerow(json.loads(file.read()))
+            except FileNotFoundError:
+                writer.writerow({"guid": guid, "conversion_status": "Unknown"})
+
+    logger.info(f"Done gathering benchmark conversion logs ({len(gathered)} in {time.time() - start}s).")
+
