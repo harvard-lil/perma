@@ -1216,74 +1216,59 @@ def email_retained_users(ctx, reports_dir='.'):
 
 # WACZ CONVERSION
 
-def save_warc_for_conversion(warc, warcs_dir, file_name):
-    """
-    Gets the file path
-    Get the associated file's contents from storage
-    Saves the file
-    """
-    file_path = os.path.join(f"{warcs_dir}", warc)
-    contents = default_storage.open(file_name).read()
-    with open(file_path, 'wb') as new_f:
-        new_f.write(contents)
+def get_conversion_queryset(source_csv, guid,
+                            big_warcs, legacy_warcs, old_style_guids,
+                            batch_guid_prefix, batch_range, batch_size):
 
-
-@task
-def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
-                              big_warcs=False, legacy_warcs=False, old_style_guids=False,
-                              batch_guid_prefix=None, batch_range=None, batch_size=None):
-    """
-    Invokes convert_warc_to_wacz() for a set of Perma Links.
-    Specify "big_warcs" to restrict queryset to Links with large filesize.
-    Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
-    Specify "old_style_guids" to restrict the queryset to Links with 11-character GUIDs.
-    Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
-    Specify "batch_range" or "batch_size" to slice the queryset.
-    Or, provide a file with the desired GUIDs, one per line.
-    """
     if source_csv and (guid or big_warcs or batch_guid_prefix or batch_range or batch_size):
         raise ValueError("If source CSV is specified, no other options may be configured.")
 
     if batch_range and batch_size:
         raise ValueError("Cannot specify both a batch range and a batch size.")
 
-    # Adding this here in case we want to compare it against the CSV file's last updated ts
-    # for a rough estimate of how long all jobs took to be processed by celery
-    logger.info(f"Benchmark CSV was created at: {datetime.now()}")
-
-    base_links_query = Link.objects.filter(
-            is_private=False,
-            is_unlisted=False,
-            cached_can_play_back=True
+    links = Link.objects.filter(
+        is_private=False,
+        is_unlisted=False,
+        cached_can_play_back=True
     ).values_list('guid', flat=True)
 
-    links = Link.objects.none()
+    #
+    # Restrict to desired queryset
+    #
 
     if source_csv:
-        sample_data_guids = os.path.abspath(source_csv)
-        with open(sample_data_guids, mode='r') as file:
+        guids = []
+        with open(source_csv, mode='r') as file:
             csv_file = csv.reader(file)
             for line in csv_file:
-                convert_warc_to_wacz.delay(line[0])
-        return
-    if guid:
-        convert_warc_to_wacz.delay(guid)
-        return
+                guids.append(line[0])
+        links = links.filter(guid__in=guids).order_by('guid')
 
-    if big_warcs:
-        links = base_links_query.order_by('-warc_size')
+    elif guid:
+        links = links.filter(guid=guid)
+
+    elif big_warcs:
+        links = links.order_by('-warc_size')
+
     elif legacy_warcs:
         # Prior to 5/1/2014 we have a mix of wget, instapaper, and warcprox captures
         # https://github.com/harvard-lil/perma/blob/develop/errata.md
-        links = base_links_query.filter(creation_timestamp__lt=datetime(2014,5,1, tzinfo=timezone.utc))
+        links = links.filter(creation_timestamp__lt=datetime(2014,5,1, tzinfo=timezone.utc)).order_by('creation_timestamp')
+
     elif old_style_guids:
         # On 11/22/2013 we switched from 11-character IDs to ABCD-1234 IDs.
         # https://github.com/harvard-lil/perma/blob/develop/errata.md
-        links = base_links_query.filter(creation_timestamp__lt=datetime(2013,11,22, tzinfo=timezone.utc))
+        links = links.filter(creation_timestamp__lt=datetime(2013,11,22, tzinfo=timezone.utc)).order_by('creation_timestamp')
+
     elif batch_guid_prefix:
-        links = base_links_query.filter(guid__startswith=batch_guid_prefix).order_by('guid')
+        links = links.filter(guid__startswith=batch_guid_prefix).order_by('guid')
+
     else:
-        links = base_links_query.order_by('guid')
+        links = links.order_by('guid')
+
+    #
+    # Restrict to desired range or batch size
+    #
 
     if batch_range:
         batch_range_start, batch_range_end = batch_range.split(':')
@@ -1294,8 +1279,46 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
             raise ValueError("Starting index must be smaller than ending index.")
 
         links = links[batch_range_start:batch_range_end]
+
     elif batch_size:
         links = links[:int(batch_size)]
 
+    return links
+
+
+@task
+def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
+                              big_warcs=False, legacy_warcs=False, old_style_guids=False,
+                              batch_guid_prefix=None, batch_range=None, batch_size=None,
+                              log_to_file=None):
+    """
+    Invokes convert_warc_to_wacz() for a set of Perma Links.
+
+    Specify "big_warcs" to restrict queryset to Links with large filesize.
+    Specify "legacy_warcs" to restrict the queryset to Links that were originally produced with wget.
+    Specify "old_style_guids" to restrict the queryset to Links with 11-character GUIDs.
+    Specify "batch_guid_prefix" to restrict queryset to Links whose GUIDs begin with a string.
+    Specify "batch_range" or "batch_size" to slice the queryset.
+    Or, provide a file with the desired GUIDs, one per line.
+
+    Specify "log_to_file" to write the list of enqueued GUIDs to a given path.
+    """
+    logger.info(f"Gathering benchmark conversion queryset: {datetime.now()}.")
+    links = get_conversion_queryset(
+        source_csv, guid,
+        big_warcs, legacy_warcs, old_style_guids,
+        batch_guid_prefix, batch_range, batch_size
+    )
+
+    logger.info(f"Start launching benchmark conversions: {datetime.now()}.")
+    guids = []
     for link in links.iterator():
+        guids.append(link)
         convert_warc_to_wacz.delay(link)
+
+    logger.info(f"Done launching benchmark conversions ({len(guids)}): {datetime.now()}.")
+    if log_to_file:
+        with open(log_to_file, mode='a') as file:
+            for guid in guids:
+                file.write(f"{guid}\n")
+
