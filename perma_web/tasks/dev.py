@@ -1227,6 +1227,13 @@ def get_conversion_queryset(source_csv, guid,
     ):
         raise ValueError("If source CSV is specified, no other options may be configured.")
 
+    if guid and (
+        source_csv or
+        big_warcs or legacy_warcs or old_style_guids or user_uploads or
+        batch_guid_prefix or batch_range or batch_size
+    ):
+        raise ValueError("If GUID is specified, no other options may be configured.")
+
     if sum([big_warcs, legacy_warcs, old_style_guids, user_uploads]) > 1:
         raise ValueError("Only one of big_warcs, legacy_warcs, old_style_guids, or user_uploads may be specified.")
 
