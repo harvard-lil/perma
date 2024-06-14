@@ -22,7 +22,7 @@ from zipfile import ZipFile
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-from django.core.files.storage import default_storage, storages
+from django.core.files.storage import storages
 from django.core.mail import mail_admins
 from django.db.models import F
 from django.db.models.functions import Greatest, Now
@@ -92,7 +92,7 @@ def inc_progress(capture_job, inc, description):
 
 ### CAPTURE COMPLETION ###
 
-def save_scoop_capture(link, capture_job, data, storage='default'):
+def save_scoop_capture(link, capture_job, data):
 
     inc_progress(capture_job, 1, "Saving metadata")
 
@@ -198,7 +198,7 @@ def save_scoop_capture(link, capture_job, data, storage='default'):
         tmp_file.seek(0)
 
         inc_progress(capture_job, 1, "Saving web archive file")
-        storages[storage].store_file(tmp_file, link.warc_storage_file(), overwrite=True)
+        storages[settings.WARC_STORAGE].store_file(tmp_file, link.warc_storage_file(), overwrite=True)
 
     capture_job.mark_completed()
 
@@ -463,7 +463,7 @@ def populate_warc_size(link_guid):
     old links also often lack this metadata.
     """
     link = Link.objects.get(guid=link_guid)
-    link.warc_size = default_storage.size(link.warc_storage_file())
+    link.warc_size = storages[settings.WARC_STORAGE].size(link.warc_storage_file())
     link.save(update_fields=['warc_size'])
 
 
@@ -632,7 +632,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             # copy warc to local disk storage for upload.
             # (potentially not necessary, but we think more robust against network conditions
             # https://github.com/harvard-lil/perma/commit/25eb14ce634675ffe67d0f14f51308f1202b53ea)
-            with default_storage.open(link.warc_storage_file()) as warc_file:
+            with storages[settings.WARC_STORAGE].open(link.warc_storage_file()) as warc_file:
                 logger.info(f"Downloading {link.warc_storage_file()} from S3.")
                 copy_file_data(warc_file, temp_warc_file)
                 temp_warc_file.seek(0)
@@ -1315,7 +1315,7 @@ def convert_warc_to_wacz(input_guid):
     # save a local copy of the warc file
     warc_save_start_time = time.time()
     with open(warc_path, "wb") as file:
-        copy_file_data(default_storage.open(link.warc_storage_file()), file)
+        copy_file_data(storages[settings.WARC_STORAGE].open(link.warc_storage_file()), file)
     warc_save_duration = time.time() - warc_save_start_time
 
     # prepare our custom pages.jsonl file
@@ -1356,8 +1356,8 @@ def convert_warc_to_wacz(input_guid):
     if wacz_size:
 
         # retrieve S3's md5 hash of file it has
-        remote_hash = default_storage.connection.Object(
-            bucket_name=default_storage.bucket_name,
+        remote_hash = storages[settings.WARC_STORAGE].connection.Object(
+            bucket_name=storages[settings.WARC_STORAGE].bucket_name,
             key=os.path.join(settings.MEDIA_ROOT, link.warc_storage_file())
         ).e_tag.strip('"')
 
@@ -1419,6 +1419,6 @@ def convert_warc_to_wacz(input_guid):
             data["conversion_status"] = "Success"
 
         with open(wacz_path, 'rb') as wacz_file:
-            default_storage.save(link.wacz_storage_file(), wacz_file)
+            storages[settings.WACZ_STORAGE].save(link.wacz_storage_file(), wacz_file)
 
-    default_storage.save(link.warc_to_wacz_conversion_log_file(), StringIO(json.dumps(data)))
+    storages[settings.WACZ_STORAGE].save(link.warc_to_wacz_conversion_log_file(), StringIO(json.dumps(data)))

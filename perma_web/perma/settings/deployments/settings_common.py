@@ -84,8 +84,10 @@ WEBPACK_LOADER = {
 # user-generated files / default_storage config
 MEDIA_URL = '/this-setting-is-not-in-use-in-any-deployments/'
 MEDIA_ROOT ='generated/'
+WARC_STORAGE = 'default'
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 WARC_PRESIGNED_URL_EXPIRES = 15 * 60
+WACZ_STORAGE = 'secondary'
 WACZ_STORAGE_DIR = 'waczs'
 WACZ_PRESIGNED_URL_EXPIRES = 15 * 60
 

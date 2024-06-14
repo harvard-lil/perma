@@ -30,7 +30,7 @@ from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
+from django.core.files.storage import storages
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
@@ -458,7 +458,7 @@ def preserve_perma_warc(guid, timestamp, destination, warc_size):
         out.flush()
         warc_size.append(out.tell())
         out.seek(0)
-        default_storage.store_file(out, destination, overwrite=True)
+        storages[settings.WARC_STORAGE].store_file(out, destination, overwrite=True)
         out.close()
 
 def write_perma_warc_header(out_file, guid, timestamp):
@@ -546,7 +546,7 @@ def get_warc_stream(link, stream=True):
         }]
     )
 
-    warc_stream = FileWrapper(default_storage.open(link.warc_storage_file()))
+    warc_stream = FileWrapper(storages[settings.WARC_STORAGE].open(link.warc_storage_file()))
     warc_stream = itertools.chain([warcinfo], warc_stream)
     if stream:
         response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
