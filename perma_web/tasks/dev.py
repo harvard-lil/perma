@@ -1217,11 +1217,25 @@ def email_retained_users(ctx, reports_dir='.'):
 # WACZ CONVERSION
 
 def get_conversion_queryset(source_csv, guid,
-                            big_warcs, legacy_warcs, old_style_guids,
+                            big_warcs, legacy_warcs, old_style_guids, user_uploads,
                             batch_guid_prefix, batch_range, batch_size):
 
-    if source_csv and (guid or big_warcs or batch_guid_prefix or batch_range or batch_size):
+    if source_csv and (
+        guid or
+        big_warcs or legacy_warcs or old_style_guids or user_uploads or
+        batch_guid_prefix or batch_range or batch_size
+    ):
         raise ValueError("If source CSV is specified, no other options may be configured.")
+
+    if guid and (
+        source_csv or
+        big_warcs or legacy_warcs or old_style_guids or user_uploads or
+        batch_guid_prefix or batch_range or batch_size
+    ):
+        raise ValueError("If GUID is specified, no other options may be configured.")
+
+    if sum([big_warcs, legacy_warcs, old_style_guids, user_uploads]) > 1:
+        raise ValueError("Only one of big_warcs, legacy_warcs, old_style_guids, or user_uploads may be specified.")
 
     if batch_range and batch_size:
         raise ValueError("Cannot specify both a batch range and a batch size.")
@@ -1263,6 +1277,9 @@ def get_conversion_queryset(source_csv, guid,
     elif batch_guid_prefix:
         links = links.filter(guid__startswith=batch_guid_prefix).order_by('guid')
 
+    elif user_uploads:
+        links = links.filter(captures__user_upload=True).order_by('guid')
+
     else:
         links = links.order_by('guid')
 
@@ -1288,7 +1305,7 @@ def get_conversion_queryset(source_csv, guid,
 
 @task
 def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
-                              big_warcs=False, legacy_warcs=False, old_style_guids=False,
+                              big_warcs=False, legacy_warcs=False, old_style_guids=False, user_uploads=False,
                               batch_guid_prefix=None, batch_range=None, batch_size=None,
                               log_to_file=None):
     """
@@ -1307,7 +1324,7 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
     logger.info("Gathering benchmark conversion queryset.")
     guids = get_conversion_queryset(
         source_csv, guid,
-        big_warcs, legacy_warcs, old_style_guids,
+        big_warcs, legacy_warcs, old_style_guids, user_uploads,
         batch_guid_prefix, batch_range, batch_size
     )
 
@@ -1327,7 +1344,7 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
 @task
 def collect_conversion_logs(ctx, log_to_file,
                             source_csv=None, guid=None,
-                            big_warcs=False, legacy_warcs=False, old_style_guids=False,
+                            big_warcs=False, legacy_warcs=False, old_style_guids=False, user_uploads=False,
                             batch_guid_prefix=None, batch_range=None, batch_size=None):
     """
     Gathers the logged results of convert_warc_to_wacz() for a set of Perma Links.
@@ -1344,7 +1361,7 @@ def collect_conversion_logs(ctx, log_to_file,
     logger.info("Gathering benchmark conversion queryset.")
     guids = get_conversion_queryset(
         source_csv, guid,
-        big_warcs, legacy_warcs, old_style_guids,
+        big_warcs, legacy_warcs, old_style_guids, user_uploads,
         batch_guid_prefix, batch_range, batch_size
     )
 
