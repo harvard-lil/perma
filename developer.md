@@ -219,14 +219,14 @@ In templates, use the `{% static %}` tag and MEDIA_URL:
 Using the `{% static %}` tag instead of `{{ STATIC_URL }}` ensures that cache-busting and
 pre-compressed versions of the files will be served on production.
 
-In code, use Django's default_storage to read and write user-generated files rather than accessing the filesystem directly:
+In code, use Django's `storage` to read and write user-generated files rather than accessing the filesystem directly:
 
-    from django.core.files.storage import default_storage
+    from django.core.files.storage import storages
 
-    with default_storage.open('some/path', 'rb') as image_file:
+    with storages['default'].open('some/path', 'rb') as image_file:
         do_stuff_with_image_file(image_file)
 
-Paths for default_storage are relative to MEDIA_ROOT.
+Paths for default storage are relative to MEDIA_ROOT.
 
 Further reading:
 
