@@ -1270,6 +1270,9 @@ def get_conversion_queryset(source_csv, guid,
     elif batch_guid_prefix:
         links = links.filter(guid__startswith=batch_guid_prefix).order_by('guid')
 
+    elif user_uploads:
+        links = links.filter(captures__user_upload=True).order_by('guid')
+
     else:
         links = links.order_by('guid')
 
