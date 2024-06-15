@@ -142,6 +142,7 @@ volumes:
   postgres_data:
   redis_data:
   pp_db_data:
+  scoop_redis_data:
   scoop_db_data:
   scoop_access_key:
   minio_data:
