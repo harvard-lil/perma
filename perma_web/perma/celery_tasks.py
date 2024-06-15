@@ -1379,7 +1379,8 @@ def convert_warc_to_wacz(input_guid):
         # and if it doesn't, come up with a better strategy
         MB = 2 ** 20
         blocksize = 16 * MB
-        if '-' in remote_hash:
+        multipart_format = '-' in remote_hash
+        if multipart_format:
             parts = int(remote_hash.split('-')[-1])
             if 8 * MB * parts >= warc_size:
                 blocksize = 8 * MB
@@ -1389,7 +1390,7 @@ def convert_warc_to_wacz(input_guid):
             ZipFile(wacz_path) as zip_file,
             zip_file.open(f"archive/{link.guid}.warc.gz") as embedded_warc
         ):
-            wacz_hash = calculate_s3_etag(embedded_warc, blocksize)
+            wacz_hash = calculate_s3_etag(embedded_warc, blocksize, multipart_format)
 
         # see if they match
         warc_checksums_match =  wacz_hash == remote_hash

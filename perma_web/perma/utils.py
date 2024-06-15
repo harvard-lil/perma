@@ -570,27 +570,26 @@ def stream_warc_if_permissible(link, user, stream=True):
     return HttpResponseForbidden('Private archive.')
 
 
-def calculate_s3_etag(fp, chunk_size):
+def calculate_s3_etag(fp, chunk_size, multipart_format=False):
     """
     Adapted from https://stackoverflow.com/a/43819225
     """
     md5s = []
+    full_hash =  hashlib.md5()
 
     while True:
         data = fp.read(chunk_size)
         if not data:
             break
         md5s.append(hashlib.md5(data))
+        full_hash.update(data)
 
-    if len(md5s) < 1:
-        return '{}'.format(hashlib.md5().hexdigest())
+    if multipart_format:
+        digests = b''.join(m.digest() for m in md5s)
+        digests_md5 = hashlib.md5(digests)
+        return '{}-{}'.format(digests_md5.hexdigest(), len(md5s))
 
-    if len(md5s) == 1:
-        return '{}'.format(md5s[0].hexdigest())
-
-    digests = b''.join(m.digest() for m in md5s)
-    digests_md5 = hashlib.md5(digests)
-    return '{}-{}'.format(digests_md5.hexdigest(), len(md5s))
+    return full_hash.hexdigest()
 
 #
 # Internet Archive
