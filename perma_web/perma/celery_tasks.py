@@ -37,7 +37,7 @@ from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
-    copy_file_data, date_range, send_to_scoop)
+    copy_file_data, date_range, send_to_scoop, calculate_s3_etag)
 
 import logging
 logger = logging.getLogger('celery.django')
@@ -1355,28 +1355,45 @@ def convert_warc_to_wacz(input_guid):
     hash_check_start_time = time.time()
     if wacz_size:
 
-        # retrieve S3's md5 hash of file it has
+        # retrieve S3's md5-hash-like "etag" of file it has
         remote_hash = storages[settings.WARC_STORAGE].connection.Object(
             bucket_name=storages[settings.WARC_STORAGE].bucket_name,
             key=os.path.join(settings.MEDIA_ROOT, link.warc_storage_file())
         ).e_tag.strip('"')
 
-        # calculate the same thing for the warc inside the wacz
-        # use a blocksize of 1MB because... it's LIL tradition
-        blocksize = 2 ** 20
-        m = hashlib.md5()
+        # set a block size for hashing the warc inside the wacz
+        #
+        # this can be anything, for warcs uploaded to S3 in one piece.
+        #
+        # for warcs saved using S3's "multipart" upload, behind the scenes,
+        # this must match the block size used during upload
+        # https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html
+        #
+        # we don't know what block size was used, so we are guessing:
+        # locally with minio, it's 16 MB;
+        # S3 docs say the management console uses 16 MB: https://docs.aws.amazon.com/AmazonS3/latest/API/API_Object.html
+        # boto3 docs and source state the default is 8 MB: https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html#TransferConfig
+        # stackoverflow suggests 16 MB is common
+        #
+        # let's see if this covers the reality of our collection,
+        # and if it doesn't, come up with a better strategy
+        MB = 2 ** 20
+        blocksize = 16 * MB
+        if '-' in remote_hash:
+            parts = int(remote_hash.split('-')[-1])
+            if 8 * MB * parts >= warc_size:
+                blocksize = 8 * MB
+
+        # calculate the etag for the warc inside the wacz
         with (
             ZipFile(wacz_path) as zip_file,
             zip_file.open(f"archive/{link.guid}.warc.gz") as embedded_warc
         ):
-            while True:
-                buf = embedded_warc.read(blocksize)
-                if not buf:
-                    break
-                m.update(buf)
+            wacz_hash = calculate_s3_etag(embedded_warc, blocksize)
 
         # see if they match
-        warc_checksums_match =  m.hexdigest() == remote_hash
+        warc_checksums_match =  wacz_hash == remote_hash
+
     else:
         warc_checksums_match = None
     hash_check_duration = time.time() - hash_check_start_time
@@ -1414,7 +1431,7 @@ def convert_warc_to_wacz(input_guid):
             data["error"] = "WACZ is smaller than WARC"
         elif not warc_checksums_match:
             data["conversion_status"] = "Failure"
-            data["error"] = "The WARC embedded in the WACZ differs from the source WARC"
+            data["error"] = f"The WARC embedded in the WACZ differs from the source WARC. Remote hash: {remote_hash}. WACZ hash: {wacz_hash}"
         else:
             data["conversion_status"] = "Success"
 
