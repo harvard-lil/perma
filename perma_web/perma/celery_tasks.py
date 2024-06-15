@@ -1,4 +1,3 @@
-import hashlib
 from io import StringIO
 import itertools
 import json
