@@ -217,6 +217,7 @@ def stats(request, stat_type=None):
             'total_background_queue': r.llen('background'),
             'total_ia_queue': r.llen('ia'),
             'total_ia_readonly_queue': r.llen('ia-readonly'),
+            'total_wacz_conversion_queue': r.llen('wacz-conversion')
         }
 
     elif stat_type == "job_queue":
