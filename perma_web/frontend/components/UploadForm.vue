@@ -14,7 +14,11 @@ const errors = ref({})
 
 // Debug only
 const handleErrorToggle = () => {
-    errors.value.url = "URL cannot be empty."
+    const mockedErrors = {
+        url: "URL cannot be empty.",
+        file: "File is too large."
+    }
+    errors.value = mockedErrors
 }
 
 const handleErrorReset = () => {
