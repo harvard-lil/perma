@@ -1,12 +1,16 @@
-# This is the default config.py from the Scoop REST API as of 1/2/2024
-# https://github.com/harvard-lil/perma-scoop-api/blob/86b757b15c1c91e0c5a99a74bf82dcedde9d780f/scoop_rest_api/config.py
-# We only use it to override the blocklist, to allow the capturing of docker-hosted pages in our test suite.
+# This is the default config.py from the Scoop REST API as of 6/3/2024
+# https://github.com/harvard-lil/perma-scoop-api/blob/a7872d93473efec02c2137a86dc8b4874fdf4e31/scoop_rest_api/config.py
+# We use it to:
+# - override the blocklist, to allow the capturing of docker-hosted pages in our test suite;
+# - adapt Celery settings so Scoop's celery can run side-by-side with Perma's
 
 """
 `config` module: App-wide settings.
 """
-from dotenv import load_dotenv
+
 import os
+
+from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
 load_dotenv()
@@ -168,7 +172,7 @@ SCOOP_CLI_OPTIONS = {
     "--run-site-specific-behaviors": "true",
     "--headless": "false",  # Note: `xvfb-run --auto-servernum --` prefix may be needed if false.
     # "--user-agent-suffix": "",
-    "--blocklist": f"/https?:\/\/localhost/,{','.join(BANNED_IP_RANGES)}",  # noqa
+    "--blocklist": rf"/https?:\/\/localhost/,{','.join(BANNED_IP_RANGES)}",
     "--public-ip-resolver-endpoint": "https://icanhazip.com",
 }
 """
@@ -187,12 +191,30 @@ SCOOP_TIMEOUT_FUSE = 35
 # Validation settings
 #
 with sync_playwright() as playwright:
-    VALIDATION_USER_AGENT = playwright.devices['Desktop Chrome']['user_agent']
+    VALIDATION_USER_AGENT = playwright.devices["Desktop Chrome"]["user_agent"]
 
 VALIDATION_EXTRA_HEADERS = {
     "Accept": "*/*",
     "Accept-Encoding": "*",
     "Accept-Language": "*",
-    "Connection": "keep-alive"
+    "Connection": "keep-alive",
 }
 VALIDATION_TIMEOUT = 45
+
+
+#
+# Celery settings
+#
+START_CELERY = True if os.getenv("START_CELERY") == "true" else False
+CELERY_SETTINGS = {
+    "broker_url": "redis://scoop-redis:6379/0",
+    "accept_content": ["json"],
+    "result_serializer": "json",
+    "task_serializer": "json",
+    # If a task is running longer than five minutes, ask it to shut down
+    "task_soft_time_limit": 300,
+    # If a task is running longer than seven minutes, kill it
+    "task_time_limit": 420,
+    "task_always_eager": False,
+}
+CELERY_IS_ACTIVE = (START_CELERY is True) or (CELERY_SETTINGS.get("task_always_eager") is True)

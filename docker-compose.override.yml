@@ -33,6 +33,13 @@ services:
   #
   # Scoop REST API
   #
+  scoop-redis:
+    image: registry.lil.tools/library/redis:7.0
+    volumes:
+      - scoop_redis_data:/data:delegated
+    networks:
+      - scoop_rest_api_internal
+
   scoop-db:
     image: registry.lil.tools/library/mariadb:10.6.14
     environment:
@@ -47,7 +54,7 @@ services:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:79-daab7863d5246274eb76880d6c208789
+    image: registry.lil.tools/harvardlil/scoop-rest-api:81-c11919ce3d91995f03cdfdb98aa0d1f6
     init: true
     tty: true
     depends_on:
@@ -64,6 +71,7 @@ services:
       - START_CRON=true                   # false|true
       - START_FLASK_SERVER=true           # false|true
       - START_CAPTURE_PROCESSES=parallel  # none|single|parallel
+      - START_CELERY=false                # false|true
       - DISPLAY=:99                       # Run Xvfb with the below virtual display number
       - CREATE_ACCESS_KEY_WITH_LABEL=dev  # create a new access key each time the container starts
     volumes:
