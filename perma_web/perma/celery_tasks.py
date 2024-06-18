@@ -177,27 +177,56 @@ def save_scoop_capture(link, capture_job, data):
     #
     # WARC
     #
-    # mode set to 'ab+' as a workaround for https://bugs.python.org/issue25341
-    with tempfile.TemporaryFile('ab+') as tmp_file:
+    if settings.WARC_SAVING_ENABLED is True:
+        # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
+        with tempfile.TemporaryFile('ab+') as tmp_file:
+            inc_progress(capture_job, 1, "Downloading web archive file (WARC)")
+            response, _ = send_to_scoop(
+                method="get",
+                path=f"artifact/{data['id_capture']}/archive.warc.gz",
+                valid_if=lambda code, _: code == 200,
+                stream=True
+            )
+            # Use the raw response, because Python requests standard methods gunzip the file
+            for chunk in response.raw.stream(10*1024, decode_content=False):
+                if chunk:
+                    tmp_file.write(chunk)
+            tmp_file.flush()
+            link.warc_size = tmp_file.tell()
+            link.save(update_fields=['warc_size'])
+            tmp_file.seek(0)
 
-        inc_progress(capture_job, 1, "Downloading web archive file")
-        response, _ = send_to_scoop(
-            method="get",
-            path=f"artifact/{data['id_capture']}/archive.warc.gz",
-            valid_if=lambda code, _: code == 200,
-            stream=True
-        )
-        # Use the raw response, because Python requests standard methods gunzip the file
-        for chunk in response.raw.stream(10*1024, decode_content=False):
-            if chunk:
-                tmp_file.write(chunk)
-        tmp_file.flush()
-        link.warc_size = tmp_file.tell()
-        link.save(update_fields=['warc_size'])
-        tmp_file.seek(0)
+            inc_progress(capture_job, 1, "Saving web archive file (WARC)")
+            storages[settings.WARC_STORAGE].store_file(
+                tmp_file, link.warc_storage_file(), overwrite=True
+            )
 
-        inc_progress(capture_job, 1, "Saving web archive file")
-        storages[settings.WARC_STORAGE].store_file(tmp_file, link.warc_storage_file(), overwrite=True)
+    #
+    # WACZ
+    #
+    if settings.WACZ_SAVING_ENABLED is True:
+        # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
+        with tempfile.TemporaryFile('ab+') as tmp_file:
+            inc_progress(capture_job, 1, "Downloading web archive file (WACZ)")
+            response, _ = send_to_scoop(
+                method="get",
+                path=f"artifact/{data['id_capture']}/archive.wacz",
+                valid_if=lambda code, _: code == 200,
+                stream=True
+            )
+            # Use the raw response, because Python requests standard methods gunzip the file
+            for chunk in response.raw.stream(10 * 1024, decode_content=False):
+                if chunk:
+                    tmp_file.write(chunk)
+            tmp_file.flush()
+            link.wacz_size = tmp_file.tell()
+            link.save(update_fields=['wacz_size'])
+            tmp_file.seek(0)
+
+            inc_progress(capture_job, 1, "Saving web archive file (WACZ)")
+            storages[settings.WACZ_STORAGE].store_file(
+                tmp_file, link.wacz_storage_file(), overwrite=True
+            )
 
     capture_job.mark_completed()
 

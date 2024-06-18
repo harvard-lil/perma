@@ -1619,6 +1619,7 @@ class Link(DeletableModel):
     captured_by_software = models.CharField(max_length=255, default='perma', db_index=True)
     captured_by_browser = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     warc_size = models.IntegerField(blank=True, null=True)
+    wacz_size = models.IntegerField(blank=True, null=True)
     cached_can_play_back = models.BooleanField(
         null=True,
         default=None,
