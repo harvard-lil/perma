@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # don't run on pushes to forks
     if: github.event_name == 'pull_request' || github.repository == 'harvard-lil/perma'
 
@@ -32,37 +32,37 @@ jobs:
 
       ### run tests ###
 
-      - name: docker-compose up
+      - name: docker compose up
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           # separate pull so downloads run in parallel, with
           # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
-          docker-compose -f docker-compose.yml pull --ignore-pull-failures || true
-          docker-compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
-          docker-compose up -d scoop-db scoop-rest-api      # start up the Scoop API separately
+          docker compose -f docker-compose.yml pull --ignore-pull-failures || true
+          docker compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
+          docker compose up -d scoop-db scoop-rest-api      # start up the Scoop API separately
           bash make_cert.sh                                 # install SSL certs and restart the wacz-exhibitor and minio containers
           docker ps -a                                      # show running containers
-          docker-compose logs                               # show logs
+          docker compose logs                               # show logs
 
       - name: Javascript tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          docker-compose exec web npm run test
+          docker compose exec web npm run test
 
       - name: Build and collect static files
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          docker-compose exec web npm run build                         # compile fresh bundles
-          docker-compose exec web ./manage.py collectstatic --noinput   # collect static files
+          docker compose exec web npm run build                         # compile fresh bundles
+          docker compose exec web ./manage.py collectstatic --noinput   # collect static files
 
       - name: Python tests
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
-          docker-compose exec web invoke dev.init-db
-          docker-compose exec web pytest \
+          docker compose exec web invoke dev.init-db
+          docker compose exec web pytest \
             --cov --cov-config=setup.cfg --cov-report xml  `# write coverage data to .coverage for upload by codecov` \
             -vv
 
