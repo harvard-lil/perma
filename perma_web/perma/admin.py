@@ -606,16 +606,16 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'organization_id', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'file_size']
+    list_display = ['guid', 'submitted_url', 'created_by', 'creation_timestamp', 'organization_id', 'tag_list', 'is_private', 'user_deleted', 'cached_can_play_back', 'captured_by_software', 'internet_archive_upload_status', 'formatted_warc_size', 'formatted_wacz_size']
     list_filter = [GUIDFilter, CreatedByFilter, SubmittedURLFilter, OrganizationFilter, TagFilter, 'cached_can_play_back', 'internet_archive_upload_status']
     fieldsets = (
-        (None, {'fields': ('guid', 'capture_job', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'captured_by_browser', 'file_size', 'replacement_link', 'tags')}),
+        (None, {'fields': ('guid', 'capture_job', 'submitted_url', 'submitted_url_surt','submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'captured_by_software', 'captured_by_browser', 'formatted_warc_size', 'formatted_wacz_size', 'replacement_link', 'tags')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'capture_job', 'folders', 'creation_timestamp', 'file_size', 'captured_by_software', 'captured_by_browser', 'archive_timestamp']
+    readonly_fields = ['guid', 'capture_job', 'folders', 'creation_timestamp', 'formatted_warc_size', 'formatted_wacz_size', 'captured_by_software', 'captured_by_browser', 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
@@ -639,10 +639,17 @@ class LinkAdmin(SimpleHistoryAdmin):
     def tag_list(self, obj):
         return ", ".join(o.name for o in obj.tags.all())
 
-    def file_size(self, obj):
+    def formatted_warc_size(self, obj):
         return filesizeformat(obj.warc_size)
 
-    file_size.admin_order_field = 'warc_size'
+    formatted_warc_size.admin_order_field = 'warc_size'
+    formatted_warc_size.short_description = 'warc size'
+
+    def formatted_wacz_size(self, obj):
+        return filesizeformat(obj.wacz_size)
+
+    formatted_wacz_size.admin_order_field = 'wacz_size'
+    formatted_wacz_size.short_description = 'wacz size'
 
 
 class FolderAdmin(admin.ModelAdmin):
