@@ -495,6 +495,17 @@ def populate_warc_size(link_guid):
     link.save(update_fields=['warc_size'])
 
 
+
+@shared_task(acks_late=True)
+def populate_wacz_size(link_guid):
+    """
+    One-time task, to populate the wacz_size field for links converted before that field was added.
+    """
+    link = Link.objects.get(guid=link_guid)
+    link.wacz_size = storages[settings.WACZ_STORAGE].size(link.wacz_storage_file())
+    link.save(update_fields=['wacz_size'])
+
+
 ###                  ###
 ### INTERNET ARCHIVE ###
 ###                  ###

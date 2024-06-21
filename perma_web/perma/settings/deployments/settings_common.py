@@ -455,6 +455,7 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.cache_playback_status': {'queue': 'background'},
     'perma.celery_tasks.populate_warc_size_fields': {'queue': 'background'},
     'perma.celery_tasks.populate_warc_size': {'queue': 'background'},
+    'perma.celery_tasks.populate_wacz_size': {'queue': 'background'},
     'perma.celery_tasks.fix_cached_folder_paths': {'queue': 'background'},
     'perma.celery_tasks.fix_cached_folder_path': {'queue': 'background'},
     # the 'ia' queue is for tasks that alter or may alter Internet Archive's records

@@ -26,14 +26,13 @@ from django.db.models import Q, Count
 from django.http import HttpRequest
 from django.utils import timezone
 
+from perma.celery_tasks import convert_warc_to_wacz, populate_wacz_size
 from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
 from perma.models import Capture, Folder, HistoricalLink, Link, LinkUser, Organization, Registrar
-
 
 import logging
 logger = logging.getLogger(__name__)
 
-from perma.celery_tasks import convert_warc_to_wacz
 
 @task
 def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-test.key', debug_toolbar=False):
@@ -1398,3 +1397,17 @@ def collect_conversion_logs(ctx, log_to_file,
 
     logger.info(f"Done gathering benchmark conversion logs ({len(gathered)} in {time.time() - start}s).")
 
+
+@task
+def populate_benchmarked_wacz_sizes(ctx, source_csv):
+    """
+    One-time task, to populate the wacz_size field for links converted before that field was added.
+    """
+    guids = []
+    with open(source_csv, mode='r') as file:
+        csv_file = csv.reader(file)
+        for line in csv_file:
+            guids.append(line[0])
+    links = Link.objects.filter(guid__in=guids).values_list('guid', flat=True)
+    for link in links.iterator():
+        populate_wacz_size.delay(link)
