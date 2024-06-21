@@ -178,19 +178,21 @@ def user() -> User:
     return User("functional_test_user@example.com", "pass")
 
 
-# TODO: if this login fails, the fixture should error out
 @pytest.fixture
-def page_with_logged_in_user(page, urls, user):
-    """Actually log in the desired user"""
-    page.goto(urls.login)
-    username = page.locator('#id_username')
-    username.focus()
-    username.type(user.username)
-    password = page.locator('#id_password')
-    password.focus()
-    password.type(user.password)
-    page.locator("button.btn.login").click()
-    return page
+@pytest.fixture
+def log_in_user(urls):
+    """A utility to log in the desired user"""
+    # TODO: if this login fails, the fixture should error out
+    def f(page, user):
+        page.goto(urls.login)
+        username = page.locator('#id_username')
+        username.focus()
+        username.type(user.username)
+        password = page.locator('#id_password')
+        password.focus()
+        password.type(user.password)
+        page.locator("button.btn.login").click()
+    return f
 
 
 ###              ###
