@@ -1475,6 +1475,9 @@ def convert_warc_to_wacz(input_guid):
         else:
             data["conversion_status"] = "Success"
 
+        link.wacz_size = wacz_size
+        link.save(update_fields=['wacz_size'])
+
         with open(wacz_path, 'rb') as wacz_file:
             storages[settings.WACZ_STORAGE].save(link.wacz_storage_file(), wacz_file)
 
