@@ -178,10 +178,9 @@ def user() -> User:
     return User("functional_test_user@example.com", "pass")
 
 
-# TODO: if this login fails, the fixture should error out,
-# and it's weird that a fixture called "logged in user" returns a page object
+# TODO: if this login fails, the fixture should error out
 @pytest.fixture
-def logged_in_user(page, urls, user):
+def page_with_logged_in_user(page, urls, user):
     """Actually log in the desired user"""
     page.goto(urls.login)
     username = page.locator('#id_username')
