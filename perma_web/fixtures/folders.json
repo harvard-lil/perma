@@ -703,5 +703,20 @@
       "is_root_folder": true,
       "cached_path": "67"
     }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 68,
+    "fields": {
+      "name": "Personal Links",
+      "parent": null,
+      "creation_timestamp": "2002-02-28T00:00:00Z",
+      "created_by": 26,
+      "owned_by": 26,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": true,
+      "cached_path": "67"
+    }
   }
 ]

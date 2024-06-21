@@ -125,3 +125,5 @@ TIERS = {
         }
     ]
 }
+
+WACZ_SAVING_ENABLED = True

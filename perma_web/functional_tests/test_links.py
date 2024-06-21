@@ -2,11 +2,7 @@ import re
 
 two_minutes = 120 * 1000
 
-
-def test_create_link_warc_playback(page, user, log_in_user) -> None:
-    """It should be possible to successfully create a link from a URL"""
-    log_in_user(page, user)
-
+def create_link(page):
     url_field = page.locator('#rawUrl')
     url_field.focus()
     url_field.type("https://example.com/")
@@ -18,14 +14,26 @@ def test_create_link_warc_playback(page, user, log_in_user) -> None:
         .frame_locator('iframe') \
         .frame_locator('iframe') \
         .locator('h1').inner_text()
+
+
+def test_create_link_warc_playback(page, user, log_in_user) -> None:
+    """It should be possible to successfully create a link from a URL"""
+    log_in_user(page, user)
+    create_link(page)
+
     # Verify we are seing a WARC playback, not a WACZ playback
     assert ".warc.gz?" in page.content()
     assert ".wacz?" not in page.content()
 
 
+def test_create_link_wacz_playback(page, wacz_user, log_in_user) -> None:
+    """It should be possible to successfully create a link from a URL"""
+    log_in_user(page, wacz_user)
+    create_link(page)
 
-def test_link_required(logged_in_user) -> None:
-def test_link_required(page_with_logged_in_user) -> None:
+    # Verify we are seing a WACZ playback, not a WARC playback
+    assert ".warc.gz?" not in page.content()
+    assert ".wacz?" in page.content()
 
 
 def test_link_required(page, user, log_in_user) -> None:
