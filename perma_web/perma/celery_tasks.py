@@ -495,6 +495,17 @@ def populate_warc_size(link_guid):
     link.save(update_fields=['warc_size'])
 
 
+
+@shared_task(acks_late=True)
+def populate_wacz_size(link_guid):
+    """
+    One-time task, to populate the wacz_size field for links converted before that field was added.
+    """
+    link = Link.objects.get(guid=link_guid)
+    link.wacz_size = storages[settings.WACZ_STORAGE].size(link.wacz_storage_file())
+    link.save(update_fields=['wacz_size'])
+
+
 ###                  ###
 ### INTERNET ARCHIVE ###
 ###                  ###
@@ -1463,6 +1474,9 @@ def convert_warc_to_wacz(input_guid):
             data["error"] = f"The WARC embedded in the WACZ differs from the source WARC. Remote hash: {remote_hash}. WACZ hash: {wacz_hash}"
         else:
             data["conversion_status"] = "Success"
+
+        link.wacz_size = wacz_size
+        link.save(update_fields=['wacz_size'])
 
         with open(wacz_path, 'rb') as wacz_file:
             storages[settings.WACZ_STORAGE].save(link.wacz_storage_file(), wacz_file)

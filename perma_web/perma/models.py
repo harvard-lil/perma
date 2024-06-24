@@ -1841,8 +1841,7 @@ class Link(DeletableModel):
         return f'{parsed.path}?{parsed.query}'.lstrip('/')
 
     def has_wacz_version(self):
-        wacz = self.wacz_storage_file()
-        return storages[settings.WACZ_STORAGE].exists(wacz)
+        return bool(self.wacz_size)
 
     def delete_related_captures(self):
         Capture.objects.filter(link_id=self.pk).delete()
