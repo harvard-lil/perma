@@ -3,6 +3,14 @@ import re
 two_minutes = 120 * 1000
 
 def create_link(page):
+    """
+    A helper:
+    clicks into the "Create a link" input,
+    submits a link creation request,
+    and waits for the page to redirect playback.
+
+    Expect timeouts on failed attempt.
+    """
     url_field = page.locator('#rawUrl')
     url_field.focus()
     url_field.type("https://example.com/")
@@ -17,7 +25,11 @@ def create_link(page):
 
 
 def test_create_link_warc_playback(page, user, log_in_user) -> None:
-    """It should be possible to successfully create a link from a URL"""
+    """
+    It should be possible to successfully create a link from a URL.
+
+    This user (no feature flag) should see a WARC playback.
+    """
     log_in_user(page, user)
     create_link(page)
 
@@ -27,7 +39,11 @@ def test_create_link_warc_playback(page, user, log_in_user) -> None:
 
 
 def test_create_link_wacz_playback(page, wacz_user, log_in_user) -> None:
-    """It should be possible to successfully create a link from a URL"""
+    """
+    It should be possible to successfully create a link from a URL.
+
+    This user (with feature flag set) should see a WACZ playback.
+    """
     log_in_user(page, wacz_user)
     create_link(page)
 
