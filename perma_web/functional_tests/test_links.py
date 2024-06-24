@@ -17,7 +17,7 @@ def create_link(page):
     page.locator('#addlink').click()
     page.wait_for_url(re.compile('/[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$'), timeout=two_minutes)
     assert page.title() == 'Perma | Example Domain'
-    assert"Example Domain" in page \
+    assert "Example Domain" in page \
         .frame_locator('.archive-iframe') \
         .frame_locator('iframe') \
         .frame_locator('iframe') \
