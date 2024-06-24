@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import os
 from random import choice
 import subprocess
+from waffle import get_waffle_flag_model
+
 from django.db.models import OuterRef, Exists
 from django.conf import settings
 from django.core.management import call_command
@@ -178,20 +180,29 @@ def user() -> User:
     return User("functional_test_user@example.com", "pass")
 
 
-# TODO: if this login fails, the fixture should error out,
-# and it's weird that a fixture called "logged in user" returns a page object
 @pytest.fixture
-def logged_in_user(page, urls, user):
-    """Actually log in the desired user"""
-    page.goto(urls.login)
-    username = page.locator('#id_username')
-    username.focus()
-    username.type(user.username)
-    password = page.locator('#id_password')
-    password.focus()
-    password.type(user.password)
-    page.locator("button.btn.login").click()
-    return page
+def wacz_user() -> User:
+    """For this user, the 'wacz-playback' flag is True"""
+    u = LinkUser.objects.get(email="wacz_functional_test_user@example.com")
+    flag, _created = get_waffle_flag_model().objects.get_or_create(name="wacz-playback")
+    flag.users.add(u.id)
+    return User(u.email, "pass")
+
+
+@pytest.fixture
+def log_in_user(urls):
+    """A utility to log in the desired user"""
+    # TODO: if this login fails, the fixture should error out
+    def f(page, user):
+        page.goto(urls.login)
+        username = page.locator('#id_username')
+        username.focus()
+        username.type(user.username)
+        password = page.locator('#id_password')
+        password.focus()
+        password.type(user.password)
+        page.locator("button.btn.login").click()
+    return f
 
 
 ###              ###

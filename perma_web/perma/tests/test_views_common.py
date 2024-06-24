@@ -3,6 +3,8 @@ from django.core import mail
 from django.urls import reverse
 from django.test import override_settings
 
+from waffle.testutils import override_flag
+
 from perma.urls import urlpatterns
 from perma.models import Registrar, Link, CaptureJob
 from perma.celery_tasks import cache_playback_status_for_new_links
@@ -83,6 +85,42 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertIn('<https://testserver/timemap/json/https://www.wikipedia.org/?special=true>; rel=timemap; type=application/json,', response.headers['link'])
             self.assertIn('<https://testserver/timemap/html/https://www.wikipedia.org/?special=true>; rel=timemap; type=text/html,', response.headers['link'])
             self.assertIn('<https://testserver/UU32-XY8I>; rel=memento; datetime="Sat, 19 Jul 2014 20:21:31 GMT"', response.headers['link'])
+
+    @override_flag('wacz-playback', active=False)
+    def test_regular_archive_with_wacz_and_flag_off(self):
+        link = Link.objects.get(guid='UU32-XY8I')
+        link.capture_job.status = 'completed'
+        link.capture_job.save()
+        response = self.assert_not_500('UU32-XY8I')
+        # We are playing back a WARC
+        self.assertIn(b".warc.gz?", response.content)
+        # We are not playing back a WACZ
+        self.assertNotIn(b".wacz?", response.content)
+
+    @override_flag('wacz-playback', active=True)
+    def test_regular_archive_with_wacz_and_flag_on(self):
+        link = Link.objects.get(guid='UU32-XY8I')
+        link.capture_job.status = 'completed'
+        link.capture_job.save()
+        link.wacz_size = 1  # anything non-zero
+        link.save()
+        response = self.assert_not_500('UU32-XY8I')
+        # We are not playing back a WARC
+        self.assertNotIn(b".warc.gz?", response.content)
+        # We are playing back a WACZ
+        self.assertIn(b".wacz?", response.content)
+
+    @override_flag('wacz-playback', active=True)
+    def test_regular_archive_without_wacz_and_flag_on(self):
+        link = Link.objects.get(guid='UU32-XY8I')
+        link.capture_job.status = 'completed'
+        link.capture_job.save()
+        self.assertFalse(link.wacz_size)
+        response = self.assert_not_500('UU32-XY8I')
+        # We are playing back a WARC
+        self.assertIn(b".warc.gz?", response.content)
+        # We are not playing back a WACZ
+        self.assertNotIn(b".wacz?", response.content)
 
     def test_archive_with_unsuccessful_capturejob(self):
         link = Link.objects.get(guid='UU32-XY8I')

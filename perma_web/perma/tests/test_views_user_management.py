@@ -493,13 +493,13 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### USER A/E/D VIEWS ###
 
     def test_user_list_filters(self):
-        # test assumptions: eight users
+        # test assumptions: nine users
         # - one aspiring court user, faculty user, journal user
         response = self.get('user_management_manage_user',
                              user=self.admin_user).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
-        self.assertEqual("Found: 8 users", count)
+        self.assertEqual("Found: 9 users", count)
         self.assertEqual(response.count(b'Interested in a court account'), 1)
         self.assertEqual(response.count(b'Interested in a journal account'), 1)
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)
