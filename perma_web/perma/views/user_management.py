@@ -1,5 +1,6 @@
 import csv
 from datetime import timedelta
+import functools
 import itertools
 import logging
 
@@ -24,6 +25,7 @@ from django.db import transaction
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
@@ -697,22 +699,32 @@ def manage_single_organization_user_reactivate(request, user_id):
 @user_passes_test_or_403(
     lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user
 )
-def manage_single_organization_list_users_csv(request: HttpRequest, org_id: str):
-    """Return a CSV listing all users belonging to an organization."""
-    org_users = LinkUser.objects.filter(organizations__id=org_id).order_by('email').all()
-    timestamp = timezone.now().strftime('%Y-%m-%dT%H-%M-%S')
-    filename = f'perma_org_{org_id}_users_{timestamp}.csv'
-    response = HttpResponse(
-        content_type='text/csv',
-        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
-    )
+def manage_single_organization_export_user_list(
+    request: HttpRequest, org_id: int
+) -> HttpResponse | JsonResponse:
+    """Return a file listing all users belonging to an organization."""
+    org_users = LinkUser.objects.filter(organizations__id=org_id).order_by('email').all().iterator()
+    timestamp = timezone.now().strftime('%Y%m%dT%H%M%S')
+    filename_stem = f'perma_{org_id}_{timestamp}'
 
+    # Generate output records from query results
     field_names = ['email', 'first_name', 'last_name']
-    writer = csv.DictWriter(response, fieldnames=field_names)
-    writer.writeheader()
-    for org_user in org_users:
-        record = {field_name: getattr(org_user, field_name) for field_name in field_names}
-        writer.writerow(record)
+    make_record = functools.partial(model_to_dict, fields=field_names)
+    records = map(make_record, org_users)
+
+    # Export records as appropriate based on `format` URL parameter
+    match request.GET.get('format', 'csv').casefold():
+        case 'csv':
+            response = HttpResponse(
+                content_type='text/csv',
+                headers={'Content-Disposition': f'attachment; filename="{filename_stem}.csv"'},
+            )
+            writer = csv.DictWriter(response, fieldnames=field_names)
+            writer.writeheader()
+            for record in records:
+                writer.writerow(record)
+        case 'json':
+            response = JsonResponse(list(records), safe=False)
     return response
 
 

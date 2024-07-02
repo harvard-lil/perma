@@ -183,7 +183,7 @@
                 <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> in admin console</a>
               {% endif %}
               {% if request.user.is_staff or request.user.is_registrar_user or request.user.is_organization_user %}
-                <a class="action" href="{% url 'user_management_manage_single_organization_list_users_csv' org.id %}">download <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> CSV</a>
+                <a class="action" href="{% url 'user_management_manage_single_organization_export_user_list' org.id %}?format=csv">download <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> CSV</a>
               {% endif %}
             </div>
           </div>
