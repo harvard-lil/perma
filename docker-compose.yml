@@ -18,8 +18,23 @@ services:
       POSTGRES_USER: perma
     volumes:
       - postgres_data:/var/lib/postgresql/data:delegated
+    ports:
+      - "127.0.0.1:54320:5432"
     networks:
       - default
+  superset:
+    image: apache/superset
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      - SUPERSET_SECRET_KEY=abcde
+    depends_on:
+      - db
+    networks:
+      - default
+    volumes:
+     - superset:/app/superset_home
+     - superset:/app/db_home
   web:
     image: registry.lil.tools/harvardlil/perma-web:120-8d62d51fcb80cb29e3251399e9b72b47
     tty: true
@@ -146,6 +161,7 @@ volumes:
   scoop_db_data:
   scoop_access_key:
   minio_data:
+  superset:
 
 networks:
   default:
