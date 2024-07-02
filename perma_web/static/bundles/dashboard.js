@@ -35742,47 +35742,45 @@ var _hoisted_1 = {
   id: "create-item-container",
   class: "container cont-full-bleed"
 };
-var _hoisted_2 = {
+var _hoisted_2 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", {
   class: "container cont-fixed"
-};
-var _hoisted_3 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("h1", {
+}, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("h1", {
   class: "create-title"
 }, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])("Create a new "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
   class: "nobreak"
-}, "Perma Link")], -1 /* HOISTED */);
-var _hoisted_4 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("p", {
+}, "Perma Link")]), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("p", {
   class: "create-lede"
-}, "Enter any URL to preserve it forever.", -1 /* HOISTED */);
-var _hoisted_5 = {
+}, "Enter any URL to preserve it forever.")], -1 /* HOISTED */);
+var _hoisted_3 = {
   class: "container cont-full-bleed cont-sm-fixed"
 };
-var _hoisted_6 = {
+var _hoisted_4 = {
   class: "form-priority-fieldset"
 };
-var _hoisted_7 = {
+var _hoisted_5 = {
   class: "wrapper"
 };
-var _hoisted_8 = {
+var _hoisted_6 = {
   id: "create-batch-links"
 };
-var _hoisted_9 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("a", {
+var _hoisted_7 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("a", {
   href: "/settings/tools"
 }, "browser tools", -1 /* HOISTED */);
-var _hoisted_10 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
+var _hoisted_8 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
   "aria-hidden": "true"
 }, "×", -1 /* HOISTED */);
-var _hoisted_11 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
+var _hoisted_9 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
   class: "sr-only"
 }, "Close", -1 /* HOISTED */);
-var _hoisted_12 = [_hoisted_10, _hoisted_11];
+var _hoisted_10 = [_hoisted_8, _hoisted_9];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _context, _context2, _context3, _context4;
-  return Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_2__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["UploadForm"]), _hoisted_3, _hoisted_4]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("form", {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_2__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" regular link creation "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_1, [_hoisted_2, Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_3, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("form", {
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["form-priority", {
       '_isPrivate': $setup.globalStore.selectedFolder.isPrivate
     }]),
     id: "linker"
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("fieldset", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("input", {
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("fieldset", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
       return $setup.userLink = $event;
     }),
@@ -35791,7 +35789,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     class: "text-input select-on-click form-priority-input",
     type: "text",
     placeholder: "Paste your URL here."
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_2__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_7, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_2__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_5, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])($setup.handleArchiveRequest, ["prevent"]),
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["btn btn-large btn-info _active-when-valid", {
       '_isWorking': !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context = $setup.readyStates).call(_context, $setup.globalStore.captureStatus)
@@ -35804,7 +35802,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   })) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_2__["toDisplayString"])($setup.submitButtonText) + " ", 1 /* TEXT */), $setup.globalStore.captureStatus === 'isCapturing' ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["ProgressBar"], {
     key: 1,
     progress: $setup.userLinkProgressBar
-  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("p", _hoisted_8, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])("or "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
+  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("p", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])("or "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])($setup.batchDialogOpen, ["prevent"]),
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["c-button", $setup.globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'])
   }, "create multiple links", 2 /* CLASS */)])]), _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = $setup.globalStore.userTypes).call(_context2, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["LinkCount"], {
@@ -35817,11 +35815,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     id: "browser-tools-message",
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["u-pb-150", $setup.globalStore.userTypes === 'individual' && 'limit-true'])
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" To make Perma links more quickly, try our "), _hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(". "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" To make Perma links more quickly, try our "), _hoisted_7, Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(". "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])($setup.handleSuppressToolsReminder, ["prevent"]),
     type: "button",
     class: "close-browser-tools btn-link"
-  }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_1___default()(_context4 = []).call(_context4, _hoisted_12))], 2 /* CLASS */)) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["CaptureError"]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["CreateLinkBatch"], {
+  }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_1___default()(_context4 = []).call(_context4, _hoisted_10))], 2 /* CLASS */)) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("/#linker")]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" cont-full-bleed cont-sm-fixed ")]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])(" container cont-full-bleed "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["CaptureError"]), $setup.showDevPlayground ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["UploadForm"], {
+    key: 0
+  })) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["CreateLinkBatch"], {
     ref: "batchDialogRef"
   }, null, 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
 }
@@ -35867,6 +35867,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _CreateLinkBatch_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(707);
 /* harmony import */ var _lib_errors__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(769);
 /* harmony import */ var _UploadForm_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(782);
+/* harmony import */ var _lib_consts__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(775);
+
 
 
 
@@ -36131,7 +36133,6 @@ __webpack_require__.r(__webpack_exports__);
       handleProgressUpdate: handleProgressUpdate,
       ref: vue__WEBPACK_IMPORTED_MODULE_6__["ref"],
       watch: vue__WEBPACK_IMPORTED_MODULE_6__["watch"],
-      watchEffect: vue__WEBPACK_IMPORTED_MODULE_6__["watchEffect"],
       computed: vue__WEBPACK_IMPORTED_MODULE_6__["computed"],
       onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_6__["onBeforeUnmount"],
       get globalStore() {
@@ -36164,7 +36165,10 @@ __webpack_require__.r(__webpack_exports__);
       get defaultError() {
         return _lib_errors__WEBPACK_IMPORTED_MODULE_16__["defaultError"];
       },
-      UploadForm: _UploadForm_vue__WEBPACK_IMPORTED_MODULE_17__["default"]
+      UploadForm: _UploadForm_vue__WEBPACK_IMPORTED_MODULE_17__["default"],
+      get showDevPlayground() {
+        return _lib_consts__WEBPACK_IMPORTED_MODULE_18__["showDevPlayground"];
+      }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
       enumerable: false,
@@ -52175,8 +52179,10 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validStates", function() { return validStates; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "transitionalStates", function() { return transitionalStates; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showDevPlayground", function() { return showDevPlayground; });
 var validStates = ["pending", "in_progress", "completed"];
 var transitionalStates = ['pending', 'in_progress'];
+var showDevPlayground = waffle.FLAGS["developer-playground"];
 
 /***/ }),
 /* 776 */
