@@ -1,7 +1,7 @@
-import logging
-import itertools
-
+import csv
 from datetime import timedelta
+import itertools
+import logging
 
 import celery
 import redis
@@ -28,7 +28,14 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseRedirect,
+    Http404,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
@@ -685,6 +692,28 @@ def manage_single_organization_user_delete(request, user_id):
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
+
+
+@user_passes_test_or_403(
+    lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user
+)
+def manage_single_organization_list_users_csv(request: HttpRequest, org_id: str):
+    """Return a CSV listing all users belonging to an organization."""
+    org_users = LinkUser.objects.filter(organizations__id=org_id).order_by('email').all()
+    timestamp = timezone.now().strftime('%Y-%m-%dT%H-%M-%S')
+    filename = f'perma_org_{org_id}_users_{timestamp}.csv'
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+    )
+
+    field_names = ['email', 'first_name', 'last_name']
+    writer = csv.DictWriter(response, fieldnames=field_names)
+    writer.writeheader()
+    for org_user in org_users:
+        record = {field_name: getattr(org_user, field_name) for field_name in field_names}
+        writer.writerow(record)
+    return response
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
