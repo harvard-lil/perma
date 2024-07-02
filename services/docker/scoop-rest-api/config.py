@@ -216,5 +216,6 @@ CELERY_SETTINGS = {
     # If a task is running longer than seven minutes, kill it
     "task_time_limit": 420,
     "task_always_eager": False,
+    "beat_schedule": {},
 }
 CELERY_IS_ACTIVE = (START_CELERY is True) or (CELERY_SETTINGS.get("task_always_eager") is True)
