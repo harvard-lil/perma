@@ -156,6 +156,7 @@
               <div class="item-count-group">
                 <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
                 <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View <div class="sr-wrapper"><span class="sr-only">users</span></div> </a></span>
+                <a href="{% url 'user_management_manage_single_organization_export_user_list' org.id %}?format=csv" id="export-org-{{ org.id }}-csv" class="pull-right icon-download-alt" title="Export CSV"></a>
               </div>
             </div>
           </div>
@@ -183,7 +184,7 @@
                 <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> in admin console</a>
               {% endif %}
               {% if request.user.is_staff or request.user.is_registrar_user or request.user.is_organization_user %}
-                <a class="action" href="{% url 'user_management_manage_single_organization_export_user_list' org.id %}?format=csv">download <div class="sr-wrapper"><span class="sr-only">{{ org.name }}</span></div> CSV</a>
+                <a class="action" href="{% url 'user_management_manage_single_organization_export_user_list' org.id %}?format=csv">download <div class="sr-wrapper"><span class="sr-only">{{ org.name }} </span></div>organization info</a>
               {% endif %}
             </div>
           </div>
