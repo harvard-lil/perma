@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
+
+import csv
+from datetime import datetime, timezone as tz
+from io import StringIO
+from mock import patch, sentinel
+from random import random
+import re
+
+from bs4 import BeautifulSoup
+from django.http import HttpResponse
 from django.urls import reverse
 from django.core import mail
 from django.conf import settings
 from django.db import IntegrityError
 from django.test import override_settings
 
-from mock import patch, sentinel
-
-from perma.models import LinkUser, Organization, Registrar, Sponsorship
 from perma.exceptions import PermaPaymentsCommunicationException
-
-from .utils import PermaTestCase
-
-from random import random
-import re
-from bs4 import BeautifulSoup
-from datetime import datetime, timezone as tz
-
+from perma.models import LinkUser, Organization, Registrar, Sponsorship
+from perma.tests.utils import PermaTestCase
 
 # Fixtures
 
@@ -347,6 +348,32 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # status filter tested in test_registrar_user_list_filters
 
+    def test_org_export_user_list_csv(self):
+        expected_results = {
+            # Org ID: (record count, org name)
+            1: (3, 'Test Journal'),
+            2: (1, 'Another Journal'),
+            3: (3, 'A Third Journal'),
+            4: (3, "Another Library's Journal"),
+            5: (1, 'Some Case'),
+            6: (0, 'Some Other Case'),
+        }
+        for org_id, (record_count, org_name) in expected_results.items():
+            response: HttpResponse = self.get(
+                'user_management_manage_single_organization_export_user_list',
+                reverse_kwargs={'args': [org_id]},
+                user=self.admin_user,
+            )
+            self.assertEqual(response.headers['Content-Type'], 'text/csv')
+
+            # Validate CSV output against expected results
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+            reader_record_count = 0
+            for record in reader:
+                self.assertEqual(record['organization_name'], org_name)
+                reader_record_count += 1
+            self.assertEqual(reader_record_count, record_count)
 
     def test_sponsored_user_list_filters(self):
         # test assumptions: four users, with five sponsorships between them

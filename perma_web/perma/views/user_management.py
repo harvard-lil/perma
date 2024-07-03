@@ -712,7 +712,7 @@ def manage_single_organization_export_user_list(
     field_names = ['email', 'first_name', 'last_name']
     make_record = functools.partial(model_to_dict, fields=field_names)
     records = map(make_record, org_users)
-    records = map(lambda rec: {**rec, 'organization': organization.name}, records)
+    records = map(lambda rec: {**rec, 'organization_name': organization.name}, records)
 
     # Export records as appropriate based on `format` URL parameter
     match request.GET.get('format', 'csv').casefold():
@@ -721,7 +721,7 @@ def manage_single_organization_export_user_list(
                 content_type='text/csv',
                 headers={'Content-Disposition': f'attachment; filename="{filename_stem}.csv"'},
             )
-            writer = csv.DictWriter(response, fieldnames=field_names + ['organization'])
+            writer = csv.DictWriter(response, fieldnames=field_names + ['organization_name'])
             writer.writeheader()
             for record in records:
                 writer.writerow(record)
