@@ -706,7 +706,7 @@ def manage_single_organization_export_user_list(
     """Return a file listing all users belonging to an organization."""
     organization = Organization.objects.get(pk=org_id)
     org_users = LinkUser.objects.filter(organizations__id=org_id).order_by('email').all().iterator()
-    filename_stem = f'perma_{slugify(organization.name)}_{timezone.now():%Y%m%d%HT%H%M%S}'
+    filename_stem = f'perma_{slugify(organization.name)[:24]}_{timezone.now():%Y%m%d%HT%H%M%S}'
 
     # Generate output records from query results and add organization name
     field_names = ['email', 'first_name', 'last_name']
