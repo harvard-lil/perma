@@ -29,7 +29,6 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.utils.text import slugify
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -708,8 +707,7 @@ def manage_single_organization_export_user_list(
         .annotate(organization_name=F('organizations__name'))
         .values('email', 'first_name', 'last_name', 'organization_name')
     )
-    org_slug = slugify(org_users.first()['organization_name']) if org_users else str(org_id)
-    filename_stem = f'perma_{org_slug[:24]}_{timezone.now():%Y%m%d%HT%H%M%S}'
+    filename_stem = f'perma-organization-{org_id}-users'
 
     # Generate output records from query results and add organization name
     field_names = ['email', 'first_name', 'last_name', 'organization_name']
