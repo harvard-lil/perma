@@ -30,6 +30,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.utils.text import slugify
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -703,14 +704,15 @@ def manage_single_organization_export_user_list(
     request: HttpRequest, org_id: int
 ) -> HttpResponse | JsonResponse:
     """Return a file listing all users belonging to an organization."""
+    organization = Organization.objects.get(pk=org_id)
     org_users = LinkUser.objects.filter(organizations__id=org_id).order_by('email').all().iterator()
-    timestamp = timezone.now().strftime('%Y%m%dT%H%M%S')
-    filename_stem = f'perma_{org_id}_{timestamp}'
+    filename_stem = f'perma_{slugify(organization.name)}_{timezone.now():%Y%m%d%HT%H%M%S}'
 
-    # Generate output records from query results
+    # Generate output records from query results and add organization name
     field_names = ['email', 'first_name', 'last_name']
     make_record = functools.partial(model_to_dict, fields=field_names)
     records = map(make_record, org_users)
+    records = map(lambda rec: {**rec, 'organization': organization.name}, records)
 
     # Export records as appropriate based on `format` URL parameter
     match request.GET.get('format', 'csv').casefold():
@@ -719,7 +721,7 @@ def manage_single_organization_export_user_list(
                 content_type='text/csv',
                 headers={'Content-Disposition': f'attachment; filename="{filename_stem}.csv"'},
             )
-            writer = csv.DictWriter(response, fieldnames=field_names)
+            writer = csv.DictWriter(response, fieldnames=field_names + ['organization'])
             writer.writeheader()
             for record in records:
                 writer.writerow(record)
