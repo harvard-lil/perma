@@ -8,14 +8,20 @@ const props = defineProps({
     guid: String,
 })
 
-const defaultFormData = {
+const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
     description: { name: "New Perma Link description", type: "text", description: "The page description associated with this upload", placeholder: "Example description", value: '' },
     url: { name: 'New Perma Link URL', type: "text", description: "The URL associated with this upload", placeholder: "www.example.com", value: '' },
     file: { name: "Choose a file", type: "file", description: ".gif, .jpg, .pdf, and .png allowed, up to 100 MB", value: '' },
 }
 
-const formData = ref(defaultFormData)
+const fieldsWithGUID = {
+    file: defaultFields.file
+}
+
+const initialData = props.guid ? fieldsWithGUID : defaultFields
+
+const formData = ref(initialData)
 
 // Match backend format for errors, for example {file:"message",url:"message"},
 const errors = ref({})
@@ -43,9 +49,8 @@ const handleClose = () => {
     formDialogRef.value.handleDialogClose();
 }
 
-
 const handleReset = () => {
-    formData.value = defaultFormData;
+    formData.value = initialData;
 }
 
 const handleClick = (e) => {
@@ -68,11 +73,12 @@ defineExpose({
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only" id="loading">Close</span>
                 </button>
-                <h3 id="batch-modal-title" class="modal-title">Upload a file to Perma.cc</h3>
+                <h3 id="batch-modal-title" class="modal-title">
+                    Upload a file to Perma.cc
+                </h3>
             </div>
             <p class="modal-description">
-                <!-- This will update the Perma Link you have created. -->
-                This will create a new Perma Link.
+                {{ props.guid ? "This will update the Perma Link you have created." : "Upload a file to Perma.cc" }}
             </p>
             <div class="modal-body">
                 <form id="archive_upload_form" @submit.prevent>
@@ -84,8 +90,8 @@ defineExpose({
                             :id="key" />
                     </template>
                     <div class="form-buttons">
-                        <button type="submit" class="btn btn-primary btn-large">Create a Perma
-                            Link</button>
+                        <button type="submit" class="btn btn-primary btn-large">{{ props.guid ? "Upload" :
+        "Create a Perma Link" }}</button>
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
