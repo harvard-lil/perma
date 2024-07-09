@@ -1,10 +1,17 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { globalStore } from '../stores/globalStore';
+import UploadForm from './UploadForm.vue';
+import { showDevPlayground } from '../lib/consts'
 
 const showUploadLink = ref()
 const showGeneric = ref()
 const showLoginLink = ref()
+
+const uploadDialogRef = ref('')
+const handleOpen = () => {
+    uploadDialogRef.value.handleOpen()
+}
 
 watch(
     () => globalStore.captureErrorMessage,
@@ -33,6 +40,11 @@ watch(
         }
     }
 );
+
+defineExpose({
+    handleOpen
+});
+
 </script>
 
 <template>
@@ -42,9 +54,21 @@ watch(
                     Please <a href='/login'>log in</a> to continue.
                 </span></p>
             <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
-            <p v-if="showUploadLink">You can <button id="upload-form-button">upload your own archive</button> or <a
-                    href="/contact">contact us
-                    about this error.</a></p>
+            <template v-if="showUploadLink">
+                <template v-if="showDevPlayground">
+                    <p>You can <button @click.prevent="uploadDialogOpen">upload your own
+                            archive</button> or <a href="{{contact_url}}">contact
+                            us about this error.</a></p>
+                    <!-- TODO: Connect upload form to capture processes -->
+                    <!-- <UploadForm ref="uploadDialogRef" /> -->
+                </template>
+                <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
+                        href="/contact">contact us
+                        about this error.</a></p>
+            </template>
+
         </div>
     </div>
+    <!-- Testing only -->
+    <UploadForm v-if="showDevPlayground" ref="uploadDialogRef" />
 </template>
