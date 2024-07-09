@@ -62,6 +62,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_organization_user'],
                     ['user_management_manage_organization'],
                     ['user_management_manage_single_organization', {'kwargs':{'org_id':1}}],
+                    ['user_management_manage_single_organization_export_user_list', {'kwargs': {'org_id': 1}}],
                     ['user_management_manage_single_organization_delete', {'kwargs':{'org_id':1}}],
                     ['user_management_organization_user_add_user'],
                     ['user_management_manage_single_organization_user_remove', {'kwargs':{'user_id': 3},

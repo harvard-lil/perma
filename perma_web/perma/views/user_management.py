@@ -1,7 +1,8 @@
-import logging
-import itertools
-
+import csv
 from datetime import timedelta
+import itertools
+import logging
+from typing import Literal
 
 import celery
 import redis
@@ -21,14 +22,21 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, Pas
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
-from django.db.models import Count, Max, Sum
+from django.db.models import Count, F, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseRedirect,
+    Http404,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
@@ -685,6 +693,40 @@ def manage_single_organization_user_delete(request, user_id):
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
+
+
+@user_passes_test_or_403(
+    lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user
+)
+def manage_single_organization_export_user_list(
+    request: HttpRequest, org_id: int
+) -> HttpResponse | JsonResponse:
+    """Return a file listing all users belonging to an organization."""
+    org_users = (
+        LinkUser.objects.filter(organizations__id=org_id)
+        .annotate(organization_name=F('organizations__name'))
+        .values('email', 'first_name', 'last_name', 'organization_name')
+    )
+    filename_stem = f'perma-organization-{org_id}-users'
+
+    # Generate output records from query results and add organization name
+    field_names = ['email', 'first_name', 'last_name', 'organization_name']
+
+    # Export records in appropriate format based on `format` URL parameter
+    export_format: Literal['csv', 'json'] = request.GET.get('format', 'csv').casefold()
+    match export_format:
+        case 'json':
+            response = JsonResponse(list(org_users), safe=False)
+        case 'csv' | _:
+            response = HttpResponse(
+                content_type='text/csv',
+                headers={'Content-Disposition': f'attachment; filename="{filename_stem}.csv"'},
+            )
+            writer = csv.DictWriter(response, fieldnames=field_names)
+            writer.writeheader()
+            for org_user in org_users:
+                writer.writerow(org_user)
+    return response
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
