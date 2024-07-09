@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import TextInput from './TextInput.vue';
 import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
@@ -19,7 +19,7 @@ const fieldsWithGUID = {
     file: defaultFields.file
 }
 
-const initialData = props.guid ? fieldsWithGUID : defaultFields
+const initialData = computed(() => props.guid ? fieldsWithGUID : defaultFields)
 
 const formData = ref(initialData)
 
