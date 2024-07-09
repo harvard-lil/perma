@@ -40085,7 +40085,7 @@ __webpack_require__.r(__webpack_exports__);
       if (!currentIndex) {
         handleFocus(0);
       }
-      if (currentIndex < props.folders.value.length) {
+      if (currentIndex < props.folders.length) {
         handleFocus(currentIndex + 1);
       }
     };
