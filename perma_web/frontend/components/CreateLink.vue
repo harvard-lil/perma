@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, watchEffect, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
@@ -11,6 +11,7 @@ import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
 import UploadForm from './UploadForm.vue';
+import { showDevPlayground } from '../lib/consts'
 
 const batchDialogRef = ref('')
 
@@ -181,7 +182,6 @@ onBeforeUnmount(() => {
     <!-- regular link creation -->
     <div id="create-item-container" class="container cont-full-bleed">
         <div class="container cont-fixed">
-            <UploadForm />
             <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
             <p class="create-lede">Enter any URL to preserve it forever.</p>
         </div>
@@ -226,6 +226,8 @@ onBeforeUnmount(() => {
     </div><!-- container cont-full-bleed -->
 
     <CaptureError />
+
+    <UploadForm v-if="showDevPlayground" />
 
     <CreateLinkBatch ref="batchDialogRef" />
 </template>
