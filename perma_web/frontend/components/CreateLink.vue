@@ -10,18 +10,17 @@ import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
-import UploadForm from './UploadForm.vue';
-
 import { showDevPlayground } from '../lib/consts'
-
-const uploadDialogRef = ref('')
-const uploadDialogOpen = () => {
-    uploadDialogRef.value.handleOpen()
-}
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
     batchDialogRef.value.handleOpen();
+}
+
+/* Temporary for testing */
+const uploadDialogRef = ref('')
+const uploadDialogOpen = () => {
+    uploadDialogRef.value.handleOpen()
 }
 
 const userLink = ref('')
@@ -230,15 +229,10 @@ onBeforeUnmount(() => {
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
 
-    <CaptureError />
+    <CaptureError ref="uploadDialogRef" />
 
     <template v-if="showDevPlayground">
-        <p class="message">We’re unable to create your Perma Link.</p>
-        <p>You can <button @click.prevent="uploadDialogOpen">upload your own
-                archive</button> or <a href="{{contact_url}}">contact
-                us about this error.</a></p>
-
-        <UploadForm ref="uploadDialogRef" />
+        <button @click.prevent="uploadDialogOpen">Toggle Upload Dialog</button>
     </template>
 
     <CreateLinkBatch ref="batchDialogRef" />
