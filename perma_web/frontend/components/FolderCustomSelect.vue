@@ -62,7 +62,7 @@ const handleArrowDown = (e) => {
         handleFocus(0)
     }
 
-    if (currentIndex < props.folders.value.length) {
+    if (currentIndex < props.folders.length) {
         handleFocus(currentIndex + 1)
     }
 }
@@ -144,7 +144,7 @@ const handleSelection = (e) => {
             globalStore.linksRemaining ===
                 Infinity ?
                 'unlimited' :
-                globalStore.linksRemaining }}</span>
+                        globalStore.linksRemaining }}</span>
                 </li>
             </ul>
         </div>
