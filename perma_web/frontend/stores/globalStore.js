@@ -6,6 +6,11 @@ export const globalStore = reactive({
     this.captureStatus = state
   },
 
+  captureGUID: '', 
+  updateCaptureGUID(value) {
+    this.captureGUID = value
+  },
+
   captureErrorMessage: '',
   updateCaptureErrorMessage(message) {
     this.captureErrorMessage = message
@@ -68,5 +73,5 @@ export const globalStore = reactive({
   additionalSubfolder: false,
   updateAdditionalSubfolder(value) {
     this.additionalSubfolder = value
-  }
+  },
 })
