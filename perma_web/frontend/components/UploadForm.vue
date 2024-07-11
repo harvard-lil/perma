@@ -19,7 +19,7 @@ const fieldsWithGUID = {
     file: defaultFields.file
 }
 
-const initialData = computed(() => props.guid ? fieldsWithGUID : defaultFields)
+const initialData = props.guid ? fieldsWithGUID : defaultFields
 
 const formData = ref(initialData)
 
