@@ -215,6 +215,7 @@
       <div class="tray-actions col-xs-12">
         {% if request.user.is_staff %}
           <a href="?embed=False" class="btn btn-ui-small btn-dashboard">Show playback controls</a>
+          <a href="?embed=False&playback=warc" class="btn btn-ui-small btn-dashboard">Force WARC playback</a>
         {% endif %}
         {% if link.can_play_back %}
           <a href="{% url 'single_permalink' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download Archive</a>
