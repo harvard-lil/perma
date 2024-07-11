@@ -23,18 +23,20 @@ services:
     networks:
       - default
   superset:
-    image: apache/superset
-    ports:
-      - "127.0.0.1:8088:8088"
+    build:
+      context: ./services/docker/superset
+      dockerfile: Dockerfile
     environment:
       - SUPERSET_SECRET_KEY=abcde
+    ports:
+      - "127.0.0.1:8088:8088"
     depends_on:
       - db
     networks:
       - default
     volumes:
-     - superset:/app/superset_home
-     - superset:/app/db_home
+      - superset:/app/superset_home
+      - superset:/app/db_home
   web:
     image: registry.lil.tools/harvardlil/perma-web:120-8d62d51fcb80cb29e3251399e9b72b47
     tty: true
