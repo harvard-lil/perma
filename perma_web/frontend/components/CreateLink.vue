@@ -10,21 +10,13 @@ import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
-import { showDevPlayground } from '../lib/consts'
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
     batchDialogRef.value.handleOpen();
 }
 
-/* Temporary for testing */
-const uploadDialogRef = ref('')
-const uploadDialogOpen = () => {
-    uploadDialogRef.value.handleOpen()
-}
-
 const userLink = ref('')
-const userLinkGUID = ref('')
 const userLinkProgressBar = ref('0%')
 
 const readyStates = ["ready", "urlError", "captureError"]
@@ -90,7 +82,7 @@ const handleArchiveRequest = async () => {
         }
 
         const { guid } = await response.json()
-        userLinkGUID.value = guid
+        globalStore.updateCaptureGUID(guid)
         globalStore.updateCapture('isQueued')
 
     } catch (error) {
@@ -148,7 +140,8 @@ const handleCaptureStatus = async (guid) => {
 }
 
 const handleProgressUpdate = async () => {
-    const { step_count, status, error } = await handleCaptureStatus(userLinkGUID.value);
+    console.log('handling new update')
+    const { step_count, status, error } = await handleCaptureStatus(globalStore.captureGUID);
 
     if (status === 'in_progress') {
         globalStore.updateCapture('isCapturing')
@@ -158,7 +151,6 @@ const handleProgressUpdate = async () => {
     if (status === 'completed') {
         clearInterval(progressInterval)
         globalStore.updateCapture('success')
-        window.location.href = `${window.location.origin}/${userLinkGUID.value}`
     }
 
     if (status === 'failed') {
@@ -171,9 +163,14 @@ const handleProgressUpdate = async () => {
     }
 }
 
-watch(userLinkGUID, () => {
+watch(() => globalStore.captureGUID, () => {
+    console.log('handling update')
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
+})
+
+watch(() => globalStore.captureStatus === 'success', () => {
+    window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
 })
 
 onBeforeUnmount(() => {
@@ -188,6 +185,7 @@ onBeforeUnmount(() => {
         <div class="container cont-fixed">
             <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
             <p class="create-lede">Enter any URL to preserve it forever.</p>
+            <p>{{ globalStore.captureGUID }}</p>
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" :class="{ '_isPrivate': globalStore.selectedFolder.isPrivate }" id="linker">
@@ -230,10 +228,6 @@ onBeforeUnmount(() => {
     </div><!-- container cont-full-bleed -->
 
     <CaptureError ref="uploadDialogRef" />
-
-    <template v-if="showDevPlayground">
-        <button @click.prevent="uploadDialogOpen">Toggle Upload Dialog</button>
-    </template>
 
     <CreateLinkBatch ref="batchDialogRef" />
 </template>

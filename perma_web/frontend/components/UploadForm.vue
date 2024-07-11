@@ -1,12 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, } from 'vue'
 import TextInput from './TextInput.vue';
 import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
-
-const props = defineProps({
-    guid: String,
-})
+import { getCookie } from '../../static/js/helpers/general.helpers';
+import { rootUrl } from '../lib/consts'
+import { globalStore } from '../stores/globalStore';
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -19,7 +18,7 @@ const fieldsWithGUID = {
     file: defaultFields.file
 }
 
-const initialData = props.guid ? fieldsWithGUID : defaultFields
+const initialData = !!globalStore.captureGUID ? fieldsWithGUID : defaultFields
 
 const formData = ref(initialData)
 
@@ -50,7 +49,7 @@ const handleClose = () => {
 }
 
 const handleReset = () => {
-    formData.value = initialData;
+    formData.value = defaultFields;
 }
 
 const handleClick = (e) => {
@@ -59,11 +58,111 @@ const handleClick = (e) => {
     }
 }
 
+const handleUploadRequest = async () => {
+    handleErrorReset()
+
+    const csrf = getCookie("csrftoken")
+    const requestType = globalStore.captureGUID ? "PATCH" : "POST"
+    const archiveBaseUrl = `${rootUrl}/archives/`
+    const requestUrl = globalStore.captureGUID ? `${archiveBaseUrl}${globalStore.captureGUID}/` : archiveBaseUrl
+
+    const formValues = Object.keys(formData.value).reduce((acc, current) => {
+        const { value } = formData.value[current]
+        acc[current] = value
+        return acc;
+    }, {
+        folder: globalStore.selectedFolder.folderId,
+    })
+
+    const formDataObj = new FormData();
+    formDataObj.append('folder', globalStore.selectedFolder.folderId);
+
+    Object.keys(formData.value).forEach(key => {
+        const { value } = formData.value[key];
+        formDataObj.append(key, value);
+    });
+
+    try {
+        const response = await fetch(requestUrl,
+            {
+                headers: {
+                    "X-CSRFToken": csrf,
+                },
+                method: requestType,
+                credentials: "same-origin",
+                body: formDataObj
+            })
+
+        if (!response?.ok) {
+            const errorResponse = await response.json()
+            throw errorResponse
+        }
+
+        const successReponse = await response.json()
+        console.log(successReponse)
+
+        handleReset()
+        globalStore.updateCapture('success')
+
+    } catch (error) {
+        console.log(error) // TODO: Add actual error handling
+    }
+};
+
+
 defineExpose({
     handleOpen
 });
 
 </script>
+
+<!-- function successfulUpload (data) {
+    return
+    $uploadModal.modal('hide');
+    window.location.href = '/' + data.guid;
+  }
+  
+  function failedUpload (jqXHR) {
+    // Display an error message in our upload modal
+    // TODO: refactor this when addressing form validation accessibility
+  
+    uploadFormSpinner.stop();
+    $('.js-warning').remove();
+    $('.has-error').removeClass('has-error');
+  
+    // special handling if user becomes unexpectedly logged out
+    if(jqXHR.status == 401){
+      APIModule.showError(jqXHR);
+      return;
+    }
+  
+    let response;
+    let reasons = [];
+    try {
+      response = JSON.parse(jqXHR.responseText);
+    } catch (e) {
+      reasons = [jqXHR.responseText];
+    }
+    if (response) {
+      // If error message comes in as {file:"message",url:"message"},
+      // show appropriate error message next to each field.
+      for (let key in response) {
+        if (response.hasOwnProperty(key)) {
+          let input = $('#' + key);
+          if (input.length) {
+            input.after('<span class="help-block js-warning">' + response[key] + '</span>');
+            input.closest('div').addClass('has-error');
+          } else {
+            reasons.push(response[key]);
+          }
+        }
+      }
+    }
+    $uploadValidationError.html('<p class="field-error">Upload failed. ' + reasons.join(". ") + '</p>');
+    DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
+    DOMHelpers.toggleBtnDisable('.cancel', false);
+  }
+   -->
 
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="formDialogRef">
@@ -78,20 +177,24 @@ defineExpose({
                 </h3>
             </div>
             <p class="modal-description">
-                {{ props.guid ? "This will update the Perma Link you have created." : "Upload a file to Perma.cc" }}
+                {{
+        !!globalStore.captureGUID ?
+            "This will update the Perma Link you have created." :
+            "This will create a new Perma Link." }}
             </p>
             <div class="modal-body">
                 <form id="archive_upload_form" @submit.prevent>
                     <template v-for="(_, key) in formData" :key="key">
-                        {{ formData[key].value }} <!-- Testing only -->
                         <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
                             :id="key" />
                         <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"
                             :id="key" />
                     </template>
                     <div class="form-buttons">
-                        <button type="submit" class="btn btn-primary btn-large">{{ props.guid ? "Upload" :
-        "Create a Perma Link" }}</button>
+                        <button type="submit" @click.prevent="handleUploadRequest" class="btn btn-primary btn-large">{{
+        !!globalStore.captureGUID ?
+            "Upload" :
+            "Create a Perma Link" }}</button>
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
