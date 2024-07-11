@@ -136,9 +136,23 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
 
 
     def test_should_allow_user_to_patch_with_file(self):
+        # fix up our old-fashioned test fixture to suit this test:
+        # - the archive_timestamp needs to be adjusted so that this link is in the patchable window
+        # - warc_size and wacz_size need to be set, as would be the case if this "successful"
+        #   capture were properly associated with actual web archive files, which is always
+        #   the case outside of tests
         self.link.archive_timestamp = timezone.now() + timedelta(1)
+        self.link.warc_size = 1
+        self.link.wacz_size = 1
         self.link.save()
+
+        # This link has a warc and a wacz
+        self.link.refresh_from_db()
+        self.assertTrue(self.link.warc_size)
+        self.assertTrue(self.link.wacz_size)
+
         old_primary_capture = self.link.primary_capture
+
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
             data=test_file.read()
             file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
@@ -148,6 +162,12 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
                                   data={'file':file_content})
 
         self.assertTrue(Capture.objects.filter(link_id=self.link.pk, role='primary').exclude(pk=old_primary_capture.pk).exists())
+
+        # This link now only has a warc, but not a wacz
+        self.link.refresh_from_db()
+        self.assertTrue(self.link.warc_size)
+        self.assertFalse(self.link.wacz_size)
+
 
     def test_should_reject_patch_with_file_for_out_of_window_link(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:

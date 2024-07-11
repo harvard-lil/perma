@@ -1939,6 +1939,17 @@ class Link(DeletableModel):
                 storage.store_file(old_file, new_name)
             storage.delete(old_name)
 
+    def safe_delete_wacz(self):
+        old_name = self.wacz_storage_file()
+        storage = storages[settings.WACZ_STORAGE]
+        if storage.exists(old_name):
+            new_name = old_name.replace('.wacz', f'_replaced_{timezone.now().timestamp()}.wacz')
+            with storage.open(old_name) as old_file:
+                storage.store_file(old_file, new_name)
+            storage.delete(old_name)
+        self.wacz_size = 0
+        self.save(update_fields=['wacz_size'])
+
     def accessible_to(self, user):
         return user.can_edit(self)
 

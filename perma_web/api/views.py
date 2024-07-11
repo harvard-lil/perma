@@ -622,6 +622,7 @@ class AuthenticatedLinkDetailView(BaseView):
                 # delete related captures, delete warc (rename), mark capture job as superseded
                 link.delete_related_captures()
                 link.safe_delete_warc()
+                link.safe_delete_wacz()
                 link.mark_capturejob_superseded()
 
                 # write new warc and capture
