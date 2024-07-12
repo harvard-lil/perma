@@ -10,6 +10,7 @@ ENV SQLALCHEMY_URI $SQLALCHEMY_URI
 COPY ./superset-init.sh /superset-init.sh
 COPY superset_config.py /app/
 ENV SUPERSET_CONFIG_PATH /app/superset_config.py
+COPY dashboard_export.zip /app/
 
 RUN chmod u+x /superset-init.sh
 ENTRYPOINT ["/superset-init.sh"]

@@ -1,7 +1,6 @@
-# enables feature to embed python code into sql queries
 FEATURE_FLAGS = {
-    "ENABLE_TEMPLATE_PROCESSING": True,
+    "ENABLE_TEMPLATE_PROCESSING": True,  # enables feature to embed python code into sql queries
+    "VERSIONED_EXPORT": True  # needed for cli export and imports
 }
 
-# compulsory key
-SECRET_KEY = "abcde"
+SECRET_KEY = "abcde"  # compulsory key
