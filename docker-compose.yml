@@ -27,10 +27,11 @@ services:
       context: ./services/docker/superset
       dockerfile: Dockerfile
     environment:
-      - SUPERSET_SECRET_KEY=abcde
       - ADMIN_USERNAME=admin
       - ADMIN_EMAIL=admin@superset.com
       - ADMIN_PASSWORD=admin
+      - DATABASE_NAME=perma-db
+      - SQLALCHEMY_URI=postgresql+psycopg2://perma:password@db:5432/perma
     ports:
       - "127.0.0.1:8088:8088"
     depends_on:

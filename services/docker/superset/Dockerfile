@@ -4,8 +4,12 @@ USER root
 ENV ADMIN_USERNAME $ADMIN_USERNAME
 ENV ADMIN_EMAIL $ADMIN_EMAIL
 ENV ADMIN_PASSWORD $ADMIN_PASSWORD
+ENV DATABASE_NAME $DATABASE_NAME
+ENV SQLALCHEMY_URI $SQLALCHEMY_URI
 
 COPY ./superset-init.sh /superset-init.sh
+COPY superset_config.py /app/
+ENV SUPERSET_CONFIG_PATH /app/superset_config.py
 
 RUN chmod u+x /superset-init.sh
 ENTRYPOINT ["/superset-init.sh"]
