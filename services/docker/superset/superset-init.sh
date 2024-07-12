@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # create admin user
-superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@superset.com --password admin
+superset fab create-admin \
+        --username "$ADMIN_USERNAME" \
+        --firstname Superset \
+        --lastname Admin \
+        --email "$ADMIN_EMAIL" \
+        --password "$ADMIN_PASSWORD"
 
 # upgrade superset metastore
 superset db upgrade
