@@ -161,7 +161,8 @@ def single_permalink(request, guid):
         'protocol': protocol(),
     }
 
-    if flag_is_active(request, 'wacz-playback') and link.has_wacz_version():
+    playback_type = request.GET.get('playback')
+    if flag_is_active(request, 'wacz-playback') and link.has_wacz_version() and not playback_type == 'warc':
         context["playback_url"] = link.wacz_presigned_url_relative()
     else:
         context["playback_url"] = link.warc_presigned_url_relative()
