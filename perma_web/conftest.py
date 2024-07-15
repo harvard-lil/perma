@@ -76,14 +76,7 @@ def live_server_ssl_cert(set_up_certs):
     }
 
 
-def _load_json_fixtures():
-    call_command('loaddata', *[
-        'fixtures/users.json',
-        'fixtures/api_keys.json',
-        'fixtures/folders.json',
-        'fixtures/archive.json'
-    ])
-
+def _fix_json_fixtures():
     # make sure cached_path is accurate, for Folders made from old fixtures
     Folder.objects.update(
         cached_path=Folder.objects.with_tree_fields().filter(
@@ -110,6 +103,16 @@ def _load_json_fixtures():
             )
         )
     )
+
+def _load_json_fixtures():
+    call_command('loaddata', *[
+        'fixtures/users.json',
+        'fixtures/api_keys.json',
+        'fixtures/folders.json',
+        'fixtures/archive.json'
+    ])
+    _fix_json_fixtures()
+
 
 
 @pytest.fixture(scope='session')

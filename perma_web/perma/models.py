@@ -1785,12 +1785,17 @@ class Link(DeletableModel):
     def move_to_folder_for_user(self, folder, user):
         """
             Move this link to the given folder for the given user.
-            If folder is None, link is moved to root (no folder).
         """
-        # remove this link from any folders it's in for this user
-        self.folders.remove(*self.folders.accessible_to(user))
-        # add it back to the given folder
-        if folder:
+        with transaction.atomic():
+            # Don't let anybody move folders around, until this link is
+            # safely inside its destination folder, lest denormalized
+            # ownership-related fields get out of sync
+            for folder in itertools.chain(self.folders.all(), [folder]):
+                Folder.objects.select_for_update().get(pk=folder.tree_root_id)
+
+            # remove this link from any folders it's in for this user
+            self.folders.remove(*self.folders.accessible_to(user))
+            # add it back to the given folder
             self.folders.add(folder)
             if not folder.organization:
                 self.organization = None
@@ -1798,7 +1803,7 @@ class Link(DeletableModel):
                 self.organization = folder.organization
             if self.bonus_link and (folder.organization or folder.sponsored_by):
                 self.bonus_link = False
-                user.bonus_links = user.bonus_links + 1
+                user.bonus_links = F('bonus_links') + 1
 
             self.save(update_fields=['organization', 'bonus_link'])
             user.save(update_fields=['bonus_links'])
