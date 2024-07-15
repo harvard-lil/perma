@@ -10,7 +10,9 @@ ENV SQLALCHEMY_URI $SQLALCHEMY_URI
 COPY ./superset-init.sh /superset-init.sh
 COPY superset_config.py /app/
 ENV SUPERSET_CONFIG_PATH /app/superset_config.py
-COPY dashboard_export.zip /app/
+# copy the file with timestamp removed so import-dashboards command in superset-init.sh can locate it
+# downstream import-dashboards assumes we will have one dashboard zip
+COPY dashboard_export*.zip /app/dashboard_export.zip
 
 RUN chmod u+x /superset-init.sh
 ENTRYPOINT ["/superset-init.sh"]

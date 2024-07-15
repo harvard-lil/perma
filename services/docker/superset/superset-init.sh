@@ -15,10 +15,13 @@ superset db upgrade
 superset init
 
 # create perma db connection
-# commenting this out for now because the below import-dashboard cmd creates the db connection as well
+# the below import-dashboards cmd creates the db connection as well
+# if you don't want to import the data objects but only create db connection, use this instead of import-dashboards
 # superset set-database-uri -d "$DATABASE_NAME" -u "$SQLALCHEMY_URI"
 
-# import dashboard and their related data such as charts, datasets and database connection
+# import dashboards and their related data such as charts, datasets and database connection
+# it will override the existing dashboard that has the same name
+# it assumes we will have one dashboard (for now)
 superset import-dashboards \
         --path '/app/dashboard_export.zip' \
         --username "$ADMIN_USERNAME"
