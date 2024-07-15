@@ -8,6 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 from mock import patch
+from conftest import _fix_json_fixtures
 
 
 class LinkAuthorizationMixin():
@@ -17,6 +18,12 @@ class LinkAuthorizationMixin():
                 'fixtures/folders.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        _fix_json_fixtures()
+
 
     def setUp(self):
         super(LinkAuthorizationMixin, self).setUp()
@@ -281,6 +288,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
 class LinkAuthorizationTransactionTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
 
     def setUp(self):
+        _fix_json_fixtures()
         super(LinkAuthorizationTransactionTestCase, self).setUp()
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
