@@ -21,7 +21,6 @@ superset init
 
 # import dashboards and their related data such as charts, datasets and database connection
 # it will override the existing dashboard that has the same name
-# it assumes we will have one dashboard (for now)
 superset import-dashboards \
         --path '/app/dashboard_export.zip' \
         --username "$ADMIN_USERNAME"
