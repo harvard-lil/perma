@@ -504,11 +504,11 @@ class AuthenticatedLinkListView(BaseView):
 
                 link = serializer.save(created_by=request.user, bonus_link=bonus_link)
 
-            # put link in folder and handle Org settings based on folder
-            if folder.organization and folder.organization.default_to_private:
-                link.is_private = True
-                link.save()
-            link.move_to_folder_for_user(folder, request.user)  # also sets link.organization
+                # put link in folder and handle Org settings based on folder
+                if folder.organization and folder.organization.default_to_private:
+                    link.is_private = True
+                    link.save()
+                link.move_to_folder_for_user(folder, request.user)  # also sets link.organization
 
             # handle uploaded file
             uploaded_file = request.data.get('file')
