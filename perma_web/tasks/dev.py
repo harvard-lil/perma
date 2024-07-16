@@ -1331,7 +1331,7 @@ def benchmark_wacz_conversion(ctx, source_csv=None, guid=None,
     queued = []
     for guid in guids.iterator():
         queued.append(guid)
-        convert_warc_to_wacz.delay(guid)
+        convert_warc_to_wacz.delay(guid, save_wacz_on_error=True)
 
     logger.info(f"Done launching benchmark conversions ({len(queued)} in {time.time() - start}s).")
     if log_to_file:

@@ -1311,7 +1311,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 
 @shared_task
 @tempdir.run_in_tempdir()
-def convert_warc_to_wacz(input_guid):
+def convert_warc_to_wacz(input_guid, save_wacz_on_error=False, warn_on_error=False):
     """
     Downloads WARC file to temp dir
     Converts WARC file to WACZ
@@ -1465,7 +1465,7 @@ def convert_warc_to_wacz(input_guid):
         data["conversion_status"] = "Failure"
         data["error"] = "No WACZ produced"
     else:
-        # A WACZ to save: keep broken ones around for study
+        # A WACZ to save: optionally keep broken ones around for study
         if warc_size > wacz_size:
             data["conversion_status"] = "Failure"
             data["error"] = "WACZ is smaller than WARC"
@@ -1475,10 +1475,12 @@ def convert_warc_to_wacz(input_guid):
         else:
             data["conversion_status"] = "Success"
 
-        link.wacz_size = wacz_size
-        link.save(update_fields=['wacz_size'])
-
-        with open(wacz_path, 'rb') as wacz_file:
-            storages[settings.WACZ_STORAGE].save(link.wacz_storage_file(), wacz_file)
+        if data["conversion_status"] == "Success" or save_wacz_on_error:
+            link.wacz_size = wacz_size
+            link.save(update_fields=['wacz_size'])
+            with open(wacz_path, 'rb') as wacz_file:
+                storages[settings.WACZ_STORAGE].save(link.wacz_storage_file(), wacz_file)
 
     storages[settings.WACZ_STORAGE].save(link.warc_to_wacz_conversion_log_file(), StringIO(json.dumps(data)))
+    if data["error"] and warn_on_error:
+        logger.warning(data["error"])
