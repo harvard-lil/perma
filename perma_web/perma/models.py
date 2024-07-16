@@ -1867,6 +1867,10 @@ class Link(DeletableModel):
             pass
 
     @cached_property
+    def is_user_uploaded(self):
+        return self.primary_capture.user_upload
+
+    @cached_property
     def screenshot_capture(self):
         return self.captures.filter(role='screenshot').first()
 
