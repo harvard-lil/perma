@@ -171,13 +171,13 @@ def single_permalink(request, guid):
     if context['can_view'] and link.can_play_back():
 
         # Prepare a WACZ for the next attempted playback, if appropriate
-        if all([
-            settings.WARC_TO_WACZ_ON_DEMAND,
-            link.warc_size,
-            link.warc_size < settings.WARC_TO_WACZ_ON_DEMAND_SIZE_LIMIT,
-            not link.wacz_size,
+        if (
+            settings.WARC_TO_WACZ_ON_DEMAND and
+            link.warc_size and
+            link.warc_size < settings.WARC_TO_WACZ_ON_DEMAND_SIZE_LIMIT and
+            not link.wacz_size and
             not link.is_user_uploaded
-        ]):
+        ):
             convert_warc_to_wacz.delay(link.guid)
 
         if new_record:
