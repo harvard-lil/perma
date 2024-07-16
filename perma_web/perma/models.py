@@ -1883,7 +1883,7 @@ class Link(DeletableModel):
         return self.captures.filter(role='provenance_summary').first()
 
     def get_pages_jsonl(self):
-        if self.cached_can_play_back:
+        if self.can_play_back():
             jsonl_rows = [
                 {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
             ]

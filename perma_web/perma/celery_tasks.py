@@ -1347,7 +1347,7 @@ def convert_warc_to_wacz(input_guid):
     pages_path = "pages.jsonl"
 
     # confirm this Link has a warc that should be converted
-    if not link.cached_can_play_back:
+    if not link.can_play_back():
         logger.error(f"{link.guid} is ineligible for conversion.")
         return
 
