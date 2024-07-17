@@ -28,6 +28,7 @@ from ..utils import (if_anonymous, ratelimit_ip_key,
     timemap_url, timegate_url, memento_url, memento_data_for_url, url_with_qs_and_hash,
     remove_control_characters)
 from ..email import send_admin_email, send_user_email_copy_admins
+from ..celery_tasks import convert_warc_to_wacz
 
 import logging
 
@@ -168,6 +169,17 @@ def single_permalink(request, guid):
         context["playback_url"] = link.warc_presigned_url_relative()
 
     if context['can_view'] and link.can_play_back():
+
+        # Prepare a WACZ for the next attempted playback, if appropriate
+        if (
+            settings.WARC_TO_WACZ_ON_DEMAND and
+            link.warc_size and
+            link.warc_size < settings.WARC_TO_WACZ_ON_DEMAND_SIZE_LIMIT and
+            not link.wacz_size and
+            not link.is_user_uploaded
+        ):
+            convert_warc_to_wacz.delay(link.guid)
+
         if new_record:
             logger.debug(f"Ensuring warc for {link.guid} has finished uploading.")
             def assert_exists(filename):

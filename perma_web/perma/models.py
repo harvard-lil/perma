@@ -1867,6 +1867,10 @@ class Link(DeletableModel):
             pass
 
     @cached_property
+    def is_user_uploaded(self):
+        return self.primary_capture.user_upload
+
+    @cached_property
     def screenshot_capture(self):
         return self.captures.filter(role='screenshot').first()
 
@@ -1883,7 +1887,7 @@ class Link(DeletableModel):
         return self.captures.filter(role='provenance_summary').first()
 
     def get_pages_jsonl(self):
-        if self.cached_can_play_back:
+        if self.can_play_back():
             jsonl_rows = [
                 {"format": "json-pages-1.0", "id": "pages", "title": "All Pages"}
             ]
