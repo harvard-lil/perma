@@ -1886,6 +1886,18 @@ class Link(DeletableModel):
     def provenance_summary_capture(self):
         return self.captures.filter(role='provenance_summary').first()
 
+    @cached_property
+    def pdf_snapshot_capture(self):
+        return self.captures.filter(role='pdf_snapshot').first()
+
+    @cached_property
+    def dom_snapshot_capture(self):
+        return self.captures.filter(role='dom_snapshot').first()
+
+    @cached_property
+    def video_summary_capture(self):
+        return self.captures.filter(role='video_summary').first()
+
     def get_pages_jsonl(self):
         if self.can_play_back():
             jsonl_rows = [
