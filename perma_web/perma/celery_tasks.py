@@ -149,8 +149,9 @@ def save_scoop_capture(link, capture_job, data):
             logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
 
     #
-    # OTHER ATTACHMENTS
+    # Provenance
     #
+
     provenance_filename = data['scoop_capture_summary']['attachments'].get("provenanceSummary")
     if provenance_filename:
         Capture(
@@ -173,6 +174,36 @@ def save_scoop_capture(link, capture_job, data):
     else:
         link.tags.add('scoop-missing-provenance')
         logger.warning(f"{capture_job.link_id}: Scoop warc does not contain provenance summary ({data['id_capture']}).")
+
+    #
+    # OTHER ATTACHMENTS
+    #
+    supported_attachments = {
+        "pdf_snapshot": {
+            'attr': 'pdfSnapshot',
+            'content_type': 'application/pdf',
+        },
+        "dom_snapshot": {
+            'attr': 'domSnapshot',
+            'content_type': 'text/html; charset=utf-8',
+        },
+        "video_summary": {
+            'attr': 'videoExtractedSummary',
+            'content_type': 'text/html; charset=utf-8',
+        }
+    }
+    for attachment_type in supported_attachments:
+        if attachment_filename := data['scoop_capture_summary']['attachments'].get(
+            supported_attachments[attachment_type]['attr']
+        ):
+            Capture(
+                link=link,
+                role=attachment_type,
+                status='success',
+                record_type='response',
+                url=f"file:///{attachment_filename}",
+                content_type=supported_attachments[attachment_type]['content_type'],
+            ).save()
 
     #
     # WARC
