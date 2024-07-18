@@ -155,6 +155,14 @@
               <dd class="tray-detail-entry">Captured by Scoop</dd>
             {% endif %}
           </div>
+          <div class="tray-detail-group admin-only">
+            <dt class="tray-detail-title">Pages</dt>
+            <dd class="tray-detail-entry">
+              {% for capture in link.captures.all %}
+                {{ capture.get_role_display }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </dd>
+          </div>
         {% else %}
           {% if link.captured_by_software == 'upload' %}
             <div class="tray-detail-group">
