@@ -1886,6 +1886,18 @@ class Link(DeletableModel):
     def provenance_summary_capture(self):
         return self.captures.filter(role='provenance_summary').first()
 
+    @cached_property
+    def pdf_snapshot_capture(self):
+        return self.captures.filter(role='pdf_snapshot').first()
+
+    @cached_property
+    def dom_snapshot_capture(self):
+        return self.captures.filter(role='dom_snapshot').first()
+
+    @cached_property
+    def video_summary_capture(self):
+        return self.captures.filter(role='video_summary').first()
+
     def get_pages_jsonl(self):
         if self.can_play_back():
             jsonl_rows = [
@@ -1896,13 +1908,25 @@ class Link(DeletableModel):
                 jsonl_rows.append(
                     {"url": self.provenance_summary_capture.url, "title": "Provenance Summary", "ts": ts}
                 )
+            if self.primary_capture:
+                jsonl_rows.append(
+                    {"url": self.primary_capture.url, "title": f"High-Fidelity Web Capture of {self.ascii_safe_url}", "ts": ts}
+                )
             if self.screenshot_capture:
                 jsonl_rows.append(
                     {"url": self.screenshot_capture.url, "title": f"Capture Time Screenshot of {self.ascii_safe_url}", "ts": ts}
                 )
-            if self.primary_capture:
+            if self.dom_snapshot_capture:
                 jsonl_rows.append(
-                    {"url": self.primary_capture.url, "title": f"High-Fidelity Web Capture of {self.ascii_safe_url}", "ts": ts}
+                    {"url": self.dom_snapshot_capture.url, "title": f"Capture Time DOM snapshot of {self.ascii_safe_url}", "ts": ts}
+                )
+            if self.pdf_snapshot_capture:
+                jsonl_rows.append(
+                    {"url": self.pdf_snapshot_capture.url, "title": f"Capture Time PDF snapshot of {self.ascii_safe_url}", "ts": ts}
+                )
+            if self.video_summary_capture:
+                jsonl_rows.append(
+                    {"url": self.video_summary_capture.url, "title": f"Extracted Video data from: {self.ascii_safe_url}", "ts": ts}
                 )
             return "\n".join([json.dumps(row) for row in jsonl_rows])
 
@@ -2003,10 +2027,13 @@ class Link(DeletableModel):
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
     role = models.CharField(max_length=18, choices=(
-        ('primary','primary'),
-        ('screenshot','screenshot'),
-        ('favicon','favicon'),
-        ('provenance_summary', 'provenance_summary'),
+        ('primary','Primary'),
+        ('screenshot','Screenshot'),
+        ('favicon','Favicon'),
+        ('provenance_summary', 'Provenance Summary'),
+        ('pdf_snapshot', 'PDF Snapshot'),
+        ('dom_snapshot', 'DOM Snapshot'),
+        ('video_summary', 'Video Summary'),
     ))
     status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
     url = models.CharField(max_length=2100, blank=True, null=True)
