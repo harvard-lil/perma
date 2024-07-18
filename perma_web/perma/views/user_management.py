@@ -25,6 +25,7 @@ from django.db import transaction
 from django.db.models import Count, F, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Coalesce, Greatest
+from django.db.models.manager import BaseManager
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
@@ -650,6 +651,42 @@ def manage_single_registrar_user_reactivate(request, user_id):
 def manage_sponsored_user(request):
     return list_sponsored_users(request)
 
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_sponsored_user_export_user_list(request: HttpRequest):
+    # Get query results via list_sponsored_users
+    field_names = [
+        'email',
+        'first_name',
+        'last_name',
+        'date_joined',
+        'last_login',
+        'sponsorship_status',
+        'sponsorship_created_at',
+    ]
+    records = list_sponsored_users(request, export=True)
+    users = records.annotate(
+        sponsorship_status=F('sponsorships__status'),
+        sponsorship_created_at=F('sponsorships__created_at'),
+    ).values(*field_names)
+
+    # Export records in appropriate format based on `format` URL parameter
+    export_format: Literal['csv', 'json'] = request.GET.get('format', 'csv').casefold()
+    match export_format:
+        case 'json':
+            response = JsonResponse(list(users), safe=False)
+        case 'csv' | _:
+            response = HttpResponse(
+                content_type='text/csv',
+                headers={'Content-Disposition': 'attachment; filename="perma-sponsored-users.csv"'},
+            )
+            writer = csv.DictWriter(response, fieldnames=field_names)
+            writer.writeheader()
+            for user in users:
+                writer.writerow(user)
+    return response
+
+
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_single_sponsored_user(request, user_id):
     return edit_user_in_group(request, user_id, 'sponsored_user')
@@ -859,11 +896,14 @@ def list_users_in_group(request, group_name):
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
-def list_sponsored_users(request, group_name='sponsored_user'):
+def list_sponsored_users(
+    request: HttpRequest, group_name: str = 'sponsored_user', export: bool = False
+) -> HttpResponse | BaseManager[LinkUser]:
     """
-        Show list of sponsored users. Adapted from `list_users_in_group` for improved performance.
-    """
+    Show list of sponsored users. Adapted from `list_users_in_group` for improved performance.
 
+    If `export` is enabled, returns a query manager for exporting user records.
+    """
     from perma.models import Sponsorship
 
     registrars = None
@@ -902,6 +942,10 @@ def list_sponsored_users(request, group_name='sponsored_user'):
 
     # handle search
     users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name'])
+
+    # if exporting records (e.g. for CSV or JSON output), return query manager directly
+    if export is True:
+        return users
 
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
