@@ -653,7 +653,7 @@ def manage_sponsored_user(request):
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
-def manage_sponsored_user_export_user_list(request: HttpRequest):
+def manage_sponsored_user_export_user_list(request: HttpRequest) -> HttpResponse | JsonResponse:
     # Get query results via list_sponsored_users
     field_names = [
         'email',
