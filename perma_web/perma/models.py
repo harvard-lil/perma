@@ -2003,10 +2003,13 @@ class Link(DeletableModel):
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures', on_delete=models.CASCADE)
     role = models.CharField(max_length=18, choices=(
-        ('primary','primary'),
-        ('screenshot','screenshot'),
-        ('favicon','favicon'),
-        ('provenance_summary', 'provenance_summary'),
+        ('primary','Primary'),
+        ('screenshot','Screenshot'),
+        ('favicon','Favicon'),
+        ('provenance_summary', 'Provenance Summary'),
+        ('pdf_snapshot', 'PDF Snapshot'),
+        ('dom_snapshot', 'DOM Snapshot'),
+        ('video_summary', 'Video Summary'),
     ))
     status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
     url = models.CharField(max_length=2100, blank=True, null=True)
