@@ -24,7 +24,7 @@ from tree_queries.query import TreeQuerySet
 
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.contrib.postgres.fields import DateTimeRangeField
+from django.contrib.postgres.fields import ArrayField, DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import storages
 from django.db import models, transaction
@@ -2094,6 +2094,9 @@ class Capture(models.Model):
         return self.mime_type() not in self.INLINE_TYPES
 
 
+def get_default_archive_formats():
+    return ['warc']
+
 class CaptureJob(models.Model):
     """
         This class tracks capture jobs for purposes of:
@@ -2115,6 +2118,14 @@ class CaptureJob(models.Model):
                               choices=(('perma', 'perma'), ('scoop-api', 'scoop-api')),
                               default='scoop-api',
                               db_index=True)
+
+    archive_formats = ArrayField(
+        models.CharField(
+            max_length=15,
+            choices=(('warc','warc'),('wacz','wacz'))
+        ),
+        default=get_default_archive_formats
+    )
 
     # reporting
     attempt = models.SmallIntegerField(default=0)

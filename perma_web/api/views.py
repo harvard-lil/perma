@@ -414,10 +414,19 @@ class AuthenticatedLinkListView(BaseView):
         if url_is_invalid_unicode(submitted_url):
             raise ValidationError({'url': "Unicode error while processing URL."})
 
+        archive_formats = []
+        if settings.WARC_SAVING_ENABLED:
+            archive_formats.append('warc')
+        if settings.WACZ_SAVING_ENABLED:
+            archive_formats.append('wacz')
+        if not archive_formats:
+            raise Exception("Invalid settings: at least one of WARC_SAVING_ENABLED or WACZ_SAVING_ENABLED must be True.")
+
         capture_job = CaptureJob(
             human=human,
             submitted_url=submitted_url[:2100],
-            created_by=request.user
+            created_by=request.user,
+            archive_formats = archive_formats
         )
 
         # Batch is set directly on the request object by the LinkBatch api,
