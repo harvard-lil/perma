@@ -1908,13 +1908,25 @@ class Link(DeletableModel):
                 jsonl_rows.append(
                     {"url": self.provenance_summary_capture.url, "title": "Provenance Summary", "ts": ts}
                 )
+            if self.primary_capture:
+                jsonl_rows.append(
+                    {"url": self.primary_capture.url, "title": f"High-Fidelity Web Capture of {self.ascii_safe_url}", "ts": ts}
+                )
             if self.screenshot_capture:
                 jsonl_rows.append(
                     {"url": self.screenshot_capture.url, "title": f"Capture Time Screenshot of {self.ascii_safe_url}", "ts": ts}
                 )
-            if self.primary_capture:
+            if self.dom_snapshot_capture:
                 jsonl_rows.append(
-                    {"url": self.primary_capture.url, "title": f"High-Fidelity Web Capture of {self.ascii_safe_url}", "ts": ts}
+                    {"url": self.dom_snapshot_capture.url, "title": f"Capture Time DOM snapshot of {self.ascii_safe_url}", "ts": ts}
+                )
+            if self.pdf_snapshot_capture:
+                jsonl_rows.append(
+                    {"url": self.pdf_snapshot_capture.url, "title": f"Capture Time PDF snapshot of {self.ascii_safe_url}", "ts": ts}
+                )
+            if self.video_summary_capture:
+                jsonl_rows.append(
+                    {"url": self.video_summary_capture.url, "title": f"Extracted Video data from: {self.ascii_safe_url}", "ts": ts}
                 )
             return "\n".join([json.dumps(row) for row in jsonl_rows])
 
