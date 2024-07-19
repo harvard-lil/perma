@@ -313,7 +313,7 @@ def rate_limit(request, exception):
     return render(request, "rate_limit.html")
 
 
-@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.CONTACT_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def contact(request):
     """
     Our contact form page
