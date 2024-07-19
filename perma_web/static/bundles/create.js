@@ -28447,7 +28447,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
   return ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"organization") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":1,"column":0},"end":{"line":5,"column":7}}})) != null ? stack1 : "")
     + "<a href=\"/api/v1/folders/"
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"folder") || (depth0 != null ? lookupProperty(depth0,"folder") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"folder","hash":{},"data":data,"loc":{"start":{"line":6,"column":25},"end":{"line":6,"column":37}}}) : helper)))
-    + "/archives/export\" id=\"export-links-csv\" class=\"pull-right icon-download-alt\" title=\"Export Links\"></a>\n";
+    + "/archives/export\" id=\"export-links-csv\" class=\"pull-right icon-download-alt\" aria-label=\"Export Links\" title=\"Export Links\"></a>\n";
 },"useData":true});
 
 /***/ }),
