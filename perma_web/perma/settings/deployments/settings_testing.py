@@ -126,4 +126,4 @@ TIERS = {
     ]
 }
 
-WACZ_SAVING_ENABLED = True
+ARCHIVE_FORMATS = ['warc', 'wacz']
