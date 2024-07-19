@@ -48,3 +48,5 @@ TIERS['Individual'] = [
     }
 ]
 
+CONTACT_MINUTE_LIMIT = '2/m'
+REPORT_MINUTE_LIMIT = '2/m'

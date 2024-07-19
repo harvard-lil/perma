@@ -324,6 +324,8 @@ HOUR_LIMIT = '100000/h'
 DAY_LIMIT = '500000/d'
 REGISTER_MINUTE_LIMIT = '600/m'
 LOGIN_MINUTE_LIMIT = '5000/m'
+CONTACT_MINUTE_LIMIT = MINUTE_LIMIT
+REPORT_MINUTE_LIMIT = MINUTE_LIMIT
 
 # If the Django redis cache is configured but unavailable,
 # the ratelimiting plugin should allow all requests,
