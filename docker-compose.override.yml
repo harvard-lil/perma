@@ -41,20 +41,18 @@ services:
       - scoop_rest_api_internal
 
   scoop-db:
-    image: registry.lil.tools/library/mariadb:10.6.14
+    image: registry.lil.tools/library/postgres:16.3
     environment:
-      - MARIADB_ROOT_PASSWORD=password
-      - MARIADB_DATABASE=scoop_api
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: scoop_api
+      POSTGRES_USER: scoop
     volumes:
-      # If the volume contains a database (a subdirectory named mysql)
-      # when you start the container, it will be left untouched and unaffected
-      # by config environment variables like $MARIADB_ROOT_PASSWORD.
-      - scoop_db_data:/var/lib/mysql:delegated
+      - scoop_postgres_data:/var/lib/postgresql/data:delegated
     networks:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:88-598aa024eadb5ac299f5348e8b9bd3d2
+    image: registry.lil.tools/harvardlil/scoop-rest-api:89-b2e7cae3535cd354e51b1c53f145abac
     init: true
     tty: true
     depends_on:
@@ -63,15 +61,14 @@ services:
       - "127.0.0.1:5000:5000"
     environment:
       - API_DOMAIN=http://scoop-rest-api:5000
-      - DATABASE_USERNAME=root
+      - DATABASE_USERNAME=scoop
       - DATABASE_PASSWORD=password
       - DATABASE_HOST=scoop-db
-      - DATABASE_PORT=3306
+      - DATABASE_PORT=5432
       - DATABASE_NAME=scoop_api
       - START_CRON=true                   # false|true
       - START_FLASK_SERVER=true           # false|true
-      - START_CAPTURE_PROCESSES=parallel  # none|single|parallel
-      - START_CELERY=false                # false|true
+      - START_CELERY=true                 # false|true
       - DISPLAY=:99                       # Run Xvfb with the below virtual display number
       - CREATE_ACCESS_KEY_WITH_LABEL=dev  # create a new access key each time the container starts
     volumes:

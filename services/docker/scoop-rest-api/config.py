@@ -1,8 +1,8 @@
-# This is the default config.py from the Scoop REST API as of 6/3/2024
-# https://github.com/harvard-lil/perma-scoop-api/blob/a7872d93473efec02c2137a86dc8b4874fdf4e31/scoop_rest_api/config.py
+# This is the default config.py from the Scoop REST API as of 7/19/2024
+# https://github.com/harvard-lil/perma-scoop-api/blob/ac4691f4716ac1481dcecdc87c2b2302406aa3c3/scoop_rest_api/config.py
 # We use it to:
 # - override the blocklist, to allow the capturing of docker-hosted pages in our test suite;
-# - adapt Celery settings so Scoop's celery can run side-by-side with Perma's
+# - enable additional attachments
 
 """
 `config` module: App-wide settings.
@@ -10,6 +10,7 @@
 
 import os
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
@@ -18,17 +19,16 @@ load_dotenv()
 #
 # Security settings
 #
-ACCESS_KEY_SALT = b"$2b$12$rXmm9AWx82fxw9Jbs1PXI.zebeXu4Ydi1huwxyH5k9flyhccBBTxa"  # default / dev
-
+ACCESS_KEY_SALT = os.environ.get(
+    "ACCESS_KEY_SALT", "$2b$12$rXmm9AWx82fxw9Jbs1PXI.zebeXu4Ydi1huwxyH5k9flyhccBBTxa"
+).encode()
 # Access key salt should be provided via an environment variable.
 # Use bcrypt.gensalt() to generate one.
-if "ACCESS_KEY_SALT" in os.environ:
-    ACCESS_KEY_SALT = os.environ["ACCESS_KEY_SALT"].encode()
 
 MAX_PENDING_CAPTURES = 300
 """ Stop accepting new capture requests if there are over X captures in the queue. """
 
-EXPOSE_SCOOP_LOGS = True
+EXPOSE_SCOOP_LOGS = os.environ.get("EXPOSE_SCOOP_LOGS", "True") == "True"
 """ If `True`, Scoop logs will be exposed at API level by capture_to_dict. Handle with care. """
 
 EXPOSE_SCOOP_CAPTURE_SUMMARY = True
@@ -37,50 +37,29 @@ EXPOSE_SCOOP_CAPTURE_SUMMARY = True
 #
 # Database settings
 #
-DATABASE_USERNAME = "root"
-""" (MySQL) Database username. Should be provided via an environment variable. """
+DATABASE_USERNAME = os.environ.get("DATABASE_USERNAME", "root")
+""" (Postgres) Database username. Should be provided via an environment variable. """
 
-if "DATABASE_USERNAME" in os.environ:
-    DATABASE_USERNAME = os.environ["DATABASE_USERNAME"]
+DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD", "")
+""" (Postgres) Database password. Should be provided via an environment variable. """
 
-DATABASE_PASSWORD = ""
-""" (MySQL) Database password. Should be provided via an environment variable. """
+DATABASE_HOST = os.environ.get("DATABASE_HOST", "127.0.0.1")
+""" (Postgres) Database host. Should be provided via an environment variable. """
 
-if "DATABASE_PASSWORD" in os.environ:
-    DATABASE_PASSWORD = os.environ["DATABASE_PASSWORD"]
+DATABASE_PORT = int(os.environ.get("DATABASE_PORT", "5432"))
+""" (Postgres) Database port. Should be provided via an environment variable. """
 
-DATABASE_HOST = "127.0.0.1"
-""" (MySQL) Database host. Should be provided via an environment variable. """
+DATABASE_NAME = os.environ.get("DATABASE_NAME", "scoop_api")
+""" (Postgres) Database name. Should be provided via an environment variable. """
 
-if "DATABASE_HOST" in os.environ:
-    DATABASE_HOST = os.environ["DATABASE_HOST"]
-
-DATABASE_PORT = 3306
-""" (MySQL) Database port. Should be provided via an environment variable. """
-
-if "DATABASE_PORT" in os.environ:
-    DATABASE_PORT = int(os.environ["DATABASE_PORT"])
-
-DATABASE_NAME = "scoop_api"
-""" (MySQL) Database name. Should be provided via an environment variable. """
-
-if "DATABASE_NAME" in os.environ:
-    DATABASE_NAME = os.environ["DATABASE_NAME"]
-
-DATABASE_CA_PATH = ""
-""" (MySQL) If provided, will be used to connect to MySQL via SSL. """
-
-if "DATABASE_CA_PATH" in os.environ:
-    DATABASE_CA_PATH = os.environ["DATABASE_CA_PATH"]
+DATABASE_CA_PATH = os.environ.get("DATABASE_CA_PATH", "")
+""" If provided, will be used to connect to Postgres via SSL. """
 
 
 #
-# Paths settings
+# Path and artifact settings
 #
-TEMPORARY_STORAGE_PATH = "./storage"
-""" Directory in which files will be (temporarily) stored. """
-
-TEMPORARY_STORAGE_EXPIRATION = 60 * 60 * 24
+TEMPORARY_STORAGE_EXPIRATION = os.environ.get("TEMPORARY_STORAGE_EXPIRATION", str(60 * 60 * 24))
 """ How long should temporary files be stored for? (In seconds). Can be provided via an environment variable. """  # noqa
 
 DEPLOYMENT_SENTINEL_PATH = "/tmp/deployment-pending"
@@ -88,11 +67,8 @@ DEPLOYMENT_SENTINEL_PATH = "/tmp/deployment-pending"
 #
 # API-wide settings
 #
-API_DOMAIN = "http://localhost:5000"
+API_DOMAIN = os.environ.get("API_DOMAIN", "http://localhost:5000")
 """ Root URL of the API. """
-
-if "API_DOMAIN" in os.environ:
-    API_DOMAIN = os.environ["API_DOMAIN"]
 
 API_STORAGE_URL = f"{API_DOMAIN}/storage"
 """ URL for the storage folder. """
@@ -100,11 +76,8 @@ API_STORAGE_URL = f"{API_DOMAIN}/storage"
 #
 # Background processing options
 #
-PROCESSES = 6
+PROCESSES = int(os.environ.get("PROCESSES", "6"))
 """ How many tick commands (capture processing) should run in parallel."""
-
-if "PROCESSES" in os.environ:
-    PROCESSES = os.environ["PROCESSES"]
 
 PROCESSES_PROXY_PORT = 9000
 """
@@ -199,15 +172,15 @@ VALIDATION_EXTRA_HEADERS = {
     "Accept-Language": "*",
     "Connection": "keep-alive",
 }
-VALIDATION_TIMEOUT = 45
+VALIDATION_TIMEOUT = int(os.environ.get("VALIDATION_TIMEOUT", "45"))
 
 
 #
 # Celery settings
 #
-START_CELERY = True if os.getenv("START_CELERY") == "true" else False
 CELERY_SETTINGS = {
-    "broker_url": "redis://scoop-redis:6379/0",
+    "broker_url": os.environ.get("BROKER_URL", "redis://scoop-redis:6379/0"),
+    "result_backend": os.environ.get("RESULT_BACKEND", "redis://scoop-redis:6379/1"),
     "accept_content": ["json"],
     "result_serializer": "json",
     "task_serializer": "json",
@@ -216,6 +189,23 @@ CELERY_SETTINGS = {
     # If a task is running longer than seven minutes, kill it
     "task_time_limit": 420,
     "task_always_eager": False,
-    "beat_schedule": {},
+    "task_routes": {
+        "scoop_rest_api.tasks.start_capture_process": {"queue": "main"},
+    },
+    "beat_schedule": {
+        "run-next-capture": {
+            "task": "scoop_rest_api.tasks.start_capture_process",
+            "schedule": crontab(minute="*"),
+        }
+    },
 }
-CELERY_IS_ACTIVE = (START_CELERY is True) or (CELERY_SETTINGS.get("task_always_eager") is True)
+ENABLE_CELERY_BACKEND = os.environ.get("ENABLE_CELERY_BACKEND", "False") == "True"
+if "CELERYBEAT_TASKS" in os.environ:
+    CELERYBEAT_TASKS = os.environ["CELERYBEAT_TASKS"].split(",")
+else:
+    CELERYBEAT_TASKS = ["run-next-capture"]
+
+#
+# Command for wrapping Scoop, e.g. firejail
+#
+SCOOP_PREFIX = os.environ.get("SCOOP_PREFIX", "")
