@@ -26,4 +26,4 @@ superset import-dashboards \
         --username "$ADMIN_USERNAME"
 
 # start server
-/bin/sh -c /usr/bin/run-server.sh
+/bin/bash -c /usr/bin/run-server.sh

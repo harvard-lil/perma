@@ -40,6 +40,10 @@ services:
       - default
     volumes:
       - superset:/app/superset_home
+      - ./services/docker/superset/superset-init.sh:/superset-init.sh
+      - ./services/docker/superset/superset_config.py:/app/superset_config.py
+      - ./services/docker/superset/dashboard_export.zip:/app/dashboard_export.zip
+    entrypoint: ["/bin/bash", "/superset-init.sh"]
   web:
     image: registry.lil.tools/harvardlil/perma-web:120-8d62d51fcb80cb29e3251399e9b72b47
     tty: true
