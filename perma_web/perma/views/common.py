@@ -457,7 +457,7 @@ def contact_thanks(request):
     return render(request, 'contact-thanks.html', {'registrar': registrar})
 
 
-@ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REPORT_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def report(request):
     """
     Report inappropriate content.
