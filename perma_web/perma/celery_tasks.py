@@ -208,7 +208,7 @@ def save_scoop_capture(link, capture_job, data):
     #
     # WARC
     #
-    if settings.WARC_SAVING_ENABLED is True:
+    if 'warc' in capture_job.archive_formats:
         # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
         with tempfile.TemporaryFile('ab+') as tmp_file:
             inc_progress(capture_job, 1, "Downloading web archive file (WARC)")
@@ -235,7 +235,7 @@ def save_scoop_capture(link, capture_job, data):
     #
     # WACZ
     #
-    if settings.WACZ_SAVING_ENABLED is True:
+    if 'wacz' in capture_job.archive_formats:
         # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
         with tempfile.TemporaryFile('ab+') as tmp_file:
             inc_progress(capture_job, 1, "Downloading web archive file (WACZ)")

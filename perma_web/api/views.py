@@ -417,7 +417,8 @@ class AuthenticatedLinkListView(BaseView):
         capture_job = CaptureJob(
             human=human,
             submitted_url=submitted_url[:2100],
-            created_by=request.user
+            created_by=request.user,
+            archive_formats = settings.ARCHIVE_FORMATS
         )
 
         # Batch is set directly on the request object by the LinkBatch api,
