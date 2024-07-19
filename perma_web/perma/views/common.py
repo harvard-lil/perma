@@ -313,6 +313,8 @@ def rate_limit(request, exception):
     return render(request, "rate_limit.html")
 
 
+@ratelimit(rate=settings.CONTACT_DAY_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.CONTACT_HOUR_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.CONTACT_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def contact(request):
     """
@@ -457,6 +459,8 @@ def contact_thanks(request):
     return render(request, 'contact-thanks.html', {'registrar': registrar})
 
 
+@ratelimit(rate=settings.REPORT_DAY_LIMIT, block=True, key=ratelimit_ip_key)
+@ratelimit(rate=settings.REPORT_HOUR_LIMIT, block=True, key=ratelimit_ip_key)
 @ratelimit(rate=settings.REPORT_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def report(request):
     """
