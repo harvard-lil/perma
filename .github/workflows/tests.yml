@@ -39,7 +39,7 @@ jobs:
           # --ignore-pull-failures for PRs with new images that haven't been pushed yet:
           docker compose -f docker-compose.yml pull --ignore-pull-failures || true
           docker compose -f docker-compose.yml up -d        # use -f to suppress docker-compose.override.yml
-          docker compose up -d scoop-db scoop-rest-api      # start up the Scoop API separately
+          docker compose up -d scoop-redis scoop-db scoop-rest-api      # start up the Scoop API separately
           bash make_cert.sh                                 # install SSL certs and restart the wacz-exhibitor and minio containers
           docker ps -a                                      # show running containers
           docker compose logs                               # show logs
