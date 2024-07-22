@@ -20,29 +20,7 @@ services:
       - postgres_data:/var/lib/postgresql/data:delegated
     networks:
       - default
-      - superset_network
-  superset:
-    build:
-      context: ./services/docker/superset
-      dockerfile: Dockerfile
-    environment:
-      - ADMIN_USERNAME=admin
-      - ADMIN_EMAIL=admin@superset.com
-      - ADMIN_PASSWORD=admin
-      - DATABASE_NAME=perma-db
-      - SQLALCHEMY_URI=postgresql+psycopg2://perma:password@db:5432/perma
-    ports:
-      - "127.0.0.1:8088:8088"
-    depends_on:
-      - db
-    networks:
-      - superset_network
-    volumes:
-      - superset:/app/superset_home
-      - ./services/docker/superset/superset-init.sh:/superset-init.sh
-      - ./services/docker/superset/superset_config.py:/app/superset_config.py
-      - ./services/docker/superset/dashboard_export.zip:/app/dashboard_export.zip
-    entrypoint: ["/bin/bash", "/superset-init.sh"]
+      - superset
   web:
     image: registry.lil.tools/harvardlil/perma-web:120-8d62d51fcb80cb29e3251399e9b72b47
     tty: true
@@ -169,7 +147,7 @@ volumes:
   scoop_db_data:
   scoop_access_key:
   minio_data:
-  superset:
+  superset_data:
 
 networks:
   default:
@@ -178,4 +156,4 @@ networks:
   scoop_rest_api:
       name: perma-scoop-api_default
   scoop_rest_api_internal:
-  superset_network:
+  superset:
