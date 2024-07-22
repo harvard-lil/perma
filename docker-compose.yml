@@ -18,10 +18,9 @@ services:
       POSTGRES_USER: perma
     volumes:
       - postgres_data:/var/lib/postgresql/data:delegated
-    ports:
-      - "127.0.0.1:54320:5432"
     networks:
       - default
+      - superset_network
   superset:
     build:
       context: ./services/docker/superset
@@ -37,7 +36,7 @@ services:
     depends_on:
       - db
     networks:
-      - default
+      - superset_network
     volumes:
       - superset:/app/superset_home
       - ./services/docker/superset/superset-init.sh:/superset-init.sh
@@ -179,3 +178,4 @@ networks:
   scoop_rest_api:
       name: perma-scoop-api_default
   scoop_rest_api_internal:
+  superset_network:
