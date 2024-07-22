@@ -405,3 +405,13 @@ Don't worry if you get the following error:
 
 `ERROR: error while removing network: network perma-scoop-api_default id 1902203ed2ca5dee5b57462201db417638317baef142e112173ee300461eb527 has active endpoints`
 The Scoop API is still running: the network is maintained until both projects are down. Head back over to the Scoop API repo and run `docker compose down` there... and you're done.
+
+## Working with Superset
+
+Superset is a data visualization tool that connects to Perma db allowing users to create saved SQL queries, datasets, charts, and dashboards. In order to experiment with the service, run the below commands to stop the running docker containers and to build the service image.
+
+- `docker compose down`
+- `docker compose up -d --build`
+
+Navigate to `http://localhost:8088/` and log in to the service using the credentials specified in `docker-compose.override.yml`. Once logged in, the existing objects should be imported into the local playground.
+When the local development is complete, export the dashboards using the Bulk Select Dashboards button, and place the downloaded zip file into the path: `services/docker/superset/dashboard_export.zip`.
