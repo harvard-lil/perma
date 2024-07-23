@@ -185,7 +185,6 @@ onBeforeUnmount(() => {
         <div class="container cont-fixed">
             <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
             <p class="create-lede">Enter any URL to preserve it forever.</p>
-            <p>{{ globalStore.captureGUID }}</p>
         </div>
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" :class="{ '_isPrivate': globalStore.selectedFolder.isPrivate }" id="linker">
