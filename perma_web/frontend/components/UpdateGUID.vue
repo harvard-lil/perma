@@ -5,16 +5,18 @@ import { globalStore } from '../stores/globalStore'
 const testGUID = ref('');
 
 const updateGUID = () => {
+    triggerError()
     globalStore.updateCaptureGUID(testGUID.value)
 };
 
 const clearGUID = () => {
     globalStore.updateCaptureGUID('');
+    testGUID.value = ''
 };
 
 const triggerError = () => {
     globalStore.updateCapture('captureError')
-    globalStore.updateCaptureErrorMessage("Generic capture error")
+    globalStore.updateCaptureErrorMessage("Dev testing")
 };
 </script>
 
