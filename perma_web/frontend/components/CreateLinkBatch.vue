@@ -196,6 +196,9 @@ const handleBatchFormatting = ((captureJobs) => {
     if (allJobs.completed) {
         clearInterval(progressInterval)
         globalStore.updateBatchCapture('isCompleted')
+
+        const batchCompleted = new CustomEvent("BatchLinkModule.batchCompleted");
+        window.dispatchEvent(batchCompleted);
     }
 
     const totalProgress = allJobs.details.reduce((total, job) => total + job.progress, 0);
