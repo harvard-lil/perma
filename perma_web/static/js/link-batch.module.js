@@ -26,6 +26,10 @@ window.addEventListener('BatchLinkModule.batchCreated', function (event) {
     Helpers.triggerOnWindow("BatchLinkModule.batchCreated");
 });
 
+window.addEventListener('BatchLinkModule.batchCompleted', function (event) {
+    $(window).trigger("BatchLinkModule.refreshLinkList");
+});
+
 function render_batch(links_in_batch, folder_path) {
     const steps = 6;
 
