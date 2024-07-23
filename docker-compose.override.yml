@@ -112,3 +112,25 @@ services:
     networks:
       - default
       - perma_payments
+  superset:
+    build:
+      context: ./services/docker/superset
+      dockerfile: Dockerfile
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_EMAIL=admin@superset.com
+      - ADMIN_PASSWORD=admin
+      - DATABASE_NAME=perma-db
+      - SQLALCHEMY_URI=postgresql+psycopg2://perma:password@db:5432/perma
+    ports:
+      - "127.0.0.1:8088:8088"
+    depends_on:
+      - db
+    networks:
+      - superset
+    volumes:
+      - superset_data:/app/superset_home
+      - ./services/docker/superset/superset-init.sh:/superset-init.sh
+      - ./services/docker/superset/superset_config.py:/app/superset_config.py
+      - ./services/docker/superset/dashboard_export.zip:/app/dashboard_export.zip
+    entrypoint: ["/bin/bash", "/superset-init.sh"]

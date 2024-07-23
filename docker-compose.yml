@@ -20,6 +20,7 @@ services:
       - postgres_data:/var/lib/postgresql/data:delegated
     networks:
       - default
+      - superset
   web:
     image: registry.lil.tools/harvardlil/perma-web:121-175951378136ce37665173c2aad0b2e3
     tty: true
@@ -146,6 +147,7 @@ volumes:
   scoop_postgres_data:
   scoop_access_key:
   minio_data:
+  superset_data:
 
 networks:
   default:
@@ -154,3 +156,4 @@ networks:
   scoop_rest_api:
       name: perma-scoop-api_default
   scoop_rest_api_internal:
+  superset:
