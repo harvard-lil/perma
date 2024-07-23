@@ -116,54 +116,6 @@ defineExpose({
 
 </script>
 
-<!-- function successfulUpload (data) {
-    return
-    $uploadModal.modal('hide');
-    window.location.href = '/' + data.guid;
-  }
-  
-  function failedUpload (jqXHR) {
-    // Display an error message in our upload modal
-    // TODO: refactor this when addressing form validation accessibility
-  
-    uploadFormSpinner.stop();
-    $('.js-warning').remove();
-    $('.has-error').removeClass('has-error');
-  
-    // special handling if user becomes unexpectedly logged out
-    if(jqXHR.status == 401){
-      APIModule.showError(jqXHR);
-      return;
-    }
-  
-    let response;
-    let reasons = [];
-    try {
-      response = JSON.parse(jqXHR.responseText);
-    } catch (e) {
-      reasons = [jqXHR.responseText];
-    }
-    if (response) {
-      // If error message comes in as {file:"message",url:"message"},
-      // show appropriate error message next to each field.
-      for (let key in response) {
-        if (response.hasOwnProperty(key)) {
-          let input = $('#' + key);
-          if (input.length) {
-            input.after('<span class="help-block js-warning">' + response[key] + '</span>');
-            input.closest('div').addClass('has-error');
-          } else {
-            reasons.push(response[key]);
-          }
-        }
-      }
-    }
-    $uploadValidationError.html('<p class="field-error">Upload failed. ' + reasons.join(". ") + '</p>');
-    DOMHelpers.toggleBtnDisable('#uploadPermalink', false);
-    DOMHelpers.toggleBtnDisable('.cancel', false);
-  }
-   -->
-
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="formDialogRef">
         <div class="modal-dialog modal-content">
