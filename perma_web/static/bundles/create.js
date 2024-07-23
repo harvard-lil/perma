@@ -31610,6 +31610,9 @@ window.addEventListener('BatchLinkModule.batchCreated', function (event) {
   populate_link_batch_list();
   Helpers.triggerOnWindow("BatchLinkModule.batchCreated");
 });
+window.addEventListener('BatchLinkModule.batchCompleted', function (event) {
+  $(window).trigger("BatchLinkModule.refreshLinkList");
+});
 function render_batch(links_in_batch, folder_path) {
   var steps = 6;
   var all_completed = true;

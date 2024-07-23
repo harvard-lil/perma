@@ -51388,6 +51388,8 @@ var defaultDialogTitle = "Create a Link Batch";
       if (allJobs.completed) {
         clearInterval(progressInterval);
         _stores_globalStore__WEBPACK_IMPORTED_MODULE_16__["globalStore"].updateBatchCapture('isCompleted');
+        var batchCompleted = new CustomEvent("BatchLinkModule.batchCompleted");
+        window.dispatchEvent(batchCompleted);
       }
       var totalProgress = allJobs.details.reduce(function (total, job) {
         return total + job.progress;
