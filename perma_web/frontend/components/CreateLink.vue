@@ -140,7 +140,6 @@ const handleCaptureStatus = async (guid) => {
 }
 
 const handleProgressUpdate = async () => {
-    console.log('handling new update')
     const { step_count, status, error } = await handleCaptureStatus(globalStore.captureGUID);
 
     if (status === 'in_progress') {
@@ -164,7 +163,11 @@ const handleProgressUpdate = async () => {
 }
 
 watch(() => globalStore.captureGUID, () => {
-    console.log('handling update')
+    /* Testing only */
+    if (globalStore.captureStatus === 'captureError') {
+        return
+    }
+
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })
