@@ -50,7 +50,7 @@ defineExpose({
 
 <template>
     <div class="container cont-fixed">
-        <UpdateGUD v-if="showDevPlayground" />
+        <UpdateGUID v-if="showDevPlayground" />
         <div v-if="globalStore.captureErrorMessage" id="error-container">
             <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
                     Please <a href='/login'>log in</a> to continue.
