@@ -395,6 +395,47 @@ class UserManagementViewsTestCase(PermaTestCase):
                 reader_record_count += 1
             self.assertEqual(reader_record_count, record_count)
 
+    def test_sponsored_user_export_user_list(self):
+        expected_results = [
+            ('another_inactive_sponsored_user@example.com', 'inactive'),
+            ('another_sponsored_user@example.com', 'active'),
+            ('inactive_sponsored_user@example.com', 'inactive'),
+            ('test_sponsored_user@example.com', 'active'),
+        ]
+
+        # Get CSV export output
+        csv_response: HttpResponse = self.get(
+            'user_management_manage_sponsored_user_export_user_list',
+            request_kwargs={'data': {'format': 'csv'}},
+            user=self.admin_user,
+        )
+        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
+
+        # Validate CSV output against expected results
+        csv_file = StringIO(csv_response.content.decode('utf8'))
+        reader = csv.DictReader(csv_file)
+        for index, record in enumerate(reader):
+            expected_email, expected_sponsorship_status = expected_results[index]
+            self.assertEqual(record['email'], expected_email)
+            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
+        self.assertEqual(index + 1, len(expected_results))
+
+        # Get JSON export output
+        json_response: HttpResponse = self.get(
+            'user_management_manage_sponsored_user_export_user_list',
+            request_kwargs={'data': {'format': 'json'}},
+            user=self.admin_user,
+        )
+        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
+
+        # Validate JSON output against expected results
+        reader = json.loads(json_response.content)
+        for index, record in enumerate(reader):
+            expected_email, expected_sponsorship_status = expected_results[index]
+            self.assertEqual(record['email'], expected_email)
+            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
+        self.assertEqual(index + 1, len(expected_results))
+
     def test_sponsored_user_list_filters(self):
         # test assumptions: four users, with five sponsorships between them
         # - two users with active sponsorships, two users with inactive sponsorships

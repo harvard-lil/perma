@@ -108,7 +108,7 @@ urlpatterns = [
 
     re_path(r'^manage/organizations/?$', user_management.manage_organization, name='user_management_manage_organization'),
     re_path(r'^manage/organizations/(?P<org_id>\d+)/?$', user_management.manage_single_organization, name='user_management_manage_single_organization'),
-    re_path(r'^manage/organization-users/(?P<org_id>\d+)/export/?$', user_management.manage_single_organization_export_user_list, name='user_management_manage_single_organization_export_user_list'),
+    re_path(r'^manage/organizations/(?P<org_id>\d+)/export/?$', user_management.manage_single_organization_export_user_list, name='user_management_manage_single_organization_export_user_list'),
     re_path(r'^manage/organization/(?P<org_id>\d+)/delete/?$', user_management.manage_single_organization_delete, name='user_management_manage_single_organization_delete'),
 
     re_path(r'^manage/admin-users/?$', user_management.manage_admin_user, name='user_management_manage_admin_user'),
@@ -138,6 +138,7 @@ urlpatterns = [
     re_path(r'^manage/organization-users/(?P<user_id>\d+)/remove/?$', user_management.manage_single_organization_user_remove, name='user_management_manage_single_organization_user_remove'),
 
     re_path(r'^manage/sponsored-users/?$', user_management.manage_sponsored_user, name='user_management_manage_sponsored_user'),
+    re_path(r'^manage/sponsored-users/export/?$', user_management.manage_sponsored_user_export_user_list, name='user_management_manage_sponsored_user_export_user_list'),
     re_path(r'^manage/sponsored-users/add-user/?$', AddSponsoredUserToRegistrar.as_view(), name='user_management_sponsored_user_add_user'),
     re_path(r'^manage/sponsored-users/(?P<user_id>\d+)/?$', user_management.manage_single_sponsored_user, name='user_management_manage_single_sponsored_user'),
     re_path(r'^manage/sponsored-users/(?P<user_id>\d+)/delete/?$', user_management.manage_single_sponsored_user_delete, name='user_management_manage_single_sponsored_user_delete'),
