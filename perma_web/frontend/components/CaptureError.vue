@@ -52,21 +52,19 @@ defineExpose({
     <div class="container cont-fixed">
         <UpdateGUD v-if="showDevPlayground" />
         <div v-if="globalStore.captureErrorMessage" id="error-container">
-            <div id="error-container">
-                <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
-                        Please <a href='/login'>log in</a> to continue.
-                    </span></p>
-                <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
-                <template v-if="showDevPlayground">
-                    <p>You can <button @click.prevent="handleOpen">upload your own
-                            archive</button> or <a href="{{contact_url}}">contact
-                            us about this error.</a></p>
-                    <UploadForm ref="uploadDialogRef" />
-                </template>
-                <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
-                        href="/contact">contact us
-                        about this error.</a></p>
-            </div>
+            <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
+                    Please <a href='/login'>log in</a> to continue.
+                </span></p>
+            <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
+            <template v-if="showDevPlayground">
+                <p>You can <button @click.prevent="handleOpen">upload your own
+                        archive</button> or <a href="{{contact_url}}">contact
+                        us about this error.</a></p>
+                <UploadForm ref="uploadDialogRef" />
+            </template>
+            <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
+                    href="/contact">contact us
+                    about this error.</a></p>
         </div>
     </div>
 </template>
