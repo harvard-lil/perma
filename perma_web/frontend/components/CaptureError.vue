@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { globalStore } from '../stores/globalStore';
 import UploadForm from './UploadForm.vue';
 import { showDevPlayground } from '../lib/consts'
-import UpdateGUD from './UpdateGUID.vue'
+import UpdateGUID from './UpdateGUID.vue'
 
 const showUploadLink = ref()
 const showGeneric = ref()
