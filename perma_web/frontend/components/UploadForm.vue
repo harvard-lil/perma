@@ -96,8 +96,7 @@ const handleUploadRequest = async () => {
             throw errorResponse
         }
 
-        const successResponse = await response.json()
-        const { guid } = successResponse /* Needed if a guid did not previously exist */
+        const { guid } = await response.json()
         globalStore.updateCapture('success')
 
         handleReset()
