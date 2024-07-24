@@ -16,7 +16,7 @@ const clearGUID = () => {
 
 const triggerError = () => {
     globalStore.updateCapture('captureError')
-    globalStore.updateCaptureErrorMessage("Dev testing")
+    globalStore.updateCaptureErrorMessage('testing')
 };
 </script>
 

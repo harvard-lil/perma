@@ -164,8 +164,7 @@ const handleProgressUpdate = async () => {
 }
 
 watch(() => globalStore.captureGUID, () => {
-    /* Testing only */
-    if (globalStore.captureStatus === 'captureError') {
+    if (globalStore.captureErrorMessage === 'testing') {
         return
     }
 
