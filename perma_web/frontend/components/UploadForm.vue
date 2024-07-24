@@ -73,14 +73,6 @@ const handleUploadRequest = async () => {
     const archiveBaseUrl = `${rootUrl}/archives/`
     const requestUrl = globalStore.captureGUID ? `${archiveBaseUrl}${globalStore.captureGUID}/` : archiveBaseUrl
 
-    const formValues = Object.keys(formData.value).reduce((acc, current) => {
-        const { value } = formData.value[current]
-        acc[current] = value
-        return acc;
-    }, {
-        folder: globalStore.selectedFolder.folderId,
-    })
-
     const formDataObj = new FormData();
     formDataObj.append('folder', globalStore.selectedFolder.folderId);
 
