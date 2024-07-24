@@ -96,8 +96,8 @@ const handleUploadRequest = async () => {
             throw errorResponse
         }
 
-        const successReponse = await response.json()
-        console.log(successReponse)
+        const successResponse = await response.json()
+        console.log(successResponse)
 
         handleReset()
         globalStore.updateCapture('success')
