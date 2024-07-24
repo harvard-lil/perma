@@ -150,6 +150,7 @@ const handleProgressUpdate = async () => {
     if (status === 'completed') {
         clearInterval(progressInterval)
         globalStore.updateCapture('success')
+        window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
     }
 
     if (status === 'failed') {
@@ -170,10 +171,6 @@ watch(() => globalStore.captureGUID, () => {
 
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
-})
-
-watch(() => globalStore.captureStatus === 'success', () => {
-    window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
 })
 
 onBeforeUnmount(() => {
