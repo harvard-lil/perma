@@ -1,5 +1,5 @@
 <script setup>
-import { ref, } from 'vue'
+import { ref, watch } from 'vue'
 import TextInput from './TextInput.vue';
 import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
@@ -21,6 +21,13 @@ const fieldsWithGUID = {
 const initialData = !!globalStore.captureGUID ? fieldsWithGUID : defaultFields
 
 const formData = ref(initialData)
+
+watch(
+    () => globalStore.captureGUID,
+    (newGUID) => {
+        formData.value = newGUID ? fieldsWithGUID : defaultFields;
+    }
+);
 
 // Match backend format for errors, for example {file:"message",url:"message"},
 const errors = ref({})
