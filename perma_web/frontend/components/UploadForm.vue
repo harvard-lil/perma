@@ -76,10 +76,9 @@ const handleUploadRequest = async () => {
     const formDataObj = new FormData();
     formDataObj.append('folder', globalStore.selectedFolder.folderId);
 
-    Object.keys(formData.value).forEach(key => {
-        const { value } = formData.value[key];
+    for (const [key, { value }] of Object.entries(formData.value)) {
         formDataObj.append(key, value);
-    });
+    }
 
     try {
         const response = await fetch(requestUrl,
