@@ -97,11 +97,12 @@ const handleUploadRequest = async () => {
         }
 
         const successResponse = await response.json()
-        console.log(successResponse)
-
-        handleReset()
+        const { guid } = successResponse /* Needed if a guid did not previously exist */
         globalStore.updateCapture('success')
 
+        handleReset()
+
+        window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
         console.log(error) // TODO: Add actual error handling
     }
