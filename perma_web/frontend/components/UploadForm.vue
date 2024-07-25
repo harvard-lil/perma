@@ -6,6 +6,7 @@ import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
+import { getErrorResponse } from '../lib/errors'
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -92,7 +93,7 @@ const handleUploadRequest = async () => {
             })
 
         if (!response?.ok) {
-            const errorResponse = await response.json()
+            const errorResponse = await getErrorResponse(response)
             throw errorResponse
         }
 
@@ -103,7 +104,8 @@ const handleUploadRequest = async () => {
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
-        console.log(error) // TODO: Add actual error handling
+        console.log(error)
+        errors.value = error.response
     }
 };
 
