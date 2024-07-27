@@ -1791,7 +1791,7 @@ class Link(DeletableModel):
             # safely inside its destination folder, lest denormalized
             # ownership-related fields get out of sync
             for folder in itertools.chain(self.folders.all(), [folder]):
-                Folder.objects.select_for_update().get(pk=folder.tree_root_id)
+                Folder.objects.select_for_update().filter(id=folder.tree_root_id).first()
 
             # remove this link from any folders it's in for this user
             self.folders.remove(*self.folders.accessible_to(user))
