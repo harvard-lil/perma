@@ -30,16 +30,17 @@ watch(
     }
 );
 
-// Match backend format for errors, for example {file:"message",url:"message"},
 const errors = ref({})
+const uniqueErrors = computed(() => { return getUniqueErrorValues(formData, errors) })
 
-// Debug only
-const handleErrorToggle = () => {
-    const mockedErrors = {
-        url: "URL cannot be empty.",
-        file: "File is too large."
-    }
-    errors.value = mockedErrors
+
+const getUniqueErrorValues = (formData, errors) => {
+    return Object.keys(errors).reduce((acc, key) => {
+        if (!(key in formData)) {
+            acc.push(errors[key])
+        }
+        return acc;
+    }, []);
 }
 
 const handleErrorReset = () => {
@@ -146,12 +147,12 @@ defineExpose({
                         <button type="submit" @click.prevent="handleUploadRequest" class="btn btn-primary btn-large">{{
         !!globalStore.captureGUID ?
             "Upload" :
-            "Create a Perma Link" }}</button>
+                            "Create a Perma Link" }}</button>
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
-
-                    <button @click.prevent="handleErrorToggle">Toggle Error</button>
-                    <button @click.prevent="handleErrorReset">Reset Errors</button>
+                    <div id="upload-error">
+                        <p class="field-error">Upload failed. </p>
+                    </div>
                 </form>
             </div>
         </div>
