@@ -127,7 +127,7 @@ const handleCaptureStatus = async (guid) => {
         const job = await response.json()
 
         return {
-            step_count: job.step_count ?? 0,
+            step_count: job.step_count ?? 1,
             status: job.status,
             error: job.status === 'failed' ? job.message : ''
         }
@@ -137,7 +137,7 @@ const handleCaptureStatus = async (guid) => {
         console.log(error)
         return {
             step_count: 0,
-            status: 'failed',
+            status: 'indeterminate',
             error
         }
     }
