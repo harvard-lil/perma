@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
 
@@ -48,6 +48,21 @@ onClickOutside(selectContainerRef, () => {
 
 const handleSelectToggle = () => {
     isSelectExpanded.value = !isSelectExpanded.value
+}
+
+const handleKeyboardSelectToggle = async (e) => {
+    const isButton = e.target.matches('button')
+
+    if (!isButton) {
+        return
+    }
+
+    if (isSelectExpanded.value) {
+        return handleArrowDown(e)
+    }
+
+    handleSelectToggle()
+    await nextTick()
 }
 
 const handleFocus = (index) => {
@@ -106,7 +121,9 @@ const handleSelection = (e) => {
         <div ref="selectContainerRef" @keydown.home.prevent="handleFocus(0)"
             @keydown.end.prevent="handleFocus(props.folders.length)" @keydown.esc="handleClose"
             @keydown.tab="handleClose" class="dropdown dropdown-affil" :class="{ 'open': isSelectExpanded }">
-            <button ref="selectButtonRef" @keydown.down.prevent="handleFocus(0)" @click="handleSelectToggle"
+            <button ref="selectButtonRef" @keydown.down.prevent.self="handleKeyboardSelectToggle"
+                @keydown.enter.prevent.self="handleKeyboardSelectToggle"
+                @keydown.space.prevent="handleKeyboardSelectToggle" @click="handleSelectToggle"
                 class="dropdown-toggle selector selector-affil needsclick" type="button" aria-haspopup="listbox"
                 :aria-expanded="isSelectExpanded" aria-owns="folder-select-list">
                 {{ selectedOption }}
