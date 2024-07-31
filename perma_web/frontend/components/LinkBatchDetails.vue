@@ -15,10 +15,11 @@ const props = defineProps({
 
 <template>
   <div id="batch-details-wrapper">
+    <button @click.prevent="handleTestButton">Another Test Button</button>
     <p id="batch-progress-report">
       {{ props.batchCaptureSummary }}
       <span v-if="!!props.batchCaptureJobs.errors">{{ props.batchCaptureJobs.errors }} {{
-        props.batchCaptureJobs.errors > 1 ? 'errors' : 'error' }}</span>
+      props.batchCaptureJobs.errors > 1 ? 'errors' : 'error' }}</span>
     </p>
     <div id="batch-details" aria-describedby="batch-progress-report">
       <div class="form-group">
@@ -53,7 +54,7 @@ const props = defineProps({
       </div>
     </div>
     <div class="form-buttons">
-      <button class="btn cancel" @click.prevent="handleClose">Exit</button>
+      <button class="btn cancel" @click.prevent="props.handleClose">Exit</button>
       <a v-if="props.showBatchCSVUrl" :href="props.batchCSVUrl" class="btn">Export list as
         CSV</a>
     </div>
