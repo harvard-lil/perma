@@ -41534,7 +41534,7 @@ var _hoisted_1 = {
 var _hoisted_2 = {
   class: "label-affil"
 };
-var _hoisted_3 = ["aria-expanded"];
+var _hoisted_3 = ["onKeydown", "aria-expanded"];
 var _hoisted_4 = {
   key: 0,
   class: "ui-private"
@@ -41565,9 +41565,9 @@ var _hoisted_12 = {
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_2, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.props.selectLabel), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", {
     ref: "selectContainerRef",
-    onKeydown: [_cache[1] || (_cache[1] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
+    onKeydown: [_cache[0] || (_cache[0] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
       return $setup.handleFocus(0);
-    }, ["prevent"]), ["home"])), _cache[2] || (_cache[2] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
+    }, ["prevent"]), ["home"])), _cache[1] || (_cache[1] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
       return $setup.handleFocus($setup.props.folders.length);
     }, ["prevent"]), ["end"])), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])($setup.handleClose, ["esc"]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])($setup.handleClose, ["tab"])],
     class: Object(vue__WEBPACK_IMPORTED_MODULE_1__["normalizeClass"])(["dropdown dropdown-affil", {
@@ -41575,9 +41575,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }])
   }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
     ref: "selectButtonRef",
-    onKeydown: _cache[0] || (_cache[0] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
-      return $setup.handleFocus(0);
-    }, ["prevent"]), ["down"])),
+    onKeydown: [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.handleKeyboardSelectToggle, ["prevent", "self"]), ["down"]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.handleKeyboardSelectToggle, ["prevent", "self"]), ["enter"]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withKeys"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.handleKeyboardSelectToggle, ["prevent"]), ["space"])],
     onClick: $setup.handleSelectToggle,
     class: "dropdown-toggle selector selector-affil needsclick",
     type: "button",
@@ -41643,9 +41641,15 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(666);
-/* harmony import */ var _vueuse_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(774);
+/* harmony import */ var _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(550);
+/* harmony import */ var _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(608);
+/* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(523);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(666);
+/* harmony import */ var _vueuse_core__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(774);
+
+
 
 
 
@@ -41660,12 +41664,12 @@ __webpack_require__.r(__webpack_exports__);
     var __expose = _ref.expose;
     __expose();
     var props = __props;
-    var selectContainerRef = Object(vue__WEBPACK_IMPORTED_MODULE_0__["ref"])(null);
-    var selectButtonRef = Object(vue__WEBPACK_IMPORTED_MODULE_0__["ref"])(null);
-    var selectListRef = Object(vue__WEBPACK_IMPORTED_MODULE_0__["ref"])(null);
-    var isSelectExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_0__["ref"])(false);
-    var selectedOption = Object(vue__WEBPACK_IMPORTED_MODULE_0__["computed"])(function () {
-      return !!_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].selectedFolder.folderId ? _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].selectedFolder.path.join(" > ") : 'Please select a folder';
+    var selectContainerRef = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(null);
+    var selectButtonRef = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(null);
+    var selectListRef = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(null);
+    var isSelectExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(false);
+    var selectedOption = Object(vue__WEBPACK_IMPORTED_MODULE_2__["computed"])(function () {
+      return !!_stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].selectedFolder.folderId ? _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].selectedFolder.path.join(" > ") : 'Please select a folder';
     });
     var getFolderHeader = function getFolderHeader(folder) {
       if (folder.registrar) {
@@ -41675,20 +41679,20 @@ __webpack_require__.r(__webpack_exports__);
       }
       return "Personal Links";
     };
-    var showLinksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_0__["computed"])(function () {
-      return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].selectedFolder.folderId === props.personalFolderId || !!_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].selectedFolder.isReadOnly;
+    var showLinksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_2__["computed"])(function () {
+      return _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].selectedFolder.folderId === props.personalFolderId || !!_stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].selectedFolder.isReadOnly;
     });
-    var linksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_0__["computed"])(function () {
-      if (_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].selectedFolder.isReadOnly) {
+    var linksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_2__["computed"])(function () {
+      if (_stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].selectedFolder.isReadOnly) {
         return 0;
-      } else if (_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].linksRemaining === Infinity) {
+      } else if (_stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].linksRemaining === Infinity) {
         return "unlimited";
       }
-      return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"].linksRemaining;
+      return _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"].linksRemaining;
     });
 
     // Select Event Handlers
-    Object(_vueuse_core__WEBPACK_IMPORTED_MODULE_2__["onClickOutside"])(selectContainerRef, function () {
+    Object(_vueuse_core__WEBPACK_IMPORTED_MODULE_4__["onClickOutside"])(selectContainerRef, function () {
       if (!isSelectExpanded) {
         return;
       }
@@ -41697,6 +41701,38 @@ __webpack_require__.r(__webpack_exports__);
     var handleSelectToggle = function handleSelectToggle() {
       isSelectExpanded.value = !isSelectExpanded.value;
     };
+    var handleKeyboardSelectToggle = /*#__PURE__*/function () {
+      var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee(e) {
+        var isButton;
+        return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              isButton = e.target.matches('button');
+              if (isButton) {
+                _context.next = 3;
+                break;
+              }
+              return _context.abrupt("return");
+            case 3:
+              if (!isSelectExpanded.value) {
+                _context.next = 5;
+                break;
+              }
+              return _context.abrupt("return", handleArrowDown(e));
+            case 5:
+              handleSelectToggle();
+              _context.next = 8;
+              return Object(vue__WEBPACK_IMPORTED_MODULE_2__["nextTick"])();
+            case 8:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee);
+      }));
+      return function handleKeyboardSelectToggle(_x) {
+        return _ref2.apply(this, arguments);
+      };
+    }();
     var handleFocus = function handleFocus(index) {
       var itemToFocus = selectListRef.value.querySelector("[data-index=\"".concat(index, "\"]"));
       itemToFocus.focus();
@@ -41754,18 +41790,20 @@ __webpack_require__.r(__webpack_exports__);
       showLinksRemaining: showLinksRemaining,
       linksRemaining: linksRemaining,
       handleSelectToggle: handleSelectToggle,
+      handleKeyboardSelectToggle: handleKeyboardSelectToggle,
       handleFocus: handleFocus,
       handleArrowDown: handleArrowDown,
       handleArrowUp: handleArrowUp,
       handleClose: handleClose,
       handleSelection: handleSelection,
-      computed: vue__WEBPACK_IMPORTED_MODULE_0__["computed"],
-      ref: vue__WEBPACK_IMPORTED_MODULE_0__["ref"],
+      computed: vue__WEBPACK_IMPORTED_MODULE_2__["computed"],
+      ref: vue__WEBPACK_IMPORTED_MODULE_2__["ref"],
+      nextTick: vue__WEBPACK_IMPORTED_MODULE_2__["nextTick"],
       get globalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["globalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["globalStore"];
       },
       get onClickOutside() {
-        return _vueuse_core__WEBPACK_IMPORTED_MODULE_2__["onClickOutside"];
+        return _vueuse_core__WEBPACK_IMPORTED_MODULE_4__["onClickOutside"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
