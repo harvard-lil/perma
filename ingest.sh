@@ -43,6 +43,6 @@ if [[ $((OPTIND - $#)) -ne 1 ]]; then
 fi
 
 echo "Loading data from $FILE ..."
-docker cp "$FILE" "$(docker-compose ps -q db)":/tmp/data.dump
-docker-compose exec db pg_restore --username=perma --verbose --no-owner -h localhost -d perma /tmp/data.dump
-docker-compose exec db rm -f /tmp/data.dump
+docker cp "$FILE" "$(docker compose ps -q db)":/tmp/data.dump
+docker compose exec db pg_restore --username=perma --verbose --no-owner -h localhost -d perma /tmp/data.dump
+docker compose exec db rm -f /tmp/data.dump
