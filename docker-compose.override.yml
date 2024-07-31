@@ -106,7 +106,7 @@ services:
     # copy ./services/docker/perma-payments/settings.py.example
     # to ./services/docker/perma-payments/settings.py,
     # alter config as desired, in the usual way, then comment in this volume
-    # and re-run docker-compose up
+    # and re-run docker compose up
     # volumes:
     #   - ./services/docker/perma-payments/settings.py:/app/web/config/settings/settings.py
     networks:

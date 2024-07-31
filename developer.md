@@ -350,7 +350,7 @@ __NB__: If you make changes to static files, like css, while running with DEBUG=
 
 Aspects of Perma's paid subscription service are handled by the companion application, [Perma Payments](https://github.com/harvard-lil/perma-payments).
 
-By default, Perma's `docker-compose` file will spin up a local Perma Payments for you to experiment with. For more fruitful experimentation, configure this Perma Payments to interact with Cybersource's test tier, by running Payments with a custom settings.py that contains our credentials. See `docker-compose.yml` and `/services/docker/perma-payments/settings.py.example` for more information. CyberSource will not be able to communicate its responses back to your local instance, of course, but you can simulate active subscriptions using the Django admin.
+By default, Perma's `docker-compose.yml` file will spin up a local Perma Payments for you to experiment with. For more fruitful experimentation, configure this Perma Payments to interact with Cybersource's test tier, by running Payments with a custom settings.py that contains our credentials. See `docker-compose.yml` and `/services/docker/perma-payments/settings.py.example` for more information. CyberSource will not be able to communicate its responses back to your local instance, of course, but you can simulate active subscriptions using the Django admin.
 
 ### Test Perma Interaction with Perma Payments
 
@@ -381,7 +381,7 @@ It just means that Perma Payments is still running: the network is maintained un
 
 Perma's web archives are produced using [Scoop](https://github.com/harvard-lil/scoop): Perma capture requests call out to the [Scoop API](https://github.com/harvard-lil/perma-scoop-api/), which capture the requested website and return a WARC/WACZ to Perma.
 
-By default, Perma's `docker-compose` file will spin up a local Scoop API for you to experiment with.
+By default, Perma's `docker-compose.yml` file will spin up a local Scoop API for you to experiment with.
 
 ### Working with both repositories simultaneously
 
