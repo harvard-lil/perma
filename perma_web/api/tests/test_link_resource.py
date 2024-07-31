@@ -16,7 +16,6 @@ import pytest
 
 from .utils import ApiResourceTestCase, ApiResourceTransactionTestCase, TEST_ASSETS_DIR, index_warc_file, raise_on_call, raise_after_call, return_on_call, MockResponse
 from perma.models import Link, LinkUser, Folder
-from conftest import _fix_json_fixtures
 
 
 class LinkResourceTestMixin():
@@ -36,7 +35,6 @@ class LinkResourceTestMixin():
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        _fix_json_fixtures()
 
     def setUp(self):
         super(LinkResourceTestMixin, self).setUp()
@@ -357,7 +355,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
     ]
 
     def setUp(self):
-        _fix_json_fixtures()
         super(LinkResourceTransactionTestCase, self).setUp()
         self.post_data = {
             'url': self.server_url + "/test.html",
