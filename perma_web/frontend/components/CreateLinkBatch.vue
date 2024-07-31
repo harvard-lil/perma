@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
-    handleOpen
+    handleOpen, handleClose
 });
 
 </script>
@@ -261,9 +261,9 @@ defineExpose({
                     </div>
                 </div>
 
-                <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary
-                    :showBatchCSVUrl="globalStore.batchCaptureStatus === 'isCompleted'" :batchCSVUrl
-                    :targetFolder="globalStore.selectedFolder.path.join(' > ')" />
+                <LinkBatchDetails v-if="showBatchDetails" :handleClose="handleClose" :batchCaptureJobs
+                    :batchCaptureSummary :showBatchCSVUrl="globalStore.batchCaptureStatus === 'isCompleted'"
+                    :batchCSVUrl :targetFolder="globalStore.selectedFolder.path.join(' > ')" />
             </div>
         </div>
     </Dialog>
