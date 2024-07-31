@@ -36047,7 +36047,10 @@ __webpack_require__.r(__webpack_exports__);
               _context2.t0 = _context2["catch"](0);
               // TODO: Implement maxFailedAttempts logic here
               console.log(_context2.t0);
-              return _context2.abrupt("return");
+              return _context2.abrupt("return", {
+                status: 'indeterminate',
+                error: _context2.t0
+              });
             case 16:
             case "end":
               return _context2.stop();
@@ -36060,20 +36063,18 @@ __webpack_require__.r(__webpack_exports__);
     }();
     var handleProgressUpdate = /*#__PURE__*/function () {
       var _ref5 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.mark(function _callee3() {
-        var _yield$handleCaptureS, step_count, status, error, _context3, errorMessage;
+        var response, status, _context3, errorMessage;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default.a.wrap(function _callee3$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
               _context4.next = 2;
               return handleCaptureStatus(_stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureGUID);
             case 2:
-              _yield$handleCaptureS = _context4.sent;
-              step_count = _yield$handleCaptureS.step_count;
-              status = _yield$handleCaptureS.status;
-              error = _yield$handleCaptureS.error;
+              response = _context4.sent;
+              status = response.status;
               if (status === 'in_progress') {
                 _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('isCapturing');
-                userLinkProgressBar.value = "".concat(step_count / 5 * 100, "%");
+                userLinkProgressBar.value = "".concat(response.step_count / 5 * 100, "%");
               }
               if (status === 'completed') {
                 clearInterval(progressInterval);
@@ -36081,12 +36082,12 @@ __webpack_require__.r(__webpack_exports__);
                 window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_4___default()(_context3 = "".concat(window.location.origin, "/")).call(_context3, _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].captureGUID);
               }
               if (status === 'failed') {
-                errorMessage = error.length ? Object(_lib_errors__WEBPACK_IMPORTED_MODULE_16__["getErrorFromNestedObject"])(JSON.parse(error)) : _lib_errors__WEBPACK_IMPORTED_MODULE_16__["defaultError"];
+                errorMessage = response.error.length ? Object(_lib_errors__WEBPACK_IMPORTED_MODULE_16__["getErrorFromNestedObject"])(JSON.parse(response.error)) : _lib_errors__WEBPACK_IMPORTED_MODULE_16__["defaultError"];
                 clearInterval(progressInterval);
                 _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCapture('captureError');
                 _stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["globalStore"].updateCaptureErrorMessage(errorMessage);
               }
-            case 9:
+            case 7:
             case "end":
               return _context4.stop();
           }
