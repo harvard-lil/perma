@@ -136,7 +136,6 @@ const handleCaptureStatus = async (guid) => {
         // TODO: Implement maxFailedAttempts logic here
         console.log(error)
         return {
-            step_count: 0,
             status: 'indeterminate',
             error
         }
@@ -144,11 +143,12 @@ const handleCaptureStatus = async (guid) => {
 }
 
 const handleProgressUpdate = async () => {
-    const { step_count, status, error } = await handleCaptureStatus(globalStore.captureGUID);
+    const response = await handleCaptureStatus(globalStore.captureGUID);
+    const { status } = response
 
     if (status === 'in_progress') {
         globalStore.updateCapture('isCapturing')
-        userLinkProgressBar.value = `${step_count / 5 * 100}%`
+        userLinkProgressBar.value = `${response.step_count / 5 * 100}%`
     }
 
     if (status === 'completed') {
@@ -158,7 +158,7 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'failed') {
-        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(error)) : defaultError
+        const errorMessage = response.error.length ? getErrorFromNestedObject(JSON.parse(response.error)) : defaultError
 
         clearInterval(progressInterval)
 
