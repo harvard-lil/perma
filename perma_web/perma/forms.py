@@ -197,6 +197,11 @@ class UserFormWithSponsoringRegistrar(UserForm):
     add sponsoring registrar to the create user form
     """
     sponsoring_registrars = forms.ModelChoiceField(label='Sponsoring Registrar', queryset=Registrar.objects.approved().order_by('name'))
+    expires_at = forms.DateTimeField(
+        label="Affiliation expires at",
+        widget=forms.DateTimeInput(attrs={"type": "date"}),
+        required=False
+    )
 
     def __init__(self, data=None, current_user=None, **kwargs):
         self.current_user = current_user
@@ -213,7 +218,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
 
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "sponsoring_registrars"]
+        fields = ["first_name", "last_name", "email", "expires_at", "sponsoring_registrars"]
 
     def clean(self):
         super().clean()
@@ -229,7 +234,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
         # Adapted from https://stackoverflow.com/a/2264722
         instance = forms.ModelForm.save(self, False)
         def save_m2m():
-            Sponsorship.objects.create(registrar=self.cleaned_data['sponsoring_registrars'], user=instance, created_by=self.current_user)
+            Sponsorship.objects.create(registrar=self.cleaned_data['sponsoring_registrars'], user=instance, created_by=self.current_user, expires_at=self.cleaned_data['expires_at'])
         self.save_m2m = save_m2m
         if commit:
             instance.save()

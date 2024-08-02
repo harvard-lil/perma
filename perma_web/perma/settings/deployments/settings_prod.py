@@ -16,6 +16,7 @@ CELERY_BEAT_JOB_NAMES = [
     'conditionally_queue_internet_archive_uploads_for_date_range',
     'confirm_files_uploaded_to_internet_archive',
     'confirm_files_deleted_from_internet_archive',
+    'manage_sponsored_users_expiration'
 ]
 
 # logging

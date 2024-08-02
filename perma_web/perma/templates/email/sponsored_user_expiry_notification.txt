@@ -1,0 +1,6 @@
+TITLE: Your sponsored Perma.cc account is expiring
+
+Your Perma.cc account sponsored by {{ registrar_name }} is expiring in {{ expiration_days }} days. Your account will be deactivated on {{ expiration_date }}. 
+
+Thanks,
+The Perma.cc Team

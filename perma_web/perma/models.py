@@ -742,6 +742,7 @@ class Sponsorship(models.Model):
     status_changed = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('LinkUser', related_name='created_sponsorships', on_delete=models.PROTECT)
+    expires_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         constraints = [

@@ -30,13 +30,14 @@ from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder
+    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
     copy_file_data, date_range, send_to_scoop, calculate_s3_etag)
+from perma.email import send_user_email
 
 import logging
 logger = logging.getLogger('celery.django')
@@ -1515,3 +1516,53 @@ def convert_warc_to_wacz(input_guid, save_wacz_on_error=False, warn_on_error=Fal
     storages[settings.WACZ_STORAGE].save(link.warc_to_wacz_conversion_log_file(), StringIO(json.dumps(data)))
     if data["error"] and warn_on_error:
         logger.warning(data["error"])
+
+
+def email_expiring_sponsored_user(user, context):
+    """
+    Send email to sponsored user notifying about affiliation expiry
+    """
+    send_user_email(
+        user.raw_email,
+        "email/sponsored_user_expiry_notification.txt",
+        context
+    )
+
+
+@shared_task
+def manage_sponsored_users_expiration(warning_periods):
+    """
+    Notifies users whose sponsorship is expiring
+    Deactivates those whose sponsorship expired
+    """
+    warning_periods.sort(reverse=True)
+    todays_date = timezone.now().date()
+    max_notification_date = todays_date + timedelta(days=warning_periods[0])
+    expiring_sponsorships = (
+        Sponsorship.objects.filter(status="active", expires_at__lte=max_notification_date)
+        .select_related('user')
+        .select_related('registrar')
+    )
+
+    if not expiring_sponsorships:
+        return
+
+    for sponsorship in expiring_sponsorships:
+        expiration_date = sponsorship.expires_at.date()
+        if expiration_date < todays_date:
+            logger.info(f"Deactivating user {sponsorship.user_id}")
+            sponsorship.status = "inactive"
+            sponsorship.save()
+            continue
+
+        for period in warning_periods:
+            warning_date = todays_date + timedelta(days=period)
+            if expiration_date == warning_date:
+                context = {
+                    "registrar_name": sponsorship.registrar.name,
+                    "expiration_days": period,
+                    "expiration_date": expiration_date + timedelta(days=1)
+                }
+                email_expiring_sponsored_user(sponsorship.user, context)
+                break
+
