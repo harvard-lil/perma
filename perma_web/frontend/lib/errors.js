@@ -1,12 +1,13 @@
 export const getUniqueErrorValues = (formData, errors) => {
-  return Object.keys(errors).reduce((acc, key) => {
-      if (!(key in formData)) {
-          return [...acc, ...errors[key]];
-      }
-      return acc;
+  const errorValues = Object.keys(errors).reduce((acc, key) => {
+    if (!(key in formData)) {
+      return [...acc, ...errors[key]];
+    }
+    return acc;
   }, []);
+  
+  return errorValues.join(' ');
 }
-
 // Returns the first error string nested within an API error response object
 // For example, passing {"url":["URL cannot be empty."]} would return "URL cannot be empty."
 export const getErrorFromNestedObject = (object) => {

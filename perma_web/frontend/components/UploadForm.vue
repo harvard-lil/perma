@@ -146,8 +146,8 @@ defineExpose({
 
                     <p v-if="hasErrors" class="field-error">
                         Upload failed.
-                        <span v-for="error in uniqueErrors">
-                            {{ error }}
+                        <span v-if="uniqueErrors">
+                            {{ uniqueErrors }}
                         </span>
                     </p>
 
