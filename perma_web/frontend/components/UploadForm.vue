@@ -144,12 +144,13 @@ defineExpose({
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
-                    <div v-if="hasErrors" class="field-error">
+                    <p v-if="hasErrors" class="field-error">
                         Upload failed.
                         <span v-for="error in uniqueErrors">
                             {{ error }}
                         </span>
-                    </div>
+                    </p>
+
                 </form>
             </div>
         </div>

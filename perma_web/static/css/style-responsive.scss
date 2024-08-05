@@ -3044,7 +3044,7 @@ textarea {
 }
 
 .field-error,
-.errorlist {
+.errorlist, {
   color: $color-error;
   font-family: $font-hed-alt;
   font-weight: 700;
@@ -5897,7 +5897,6 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   width: 100%;
   padding: 0;
   border: none;
-  text-align: left;
 
   @include respond-tablet {
     margin-block-start: 3.75rem;
