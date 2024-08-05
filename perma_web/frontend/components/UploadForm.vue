@@ -6,7 +6,7 @@ import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
-import { getErrorResponse } from '../lib/errors'
+import { getErrorResponse, getUniqueErrorValues } from '../lib/errors'
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -31,17 +31,10 @@ watch(
 );
 
 const errors = ref({})
-const uniqueErrors = computed(() => { return getUniqueErrorValues(formData, errors) })
-
-
-const getUniqueErrorValues = (formData, errors) => {
-    return Object.keys(errors).reduce((acc, key) => {
-        if (!(key in formData)) {
-            acc.push(errors[key])
-        }
-        return acc;
-    }, []);
-}
+const hasErrors = computed(() => {
+    return Object.keys(errors.value).length > 0;
+});
+const uniqueErrors = computed(() => { return getUniqueErrorValues(formData.value, errors.value) })
 
 const handleErrorReset = () => {
     errors.value = {}
@@ -147,11 +140,15 @@ defineExpose({
                         <button type="submit" @click.prevent="handleUploadRequest" class="btn btn-primary btn-large">{{
         !!globalStore.captureGUID ?
             "Upload" :
-                            "Create a Perma Link" }}</button>
+            "Create a Perma Link" }}</button>
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
-                    <div id="upload-error">
-                        <p class="field-error">Upload failed. </p>
+
+                    <div v-if="hasErrors" class="field-error">
+                        Upload failed.
+                        <span v-for="error in uniqueErrors">
+                            {{ error }}
+                        </span>
                     </div>
                 </form>
             </div>
