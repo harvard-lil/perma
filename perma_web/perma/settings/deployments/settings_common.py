@@ -478,7 +478,7 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
     'perma.celery_tasks.convert_warc_to_wacz': {'queue': 'wacz-conversion'},
-    'perma.celery_tasks.manage_sponsored_users_expiration': {'queue': 'ia-readonly'}
+    'perma.celery_tasks.manage_sponsored_users_expiration': {'queue': 'background'}
 }
 
 # Schedule celerybeat jobs.
