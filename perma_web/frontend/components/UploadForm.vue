@@ -7,7 +7,8 @@ import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
 import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
-
+import { isLoading, isReady } from '../lib/store'
+import Spinner from './Spinner.vue'
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -32,12 +33,11 @@ watch(
 );
 
 const errors = ref({})
-const hasErrors = ref(false)
+const hasErrors = computed(() => { return globalStore.captureStatus === 'uploadError' })
 const globalErrors = computed(() => { return getGlobalErrorValues(formData.value, errors.value) })
 
 const handleErrorReset = () => {
     errors.value = {}
-    hasErrors.value = false
 }
 
 const formDialogRef = ref('')
@@ -61,7 +61,12 @@ const handleClick = (e) => {
 }
 
 const handleUploadRequest = async () => {
+    if (!isReady) {
+        return
+    }
+
     handleErrorReset()
+    globalStore.updateCapture("isValidating")
 
     const csrf = getCookie("csrftoken")
     const requestType = globalStore.captureGUID ? "PATCH" : "POST"
@@ -93,15 +98,14 @@ const handleUploadRequest = async () => {
         }
 
         const { guid } = await response.json()
-        globalStore.updateCapture('success')
+        globalStore.updateCapture("success")
 
         handleReset()
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
+        globalStore.updateCapture("uploadError")
         console.error("Upload request failed:", error);
-
-        hasErrors.value = true
 
         if (error?.response) {
             errors.value = error.response
@@ -137,8 +141,13 @@ defineExpose({
             "This will create a new Perma Link." }}
             </p>
             <div class="modal-body">
+
+                <div class="u-min-h-48" v-if="isLoading">
+                    <Spinner length="2" color="#2D76EE" top="48px" />
+                </div>
+
                 <form id="archive_upload_form" @submit.prevent>
-                    <template v-for="(_, key) in formData" :key="key">
+                    <template v-for="(_, key) in formData" :key="key" v-if="isReady">
                         <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
                             :id="key" />
                         <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"
