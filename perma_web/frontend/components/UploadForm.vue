@@ -6,7 +6,7 @@ import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
-import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus } from '../lib/errors'
+import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
 
 
 const defaultFields = {
