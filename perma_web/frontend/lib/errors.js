@@ -6,7 +6,7 @@ export const getGlobalErrorValues = (formData, errors) => {
   const errorValues = Object.keys(errors).reduce((acc, key) => {
     if (!(key in formData)) {
       const errorValue = errors[key];
-      return Array.isArray(errorValue) ? [...acc, ...errorValue] : [...acc, errorValue];
+      return acc.concat(errorValue);
     }
     return acc;
   }, []);
