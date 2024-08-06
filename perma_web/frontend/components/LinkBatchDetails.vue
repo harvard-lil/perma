@@ -53,7 +53,7 @@ const props = defineProps({
       </div>
     </div>
     <div class="form-buttons">
-      <button class="btn cancel" @click.prevent="handleClose">Exit</button>
+      <button class="btn cancel" @click.prevent="props.handleClose">Exit</button>
       <a v-if="props.showBatchCSVUrl" :href="props.batchCSVUrl" class="btn">Export list as
         CSV</a>
     </div>
