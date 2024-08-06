@@ -129,8 +129,6 @@ defineExpose({
                 <h3 id="batch-modal-title" class="modal-title">
                     Upload a file to Perma.cc
                 </h3>
-                errors: {{ errors }}
-                global errors: {{ globalErrors }}
             </div>
             <p class="modal-description">
                 {{
