@@ -65,8 +65,8 @@ export const getSponsoredFolders = async () => {
     }
 }
 
-export const readyStates = ["ready", "urlError", "captureError"]
-export const isReady = computed(() => { readyStates.includes(globalStore.captureStatus) })
+export const readyStates = ["ready", "urlError", "captureError", "uploadError"]
+export const isReady = computed(() => { return readyStates.includes(globalStore.captureStatus) })
 
 export const loadingStates = ["isValidating", "isQueued", "isCapturing"]
 export const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
