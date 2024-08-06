@@ -1,6 +1,4 @@
 export const getGlobalErrorValues = (formData, errors) => {
-  console.log(errors)
-  console.log(typeof errors)
   if (typeof errors === 'string') {
     return errors;
   }
