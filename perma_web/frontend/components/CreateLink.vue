@@ -12,6 +12,7 @@ import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
 import IconButton from './IconButton.vue'
 import { showDevPlayground } from '../lib/consts'
+import { isLoading, readyStates, isReady } from '../lib/store'
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
@@ -20,12 +21,6 @@ const batchDialogOpen = () => {
 
 const userLink = ref('')
 const userLinkProgressBar = ref('0%')
-
-const readyStates = ["ready", "urlError", "captureError"]
-const isReady = computed(() => { readyStates.includes(globalStore.captureStatus) })
-
-const loadingStates = ["isValidating", "isQueued", "isCapturing"]
-const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
 
 const submitButtonText = computed(() => {
     if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
