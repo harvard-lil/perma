@@ -1,6 +1,6 @@
 TITLE: Your sponsored Perma.cc account is expiring
 
-Your Perma.cc account sponsored by {{ registrar_name }} is expiring in {{ expiration_days }} days. Your account will be deactivated on {{ expiration_date }}. 
+Your Perma.cc account sponsored by {{ registrar_name }} is expiring in {{ expiration_days }} days. Your account will be deactivated on {{ expiration_date }}. If you would like to request an extension of your affiliation please reach out to {{ registrar_email }}.
 
 Thanks,
 The Perma.cc Team

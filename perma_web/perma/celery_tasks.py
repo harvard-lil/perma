@@ -1560,6 +1560,7 @@ def manage_sponsored_users_expiration(warning_periods):
             if expiration_date == warning_date:
                 context = {
                     "registrar_name": sponsorship.registrar.name,
+                    "registrar_email": sponsorship.registrar.email,
                     "expiration_days": period,
                     "expiration_date": expiration_date + timedelta(days=1)
                 }
