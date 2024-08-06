@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { useFetch } from '../lib/data'
 
