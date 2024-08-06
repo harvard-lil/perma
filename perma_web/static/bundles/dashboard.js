@@ -50747,8 +50747,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[1] || (_cache[1] = Object(vue__WEBPACK_IMPORTED_MODULE_0__["withKeys"])(function () {
       var _$setup$props2;
       return $setup.props.handleClose && (_$setup$props2 = $setup.props).handleClose.apply(_$setup$props2, arguments);
-    }, ["esc"])),
-    id: "batch-modal"
+    }, ["esc"]))
   }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["renderSlot"])(_ctx.$slots, "default")], 544 /* NEED_HYDRATION, NEED_PATCH */);
 }
 
@@ -53216,7 +53215,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   }), 256 /* UNKEYED_FRAGMENT */))])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_20, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
     class: "btn cancel",
     onClick: _cache[0] || (_cache[0] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function () {
-      return $props.handleClose && $props.handleClose.apply($props, arguments);
+      var _$setup$props;
+      return $setup.props.handleClose && (_$setup$props = $setup.props).handleClose.apply(_$setup$props, arguments);
     }, ["prevent"]))
   }, "Exit"), $setup.props.showBatchCSVUrl ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("a", {
     key: 0,
