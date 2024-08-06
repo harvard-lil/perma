@@ -6,7 +6,8 @@ import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
-import { getErrorResponse, getUniqueErrorValues } from '../lib/errors'
+import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus } from '../lib/errors'
+
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -31,13 +32,12 @@ watch(
 );
 
 const errors = ref({})
-const hasErrors = computed(() => {
-    return Object.keys(errors.value).length > 0;
-});
-const uniqueErrors = computed(() => { return getUniqueErrorValues(formData.value, errors.value) })
+const hasErrors = ref(false)
+const globalErrors = computed(() => { return getGlobalErrorValues(formData.value, errors.value) })
 
 const handleErrorReset = () => {
     errors.value = {}
+    hasErrors.value = false
 }
 
 const formDialogRef = ref('')
@@ -86,6 +86,7 @@ const handleUploadRequest = async () => {
                 body: formDataObj
             })
 
+
         if (!response?.ok) {
             const errorResponse = await getErrorResponse(response)
             throw errorResponse
@@ -98,8 +99,15 @@ const handleUploadRequest = async () => {
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
-        console.log(error)
-        errors.value = error.response
+        console.error("Upload request failed:", error);
+
+        hasErrors.value = true
+
+        if (error?.response) {
+            errors.value = error.response
+        } else {
+            errors.value = error.status ? getErrorFromStatus(error.status) : defaultError
+        }
     }
 };
 
@@ -121,6 +129,8 @@ defineExpose({
                 <h3 id="batch-modal-title" class="modal-title">
                     Upload a file to Perma.cc
                 </h3>
+                errors: {{ errors }}
+                global errors: {{ globalErrors }}
             </div>
             <p class="modal-description">
                 {{
@@ -146,8 +156,8 @@ defineExpose({
 
                     <p v-if="hasErrors" class="field-error">
                         Upload failed.
-                        <span v-if="uniqueErrors">
-                            {{ uniqueErrors }}
+                        <span v-if="globalErrors">
+                            {{ globalErrors }}
                         </span>
                     </p>
 

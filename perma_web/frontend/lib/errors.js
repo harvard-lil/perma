@@ -1,11 +1,18 @@
-export const getUniqueErrorValues = (formData, errors) => {
+export const getGlobalErrorValues = (formData, errors) => {
+  console.log(errors)
+  console.log(typeof errors)
+  if (typeof errors === 'string') {
+    return errors;
+  }
+
   const errorValues = Object.keys(errors).reduce((acc, key) => {
     if (!(key in formData)) {
-      return [...acc, ...errors[key]];
+      const errorValue = errors[key];
+      return Array.isArray(errorValue) ? [...acc, ...errorValue] : [...acc, errorValue];
     }
     return acc;
   }, []);
-  
+
   return errorValues.join(' ');
 }
 // Returns the first error string nested within an API error response object
@@ -28,7 +35,15 @@ export const getErrorFromNestedObject = (object) => {
     return getString(object) || null;
   }
 
- export const getErrorFromResponseStatus = (status, response) => {
+  export const getErrorFromStatus = (status) => {
+    if (status === 401) {
+      return loggedOutError
+    }
+
+    return `Error: ${status}`
+  }
+
+ export const getErrorFromResponseOrStatus = (status, response) => {
     let errorMessage
 
     switch (status) {
@@ -36,7 +51,7 @@ export const getErrorFromNestedObject = (object) => {
             errorMessage = getErrorFromNestedObject(response)
             break;
         case 401:
-            errorMessage = "You appear to be logged out."
+            errorMessage = loggedOutError
             break;
         default:
             errorMessage = `Error: ${status}`
@@ -60,5 +75,6 @@ export const getErrorResponse = async (response) => {
 };
 
 export const defaultError = "We're sorry, we've encountered an error processing your request."
+export const loggedOutError = "You appear to be logged out."
 export const folderError = "Missing folder selection. Please select a folder."
 export const missingUrlError = "Missing urls. Please submit valid urls."
