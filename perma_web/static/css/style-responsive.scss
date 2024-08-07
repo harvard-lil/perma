@@ -5863,6 +5863,10 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .u-pb-150 {
   padding-bottom: calc(18rem / 16);
 }
+
+.u-min-h-48 {
+  min-height: 12rem;
+}
 .c-button {
   cursor: pointer;
 }
