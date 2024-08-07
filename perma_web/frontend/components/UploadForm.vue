@@ -1,11 +1,13 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import TextInput from './TextInput.vue';
 import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
+import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
+
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -29,20 +31,13 @@ watch(
     }
 );
 
-// Match backend format for errors, for example {file:"message",url:"message"},
 const errors = ref({})
-
-// Debug only
-const handleErrorToggle = () => {
-    const mockedErrors = {
-        url: "URL cannot be empty.",
-        file: "File is too large."
-    }
-    errors.value = mockedErrors
-}
+const hasErrors = ref(false)
+const globalErrors = computed(() => { return getGlobalErrorValues(formData.value, errors.value) })
 
 const handleErrorReset = () => {
     errors.value = {}
+    hasErrors.value = false
 }
 
 const formDialogRef = ref('')
@@ -91,8 +86,9 @@ const handleUploadRequest = async () => {
                 body: formDataObj
             })
 
+
         if (!response?.ok) {
-            const errorResponse = await response.json()
+            const errorResponse = await getErrorResponse(response)
             throw errorResponse
         }
 
@@ -103,7 +99,15 @@ const handleUploadRequest = async () => {
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
-        console.log(error) // TODO: Add actual error handling
+        console.error("Upload request failed:", error);
+
+        hasErrors.value = true
+
+        if (error?.response) {
+            errors.value = error.response
+        } else {
+            errors.value = error.status ? getErrorFromStatus(error.status) : defaultError
+        }
     }
 };
 
@@ -148,8 +152,13 @@ defineExpose({
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
-                    <button @click.prevent="handleErrorToggle">Toggle Error</button>
-                    <button @click.prevent="handleErrorReset">Reset Errors</button>
+                    <p v-if="hasErrors" class="field-error">
+                        Upload failed.
+                        <span v-if="globalErrors">
+                            {{ globalErrors }}
+                        </span>
+                    </p>
+
                 </form>
             </div>
         </div>

@@ -9,7 +9,7 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
+import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
@@ -95,7 +95,7 @@ const handleCaptureError = ({ error, errorType }) => {
 
     // Handle API-generated error messages
     if (error?.response) {
-        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
     }
 
     else if (error?.status) {
