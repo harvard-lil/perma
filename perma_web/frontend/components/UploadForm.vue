@@ -52,6 +52,7 @@ const handleClose = () => {
 
 const handleReset = () => {
     formData.value = defaultFields;
+    globalStore.captureStatus = 'ready'
 }
 
 const handleClick = (e) => {
