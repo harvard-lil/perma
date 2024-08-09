@@ -7252,6 +7252,16 @@ a.cc:active, p a.cc.perma:active {
   }
 }
 
+.col-sm-by4 {
+  width: 100%;
+}
+@media only screen and (min-width: 990px) {
+  .col-sm-by4 {
+    width: 25%;
+    float: left;
+  }
+}
+
 .col-sm-by5 {
   width: 100%;
 }
