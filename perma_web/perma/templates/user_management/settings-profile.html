@@ -16,6 +16,15 @@
     <button type="submit" class="btn">Save changes</button>
   </form>
 
+  {% if request.user.sponsorships.first %}
+    <h2 class="body-ah">Sponsorships</h2>
+    {% for sponsorship in request.user.sponsorships.all %}
+      <p>{{ sponsorship.registrar.name }}</p>
+      {% if sponsorship.expires_at %}
+        <p>Expiration date: {{ sponsorship.expires_at }}</p>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
   {% if "Requested account deletion" in request.user.notes %}
     <h2 class="body-ah">Deletion Request Received</h2>
     <p>We've received the request to delete your account. We're sorry to see you go!</p>

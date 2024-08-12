@@ -203,7 +203,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
         initial=True
     )
     expires_at = forms.DateTimeField(
-        label="Affiliation expires at",
+        label="Sponsorship expiration date",
         widget=forms.DateTimeInput(attrs={"type": "date"}),
         required=False
     )
