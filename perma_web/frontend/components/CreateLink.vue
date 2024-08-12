@@ -10,6 +10,8 @@ import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
+import IconButton from './IconButton.vue'
+import { showDevPlayground } from '../lib/consts'
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
@@ -226,6 +228,14 @@ onBeforeUnmount(() => {
                     </button>
                 </p>
             </form><!--/#linker-->
+            <template v-if="showDevPlayground">
+            <IconButton icon="plus" name="New Folder" :handleClick="() => { console.log('New Folder') }"  />
+            <IconButton icon="edit" name="Rename Selected Folder" :handleClick="() => { console.log('Rename Folder') }"  />
+            <IconButton icon="trash" name="Delete Selected Folder" :handleClick="() => { console.log('Delete Selected Folder') }"  />
+            <IconButton icon="download-alt" name="Export Links" :handleClick="() => { console.log('Export Links') }"  />
+            <IconButton iconFamily="none" icon="chevron-down" name="Expand Link Batch History" :handleClick="() => { console.log('Expand Link Batch History') }"  />
+            <IconButton iconFamily="none" icon="chevron-up" name="Collapse Link Batch History" :handleClick="() => { console.log('Collapse Link Batch History') }"  />
+            </template>
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
 
