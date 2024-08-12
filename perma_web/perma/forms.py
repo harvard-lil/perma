@@ -197,6 +197,11 @@ class UserFormWithSponsoringRegistrar(UserForm):
     add sponsoring registrar to the create user form
     """
     sponsoring_registrars = forms.ModelChoiceField(label='Sponsoring Registrar', queryset=Registrar.objects.approved().order_by('name'))
+    indefinite_sponsorship = forms.BooleanField(
+        label="Sponsor indefinitely",
+        required=False,
+        initial=True
+    )
     expires_at = forms.DateTimeField(
         label="Affiliation expires at",
         widget=forms.DateTimeInput(attrs={"type": "date"}),
@@ -218,7 +223,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
 
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "expires_at", "sponsoring_registrars"]
+        fields = ["first_name", "last_name", "email", "sponsoring_registrars", "indefinite_sponsorship", "expires_at"]
 
     def clean(self):
         super().clean()

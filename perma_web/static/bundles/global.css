@@ -9288,6 +9288,13 @@ div.checkbox {
   padding-left: 36px;
 }
 
+div.checkbox:has(#id_a-indefinite_sponsorship) {
+  background-color: inherit;
+  padding-left: 0;
+  margin-right: 0;
+  margin-top: 16px;
+}
+
 body.single-registrar div.checkbox {
   background-color: initial;
 }
