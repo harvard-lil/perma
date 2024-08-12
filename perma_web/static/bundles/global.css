@@ -12448,6 +12448,18 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   cursor: pointer;
 }
 
+.c-button--icon {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 2rem;
+  background: none;
+  border: none;
+  margin-inline: 0.5rem;
+  padding: 0;
+}
+.c-button--icon:hover, .c-button--icon:focus {
+  color: #2D76EE;
+}
+
 .c-button--link, .c-button--privateLink {
   padding: 0;
   background: none;
