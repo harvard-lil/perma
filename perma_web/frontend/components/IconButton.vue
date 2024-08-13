@@ -34,9 +34,9 @@ const isChevron = props.icon === "chevron-down" || props.icon === "chevron-up";
       props.iconFamily === 'fontAwesome' ? `icon-${props.icon}` : ''
     }`"
   >
-    <svg v-if="isChevron" aria-hidden="true" width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path v-if="props.icon === 'chevron-down'" d="M8.84746 9L18 2.03226L16.1695 0L8.84746 5.48474L1.83051 7.77811e-08L0 2.03226L8.84746 9Z" fill="#2E76EE"/>
-      <path v-if="props.icon === 'chevron-up'" d="M8.84746 0L18 6.96774L16.1695 9L8.84746 3.51526L1.83051 9L0 6.96774L8.84746 0Z" fill="#2E76EE"/>
+    <svg v-if="isChevron" aria-hidden="true" width="14" height="7" viewBox="0 0 14 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path v-if="props.icon === 'chevron-down'" d="M6.88136 7L14 1.58065L12.5763 0L6.88136 4.26591L1.42373 0L0 1.58065L6.88136 7Z" fill="#2E76EE"/>
+      <path v-if="props.icon === 'chevron-up'" d="M6.88136 0L14 5.41935L12.5763 7L6.88136 2.73409L1.42373 7L0 5.41935L6.88136 0Z" fill="#2E76EE"/>
     </svg>
     <span class="sr-only">{{ props.name }}</span>
   </button>

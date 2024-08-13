@@ -22,5 +22,9 @@ const props = defineProps({
       </svg>
     </template>
     <h3 class="c-sectionHeading__name">{{ props.name }}</h3>
+    <div v-if="$slots.iconButton" class="c-sectionHeading__iconButton">
+      <slot name="iconButton">
+      </slot>
+    </div>
   </div>
 </template>

@@ -5872,6 +5872,8 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 }
 
 .c-button--icon {
+  display: flex;
+  align-items: center;
   color: rgba(0, 0, 0, 0.4);
   font-size: 2rem;
   background: none;
@@ -5926,8 +5928,10 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 }
 
 .c-sectionHeading {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
+  justify-content: start;
   gap: 6px;
   border-top: 2px solid $color-blue;
   padding-top: $grid;
@@ -5939,6 +5943,12 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   color: $color-blue;
   font-family: $font-hed-alt;
   font-weight: 700;
+}
+
+.c-sectionHeading__iconButton {
+  margin-right: 4px;
+  grid-column: -1 / -1;
+  justify-self: end;
 }
 
 /* CSS transition classes automatically added/removed by Vue */
