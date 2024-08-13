@@ -5878,12 +5878,19 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   font-size: 2rem;
   background: none;
   border: none;
-  margin-inline: 0.5rem;
   padding: 0;
 
   &:hover, &:focus {
     color: #2D76EE;
   }
+}
+
+.c-button--icon:not(:last-child) {
+  margin-inline-end: 1rem;
+}
+
+.c-button__chevron {
+  margin-inline: 1rem;
 }
 
 .c-button--link, .c-button--privateLink {
@@ -5946,7 +5953,6 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 }
 
 .c-sectionHeading__iconButton {
-  margin-right: 4px;
   grid-column: -1 / -1;
   justify-self: end;
 }
