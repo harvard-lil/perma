@@ -5925,6 +5925,22 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   }
 }
 
+.c-sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 2px solid $color-blue;
+  padding-top: $grid;
+  padding-bottom: $grid * 2;
+}
+
+.c-sectionHeading__name {
+  font-size: 22px;
+  color: $color-blue;
+  font-family: $font-hed-alt;
+  font-weight: 700;
+}
+
 /* CSS transition classes automatically added/removed by Vue */
 .fade-enter-active,
 .fade-leave-active {
