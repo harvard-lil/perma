@@ -228,18 +228,30 @@ onBeforeUnmount(() => {
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
 
-    <PermaLinkDetails>
+    <PermaLinkDetails v-if="showDevPlayground">
         <template #leftColumn>
             <SectionHeading name="Link Batch History">
                 <template #iconButton>
                     <IconButton icon="chevron-down" iconFamily="none" :handleClick="() => { console.log('Delete Selected Folder') }" />
                 </template>
             </SectionHeading>
+            <SectionHeading name="Folders">
+                <template #iconButton>
+                    <IconButton icon="plus" name="New Folder" :handleClick="() => { console.log('New Folder') }"  />
+                    <IconButton icon="edit" name="Rename Selected Folder" :handleClick="() => { console.log('Rename Folder') }"  />
+                    <IconButton icon="trash" name="Delete Selected Folder" :handleClick="() => { console.log('Delete Selected Folder') }"  />
+                </template>
+            </SectionHeading>
         </template>
         <template #rightColumn>
-            <SectionHeading name="Another Journal Links" icon="organization" />
+            <SectionHeading name="Another Journal Links" icon="organization">
+                <template #iconButton>
+                    <IconButton icon="download-alt" name="Export Links" :handleClick="() => { console.log('Export Links') }"  />
+                </template>
+            </SectionHeading>
         </template>
     </PermaLinkDetails>
+
     <CaptureError ref="uploadDialogRef" />
 
     <CreateLinkBatch ref="batchDialogRef" />
