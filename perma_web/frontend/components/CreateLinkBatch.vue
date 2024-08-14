@@ -4,11 +4,10 @@ import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import FolderSelect from './FolderSelect.vue';
 import Spinner from './Spinner.vue';
-import { useFetch } from '../lib/data';
+import { useBatchDetailsFetch } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
-import { validStates, transitionalStates } from '../lib/consts.js'
-import { folderError, getErrorFromNestedObject, getErrorFromResponseStatus, missingUrlError, getErrorResponse } from '../lib/errors';
+import { folderError, getErrorFromResponseStatus, missingUrlError, getErrorResponse } from '../lib/errors';
 import { useToast } from '../lib/notifications';
 import { defaultError } from '../lib/errors';
 
@@ -148,67 +147,21 @@ const handleBatchError = ({ error, errorType }) => {
 }
 
 const handleBatchDetailsFetch = async () => {
-    const { data, hasError, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId.value.id}`)
+    const batchDetails = await useBatchDetailsFetch(batchCaptureId.value.id)
 
-    if (hasError.value || !data.value.capture_jobs) {
-        console.log(errorMessage.value)
-        /* Return nothing and continue to fetch details on an interval */
-        /* TODO: Implement maxFailedAttempts approach to error handling for failed details fetches */
-        return
+    if (batchDetails?.allJobs && batchDetails?.progressSummary) {
+        batchCaptureJobs.value = batchDetails.allJobs
+        batchCaptureSummary.value = batchDetails.progressSummary
     }
 
-    const { allJobs, progressSummary } = handleBatchFormatting(data.value.capture_jobs)
-    batchCaptureJobs.value = allJobs
-    batchCaptureSummary.value = progressSummary
-}
-
-const handleBatchFormatting = ((captureJobs) => {
-    const steps = 6
-    const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
-        const includesError = !validStates.includes(currentJob.status)
-        const isCapturing = transitionalStates.includes(currentJob.status)
-
-        let jobDetail = {
-            ...currentJob,
-            message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
-            progress: (currentJob.step_count / steps) * 100,
-            url: `${window.location.hostname}/${currentJob.guid}`
-        };
-
-        if (isCapturing) {
-            accumulatedJobs.completed = false;
-        }
-
-        if (includesError) {
-            accumulatedJobs.errors += 1;
-        }
-
-        return {
-            ...accumulatedJobs,
-            details: [...accumulatedJobs.details, jobDetail]
-        };
-    }, {
-        details: [],
-        completed: true,
-        errors: 0
-    });
-
-    if (allJobs.completed) {
+    if (batchDetails?.allJobs?.completed) {
         clearInterval(progressInterval)
         globalStore.updateBatchCapture('isCompleted')
 
         const batchCompleted = new CustomEvent("BatchLinkModule.batchCompleted");
         window.dispatchEvent(batchCompleted);
     }
-
-    const totalProgress = allJobs.details.reduce((total, job) => total + job.progress, 0);
-    const maxProgress = allJobs.details.length * 100;
-    const percentComplete = Math.round((totalProgress / maxProgress) * 100);
-
-    const progressSummary = allJobs.completed ? "Batch complete." : `Batch ${percentComplete}% complete.`;
-
-    return { allJobs, progressSummary }
-})
+}
 
 const { addToast } = useToast();
 
