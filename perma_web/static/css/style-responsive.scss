@@ -5940,9 +5940,9 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   align-items: center;
   justify-content: start;
   gap: 0.6rem;
-  border-top: 2px solid $color-blue;
-  padding-top: $grid;
-  padding-bottom: $grid * 2;
+  border-block-start: 2px solid $color-blue;
+  padding-block-start: $grid;
+  padding-block-end: $grid * 2;
 }
 
 .c-sectionHeading__name {
