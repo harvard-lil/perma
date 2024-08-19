@@ -2,6 +2,7 @@ import { reactive, toRefs } from "vue";
 import { defaultError } from './errors'
 import { validStates, transitionalStates } from '../lib/consts.js'
 import { getErrorFromNestedObject } from '../lib/errors';
+import { rootUrl } from '../lib/consts'
 
 export const useFetch = async (baseUrl, options) => {
   const state = reactive({
@@ -48,7 +49,7 @@ export const useLinkBatchList = async (limit = 7) => {
     state.isLoading = true;
 
     try {
-      const { data, hasError, errorMessage } = await useFetch('/archives/batches/', { limit });
+      const { data, hasError, errorMessage } = await useFetch(`${rootUrl}/archives/batches/`, { limit });
 
       if (hasError.value || !data.value.objects.length) {
         throw new Error(errorMessage.value || 'Failed to fetch link batches');
@@ -66,8 +67,7 @@ export const useLinkBatchList = async (limit = 7) => {
   await fetchLinkBatches();
 
   return {
-    ...toRefs(state),
-    fetchLinkBatches
+    ...toRefs(state)
   };
 }
 
