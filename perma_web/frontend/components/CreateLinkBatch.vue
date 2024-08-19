@@ -147,21 +147,22 @@ const handleBatchError = ({ error, errorType }) => {
 }
 
 const handleBatchDetailsFetch = async () => {
-    const batchDetails = await useBatchDetailsFetch(batchCaptureId.value.id)
+    const { allJobs, progressSummary } = await useBatchDetailsFetch(batchCaptureId.value.id);
 
-    if (batchDetails?.allJobs && batchDetails?.progressSummary) {
-        batchCaptureJobs.value = batchDetails.allJobs
-        batchCaptureSummary.value = batchDetails.progressSummary
+    if (allJobs.value && progressSummary.value) {
+        console.log(allJobs.value)
+        batchCaptureJobs.value = allJobs.value;
+        batchCaptureSummary.value = progressSummary.value;
     }
 
-    if (batchDetails?.allJobs?.completed) {
-        clearInterval(progressInterval)
-        globalStore.updateBatchCapture('isCompleted')
+    if (allJobs.value?.completed) {
+        clearInterval(progressInterval);
+        globalStore.updateBatchCapture('isCompleted');
 
         const batchCompleted = new CustomEvent("BatchLinkModule.batchCompleted");
         window.dispatchEvent(batchCompleted);
     }
-}
+};
 
 const { addToast } = useToast();
 
