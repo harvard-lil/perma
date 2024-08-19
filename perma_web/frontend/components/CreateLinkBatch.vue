@@ -150,7 +150,6 @@ const handleBatchDetailsFetch = async () => {
     const { allJobs, progressSummary } = await useBatchDetailsFetch(batchCaptureId.value.id);
 
     if (allJobs.value && progressSummary.value) {
-        console.log(allJobs.value)
         batchCaptureJobs.value = allJobs.value;
         batchCaptureSummary.value = progressSummary.value;
     }
