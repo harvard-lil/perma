@@ -748,6 +748,9 @@ class Sponsorship(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['registrar', 'user'], name='unique_sponsorship'),
         ]
+        indexes = [
+            models.Index(fields=['status', 'expires_at'])
+        ]
 
     tracker = FieldTracker()
 

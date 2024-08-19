@@ -78,10 +78,13 @@ def post_process_settings(settings):
             'task': 'perma.celery_tasks.queue_file_deleted_confirmation_tasks',
             'schedule': crontab(minute="2-59/5"),
         },
-        'manage_sponsored_users_expiration': {
-            'task': 'perma.celery_tasks.manage_sponsored_users_expiration',
+        'deactivate_expired_sponsored_users': {
+            'task': 'perma.celery_tasks.deactivate_expired_sponsored_users',
             'schedule': crontab(hour='6', minute='0'),
-            'args': ([7, 15, 30],)
+        },
+        'warn_expiring_sponsored_users': {
+            'task': 'perma.celery_tasks.warn_expiring_sponsored_users',
+            'schedule': crontab(hour='6', minute='0'),
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),
