@@ -36,6 +36,41 @@ export const useFetch = async (baseUrl, options) => {
   }
 }
 
+export const useLinkBatchList = async (limit = 7) => {
+  const state = reactive({
+    linkBatches: [],
+    isLoading: false,
+    hasError: false,
+    errorMessage: ''
+  });
+
+  const fetchLinkBatches = async () => {
+    state.isLoading = true;
+
+    try {
+      const { data, hasError, errorMessage } = await useFetch('/archives/batches/', { limit });
+
+      if (hasError.value || !data.value.objects.length) {
+        throw new Error(errorMessage.value || 'Failed to fetch link batches');
+      }
+
+      state.linkBatches = data.value.objects;
+    } catch (err) {
+      state.hasError = true;
+      state.errorMessage = err.message || 'An error occurred while fetching link batches';
+    }
+
+    state.isLoading = false;
+  };
+
+  await fetchLinkBatches();
+
+  return {
+    ...toRefs(state),
+    fetchLinkBatches
+  };
+}
+
 export const useBatchDetailsFetch = async (batchCaptureId) => {
   const state = reactive({
     isLoading: false,
