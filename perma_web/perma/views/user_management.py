@@ -50,6 +50,8 @@ from perma.forms import (
     LibraryRegistrarForm,
     OrganizationWithRegistrarForm,
     OrganizationForm,
+    OtherOrgQuoteForm,
+    OtherOrgQuoteUsageForm,
     UserForm,
     UserFormWithRegistrar,
     UserFormWithSponsoringRegistrar,
@@ -62,7 +64,8 @@ from perma.forms import (
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm,
-    UserUpdateProfileForm)
+    UserUpdateProfileForm,
+)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, user_passes_test_or_403, prep_for_perma_payments,
@@ -1931,9 +1934,19 @@ def sign_up_firm(request):
                 return HttpResponseRedirect(reverse('firm_request_response'))
 
     else:
-        form = CreateUserFormWithFirm()
+        user_form = CreateUserFormWithFirm()
+        organization_form = OtherOrgQuoteForm()
+        usage_form = OtherOrgQuoteUsageForm()
 
-    return render(request, "registration/sign-up-firms.html", {'form': form})
+    return render(
+        request,
+        'registration/sign-up-firms.html',
+        {
+            'user_form': user_form,
+            'organization_form': organization_form,
+            'usage_form': usage_form,
+        },
+    )
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)

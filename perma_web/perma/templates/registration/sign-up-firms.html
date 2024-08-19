@@ -23,8 +23,14 @@
       <h2 class="body-ah">Request team subscription quote</h2>
       <form method="post" action="">
         {% csrf_token %}
+        <h3 class="body-bh">Your team information</h3>
+        {% include "includes/fieldset.html" with form=organization_form %}
+        <h3 class="body-bh">Estimated usage information</h3>
+        <p>Quotes are based on the expected volume of use by your whole team.</p>
+        {% include "includes/fieldset.html" with form=usage_form %}
+        <h3 class="body-bh">Your information</h3>
         <fieldset>
-          {% for field in form %}
+          {% for field in user_form %}
             <div class="form-group{% if field.errors %} _error{% endif %}">
               <label for="id_{{ field.name }}">{{ field.label }}</label>
               {{ field }}
