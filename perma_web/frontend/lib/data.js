@@ -37,7 +37,7 @@ export const useFetch = async (baseUrl, options) => {
   }
 }
 
-export const useLinkBatchList = async (limit = 7) => {
+export const useBatchHistoryFetch = async (limit = 7) => {
   const state = reactive({
     linkBatches: [],
     isLoading: false,
@@ -45,7 +45,7 @@ export const useLinkBatchList = async (limit = 7) => {
     errorMessage: ''
   });
 
-  const fetchLinkBatches = async () => {
+  const fetchBatchHistory = async () => {
     state.isLoading = true;
 
     try {
@@ -64,7 +64,7 @@ export const useLinkBatchList = async (limit = 7) => {
     state.isLoading = false;
   };
 
-  await fetchLinkBatches();
+  await fetchBatchHistory();
 
   return {
     ...toRefs(state)

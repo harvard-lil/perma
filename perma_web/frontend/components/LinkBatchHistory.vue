@@ -1,10 +1,10 @@
 <script setup>
 import { ref } from 'vue'
-import { useLinkBatchList } from '../lib/data'
+import { useBatchHistoryFetch } from '../lib/data'
 
 const linkRecords = ref([]) 
 const handleLinkBatchHistoryFetch = async () => {
-    const { linkBatches } = await useLinkBatchList();
+    const { linkBatches } = await useBatchHistoryFetch();
     linkRecords.value = linkBatches.value
 };
 </script>
