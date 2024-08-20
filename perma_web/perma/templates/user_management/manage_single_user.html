@@ -16,6 +16,9 @@
             {% else %}
               <a href="{% url 'user_management_manage_single_sponsored_user_readd' user_id=target_user.id registrar_id=sponsorship.registrar.id %}" name="registrar" class="btn btn-default btn-xs leave-org-btn">Reactivate</a>
             {% endif %}
+            {% if sponsorship.expires_at %}
+              <br><p>Expiration date: {{ sponsorship.expires_at }}</p>
+            {% endif %}
           </div>
         {% endfor %}
       {% endfor %}
