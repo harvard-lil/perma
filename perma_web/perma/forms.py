@@ -284,8 +284,7 @@ class CreateUserFormWithFirm(UserForm):
     add firm to the create user form
     """
 
-    # requested_account_note = forms.CharField(required=True)
-    user_will_be_admin = forms.BooleanField()
+    user_will_be_admin = forms.BooleanField(required=False)
 
     class Meta:
         model = LinkUser
