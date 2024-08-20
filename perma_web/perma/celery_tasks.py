@@ -1579,6 +1579,6 @@ def warn_expiring_sponsored_users(warning_days=None):
                 try:
                     email_expiring_sponsored_user(sponsorship.user, context)
                 except Exception as e:
-                    print(f"Error emailing user {sponsorship.id}: {e}")
+                    logger.error(f"Error emailing user {sponsorship.id}: {e}")
                 break
 
