@@ -109,21 +109,11 @@ class OtherOrgQuoteForm(ModelForm):
 
 class OtherOrgQuoteUsageForm(Form):
     estimated_number_of_accounts = forms.ChoiceField(
-        choices=[
-            ('1 - 10', '1 - 10'),
-            ('10 - 50', '10 - 50'),
-            ('50 - 100', '50 - 100'),
-            ('100+', '100+'),
-        ],
+        choices=[(option, option) for option in ['1 - 10', '10 - 50', '50 - 100', '100+']],
         label='Number of individual accounts',
     )
     estimated_perma_links_per_month = forms.ChoiceField(
-        choices=[
-            ('< 10', '< 10'),
-            ('10 - 50', '10 - 50'),
-            ('50 - 100', '50 - 100'),
-            ('100+', '100+'),
-        ],
+        choices=[(option, option) for option in ['< 10', '10 - 50', '50 - 100', '100+']],
         label='Number of Perma Links created each month (per user)',
     )
 
