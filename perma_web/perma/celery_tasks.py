@@ -1538,12 +1538,12 @@ def deactivate_expired_sponsored_users(expiration_date=None):
         expiration_date = timezone.now().date()
 
     expired_sponsorships = Sponsorship.objects.filter(status="active", expires_at__lt=expiration_date)
+    updated = expired_sponsorships.update(status="inactive", status_changed=timezone.now())
 
-    if not expired_sponsorships:
-        return
-
-    logger.info(f"Deactivating {len(expired_sponsorships)} sponsored users that expired on {expiration_date}.")
-    expired_sponsorships.update(status="inactive", status_changed=timezone.now())
+    if updated:
+        logger.info(f"Deactivated {updated} sponsorships that expired on {expiration_date}.")
+    else:
+        logger.info(f"Found no sponsorships that expired on {expiration_date}.")
 
 
 @shared_task
