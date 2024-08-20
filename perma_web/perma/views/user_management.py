@@ -1904,7 +1904,7 @@ def sign_up_firm(request):
         if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
-        form = CreateUserFormWithFirm(request.POST)
+        user_form = CreateUserFormWithFirm(request.POST)
         user_email = request.POST.get('e-address', '').lower()
 
         try:
@@ -1919,8 +1919,8 @@ def sign_up_firm(request):
             email_firm_request(request, target_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
-        if form.is_valid():
-            new_user = form.save(commit=False)
+        if user_form.is_valid():
+            new_user = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
             create_account = request.POST.get('create_account', None)
             if create_account:
@@ -2092,26 +2092,35 @@ def email_court_request(request, user):
         }
     )
 
-def email_firm_request(request, user):
+def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     Send email to Perma.cc admins when a firm requests an account
     """
+    organization_form = OtherOrgQuoteForm(request.POST)
+    usage_form = OtherOrgQuoteUsageForm(request.POST)
+    user_form = CreateUserFormWithFirm(request.POST)
+
+    # Validate form values; this exception should rarely or never arise in practice, but the
+    # `cleaned_data` attribute is only populated after checking
+    if organization_form.errors or usage_form.errors or user_form.errors:
+        raise ValueError('Organization or usage form data contains validation errors')
+
     try:
-        target_user = LinkUser.objects.get(email=user.email)
+        target_user = LinkUser.objects.get(email=user_form.cleaned_data['email'])
     except LinkUser.DoesNotExist:
         target_user = None
+
     send_admin_email(
-        "Perma.cc new law firm account information request",
+        'Perma.cc new law firm account information request',
         user.raw_email,
         request,
-        "email/admin/firm_request.txt",
+        'email/admin/firm_request.txt',
         {
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "firm_name": user.requested_account_note,
-            "has_account": target_user,
-            "email": user.raw_email
-        }
+            'target_user': target_user,
+            'organization_form': organization_form,
+            'usage_form': usage_form,
+            'user_form': user_form,
+        },
     )
 
 def email_premium_request(request, user):
