@@ -6,7 +6,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:121-175951378136ce37665173c2aad0b2e3
+          - registry.lil.tools/harvardlil/perma-web:122-0591cfb9c3940fcc7bd9439f7cf53ae4
         platforms:
           - linux/amd64
           - linux/arm64
@@ -106,7 +106,7 @@ services:
     # copy ./services/docker/perma-payments/settings.py.example
     # to ./services/docker/perma-payments/settings.py,
     # alter config as desired, in the usual way, then comment in this volume
-    # and re-run docker-compose up
+    # and re-run docker compose up
     # volumes:
     #   - ./services/docker/perma-payments/settings.py:/app/web/config/settings/settings.py
     networks:

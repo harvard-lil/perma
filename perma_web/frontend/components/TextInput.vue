@@ -1,7 +1,7 @@
 <script setup>
 const model = defineModel()
 const props = defineProps({
-    error: String,
+    error: Array,
     id: String
 })
 
@@ -15,6 +15,8 @@ const props = defineProps({
                 class="label-instruction">{{
         model.description }}</span></label>
         <input v-model="model.value" :id="props.id" :name="props.id" type="text" :placeholder="model.placeholder" />
-        <span v-if="props.error" class="help-block js-warning">{{ props.error }}</span>
+        <template v-for="error in props.error">
+            <span class="help-block js-warning">{{ error }}</span>
+        </template>
     </div>
 </template>

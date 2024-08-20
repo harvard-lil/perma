@@ -12451,8 +12451,35 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   padding-bottom: 1.125rem;
 }
 
+.u-min-h-48 {
+  min-height: 12rem;
+}
+
 .c-button {
   cursor: pointer;
+}
+
+.c-button--icon {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-align: center;
+      align-items: center;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 2rem;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.c-button--icon:hover, .c-button--icon:focus {
+  color: #2D76EE;
+}
+
+.c-button--icon:not(:last-child) {
+  margin-inline-end: 1rem;
+}
+
+.c-button__chevron {
+  margin-inline: 1rem;
 }
 
 .c-button--link, .c-button--privateLink {
@@ -12493,6 +12520,33 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 }
 .c-dialog::backdrop {
   background-color: rgba(255, 255, 255, 0.95);
+}
+
+.c-sectionHeading {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: auto auto 1fr;
+      grid-template-columns: auto auto 1fr;
+  -ms-flex-align: center;
+      align-items: center;
+  -ms-flex-pack: start;
+      justify-content: start;
+  gap: 0.6rem;
+  border-block-start: 2px solid #2D76EE;
+  padding-block-start: 8px;
+  padding-block-end: 16px;
+}
+
+.c-sectionHeading__name {
+  font-size: 2.2rem;
+  color: #2D76EE;
+  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 700;
+}
+
+.c-sectionHeading__iconButton {
+  grid-column: -1/-1;
+  justify-self: end;
 }
 
 /* CSS transition classes automatically added/removed by Vue */

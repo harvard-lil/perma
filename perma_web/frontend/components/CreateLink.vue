@@ -9,7 +9,8 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
+import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
+import { isLoading, readyStates, isReady } from '../lib/store'
 
 const batchDialogRef = ref('')
 const batchDialogOpen = () => {
@@ -18,12 +19,6 @@ const batchDialogOpen = () => {
 
 const userLink = ref('')
 const userLinkProgressBar = ref('0%')
-
-const readyStates = ["ready", "urlError", "captureError"]
-const isReady = computed(() => { readyStates.includes(globalStore.captureStatus) })
-
-const loadingStates = ["isValidating", "isQueued", "isCapturing"]
-const isLoading = computed(() => { return loadingStates.includes(globalStore.captureStatus) })
 
 const submitButtonText = computed(() => {
     if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
@@ -95,7 +90,7 @@ const handleCaptureError = ({ error, errorType }) => {
 
     // Handle API-generated error messages
     if (error?.response) {
-        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
     }
 
     else if (error?.status) {
@@ -135,16 +130,20 @@ const handleCaptureStatus = async (guid) => {
     } catch (error) {
         // TODO: Implement maxFailedAttempts logic here
         console.log(error)
-        return
+        return {
+            status: 'indeterminate',
+            error
+        }
     }
 }
 
 const handleProgressUpdate = async () => {
-    const { step_count, status, error } = await handleCaptureStatus(globalStore.captureGUID);
+    const response = await handleCaptureStatus(globalStore.captureGUID);
+    const { status } = response
 
     if (status === 'in_progress') {
         globalStore.updateCapture('isCapturing')
-        userLinkProgressBar.value = `${step_count / 5 * 100}%`
+        userLinkProgressBar.value = `${response.step_count / 5 * 100}%`
     }
 
     if (status === 'completed') {
@@ -154,7 +153,7 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'failed') {
-        const errorMessage = error.length ? getErrorFromNestedObject(JSON.parse(error)) : defaultError
+        const errorMessage = response.error.length ? getErrorFromNestedObject(JSON.parse(response.error)) : defaultError
 
         clearInterval(progressInterval)
 
@@ -224,7 +223,6 @@ onBeforeUnmount(() => {
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
-
     <CaptureError ref="uploadDialogRef" />
 
     <CreateLinkBatch ref="batchDialogRef" />

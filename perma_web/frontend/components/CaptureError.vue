@@ -49,8 +49,8 @@ defineExpose({
 </script>
 
 <template>
+
     <div class="container cont-fixed">
-        <UpdateGUID v-if="showDevPlayground" />
         <div v-if="globalStore.captureErrorMessage" id="error-container">
             <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
                     Please <a href='/login'>log in</a> to continue.
@@ -61,7 +61,6 @@ defineExpose({
                     <p>You can <button @click.prevent="handleOpen">upload your own
                             archive</button> or <a href="{{contact_url}}">contact
                             us about this error.</a></p>
-                    <UploadForm ref="uploadDialogRef" />
                 </template>
                 <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
                         href="/contact">contact us
@@ -69,4 +68,8 @@ defineExpose({
             </template>
         </div>
     </div>
+
+    <template v-if="showDevPlayground && globalStore.captureErrorMessage">
+        <UploadForm ref="uploadDialogRef" />
+    </template>
 </template>

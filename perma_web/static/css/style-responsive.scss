@@ -5870,8 +5870,34 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .u-pb-150 {
   padding-bottom: calc(18rem / 16);
 }
+
+.u-min-h-48 {
+  min-height: 12rem;
+}
 .c-button {
   cursor: pointer;
+}
+
+.c-button--icon {
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 2rem;
+  background: none;
+  border: none;
+  padding: 0;
+
+  &:hover, &:focus {
+    color: #2D76EE;
+  }
+}
+
+.c-button--icon:not(:last-child) {
+  margin-inline-end: 1rem;
+}
+
+.c-button__chevron {
+  margin-inline: 1rem;
 }
 
 .c-button--link, .c-button--privateLink {
@@ -5913,6 +5939,29 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   &::backdrop {
     background-color: rgba(255, 255, 255, 0.95)
   }
+}
+
+.c-sectionHeading {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  justify-content: start;
+  gap: 0.6rem;
+  border-block-start: 2px solid $color-blue;
+  padding-block-start: $grid;
+  padding-block-end: $grid * 2;
+}
+
+.c-sectionHeading__name {
+  font-size: 2.2rem;
+  color: $color-blue;
+  font-family: $font-hed-alt;
+  font-weight: 700;
+}
+
+.c-sectionHeading__iconButton {
+  grid-column: -1 / -1;
+  justify-self: end;
 }
 
 /* CSS transition classes automatically added/removed by Vue */

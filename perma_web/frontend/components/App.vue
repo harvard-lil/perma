@@ -1,9 +1,11 @@
 <script setup>
 import CreateLink from './CreateLink.vue';
 import Toast from './Toast.vue';
+import PermaLinkDetails from './PermaLinkDetails.vue'
 import { onBeforeMount, watchEffect } from 'vue'
 import { getLinksRemainingStatus, getUserTypes, getUserOrganizations, getSponsoredFolders } from '../lib/store'
 import { globalStore } from '../stores/globalStore';
+import { showDevPlayground } from '../lib/consts'
 
 onBeforeMount(() => {
     globalStore.updateLinksRemaining(links_remaining)
@@ -26,4 +28,5 @@ watchEffect(() => {
 <template>
     <Toast />
     <CreateLink />
+    <PermaLinkDetails v-if="showDevPlayground" />
 </template>

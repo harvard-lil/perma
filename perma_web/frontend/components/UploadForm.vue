@@ -1,11 +1,14 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import TextInput from './TextInput.vue';
 import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
 import { globalStore } from '../stores/globalStore';
+import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
+import { isLoading, isReady } from '../lib/store'
+import Spinner from './Spinner.vue'
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -29,17 +32,9 @@ watch(
     }
 );
 
-// Match backend format for errors, for example {file:"message",url:"message"},
 const errors = ref({})
-
-// Debug only
-const handleErrorToggle = () => {
-    const mockedErrors = {
-        url: "URL cannot be empty.",
-        file: "File is too large."
-    }
-    errors.value = mockedErrors
-}
+const hasErrors = computed(() => { return globalStore.captureStatus === 'uploadError' })
+const globalErrors = computed(() => { return getGlobalErrorValues(formData.value, errors.value) })
 
 const handleErrorReset = () => {
     errors.value = {}
@@ -57,6 +52,7 @@ const handleClose = () => {
 
 const handleReset = () => {
     formData.value = defaultFields;
+    globalStore.captureStatus = 'ready'
 }
 
 const handleClick = (e) => {
@@ -66,7 +62,12 @@ const handleClick = (e) => {
 }
 
 const handleUploadRequest = async () => {
+    if (!isReady) {
+        return
+    }
+
     handleErrorReset()
+    globalStore.updateCapture("isValidating")
 
     const csrf = getCookie("csrftoken")
     const requestType = globalStore.captureGUID ? "PATCH" : "POST"
@@ -91,19 +92,27 @@ const handleUploadRequest = async () => {
                 body: formDataObj
             })
 
+
         if (!response?.ok) {
-            const errorResponse = await response.json()
+            const errorResponse = await getErrorResponse(response)
             throw errorResponse
         }
 
         const { guid } = await response.json()
-        globalStore.updateCapture('success')
+        globalStore.updateCapture("success")
 
         handleReset()
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
-        console.log(error) // TODO: Add actual error handling
+        globalStore.updateCapture("uploadError")
+        console.error("Upload request failed:", error);
+
+        if (error?.response) {
+            errors.value = error.response
+        } else {
+            errors.value = error.status ? getErrorFromStatus(error.status) : defaultError
+        }
     }
 };
 
@@ -133,8 +142,13 @@ defineExpose({
             "This will create a new Perma Link." }}
             </p>
             <div class="modal-body">
+
+                <div class="u-min-h-48" v-if="isLoading">
+                    <Spinner length="2" color="#2D76EE" top="48px" />
+                </div>
+
                 <form id="archive_upload_form" @submit.prevent>
-                    <template v-for="(_, key) in formData" :key="key">
+                    <template v-for="(_, key) in formData" :key="key" v-if="isReady">
                         <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
                             :id="key" />
                         <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"
@@ -148,8 +162,13 @@ defineExpose({
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
-                    <button @click.prevent="handleErrorToggle">Toggle Error</button>
-                    <button @click.prevent="handleErrorReset">Reset Errors</button>
+                    <p v-if="hasErrors" class="field-error">
+                        Upload failed.
+                        <span v-if="globalErrors">
+                            {{ globalErrors }}
+                        </span>
+                    </p>
+
                 </form>
             </div>
         </div>
