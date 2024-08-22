@@ -1908,18 +1908,23 @@ def sign_up_firm(request):
         user_email = request.POST.get('e-address', '').lower()
 
         try:
-            target_user = LinkUser.objects.get(email=user_email)
+            existing_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
-            target_user = None
-        if target_user:
-            requested_account_note = request.POST.get('requested_account_note', None)
-            target_user.requested_account_type = 'firm'
-            target_user.requested_account_note = requested_account_note
-            target_user.save()
-            email_firm_request(request, target_user)
+            existing_user = None
+
+        # If user email in form matches an existing user in database, update user record to include
+        # organization name under `LinkUser.requested_account_note` field
+        if existing_user is not None:
+            organization_name = request.POST.get('name', None)
+            existing_user.requested_account_type = 'firm'
+            existing_user.requested_account_note = organization_name
+            existing_user.save()
+            email_firm_request(request, existing_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
-        if user_form.is_valid():
+        # Otherwise, validate the user form, create a new user account (if requested), and email a
+        # firm request to Perma administrators
+        elif user_form.is_valid():
             new_user = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
             create_account = request.POST.get('create_account', None)
@@ -1927,7 +1932,11 @@ def sign_up_firm(request):
                 new_user.save()
                 email_new_user(request, new_user)
                 email_firm_request(request, new_user)
-                messages.add_message(request, messages.INFO, "We will shortly follow up with more information about how Perma.cc could work in your firm.")
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    'We will shortly follow up with more information about how Perma.cc could work in your organization.',
+                )
                 return HttpResponseRedirect(reverse('register_email_instructions'))
             else:
                 email_firm_request(request, new_user)
