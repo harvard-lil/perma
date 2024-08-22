@@ -50,8 +50,8 @@ from perma.forms import (
     LibraryRegistrarForm,
     OrganizationWithRegistrarForm,
     OrganizationForm,
-    OtherOrgQuoteForm,
-    OtherOrgQuoteUsageForm,
+    FirmOrganizationForm,
+    FirmUsageForm,
     UserForm,
     UserFormWithRegistrar,
     UserFormWithSponsoringRegistrar,
@@ -1935,8 +1935,8 @@ def sign_up_firm(request):
 
     else:
         user_form = CreateUserFormWithFirm()
-        organization_form = OtherOrgQuoteForm()
-        usage_form = OtherOrgQuoteUsageForm()
+        organization_form = FirmOrganizationForm()
+        usage_form = FirmUsageForm()
 
     return render(
         request,
@@ -2096,8 +2096,8 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     Send email to Perma.cc admins when a firm requests an account
     """
-    organization_form = OtherOrgQuoteForm(request.POST)
-    usage_form = OtherOrgQuoteUsageForm(request.POST)
+    organization_form = FirmOrganizationForm(request.POST)
+    usage_form = FirmUsageForm(request.POST)
     user_form = CreateUserFormWithFirm(request.POST)
 
     # Validate form values; this exception should rarely or never arise in practice, but the

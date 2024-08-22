@@ -94,9 +94,9 @@ class LibraryRegistrarForm(ModelForm):
         self.fields['website'].label = "Library website"
         self.fields['address'].label = "Library physical address"
 
-### OTHER ORG (FIRM) QUOTE FORMS ###
+### FIRM (OTHER ORG) QUOTE FORMS ###
 
-class OtherOrgQuoteForm(ModelForm):
+class FirmOrganizationForm(ModelForm):
     class Meta:
         model = Registrar
         fields = ['name', 'email', 'website']
@@ -107,7 +107,7 @@ class OtherOrgQuoteForm(ModelForm):
         }
 
 
-class OtherOrgQuoteUsageForm(Form):
+class FirmUsageForm(Form):
     estimated_number_of_accounts = forms.ChoiceField(
         choices=[(option, option) for option in ['1 - 10', '10 - 50', '50 - 100', '100+']],
         label='Number of individual accounts',
@@ -116,7 +116,6 @@ class OtherOrgQuoteUsageForm(Form):
         choices=[(option, option) for option in ['< 10', '10 - 50', '50 - 100', '100+']],
         label='Number of Perma Links created each month (per user)',
     )
-
 
 ### ORGANIZATION FORMS ###
 
