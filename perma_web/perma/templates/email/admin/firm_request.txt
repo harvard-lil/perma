@@ -1,4 +1,4 @@
-{{ user_form.cleaned_data.email }}{% if user_form.cleaned_data.first_name or user_form.cleaned_data.last_name %} ({{ user_form.cleaned_data.first_name }} {{ user_form.cleaned_data.last_name }}){% endif %} has requested more information about creating a law firm account:
+{{ user_form.cleaned_data.email }}{% if user_form.cleaned_data.first_name or user_form.cleaned_data.last_name %} ({{ user_form.cleaned_data.first_name }} {{ user_form.cleaned_data.last_name }}){% endif %} has requested more information about creating an account for a law firm or other organization:
 
 Organization name: {{ organization_form.cleaned_data.name }}
 Organization email: {{ organization_form.cleaned_data.email }}
