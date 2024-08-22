@@ -6,6 +6,7 @@ import { onBeforeMount, watchEffect } from 'vue'
 import { getLinksRemainingStatus, getUserTypes, getUserOrganizations, getSponsoredFolders } from '../lib/store'
 import { globalStore } from '../stores/globalStore';
 import { showDevPlayground } from '../lib/consts'
+import LinkBatchHistory from './LinkBatchHistory.vue';
 
 onBeforeMount(() => {
     globalStore.updateLinksRemaining(links_remaining)
@@ -29,4 +30,5 @@ watchEffect(() => {
     <Toast />
     <CreateLink />
     <PermaLinkDetails v-if="showDevPlayground" />
+    <LinkBatchHistory v-if="showDevPlayground" />
 </template>
