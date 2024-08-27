@@ -3,7 +3,6 @@ from datetime import timedelta
 import itertools
 import logging
 from typing import Literal
-from urllib.parse import urlsplit
 
 import celery
 import redis
@@ -1990,14 +1989,12 @@ def firm_request_response(request):
 
 
 def match_user_email_to_existing_registrar(user: LinkUser) -> Registrar | None:
-    """Determine whether a user's domain matches an existing registrar."""
+    """If a user's email matches an existing registrar, return it."""
     _, user_domain = user.email.split('@')
-    registrars = Registrar.objects.filter(website__icontains=user_domain)
-    for registrar in registrars:
-        registrar_domain = urlsplit(registrar.website).hostname
-        if (registrar_domain is not None) and (registrar_domain == user_domain):
-            return registrar
-    else:
+    pattern = r'https?://(www\.)?' + user_domain + r'/?'
+    try:
+        return Registrar.objects.get(website__iregex=pattern)
+    except (Registrar.DoesNotExist, Registrar.MultipleObjectsReturned):
         return None
 
 
@@ -2015,6 +2012,13 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
         'activation_expires': settings.PASSWORD_RESET_TIMEOUT,
         'request': request
     })
+
+    # If using default template, check whether user's email matches an existing registrar
+    if template == 'email/new_user.txt':
+        context['registrar_match'] = match_user_email_to_existing_registrar(user)
+    else:
+        context['registrar_match'] = None
+
     send_user_email(
         user.raw_email,
         template,
