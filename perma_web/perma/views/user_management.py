@@ -3,6 +3,7 @@ from datetime import timedelta
 import itertools
 import logging
 from typing import Literal
+from urllib.parse import urlsplit
 
 import celery
 import redis
@@ -1986,6 +1987,18 @@ def firm_request_response(request):
     After the user has requested info about a firm account
     """
     return render(request, 'registration/firm_request.html')
+
+
+def match_user_email_to_existing_registrar(user: LinkUser) -> Registrar | None:
+    """Determine whether a user's domain matches an existing registrar."""
+    _, user_domain = user.email.split('@')
+    registrars = Registrar.objects.filter(website__icontains=user_domain)
+    for registrar in registrars:
+        registrar_domain = urlsplit(registrar.website).hostname
+        if (registrar_domain is not None) and (registrar_domain == user_domain):
+            return registrar
+    else:
+        return None
 
 
 def email_new_user(request, user, template="email/new_user.txt", context={}):
