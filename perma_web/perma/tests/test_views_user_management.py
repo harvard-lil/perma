@@ -2656,15 +2656,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         message = mail.outbox[0]
         lines = message.body.splitlines()
         captures = []
-        capture_line = False
         for line in lines:
-            if capture_line is True:
-                captures.append(line.lstrip('- '))
-                continue
-            if line.startswith('Note: We’ve also found'):
-                capture_line = True
-            elif line == '':
-                capture_line = False
+            if line.lstrip().startswith('- '):
+                captures.append(line.strip('- '))
 
         # Validate suggested registrar(s)
         self.assertEqual(len(captures), 1)

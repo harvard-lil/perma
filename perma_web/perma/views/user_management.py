@@ -1992,19 +1992,18 @@ def firm_request_response(request):
 def suggest_registrars(user: LinkUser, limit: int = 5) -> BaseManager[Registrar]:
     """Suggest potential registrars for a user based on email domain.
 
-    This queries the database for registrars whose website URL matches
-    the base domain from the user's email address. For example, if the
+    This queries the database for registrars whose website matches the
+    base domain from the user's email address. For example, if the
     user's email is `username@law.harvard.edu`, this will suggest
-    registrars whose URLs end with `harvard.edu`.
+    registrars whose domains end with `harvard.edu`.
     """
     _, email_domain = user.email.split('@')
     base_domain = '.'.join(email_domain.rsplit('.', 2)[-2:])
-    pattern = f'{re.escape(base_domain)}/?$'
+    pattern = f'^https?://([a-zA-Z0-9\\-\\.]+\\.)?{re.escape(base_domain)}(/.*)?$'
     registrars = (
         Registrar.objects.exclude(status='pending')
         .filter(website__iregex=pattern)
-        .order_by('-link_count')
-        .all()[:limit]
+        .order_by('-link_count', 'name')[:limit]
     )
     return registrars
 
