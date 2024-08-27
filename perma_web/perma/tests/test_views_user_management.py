@@ -2585,7 +2585,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
         self.assertEqual(message.recipients(), [user_email])
 
-        activation_url = next(line for line in message.body.rstrip().split("\n") if line.startswith('http'))
+        activation_url = next(
+            line for line in message.body.rstrip().split('\n') if line.strip().startswith('http')
+        )
         return activation_url
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
@@ -2636,6 +2638,37 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertTrue(user.is_confirmed)
         response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_raw_email, 'password': 'Anewpass1'}, follow=True, secure=True)
         self.assertContains(response, 'Enter any URL to preserve it forever')
+
+    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
+    def test_suggested_registrars(self):
+        # Register user
+        _, registrar_domain = self.registrar.email.split('@')
+        new_user_email = f'new_user@{registrar_domain}'
+        self.submit_form(
+            'sign_up',
+            {'e-address': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
+            success_url=reverse('register_email_instructions'),
+            success_query=LinkUser.objects.filter(email=new_user_email),
+        )
+        self.assertEqual(len(mail.outbox), 1)
+
+        # Obtain suggested registrar(s) from activation email message
+        message = mail.outbox[0]
+        lines = message.body.splitlines()
+        captures = []
+        capture_line = False
+        for line in lines:
+            if capture_line is True:
+                captures.append(line.lstrip('- '))
+                continue
+            if line.startswith('Note: We’ve also found'):
+                capture_line = True
+            elif line == '':
+                capture_line = False
+
+        # Validate suggested registrar(s)
+        self.assertEqual(len(captures), 1)
+        self.assertEqual(captures[0], f'{self.registrar.name}: {self.registrar.email}')
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_signup_with_existing_email_rejected(self):
