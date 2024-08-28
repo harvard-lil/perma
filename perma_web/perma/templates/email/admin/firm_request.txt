@@ -1,4 +1,4 @@
-{{ user_form.cleaned_data.email }}{% if user_form.cleaned_data.first_name or user_form.cleaned_data.last_name %} ({{ user_form.cleaned_data.first_name }} {{ user_form.cleaned_data.last_name }}){% endif %} has requested more information about creating an account for a law firm or other organization:
+{{ user_form.data.email }}{% if user_form.data.first_name or user_form.data.last_name %} ({{ user_form.data.first_name }} {{ user_form.data.last_name }}){% endif %} has requested more information about creating an account for a law firm or other organization:
 
 Organization name: {{ organization_form.cleaned_data.name }}
 Organization email: {{ organization_form.cleaned_data.email }}
@@ -7,6 +7,6 @@ Organization website: {{ organization_form.cleaned_data.website }}
 Estimated number of individual accounts: {{ usage_form.cleaned_data.estimated_number_of_accounts }}
 Estimated number of Perma Links created each month (per user): {{ usage_form.cleaned_data.estimated_perma_links_per_month }}
 
-User would be an administrator on the account: {{ user_form.cleaned_data.would_be_org_admin | yesno }}
+User would be an administrator on the account: {{ user_form.data.would_be_org_admin | yesno }}
 
 This user currently {% if target_user %}has{% else %}does not have{% endif %} an account.

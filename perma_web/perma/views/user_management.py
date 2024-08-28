@@ -1942,6 +1942,10 @@ def sign_up_firm(request):
                 email_firm_request(request, new_user)
                 return HttpResponseRedirect(reverse('firm_request_response'))
 
+        else:
+            organization_form = FirmOrganizationForm()
+            usage_form = FirmUsageForm()
+
     else:
         user_form = CreateUserFormWithFirm()
         organization_form = FirmOrganizationForm()
@@ -2111,13 +2115,18 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
 
     # Validate form values; this exception should rarely or never arise in practice, but the
     # `cleaned_data` attribute is only populated after checking
-    if organization_form.errors or usage_form.errors or user_form.errors:
-        raise ValueError('Organization or usage form data contains validation errors')
+    if organization_form.errors or usage_form.errors:
+        message = 'Form data contains validation errors\n'
+        if organization_form.errors:
+            message += f'\nOrganization:\n{organization_form.errors.as_text()}\n'
+        if usage_form.errors:
+            message += f'\nUsage:\n{usage_form.errors.as_text()}\n'
+        raise ValueError(message)
 
     try:
-        target_user = LinkUser.objects.get(email=user_form.cleaned_data['email'])
+        existing_user = LinkUser.objects.get(email=user_form.data['e-address'].casefold())
     except LinkUser.DoesNotExist:
-        target_user = None
+        existing_user = None
 
     send_admin_email(
         'Perma.cc new law firm account information request',
@@ -2125,7 +2134,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
         request,
         'email/admin/firm_request.txt',
         {
-            'target_user': target_user,
+            'existing_user': existing_user,
             'organization_form': organization_form,
             'usage_form': usage_form,
             'user_form': user_form,

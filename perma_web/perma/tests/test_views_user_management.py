@@ -5,7 +5,7 @@ from datetime import datetime, timezone as tz
 from io import StringIO
 import json
 from mock import patch, sentinel
-from random import random
+from random import random, getrandbits
 import re
 
 from bs4 import BeautifulSoup
@@ -2250,17 +2250,28 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### Firms ###
 
-    def new_firm(self):
-        rand = random()
-        return {'requested_account_note': 'Firm {}'.format(rand)}
+    def create_firm_organization_form(self):
+        return {
+            'name': f'Firm {random()}',
+            'email': 'test-firm@example.com',
+            'website': 'https://www.example.com',
+        }
 
-    def new_firm_user(self):
-        rand = random()
-        email = self.randomize_capitalization('user{}@university.org'.format(rand))
-        return {'raw_email': email,
-                'normalized_email': email.lower(),
-                'first': 'Joe',
-                'last': 'Yacobówski'}
+    def create_firm_usage_form(self):
+        return {
+            'estimated_number_of_accounts': '10 - 50',
+            'estimated_perma_links_per_month': '100+',
+        }
+
+    def create_firm_user_form(self):
+        email = self.randomize_capitalization(f'user{random()}@university.org')
+        return {
+            'raw_email': email,
+            'normalized_email': email.lower(),
+            'first': 'Joe',
+            'last': 'Yacobówski',
+            'would_be_org_admin': bool(getrandbits(1)),
+        }
 
     def check_firm_email(self, message, firm_email):
         our_address = settings.DEFAULT_FROM_EMAIL
@@ -2276,92 +2287,131 @@ class UserManagementViewsTestCase(PermaTestCase):
         '''
             Does the firm signup form submit as expected? Success cases.
         '''
-        new_firm = self.new_firm()
-        new_user = self.new_firm_user()
+        firm_organization_form = self.create_firm_organization_form()
+        firm_usage_form = self.create_firm_usage_form()
+        firm_user_form = self.create_firm_user_form()
         existing_user = {'email': 'test_user@example.com'}
         another_existing_user = {'email': 'another_library_user@example.com'}
         expected_emails_sent = 0
 
         # NOT LOGGED IN
 
-        # Existing user's email address, no court info
-        # (currently succeeds, should probably fail; see issue 1746)
-        self.submit_form('sign_up_firm',
-                         data={'e-address': self.randomize_capitalization(existing_user['email'])},
-                         success_url=reverse('firm_request_response'))
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
         # Existing user's email address + firm info
-        self.submit_form('sign_up_firm',
-                         data={'e-address': self.randomize_capitalization(existing_user['email']),
-                               'requested_account_note': new_firm['requested_account_note']},
-                         success_url=reverse('firm_request_response'))
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': self.randomize_capitalization(existing_user['email']),
+                **firm_organization_form,
+                **firm_usage_form,
+            },
+            success_url=reverse('firm_request_response'),
+        )
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
         # New user email address, don't create account
-        self.submit_form('sign_up_firm',
-                         data={'e-address': new_user['raw_email'],
-                               'requested_account_note': new_firm['requested_account_note']},
-                         success_url=reverse('firm_request_response'))
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': firm_user_form['raw_email'],
+                **firm_organization_form,
+                **firm_usage_form,
+            },
+            success_url=reverse('firm_request_response'),
+        )
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], firm_user_form['raw_email'])
 
         # New user email address, create account
-        self.submit_form('sign_up_firm',
-                         data={'e-address': new_user['raw_email'],
-                               'requested_account_note': new_firm['requested_account_note'],
-                               'create_account': True},
-                         success_url=reverse('register_email_instructions'))
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': firm_user_form['raw_email'],
+                **firm_organization_form,
+                **firm_usage_form,
+                'create_account': True,
+            },
+            success_url=reverse('register_email_instructions'),
+        )
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
+        self.check_new_activation_email(
+            mail.outbox[expected_emails_sent - 2], firm_user_form['raw_email']
+        )
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], firm_user_form['raw_email'])
 
         # LOGGED IN
 
         # New user email address
         # (This succeeds and creates a new account; see issue 1749)
-        new_user = self.new_firm_user()
-        self.submit_form('sign_up_firm',
-                         data={'e-address': new_user['raw_email'],
-                               'requested_account_note': new_firm['requested_account_note'],
-                               'create_account': True},
-                         user=existing_user['email'],
-                         success_url=reverse('register_email_instructions'))
+        firm_user_form = self.create_firm_user_form()
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': firm_user_form['raw_email'],
+                **firm_organization_form,
+                **firm_usage_form,
+                'create_account': True,
+            },
+            user=existing_user['email'],
+            success_url=reverse('register_email_instructions'),
+        )
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
+        self.check_new_activation_email(
+            mail.outbox[expected_emails_sent - 2], firm_user_form['raw_email']
+        )
+        self.check_firm_email(mail.outbox[expected_emails_sent - 1], firm_user_form['raw_email'])
 
         # Existing user's email address, not that of the user logged in.
         # (This is odd; see issue 1749)
-        self.submit_form('sign_up_firm',
-                         data={'e-address': self.randomize_capitalization(existing_user['email']),
-                               'requested_account_note': new_firm['requested_account_note'],
-                               'create_account': True},
-                         user=another_existing_user['email'],
-                         success_url=reverse('firm_request_response'))
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': self.randomize_capitalization(existing_user['email']),
+                **firm_organization_form,
+                **firm_usage_form,
+                'create_account': True,
+            },
+            user=another_existing_user['email'],
+            success_url=reverse('firm_request_response'),
+        )
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
 
+        # ERROR
+
+        # Existing user's email address, no firm info
+        with self.assertRaisesRegex(ValueError, r'Form data contains validation errors'):
+            self.submit_form(
+                'sign_up_firm',
+                data={'e-address': self.randomize_capitalization(existing_user['email'])},
+                success_url=reverse('firm_request_response'),
+            )
+
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_form_honeypot(self):
-        new_firm = self.new_firm()
-        new_user = self.new_firm_user()
-        self.submit_form('sign_up_firm',
-                          data = { 'e-address': new_user['raw_email'],
-                                   'requested_account_note': new_firm['requested_account_note'],
-                                   'create_account': True,
-                                   'telephone': "I'm a bot." },
-                          success_url = reverse('register_email_instructions'))
+        firm_organization_form = self.create_firm_organization_form()
+        firm_usage_form = self.create_firm_usage_form()
+        firm_user_form = self.create_firm_user_form()
+        self.submit_form(
+            'sign_up_firm',
+            data={
+                'e-address': firm_user_form['raw_email'],
+                'create_account': True,
+                'telephone': "I'm a bot.",
+                **firm_organization_form,
+                **firm_usage_form,
+            },
+            success_url=reverse('register_email_instructions'),
+        )
         self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
+        self.assertFalse(
+            LinkUser.objects.filter(email__iexact=firm_user_form['raw_email']).exists()
+        )
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_failure(self):
@@ -2369,17 +2419,23 @@ class UserManagementViewsTestCase(PermaTestCase):
             Does the firm signup form submit as expected? Failure cases.
         '''
         # Not logged in, blank submission reports correct fields required
-        self.submit_form('sign_up_firm',
-                         data={},
-                         error_keys=['email', 'requested_account_note'])
+        self.submit_form(
+            'sign_up_firm',
+            data={},
+            form_keys=['organization_form', 'usage_form', 'user_form'],
+            error_keys=['email'],
+        )
         self.assertEqual(len(mail.outbox), 0)
 
         # Logged in, blank submission reports same fields required
         # (This is odd; see issue 1749)
-        self.submit_form('sign_up_firm',
-                         data={},
-                         user='test_user@example.com',
-                         error_keys=['email', 'requested_account_note'])
+        self.submit_form(
+            'sign_up_firm',
+            data={},
+            form_keys=['organization_form', 'usage_form', 'user_form'],
+            user='test_user@example.com',
+            error_keys=['email'],
+        )
         self.assertEqual(len(mail.outbox), 0)
 
     ### Journals ###
