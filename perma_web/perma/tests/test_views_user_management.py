@@ -2296,6 +2296,15 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # NOT LOGGED IN
 
+        # Existing user's email address, no firm info (should not succeed due to missing values)
+        self.submit_form(
+            'sign_up_firm',
+            data={'e-address': self.randomize_capitalization(existing_user['email'])},
+            success_url=reverse('firm_request_response'),
+        )
+        expected_emails_sent += 0
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+
         # Existing user's email address + firm info
         self.submit_form(
             'sign_up_firm',
@@ -2381,16 +2390,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-        # ERROR
-
-        # Existing user's email address, no firm info
-        with self.assertRaisesRegex(ValueError, r'Form data contains validation errors'):
-            self.submit_form(
-                'sign_up_firm',
-                data={'e-address': self.randomize_capitalization(existing_user['email'])},
-                success_url=reverse('firm_request_response'),
-            )
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_new_firm_form_honeypot(self):

@@ -33,6 +33,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.http import (
     HttpRequest,
     HttpResponse,
+    HttpResponseBadRequest,
     HttpResponseRedirect,
     Http404,
     HttpResponseForbidden,
@@ -2113,15 +2114,10 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
     usage_form = FirmUsageForm(request.POST)
     user_form = CreateUserFormWithFirm(request.POST)
 
-    # Validate form values; this exception should rarely or never arise in practice, but the
-    # `cleaned_data` attribute is only populated after checking
+    # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
+    # attribute is only populated after checking
     if organization_form.errors or usage_form.errors:
-        message = 'Form data contains validation errors\n'
-        if organization_form.errors:
-            message += f'\nOrganization:\n{organization_form.errors.as_text()}\n'
-        if usage_form.errors:
-            message += f'\nUsage:\n{usage_form.errors.as_text()}\n'
-        raise ValueError(message)
+        return HttpResponseBadRequest('Form data contains validation errors')
 
     try:
         existing_user = LinkUser.objects.get(email=user_form.data['e-address'].casefold())
