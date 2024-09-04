@@ -7,7 +7,6 @@ from django.core.files import File
 from django.conf import settings
 
 from storages.backends.s3boto3 import S3Boto3Storage
-from storages.backends.azure_storage import AzureStorage
 from whitenoise.storage import CompressedStaticFilesStorage
 
 # used only for suppressing INFO logging in S3Boto3Storage
@@ -94,22 +93,4 @@ class S3MediaStorage(BaseMediaStorage, S3Boto3Storage):
         if name.endswith('.gz'):
             params['ContentType'] = 'application/gzip'
             params['ContentEncoding'] = ''
-        return params
-
-
-class AzureMediaStorage(BaseMediaStorage, AzureStorage):
-    location = settings.MEDIA_ROOT
-    # suppress azure storage http logging
-    logging.getLogger('azure.core.pipeline.policies.http_logging_policy').setLevel(logging.WARNING)
-
-    def get_object_parameters(self, name):
-        """
-        As above, modify stored archive content-type and content-encoding
-        for proper playback.
-        See https://github.com/jschneier/django-storages/issues/917
-        """
-        params = super().get_object_parameters(name)
-        if name.endswith('.gz'):
-            params['content_type'] = 'application/gzip'
-            params['content_encoding'] = ''
         return params
