@@ -280,18 +280,13 @@
 
 <section id="landing-signup" class="container-fluid cont-bg">
   <div class="container cont-fixed">
-    <h2 class="section-title-alt">Sign up for free</h2>
-    <p class="section-subtitle-alt">It only takes a minute to sign up with Perma.cc. Select your organization and get&nbsp;started.</p>
+    <h2 class="section-title-alt">Sign up</h2>
+    <p class="section-subtitle-alt">It only takes a minute to sign up with Perma.cc. Select your organization type and get&nbsp;started.</p>
     <div class="row row-modules">
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-libraries-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Libraries<span class="_verbose">.</span></strong> Libraries play a critical role in powering and supporting Perma.cc.</p>
         <a href="{% url 'libraries' %}" class="btn btn-small center">Perma.cc for libraries</a>
-      </div>
-      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
-        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-academics-bg.png" aria-hidden="true" alt="" />
-        <p class="caption"><strong>Faculty and journals<span class="_verbose">.</span></strong> Over 150 academic law journals use Perma.cc.</p>
-        <a href="{% url 'sign_up_journals' %}" class="btn btn-small center">Perma.cc for journals</a>
       </div>
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-courts-bg.png" aria-hidden="true" alt="" />
@@ -300,8 +295,13 @@
       </div>
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-everyone-bg.png" aria-hidden="true" alt="" />
-        <p class="caption"><strong>Everyone<span class="_verbose">.</span></strong> Anyone can create a free account and start creating Perma Links.</p>
-        <a href="{% url 'sign_up' %}" class="btn btn-small center">Perma.cc for everyone</a>
+        <p class="caption"><strong>Other organizations<span class="_verbose">.</span></strong> There are wide-ranging applications for Perma.cc tools.</p>
+        <a href="{% url 'sign_up_firm' %}" class="btn btn-small center">Perma.cc for other orgs</a>
+      </div>
+      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
+        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-individuals-bg.png" aria-hidden="true" alt="" />
+        <p class="caption"><strong>Individuals<span class="_verbose">.</span></strong> Anyone can register a free account and start creating Perma Links.</p>
+        <a href="{% url 'sign_up' %}" class="btn btn-small center">Perma.cc for individuals</a>
       </div>
     </div>
   </div>

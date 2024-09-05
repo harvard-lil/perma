@@ -6,7 +6,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models.fields import BLANK_CHOICE_DASH
-from django.forms import ModelForm
+from django.forms import Form, ModelForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import mark_safe
@@ -94,6 +94,28 @@ class LibraryRegistrarForm(ModelForm):
         self.fields['website'].label = "Library website"
         self.fields['address'].label = "Library physical address"
 
+### FIRM (OTHER ORG) QUOTE FORMS ###
+
+class FirmOrganizationForm(ModelForm):
+    class Meta:
+        model = Registrar
+        fields = ['name', 'email', 'website']
+        labels = {
+            'name': 'Organization name',
+            'email': 'Organization email',
+            'website': 'Organization website',
+        }
+
+
+class FirmUsageForm(Form):
+    estimated_number_of_accounts = forms.ChoiceField(
+        choices=[(option, option) for option in ['1 - 10', '10 - 50', '50 - 100', '100+']],
+        label='Number of individual accounts',
+    )
+    estimated_perma_links_per_month = forms.ChoiceField(
+        choices=[(option, option) for option in ['< 10', '10 - 50', '50 - 100', '100+']],
+        label='Number of Perma Links created each month (per user)',
+    )
 
 ### ORGANIZATION FORMS ###
 
@@ -271,18 +293,20 @@ class CreateUserFormWithFirm(UserForm):
     add firm to the create user form
     """
 
-    requested_account_note = forms.CharField(required=True)
+    would_be_org_admin = forms.ChoiceField(
+        widget=forms.Select, choices=[(True, 'Yes'), (False, 'No')], initial=(False, 'No')
+    )
 
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "requested_account_note"]
+        fields = ['first_name', 'last_name', 'email', 'would_be_org_admin']
 
     def __init__(self, *args, **kwargs):
         super(CreateUserFormWithFirm, self).__init__(*args, **kwargs)
-        self.fields['requested_account_note'].label = "Your firm"
         self.fields['first_name'].label = "Your first name"
         self.fields['last_name'].label = "Your last name"
         self.fields['email'].label = "Your email"
+        self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
 
 
 class CreateUserFormWithUniversity(UserForm):

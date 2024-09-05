@@ -34,6 +34,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.http import (
     HttpRequest,
     HttpResponse,
+    HttpResponseBadRequest,
     HttpResponseRedirect,
     Http404,
     HttpResponseForbidden,
@@ -51,6 +52,8 @@ from perma.forms import (
     LibraryRegistrarForm,
     OrganizationWithRegistrarForm,
     OrganizationForm,
+    FirmOrganizationForm,
+    FirmUsageForm,
     UserForm,
     UserFormWithRegistrar,
     UserFormWithSponsoringRegistrar,
@@ -63,7 +66,8 @@ from perma.forms import (
     UserAddOrganizationForm,
     UserFormWithAdmin,
     UserAddAdminForm,
-    UserUpdateProfileForm)
+    UserUpdateProfileForm,
+)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, user_passes_test_or_403, prep_for_perma_payments,
@@ -1902,39 +1906,62 @@ def sign_up_firm(request):
         if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
-        form = CreateUserFormWithFirm(request.POST)
+        user_form = CreateUserFormWithFirm(request.POST)
         user_email = request.POST.get('e-address', '').lower()
 
         try:
-            target_user = LinkUser.objects.get(email=user_email)
+            existing_user = LinkUser.objects.get(email=user_email)
         except LinkUser.DoesNotExist:
-            target_user = None
-        if target_user:
-            requested_account_note = request.POST.get('requested_account_note', None)
-            target_user.requested_account_type = 'firm'
-            target_user.requested_account_note = requested_account_note
-            target_user.save()
-            email_firm_request(request, target_user)
+            existing_user = None
+
+        # If user email in form matches an existing user in database, update user record to include
+        # organization name under `LinkUser.requested_account_note` field
+        if existing_user is not None:
+            organization_name = request.POST.get('name', None)
+            existing_user.requested_account_type = 'firm'
+            existing_user.requested_account_note = organization_name
+            existing_user.save()
+            email_firm_request(request, existing_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
-        if form.is_valid():
-            new_user = form.save(commit=False)
+        # Otherwise, validate the user form, create a new user account (if requested), and email a
+        # firm request to Perma administrators
+        elif user_form.is_valid():
+            new_user = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
             create_account = request.POST.get('create_account', None)
             if create_account:
                 new_user.save()
                 email_new_user(request, new_user)
                 email_firm_request(request, new_user)
-                messages.add_message(request, messages.INFO, "We will shortly follow up with more information about how Perma.cc could work in your firm.")
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    'We will shortly follow up with more information about how Perma.cc could work in your organization.',
+                )
                 return HttpResponseRedirect(reverse('register_email_instructions'))
             else:
                 email_firm_request(request, new_user)
                 return HttpResponseRedirect(reverse('firm_request_response'))
 
-    else:
-        form = CreateUserFormWithFirm()
+        else:
+            organization_form = FirmOrganizationForm()
+            usage_form = FirmUsageForm()
 
-    return render(request, "registration/sign-up-firms.html", {'form': form})
+    else:
+        user_form = CreateUserFormWithFirm()
+        organization_form = FirmOrganizationForm()
+        usage_form = FirmUsageForm()
+
+    return render(
+        request,
+        'registration/sign-up-firms.html',
+        {
+            'user_form': user_form,
+            'organization_form': organization_form,
+            'usage_form': usage_form,
+        },
+    )
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -2108,26 +2135,35 @@ def email_court_request(request, user):
         }
     )
 
-def email_firm_request(request, user):
+def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     Send email to Perma.cc admins when a firm requests an account
     """
+    organization_form = FirmOrganizationForm(request.POST)
+    usage_form = FirmUsageForm(request.POST)
+    user_form = CreateUserFormWithFirm(request.POST)
+
+    # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
+    # attribute is only populated after checking
+    if organization_form.errors or usage_form.errors:
+        return HttpResponseBadRequest('Form data contains validation errors')
+
     try:
-        target_user = LinkUser.objects.get(email=user.email)
+        existing_user = LinkUser.objects.get(email=user_form.data['e-address'].casefold())
     except LinkUser.DoesNotExist:
-        target_user = None
+        existing_user = None
+
     send_admin_email(
-        "Perma.cc new law firm account information request",
+        'Perma.cc new law firm account information request',
         user.raw_email,
         request,
-        "email/admin/firm_request.txt",
+        'email/admin/firm_request.txt',
         {
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "firm_name": user.requested_account_note,
-            "has_account": target_user,
-            "email": user.raw_email
-        }
+            'existing_user': existing_user,
+            'organization_form': organization_form,
+            'usage_form': usage_form,
+            'user_form': user_form,
+        },
     )
 
 def email_premium_request(request, user):
