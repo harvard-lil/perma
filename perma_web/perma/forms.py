@@ -293,7 +293,9 @@ class CreateUserFormWithFirm(UserForm):
     add firm to the create user form
     """
 
-    would_be_org_admin = forms.BooleanField(required=False)
+    would_be_org_admin = forms.ChoiceField(
+        widget=forms.Select, choices=[(True, 'Yes'), (False, 'No')], initial=(False, 'No')
+    )
 
     class Meta:
         model = LinkUser
