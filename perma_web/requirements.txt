@@ -36,13 +36,13 @@ billiard==3.6.4.0 \
     --hash=sha256:299de5a8da28a783d51b197d496bef4f1595dd023a93a4f59dde1886ae905547 \
     --hash=sha256:87103ea78fa6ab4d5c751c4909bcff74617d985de7fa8b672cf8618afd5a875b
     # via celery
-boto3==1.33.11 \
-    --hash=sha256:620f1eb3e18e780be58383b4a4e10db003d2314131190514153996032c8d932d \
-    --hash=sha256:8d54fa3a9290020f9a7f488f9cbe821029de0af05a677751b12973a5f726a5e2
+boto3==1.35.12 \
+    --hash=sha256:acaa7c75cbf483605e3c46e9ac03043a4cf5e9866940122d68b06d1defe00774 \
+    --hash=sha256:b32faab174f6f9b75fada27bcf054ab3e8846bd410ed9817d0b511109326b6b1
     # via -r requirements.in
-botocore==1.33.11 \
-    --hash=sha256:b14b328f902d120de0a09eaa657a9a701c0ceeb711197c2f01ef0523f855086c \
-    --hash=sha256:b46227eb3fa9cfdc8f5a83920ef347e67adea8095830ed265a3373b13b54421f
+botocore==1.35.12 \
+    --hash=sha256:a8f8230032d090225a93763675a73c208d121bb63ed99f41ee6ad3d51b74b80d \
+    --hash=sha256:cb787030415438ea6ff8381f8acd8b1107593d5ebea457fd843a5e36ba19e9a4
     # via
     #   boto3
     #   s3transfer
@@ -883,9 +883,9 @@ requests-file==1.5.1 \
     --hash=sha256:07d74208d3389d01c38ab89ef403af0cfec63957d53a0081d8eca738d0247d8e \
     --hash=sha256:dfe5dae75c12481f68ba353183c53a65e6044c923e64c24b2209f6c7570ca953
     # via tldextract
-s3transfer==0.8.2 \
-    --hash=sha256:368ac6876a9e9ed91f6bc86581e319be08188dc60d50e0d56308ed5765446283 \
-    --hash=sha256:c9e56cbe88b28d8e197cf841f1f0c130f246595e77ae5b5a05b69fe7cb83de76
+s3transfer==0.10.2 \
+    --hash=sha256:0711534e9356d3cc692fdde846b4a1e4b0cb6519971860796e6bc4c7aea00ef6 \
+    --hash=sha256:eca1c20de70a39daee580aef4986996620f365c4e0fda6a86100231d62f1bf69
     # via boto3
 schema==0.7.5 \
     --hash=sha256:f06717112c61895cabc4707752b88716e8420a8819d71404501e114f91043197 \
@@ -965,9 +965,9 @@ ua-parser==0.10.0 \
     --hash=sha256:46ab2e383c01dbd2ab284991b87d624a26a08f72da4d7d413f5bfab8b9036f8a \
     --hash=sha256:47b1782ed130d890018d983fac37c2a80799d9e0b9c532e734c67cf70f185033
     # via -r requirements.in
-urllib3==2.0.7 \
-    --hash=sha256:c97dfde1f7bd43a71c8d2a58e369e9b2bf692d1334ea9f9cae55add7d0dd0f84 \
-    --hash=sha256:fdb6d215c776278489906c2f8916e6e7d4f5a9b602ccbcfdf7f016fc8da0596e
+urllib3==2.2.2 \
+    --hash=sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472 \
+    --hash=sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168
     # via
     #   botocore
     #   internetarchive
