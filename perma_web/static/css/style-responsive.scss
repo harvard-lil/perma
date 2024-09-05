@@ -1080,6 +1080,14 @@ div.col-right {
   }
 }
 
+.col-sm-by4 {
+  width: 100%;
+  @include respond-desktop {
+    width: 100 / 4 * 1%;
+    float: left;
+  }
+}
+
 .col-sm-by5 {
   width: 100%;
   @include respond-desktop {
