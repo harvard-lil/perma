@@ -2310,6 +2310,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={
                 'e-address': self.randomize_capitalization(existing_user['email']),
+                'would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -2324,6 +2325,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={
                 'e-address': firm_user_form['raw_email'],
+                'would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -2338,6 +2340,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={
                 'e-address': firm_user_form['raw_email'],
+                'would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -2360,6 +2363,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={
                 'e-address': firm_user_form['raw_email'],
+                'would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -2380,6 +2384,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={
                 'e-address': self.randomize_capitalization(existing_user['email']),
+                'would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -2433,7 +2438,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
             user='test_user@example.com',
-            error_keys=['email'],
+            error_keys=['email', 'would_be_org_admin'],
         )
         self.assertEqual(len(mail.outbox), 0)
 
