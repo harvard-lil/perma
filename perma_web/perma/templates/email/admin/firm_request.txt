@@ -9,4 +9,4 @@ Estimated number of Perma Links created each month (per user): {{ usage_form.cle
 
 User would be an administrator on the account: {{ user_form.data.would_be_org_admin | yesno }}
 
-This user currently {% if target_user %}has{% else %}does not have{% endif %} an account.
+This user currently {% if existing_user %}has{% else %}does not have{% endif %} an account.
