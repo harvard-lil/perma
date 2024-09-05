@@ -2,6 +2,7 @@ import csv
 from datetime import timedelta
 import itertools
 import logging
+import re
 from typing import Literal
 
 import celery
@@ -1988,7 +1989,26 @@ def firm_request_response(request):
     return render(request, 'registration/firm_request.html')
 
 
-def email_new_user(request, user, template="email/new_user.txt", context={}):
+def suggest_registrars(user: LinkUser, limit: int = 5) -> BaseManager[Registrar]:
+    """Suggest potential registrars for a user based on email domain.
+
+    This queries the database for registrars whose website matches the
+    base domain from the user's email address. For example, if the
+    user's email is `username@law.harvard.edu`, this will suggest
+    registrars whose domains end with `harvard.edu`.
+    """
+    _, email_domain = user.email.split('@')
+    base_domain = '.'.join(email_domain.rsplit('.', 2)[-2:])
+    pattern = f'^https?://([a-zA-Z0-9\\-\\.]+\\.)?{re.escape(base_domain)}(/.*)?$'
+    registrars = (
+        Registrar.objects.exclude(status='pending')
+        .filter(website__iregex=pattern)
+        .order_by('-link_count', 'name')[:limit]
+    )
+    return registrars
+
+
+def email_new_user(request, user, template='email/new_user.txt', context=None):
     """
     Send email to newly created accounts
     """
@@ -1997,11 +2017,20 @@ def email_new_user(request, user, template="email/new_user.txt", context={}):
         urlsafe_base64_encode(force_bytes(user.pk)),
         default_token_generator.make_token(user),
     ]))
-    context.update({
-        'activation_route': activation_route,
-        'activation_expires': settings.PASSWORD_RESET_TIMEOUT,
-        'request': request
-    })
+
+    # Include context variables
+    template_is_default = template == 'email/new_user.txt'
+    context = context if context is not None else {}
+    context.update(
+        {
+            'activation_expires': settings.PASSWORD_RESET_TIMEOUT,
+            'activation_route': activation_route,
+            'request': request,
+            # Only query DB if we're using the default template; otherwise there's no need
+            'suggested_registrars': suggest_registrars(user) if template_is_default else [],
+        }
+    )
+
     send_user_email(
         user.raw_email,
         template,
