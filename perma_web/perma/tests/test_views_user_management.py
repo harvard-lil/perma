@@ -2422,7 +2422,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firm',
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
-            error_keys=['email'],
+            error_keys=['email', 'would_be_org_admin'],
         )
         self.assertEqual(len(mail.outbox), 0)
 
