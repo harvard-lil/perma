@@ -612,8 +612,6 @@ USE_ANALYTICS_VIEWS = [
     'dev_docs',
     'sign_up',
     'sign_up_courts',
-    'sign_up_faculty',
-    'sign_up_journals',
     'sign_up_firm',
     'libraries'
 ]
