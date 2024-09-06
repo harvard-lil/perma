@@ -60,7 +60,6 @@ from perma.forms import (
     UserFormWithOrganization,
     CreateUserFormWithCourt,
     CreateUserFormWithFirm,
-    CreateUserFormWithUniversity,
     UserAddRegistrarForm,
     UserAddSponsoringRegistrarForm,
     UserAddOrganizationForm,
