@@ -1872,31 +1872,6 @@ def sign_up_courts(request):
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def sign_up_faculty(request):
-    """
-    Register a new user
-    """
-    if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
-            return something_took_the_bait
-
-        form = CreateUserFormWithUniversity(request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.requested_account_type = 'faculty'
-            new_user.save()
-
-            email_new_user(request, new_user)
-
-            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc privileges.")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-    else:
-        form = CreateUserFormWithUniversity()
-
-    return render(request, "registration/sign-up-faculty.html", {'form': form})
-
-@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_firm(request):
     """
     Register a new law firm user
@@ -1963,31 +1938,6 @@ def sign_up_firm(request):
         },
     )
 
-
-@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def sign_up_journals(request):
-    """
-    Register a new user
-    """
-    if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
-            return something_took_the_bait
-
-        form = CreateUserFormWithUniversity(request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.requested_account_type = 'journal'
-            new_user.save()
-
-            email_new_user(request, new_user)
-
-            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc privileges.")
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-    else:
-        form = CreateUserFormWithUniversity()
-
-    return render(request, "registration/sign-up-journals.html", {'form': form})
 
 def register_email_instructions(request):
     """

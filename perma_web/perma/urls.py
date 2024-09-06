@@ -55,8 +55,6 @@ urlpatterns = [
 
     re_path(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
     re_path(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
-    re_path(r'^sign-up/faculty/?$', user_management.sign_up_faculty, name='sign_up_faculty'),
-    re_path(r'^sign-up/journals/?$', user_management.sign_up_journals, name='sign_up_journals'),
     re_path(r'^sign-up/firms/?$', user_management.sign_up_firm, name='sign_up_firm'),
     re_path(r'^libraries/?$', user_management.libraries, name='libraries'),
 
