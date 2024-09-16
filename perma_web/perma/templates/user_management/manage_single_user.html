@@ -31,8 +31,11 @@
         {% csrf_token %}
         {% for org in orgs %}
           <div class="settings-block">
-            <p>{{ org.name }}</p>
+            <p>{{ org.organization.name }}</p>
             <button name="org" value="{{ org.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+            {% if org.expires_at %}
+              <br><p>Expiration date: {{ org.expires_at }}</p>
+            {% endif %}
           </div>
         {% endfor %}
       </form>

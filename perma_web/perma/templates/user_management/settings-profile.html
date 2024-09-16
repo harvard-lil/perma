@@ -1,4 +1,5 @@
 {% extends "settings-layout.html" %}
+{% load get_item_from_dict %}
 {% block title %} | Settings{% endblock %}
 
 {% block dashboardContent %}
@@ -23,6 +24,17 @@
       {% if sponsorship.expires_at %}
         <p>Expiration date: {{ sponsorship.expires_at }}</p>
       {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if request.user.organizations.first %}
+    <h2 class="body-ah">Organization memberships</h2>
+    {% for org in request.user.organizations.all %}
+      <br><p>{{ org.name }}</p>
+      {% with affiliation=org_affiliations|get_item_from_dict:org.id %}
+        {% if affiliation.expires_at %}
+          <p>Expiration date: {{ affiliation.expires_at }}</p>
+        {% endif %}
+      {% endwith %}
     {% endfor %}
   {% endif %}
   {% if "Requested account deletion" in request.user.notes %}

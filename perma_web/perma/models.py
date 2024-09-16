@@ -817,7 +817,7 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!", on_delete=models.CASCADE)
     pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users', on_delete=models.CASCADE)
-    organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
+    organizations = models.ManyToManyField(Organization, through='UserOrganizationAffiliation', blank=True, related_name='users',
                                            help_text="If set, this user is an org user. This should not be set if registrar is set!<br><br>"
                                                      "Note: <b>This list will include deleted orgs of which this user is a member.</b> This is a historical"
                                                      " record and deleted org memberships cannot be removed.<br><br>"
@@ -1199,6 +1199,15 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     def remove_line_from_notes(self, containing):
         if self.notes:
             self.notes = re.sub(f"\n*{containing}.*", '', self.notes)
+
+
+class UserOrganizationAffiliation(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    user = models.ForeignKey(LinkUser, on_delete=models.CASCADE, db_column='linkuser_id')
+    expires_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'perma_linkuser_organizations'
 
 
 class ApiKey(models.Model):

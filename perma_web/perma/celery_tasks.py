@@ -30,7 +30,7 @@ from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship
+    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
 from perma.utils import (
     remove_whitespace,
@@ -1518,13 +1518,13 @@ def convert_warc_to_wacz(input_guid, save_wacz_on_error=False, warn_on_error=Fal
         logger.warning(data["error"])
 
 
-def email_expiring_sponsored_user(user, context):
+def email_expiring_user(user, template, context):
     """
-    Sends email to registrar sponsored user notifying about affiliation expiry
+    Sends email to user notifying about affiliation expiry
     """
     send_user_email(
         user.raw_email,
-        "email/sponsored_user_expiry_notification.txt",
+        template,
         context
     )
 
@@ -1544,6 +1544,22 @@ def deactivate_expired_sponsored_users(expiration_date=None):
         logger.info(f"Deactivated {updated} sponsorships that expired on {expiration_date}.")
     else:
         logger.info(f"Found no sponsorships that expired on {expiration_date}.")
+
+
+@shared_task
+def remove_expired_organization_user_affiliation(expiration_date=None):
+    """
+    Removes affiliation of organization users whose affiliation expired
+    """
+    if not expiration_date:
+        expiration_date = timezone.now().date()
+
+    deleted_affiliations = UserOrganizationAffiliation.objects.filter(expires_at__lt=expiration_date).delete()
+
+    if deleted_affiliations[0] > 0:
+        logger.info(f"Removed {deleted_affiliations[0]} organization user affiliations that expired on {expiration_date}.")
+    else:
+        logger.info(f"Found no organization user affiliations that expired on {expiration_date}.")
 
 
 @shared_task
@@ -1577,8 +1593,42 @@ def warn_expiring_sponsored_users(warning_days=None):
                     "expiration_date": expiration_date + timedelta(days=1)
                 }
                 try:
-                    email_expiring_sponsored_user(sponsorship.user, context)
+                    email_expiring_user(sponsorship.user, "email/sponsored_user_expiry_notification.txt", context)
                 except Exception as e:
                     logger.error(f"Error emailing user {sponsorship.id}: {e}")
+                break
+
+
+@shared_task
+def warn_expiring_organization_users(warning_days=None):
+    """
+    Notifies users whose affiliation with an organization is expiring
+    """
+    if not warning_days:
+        warning_days = [7, 15, 30]
+
+    todays_date = timezone.now().date()
+    max_notification_date = todays_date + timedelta(days=max(warning_days))
+    expired_organization_users = UserOrganizationAffiliation.objects.filter(expires_at__lt=max_notification_date)
+
+    if not expired_organization_users:
+        return
+
+    for affiliation in expired_organization_users:
+        expiration_date = affiliation.expires_at.date()
+        for day in warning_days:
+            warning_date = todays_date + timedelta(days=day)
+            if expiration_date == warning_date:
+                context = {
+                    "organization_name": affiliation.organization.name,
+                    "registrar_name": affiliation.organization.registrar.name,
+                    "registrar_email": affiliation.organization.registrar.email,
+                    "expiration_days": day,
+                    "expiration_date": expiration_date + timedelta(days=1)
+                }
+                try:
+                    email_expiring_user(affiliation.user, "email/organization_user_expiry_notification.txt", context)
+                except Exception as e:
+                    logger.error(f"Error emailing user {affiliation.user_id}: {e}")
                 break
 

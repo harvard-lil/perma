@@ -63,7 +63,7 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm,
     UserUpdateProfileForm)
-from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob, ApiKey, Sponsorship, Folder, InternetArchiveItem, UserOrganizationAffiliation
 from perma.utils import (apply_search_query, apply_pagination, apply_sort_order, get_form_data,
     ratelimit_ip_key, user_passes_test_or_403, prep_for_perma_payments,
     get_complete_ia_rate_limiting_info)
@@ -995,7 +995,10 @@ def edit_user_in_group(request, user_id, group_name):
         # registrar users can edit their sponsored users,
         # and users who belong to any of their registrar's organizations
         sponsorships = target_user.sponsorships.filter(registrar=request.user.registrar)
-        orgs = target_user.organizations.all() & Organization.objects.filter(registrar=request.user.registrar)
+        user_org_affiliations = (UserOrganizationAffiliation.objects.filter(user=target_user)
+                                 .select_related('organization', 'user').all())
+        registrar_orgs = Organization.objects.filter(registrar=request.user.registrar)
+        orgs = user_org_affiliations.filter(organization__in=registrar_orgs)
 
         if not sponsorships and len(orgs) == 0:
             raise Http404
@@ -1003,7 +1006,9 @@ def edit_user_in_group(request, user_id, group_name):
     elif request.user.is_organization_user:
         # org users can only edit their members in the same orgs
         sponsorships = None
-        orgs = target_user.organizations.all() & request.user.organizations.all()
+        user_org_affiliations = (UserOrganizationAffiliation.objects.filter(user=target_user)
+                                 .select_related('organization', 'user'))
+        orgs = user_org_affiliations.filter(organization__in=request.user.organizations.all())
 
         if len(orgs) == 0:
             raise Http404
@@ -1011,15 +1016,17 @@ def edit_user_in_group(request, user_id, group_name):
     else:
         # Must be admin user
         sponsorships = target_user.sponsorships.all().order_by('status', 'registrar__name')
-        orgs = target_user.organizations.all()
+        orgs = (UserOrganizationAffiliation.objects.filter(user=target_user)
+                .select_related('organization', 'user').all())
 
     context = {
-        'target_user': target_user, 'group_name':group_name,
+        'target_user': target_user, 
+        'group_name': group_name,
         'this_page': f'users_{group_name}s',
-        'pretty_group_name':group_name.replace('_', ' ').capitalize(),
-        'user_list_url':f'user_management_manage_{group_name}',
-        'delete_user_url':f'user_management_manage_single_{group_name}_delete',
-        'sponsorships':sponsorships,
+        'pretty_group_name' :group_name.replace('_', ' ').capitalize(),
+        'user_list_url': f'user_management_manage_{group_name}',
+        'delete_user_url': f'user_management_manage_single_{group_name}_delete',
+        'sponsorships': sponsorships,
         'orgs': orgs,
     }
 
@@ -1426,6 +1433,8 @@ def settings_profile(request):
         request.user.email = request.user.raw_email
 
     form = UserUpdateProfileForm(get_form_data(request), prefix = "a", instance=request.user)
+    user_organizations = request.user.organizations.all()
+    org_affiliations = {affiliation.organization_id: affiliation for affiliation in UserOrganizationAffiliation.objects.filter(user=request.user, organization__in=user_organizations)}
 
     if request.method == 'POST':
         if form.is_valid():
@@ -1436,6 +1445,7 @@ def settings_profile(request):
     return render(request, 'user_management/settings-profile.html', {
         'this_page': 'settings_profile',
         'form': form,
+        'org_affiliations': org_affiliations
     })
 
 
