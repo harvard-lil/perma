@@ -479,7 +479,9 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
     'perma.celery_tasks.convert_warc_to_wacz': {'queue': 'wacz-conversion'},
     'perma.celery_tasks.deactivate_expired_sponsored_users': {'queue': 'background'},
-    'perma.celery_tasks.warn_expiring_sponsored_users': {'queue': 'background'}
+    'perma.celery_tasks.warn_expiring_sponsored_users': {'queue': 'background'},
+    'perma.celery_tasks.remove_expired_organization_user_affiliation': {'queue': 'background'},
+    'perma.celery_tasks.warn_expiring_organization_users': {'queue': 'background'}
 }
 
 # Schedule celerybeat jobs.

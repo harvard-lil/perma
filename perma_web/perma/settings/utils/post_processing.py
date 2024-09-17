@@ -85,6 +85,14 @@ def post_process_settings(settings):
         'warn_expiring_sponsored_users': {
             'task': 'perma.celery_tasks.warn_expiring_sponsored_users',
             'schedule': crontab(hour='6', minute='0'),
+        },
+        'remove_expired_organization_user_affiliation': {
+            'task': 'perma.celery_tasks.remove_expired_organization_user_affiliation',
+            'schedule': crontab(hour='6', minute='15'),
+        },
+        'warn_expiring_organization_users': {
+            'task': 'perma.celery_tasks.warn_expiring_organization_users',
+            'schedule': crontab(hour='6', minute='15'),
         }
     }
     settings['CELERY_BEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERY_BEAT_JOB_NAMES', [])),

@@ -17,7 +17,9 @@ CELERY_BEAT_JOB_NAMES = [
     'confirm_files_uploaded_to_internet_archive',
     'confirm_files_deleted_from_internet_archive',
     'deactivate_expired_sponsored_users',
-    'warn_expiring_sponsored_users'
+    'warn_expiring_sponsored_users',
+    'remove_expired_organization_user_affiliation',
+    'warn_expiring_organization_users'
 ]
 
 # logging

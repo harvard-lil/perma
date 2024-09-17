@@ -163,8 +163,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -187,8 +186,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -211,10 +209,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        1
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -237,8 +232,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -261,10 +255,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        1
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -287,10 +278,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        3
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -313,11 +301,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        3,
-        4
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -340,8 +324,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -364,8 +347,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -388,13 +370,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        1,
-        2,
-        3,
-        4
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -417,10 +393,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        4
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -443,8 +416,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -467,8 +439,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -491,8 +462,7 @@
       "requested_account_type": "court",
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -515,8 +485,7 @@
       "requested_account_type": "journal",
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -539,8 +508,7 @@
       "requested_account_type": "faculty",
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -563,8 +531,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": []
+      "link_limit": 10
     }
   },
   {
@@ -587,10 +554,7 @@
       "requested_account_type": null,
       "requested_account_note": null,
       "link_count": 0,
-      "link_limit": 10,
-      "organizations": [
-        5
-      ]
+      "link_limit": 10
     }
   },
   {
@@ -614,7 +578,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true
     }
   },
@@ -640,7 +603,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true
     }
   },
@@ -677,7 +639,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true
     }
   },
@@ -726,7 +687,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true
     }
   },
@@ -763,7 +723,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true
     }
   },
@@ -800,7 +759,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true,
       "unlimited": true
     }
@@ -826,7 +784,6 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 0,
-      "organizations": [],
       "nonpaying": false,
       "unlimited": false,
       "in_trial": true
@@ -853,9 +810,96 @@
       "requested_account_note": null,
       "link_count": 0,
       "link_limit": 10,
-      "organizations": [],
       "nonpaying": true,
       "unlimited": true
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 1,
+    "fields": {
+      "organization": 1,
+      "user": 3
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 2,
+    "fields": {
+      "organization": 1,
+      "user": 5
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 3,
+    "fields": {
+      "organization": 3,
+      "user": 6
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 4,
+    "fields": {
+      "organization": 3,
+      "user": 7
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 5,
+    "fields": {
+      "organization": 4,
+      "user": 7
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 7,
+    "fields": {
+      "organization": 1,
+      "user": 10
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 8,
+    "fields": {
+      "organization": 2,
+      "user": 10
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 9,
+    "fields": {
+      "organization": 3,
+      "user": 10
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 10,
+    "fields": {
+      "organization": 4,
+      "user": 10
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 11,
+    "fields": {
+      "organization": 4,
+      "user": 11
+    }
+  },
+  {
+    "model": "perma.userorganizationaffiliation",
+    "pk": 12,
+    "fields": {
+      "organization": 5,
+      "user": 18
     }
   }
 ]

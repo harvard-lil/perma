@@ -2955,11 +2955,22 @@ div.checkbox {
   padding-left: 36px;
 }
 
-div.checkbox:has(#id_a-indefinite_sponsorship) {
+div.checkbox:has(#id_a-indefinite_sponsorship),  div.checkbox:has(#id_a-indefinite_affiliation) {
   background-color: inherit;
   padding-left: 0;
   margin-right: 0;
   margin-top: $grid * 2;
+}
+
+div.org-affiliations {
+    border: 1px solid $color-trans-lightgray;
+    padding: $grid;
+    font-family: $font-hed-alt;
+    font-size: 15px;
+    margin-top: $double;
+    p {
+      margin-bottom: 0;
+    }
 }
 
 body.single-registrar div.checkbox {
