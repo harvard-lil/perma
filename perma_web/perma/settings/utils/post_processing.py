@@ -86,8 +86,8 @@ def post_process_settings(settings):
             'task': 'perma.celery_tasks.warn_expiring_sponsored_users',
             'schedule': crontab(hour='6', minute='0'),
         },
-        'remove_expired_organization_user_affiliation': {
-            'task': 'perma.celery_tasks.remove_expired_organization_user_affiliation',
+        'remove_expired_organization_user_affiliations': {
+            'task': 'perma.celery_tasks.remove_expired_organization_user_affiliations',
             'schedule': crontab(hour='6', minute='15'),
         },
         'warn_expiring_organization_users': {

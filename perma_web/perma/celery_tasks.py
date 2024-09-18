@@ -1547,7 +1547,7 @@ def deactivate_expired_sponsored_users(expiration_date=None):
 
 
 @shared_task
-def remove_expired_organization_user_affiliation(expiration_date=None):
+def remove_expired_organization_user_affiliations(expiration_date=None):
     """
     Removes affiliation of organization users whose affiliation expired
     """
