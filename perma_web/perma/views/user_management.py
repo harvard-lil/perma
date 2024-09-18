@@ -1434,7 +1434,6 @@ def settings_profile(request):
         request.user.email = request.user.raw_email
 
     form = UserUpdateProfileForm(get_form_data(request), prefix = "a", instance=request.user)
-    affiliations = UserOrganizationAffiliation.objects.filter(user=request.user)
 
     if request.method == 'POST':
         if form.is_valid():
@@ -1445,7 +1444,6 @@ def settings_profile(request):
     return render(request, 'user_management/settings-profile.html', {
         'this_page': 'settings_profile',
         'form': form,
-        'affiliations': affiliations
     })
 
 
@@ -1485,7 +1483,16 @@ def settings_affiliations(request):
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
 
     organizations = request.user.organizations.all().order_by('registrar')
-    orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
+    affiliations = UserOrganizationAffiliation.objects.filter(user=request.user)
+    expires_lookup = {affiliation.organization_id: affiliation.expires_at for affiliation in affiliations}
+
+    orgs_by_registrar = {
+        registrar: [
+            {'organization': org, 'expires_at': expires_lookup.get(org.id)}
+            for org in orgs
+        ]
+        for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)
+    }
 
     return render(request, 'user_management/settings-affiliations.html', {
         'this_page': 'settings_affiliations',

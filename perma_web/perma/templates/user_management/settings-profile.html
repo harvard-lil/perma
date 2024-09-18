@@ -25,17 +25,6 @@
       {% endif %}
     {% endfor %}
   {% endif %}
-  {% if affiliations %}
-    <h2 class="body-ah">Organization memberships</h2>
-    {% for aff in affiliations %}
-      <div class="org-affiliations">
-        <p>{{ aff.organization.name }}</p>
-        {% if aff.expires_at %}
-          <p>Expiration date: {{ aff.expires_at }}</p>
-        {% endif %}
-      </div>
-    {% endfor %}
-  {% endif %}
   {% if "Requested account deletion" in request.user.notes %}
     <h2 class="body-ah">Deletion Request Received</h2>
     <p>We've received the request to delete your account. We're sorry to see you go!</p>

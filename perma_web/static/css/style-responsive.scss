@@ -2962,17 +2962,6 @@ div.checkbox:has(#id_a-indefinite_sponsorship),  div.checkbox:has(#id_a-indefini
   margin-top: $grid * 2;
 }
 
-div.org-affiliations {
-    border: 1px solid $color-trans-lightgray;
-    padding: $grid;
-    font-family: $font-hed-alt;
-    font-size: 15px;
-    margin-top: $double;
-    p {
-      margin-bottom: 0;
-    }
-}
-
 body.single-registrar div.checkbox {
   background-color: initial;
 }

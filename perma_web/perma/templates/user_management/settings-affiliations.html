@@ -34,16 +34,19 @@
         {% for org in orgs %}
           <div class="settings-block">
             <p>
-              {{ org }}
+              {{ org.organization }}
               <span class="_hideMobile">
-                {% if org.default_to_private %}
+                {% if org.organization.default_to_private %}
                   (Links are <strong>Private</strong> by default)
                 {% endif %}
               </span>
             </p>
+            {% if org.expires_at %}
+              <br><p>Expiration date: {{ org.expires_at }}</p>
+            {% endif %}
             <div class="button-wrapper">
-              <a href="{% url 'user_management_manage_single_organization' org.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
-              <a href="{% url 'user_management_organization_user_leave_organization' org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a>
+              <a href="{% url 'user_management_manage_single_organization' org.organization.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
+              <a href="{% url 'user_management_organization_user_leave_organization' org.organization.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a>
             </div>
           </div>
         {% endfor%}

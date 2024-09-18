@@ -9305,17 +9305,6 @@ div.checkbox:has(#id_a-indefinite_sponsorship), div.checkbox:has(#id_a-indefinit
   margin-top: 16px;
 }
 
-div.org-affiliations {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 8px;
-  font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
-  font-size: 15px;
-  margin-top: 16px;
-}
-div.org-affiliations p {
-  margin-bottom: 0;
-}
-
 body.single-registrar div.checkbox {
   background-color: initial;
 }
