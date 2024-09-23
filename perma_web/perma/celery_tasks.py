@@ -1594,7 +1594,7 @@ def warn_expiring_sponsored_users(warning_days=None):
                 }
                 try:
                     email_expiring_user(sponsorship.user, "email/sponsored_user_expiry_notification.txt", context)
-                except:
+                except Exception:
                     logger.exception(f"Error emailing user {sponsorship.id}")
                 break
 
@@ -1628,6 +1628,6 @@ def warn_expiring_organization_users(warning_days=None):
                 }
                 try:
                     email_expiring_user(affiliation.user, "email/organization_user_expiry_notification.txt", context)
-                except:
+                except Exception:
                     logger.exception(f"Error emailing user {affiliation.user_id}")
                 break
