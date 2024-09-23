@@ -23,16 +23,19 @@
         {% endfor %}
       {% endfor %}
     </div>
-  {% elif this_page == 'users_organization_users' and orgs %}
+  {% elif this_page == 'users_organization_users' and affiliations %}
     <div class="orgs-list-container">
       <h3 class="body-bh">Remove from organization</h3>
-      <p class="page-dek"><strong>{{ target_user.raw_email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
+      <p class="page-dek"><strong>{{ target_user.raw_email }}</strong> is a member of the following organization{{ affiliations|pluralize }}:</p>
       <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
         {% csrf_token %}
-        {% for org in orgs %}
+        {% for aff in affiliations %}
           <div class="settings-block">
-            <p>{{ org.name }}</p>
-            <button name="org" value="{{ org.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+            <p>{{ aff.organization.name }}</p>
+            <button name="org" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+            {% if aff.expires_at %}
+              <br><p>Expiration date: {{ aff.expires_at }}</p>
+            {% endif %}
           </div>
         {% endfor %}
       </form>

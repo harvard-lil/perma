@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import mark_safe
 
-from perma.models import Registrar, Organization, LinkUser, Sponsorship
+from perma.models import Registrar, Organization, LinkUser, Sponsorship, UserOrganizationAffiliation
 from perma.utils import get_client_ip
 
 import logging
@@ -220,7 +220,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
     """
     sponsoring_registrars = forms.ModelChoiceField(label='Sponsoring Registrar', queryset=Registrar.objects.approved().order_by('name'))
     indefinite_sponsorship = forms.BooleanField(
-        label="Sponsor indefinitely",
+        label="Sponsor permanently",
         required=False,
         initial=True
     )
@@ -329,7 +329,17 @@ class UserFormWithOrganization(UserForm):
     """
     add organization to the create user form
     """
-    organizations = OrganizationField(widget=SelectMultipleWithSingleWidget)
+    organizations = forms.ModelChoiceField(label='Organization', queryset=Organization.objects.order_by('name'))
+    indefinite_affiliation = forms.BooleanField(
+        label="Permanent affiliation",
+        required=False,
+        initial=True
+    )
+    expires_at = forms.DateTimeField(
+        label="Affiliation expiration date",
+        widget=forms.DateTimeInput(attrs={"type": "date"}),
+        required=False
+    )
 
     def __init__(self, data=None, current_user=None, **kwargs):
         super(UserFormWithOrganization, self).__init__(data, **kwargs)
@@ -344,7 +354,20 @@ class UserFormWithOrganization(UserForm):
 
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "organizations"]
+        fields = ["first_name", "last_name", "email", "organizations", "indefinite_affiliation", "expires_at"]
+
+    def save(self, commit=True):
+        instance = forms.ModelForm.save(self, False)
+
+        if commit:
+            instance.save()
+            UserOrganizationAffiliation.objects.create(
+                user=instance,
+                organization=self.cleaned_data['organizations'],
+                expires_at=self.cleaned_data['expires_at']
+            )
+
+        return instance
 
 
 ### USER EDIT FORMS ###
@@ -381,20 +404,26 @@ class UserAddOrganizationForm(UserFormWithOrganization):
         disables organizations where the user is already a member.
     """
     email = None  # hide inherited email field
-    organizations = OrganizationField(widget=OrgMembershipWidget)
 
-    def __init__(self, *args, **kwargs):
-        """ Let orgs widget access target user so we can disable orgs they already belong to. """
-        super(UserAddOrganizationForm, self).__init__(*args, **kwargs)
-        self.fields['organizations'].widget.form_instance = self
+    def __init__(self, data=None, current_user=None, **kwargs):
+        super(UserFormWithOrganization, self).__init__(data, **kwargs)
+
+        # filter available organizations based on current user
+        query = self.fields['organizations'].queryset
+        if current_user.is_registrar_user():
+            query = query.filter(registrar_id=current_user.registrar_id)
+        elif current_user.is_organization_user:
+            query = query.filter(users=current_user.pk)
+
+        # Exclude organizations the user is already affiliated with
+        affiliated_orgs = (UserOrganizationAffiliation.objects.filter(user=self.instance)
+                           .values_list('organization_id', flat=True))
+        query = query.exclude(id__in=affiliated_orgs)
+        self.fields['organizations'].queryset = query
 
     class Meta(UserFormWithOrganization.Meta):
-        fields = ("organizations",)
+        fields = ("organizations", "expires_at")
 
-    def save(self, commit=True):
-        """ Override save so we *add* the new organization rather than replacing all existing orgs for this user. """
-        self.instance.organizations.add(self.cleaned_data['organizations'][0])
-        return self.instance
 
 class UserAddAdminForm(forms.ModelForm):
     """
@@ -462,3 +491,19 @@ class ReportForm(forms.Form):
     telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
     guid = forms.CharField(widget=forms.HiddenInput, required=False)
     referer = forms.CharField(widget=forms.HiddenInput, required=False)
+
+
+class UserOrganizationAffiliationAdminForm(ModelForm):
+    class Meta:
+        model = UserOrganizationAffiliation
+        fields = ['organization', 'expires_at']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # For new entries, only show not user_deleted organizations
+        # For existing entries, bring the form with the right organization selected even if it is deleted
+        if self.instance.pk is None:
+            self.fields['organization'].queryset = Organization.objects.filter(user_deleted=False)
+        else:
+            self.fields['organization'].queryset = Organization.objects.all_with_deleted()

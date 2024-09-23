@@ -1,0 +1,12 @@
+TITLE: Your Perma.cc membership is expiring
+
+Hello,
+
+Your affiliation with {{ organization_name }} via {{ registrar_name }} is expiring in {{ expiration_days }} days. Folders associated with {{ organization_name }} will no longer display on your Perma.cc dashboard as of {{ expiration_date }}. You will retain access to your Personal Links folder and any other affiliations in the Perma network.
+
+Perma Links that you created within the folders associated with {{ organization_name }} will remain visible in those folders to users associated with {{ organization_name }}. They will continue to be accessible and preserved as part of the Perma.cc collection.
+
+If you would like to request an extension of your affiliation please reach out to {{registrar_email }}.
+
+Thanks,
+The Perma.cc Team

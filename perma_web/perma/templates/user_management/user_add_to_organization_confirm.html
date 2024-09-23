@@ -25,5 +25,20 @@
       <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
     </form>
 
+    <script>
+      const checkbox = document.getElementById("id_a-indefinite_affiliation");
+      const datetimeField = document.getElementById("id_a-expires_at");
+      const datetimeFieldLabel = document.querySelector('label[for="id_a-expires_at"]');
+
+      const toggleExpirationDateField = () => {
+        const displayStyle = checkbox.checked ? "none" : "block";
+        datetimeField.style.display = displayStyle;
+        datetimeFieldLabel.style.display = displayStyle;
+      };
+
+      document.addEventListener("DOMContentLoaded", toggleExpirationDateField);
+      checkbox.addEventListener("change", toggleExpirationDateField);
+    </script>
+
   {% endif %}
 {% endblock %}

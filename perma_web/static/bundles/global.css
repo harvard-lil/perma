@@ -9298,7 +9298,7 @@ div.checkbox {
   padding-left: 36px;
 }
 
-div.checkbox:has(#id_a-indefinite_sponsorship) {
+div.checkbox:has(#id_a-indefinite_sponsorship), div.checkbox:has(#id_a-indefinite_affiliation) {
   background-color: inherit;
   padding-left: 0;
   margin-right: 0;

@@ -20,7 +20,8 @@ from django_json_widget.widgets import JSONEditorWidget
 
 from .exceptions import PermaPaymentsCommunicationException
 from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture, \
-    LinkBatch, Sponsorship, InternetArchiveItem, InternetArchiveFile
+    LinkBatch, Sponsorship, InternetArchiveItem, InternetArchiveFile, UserOrganizationAffiliation
+from .forms import UserOrganizationAffiliationAdminForm 
 
 ### helpers ###
 
@@ -542,10 +543,6 @@ class LinkUserChangeForm(UserChangeForm):
 
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
-        # make sure that user's current organizations show even if they have been deleted
-        self.initial['organizations'] = Organization.objects.all_with_deleted().filter(users__id=kwargs['instance'].pk)
-        self.fields['organizations'].queryset = Organization.objects.all_with_deleted()\
-            .filter(Q(user_deleted=False)|Q(pk__in=self.initial['organizations']))
 
     def clean(self):
         cleaned_data = super(LinkUserChangeForm, self).clean()
@@ -555,6 +552,11 @@ class LinkUserChangeForm(UserChangeForm):
             raise ValidationError("User may have either an org or registrar but not both.")
         return cleaned_data
 
+class UserOrganizationAffiliationInline(admin.TabularInline):
+    model = UserOrganizationAffiliation
+    form = UserOrganizationAffiliationAdminForm
+    extra = 1
+
 
 class LinkUserAdmin(UserAdmin):
     form = LinkUserChangeForm
@@ -562,7 +564,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'raw_email', 'notes')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'groups')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'groups')}),
         ('Tier', {'fields': ('nonpaying', 'base_rate', 'cached_subscription_started', 'cached_subscription_status', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period', 'in_trial', 'bonus_links')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
@@ -572,7 +574,7 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    raw_id_fields = ['registrar', 'organizations']
+    raw_id_fields = ['registrar']
     list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'in_trial', 'unlimited', 'nonpaying','cached_subscription_status', 'cached_subscription_started', 'cached_subscription_rate', 'base_rate', 'bonus_links', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active', 'in_trial', 'unlimited', 'nonpaying', 'cached_subscription_status', RegistrarUserFilter, OrgUserFilter, OrgUserForRegistrarFilter)
@@ -585,8 +587,8 @@ class LinkUserAdmin(UserAdmin):
     # ]
     inlines = [
         SponsorshipInline,
+        UserOrganizationAffiliationInline
     ]
-    filter_horizontal = ['organizations',]
 
     paginator = FasterAdminPaginator
     show_full_result_count = False
