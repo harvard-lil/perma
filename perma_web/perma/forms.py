@@ -220,7 +220,7 @@ class UserFormWithSponsoringRegistrar(UserForm):
     """
     sponsoring_registrars = forms.ModelChoiceField(label='Sponsoring Registrar', queryset=Registrar.objects.approved().order_by('name'))
     indefinite_sponsorship = forms.BooleanField(
-        label="Sponsor indefinitely",
+        label="Sponsor permanently",
         required=False,
         initial=True
     )
@@ -331,7 +331,7 @@ class UserFormWithOrganization(UserForm):
     """
     organizations = forms.ModelChoiceField(label='Organization', queryset=Organization.objects.order_by('name'))
     indefinite_affiliation = forms.BooleanField(
-        label="Indefinite affiliation",
+        label="Permanent affiliation",
         required=False,
         initial=True
     )
