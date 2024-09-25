@@ -41,12 +41,6 @@ def _create_server(self, connections_override=None):
 HTTPSLiveServerThread._create_server = _create_server
 
 
-# shadow this fixture from  pytest_django_liveserver_ssl so that it doesn't request the admin client (which doesn't work with our fixture situation)
-@pytest.fixture()
-def live_server_ssl_clients_for_patch(client):
-    return [client]
-
-
 @pytest.fixture(scope="session")
 def set_up_certs():
     certs = [
