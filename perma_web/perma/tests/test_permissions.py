@@ -3,34 +3,41 @@ from django.test.utils import override_settings
 
 from perma.urls import urlpatterns
 
-from perma.models import LinkUser, Registrar
-
 import pytest
-
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 @pytest.mark.django_db
-def test_permissions(client):
+def test_permissions(client, admin_user, registrar_user, org_user, link_user_factory, sponsored_user, pending_registrar):
     """Test who can log into restricted pages."""
-    admin_user = LinkUser.objects.get(id=1)
-    registrar_user = LinkUser.objects.get(id=2)
-    org_user = LinkUser.objects.get(id=3)
-    regular_user = LinkUser.objects.get(id=4)
-    sponsored_user = LinkUser.objects.get(id=20)
 
-    pending_registrar = Registrar.objects.get(id=2)
+    regular_user = link_user_factory()
+
+    # Nickname for convenience
+    org_user_org = org_user.organizations.first()
     registrar_user_registrar = registrar_user.registrar
     sponsored_user_registrar = sponsored_user.sponsorships.first().registrar
 
-    org_user_org = org_user.organizations.first()
+    # Retrieve the registrar user who supports the sponsored user
+    sponsored_user_registrar_user = sponsored_user_registrar.users.first()
+    assert sponsored_user_registrar_user
+
+    # Create the registrar user who supports the org user
+    assert not org_user_org.registrar.users.first()
+    org_user_org.registrar.users.add(link_user_factory())
+    org_user_registrar_user = org_user_org.registrar.users.first()
+    assert org_user_registrar_user
 
     all_users = {
         admin_user,
         registrar_user,
+        org_user_registrar_user,
+        sponsored_user_registrar_user,
         org_user,
+        sponsored_user,
         regular_user
     }
+
     views = [
         {
             'urls': [
@@ -60,30 +67,45 @@ def test_permissions(client):
             'urls': [
                 ['user_management_manage_registrar_user'],
                 ['user_management_registrar_user_add_user'],
-                ['user_management_manage_single_registrar', {'kwargs':{'registrar_id': registrar_user_registrar.id}}],
                 ['user_management_manage_sponsored_user'],
                 ['user_management_manage_sponsored_user_export_user_list'],
-                ['user_management_sponsored_user_add_user'],
-                ['user_management_manage_single_sponsored_user', {'kwargs':{'user_id': sponsored_user.id}}],
-                ['user_management_manage_single_sponsored_user_remove', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
-                ['user_management_manage_single_sponsored_user_readd', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
-                ['user_management_manage_single_sponsored_user_links', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}]
+                ['user_management_sponsored_user_add_user']
+            ],
+            'allowed': {admin_user, registrar_user, org_user_registrar_user, sponsored_user_registrar_user},
+        },
+        {
+            'urls': [
+                ['user_management_manage_single_registrar', {'kwargs':{'registrar_id': registrar_user_registrar.id}}],
             ],
             'allowed': {admin_user, registrar_user},
         },
         {
             'urls': [
-                ['user_management_manage_single_organization_user', {'kwargs':{'user_id': org_user.id}}],
+                ['user_management_manage_single_sponsored_user', {'kwargs':{'user_id': sponsored_user.id}}],
+                ['user_management_manage_single_sponsored_user_remove', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
+                ['user_management_manage_single_sponsored_user_readd', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
+                ['user_management_manage_single_sponsored_user_links', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}]
+            ],
+            'allowed': {admin_user, sponsored_user_registrar_user},
+        },
+        {
+            'urls': [
                 ['user_management_manage_organization_user'],
                 ['user_management_manage_organization'],
+                ['user_management_organization_user_add_user'],
+            ],
+            'allowed': {admin_user, registrar_user, org_user_registrar_user, sponsored_user_registrar_user, org_user},
+        },
+        {
+            'urls': [
+                ['user_management_manage_single_organization_user', {'kwargs':{'user_id': org_user.id}}],
                 ['user_management_manage_single_organization', {'kwargs':{'org_id': org_user_org.id}}],
                 ['user_management_manage_single_organization_export_user_list', {'kwargs': {'org_id': org_user_org.id}}],
                 ['user_management_manage_single_organization_delete', {'kwargs':{'org_id': org_user_org.id}}],
-                ['user_management_organization_user_add_user'],
                 ['user_management_manage_single_organization_user_remove', {'kwargs':{'user_id': org_user.id},
                  'success_status': 302}],
             ],
-            'allowed': {admin_user, registrar_user, org_user},
+            'allowed': {admin_user, org_user_registrar_user, org_user},
         },
         {
             'urls': [
@@ -107,7 +129,7 @@ def test_permissions(client):
                 ['create_link'],
                 ['user_delete_link', {'kwargs':{'guid':'1234-1234'},'success_status':404}],
             ],
-            'allowed': {regular_user},
+            'allowed': {regular_user, sponsored_user},
             'disallowed': set(),
         },
     ]
@@ -144,7 +166,7 @@ def test_permissions(client):
                 client.force_login(user)
                 resp = client.get(url)
                 assert resp.status_code == 403, \
-                    "View %s returned status %s for user %s; expected %s." % (view_name, resp.status_code, user, success_status)
+                    "View %s returned status %s for user %s; expected %s." % (view_name, resp.status_code, user, 403)
 
     # make sure that all ^manage/ views were tested
     for urlpattern in urlpatterns:

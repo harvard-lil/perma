@@ -519,6 +519,11 @@ def org_user(org_user_factory):
 
 
 @pytest.fixture
+def admin_user(link_user_factory):
+    return link_user_factory(is_staff=True)
+
+
+@pytest.fixture
 def perma_client():
     """
     A version of the Django test client that allows us to specify a user login for a particular request with an
