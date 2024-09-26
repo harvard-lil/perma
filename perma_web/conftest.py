@@ -8,6 +8,7 @@ from waffle import get_waffle_flag_model
 
 from django.conf import settings
 from django.core.management import call_command
+from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 
 
@@ -223,8 +224,9 @@ def register_factory(cls):
 
     return cls
 
-
-### model factories ###
+###
+### Model Factories ###
+###
 
 @register_factory
 class RegistrarFactory(DjangoModelFactory):
@@ -434,8 +436,67 @@ class FolderFactory(DjangoModelFactory):
 class SponsoredFolderFactory(FolderFactory):
     sponsored_by = factory.SubFactory(RegistrarFactory)
 
+#
+# Fixtures
+#
 
-### fixtures for testing customer interactions
+# For working with users
+
+@pytest.fixture
+def perma_client():
+    """
+    A version of the Django test client that allows us to specify a user login for a particular request with an
+    `as_user` parameter, like `client.get(url, as_user=user).
+    """
+    from django.test.client import Client
+
+    session_key = settings.SESSION_COOKIE_NAME
+
+    class UserClient(Client):
+        def generic(self, *args, **kwargs):
+            as_user = kwargs.pop("as_user", None)
+            kwargs['secure'] = True
+
+            if as_user:
+                # If as_user is provided, store the current value of the session cookie, call force_login, and then
+                # reset the current value after the request is over.
+                previous_session = self.cookies.get(session_key)
+                self.force_login(as_user)
+                try:
+                    return super().generic(*args, **kwargs)
+                finally:
+                    if previous_session:
+                        self.cookies[session_key] = previous_session
+                    else:
+                        self.cookies.pop(session_key)
+            else:
+                return super().generic(*args, **kwargs)
+
+    return UserClient()
+
+
+@pytest.fixture
+def admin_user(link_user_factory):
+    return link_user_factory(is_staff=True)
+
+
+@pytest.fixture
+def org_user_factory(link_user, organization):
+    def f(orgs=None):
+        if orgs:
+            link_user.organizations.set(orgs)
+        else:
+            link_user.organizations.add(organization)
+        return link_user
+    return f
+
+
+@pytest.fixture
+def org_user(org_user_factory):
+    return org_user_factory()
+
+
+### For testing customer interactions
 
 @pytest.fixture
 def customers(paying_registrar_factory, paying_user_factory):
@@ -494,60 +555,6 @@ def complex_user_with_bonus_link(link_user_factory, folder_factory,
     bonus_link = link_factory(created_by=user, bonus_link=True)
     user.refresh_from_db()
     return user, bonus_link
-
-
-@pytest.fixture
-def org_user_factory(link_user, organization):
-    def f(orgs=None):
-        if orgs:
-            link_user.organizations.set(orgs)
-        else:
-            link_user.organizations.add(organization)
-        return link_user
-    return f
-
-
-@pytest.fixture
-def org_user(org_user_factory):
-    return org_user_factory()
-
-
-@pytest.fixture
-def admin_user(link_user_factory):
-    return link_user_factory(is_staff=True)
-
-
-@pytest.fixture
-def perma_client():
-    """
-    A version of the Django test client that allows us to specify a user login for a particular request with an
-    `as_user` parameter, like `client.get(url, as_user=user).
-    """
-    from django.test.client import Client
-
-    session_key = settings.SESSION_COOKIE_NAME
-
-    class UserClient(Client):
-        def generic(self, *args, **kwargs):
-            as_user = kwargs.pop("as_user", None)
-            kwargs['secure'] = True
-
-            if as_user:
-                # If as_user is provided, store the current value of the session cookie, call force_login, and then
-                # reset the current value after the request is over.
-                previous_session = self.cookies.get(session_key)
-                self.force_login(as_user)
-                try:
-                    return super().generic(*args, **kwargs)
-                finally:
-                    if previous_session:
-                        self.cookies[session_key] = previous_session
-                    else:
-                        self.cookies.pop(session_key)
-            else:
-                return super().generic(*args, **kwargs)
-
-    return UserClient()
 
 
 @pytest.fixture
@@ -662,7 +669,45 @@ def spoof_pp_response_subscription_with_pending_change():
     return f
 
 
-### fixtures for testing utils ###
+### For working with links ###
+
+@pytest.fixture
+def memento_link_set(link_factory):
+    domain="wikipedia.org"
+    url = f"https://{domain}"
+
+    today = timezone.now()
+    earlier_this_month = today.replace(day=1)
+    within_the_last_year = today - relativedelta(months=6)
+    over_a_year_ago = today - relativedelta(years=1, days=2)
+    three_years_ago = today - relativedelta(years=3)
+
+    links = [
+        link_factory(
+            creation_timestamp=time,
+            submitted_url=url,
+            cached_can_play_back=True,
+            create_pending_capture_job=False
+        ) for time in [today, earlier_this_month, within_the_last_year, over_a_year_ago, three_years_ago]
+    ]
+
+    # https://docs.djangoproject.com/en/5.1/topics/serialization/#djangojsonencoder
+    return {
+        "domain": domain,
+        "url": url,
+        "links": [
+            {
+                "guid":link.guid,
+                #
+                "timestamp":  link.creation_timestamp
+            } for link in reversed(links)
+        ]
+    }
+
+
+
+
+### For testing utils ###
 
 @pytest.fixture
 def spoof_perma_payments_post():
@@ -696,6 +741,8 @@ def one_two_three_dict():
 def randomize_capitalization(s):
     return ''.join(choice((str.upper, str.lower))(c) for c in s)
 
+def json_serialize_datetime(dt):
+    return DjangoJSONEncoder().encode(dt).strip('"')
 
 def submit_form(client,
                 view_name,
