@@ -71,3 +71,15 @@ def test_upload_nonexistent(page, user, log_in_user) -> None:
     page.locator('#addlink').click()
     assert "Couldn't resolve domain." in page.locator("p.message-large").text_content()
 
+
+def test_bookmarklet_redirect(page, user, log_in_user, urls) -> None:
+    """Test that the URL parameter prepopulates the input field for the bookmarklet."""
+    log_in_user(page, user)
+    
+    # Navigate to the create link page with a URL parameter
+    test_url = "https://example.com"
+    page.goto(f"{urls.bookmarklet}?v=1&url={test_url}")
+    
+    # Check if the input field is prepopulated with the URL
+    url_field = page.locator('#rawUrl')
+    assert url_field.input_value() == test_url

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, onMounted } from 'vue'
 import { globalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
@@ -170,6 +170,13 @@ watch(() => globalStore.captureGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })
+
+onMounted(() => {
+    // handle a ?url= parameter set by the bookmarklet
+    const urlParam = new URLSearchParams(window.location.search).get('url');
+    if (urlParam)
+        userLink.value = urlParam;
+});
 
 onBeforeUnmount(() => {
     clearInterval(progressInterval)
