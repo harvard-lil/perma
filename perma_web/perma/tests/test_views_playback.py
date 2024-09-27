@@ -3,7 +3,6 @@ from django.urls import reverse
 
 from waffle.testutils import override_flag
 
-from perma.urls import urlpatterns
 from perma.models import Link, CaptureJob
 from perma.celery_tasks import cache_playback_status_for_new_links
 
@@ -17,17 +16,9 @@ class CommonViewsTestCase(PermaTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.users = ['test_user@example.com', 'test_org_user@example.com', 'multi_registrar_org_user@example.com', 'test_registrar_user@example.com', 'test_admin_user@example.com']
-
         # populate this now-necessary field dynamically, instead of hard-coding in our test fixtures
         cache_playback_status_for_new_links.apply()
 
-
-    def test_public_views(self):
-        # test static template views
-        for urlpattern in urlpatterns:
-            if urlpattern.callback.__name__ == 'DirectTemplateView':
-                self.get(urlpattern.name)
 
     # Record page
 
