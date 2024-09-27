@@ -127,6 +127,7 @@ URL_MAP = {
     'about': reverse('about'),
     'contact': reverse('contact'),
     'folders': reverse('create_link'),
+    'bookmarklet': reverse('service_bookmarklet_create'),
 }
 
 
