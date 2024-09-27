@@ -495,6 +495,13 @@ def org_user_factory(link_user, organization):
 def org_user(org_user_factory):
     return org_user_factory()
 
+@pytest.fixture
+def multi_registrar_org_user(org_user_factory, organization_factory):
+    first = organization_factory()
+    second = organization_factory()
+    assert first.registrar != second.registrar
+    return org_user_factory(orgs=[first, second])
+
 
 ### For testing customer interactions
 
@@ -705,6 +712,21 @@ def memento_link_set(link_factory):
     }
 
 
+### For testing email ###
+
+@pytest.fixture
+def email_details():
+    return {
+        "from_email": 'example@example.com',
+        "custom_subject": 'Just some subject here',
+        "message_text": 'Just some message here.',
+        "refering_page": 'http://elsewhere.com',
+        "our_address": settings.DEFAULT_FROM_EMAIL,
+        "subject_prefix": '[perma-contact] ',
+        "flag": "zzzz-zzzz",
+        "flag_message": "http://perma.cc/zzzz-zzzz contains material that is inappropriate.",
+        "flag_subject": "Reporting Inappropriate Content"
+    }
 
 
 ### For testing utils ###
@@ -761,7 +783,13 @@ def submit_form(client,
     if success_query:
         assert success_query.count() != 1
     kwargs['require_status_code'] = None
-    resp = client.post(reverse(view_name), data, *args, **kwargs)
+    resp = client.post(
+        reverse(view_name),
+        data,
+        *args,
+        secure=True,
+        **kwargs
+    )
 
     def form_errors():
         errors = {}
