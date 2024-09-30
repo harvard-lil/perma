@@ -1072,7 +1072,12 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         return self.is_staff or self.registrar == registrar
 
     def can_edit_organization(self, organization):
-        return self.organizations.filter(pk=organization.pk).exists()
+        if self.is_staff:
+            return True
+        elif self.registrar:
+            return self.registrar == organization.registrar
+        else:
+            return self.organizations.filter(pk=organization.pk).exists()
 
 
     ### subscriptions ###

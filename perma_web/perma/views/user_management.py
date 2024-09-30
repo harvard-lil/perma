@@ -465,7 +465,7 @@ def manage_single_registrar(request, registrar_id):
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
     if not request.user.can_edit_registrar(target_registrar):
-        raise Http404
+        return HttpResponseForbidden()
 
     form = RegistrarForm(get_form_data(request), prefix = "a", instance=target_registrar)
     if request.method == 'POST':
@@ -580,10 +580,9 @@ def manage_organization(request):
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization(request, org_id):
     """ Edit organization details. """
-    try:
-        target_org = Organization.objects.accessible_to(request.user).get(pk=org_id)
-    except Organization.DoesNotExist:
-        raise Http404
+    target_org = get_object_or_404(Organization, id=org_id)
+    if not request.user.can_edit_organization(target_org):
+        return HttpResponseForbidden()
 
     if request.user.is_staff:
         form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a", instance=target_org)
@@ -607,14 +606,13 @@ def manage_single_organization_delete(request, org_id):
     """
         Delete an empty org
     """
-    try:
-        target_org = Organization.objects.accessible_to(request.user).get(pk=org_id)
-    except Organization.DoesNotExist:
-        raise Http404
+    target_org = get_object_or_404(Organization, id=org_id)
+    if not request.user.can_edit_organization(target_org):
+        return HttpResponseForbidden()
 
     if request.method == 'POST':
         if target_org.links.count() > 0:
-            raise Http404
+            return HttpResponseForbidden()
 
         target_org.safe_delete()
         target_org.save()
@@ -743,6 +741,10 @@ def manage_single_organization_export_user_list(
     request: HttpRequest, org_id: int
 ) -> HttpResponse | JsonResponse:
     """Return a file listing all users belonging to an organization."""
+    target_org = get_object_or_404(Organization, id=org_id)
+    if not request.user.can_edit_organization(target_org):
+        return HttpResponseForbidden()
+
     org_users = (
         LinkUser.objects.filter(organizations__id=org_id)
         .annotate(organization_name=F('organizations__name'))
@@ -1004,7 +1006,7 @@ def edit_user_in_group(request, user_id, group_name):
         affiliations = user_org_affiliations.filter(organization__in=registrar_orgs)
 
         if not sponsorships and len(affiliations) == 0:
-            raise Http404
+            return HttpResponseForbidden()
 
     elif request.user.is_organization_user:
         # org users can only edit their members in the same orgs
@@ -1013,7 +1015,7 @@ def edit_user_in_group(request, user_id, group_name):
         affiliations = user_org_affiliations.filter(organization__in=request.user.organizations.all())
 
         if len(affiliations) == 0:
-            raise Http404
+            return HttpResponseForbidden()
 
     else:
         # Must be admin user
@@ -1276,14 +1278,15 @@ def manage_single_organization_user_remove(request, user_id):
     """
         Remove an organization user from an org.
     """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    if not request.user.shares_scope_with_user(target_user):
+        return HttpResponseForbidden()
 
     if request.method == 'POST':
-        try:
-            org = Organization.objects.accessible_to(request.user).get(pk=request.POST.get('org'))
-        except Organization.DoesNotExist:
-            raise Http404
+        org = get_object_or_404(Organization, id=request.POST.get('org'))
+        if not request.user.can_edit_organization(org):
+            return HttpResponseForbidden()
 
-        target_user = get_object_or_404(LinkUser, id=user_id)
         target_user.organizations.remove(org)
 
         # special case -- user demoted themselves, can't see page anymore
@@ -1303,7 +1306,7 @@ def manage_single_registrar_user_remove(request, user_id):
 
     # Registrar users can only edit their own registrar users
     if request.user.registrar_id != target_user.registrar_id:
-        raise Http404
+        return HttpResponseForbidden()
 
     context = {'target_user': target_user,
                'this_page': 'organization_user'}
@@ -1331,7 +1334,7 @@ def toggle_status(request, user_id, registrar_id, status):
     if request.user.is_registrar_user() and \
         (request.user.registrar not in target_user.sponsoring_registrars.all() or
          str(request.user.registrar_id) != registrar_id):
-        raise Http404
+        return HttpResponseForbidden()
 
     if request.method == 'POST':
         sponsorship.status = status
@@ -1366,7 +1369,7 @@ def manage_single_sponsored_user_links(request, user_id, registrar_id):
     if request.user.is_registrar_user() and \
         (request.user.registrar not in target_user.sponsoring_registrars.all() or
          str(request.user.registrar_id) != registrar_id):
-        raise Http404
+        return HttpResponseForbidden()
 
     folders = Folder.objects.filter(owned_by=target_user, sponsored_by=registrar)
     links = Link.objects.filter(folders__in=folders).select_related('capture_job').prefetch_related('captures').order_by('-creation_timestamp')

@@ -227,7 +227,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.get('user_management_manage_single_registrar',
                  user=self.registrar_user,
                  reverse_kwargs={'args': [self.unrelated_registrar.pk]},
-                 require_status_code=404)
+                 require_status_code=403)
 
     def test_admin_can_approve_pending_registrar(self):
         self.submit_form('user_management_approve_pending_registrar',
@@ -538,13 +538,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.get('user_management_manage_single_organization',
                  user=self.registrar_user,
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=404)
+                 require_status_code=403)
 
     def test_org_user_cannot_update_unrelated_organization(self):
         self.get('user_management_manage_single_organization',
                  user=self.organization_user,
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=404)
+                 require_status_code=403)
 
     def _delete_organization(self, user, should_succeed=True):
         if should_succeed:
@@ -833,14 +833,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # User from another registrar's org fails
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]},
-                  require_status_code=404)
+                  require_status_code=403)
         # Repeat with the other registrar, to confirm we're
         # getting 404s because of permission reasons, not because the
         # test fixtures are broken.
         self.log_in_user(self.unrelated_registrar_user)
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.organization_user.pk]},
-                  require_status_code=404)
+                  require_status_code=403)
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]})
 
@@ -855,15 +855,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         # User from another org fails
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]},
-                  require_status_code=404)
-        # Repeat in reverse, to confirm we're
-        # getting 404s because of permission reasons, not because the
-        # test fixtures are broken.
+                  require_status_code=403)
+
+        # Repeat with another org
         self.log_in_user(org_two_users[1])
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]},
-                  require_status_code=404)
-        # User from another org fails
+                  require_status_code=403)
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]})
 
