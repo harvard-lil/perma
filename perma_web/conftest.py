@@ -8,6 +8,7 @@ from waffle import get_waffle_flag_model
 
 from django.conf import settings
 from django.core.management import call_command
+from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 
 
@@ -188,7 +189,7 @@ from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship, Folder
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Capture, Sponsorship, Folder
 from perma.utils import pp_date_from_post
 
 
@@ -224,8 +225,9 @@ def register_factory(cls):
 
     return cls
 
-
-### model factories ###
+###
+### Model Factories ###
+###
 
 @register_factory
 class RegistrarFactory(DjangoModelFactory):
@@ -360,21 +362,27 @@ class PayingUserFactory(LinkUserFactory):
 class CaptureJobFactory(DjangoModelFactory):
     class Meta:
         model = CaptureJob
-        exclude = ('create_link',)
+        exclude = ('create_link', 'link_can_play_back')
         skip_postgeneration_save=True
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
 
     create_link = True
+    link_can_play_back = None
     link = factory.Maybe(
         'create_link',
         yes_declaration=factory.RelatedFactory(
             'conftest.LinkFactory',
             factory_related_name='capture_job',
-            create_pending_capture_job=False,
             created_by=factory.SelfAttribute('..created_by'),
             submitted_url=factory.SelfAttribute('..submitted_url'),
+            cached_can_play_back=factory.SelfAttribute('..link_can_play_back'),
+            warc_size=factory.Maybe(
+                'cached_can_play_back',
+                yes_declaration=factory.Faker('random_int'),
+                no_declaration=None
+            )
         ),
         no_declaration=None
     )
@@ -404,25 +412,45 @@ class InProgressCaptureJobFactory(PendingCaptureJobFactory):
 
 
 @register_factory
+class CompletedCaptureJobFactory(InProgressCaptureJobFactory):
+    status = 'completed'
+    capture_start_time = factory.Faker('past_datetime', tzinfo=tz.utc)
+    capture_end_time = factory.LazyAttribute(lambda o: o.capture_start_time + relativedelta(minutes=1))
+    link_can_play_back = True
+
+
+@register_factory
 class LinkFactory(DjangoModelFactory):
     class Meta:
         model = Link
-        exclude = ('create_pending_capture_job',)
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
+    cached_can_play_back = None
 
-    create_pending_capture_job = True
-    capture_job = factory.Maybe(
-        'create_pending_capture_job',
-        yes_declaration=factory.SubFactory(
-            PendingCaptureJobFactory,
-            created_by=factory.SelfAttribute('..created_by'),
-            submitted_url=factory.SelfAttribute('..submitted_url'),
-            create_link=False
-        ),
-        no_declaration=None
-    )
+
+@register_factory
+class CaptureFactory(DjangoModelFactory):
+    class Meta:
+        model = Capture
+
+
+@register_factory
+class PrimaryCaptureFactory(CaptureFactory):
+    role = 'primary'
+    status = 'success'
+    record_type = 'response'
+    content_type = 'text/html'
+
+
+@register_factory
+class ScreenshotCaptureFactory(CaptureFactory):
+    role = 'screenshot'
+    status = 'success'
+    record_type = 'response'
+    content_type = 'image/png'
+
+    url = "file:///screenshot.png"
 
 
 @register_factory
@@ -435,8 +463,74 @@ class FolderFactory(DjangoModelFactory):
 class SponsoredFolderFactory(FolderFactory):
     sponsored_by = factory.SubFactory(RegistrarFactory)
 
+#
+# Fixtures
+#
 
-### fixtures for testing customer interactions
+# For working with users
+
+@pytest.fixture
+def perma_client():
+    """
+    A version of the Django test client that allows us to specify a user login for a particular request with an
+    `as_user` parameter, like `client.get(url, as_user=user).
+    """
+    from django.test.client import Client
+
+    session_key = settings.SESSION_COOKIE_NAME
+
+    class UserClient(Client):
+        def generic(self, *args, **kwargs):
+            as_user = kwargs.pop("as_user", None)
+            kwargs['secure'] = True
+
+            if as_user:
+                # If as_user is provided, store the current value of the session cookie, call force_login, and then
+                # reset the current value after the request is over.
+                previous_session = self.cookies.get(session_key)
+                self.force_login(as_user)
+                try:
+                    return super().generic(*args, **kwargs)
+                finally:
+                    if previous_session:
+                        self.cookies[session_key] = previous_session
+                    else:
+                        self.cookies.pop(session_key)
+            else:
+                return super().generic(*args, **kwargs)
+
+    return UserClient()
+
+
+@pytest.fixture
+def admin_user(link_user_factory):
+    return link_user_factory(is_staff=True)
+
+
+@pytest.fixture
+def org_user_factory(link_user, organization):
+    def f(orgs=None):
+        if orgs:
+            link_user.organizations.set(orgs)
+        else:
+            link_user.organizations.add(organization)
+        return link_user
+    return f
+
+
+@pytest.fixture
+def org_user(org_user_factory):
+    return org_user_factory()
+
+@pytest.fixture
+def multi_registrar_org_user(org_user_factory, organization_factory):
+    first = organization_factory()
+    second = organization_factory()
+    assert first.registrar != second.registrar
+    return org_user_factory(orgs=[first, second])
+
+
+### For testing customer interactions
 
 @pytest.fixture
 def customers(paying_registrar_factory, paying_user_factory):
@@ -495,60 +589,6 @@ def complex_user_with_bonus_link(link_user_factory, folder_factory,
     bonus_link = link_factory(created_by=user, bonus_link=True)
     user.refresh_from_db()
     return user, bonus_link
-
-
-@pytest.fixture
-def org_user_factory(link_user, organization):
-    def f(orgs=None):
-        if orgs:
-            link_user.organizations.set(orgs)
-        else:
-            link_user.organizations.add(organization)
-        return link_user
-    return f
-
-
-@pytest.fixture
-def org_user(org_user_factory):
-    return org_user_factory()
-
-
-@pytest.fixture
-def admin_user(link_user_factory):
-    return link_user_factory(is_staff=True)
-
-
-@pytest.fixture
-def perma_client():
-    """
-    A version of the Django test client that allows us to specify a user login for a particular request with an
-    `as_user` parameter, like `client.get(url, as_user=user).
-    """
-    from django.test.client import Client
-
-    session_key = settings.SESSION_COOKIE_NAME
-
-    class UserClient(Client):
-        def generic(self, *args, **kwargs):
-            as_user = kwargs.pop("as_user", None)
-            kwargs['secure'] = True
-
-            if as_user:
-                # If as_user is provided, store the current value of the session cookie, call force_login, and then
-                # reset the current value after the request is over.
-                previous_session = self.cookies.get(session_key)
-                self.force_login(as_user)
-                try:
-                    return super().generic(*args, **kwargs)
-                finally:
-                    if previous_session:
-                        self.cookies[session_key] = previous_session
-                    else:
-                        self.cookies.pop(session_key)
-            else:
-                return super().generic(*args, **kwargs)
-
-    return UserClient()
 
 
 @pytest.fixture
@@ -663,7 +703,119 @@ def spoof_pp_response_subscription_with_pending_change():
     return f
 
 
-### fixtures for testing utils ###
+### For working with links ###
+
+@pytest.fixture
+def complete_link_factory(completed_capture_job_factory, primary_capture_factory, screenshot_capture_factory):
+    def f(link_kwargs=None, primary_capture=True, screenshot_capture=True):
+        if link_kwargs:
+            link = completed_capture_job_factory(**{
+                f"link__{k}": v
+                for k, v in link_kwargs.items()
+            }).link
+        else:
+            link = completed_capture_job_factory().link
+
+        if primary_capture:
+            primary_capture_factory(link=link, url=link.submitted_url)
+        if screenshot_capture:
+            screenshot_capture_factory(link=link)
+
+        return link
+    return f
+
+
+@pytest.fixture
+def complete_link(complete_link_factory):
+    return complete_link_factory()
+
+
+@pytest.fixture
+def complete_link_without_capture_job(complete_link):
+    complete_link.capture_job.delete()
+    try:
+        complete_link.capture_job
+    except CaptureJob.DoesNotExist:
+        pass
+    return complete_link
+
+
+@pytest.fixture
+def deleted_link(complete_link_factory):
+    link = complete_link_factory({
+        "cached_can_play_back": False
+    })
+    link.safe_delete()
+    link.save()
+    return link
+
+
+@pytest.fixture
+def deleted_capture_job(deleted_link):
+    # Capture Jobs are marked as 'deleted' if a user deletes that GUID
+    # before the capture job is finished
+    job = deleted_link.capture_job
+    job.status = 'deleted'
+    job.save()
+    return job
+
+
+@pytest.fixture
+def failed_capture_job(in_progress_capture_job):
+    in_progress_capture_job.mark_failed("Something went wrong.")
+    return in_progress_capture_job
+
+
+@pytest.fixture
+def memento_link_set(link_factory):
+    domain="wikipedia.org"
+    url = f"https://{domain}"
+
+    today = timezone.now()
+    a_few_days_ago = today - relativedelta(days=5)
+    within_the_last_year = today - relativedelta(months=6)
+    over_a_year_ago = today - relativedelta(years=1, days=2)
+    three_years_ago = today - relativedelta(years=3)
+
+    links = [
+        link_factory(
+            creation_timestamp=time,
+            submitted_url=url,
+            cached_can_play_back=True,
+        ) for time in [today, a_few_days_ago, within_the_last_year, over_a_year_ago, three_years_ago]
+    ]
+
+    return {
+        "domain": domain,
+        "url": url,
+        "links": [
+            {
+                "guid": link.guid,
+                #
+                "timestamp": link.creation_timestamp
+            } for link in reversed(links)
+        ]
+    }
+
+
+### For testing email ###
+
+@pytest.fixture
+def email_details():
+    return {
+        "from_email": 'example@example.com',
+        "custom_subject": 'Just some subject here',
+        "message_text": 'Just some message here.',
+        "referring_page": 'http://elsewhere.com',
+        "our_address": settings.DEFAULT_FROM_EMAIL,
+        "subject_prefix": '[perma-contact] ',
+        "flag": "zzzz-zzzz",
+        "flag_message": "http://perma.cc/zzzz-zzzz contains material that is inappropriate.",
+        "flag_subject": "Reporting Inappropriate Content"
+    }
+
+
+### For testing utils ###
 
 @pytest.fixture
 def spoof_perma_payments_post():
@@ -697,6 +849,8 @@ def one_two_three_dict():
 def randomize_capitalization(s):
     return ''.join(choice((str.upper, str.lower))(c) for c in s)
 
+def json_serialize_datetime(dt):
+    return DjangoJSONEncoder().encode(dt).strip('"')
 
 def submit_form(client,
                 view_name,
@@ -715,7 +869,13 @@ def submit_form(client,
     if success_query:
         assert success_query.count() != 1
     kwargs['require_status_code'] = None
-    resp = client.post(reverse(view_name), data, *args, **kwargs)
+    resp = client.post(
+        reverse(view_name),
+        data,
+        *args,
+        secure=True,
+        **kwargs
+    )
 
     def form_errors():
         errors = {}
