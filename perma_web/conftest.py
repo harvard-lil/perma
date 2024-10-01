@@ -188,7 +188,7 @@ from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Sponsorship, Folder
+from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Capture, Sponsorship, Folder
 from perma.utils import pp_date_from_post
 
 
@@ -361,21 +361,27 @@ class PayingUserFactory(LinkUserFactory):
 class CaptureJobFactory(DjangoModelFactory):
     class Meta:
         model = CaptureJob
-        exclude = ('create_link',)
+        exclude = ('create_link', 'link_can_play_back')
         skip_postgeneration_save=True
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
 
     create_link = True
+    link_can_play_back = None
     link = factory.Maybe(
         'create_link',
         yes_declaration=factory.RelatedFactory(
             'conftest.LinkFactory',
             factory_related_name='capture_job',
-            create_pending_capture_job=False,
             created_by=factory.SelfAttribute('..created_by'),
             submitted_url=factory.SelfAttribute('..submitted_url'),
+            cached_can_play_back=factory.SelfAttribute('..link_can_play_back'),
+            warc_size=factory.Maybe(
+                'cached_can_play_back',
+                yes_declaration=factory.Faker('random_int'),
+                no_declaration=None
+            )
         ),
         no_declaration=None
     )
@@ -405,25 +411,45 @@ class InProgressCaptureJobFactory(PendingCaptureJobFactory):
 
 
 @register_factory
+class CompletedCaptureJobFactory(InProgressCaptureJobFactory):
+    status = 'completed'
+    capture_start_time = factory.Faker('past_datetime', tzinfo=tz.utc)
+    capture_end_time = factory.LazyAttribute(lambda o: o.capture_start_time + relativedelta(minutes=1))
+    link_can_play_back = True
+
+
+@register_factory
 class LinkFactory(DjangoModelFactory):
     class Meta:
         model = Link
-        exclude = ('create_pending_capture_job',)
 
     created_by = factory.SubFactory(LinkUserFactory)
     submitted_url = factory.Faker('url')
+    cached_can_play_back = None
 
-    create_pending_capture_job = True
-    capture_job = factory.Maybe(
-        'create_pending_capture_job',
-        yes_declaration=factory.SubFactory(
-            PendingCaptureJobFactory,
-            created_by=factory.SelfAttribute('..created_by'),
-            submitted_url=factory.SelfAttribute('..submitted_url'),
-            create_link=False
-        ),
-        no_declaration=None
-    )
+
+@register_factory
+class CaptureFactory(DjangoModelFactory):
+    class Meta:
+        model = Capture
+
+
+@register_factory
+class PrimaryCaptureFactory(CaptureFactory):
+    role = 'primary'
+    status = 'success'
+    record_type = 'response'
+    content_type = 'text/html'
+
+
+@register_factory
+class ScreenshotCaptureFactory(CaptureFactory):
+    role = 'screenshot'
+    status = 'success'
+    record_type = 'respsonse'
+    content_type = 'image/png'
+
+    url = "file:///screenshot.png"
 
 
 @register_factory
@@ -679,6 +705,67 @@ def spoof_pp_response_subscription_with_pending_change():
 ### For working with links ###
 
 @pytest.fixture
+def complete_link_factory(completed_capture_job_factory, primary_capture_factory, screenshot_capture_factory):
+    def f(link_kwargs=None, primary_capture=True, screenshot_capture=True):
+        if link_kwargs:
+            link = completed_capture_job_factory(**{
+                f"link__{k}": v
+                for k, v in link_kwargs.items()
+            }).link
+        else:
+            link = completed_capture_job_factory().link
+
+        if primary_capture:
+            primary_capture_factory(link=link, url=link.submitted_url)
+        if screenshot_capture:
+            screenshot_capture_factory(link=link)
+
+        return link
+    return f
+
+
+@pytest.fixture
+def complete_link(complete_link_factory):
+    return complete_link_factory()
+
+
+@pytest.fixture
+def complete_link_without_capture_job(complete_link):
+    complete_link.capture_job.delete()
+    try:
+        complete_link.capture_job
+    except CaptureJob.DoesNotExist:
+        pass
+    return complete_link
+
+
+@pytest.fixture
+def deleted_link(complete_link_factory):
+    link = complete_link_factory({
+        "cached_can_play_back": False
+    })
+    link.safe_delete()
+    link.save()
+    return link
+
+
+@pytest.fixture
+def deleted_capture_job(deleted_link):
+    # Capture Jobs are marked as 'deleted' if a user deletes that GUID
+    # before the capture job is finished
+    job = deleted_link.capture_job
+    job.status = 'deleted'
+    job.save()
+    return job
+
+
+@pytest.fixture
+def failed_capture_job(in_progress_capture_job):
+    in_progress_capture_job.mark_failed("Something went wrong.")
+    return in_progress_capture_job
+
+
+@pytest.fixture
 def memento_link_set(link_factory):
     domain="wikipedia.org"
     url = f"https://{domain}"
@@ -694,7 +781,6 @@ def memento_link_set(link_factory):
             creation_timestamp=time,
             submitted_url=url,
             cached_can_play_back=True,
-            create_pending_capture_job=False
         ) for time in [today, earlier_this_month, within_the_last_year, over_a_year_ago, three_years_ago]
     ]
 
