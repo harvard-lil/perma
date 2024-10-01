@@ -3,6 +3,7 @@ from warcio.timeutils import datetime_to_http_date
 from django.urls import reverse
 
 from conftest import json_serialize_datetime
+import pytest
 
 
 def test_timemap_json(client, memento_link_set):
@@ -66,15 +67,17 @@ def test_timemap_link(client, memento_link_set):
     assert response.content == expected
 
 
-def test_timemap_not_found_standard(client, memento_link_set):
-    for response_type in ['link', 'json']:
-        response = client.get(
-            reverse('timemap', args=[response_type, memento_link_set['domain'] + "?foo=bar"]),
-            secure=True
-        )
-        assert response.status_code == 404
-        assert response.headers['x-memento-count'] == '0'
-        assert response.content == b'404 page not found\n'
+@pytest.mark.parametrize(
+    "response_type", ["link", "json"]
+)
+def test_timemap_not_found_standard(response_type, client, memento_link_set):
+    response = client.get(
+        reverse('timemap', args=[response_type, memento_link_set['domain'] + "?foo=bar"]),
+        secure=True
+    )
+    assert response.status_code == 404
+    assert response.headers['x-memento-count'] == '0'
+    assert response.content == b'404 page not found\n'
 
 
 def test_timemap_not_found_html(client, memento_link_set):

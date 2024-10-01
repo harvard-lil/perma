@@ -6,6 +6,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from conftest import submit_form
+import pytest
 
 ###
 ###   Does the contact form render as expected?
@@ -144,7 +145,18 @@ def test_contact_blank_multi_reg_org_user(client, multi_registrar_org_user):
         assert len(select.find_all("option")) >= 2
 
 
-def test_contact_params_regular(client, link_user, org_user, multi_registrar_org_user, registrar_user, email_details):
+@pytest.mark.parametrize(
+    "user",
+    [
+        None,
+        "link_user",
+        "org_user",
+        "multi_registrar_org_user",
+        "registrar_user"
+
+    ]
+)
+def test_contact_params_regular(user, client, email_details):
     '''
         Check subject line, message, read in from GET params
     '''
@@ -153,20 +165,19 @@ def test_contact_params_regular(client, link_user, org_user, multi_registrar_org
         'subject': email_details["custom_subject"]
     }
 
-    for user in [None, link_user, org_user, multi_registrar_org_user, registrar_user]:
-        if user:
-            client.force_login(user)
+    if user:
+        client.force_login(request.getfixturevalue(user))
 
-        response = client.get(
-            reverse('contact') + f'?{urlencode(query_params)}',
-            secure=True,
+    response = client.get(
+        reverse('contact') + f'?{urlencode(query_params)}',
+        secure=True,
 
-        )
-        soup = BeautifulSoup(response.content, 'html.parser')
-        subject_field = soup.find('input', {'name': 'subject'})
-        assert subject_field.get('value', '') == email_details["custom_subject"]
-        message_field = soup.find('textarea', {'name': 'box2'})
-        assert message_field.text.strip() == email_details["message_text"]
+    )
+    soup = BeautifulSoup(response.content, 'html.parser')
+    subject_field = soup.find('input', {'name': 'subject'})
+    assert subject_field.get('value', '') == email_details["custom_subject"]
+    message_field = soup.find('textarea', {'name': 'box2'})
+    assert message_field.text.strip() == email_details["message_text"]
 
 
 ###
