@@ -9,7 +9,7 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import user_management, common, service, link_management
+from .views import common, contact, link_management, memento, playback, service, user_management
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
@@ -26,9 +26,9 @@ urlpatterns = [
     re_path(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     re_path(r'^return-policy/?$', DirectTemplateView.as_view(template_name='return_policy.html'), name='return_policy'),
     re_path(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
-    re_path(r'^report/?$', common.report, name='report'),
-    re_path(r'^contact/?$', common.contact, name='contact'),
-    re_path(r'^contact/thanks/?$', common.contact_thanks, name='contact_thanks'),
+    re_path(r'^report/?$', contact.report, name='report'),
+    re_path(r'^contact/?$', contact.contact, name='contact'),
+    re_path(r'^contact/thanks/?$', contact.contact_thanks, name='contact_thanks'),
 
     #Docs
     re_path(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
@@ -148,11 +148,11 @@ urlpatterns = [
     re_path(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', user_management.organization_user_leave_organization, name='user_management_organization_user_leave_organization'),
 
     # memento support
-    re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', common.timemap, name='timemap'),
-    re_path(r'timegate/(?P<url>.+)$', common.timegate, name='timegate'),
+    re_path(r'timemap/(?P<response_format>link|json|html)/(?P<url>.+)$', memento.timemap, name='timemap'),
+    re_path(r'timegate/(?P<url>.+)$', memento.timegate, name='timegate'),
 
     # Our Perma ID catchall
-    re_path(r'^(?P<guid>[^\./]+)/?$', common.single_permalink, name='single_permalink'),
+    re_path(r'^(?P<guid>[^\./]+)/?$', playback.single_permalink, name='single_permalink'),
 
     # robots.txt
     re_path(r'^robots\.txt$', common.robots_txt, name='robots.txt'),
