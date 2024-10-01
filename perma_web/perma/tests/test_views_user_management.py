@@ -2633,13 +2633,3 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         self.submit_form('password_reset', data={'email': self.randomize_capitalization(email)})
         self.assertEqual(len(mail.outbox), 2)
-
-    ### ADMIN STATS ###
-
-    def test_admin_stats(self):
-        self.log_in_user(self.admin_user)
-        self.get('user_management_stats', reverse_kwargs={'args':['days']})
-        self.get('user_management_stats', reverse_kwargs={'args':['celery']})
-        self.get('user_management_stats', reverse_kwargs={'args':['random']})
-        self.get('user_management_stats', reverse_kwargs={'args':['emails']})
-        self.get('user_management_stats', reverse_kwargs={'args':['job_queue']})

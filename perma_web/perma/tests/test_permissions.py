@@ -41,7 +41,7 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
     views = [
         {
             'urls': [
-                ['user_management_stats'],
+                ['admin_stats'],
                 ['user_management_manage_admin_user'],
                 ['user_management_admin_user_add_user'],
                 ['user_management_manage_single_admin_user_delete', {'kwargs':{'user_id': admin_user.id}}],
