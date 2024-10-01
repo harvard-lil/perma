@@ -791,7 +791,7 @@ def memento_link_set(link_factory):
             {
                 "guid":link.guid,
                 #
-                "timestamp":  link.creation_timestamp
+                "timestamp": link.creation_timestamp
             } for link in reversed(links)
         ]
     }
