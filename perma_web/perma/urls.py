@@ -9,7 +9,7 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import common, contact, link_management, memento, playback, service, user_management
+from .views import admin_stats, common, contact, link_management, memento, playback, service, user_management
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
@@ -98,7 +98,7 @@ urlpatterns = [
     re_path(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'),
 
     # user management
-    re_path(r'^manage/stats/?(?P<stat_type>.*?)?/?$', user_management.stats, name='user_management_stats'),
+    re_path(r'^manage/stats/?(?P<stat_type>.*?)?/?$', admin_stats.stats, name='admin_stats'),
 
     re_path(r'^manage/registrars/?$', user_management.manage_registrar, name='user_management_manage_registrar'),
     re_path(r'^manage/registrars/(?P<registrar_id>\d+)/?$', user_management.manage_single_registrar, name='user_management_manage_single_registrar'),
