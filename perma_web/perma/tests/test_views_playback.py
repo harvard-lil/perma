@@ -2,8 +2,6 @@ from warcio.timeutils import datetime_to_http_date
 
 from django.urls import reverse
 
-from perma.models import Link, CaptureJob
-
 import pytest
 from waffle.testutils import override_flag
 
@@ -118,8 +116,8 @@ def test_archive_without_capture_job(user, client, complete_link_without_capture
     ]
 )
 def test_archive_with_unsuccessful_capturejob(job, client, request):
-        capture_job = request.getfixturevalue(job)
-        get_playback(client, capture_job.link.guid)
+    capture_job = request.getfixturevalue(job)
+    get_playback(client, capture_job.link.guid)
 
 
 def test_screenshot_only_archive_default_to_screenshot_view_false(client, complete_link_factory):

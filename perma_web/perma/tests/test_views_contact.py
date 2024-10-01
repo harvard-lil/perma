@@ -156,7 +156,7 @@ def test_contact_blank_multi_reg_org_user(client, multi_registrar_org_user):
 
     ]
 )
-def test_contact_params_regular(user, client, email_details):
+def test_contact_params_regular(user, client, email_details, request):
     '''
         Check subject line, message, read in from GET params
     '''
