@@ -446,7 +446,7 @@ class PrimaryCaptureFactory(CaptureFactory):
 class ScreenshotCaptureFactory(CaptureFactory):
     role = 'screenshot'
     status = 'success'
-    record_type = 'respsonse'
+    record_type = 'response'
     content_type = 'image/png'
 
     url = "file:///screenshot.png"
