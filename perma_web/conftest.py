@@ -805,7 +805,7 @@ def email_details():
         "from_email": 'example@example.com',
         "custom_subject": 'Just some subject here',
         "message_text": 'Just some message here.',
-        "refering_page": 'http://elsewhere.com',
+        "referring_page": 'http://elsewhere.com',
         "our_address": settings.DEFAULT_FROM_EMAIL,
         "subject_prefix": '[perma-contact] ',
         "flag": "zzzz-zzzz",

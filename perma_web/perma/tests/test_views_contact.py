@@ -230,14 +230,14 @@ def test_contact_standard_submit_required(client, email_details):
         data = { 'email': email_details["from_email"],
                'box2': email_details["message_text"],
                'subject': email_details["custom_subject"],
-               'referer': email_details["refering_page"] },
+               'referer': email_details["referring_page"] },
         success_url=reverse('contact_thanks')
     )
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
     assert email_details["message_text"] in message.body
-    assert "Referring Page: " + email_details["refering_page"] in message.body
+    assert "Referring Page: " + email_details["referring_page"] in message.body
     assert "Affiliations: (none)" in message.body
     assert "Logged in: false" in message.body
     assert message.subject.startswith(email_details["subject_prefix"] + email_details["custom_subject"])
@@ -258,7 +258,7 @@ def test_contact_standard_submit_required_with_spam_catcher(client, email_detail
                'telephone': "I'm a bot",
                'box2': email_details["message_text"],
                'subject': email_details["custom_subject"],
-               'referer': email_details["refering_page"] },
+               'referer': email_details["referring_page"] },
         success_url=reverse('contact_thanks')
     )
     assert len(mail.outbox) == 0
