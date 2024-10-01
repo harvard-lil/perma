@@ -784,7 +784,6 @@ def memento_link_set(link_factory):
         ) for time in [today, a_few_days_ago, within_the_last_year, over_a_year_ago, three_years_ago]
     ]
 
-    # https://docs.djangoproject.com/en/5.1/topics/serialization/#djangojsonencoder
     return {
         "domain": domain,
         "url": url,
