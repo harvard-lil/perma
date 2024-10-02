@@ -33,7 +33,7 @@
     <h2 class="body-ah">Request Account Deletion</h2>
     <p>On request, a team member will delete your Perma.cc account. It may take up to one full business day for us to process your request. Please note that the deletion of your account will not affect the visibility of any Perma Links you have created.</p>
     <p>If you have any questions, please <a href="{% url 'contact' %}?subject=Question%20About%20Account%20Deletion">contact us</a>.</p>
-    <form method="post" action="{% url 'user_management_delete_account' %}">
+    <form method="post" action="{% url 'settings_delete_account' %}">
       {% csrf_token %}
       <button class="btn cancel" type="submit">
         Please delete my account.

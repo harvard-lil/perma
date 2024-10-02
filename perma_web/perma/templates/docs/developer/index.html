@@ -34,10 +34,10 @@ Welcome to the Perma.cc developer guide.
       <h3 id="authentication" class="body-bh">Authentication</h3>
       <p class="body-text">Many of the endpoints require you to authenticate with an API key.</p>
       {% if request.user.get_api_key %}
-        <p class="body-text">Your <a href="{% url 'user_management_settings_tools' %}">API Key</a> is <code>{{ request.user.get_api_key }}</code>.</p>
+        <p class="body-text">Your <a href="{% url 'settings_tools' %}">API Key</a> is <code>{{ request.user.get_api_key }}</code>.</p>
       {% else %}
         <p class="body-text">
-          Find your API key in <a href="{% url 'user_management_settings_tools' %}">Settings > Tools</a>. Click the <i>Generate an API key</i> button to create a new key.
+          Find your API key in <a href="{% url 'settings_tools' %}">Settings > Tools</a>. Click the <i>Generate an API key</i> button to create a new key.
         </p>
         <img src="{{ STATIC_URL }}img/docs/create-api-key.png" class="img-responsive screen-shot" alt="Screenshot of Settings > Tools page. A button labeled 'Generate an API key' appears near the bottom of the page."/>
       {% endif %}
