@@ -220,7 +220,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                              'a-name': 'new_name',
                              'a-email': 'test@test.com2',
                              'a-website': 'http://test.com'},
-                         success_url=reverse('user_management_settings_affiliations'),
+                         success_url=reverse('settings_affiliations'),
                          success_query=Registrar.objects.filter(name='new_name'))
 
     def test_registrar_cannot_update_unrelated_registrar(self):
@@ -804,7 +804,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           user=u,
                           data={},
                           reverse_kwargs={'args': [orgs[0].pk]},
-                          success_url=reverse('user_management_settings_affiliations'))
+                          success_url=reverse('settings_affiliations'))
 
         # returns to create/manage page if no longer a member of any orgs
         self.submit_form('user_management_organization_user_leave_organization',
@@ -1260,7 +1260,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### SETTINGS ###
 
     def test_user_can_change_own_settings(self):
-        response = self.submit_form('user_management_settings_profile',
+        response = self.submit_form('settings_profile',
                                      user=self.admin_user,
                                      data={
                                          'a-first_name': 'Newfirst',
@@ -1272,12 +1272,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(bytes('Profile saved!', 'utf-8'), response.content)
 
     def test_user_can_request_deletion_once(self):
-        deletion_url = reverse('user_management_delete_account')
+        deletion_url = reverse('settings_delete_account')
         self.assertNotIn('Requested account deletion', self.regular_user.notes)
-        response1 = self.get('user_management_settings_profile',
+        response1 = self.get('settings_profile',
                              user=self.regular_user).content
         self.assertIn(bytes('<form method="post" action="{}"'.format(deletion_url), 'utf-8'), response1)
-        response2 = self.post('user_management_delete_account',
+        response2 = self.post('settings_delete_account',
                              user=self.regular_user,
                              request_kwargs={"follow": True}).content
         self.assertNotIn(bytes('<form method="post" action="{}"'.format(deletion_url), 'utf-8'), response2)
@@ -1294,37 +1294,37 @@ class UserManagementViewsTestCase(PermaTestCase):
         '''
 
         # Toggle as an org user
-        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        response = self.get('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_org_user@example.com').content
         self.assertIn(b"Your Perma Links are currently <strong>Public</strong> by default.", response)
-        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        self.submit_form('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                           user='test_org_user@example.com',
                           data={},
-                          success_url=reverse('user_management_settings_affiliations'))
-        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                          success_url=reverse('settings_affiliations'))
+        response = self.get('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_org_user@example.com').content
         self.assertIn(b"Your Perma Links are currently <strong>Private</strong> by default.", response)
 
         # Toggle as a registrar user
-        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        self.submit_form('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                   user='test_registrar_user@example.com',
                   data={},
                   success_url=reverse('user_management_manage_organization'))
-        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        response = self.get('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_registrar_user@example.com').content
         self.assertIn(b"Your Perma Links are currently <strong>Public</strong> by default.", response)
 
         # Toggle as a staff user
-        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        self.submit_form('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                   user='test_admin_user@example.com',
                   data={},
                   success_url=reverse('user_management_manage_organization'))
-        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+        response = self.get('settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
                              user='test_admin_user@example.com').content
         self.assertIn(b"Your Perma Links are currently <strong>Private</strong> by default.", response)
 
         # As staff, try to access non-existent org
-        self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[99999]},
+        self.get('settings_organizations_change_privacy', reverse_kwargs={'args':[99999]},
                   user='test_admin_user@example.com',
                   require_status_code=404)
 
@@ -1334,14 +1334,14 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_nonpaying_user_cannot_see_usage_plan_page(self):
         u = LinkUser.objects.get(email='test_nonpaying_user@example.com')
         assert not u.can_view_usage_plan()
-        self.get('user_management_settings_usage_plan',
+        self.get('settings_usage_plan',
                   user=u,
                   require_status_code=403)
 
     def test_regular_user_can_see_usage_plan_page(self):
         u = LinkUser.objects.get(email='test_user@example.com')
         assert u.can_view_usage_plan()
-        self.get('user_management_settings_usage_plan',
+        self.get('settings_usage_plan',
                   user=u,
                   require_status_code=200)
 
@@ -1355,7 +1355,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         self.assertNotIn(b'Purchase History', r.content)
@@ -1378,7 +1378,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         }
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         self.assertIn(b'Purchase History', r.content)
@@ -1399,7 +1399,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         individual_tier_count = len(settings.TIERS['Individual'])
@@ -1423,7 +1423,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         self.assertIn(b'Rate', r.content)
@@ -1443,7 +1443,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         self.assertIn(b'problem with your credit card', r.content)
@@ -1458,7 +1458,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         bonus_package_count = len(settings.BONUS_PACKAGES)
@@ -1473,7 +1473,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.side_effect = PermaPaymentsCommunicationException
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         self.assertNotIn(b'<input type="hidden" name="encrypted_data"', r.content)
@@ -1483,7 +1483,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_unauthorized_user_cannot_see_cancellation_page(self):
         u = LinkUser.objects.get(email='test_nonpaying_user@example.com')
         assert not u.can_view_usage_plan()
-        self.post('user_management_settings_subscription_cancel',
+        self.post('settings_subscription_cancel',
                   user=u,
                   require_status_code=403)
 
@@ -1491,12 +1491,12 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_authorized_user_cant_use_get_for_cancellation_page(self):
         u = LinkUser.objects.get(email='test_user@example.com')
         assert u.can_view_usage_plan()
-        self.get('user_management_settings_subscription_cancel',
+        self.get('settings_subscription_cancel',
                   user=u,
                   require_status_code=405)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_authorized_user_cancellation_confirm_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
@@ -1505,7 +1505,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_cancel',
+        r = self.post('settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1521,13 +1521,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         u = LinkUser.objects.get(email='test_user@example.com')
         get_subscription.return_value = None
 
-        self.post('user_management_settings_subscription_update',
+        self.post('settings_subscription_update',
                   user=u,
                   data={'account_type':'Individual'},
                   require_status_code=403)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_update_page_if_standing_subscription(self, get_subscription, prepped, prepped_v):
@@ -1537,7 +1537,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
         prepped_v.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1553,7 +1553,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(u)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_update_page_if_downgrade_scheduled(self, get_subscription, prepped, prepped_v):
@@ -1563,7 +1563,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
         prepped_v.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1575,7 +1575,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(u)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_update_page_if_subscription_on_hold(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
@@ -1583,7 +1583,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1594,7 +1594,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(u)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_update_page_if_cancellation_requested(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='test_user@example.com')
@@ -1602,7 +1602,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1625,7 +1625,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         # Individual tiers should be available; no registrar section should be present
@@ -1655,7 +1655,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         # all tiers should be offered, both individual and registrar-level
@@ -1684,7 +1684,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_purchase_history.return_value = {'purchases': [], 'total_links': 0}
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.get('user_management_settings_usage_plan',
+        r = self.get('settings_usage_plan',
                       user=u)
 
         # Individual tiers should be available; the registrar's subscription should be present
@@ -1710,7 +1710,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_r.assert_called_once_with(u.registrar)
         get_purchase_history.assert_called_once_with(u)
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_personal_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
@@ -1720,7 +1720,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_u.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_cancel',
+        r = self.post('settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1733,7 +1733,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_u.assert_called_once_with(u)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_institutional_cancellation_confirm_form(self, get_subscription_u, get_subscription_r, prepped):
@@ -1743,7 +1743,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_r.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_cancel',
+        r = self.post('settings_subscription_cancel',
                       user=u,
                       data={'account_type':'Registrar'})
 
@@ -1756,7 +1756,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription_r.assert_called_once_with(u.registrar)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.LinkUser.get_subscription', autospec=True)
     def test_allpaying_registrar_user_personal_update_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
@@ -1765,7 +1765,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.return_value = subscription
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Individual'})
 
@@ -1774,7 +1774,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         get_subscription.assert_called_once_with(u)
 
 
-    @patch('perma.views.user_management.prep_for_perma_payments', autospec=True)
+    @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
     @patch('perma.models.Registrar.get_subscription', autospec=True)
     def test_allpaying_registrar_user_institutional_update_form(self, get_subscription, prepped):
         u = LinkUser.objects.get(email='registrar_user@firm.com')
@@ -1784,7 +1784,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
 
-        r = self.post('user_management_settings_subscription_update',
+        r = self.post('settings_subscription_update',
                       user=u,
                       data={'account_type':'Registrar'})
 
@@ -1796,14 +1796,14 @@ class UserManagementViewsTestCase(PermaTestCase):
     # Tools
 
     def test_api_key(self):
-        response = self.get('user_management_settings_tools',
+        response = self.get('settings_tools',
                              user='test_another_library_org_user@example.com').content
         self.assertNotIn(b'id="id_api_key"', response)
         self.submit_form('api_key_create',
                           user='test_another_library_org_user@example.com',
                           data={},
-                          success_url=reverse('user_management_settings_tools'))
-        response = self.get('user_management_settings_tools',
+                          success_url=reverse('settings_tools'))
+        response = self.get('settings_tools',
                              user='test_another_library_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         key = soup.find('input', {'id': 'id_api_key'})
@@ -1813,8 +1813,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form('api_key_create',
                           user='test_another_library_org_user@example.com',
                           data={},
-                          success_url=reverse('user_management_settings_tools'))
-        response = self.get('user_management_settings_tools',
+                          success_url=reverse('settings_tools'))
+        response = self.get('settings_tools',
                              user='test_another_library_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         key = soup.find('input', {'id': 'id_api_key'})
@@ -1829,7 +1829,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             (Tries not to be overly picky about the page design and markup.)
         '''
         # As an org user
-        response = self.get('user_management_settings_affiliations',
+        response = self.get('settings_affiliations',
                              user='multi_registrar_org_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         registrars = soup.select('h4 a')
@@ -1842,7 +1842,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             self.assertTrue(org.text.strip())
 
         # As a registrar user
-        response = self.get('user_management_settings_affiliations',
+        response = self.get('settings_affiliations',
                              user='test_registrar_user@example.com').content
         soup = BeautifulSoup(response, 'html.parser')
         registrars = soup.select('h4')
@@ -1855,7 +1855,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             self.assertTrue(org.text.strip())
 
         # As a pending registrar user
-        response = self.get('user_management_settings_affiliations',
+        response = self.get('settings_affiliations',
                              user='test_requested_registrar_account@example.com').content
         self.assertIn(b'Pending Registrar', response)
         self.assertIn(b'Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.', response)
@@ -2038,7 +2038,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                           data = { 'b-email': new_lib['email'],
                                    'b-website': new_lib['website'],
                                    'b-name': new_lib['name'] },
-                          success_url=reverse('user_management_settings_affiliations'),
+                          success_url=reverse('settings_affiliations'),
                           user=existing_lib_user['raw_email'])
         expected_emails_sent += 1
         self.assertEqual(len(mail.outbox), expected_emails_sent)

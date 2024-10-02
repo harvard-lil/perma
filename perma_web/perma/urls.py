@@ -9,7 +9,7 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import admin_stats, common, contact, link_management, memento, playback, service, user_management
+from .views import (admin_stats, common, contact, link_management, memento, playback, user_settings, service, user_management)
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
@@ -75,19 +75,19 @@ urlpatterns = [
     ),
     re_path(r'^password/reset/complete/?$', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     re_path(r'^password/reset/done/?$', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
-    re_path(r'^api_key/create/?$', user_management.api_key_create, name='api_key_create'),
+    re_path(r'^api_key/create/?$', user_settings.api_key_create, name='api_key_create'),
 
     # Settings
-    re_path(r'^settings/profile/?$', user_management.settings_profile, name='user_management_settings_profile'),
-    re_path(r'^settings/profile/delete/?$', user_management.delete_account, name='user_management_delete_account'),
-    re_path(r'^settings/password/?$', user_management.settings_password, name='user_management_settings_password'),
-    re_path(r'^settings/affiliations/?$', user_management.settings_affiliations, name='user_management_settings_affiliations'),
-    re_path(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/?$', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
-    re_path(r'^settings/tools/?$', user_management.settings_tools, name='user_management_settings_tools'),
-    re_path(r'^settings/usage-plan/?$', user_management.settings_usage_plan, name='user_management_settings_usage_plan'),
-    re_path(r'^settings/subscription/?$', RedirectView.as_view(url='/settings/usage-plan/', permanent=True), name='user_management_settings_subscription'),
-    re_path(r'^settings/subscription/cancel/?$', user_management.settings_subscription_cancel, name='user_management_settings_subscription_cancel'),
-    re_path(r'^settings/subscription/update/?$', user_management.settings_subscription_update, name='user_management_settings_subscription_update'),
+    re_path(r'^settings/profile/?$', user_settings.settings_profile, name='settings_profile'),
+    re_path(r'^settings/profile/delete/?$', user_settings.delete_account, name='settings_delete_account'),
+    re_path(r'^settings/password/?$', user_settings.settings_password, name='settings_password'),
+    re_path(r'^settings/affiliations/?$', user_settings.settings_affiliations, name='settings_affiliations'),
+    re_path(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/?$', user_settings.settings_organizations_change_privacy, name='settings_organizations_change_privacy'),
+    re_path(r'^settings/tools/?$', user_settings.settings_tools, name='settings_tools'),
+    re_path(r'^settings/usage-plan/?$', user_settings.settings_usage_plan, name='settings_usage_plan'),
+    re_path(r'^settings/subscription/?$', RedirectView.as_view(url='/settings/usage-plan/', permanent=True), name='settings_subscription'),
+    re_path(r'^settings/subscription/cancel/?$', user_settings.settings_subscription_cancel, name='settings_subscription_cancel'),
+    re_path(r'^settings/subscription/update/?$', user_settings.settings_subscription_update, name='settings_subscription_update'),
 
     # Link management
     re_path(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),

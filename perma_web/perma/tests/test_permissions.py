@@ -123,9 +123,9 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
 
         {
             'urls': [
-                ['user_management_settings_profile'],
-                ['user_management_settings_password'],
-                ['user_management_settings_tools'],
+                ['settings_profile'],
+                ['settings_password'],
+                ['settings_tools'],
                 ['create_link'],
                 ['user_delete_link', {'kwargs':{'guid':'1234-1234'},'success_status':404}],
             ],
