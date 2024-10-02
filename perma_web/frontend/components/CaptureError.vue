@@ -1,10 +1,11 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { globalStore } from '../stores/globalStore';
+import { useGlobalStore } from '../stores/globalStore';
 import UploadForm from './UploadForm.vue';
 import { showDevPlayground } from '../lib/consts'
 import UpdateGUID from './UpdateGUID.vue'
 
+const globalStore = useGlobalStore()
 const showUploadLink = ref()
 const showGeneric = ref()
 const showLoginLink = ref()
@@ -27,7 +28,7 @@ watch(
         }
 
         else if (errorMessage.includes("limit")) {
-            globalStore.updateLinksRemaining(0);
+            globalStore.linksRemaining = 0;
             showUploadLink.value = false;
         }
 

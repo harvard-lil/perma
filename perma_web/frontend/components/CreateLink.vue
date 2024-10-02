@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed, onBeforeUnmount, onMounted } from 'vue'
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
@@ -9,10 +9,11 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
-import { isLoading, readyStates, isReady } from '../lib/store'
+import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors";
 
+const globalStore = useGlobalStore()
 const batchDialogRef = ref('')
+globalStore.batchDialogRef = batchDialogRef
 const batchDialogOpen = () => {
     batchDialogRef.value.handleOpen();
 }
@@ -21,10 +22,10 @@ const userLink = ref('')
 const userLinkProgressBar = ref('0%')
 
 const submitButtonText = computed(() => {
-    if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
+    if (globalStore.isReady && globalStore.selectedFolder.isPrivate) {
         return 'Create Private Perma Link'
     }
-    else if (readyStates.includes(globalStore.captureStatus)) {
+    else if (globalStore.isReady) {
         return 'Create Perma Link'
     }
     return 'Creating your Perma Link'
@@ -38,12 +39,12 @@ const handleSuppressToolsReminder = () => {
 }
 
 const handleArchiveRequest = async () => {
-    if (!isReady) {
+    if (!globalStore.isReady) {
         return
     }
 
-    globalStore.updateCaptureErrorMessage('')
-    globalStore.updateCapture('isValidating')
+    globalStore.captureErrorMessage = ''
+    globalStore.captureStatus = 'isValidating'
 
     const formData = {
         url: userLink.value,
@@ -56,7 +57,7 @@ const handleArchiveRequest = async () => {
     try {
         if (!formData.folder) {
             const errorMessage = folderError
-            globalStore.updateCaptureErrorMessage(errorMessage)
+            globalStore.captureErrorMessage = errorMessage
             throw errorMessage
         }
 
@@ -77,8 +78,8 @@ const handleArchiveRequest = async () => {
         }
 
         const { guid } = await response.json()
-        globalStore.updateCaptureGUID(guid)
-        globalStore.updateCapture('isQueued')
+        globalStore.captureGUID = guid
+        globalStore.captureStatus = 'isQueued'
 
     } catch (error) {
         handleCaptureError({ error, errorType: 'urlError' })
@@ -107,8 +108,8 @@ const handleCaptureError = ({ error, errorType }) => {
         errorMessage = defaultError
     }
 
-    globalStore.updateCapture(errorType)
-    globalStore.updateCaptureErrorMessage(errorMessage)
+    globalStore.captureStatus = errorType
+    globalStore.captureErrorMessage = errorMessage
 }
 
 const handleCaptureStatus = async (guid) => {
@@ -142,13 +143,13 @@ const handleProgressUpdate = async () => {
     const { status } = response
 
     if (status === 'in_progress') {
-        globalStore.updateCapture('isCapturing')
+        globalStore.captureStatus = 'isCapturing'
         userLinkProgressBar.value = `${response.step_count / 5 * 100}%`
     }
 
     if (status === 'completed') {
         clearInterval(progressInterval)
-        globalStore.updateCapture('success')
+        globalStore.captureStatus = 'success'
         window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
     }
 
@@ -157,8 +158,8 @@ const handleProgressUpdate = async () => {
 
         clearInterval(progressInterval)
 
-        globalStore.updateCapture('captureError')
-        globalStore.updateCaptureErrorMessage(errorMessage)
+        globalStore.captureStatus = 'captureError'
+        globalStore.captureErrorMessage = errorMessage
     }
 }
 
@@ -199,11 +200,9 @@ onBeforeUnmount(() => {
                         placeholder="Paste your URL here." />
                     <div class="wrapper">
                         <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
-                            :class="{
-                '_isWorking': !readyStates.includes(globalStore.captureStatus),
-            }
-                " id="addlink" type="submit">
-                            <Spinner v-if="isLoading" top="-20px" />
+                            :class="{ '_isWorking': !globalStore.isReady }"
+                            id="addlink" type="submit">
+                            <Spinner v-if="globalStore.isLoading" top="-20px" />
                             {{ submitButtonText }}
                             <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />

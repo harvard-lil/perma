@@ -1,28 +1,30 @@
 <script setup>
 import { ref } from 'vue';
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
+
+const globalStore = useGlobalStore()
 
 const testGUID = ref('');
 
 const updateGUID = () => {
     triggerError()
-    globalStore.updateCaptureGUID(testGUID.value)
+    globalStore.captureGUID = testGUID.value
 };
 
 const clearGUID = () => {
-    globalStore.updateCaptureGUID('');
+    globalStore.captureGUID = ''
     testGUID.value = ''
 };
 
 const triggerError = () => {
-    globalStore.updateCapture('captureError')
-    globalStore.updateCaptureErrorMessage('testing')
+    globalStore.captureError = 'captureError'
+    globalStore.captureErrorMessage = 'testing'
 };
 </script>
 
 <template>
     <div>
-        <p>Current GUID in store: {{ globalStore.captureGUID ? globalStore.captureGUID : "None" }}</p>
+        <p>Current GUID in store: {{ globalStore.captureGUID || "None" }}</p>
 
         <label for="guid-input">GUID</label>
         <input id="guid-input" v-model="testGUID" />
