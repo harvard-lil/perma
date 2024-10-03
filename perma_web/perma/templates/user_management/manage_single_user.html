@@ -32,7 +32,7 @@
         {% for aff in affiliations %}
           <div class="settings-block">
             <p>{{ aff.organization.name }}</p>
-            <button name="org" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+            <button name="affiliation" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
             {% if aff.expires_at %}
               <br><p>Expiration date: {{ aff.expires_at }}</p>
             {% endif %}

@@ -975,12 +975,12 @@ def manage_single_organization_user_remove(request, user_id):
         return HttpResponseForbidden()
 
     if request.method == 'POST':
-        affiliation = UserOrganizationAffiliation.objects.filter(id=request.POST.get('org')).values('organization_id').first()
-        org = get_object_or_404(Organization, id=affiliation['organization_id'])
+        affiliation = get_object_or_404(UserOrganizationAffiliation, id=request.POST.get('affiliation'))
+        org = get_object_or_404(Organization, id=affiliation.organization_id)
         if not request.user.can_edit_organization(org):
             return HttpResponseForbidden()
 
-        UserOrganizationAffiliation.objects.filter(id=request.POST.get('org')).delete()
+        affiliation.delete()
 
         # special case -- user demoted themselves, can't see page anymore
         if request.user == target_user and not target_user.organizations.exists():
