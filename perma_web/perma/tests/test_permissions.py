@@ -50,7 +50,7 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
                 ['user_management_manage_single_registrar_user', {'kwargs':{'user_id': registrar_user.id}}],
                 ['user_management_manage_single_registrar_user_delete', {'kwargs':{'user_id': registrar_user.id}}],
                 ['user_management_manage_single_registrar_user_reactivate', {'kwargs':{'user_id': registrar_user.id}}],
-                ['user_management_approve_pending_registrar', {'kwargs':{'registrar_id': pending_registrar.id}}],
+                ['user_sign_up_approve_pending_registrar', {'kwargs':{'registrar_id': pending_registrar.id}}],
                 ['user_management_manage_user'],
                 ['user_management_user_add_user'],
                 ['user_management_manage_single_user', {'kwargs':{'user_id': regular_user.id}}],

@@ -9,7 +9,18 @@ from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
-from .views import (admin_stats, common, contact, link_management, memento, playback, user_settings, service, user_management)
+from .views import (
+    admin_stats,
+    common,
+    contact,
+    link_management,
+    memento,
+    playback,
+    user_settings,
+    service,
+    user_management,
+    user_sign_up,
+)
 from .forms import SetPasswordForm
 
 # between 9/5/2013 and 11/13/2014,
@@ -53,15 +64,15 @@ urlpatterns = [
     # Users with old-style activation links should get redirected so they can generate a new one
     re_path(r'^register/password/(?P<token>.*)/?$', user_management.redirect_to_reset, name='redirect_to_reset'),
 
-    re_path(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
-    re_path(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),
-    re_path(r'^sign-up/firms/?$', user_management.sign_up_firm, name='sign_up_firm'),
-    re_path(r'^libraries/?$', user_management.libraries, name='libraries'),
+    re_path(r'^sign-up/?$', user_sign_up.sign_up, name='sign_up'),
+    re_path(r'^sign-up/courts/?$', user_sign_up.sign_up_courts, name='sign_up_courts'),
+    re_path(r'^sign-up/firms/?$', user_sign_up.sign_up_firm, name='sign_up_firm'),
+    re_path(r'^libraries/?$', user_sign_up.libraries, name='libraries'),
+    re_path(r'^register/email/?$', user_sign_up.register_email_instructions, name='register_email_instructions'),
+    re_path(r'^register/library/?$', user_sign_up.register_library_instructions, name='register_library_instructions'),
+    re_path(r'^register/court/?$', user_sign_up.court_request_response, name='court_request_response'),
+    re_path(r'^register/firm/?$', user_sign_up.firm_request_response, name='firm_request_response'),
 
-    re_path(r'^register/email/?$', user_management.register_email_instructions, name='register_email_instructions'),
-    re_path(r'^register/library/?$', user_management.register_library_instructions, name='register_library_instructions'),
-    re_path(r'^register/court/?$', user_management.court_request_response, name='court_request_response'),
-    re_path(r'^register/firm/?$', user_management.firm_request_response, name='firm_request_response'),
     re_path(r'^password/change/?$', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
     re_path(r'^password/change/done/?$', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     re_path(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
@@ -102,7 +113,7 @@ urlpatterns = [
 
     re_path(r'^manage/registrars/?$', user_management.manage_registrar, name='user_management_manage_registrar'),
     re_path(r'^manage/registrars/(?P<registrar_id>\d+)/?$', user_management.manage_single_registrar, name='user_management_manage_single_registrar'),
-    re_path(r'^manage/registrars/approve/(?P<registrar_id>\d+)/?$', user_management.approve_pending_registrar, name='user_management_approve_pending_registrar'),
+    re_path(r'^manage/registrars/approve/(?P<registrar_id>\d+)/?$', user_sign_up.approve_pending_registrar, name='user_sign_up_approve_pending_registrar'),
 
     re_path(r'^manage/organizations/?$', user_management.manage_organization, name='user_management_manage_organization'),
     re_path(r'^manage/organizations/(?P<org_id>\d+)/?$', user_management.manage_single_organization, name='user_management_manage_single_organization'),
