@@ -1,150 +1,57 @@
-import { reactive, toRefs } from "vue";
+import { ref } from "vue";
 import { defaultError } from './errors'
-import { validStates, transitionalStates } from '../lib/consts.js'
-import { getErrorFromNestedObject } from '../lib/errors';
-import { rootUrl } from '../lib/consts'
+import { rootUrl } from './consts'
+import { getCookie } from './helpers'
 
-export const useFetch = async (baseUrl, options) => {
-  const state = reactive({
-    isLoading: false,
-    hasError: false,
-    errorMessage: '',
-    data: null
-  })
+export const fetchDataOrError = async (url, options = {}) => {
+  /* return {data, error} for a json fetch call*/
+  url = rootUrl + url;
 
-  const url = options ? `${baseUrl}?${new URLSearchParams(options)}` : baseUrl
-
-  const fetchData = async () => {
-    state.isLoading = true;
-
-    try {
-      const response = await fetch(url); 
-      if (!response?.ok) {
-        throw new Error(response.statusText) 
-      }
-
-      state.data = await response.json()
-
-    } catch (err) {
-      state.hasError = true
-      state.errorMessage = err?.message.length ? err.message : defaultError
-    }
-    state.isLoading = false
+  // add query string from options.params
+  if (options.params) {
+    url += `?${new URLSearchParams(options.params)}`;
+    delete options.params;
   }
-  await fetchData()
-  return {
-    ...toRefs(state)
+  
+  // add csrf and content type headers
+  if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(options.method)) {
+    options.headers = {
+      ...options.headers,
+      "X-CSRFToken": getCookie("csrftoken"),
+      "Content-Type": "application/json"
+    };
+  }
+
+  try {
+    const response = await fetch(url, options);
+    if (!response?.ok) {
+      throw new Error(response.statusText);
+    }
+    return {data: await response.json(), error: ''}
+  } catch (err) {
+    return {data: null, error: err?.message || defaultError}
   }
 }
 
-export const useBatchHistoryFetch = async (limit = 7) => {
-  const state = reactive({
-    linkBatches: [],
-    isLoading: false,
-    hasError: false,
-    errorMessage: ''
-  });
+export const useFetch = (url) => {
+  const isLoading = ref(false);
+  const hasError = ref(false);
+  const error = ref('');
+  const data = ref(null);
 
-  const fetchBatchHistory = async () => {
-    state.isLoading = true;
+  const fetchData = async (options = {}) => {
+    data.value = null;
+    error.value = '';
+    hasError.value = false;
+    isLoading.value = true;
 
-    try {
-      const { data, hasError, errorMessage } = await useFetch(`${rootUrl}/archives/batches/`, { limit });
-
-      if (hasError.value || !data.value.objects.length) {
-        throw new Error(errorMessage.value || 'Failed to fetch link batches');
-      }
-
-      state.linkBatches = data.value.objects;
-    } catch (err) {
-      state.hasError = true;
-      state.errorMessage = err.message || 'An error occurred while fetching link batches';
-    }
-
-    state.isLoading = false;
+    const {data: dataValue, error: errorValue} = await fetchDataOrError(url, options);
+    
+    data.value = dataValue;
+    error.value = errorValue;
+    hasError.value = !!errorValue;
+    isLoading.value = false;
   };
 
-  await fetchBatchHistory();
-
-  return {
-    ...toRefs(state)
-  };
+  return { isLoading, hasError, error, data, fetchData }
 }
-
-export const useBatchDetailsFetch = async (batchCaptureId) => {
-  const state = reactive({
-    isLoading: false,
-    hasError: false,
-    errorMessage: '',
-    allJobs: null,
-    progressSummary: ''
-  });
-
-  const fetchBatchDetails = async () => {
-    state.isLoading = true;
-
-    try {
-      const { data, hasError, errorMessage } = await useFetch(`/api/v1/archives/batches/${batchCaptureId}`);
-
-      if (hasError.value || !data.value.capture_jobs) {
-        throw new Error(errorMessage.value || 'Failed to fetch batch details');
-      }
-
-      const { allJobs, progressSummary } = useFormatBatchDetails(data.value.capture_jobs);
-      state.allJobs = allJobs;
-      state.progressSummary = progressSummary;
-
-    } catch (err) {
-      state.hasError = true;
-      state.errorMessage = err.message || 'An error occurred while fetching batch details';
-    }
-
-    state.isLoading = false;
-  };
-
-  await fetchBatchDetails();
-
-  return {
-    ...toRefs(state)
-  };
-};
-
-export const useFormatBatchDetails = (captureJobs) => {
-  const steps = 6;
-  const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
-    const includesError = !validStates.includes(currentJob.status);
-    const isCapturing = transitionalStates.includes(currentJob.status);
-
-    let jobDetail = {
-      ...currentJob,
-      message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
-      progress: (currentJob.step_count / steps) * 100,
-      url: `${window.location.hostname}/${currentJob.guid}`
-    };
-
-    if (isCapturing) {
-      accumulatedJobs.completed = false;
-    }
-
-    if (includesError) {
-      accumulatedJobs.errors += 1;
-    }
-
-    return {
-      ...accumulatedJobs,
-      details: [...accumulatedJobs.details, jobDetail]
-    };
-  }, {
-    details: [],
-    completed: true,
-    errors: 0
-  });
-
-  const totalProgress = allJobs.details.reduce((total, job) => total + job.progress, 0);
-  const maxProgress = allJobs.details.length * 100;
-  const percentComplete = Math.round((totalProgress / maxProgress) * 100);
-
-  const progressSummary = allJobs.completed ? "Batch complete." : `Batch ${percentComplete}% complete.`;
-
-  return { allJobs, progressSummary };
-};

@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref, nextTick } from 'vue'
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
+import { vueDashboardFlag } from '../lib/consts'
+
+const globalStore = useGlobalStore()
 
 const props = defineProps({
     folders: Array,
@@ -103,10 +106,14 @@ const handleSelection = (e) => {
     if (!folderId) {
         return handleClose()
     }
-
-    // Call a custom event that triggers triggerOnWindow function
-    const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null } } });
-    window.dispatchEvent(updateSelections);
+    const data = { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null };
+    if (vueDashboardFlag) {
+        globalStore.jstreeInstance.handleSelectionChange(data)
+    } else {
+        // Call a custom event that triggers triggerOnWindow function
+        const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data } });
+        window.dispatchEvent(updateSelections);
+    }
 
     handleClose()
 }
