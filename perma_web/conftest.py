@@ -313,6 +313,16 @@ class RegistrarUserFactory(LinkUserFactory):
     registrar = factory.SubFactory(RegistrarFactory)
 
 
+@register_factory
+class PendingRegistrarUserFactory(LinkUserFactory):
+    pending_registrar = factory.SubFactory(PendingRegistrarFactory)
+
+
+@register_factory
+class PayingRegistrarUserFactory(LinkUserFactory):
+    registrar = factory.SubFactory(PayingRegistrarFactory)
+
+
 # SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
 # and before SponsoredUserFactory
 @register_factory
@@ -587,6 +597,65 @@ def complex_user_with_bonus_link(link_user_factory, folder_factory,
 
 
 @pytest.fixture
+def current_monthly_subscription():
+    return {
+        "status": "Current",
+        "rate": "10.00",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": 10
+    }
+
+@pytest.fixture
+def current_monthly_unlimited_subscription():
+    return {
+        "status": "Current",
+        "rate": "10.00",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": "unlimited"
+    }
+
+
+@pytest.fixture
+def current_monthly_subscription_with_scheduled_downgrade():
+    return {
+        "status": "Current",
+        "rate": "10.00",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": 10,
+        "pending_change": {
+            "rate": "1.00",
+            "link_limit": 1,
+            "effective": GENESIS.replace(year=9999)
+        },
+    }
+
+
+@pytest.fixture
+def on_hold_monthly_subscription():
+    return {
+        "status": "Hold",
+        "rate": "7777.77",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": 10
+    }
+
+
+@pytest.fixture
+def cancellation_requested_subscription():
+    return {
+        "status": "Cancellation Requested",
+        "rate": "3333.33",
+        "frequency": "monthly",
+        "paid_through": GENESIS,
+        "link_limit": 10
+    }
+
+
+@pytest.fixture
 def active_cancelled_subscription():
     return {
         'status': "Canceled",
@@ -598,8 +667,163 @@ def active_cancelled_subscription():
 def expired_cancelled_subscription():
     return {
         'status': "Canceled",
-        'paid_through': timezone.now() + relativedelta(years=-1)
+        'paid_through': timezone.now() - relativedelta(years=1)
     }
+
+
+@pytest.fixture
+def no_purchase_history():
+    return {'purchases': [], 'total_links': 0}
+
+
+@pytest.fixture
+def some_purchase_history():
+    return {
+        'purchases': [
+            {'link_quantity': 10, 'date': GENESIS},
+            {'link_quantity': 3, 'date': GENESIS}
+        ],
+        'total_links': 13
+    }
+
+
+@pytest.fixture
+def user_without_subscription_or_purchase_history(mocker, link_user, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = None
+    get_purchase_history.return_value = no_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+
+@pytest.fixture
+def user_without_subscription_with_purchase_history(mocker, link_user, some_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = None
+    get_purchase_history.return_value = some_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+    get_purchase_history.assert_called_once_with(link_user)
+
+
+@pytest.fixture
+def user_with_monthly_subscription(mocker, link_user, current_monthly_subscription, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = current_monthly_subscription
+    get_purchase_history.return_value = no_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+
+
+@pytest.fixture
+def user_with_scheduled_downgrade(mocker, link_user, current_monthly_subscription_with_scheduled_downgrade, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = current_monthly_subscription_with_scheduled_downgrade
+    get_purchase_history.return_value = no_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+
+
+@pytest.fixture
+def user_with_on_hold_subscription(mocker, link_user, on_hold_monthly_subscription, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = on_hold_monthly_subscription
+    get_purchase_history.return_value = no_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+
+
+@pytest.fixture
+def user_with_requested_cancellation(mocker, link_user, cancellation_requested_subscription, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+
+    get_subscription.return_value = cancellation_requested_subscription
+    get_purchase_history.return_value = no_purchase_history
+
+    yield link_user
+
+    get_subscription.assert_called_once_with(link_user)
+
+
+@pytest.fixture
+def registrar_user_from_nonpaying_registrar(mocker, registrar_user, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
+
+    get_subscription.return_value = None
+    get_purchase_history.return_value = no_purchase_history
+
+    yield registrar_user
+
+    get_subscription.assert_called_once_with(registrar_user)
+    assert registrar_get_subscription.call_count == 0
+
+
+@pytest.fixture
+def registrar_user_from_paying_registrar_without_subscription(mocker, paying_registrar_user, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
+
+    get_subscription.return_value = None
+    get_purchase_history.return_value = no_purchase_history
+    registrar_get_subscription.return_value = None
+
+    yield paying_registrar_user
+
+    get_subscription.assert_called_once_with(paying_registrar_user)
+    registrar_get_subscription.assert_called_once_with(paying_registrar_user.registrar)
+
+
+@pytest.fixture
+def registrar_user_from_paying_registrar_with_personal_subscription(mocker, paying_registrar_user, current_monthly_subscription, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
+
+    get_subscription.return_value = current_monthly_subscription
+    get_purchase_history.return_value = no_purchase_history
+    registrar_get_subscription.return_value = None
+
+    yield paying_registrar_user
+
+    get_subscription.assert_called_once_with(paying_registrar_user)
+
+
+@pytest.fixture
+def registrar_user_from_registrar_with_monthly_subscription(mocker, paying_registrar_user, current_monthly_unlimited_subscription, no_purchase_history):
+    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
+    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
+    registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
+
+    get_subscription.return_value = None
+    get_purchase_history.return_value = no_purchase_history
+    registrar_get_subscription.return_value = current_monthly_unlimited_subscription
+
+    yield paying_registrar_user
+
+    registrar_get_subscription.assert_called_once_with(paying_registrar_user.registrar)
 
 
 @pytest.fixture
@@ -848,7 +1072,8 @@ def json_serialize_datetime(dt):
     return DjangoJSONEncoder().encode(dt).strip('"')
 
 def submit_form(client,
-                view_name,
+                view_name=None,
+                url=None,
                 data={},
                 success_url=None,
                 success_query=None,
@@ -861,11 +1086,17 @@ def submit_form(client,
         success_query = query that should return one object if form worked
     """
 
+    if url and view_name:
+        raise Exception("Pass either viewname or url to submit_form, not both.")
+
+    if view_name:
+        url = reverse(view_name)
+
     if success_query:
         assert success_query.count() != 1
     kwargs['require_status_code'] = None
     resp = client.post(
-        reverse(view_name),
+        url,
         data,
         *args,
         secure=True,
