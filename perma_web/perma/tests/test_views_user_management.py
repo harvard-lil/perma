@@ -231,7 +231,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                  require_status_code=403)
 
     def test_admin_can_approve_pending_registrar(self):
-        self.submit_form('user_management_approve_pending_registrar',
+        self.submit_form('user_sign_up_approve_pending_registrar',
                          user=self.admin_user,
                          data={'status':'approved'},
                          reverse_kwargs={'args': [self.pending_registrar.pk]},
@@ -239,7 +239,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                                 status="approved").exists())
 
     def test_admin_can_deny_pending_registrar(self):
-        self.submit_form('user_management_approve_pending_registrar',
+        self.submit_form('user_sign_up_approve_pending_registrar',
                          user=self.admin_user,
                          data={'status': 'denied'},
                          reverse_kwargs={'args': [self.pending_registrar.pk]},
@@ -1913,7 +1913,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(user['raw_email'], message.body)
 
         id = Registrar.objects.get(email=new_lib['email']).id
-        approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
+        approve_url = "http://testserver{}".format(reverse('user_sign_up_approve_pending_registrar', args=[id]))
         self.assertIn(approve_url, message.body)
         self.assertEqual(message.subject, "Perma.cc new library registrar account request")
         self.assertEqual(message.from_email, our_address)
