@@ -17,7 +17,7 @@ from django.db import IntegrityError
 from django.test import override_settings
 
 from perma.exceptions import PermaPaymentsCommunicationException
-from perma.models import LinkUser, Organization, Registrar, Sponsorship
+from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 
 # Fixtures
@@ -86,6 +86,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         cls.unrelated_registrar = Registrar.objects.get(pk=2)
         cls.unrelated_registrar_user = cls.unrelated_registrar.users.first()
         cls.organization = Organization.objects.get(pk=1)
+        cls.user_organization_affiliation = UserOrganizationAffiliation.objects.get(pk=1)
         cls.organization_user = cls.organization.users.first()
         cls.another_organization = Organization.objects.get(pk=2)
         cls.unrelated_organization = cls.unrelated_registrar.organizations.first()
@@ -870,10 +871,10 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_can_remove_user_from_organization(self):
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.organization.pk},
+                         data={'affiliation': self.user_organization_affiliation.pk},
                          reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('user_management_manage_organization_user'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
 
     def test_registrar_cannot_remove_unrelated_user_from_organization(self):
         self.log_in_user(self.registrar_user)
@@ -892,10 +893,10 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_can_remove_self_from_organization(self):
         self.log_in_user(self.organization_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.organization.pk},
+                         data={'affiliation': self.user_organization_affiliation.pk},
                          reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('create_link'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
 
     ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
 

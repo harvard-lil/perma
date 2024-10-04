@@ -976,8 +976,7 @@ def manage_single_organization_user_remove(request, user_id):
 
     if request.method == 'POST':
         affiliation = get_object_or_404(UserOrganizationAffiliation, id=request.POST.get('affiliation'))
-        org = get_object_or_404(Organization, id=affiliation.organization_id)
-        if not request.user.can_edit_organization(org):
+        if not request.user.can_edit_organization(affiliation.organization):
             return HttpResponseForbidden()
 
         affiliation.delete()
