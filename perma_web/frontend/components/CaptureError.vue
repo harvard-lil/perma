@@ -62,7 +62,7 @@ defineExpose({
                 </span></p>
             <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
             <template v-if="showUploadLink">
-                <template v-if="false && showDevPlayground">
+                <template v-if="showDevPlayground">
                     <p>You can <button @click.prevent="handleOpen">upload your own
                             archive</button> or <a href="{{contact_url}}">contact
                             us about this error.</a></p>
@@ -74,7 +74,7 @@ defineExpose({
         </div>
     </div>
 
-    <template v-if="false && showDevPlayground && globalStore.captureErrorMessage">
+    <template v-if="showDevPlayground && globalStore.captureErrorMessage">
         <UploadForm ref="uploadDialogRef" />
     </template>
 </template>
