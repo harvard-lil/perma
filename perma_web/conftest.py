@@ -269,11 +269,7 @@ class PayingRegistrarFactory(RegistrarFactory):
     cached_paid_through = GENESIS
     base_rate = Decimal(100.00)
     in_trial = False
-
-
-@register_factory
-class PayingLimitedRegistrarFactory(PayingRegistrarFactory):
-    unlimited = False
+    unlimited=True
 
 
 @register_factory

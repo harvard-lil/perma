@@ -125,9 +125,9 @@ def test_get_subscription_no_subscription_purchased_bonus(post, process, custome
 
 @patch('perma.models.process_perma_payments_transmission', autospec=True)
 @patch('perma.models.requests.post', autospec=True)
-def test_get_subscription_happy_path_sets_customer_trial_period_to_false(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription):
+def test_get_subscription_happy_path_sets_customer_trial_period_to_false(post, process, paying_registrar, paying_user, spoof_pp_response_subscription):
     post.return_value.status_code = 200
-    for customer in [paying_limited_registrar, paying_user]:
+    for customer in [paying_registrar, paying_user]:
         # artificially set this for the purpose of this test
         customer.in_trial = True
         customer.cached_subscription_started = None
@@ -147,9 +147,9 @@ def test_get_subscription_happy_path_sets_customer_trial_period_to_false(post, p
 
 @patch('perma.models.process_perma_payments_transmission', autospec=True)
 @patch('perma.models.requests.post', autospec=True)
-def test_get_subscription_happy_path_no_change_pending(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription):
+def test_get_subscription_happy_path_no_change_pending(post, process, paying_registrar, paying_user, spoof_pp_response_subscription):
     post.return_value.status_code = 200
-    for customer in [paying_limited_registrar, paying_user]:
+    for customer in [paying_registrar, paying_user]:
         with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
             response = spoof_pp_response_subscription(customer)
             process.return_value = response
@@ -172,33 +172,32 @@ def test_get_subscription_happy_path_no_change_pending(post, process, paying_lim
 
 @patch('perma.models.process_perma_payments_transmission', autospec=True)
 @patch('perma.models.requests.post', autospec=True)
-def test_get_subscription_happy_path_with_pending_change(post, process, paying_limited_registrar, paying_user, spoof_pp_response_subscription_with_pending_change):
+def test_get_subscription_happy_path_with_pending_change(post, process, paying_user, spoof_pp_response_subscription_with_pending_change):
     post.return_value.status_code = 200
-    for customer in [paying_limited_registrar, paying_user]:
-        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
-            response = spoof_pp_response_subscription_with_pending_change(customer)
-            process.return_value = response
-            subscription = customer.get_subscription()
-            customer.refresh_from_db()
-            assert customer.cached_subscription_status == response['subscription']['status']
-            assert subscription == {
-                'status': response['subscription']['status'],
-                'link_limit': str(customer.link_limit),
-                'rate': str(customer.cached_subscription_rate),
-                'frequency': customer.link_limit_period,
-                'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
-                'reference_number': response['subscription']['reference_number'],
-                'pending_change': {
-                    'rate': response['subscription']['rate'],
-                    'link_limit': response['subscription']['link_limit'],
-                    'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
-                }
+    customer = paying_user
+    with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+        response = spoof_pp_response_subscription_with_pending_change(customer)
+        process.return_value = response
+        subscription = customer.get_subscription()
+        customer.refresh_from_db()
+        assert customer.cached_subscription_status == response['subscription']['status']
+        assert subscription == {
+            'status': response['subscription']['status'],
+            'link_limit': str(customer.link_limit),
+            'rate': str(customer.cached_subscription_rate),
+            'frequency': customer.link_limit_period,
+            'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
+            'reference_number': response['subscription']['reference_number'],
+            'pending_change': {
+                'rate': response['subscription']['rate'],
+                'link_limit': response['subscription']['link_limit'],
+                'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
             }
-            assert str(customer.link_limit) != response['subscription']['link_limit']
-            assert str(customer.cached_subscription_rate) != response['subscription']['rate']
-            assert post.call_count == 1
-            assert credited.call_count == 0
-            post.reset_mock()
+        }
+        assert str(customer.link_limit) != response['subscription']['link_limit']
+        assert str(customer.cached_subscription_rate) != response['subscription']['rate']
+        assert post.call_count == 1
+        assert credited.call_count == 0
 
 
 #
