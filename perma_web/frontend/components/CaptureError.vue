@@ -40,6 +40,10 @@ watch(
         else if (errorMessage.includes("Error 0") || errorMessage.includes("folder")) {
             showUploadLink.value = false;
         }
+
+        else if (errorMessage.includes("Not a valid URL")) {
+            showUploadLink.value = false;
+        }
     }
 );
 
