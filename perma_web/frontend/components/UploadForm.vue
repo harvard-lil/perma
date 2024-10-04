@@ -5,10 +5,11 @@ import FileInput from './FileInput.vue';
 import Dialog from './Dialog.vue';
 import { getCookie } from '../../static/js/helpers/general.helpers';
 import { rootUrl } from '../lib/consts'
-import { globalStore } from '../stores/globalStore';
+import { useGlobalStore } from '../stores/globalStore'
 import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
-import { isLoading, isReady } from '../lib/store'
 import Spinner from './Spinner.vue'
+
+const globalStore = useGlobalStore()
 
 const defaultFields = {
     title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
@@ -62,17 +63,16 @@ const handleClick = (e) => {
 }
 
 const handleUploadRequest = async () => {
-    if (!isReady) {
+    if (!globalStore.isReady) {
         return
     }
 
     handleErrorReset()
-    globalStore.updateCapture("isValidating")
+    globalStore.captureStatus = "isValidating"
 
     const csrf = getCookie("csrftoken")
     const requestType = globalStore.captureGUID ? "PATCH" : "POST"
-    const archiveBaseUrl = `${rootUrl}/archives/`
-    const requestUrl = globalStore.captureGUID ? `${archiveBaseUrl}${globalStore.captureGUID}/` : archiveBaseUrl
+    const requestUrl = "/archives/" + globalStore.captureGUID ? `${globalStore.captureGUID}/` : ""
 
     const formDataObj = new FormData();
     formDataObj.append('folder', globalStore.selectedFolder.folderId);
@@ -99,13 +99,13 @@ const handleUploadRequest = async () => {
         }
 
         const { guid } = await response.json()
-        globalStore.updateCapture("success")
+        globalStore.captureStatus = "success"
 
         handleReset()
 
         window.location.href = `${window.location.origin}/${guid}`
     } catch (error) {
-        globalStore.updateCapture("uploadError")
+        globalStore.captureError = "uploadError"
         console.error("Upload request failed:", error);
 
         if (error?.response) {
@@ -143,12 +143,12 @@ defineExpose({
             </p>
             <div class="modal-body">
 
-                <div class="u-min-h-48" v-if="isLoading">
+                <div class="u-min-h-48" v-if="globalStore.isLoading">
                     <Spinner length="2" color="#2D76EE" top="48px" />
                 </div>
 
                 <form id="archive_upload_form" @submit.prevent>
-                    <template v-for="(_, key) in formData" :key="key" v-if="isReady">
+                    <template v-for="(_, key) in formData" :key="key" v-if="globalStore.isReady">
                         <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
                             :id="key" />
                         <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"

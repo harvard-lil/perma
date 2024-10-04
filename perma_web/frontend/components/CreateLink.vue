@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
-import { globalStore } from '../stores/globalStore'
+import { ref, watch, computed, onBeforeUnmount, onMounted } from 'vue'
+import { useGlobalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
 import Spinner from './Spinner.vue';
@@ -9,22 +9,26 @@ import LinkCount from './LinkCount.vue';
 import FolderSelect from './FolderSelect.vue';
 import { useStorage } from '@vueuse/core'
 import CreateLinkBatch from './CreateLinkBatch.vue';
-import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors"
-import { isLoading, readyStates, isReady } from '../lib/store'
+import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors";
 
+const globalStore = useGlobalStore()
 const batchDialogRef = ref('')
+globalStore.batchDialogRef = batchDialogRef
 const batchDialogOpen = () => {
     batchDialogRef.value.handleOpen();
 }
+const captureStatus = ref('ready')
+const isReady = computed(() => ["ready", "urlError", "captureError", "uploadError"].includes(captureStatus.value))
+const isLoading = computed(() => ["isValidating", "isQueued", "isCapturing"].includes(captureStatus.value))
 
 const userLink = ref('')
 const userLinkProgressBar = ref('0%')
 
 const submitButtonText = computed(() => {
-    if (readyStates.includes(globalStore.captureStatus) && globalStore.selectedFolder.isPrivate) {
-        return 'Create Private Perma Link'
-    }
-    else if (readyStates.includes(globalStore.captureStatus)) {
+    if (isReady.value) {
+        if (globalStore.selectedFolder.isPrivate) {
+            return 'Create Private Perma Link'
+        }
         return 'Create Perma Link'
     }
     return 'Creating your Perma Link'
@@ -32,18 +36,25 @@ const submitButtonText = computed(() => {
 
 let progressInterval;
 
+const resetForm = () => {
+    captureStatus.value = 'ready'
+    globalStore.captureErrorMessage = ''
+    userLink.value = ''
+    userLinkProgressBar.value = '0%'
+}
+
 const isToolsReminderSuppressed = useStorage('perma_tools_reminder', false)
 const handleSuppressToolsReminder = () => {
     isToolsReminderSuppressed.value = true
 }
 
 const handleArchiveRequest = async () => {
-    if (!isReady) {
+    if (!isReady.value) {
         return
     }
 
-    globalStore.updateCaptureErrorMessage('')
-    globalStore.updateCapture('isValidating')
+    globalStore.captureErrorMessage = ''
+    captureStatus.value = 'isValidating'
 
     const formData = {
         url: userLink.value,
@@ -56,7 +67,7 @@ const handleArchiveRequest = async () => {
     try {
         if (!formData.folder) {
             const errorMessage = folderError
-            globalStore.updateCaptureErrorMessage(errorMessage)
+            globalStore.captureErrorMessage = errorMessage
             throw errorMessage
         }
 
@@ -77,8 +88,8 @@ const handleArchiveRequest = async () => {
         }
 
         const { guid } = await response.json()
-        globalStore.updateCaptureGUID(guid)
-        globalStore.updateCapture('isQueued')
+        globalStore.captureGUID = guid
+        captureStatus.value = 'isQueued'
 
     } catch (error) {
         handleCaptureError({ error, errorType: 'urlError' })
@@ -107,8 +118,8 @@ const handleCaptureError = ({ error, errorType }) => {
         errorMessage = defaultError
     }
 
-    globalStore.updateCapture(errorType)
-    globalStore.updateCaptureErrorMessage(errorMessage)
+    captureStatus.value = errorType
+    globalStore.captureErrorMessage = errorMessage
 }
 
 const handleCaptureStatus = async (guid) => {
@@ -142,13 +153,13 @@ const handleProgressUpdate = async () => {
     const { status } = response
 
     if (status === 'in_progress') {
-        globalStore.updateCapture('isCapturing')
+        captureStatus.value = 'isCapturing'
         userLinkProgressBar.value = `${response.step_count / 5 * 100}%`
     }
 
     if (status === 'completed') {
         clearInterval(progressInterval)
-        globalStore.updateCapture('success')
+        resetForm()
         window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
     }
 
@@ -157,8 +168,8 @@ const handleProgressUpdate = async () => {
 
         clearInterval(progressInterval)
 
-        globalStore.updateCapture('captureError')
-        globalStore.updateCaptureErrorMessage(errorMessage)
+        captureStatus.value = 'captureError'
+        globalStore.captureErrorMessage = errorMessage
     }
 }
 
@@ -170,6 +181,13 @@ watch(() => globalStore.captureGUID, () => {
     handleProgressUpdate()
     progressInterval = setInterval(handleProgressUpdate, 2000);
 })
+
+onMounted(() => {
+    // handle a ?url= parameter set by the bookmarklet
+    const urlParam = new URLSearchParams(window.location.search).get('url');
+    if (urlParam)
+        userLink.value = urlParam;
+});
 
 onBeforeUnmount(() => {
     clearInterval(progressInterval)
@@ -191,14 +209,15 @@ onBeforeUnmount(() => {
                         class="text-input select-on-click form-priority-input" type="text"
                         placeholder="Paste your URL here." />
                     <div class="wrapper">
-                        <button @click.prevent="handleArchiveRequest" class="btn btn-large btn-info _active-when-valid"
-                            :class="{
-                '_isWorking': !readyStates.includes(globalStore.captureStatus),
-            }
-                " id="addlink" type="submit">
+                        <button 
+                          @click.prevent="handleArchiveRequest" 
+                          class="btn btn-large btn-info _active-when-valid"
+                          :class="{ '_isWorking': !isReady }"
+                          id="addlink" type="submit"
+                        >
                             <Spinner v-if="isLoading" top="-20px" />
                             {{ submitButtonText }}
-                            <ProgressBar v-if="globalStore.captureStatus === 'isCapturing'"
+                            <ProgressBar v-if="captureStatus === 'isCapturing'"
                                 :progress="userLinkProgressBar" />
                         </button>
                         <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"

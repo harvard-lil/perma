@@ -1,77 +1,76 @@
-import { reactive } from 'vue'
+import { defineStore } from 'pinia'
+import { fetchDataOrError } from '../lib/data'
 
-export const globalStore = reactive({
-  captureStatus: 'ready',
-  updateCapture(state) {
-    this.captureStatus = state
-  },
+export const useGlobalStore = defineStore('global', {
+  state: () => ({
+    captureGUID: '',
+    captureErrorMessage: '',
+    fetchErrorMessage: '',
+    linksRemaining: Infinity,
+    linksRemainingStatus: '',
+    userTypes: [],
+    selectedFolder: {
+      path: [],
+      folderId: '', 
+      orgId: '',
+      sponsorId: '',
+      isPrivate: false,
+      isReadOnly: false,
+      isOutOfLinks: false,
+    },
+    userOrganizations: [],
+    sponsoredFolders: [],
+    additionalSubfolder: false,
+    subscriptionStatus: '',
+    batchDialogRef: null,
+    jstreeInstance: null,
+    refreshLinkList: () => {},  // function to call to refresh the link list
+  }),
+  actions: {
+    setLinksRemainingFromGlobals(linksRemaining, isNonpaying) {
+      this.linksRemaining = linksRemaining;
+      if (linksRemaining !== Infinity)
+        this.linksRemainingStatus = 'metered';
+      else if (isNonpaying)
+        this.linksRemainingStatus = 'unlimited_free';
+      else
+        this.linksRemainingStatus = 'unlimited_paid';
+    },
+    setUserTypesFromGlobals(isIndividual, isOrganizationUser, isRegistrarUser, isSponsoredUser, isStaff) {
+      if (isIndividual)
+        this.userTypes = ['individual'];
+      else {
+        let userTypes = [];
+        if (isOrganizationUser || isRegistrarUser)
+          userTypes = userTypes.concat('orgAffiliated');
+        if (isSponsoredUser)
+          userTypes = userTypes.concat('sponsored');
+        if (isStaff)
+          userTypes = userTypes.concat('staff');
+        if (userTypes.length)
+          this.userTypes = userTypes;
+      }
 
-  captureGUID: '', 
-  updateCaptureGUID(value) {
-    this.captureGUID = value
-  },
+      if (this.userTypes.includes('orgAffiliated') || this.userTypes.includes('staff')) {
+        this.setFromAPI('userOrganizations', fetchDataOrError('/organizations', {
+          params: {
+            limit: 300,
+            order_by: 'registrar, name',
+          }
+        }))
+      }
+      if (this.userTypes.includes('sponsored')) {
+        this.setFromAPI('sponsoredFolders', fetchDataOrError(`/folders/${current_user.top_level_folders[1].id}/folders/`))
+    }
+    },
+    async setFromAPI(attribute, fetchPromise) {
+      const { data, error } = await fetchPromise
 
-  captureErrorMessage: '',
-  updateCaptureErrorMessage(message) {
-    this.captureErrorMessage = message
-  },
+      if (error) {
+          this.fetchErrorMessage = error
+      }
 
-  batchCaptureStatus: 'ready',
-  updateBatchCapture(state) {
-    this.batchCaptureStatus = state
-  },
-
-  batchCaptureErrorMessage: '',
-  updateBatchCaptureErrorMessage(message) {
-    this.batchCaptureErrorMessage = message
-  },
-
-  fetchErrorMessage: '',
-  updateFetchErrorMessage(message) {
-    this.fetchErrorMessage = message
-  },
-
-  linksRemaining: '',
-  updateLinksRemaining(links) {
-    this.linksRemaining = links
-  },
-
-  linksRemainingStatus: '',
-  updateLinksRemainingStatus(status) {
-    this.linksRemainingStatus = status
-  },
-
-  userTypes: [],
-  updateUserTypes(types) {
-    this.userTypes = types
-  },
-
-  selectedFolder: {
-    path: [],
-    folderId: '', 
-    orgId: '',
-    sponsorId: '',
-    isPrivate: false,
-    isReadOnly: false,
-    isOutOfLinks: false,
-  },
-
-  updateFolderSelection(selection) {
-    this.selectedFolder = selection
-  },
-
-  userOrganizations: [],
-  updateUserOrganizations(orgs) {
-    this.userOrganizations = orgs
-  },
-
-  sponsoredFolders: [], 
-  updateSponsoredFolders(sponsoredFolders) {
-    this.sponsoredFolders = sponsoredFolders
-  },
-
-  additionalSubfolder: false,
-  updateAdditionalSubfolder(value) {
-    this.additionalSubfolder = value
+      this[attribute] = data.objects
+    },
   },
 })

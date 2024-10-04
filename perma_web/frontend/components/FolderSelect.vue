@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
 import FolderCustomSelect from './FolderCustomSelect.vue';
 import FolderNativeSelect from './FolderNativeSelect.vue';
+
+const globalStore = useGlobalStore()
 
 const props = defineProps({
     option: String,

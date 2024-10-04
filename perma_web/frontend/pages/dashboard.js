@@ -1,19 +1,29 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from '../components/App.vue'
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
+import { showDevPlayground } from '../lib/consts'
 
-createApp(App).mount('#vue-app')
+const app = createApp(App)
 
-// Handle updates the legacy application needs to make to the store
-const handleDispatch = (name, data) => {
-    switch (name) {
-        case "updateFolderSelection":
-        default: 
-        globalStore.updateAdditionalSubfolder(false)
-        globalStore.updateFolderSelection(data)
-        break;
+const pinia = createPinia()
+app.use(pinia)
+
+app.mount('#vue-app')
+
+if (!showDevPlayground) {
+    // Handle updates the legacy application needs to make to the store
+    const globalStore = useGlobalStore()
+    const handleDispatch = (name, data) => {
+        switch (name) {
+            case "updateFolderSelection":
+                globalStore.additionalSubfolder = false
+                globalStore.selectedFolder = data
+                break;
+            default:
+                console.warn(`Unhandled dispatch: ${name}`)
+                break;
+        }
     }
+    document.addEventListener("vueDispatch", (e) => handleDispatch(e.detail.name, e.detail.data));
 }
-
-// One event listener for all vueDispatch custom events
-document.addEventListener("vueDispatch", (e) => handleDispatch(e.detail.name, e.detail.data));

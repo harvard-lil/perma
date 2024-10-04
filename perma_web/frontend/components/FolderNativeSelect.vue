@@ -1,6 +1,9 @@
 <script setup>
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
 import { computed, ref, watch } from 'vue'
+import { showDevPlayground } from '../lib/consts'
+
+const globalStore = useGlobalStore()
 
 const props = defineProps({
     folders: Array,
@@ -16,11 +19,16 @@ const handleSelect = (e) => {
         return
     }
 
-    globalStore.updateAdditionalSubfolder(false)
+    globalStore.additionalSubfolder = false
 
-    // Call a custom event that triggers triggerOnWindow function
-    const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null } } });
-    window.dispatchEvent(updateSelections);
+    const data = { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null };
+    if (showDevPlayground) {
+        globalStore.jstreeInstance.handleSelectionChange(data)
+    } else {
+        // Call a custom event that triggers triggerOnWindow function
+        const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data } });
+        window.dispatchEvent(updateSelections);
+    }
 }
 
 const selectRef = ref('')
@@ -35,7 +43,7 @@ watch(selectedOption, () => {
     const selectIncludesOption = selectRef.value.querySelector(`option[value='${globalStore.selectedFolder.folderId}']`)
 
     if (!selectIncludesOption) {
-        globalStore.updateAdditionalSubfolder(true)
+        globalStore.additionalSubfolder = true
     }
 })
 </script>

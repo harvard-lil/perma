@@ -116,7 +116,7 @@
           <h4 class="item-title" id="registrar-{{ registrar.id }}" tabindex="-1">
             {{ registrar.name }}
             {% if registrar.status == "pending" %}
-              <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>
+              <a class="text-warning" href="{% url 'user_sign_up_approve_pending_registrar' registrar.id %}"> needs approval</a>
             {% endif %}
           </h4>
           <div class="item-subtitle">{{ registrar.email }}</div>
@@ -158,7 +158,7 @@
           <div>
             <div class="itlem-status">
               {% if registrar.status != "approved" %}
-                <a class="action action-approve" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">
+                <a class="action action-approve" href="{% url 'user_sign_up_approve_pending_registrar' registrar.id %}">
                   {% if registrar.status == "pending" %}
                     Review and approve <span class="sr-only">{{ registrar.name }}</span>
                   {% else %}

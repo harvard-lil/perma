@@ -6304,12 +6304,12 @@ img {
   vertical-align: middle;
 }
 
-.style-standard-hover:hover, section .caption a:hover, .section-list li a strong:hover, .item-affil a:hover, .item-affil p a.perma:hover, p .item-affil a.perma:hover, .item-subtitle a:hover, .item-subtitle p a.perma:hover, p .item-subtitle a.perma:hover, .item-title a:hover, .item-title p a.perma:hover, p .item-title a.perma:hover, #link-list-header a:hover, .col-folders > .panel-heading a:hover, #linker #personal-links-banner a:hover, #linker .links-remaining-message a:hover,
-#linker #browser-tools-message a:hover, a.perma:hover, .style-standard-hover:focus, section .caption a:focus, .section-list li a strong:focus, .item-affil a:focus, .item-affil p a.perma:focus, p .item-affil a.perma:focus, .item-subtitle a:focus, .item-subtitle p a.perma:focus, p .item-subtitle a.perma:focus, .item-title a:focus, .item-title p a.perma:focus, p .item-title a.perma:focus, #link-list-header a:focus, .col-folders > .panel-heading a:focus, #linker #personal-links-banner a:focus, #linker .links-remaining-message a:focus,
+.style-standard-hover:hover, section .caption a:hover, .section-list li a strong:hover, .item-affil a:hover, .item-affil p a.perma:hover, p .item-affil a.perma:hover, .item-subtitle a:hover, .item-subtitle p a.perma:hover, p .item-subtitle a.perma:hover, .item-title a:hover, .item-title p a.perma:hover, p .item-title a.perma:hover, #link-list-header a:hover, .col-folders .panel-heading a:hover, #linker #personal-links-banner a:hover, #linker .links-remaining-message a:hover,
+#linker #browser-tools-message a:hover, a.perma:hover, .style-standard-hover:focus, section .caption a:focus, .section-list li a strong:focus, .item-affil a:focus, .item-affil p a.perma:focus, p .item-affil a.perma:focus, .item-subtitle a:focus, .item-subtitle p a.perma:focus, p .item-subtitle a.perma:focus, .item-title a:focus, .item-title p a.perma:focus, p .item-title a.perma:focus, #link-list-header a:focus, .col-folders .panel-heading a:focus, #linker #personal-links-banner a:focus, #linker .links-remaining-message a:focus,
 #linker #browser-tools-message a:focus, a.perma:focus {
   color: #0092FF;
 }
-.style-standard-hover:active, section .caption a:active, .section-list li a strong:active, .item-affil a:active:hover, .item-affil a:active:focus, .item-subtitle a:active, .item-subtitle p a.perma:active, p .item-subtitle a.perma:active, .item-title a:active, .item-title p a.perma:active, p .item-title a.perma:active, #link-list-header a:active, .col-folders > .panel-heading a:active, #linker #personal-links-banner a:active, #linker .links-remaining-message a:active,
+.style-standard-hover:active, section .caption a:active, .section-list li a strong:active, .item-affil a:active:hover, .item-affil a:active:focus, .item-subtitle a:active, .item-subtitle p a.perma:active, p .item-subtitle a.perma:active, .item-title a:active, .item-title p a.perma:active, p .item-title a.perma:active, #link-list-header a:active, .col-folders .panel-heading a:active, #linker #personal-links-banner a:active, #linker .links-remaining-message a:active,
 #linker #browser-tools-message a:active, a.perma:active {
   color: #222;
 }
@@ -10375,7 +10375,7 @@ footer #footer-nav a, footer #boilerplate a {
   overflow-y: hidden;
   padding-bottom: 0;
 }
-.col-folders > .panel-heading {
+.col-folders .panel-heading {
   border-top: 2px solid #2D76EE;
   padding-top: 8px;
   margin-bottom: 16px;
@@ -10384,7 +10384,7 @@ footer #footer-nav a, footer #boilerplate a {
   font-weight: 700;
   font-size: 21px;
 }
-.col-folders > .panel-heading a, .col-folders > .panel-heading p a.perma, p .col-folders > .panel-heading a.perma {
+.col-folders .panel-heading a, .col-folders .panel-heading p a.perma, p .col-folders .panel-heading a.perma {
   position: relative;
   top: 5px;
   margin-left: 0.5em;

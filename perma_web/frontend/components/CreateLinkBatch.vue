@@ -1,15 +1,24 @@
 <script setup>
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import FolderSelect from './FolderSelect.vue';
 import Spinner from './Spinner.vue';
-import { useBatchDetailsFetch } from '../lib/data';
+import {fetchDataOrError} from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
-import { folderError, getErrorFromResponseStatus, missingUrlError, getErrorResponse } from '../lib/errors';
+import {
+  folderError,
+  getErrorFromResponseOrStatus,
+  missingUrlError,
+  getErrorResponse,
+  getErrorFromNestedObject
+} from '../lib/errors';
 import { useToast } from '../lib/notifications';
 import { defaultError } from '../lib/errors';
+import {transitionalStates, validStates, showDevPlayground} from "../lib/consts";
+
+const globalStore = useGlobalStore()
 
 const defaultDialogTitle = "Create a Link Batch"
 const batchDialogTitle = ref(defaultDialogTitle)
@@ -18,12 +27,14 @@ const batchCaptureId = ref('')
 const batchCSVUrl = ref('')
 const batchCaptureJobs = ref([])
 const batchCaptureSummary = ref('')
+const batchCaptureStatus = ref('ready')
+const targetFolderName = ref('')
 
-const showBatchDetails = computed(() => globalStore.batchCaptureStatus !== 'ready' && globalStore.batchCaptureStatus !== 'isValidating')
+const showBatchDetails = computed(() => batchCaptureStatus.value !== 'ready' && batchCaptureStatus.value !== 'isValidating')
 const userSubmittedLinks = ref('')
 
 const readyStates = ["ready", "urlError", "folderSelectionError"]
-const isReady = computed(() => { readyStates.includes(globalStore.batchCaptureStatus) })
+const isReady = computed(() => { readyStates.includes(batchCaptureStatus.value) })
 
 let progressInterval;
 
@@ -32,12 +43,21 @@ const handleOpen = () => {
     dialogRef.value.handleDialogOpen();
 }
 
+const showBatchHistory = (id) => {
+  /* called from LinkBatchHistory.vue */
+  batchCaptureId.value = id
+  batchCaptureStatus.value = 'isValidating'
+  batchCSVUrl.value = `/api/v1/archives/batches/${id}/export`
+  handleBatchDetailsFetch()
+  dialogRef.value.handleDialogOpen()
+}
+
 const handleReset = () => {
     clearInterval(progressInterval)
     userSubmittedLinks.value = ''
     batchCaptureJobs.value = []
     batchDialogTitle.value = defaultDialogTitle
-    globalStore.batchCaptureStatus = "ready"
+    batchCaptureStatus.value = "ready"
 }
 
 const handleClose = () => {
@@ -58,8 +78,7 @@ const handleBatchCaptureRequest = async () => {
         return
     }
 
-    globalStore.updateBatchCaptureErrorMessage('')
-    globalStore.updateBatchCapture('isValidating')
+    batchCaptureStatus.value = 'isValidating'
 
     const formData = {
         urls: userSubmittedLinks.value.split("\n").map(s => { return s.trim() }).filter(Boolean),
@@ -71,17 +90,13 @@ const handleBatchCaptureRequest = async () => {
 
     try {
         if (!formData.urls.length) {
-            globalStore.updateBatchCapture('urlError')
-            const errorMessage = missingUrlError
-            globalStore.updateBatchCaptureErrorMessage(errorMessage)
-            throw errorMessage
+            batchCaptureStatus.value = 'urlError'
+            throw missingUrlError
         }
 
         if (!formData.target_folder) {
-            globalStore.updateBatchCapture('folderSelectionError')
-            const errorMessage = folderError
-            globalStore.updateBatchCaptureErrorMessage(errorMessage)
-            throw errorMessage
+            batchCaptureStatus.value = 'folderSelectionError'
+            throw folderError
         }
 
         const response = await fetch("/api/v1/archives/batches/",
@@ -96,20 +111,24 @@ const handleBatchCaptureRequest = async () => {
             })
 
         if (!response?.ok) {
-            const errorResponse = await getErrorResponse(response)
-            throw errorResponse
+            throw await getErrorResponse(response)
         }
 
         const data = await response.json()
 
-        batchCaptureId.value = data // Triggers periodic polling
-        globalStore.updateBatchCapture('isQueued')
+        batchCaptureId.value = data.id // Triggers periodic polling
+        batchCaptureStatus.value = 'isQueued'
 
         batchDialogTitle.value = "Link Batch Details"
         batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
 
-        const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-        window.dispatchEvent(batchCreated);
+        // show new links in links list
+        if (showDevPlayground) {
+            globalStore.refreshLinkList.value();
+        } else {
+            const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+            window.dispatchEvent(batchCreated);
+        }
 
     } catch (error) {
         handleBatchError({ error, errorType: 'urlError' })
@@ -118,13 +137,13 @@ const handleBatchCaptureRequest = async () => {
 
 const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
-    globalStore.updateBatchCapture(errorType)
+    batchCaptureStatus.value = errorType
 
     let errorMessage
 
     // Handle API-generated error messages
     if (error?.response) {
-        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
     }
 
     else if (error?.status) {
@@ -142,25 +161,75 @@ const handleBatchError = ({ error, errorType }) => {
     }
 
     toggleToast(errorMessage)
-    globalStore.updateBatchCaptureErrorMessage(errorMessage)
     handleClose()
 }
 
 const handleBatchDetailsFetch = async () => {
-    const { allJobs, progressSummary } = await useBatchDetailsFetch(batchCaptureId.value.id);
 
-    if (allJobs.value && progressSummary.value) {
-        batchCaptureJobs.value = allJobs.value;
-        batchCaptureSummary.value = progressSummary.value;
+  const { data, error } = await fetchDataOrError(`/archives/batches/${batchCaptureId.value}`);
+
+  if (error) {
+    handleBatchError({ error, errorType: 'urlError' })
+    return
+  }
+
+  targetFolderName.value = data.target_folder.name;
+
+  const captureJobs = data.capture_jobs;
+
+  const steps = 6;
+  const allJobs = captureJobs.reduce((accumulatedJobs, currentJob) => {
+    const includesError = !validStates.includes(currentJob.status);
+    const isCapturing = transitionalStates.includes(currentJob.status);
+
+    let jobDetail = {
+      ...currentJob,
+      message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
+      progress: !isCapturing ? 100 : (currentJob.step_count / steps) * 100,
+      url: `${window.location.hostname}/${currentJob.guid}`
+    };
+
+    if (isCapturing) {
+      accumulatedJobs.completed = false;
     }
 
-    if (allJobs.value?.completed) {
-        clearInterval(progressInterval);
-        globalStore.updateBatchCapture('isCompleted');
-
-        const batchCompleted = new CustomEvent("BatchLinkModule.batchCompleted");
-        window.dispatchEvent(batchCompleted);
+    if (includesError) {
+      accumulatedJobs.errors += 1;
     }
+
+    return {
+      ...accumulatedJobs,
+      details: [...accumulatedJobs.details, jobDetail]
+    };
+  }, {
+    details: [],
+    completed: true,
+    errors: 0
+  });
+
+  const totalProgress = allJobs.details.reduce((total, job) => total + job.progress, 0);
+  const maxProgress = allJobs.details.length * 100;
+  const percentComplete = Math.round((totalProgress / maxProgress) * 100);
+
+  const progressSummary = allJobs.completed ? "Batch complete." : `Batch ${percentComplete}% complete.`;
+
+  if (allJobs) {
+    batchCaptureJobs.value = allJobs;
+    batchCaptureSummary.value = progressSummary;
+  }
+
+  if (allJobs.completed) {
+    clearInterval(progressInterval);
+    batchCaptureStatus.value = 'isCompleted';
+
+    // show new links in links list
+    if (showDevPlayground) {
+      globalStore.refreshLinkList.value();
+    } else {
+      const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+      window.dispatchEvent(batchCreated);
+    }
+  }
 };
 
 const { addToast } = useToast();
@@ -170,8 +239,10 @@ const toggleToast = (errorMessage) => {
 }
 
 watch(batchCaptureId, () => {
-    handleBatchDetailsFetch()
+  handleBatchDetailsFetch()
+  if (batchCaptureStatus.value === 'isQueued') {
     progressInterval = setInterval(handleBatchDetailsFetch, 2000);
+  }
 })
 
 onBeforeUnmount(() => {
@@ -179,14 +250,15 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
-    handleOpen
+  handleOpen,
+  showBatchHistory,
 });
 
 </script>
 
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
-        <div class="modal-dialog modal-content">
+        <div class="modal-dialog modal-content modal-lg">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
                     <span aria-hidden="true">&times;</span>
@@ -194,13 +266,8 @@ defineExpose({
                 </button>
                 <h3 id="batch-modal-title" class="modal-title">{{ batchDialogTitle }}</h3>
             </div>
-            <template v-if="globalStore.batchCaptureStatus === 'isValidating'">
-                <span class="sr-only">Loading</span>
-                <Spinner top="32px" length="10" color="#222222" classList="spinner" />
-            </template>
             <div class="modal-body">
-
-                <div id="batch-create-input" v-if="globalStore.batchCaptureStatus === 'ready'">
+                <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
                     <div class="form-group">
                         <FolderSelect selectLabel="These Perma Links will be affiliated with" />
                     </div>
@@ -214,9 +281,14 @@ defineExpose({
                     </div>
                 </div>
 
+                <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
+                    <span class="sr-only">Loading</span>
+                    <Spinner top="32px" length="10" color="#222222" classList="spinner" />
+                </div>
+
                 <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary
-                    :showBatchCSVUrl="globalStore.batchCaptureStatus === 'isCompleted'" :batchCSVUrl
-                    :targetFolder="globalStore.selectedFolder.path.join(' > ')" />
+                    :showBatchCSVUrl="batchCaptureStatus === 'isCompleted'" :batchCSVUrl
+                    :targetFolder="targetFolderName" />
             </div>
         </div>
     </Dialog>

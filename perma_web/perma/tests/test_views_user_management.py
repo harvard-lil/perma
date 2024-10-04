@@ -14,7 +14,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.test import override_settings
 
-from perma.models import LinkUser, Organization, Registrar, Sponsorship
+from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 
 
@@ -35,6 +35,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         cls.unrelated_registrar = Registrar.objects.get(pk=2)
         cls.unrelated_registrar_user = cls.unrelated_registrar.users.first()
         cls.organization = Organization.objects.get(pk=1)
+        cls.user_organization_affiliation = UserOrganizationAffiliation.objects.get(pk=1)
         cls.organization_user = cls.organization.users.first()
         cls.another_organization = Organization.objects.get(pk=2)
         cls.unrelated_organization = cls.unrelated_registrar.organizations.first()
@@ -179,7 +180,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                  require_status_code=403)
 
     def test_admin_can_approve_pending_registrar(self):
-        self.submit_form('user_management_approve_pending_registrar',
+        self.submit_form('user_sign_up_approve_pending_registrar',
                          user=self.admin_user,
                          data={'status':'approved'},
                          reverse_kwargs={'args': [self.pending_registrar.pk]},
@@ -187,7 +188,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                                 status="approved").exists())
 
     def test_admin_can_deny_pending_registrar(self):
-        self.submit_form('user_management_approve_pending_registrar',
+        self.submit_form('user_sign_up_approve_pending_registrar',
                          user=self.admin_user,
                          data={'status': 'denied'},
                          reverse_kwargs={'args': [self.pending_registrar.pk]},
@@ -819,10 +820,10 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_can_remove_user_from_organization(self):
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.organization.pk},
+                         data={'affiliation': self.user_organization_affiliation.pk},
                          reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('user_management_manage_organization_user'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
 
     def test_registrar_cannot_remove_unrelated_user_from_organization(self):
         self.log_in_user(self.registrar_user)
@@ -841,10 +842,10 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_can_remove_self_from_organization(self):
         self.log_in_user(self.organization_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.organization.pk},
+                         data={'affiliation': self.user_organization_affiliation.pk},
                          reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('create_link'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
 
     ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
 
@@ -1249,7 +1250,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn(user['raw_email'], message.body)
 
         id = Registrar.objects.get(email=new_lib['email']).id
-        approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
+        approve_url = "http://testserver{}".format(reverse('user_sign_up_approve_pending_registrar', args=[id]))
         self.assertIn(approve_url, message.body)
         self.assertEqual(message.subject, "Perma.cc new library registrar account request")
         self.assertEqual(message.from_email, our_address)
@@ -1836,7 +1837,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertTrue(user.is_active)
         self.assertTrue(user.is_confirmed)
         response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_raw_email, 'password': 'Anewpass1'}, follow=True, secure=True)
-        self.assertContains(response, 'Enter any URL to preserve it forever')
+        self.assertEqual(response.redirect_chain[0][0], '/manage/create/')
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_suggested_registrars(self):

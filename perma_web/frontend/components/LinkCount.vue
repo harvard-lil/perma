@@ -1,5 +1,7 @@
 <script setup>
-import { globalStore } from '../stores/globalStore'
+import { useGlobalStore } from '../stores/globalStore'
+
+const globalStore = useGlobalStore()
 
 const subscriptionLink = "/settings/usage-plan/"
 const linkRenewalPeriod = links_remaining_period === 'monthly' ? ' this month.' : links_remaining_period === 'annually' ? ' this year.' : '.'
@@ -21,12 +23,12 @@ const getLinksRemainingText = () => {
 
 <template>
     <p class="links-remaining-message">
-        <span v-if="subscription_status === 'problem'">
+        <span v-if="globalStore.subscriptionStatus === 'problem'">
             Your subscription is on hold due to a <a :href="subscriptionLink">problem with
                 your credit card</a>.<br>
         </span>
         <span v-html="getLinksRemainingText()"></span>
-        <a v-if="globalStore.linksRemainingStatus === 'metered' && subscription_status !== 'problem'"
+        <a v-if="globalStore.linksRemainingStatus === 'metered' && globalStore.subscriptionStatus !== 'problem'"
             :href="subscriptionLink">View your subscription details or get more Perma Links.</a>
     </p>
 </template>
