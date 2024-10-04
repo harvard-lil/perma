@@ -537,7 +537,7 @@ def test_paying_registrar_user_personal_update_form(client, registrar_user_from_
     assert b'Personal' in response.content
 
 
-def test_allpaying_registrar_user_institutional_update_form(client, registrar_user_from_registrar_with_monthly_subscription):
+def test_paying_registrar_user_institutional_update_form(client, registrar_user_from_registrar_with_monthly_subscription):
     user = registrar_user_from_registrar_with_monthly_subscription
 
     client.force_login(user)
