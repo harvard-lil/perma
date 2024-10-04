@@ -77,6 +77,7 @@ mock                                    # safe monkey patching
 pytest-cov                              # integrate coverage w/ pytest
 pytest-django                           # tools for django in pytest
 pytest-django-ordering                  # runs transaction-wrapped tests before table truncating tests
+pytest-mock
 pytest-xdist                            # run tests in parallel
 pytest                                  # test runner
 pyhumps                                 # a helper for dealing with camel case and snake case
