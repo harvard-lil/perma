@@ -9,14 +9,14 @@ import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import {
   folderError,
-  getErrorFromResponseStatus,
+  getErrorFromResponseOrStatus,
   missingUrlError,
   getErrorResponse,
   getErrorFromNestedObject
 } from '../lib/errors';
 import { useToast } from '../lib/notifications';
 import { defaultError } from '../lib/errors';
-import {transitionalStates, validStates} from "../lib/consts";
+import {transitionalStates, validStates, showDevPlayground} from "../lib/consts";
 
 const globalStore = useGlobalStore()
 
@@ -123,7 +123,12 @@ const handleBatchCaptureRequest = async () => {
         batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
 
         // show new links in links list
-        globalStore.refreshLinkList.value();
+        if (showDevPlayground) {
+            globalStore.refreshLinkList.value();
+        } else {
+            const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+            window.dispatchEvent(batchCreated);
+        }
 
     } catch (error) {
         handleBatchError({ error, errorType: 'urlError' })
@@ -138,7 +143,7 @@ const handleBatchError = ({ error, errorType }) => {
 
     // Handle API-generated error messages
     if (error?.response) {
-        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
     }
 
     else if (error?.status) {
@@ -180,7 +185,7 @@ const handleBatchDetailsFetch = async () => {
     let jobDetail = {
       ...currentJob,
       message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
-      progress: (currentJob.step_count / steps) * 100,
+      progress: !isCapturing ? 100 : (currentJob.step_count / steps) * 100,
       url: `${window.location.hostname}/${currentJob.guid}`
     };
 
@@ -218,7 +223,12 @@ const handleBatchDetailsFetch = async () => {
     batchCaptureStatus.value = 'isCompleted';
 
     // show new links in links list
-    globalStore.refreshLinkList.value();
+    if (showDevPlayground) {
+      globalStore.refreshLinkList.value();
+    } else {
+      const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+      window.dispatchEvent(batchCreated);
+    }
   }
 };
 
@@ -248,7 +258,7 @@ defineExpose({
 
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
-        <div class="modal-dialog modal-content">
+        <div class="modal-dialog modal-content modal-lg">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
                     <span aria-hidden="true">&times;</span>
@@ -256,12 +266,7 @@ defineExpose({
                 </button>
                 <h3 id="batch-modal-title" class="modal-title">{{ batchDialogTitle }}</h3>
             </div>
-            <template v-if="batchCaptureStatus === 'isValidating'">
-                <span class="sr-only">Loading</span>
-                <Spinner top="32px" length="10" color="#222222" classList="spinner" />
-            </template>
             <div class="modal-body">
-
                 <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
                     <div class="form-group">
                         <FolderSelect selectLabel="These Perma Links will be affiliated with" />
@@ -274,6 +279,11 @@ defineExpose({
                         <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
                         <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
                     </div>
+                </div>
+
+                <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
+                    <span class="sr-only">Loading</span>
+                    <Spinner top="32px" length="10" color="#222222" classList="spinner" />
                 </div>
 
                 <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary

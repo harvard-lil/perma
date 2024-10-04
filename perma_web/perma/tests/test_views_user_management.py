@@ -2500,7 +2500,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertTrue(user.is_active)
         self.assertTrue(user.is_confirmed)
         response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_raw_email, 'password': 'Anewpass1'}, follow=True, secure=True)
-        self.assertContains(response, 'Enter any URL to preserve it forever')
+        self.assertEqual(response.redirect_chain[0][0], '/manage/create/')
 
     @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
     def test_suggested_registrars(self):

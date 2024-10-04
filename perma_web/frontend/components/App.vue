@@ -4,7 +4,7 @@ import Toast from './Toast.vue';
 import LinkBrowser from './LinkBrowser.vue'
 import { onBeforeMount } from 'vue'
 import { useGlobalStore } from '../stores/globalStore';
-import { showDevPlayground, vueDashboardFlag } from '../lib/consts'
+import { showDevPlayground } from '../lib/consts'
 
 const globalStore = useGlobalStore()
 
@@ -19,5 +19,5 @@ onBeforeMount(() => {
 <template>
     <Toast />
     <CreateLink />
-    <LinkBrowser v-if="vueDashboardFlag" />
+    <LinkBrowser v-if="showDevPlayground" />
 </template>

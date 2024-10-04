@@ -7,3 +7,7 @@ export function getCookie(name) {
   ));
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
+
+export function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}

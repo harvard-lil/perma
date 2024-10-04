@@ -3,7 +3,6 @@ import { fetchDataOrError } from '../lib/data'
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
-    captureStatus: 'ready',
     captureGUID: '',
     captureErrorMessage: '',
     fetchErrorMessage: '',
@@ -74,12 +73,4 @@ export const useGlobalStore = defineStore('global', {
       this[attribute] = data.objects
     },
   },
-  getters: {
-    isReady: (state) => {
-      return ["ready", "urlError", "captureError", "uploadError"].includes(state.captureStatus)
-    },
-    isLoading: (state) => {
-      return ["isValidating", "isQueued", "isCapturing"].includes(state.captureStatus)
-    }
-  }
 })

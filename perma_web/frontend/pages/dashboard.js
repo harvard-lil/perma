@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from '../components/App.vue'
 import { useGlobalStore } from '../stores/globalStore'
-import { vueDashboardFlag } from '../lib/consts'
+import { showDevPlayground } from '../lib/consts'
 
 const app = createApp(App)
 
@@ -11,7 +11,7 @@ app.use(pinia)
 
 app.mount('#vue-app')
 
-if (!vueDashboardFlag) {
+if (!showDevPlayground) {
     // Handle updates the legacy application needs to make to the store
     const globalStore = useGlobalStore()
     const handleDispatch = (name, data) => {
