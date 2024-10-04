@@ -185,7 +185,7 @@ const handleBatchDetailsFetch = async () => {
     let jobDetail = {
       ...currentJob,
       message: includesError ? getErrorFromNestedObject(JSON.parse(currentJob.message)) : '',
-      progress: (currentJob.step_count / steps) * 100,
+      progress: !isCapturing ? 100 : (currentJob.step_count / steps) * 100,
       url: `${window.location.hostname}/${currentJob.guid}`
     };
 
@@ -258,7 +258,7 @@ defineExpose({
 
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
-        <div class="modal-dialog modal-content">
+        <div class="modal-dialog modal-content modal-lg">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
                     <span aria-hidden="true">&times;</span>
@@ -266,12 +266,7 @@ defineExpose({
                 </button>
                 <h3 id="batch-modal-title" class="modal-title">{{ batchDialogTitle }}</h3>
             </div>
-            <template v-if="batchCaptureStatus === 'isValidating'">
-                <span class="sr-only">Loading</span>
-                <Spinner top="32px" length="10" color="#222222" classList="spinner" />
-            </template>
             <div class="modal-body">
-
                 <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
                     <div class="form-group">
                         <FolderSelect selectLabel="These Perma Links will be affiliated with" />
@@ -284,6 +279,11 @@ defineExpose({
                         <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
                         <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
                     </div>
+                </div>
+
+                <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
+                    <span class="sr-only">Loading</span>
+                    <Spinner top="32px" length="10" color="#222222" classList="spinner" />
                 </div>
 
                 <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary
