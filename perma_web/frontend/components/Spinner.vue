@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import * as Spinner from 'spin.js'
-import { usePreferredReducedMotion } from '@vueuse/core'
+import { prefersReducedMotion } from "../lib/helpers";
 
 const props = defineProps({
     top: String,
@@ -11,18 +11,22 @@ const props = defineProps({
 })
 
 let spinnerRef = ref(null)
-let spinner = new Spinner({ lines: 15, length: props.length ? parseInt(props.length) : 2, width: 2, radius: 9, corners: 0, color: props.color ? props.color : '#2D76EE', trail: 50, top: props.top ? props.top : '-20px' })
-
-const motionPreferences = usePreferredReducedMotion()
-const showLoader = motionPreferences.value === 'no-preference'
+let spinner = new Spinner({ 
+  speed: prefersReducedMotion() ? 0 : 0.5,
+  lines: 15, 
+  length: props.length ? parseInt(props.length) : 2, 
+  width: 2, 
+  radius: 9, 
+  corners: 0, 
+  color: props.color ? props.color : '#2D76EE', 
+  trail: 50, 
+  top: props.top ? props.top : '-20px' 
+})
 
 onMounted(() => {
-    if (showLoader) {
-        spinner.spin(spinnerRef.value)
-    }
+  spinner.spin(spinnerRef.value)
 })
 </script>
 <template>
-    <div v-if="showLoader" ref="spinnerRef" :class="!!props.classList && props.classList"></div>
-    <div v-else>Loading</div>
+    <div ref="spinnerRef" :class="!!props.classList && props.classList"></div>
 </template>
