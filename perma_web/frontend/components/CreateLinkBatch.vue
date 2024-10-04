@@ -9,7 +9,7 @@ import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import {
   folderError,
-  getErrorFromResponseStatus,
+  getErrorFromResponseOrStatus,
   missingUrlError,
   getErrorResponse,
   getErrorFromNestedObject
@@ -143,7 +143,7 @@ const handleBatchError = ({ error, errorType }) => {
 
     // Handle API-generated error messages
     if (error?.response) {
-        errorMessage = getErrorFromResponseStatus(error.status, error.response)
+        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
     }
 
     else if (error?.status) {
