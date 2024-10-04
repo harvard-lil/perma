@@ -1,7 +1,7 @@
 <script setup>
 import { useGlobalStore } from '../stores/globalStore'
 import { computed, ref, watch } from 'vue'
-import { vueDashboardFlag } from '../lib/consts'
+import { showDevPlayground } from '../lib/consts'
 
 const globalStore = useGlobalStore()
 
@@ -22,7 +22,7 @@ const handleSelect = (e) => {
     globalStore.additionalSubfolder = false
 
     const data = { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null };
-    if (vueDashboardFlag) {
+    if (showDevPlayground) {
         globalStore.jstreeInstance.handleSelectionChange(data)
     } else {
         // Call a custom event that triggers triggerOnWindow function

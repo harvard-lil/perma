@@ -16,7 +16,7 @@ import {
 } from '../lib/errors';
 import { useToast } from '../lib/notifications';
 import { defaultError } from '../lib/errors';
-import {transitionalStates, validStates} from "../lib/consts";
+import {transitionalStates, validStates, showDevPlayground} from "../lib/consts";
 
 const globalStore = useGlobalStore()
 
@@ -123,7 +123,12 @@ const handleBatchCaptureRequest = async () => {
         batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
 
         // show new links in links list
-        globalStore.refreshLinkList.value();
+        if (showDevPlayground) {
+            globalStore.refreshLinkList.value();
+        } else {
+            const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+            window.dispatchEvent(batchCreated);
+        }
 
     } catch (error) {
         handleBatchError({ error, errorType: 'urlError' })
@@ -218,7 +223,12 @@ const handleBatchDetailsFetch = async () => {
     batchCaptureStatus.value = 'isCompleted';
 
     // show new links in links list
-    globalStore.refreshLinkList.value();
+    if (showDevPlayground) {
+      globalStore.refreshLinkList.value();
+    } else {
+      const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+      window.dispatchEvent(batchCreated);
+    }
   }
 };
 
