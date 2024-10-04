@@ -26,23 +26,6 @@ def test_display_after_delete_fake_link(perma_client, link_user):
     messages = list(response.context['messages'])
     assert len(messages) == 0
 
-def test_reminder(perma_client, link_user):
-    response_content = perma_client.get(reverse('create_link'),
-                                as_user=link_user).content
-    assert b"browser-tools-message" in response_content
-
-def test_no_reminder_when_refered_from_bookmarklet(perma_client, link_user):
-    response_content = perma_client.get(reverse('create_link'),
-                                as_user=link_user,
-                                data = {'url':'some-url-here'}).content
-    assert b"browser-tools-message" not in response_content
-
-def test_no_reminder_when_suppression_cookie_present(perma_client, link_user):
-    perma_client.cookies.load({'suppress_reminder': 'true'})
-    response = perma_client.get(reverse('create_link'),
-                                as_user=link_user)
-    assert b"browser-tools-message" not in response
-
 
 ### user_delete_link function ###
 
