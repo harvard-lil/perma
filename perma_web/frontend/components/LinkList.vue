@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import { fetchDataOrError } from '../lib/data'
 import { useInfiniteScroll } from '@vueuse/core'
 import { useToast } from '../lib/notifications'
+import Spinner from './Spinner.vue'
 
 /*** Component setup ***/
 const globalStore = useGlobalStore();
@@ -335,7 +336,20 @@ defineExpose({
         <a href="#" class="clear-search" @click.prevent="clearSearch">Clear search.</a>
       </div>
 
-      <template v-if="links.length">
+
+      <template v-if="!selectedFolder.folderId">
+        <div class="item-notification">No folder selected</div>
+      </template>
+
+      <template v-else-if="loading">
+        <div class="item-notification"><Spinner /></div>
+      </template>
+
+      <template v-else-if="!links.length">
+        <div class="item-notification">This is an empty folder</div>
+      </template>
+      
+      <template v-else>
         <div v-for="link in links" 
           :key="link.guid" 
           class="item-container _isExpandable" 
@@ -490,21 +504,6 @@ defineExpose({
           </div>
         </div>
       </template>
-      <template v-else>
-        <div class="row item-row row-no-bleed">
-          <div class="row">
-            <div class="col col-xs-12">
-              <div class="item-title">
-                <p class="item-notification">This is an empty folder</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <!-- do this as an empty div so we can CSS transition -->
-      <Transition name="loading">
-        <div v-if="loading" class="links-loading-more">Loading links...</div>
-      </Transition>
     </div>
   </div>
 </template>
