@@ -118,12 +118,14 @@ const clearSearch = () => {
   fetchLinks();
 };
 
-const toggleLinkDetails = function(e, link) {
+const toggleLinkDetails = async (e, link, focusSelector) => {
   if (e.target.classList.contains('no-drag')) {
     // Don't toggle details if the user has clicked on the Perma Link URL,
     // the original URL, or the delete button
     return
   }
+
+  const itemContainer = e.target.closest('.item-container')
 
   if (selectedLink.value === link) {
     link.showDetails = false;
@@ -161,6 +163,11 @@ const toggleLinkDetails = function(e, link) {
     addChildren(folderTree.get_node('#'), 1);
     folderOptions.value = options;
   }
+
+  // focus handling: if using .toggle-details button, focus stays on the button
+  // if clicking on the row, focus moves to the first input field
+  await nextTick()
+  itemContainer.querySelector(focusSelector)?.focus()
 }
 
 const moveLink = async (folderID, guid) => {
@@ -252,7 +259,7 @@ function handleMouseUp (e, link) {
   if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
     return;
 
-  toggleLinkDetails(e, link);
+  toggleLinkDetails(e, link, `#link-title-${link.guid}`);
 }
 
 /*** Infinite scroll setup ***/
@@ -336,21 +343,18 @@ defineExpose({
             <div class="row">
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <button
-                  aria-label="Show Details for Link {{ link.guid }}"
-                  class="_visuallyHidden toggle-details expand-details"
-                  title="Show Link Details for Link {{ link.guid }}"
-                  @click.stop="(e) => toggleLinkDetails(e, link)"
-                  v-if="!link.showDetails"
+                  :aria-label="`${link.showDetails ? 'Hide' : 'Show'} Details for Link ${link.guid}`"
+                  class="toggle-details"
+                  :class="{
+                    '_visuallyHidden': !link.showDetails,
+                    'collapse-details': link.showDetails,
+                    'expand-details': !link.showDetails
+                  }"
+                  :title="`${link.showDetails ? 'Hide' : 'Show'} Details for Link ${link.guid}`"
+                  @click.stop.prevent="(e) => toggleLinkDetails(e, link, '.toggle-details')"
+                  @mousedown.stop
+                  @mouseup.stop
                 ></button>
-
-                <button
-                  aria-label="Hide Details for Link {{ link.guid }}"
-                  class="toggle-details collapse-details"
-                  title="Hide Link Details for Link {{ link.guid }}"
-                  @click.stop="(e) => toggleLinkDetails(e, link)"
-                  v-if="link.showDetails"
-                ></button>
-
                 <div v-if="link.is_pending" class="failed_header">Capture In Progress</div>
                 <div v-if="link.is_failed" class="failed_header">Capture Failed</div>
                 <div v-if="link.is_private" class="item-private">
