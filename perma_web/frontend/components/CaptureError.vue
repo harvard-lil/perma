@@ -3,7 +3,6 @@ import { ref, watch } from 'vue'
 import { useGlobalStore } from '../stores/globalStore';
 import UploadForm from './UploadForm.vue';
 import { showDevPlayground } from '../lib/consts'
-import UpdateGUID from './UpdateGUID.vue'
 
 const globalStore = useGlobalStore()
 const showUploadLink = ref()
@@ -15,8 +14,19 @@ const handleOpen = () => {
     uploadDialogRef.value.handleOpen()
 }
 
+const props = defineProps({
+    errorMessage: {
+        type: String,
+        default: ''
+    },
+    captureGUID: {
+        type: String,
+        default: ''
+    }
+})
+
 watch(
-    () => globalStore.captureErrorMessage,
+    () => props.errorMessage,
     (errorMessage) => {
         showUploadLink.value = true
         showGeneric.value = true
@@ -44,7 +54,8 @@ watch(
         else if (errorMessage.includes("Not a valid URL")) {
             showUploadLink.value = false;
         }
-    }
+    },
+    { immediate: true },
 );
 
 defineExpose({
@@ -56,8 +67,8 @@ defineExpose({
 <template>
 
     <div class="container cont-fixed">
-        <div v-if="globalStore.captureErrorMessage" id="error-container">
-            <p class="message-large">{{ globalStore.captureErrorMessage }} <span v-if="showLoginLink">
+        <div id="error-container">
+            <p class="message-large">{{ errorMessage }} <span v-if="showLoginLink">
                     Please <a href='/login'>log in</a> to continue.
                 </span></p>
             <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
@@ -74,7 +85,9 @@ defineExpose({
         </div>
     </div>
 
-    <template v-if="showDevPlayground && globalStore.captureErrorMessage">
-        <UploadForm ref="uploadDialogRef" />
-    </template>
+    <UploadForm
+        v-if="showDevPlayground && showUploadLink"
+        ref="uploadDialogRef"
+        :captureGUID="captureGUID"
+    />
 </template>

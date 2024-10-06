@@ -26,7 +26,7 @@ export const getErrorFromNestedObject = (object) => {
     return `Error: ${status}`
   }
 
- export const getErrorFromResponseOrStatus = (status, response) => {
+ export const getErrorFromStatusOrData = (status, response) => {
     let errorMessage
 
     switch (status) {

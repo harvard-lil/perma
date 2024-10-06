@@ -3,8 +3,6 @@ import { fetchDataOrError } from '../lib/data'
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
-    captureGUID: '',
-    captureErrorMessage: '',
     fetchErrorMessage: '',
     linksRemaining: Infinity,
     linksRemainingStatus: '',
