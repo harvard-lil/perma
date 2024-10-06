@@ -282,8 +282,7 @@ defineExpose({
                 </div>
 
                 <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
-                    <span class="sr-only">Loading</span>
-                    <Spinner top="32px" length="10" color="#222222" classList="spinner" />
+                    <Spinner />
                 </div>
 
                 <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary

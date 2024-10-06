@@ -3,30 +3,39 @@ import { ref, onMounted } from 'vue'
 import * as Spinner from 'spin.js'
 import { prefersReducedMotion } from "../lib/helpers";
 
-const props = defineProps({
-    top: String,
-    length: String,
-    color: String,
-    classList: String,
+const { size, config } = defineProps({
+  // spinner will be in a div with this length and width in pixels
+  size: {
+    type: Number,
+    default: 32
+  },
+  // Configuration object to override default spinner options
+  config: {
+    type: Object,
+    default: () => ({})
+  }
 })
 
-let spinnerRef = ref(null)
-let spinner = new Spinner({ 
+const spinnerRef = ref(null)
+const spinner = new Spinner({
   speed: prefersReducedMotion() ? 0 : 0.5,
-  lines: 15, 
-  length: props.length ? parseInt(props.length) : 2, 
-  width: 2, 
-  radius: 9, 
+  lines: 15,
+  width: 2,
   corners: 0, 
-  color: props.color ? props.color : '#2D76EE', 
-  trail: 50, 
-  top: props.top ? props.top : '-20px' 
+  radius: Math.max(1, Math.floor(size / 2 - 2)),
+  color: '#2D76EE',
+  length: 2,
+  ...config,
 })
 
-onMounted(() => {
-  spinner.spin(spinnerRef.value)
-})
+onMounted(() => {spinner.spin(spinnerRef.value)})
 </script>
+
 <template>
-    <div ref="spinnerRef" :class="!!props.classList && props.classList"></div>
+    <div 
+      ref="spinnerRef"
+      :style="{ width: `${size}px`, height: `${size}px`, position: 'relative', margin: 'auto' }"
+      aria-label="Loading"
+      aria-live="polite"
+    ></div>
 </template>
