@@ -295,8 +295,7 @@ ul { list-style-type: none; }
 // The Basics (Structure)
 
 html {
-  height: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   margin: 0;
 }
 
@@ -305,17 +304,18 @@ body {
   color: $color-black;
   font-family: $font-body;
   margin: 0;
-  min-height: 100%;
 }
 
-// This appears to give us a sticky footer without breaking anything.
-// But I'm not sure about it.
 body {
-  height: 100%;
+  // for sticky footer
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  #after-modals {
-    min-height: 100%
-  }
+#after-modals {
+  // for sticky footer
+  flex: 1;
 }
 
 footer {

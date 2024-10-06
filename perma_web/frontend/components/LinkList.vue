@@ -241,11 +241,18 @@ function handleMouseDown (e, link) {
 
   globalStore.components.jstree.dnd.start(e, {
     jstree: true,
-    // obj: $(e.currentTarget),
     nodes: [
         {id: link.guid}
     ]
-  }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
+  }, `<div style="
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  ">${truncateChars(link.title || 'Link', 30)}</div>`);
 
   // record drag start position so we can check how far we were dragged on mouseup
   dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
