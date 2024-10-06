@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, onMounted, getCurrentInstance } from 'vue'
 import { useGlobalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import ProgressBar from './ProgressBar.vue';
@@ -12,13 +12,9 @@ import CreateLinkBatch from './CreateLinkBatch.vue';
 import { getErrorFromNestedObject, getErrorFromResponseOrStatus, getErrorResponse, folderError, defaultError } from "../lib/errors";
 
 const globalStore = useGlobalStore()
-const batchDialogRef = ref('')
-globalStore.batchDialogRef = batchDialogRef
-const batchDialogOpen = () => {
-    batchDialogRef.value.handleOpen();
-}
 const captureStatus = ref('ready')
 const isReady = computed(() => ["ready", "urlError", "captureError", "uploadError"].includes(captureStatus.value))
+const batchDialogRef = ref('')
 const userLink = ref('')
 const userLinkProgressBar = ref('0%')
 
@@ -146,7 +142,6 @@ const handleProgressUpdate = async () => {
     }
 
     if (status === 'completed') {
-        clearInterval(progressInterval)
         resetForm()
         window.location.href = `${window.location.origin}/${globalStore.captureGUID}`
     }
@@ -171,6 +166,8 @@ watch(() => globalStore.captureGUID, () => {
 })
 
 onMounted(() => {
+    globalStore.components.createLink = getCurrentInstance().exposed
+
     // handle a ?url= parameter set by the bookmarklet
     const urlParam = new URLSearchParams(window.location.search).get('url');
     if (urlParam)
@@ -178,7 +175,12 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    globalStore.components.createLink = null
     clearInterval(progressInterval)
+});
+
+defineExpose({
+  resetForm,
 });
 
 </script>
@@ -209,7 +211,7 @@ onBeforeUnmount(() => {
                             {{ globalStore.selectedFolder.isPrivate ? "Private" : "" }}
                             Perma Link
                         </button>
-                        <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
+                        <p id="create-batch-links">or <button @click.prevent="batchDialogRef.handleOpen();" class="c-button"
                                 :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
                                 multiple
                                 links</button>

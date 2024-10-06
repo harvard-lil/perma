@@ -108,7 +108,7 @@ const handleSelection = (e) => {
     }
     const data = { folderId: JSON.parse(folderId), orgId: orgId ? parseInt(orgId) : null };
     if (showDevPlayground) {
-        globalStore.jstreeInstance.handleSelectionChange(data)
+        globalStore.components.jstree.handleSelectionChange(data)
     } else {
         // Call a custom event that triggers triggerOnWindow function
         const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data } });

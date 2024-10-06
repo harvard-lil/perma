@@ -38,7 +38,7 @@ const handleBatchClick = (e, batch) => {
   //       });
   // not sure if necessary in Vue
 
-  globalStore.batchDialogRef.showBatchHistory(batch.id)
+  globalStore.components.batchDialog.showBatchHistory(batch.id)
 }
 
 function human_timestamp (datetime) {

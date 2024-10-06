@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, getCurrentInstance, onBeforeUnmount, nextTick } from 'vue';
 import { useGlobalStore } from '../stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { fetchDataOrError } from '../lib/data'
@@ -139,7 +139,7 @@ const toggleLinkDetails = function(e, link) {
     // TODO: we redo this every time because it shows the currently opened folders
     // in the tree. Ideally we'd only do it if the tree was updated.
     const options = [];
-    const folderTree = globalStore.jstreeInstance.getFolderTree();
+    const folderTree = globalStore.components.jstree.getFolderTree();
     // recursively populate select
     function addChildren(node, depth) {
       for (var i = 0; i < node.children.length; i++) {
@@ -232,7 +232,7 @@ function handleMouseDown (e, link) {
   if (e.target.classList.contains('no-drag'))
     return;
 
-  globalStore.jstreeInstance.dnd.start(e, {
+  globalStore.components.jstree.dnd.start(e, {
     jstree: true,
     // obj: $(e.currentTarget),
     nodes: [
@@ -246,7 +246,7 @@ function handleMouseDown (e, link) {
 
 function handleMouseUp (e, link) {
   // prevent JSTree's tap-to-drag behavior
-  globalStore.jstreeInstance.dnd.stop(e);
+  globalStore.components.jstree.dnd.stop(e);
 
   // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
   if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
@@ -274,7 +274,17 @@ watch([selectedFolder, query], () => {
   fetchLinks();
 });
 
-globalStore.refreshLinkList.value = fetchLinks;
+onMounted(() => {
+  globalStore.components.linkList = getCurrentInstance().exposed;
+});
+
+onBeforeUnmount(() => {
+  globalStore.components.linkList = null;
+});
+
+defineExpose({
+  fetchLinks
+});
 
 </script>
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useGlobalStore } from '../stores/globalStore'
 import { getCookie } from '../../static/js/helpers/general.helpers'
 import FolderSelect from './FolderSelect.vue';
@@ -224,7 +224,7 @@ const handleBatchDetailsFetch = async () => {
 
     // show new links in links list
     if (showDevPlayground) {
-      globalStore.refreshLinkList.value();
+      globalStore.components.linkList.fetchLinks();
     } else {
       const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
       window.dispatchEvent(batchCreated);
@@ -243,9 +243,12 @@ watch(batchCaptureId, () => {
   if (batchCaptureStatus.value === 'isQueued') {
     progressInterval = setInterval(handleBatchDetailsFetch, 2000);
   }
+onMounted(() => {
+  globalStore.components.batchDialog = getCurrentInstance().exposed
 })
 
 onBeforeUnmount(() => {
+    globalStore.components.batchDialog = null
     clearInterval(progressInterval)
 });
 

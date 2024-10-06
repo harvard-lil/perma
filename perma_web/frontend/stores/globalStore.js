@@ -22,9 +22,13 @@ export const useGlobalStore = defineStore('global', {
     sponsoredFolders: [],
     additionalSubfolder: false,
     subscriptionStatus: '',
-    batchDialogRef: null,
-    jstreeInstance: null,
-    refreshLinkList: () => {},  // function to call to refresh the link list
+    maxSize: 0,
+    components: {
+      createLink: null,
+      batchDialog: null,
+      jstree: null,
+      linkList: null,
+    },
   }),
   actions: {
     setLinksRemainingFromGlobals(linksRemaining, isNonpaying) {
