@@ -1,45 +1,29 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-import TextInput from './TextInput.vue';
-import FileInput from './FileInput.vue';
-import Dialog from './Dialog.vue';
-import { getCookie } from '../../static/js/helpers/general.helpers';
-import { rootUrl } from '../lib/consts'
+import TextInput from './forms/TextInput.vue';
+import Dialog from './Dialog.vue'
 import { useGlobalStore } from '../stores/globalStore'
-import { getErrorResponse, getGlobalErrorValues, getErrorFromStatus, defaultError } from '../lib/errors'
+import { getErrorFromStatus, defaultError } from '../lib/errors'
+import { fetchDataOrError } from '../lib/data'
 import Spinner from './Spinner.vue'
+import FileInput from './forms/FileInput.vue';
+
+const props = defineProps({
+    captureGUID: {
+        type: String,
+        default: ''
+    }
+})
 
 const globalStore = useGlobalStore()
 
-const defaultFields = {
-    title: { name: "New Perma Link title", type: "text", description: "The page title associated", placeholder: "Example Page Title", value: '' },
-    description: { name: "New Perma Link description", type: "text", description: "The page description associated with this upload", placeholder: "Example description", value: '' },
-    url: { name: 'New Perma Link URL', type: "text", description: "The URL associated with this upload", placeholder: "www.example.com", value: '' },
-    file: { name: "Choose a file", type: "file", description: ".gif, .jpg, .pdf, and .png allowed, up to 100 MB", value: '' },
-}
-
-const fieldsWithGUID = {
-    file: defaultFields.file
-}
-
-const initialData = !!globalStore.captureGUID ? fieldsWithGUID : defaultFields
-
-const formData = ref(initialData)
-
-watch(
-    () => globalStore.captureGUID,
-    (newGUID) => {
-        formData.value = newGUID ? fieldsWithGUID : defaultFields;
-    }
-);
-
+const captureStatus = ref('ready')
 const errors = ref({})
-const hasErrors = computed(() => { return globalStore.captureStatus === 'uploadError' })
-const globalErrors = computed(() => { return getGlobalErrorValues(formData.value, errors.value) })
-
-const handleErrorReset = () => {
-    errors.value = {}
-}
+const globalErrors = ref()
+const title = ref('')
+const description = ref('')
+const url = ref('')
+const file = ref(null)
 
 const formDialogRef = ref('')
 const handleOpen = () => {
@@ -52,8 +36,7 @@ const handleClose = () => {
 }
 
 const handleReset = () => {
-    formData.value = defaultFields;
-    globalStore.captureStatus = 'ready'
+    captureStatus.value = 'ready'
 }
 
 const handleClick = (e) => {
@@ -63,57 +46,61 @@ const handleClick = (e) => {
 }
 
 const handleUploadRequest = async () => {
-    if (!globalStore.isReady) {
+    if (captureStatus.value !== 'ready') {
         return
     }
 
-    handleErrorReset()
-    globalStore.captureStatus = "isValidating"
+    // validation
+    errors.value = {}
+    if (!file.value) {
+        errors.value.file = ['File is required']
+    }
+    if (!props.captureGUID) {
+        if (!title.value) {
+            errors.value.title = ['Title is required']
+        }
+        if (!url.value) {
+            errors.value.url = ['URL is required']
+        }
+    }
+    if (Object.keys(errors.value).length > 0) {
+        return
+    }
 
-    const csrf = getCookie("csrftoken")
-    const requestType = globalStore.captureGUID ? "PATCH" : "POST"
-    const requestUrl = "/archives/" + globalStore.captureGUID ? `${globalStore.captureGUID}/` : ""
-
+    // prepare form data
+    captureStatus.value = "isValidating"
     const formDataObj = new FormData();
     formDataObj.append('folder', globalStore.selectedFolder.folderId);
-
-    for (const [key, { value }] of Object.entries(formData.value)) {
-        formDataObj.append(key, value);
+    formDataObj.append('file', file.value);
+    if (!props.captureGUID) {
+        formDataObj.append('title', title.value);
+        formDataObj.append('description', description.value);
+        formDataObj.append('url', url.value);
     }
+    
+    // send request
+    const requestType = props.captureGUID ? "PATCH" : "POST"
+    const requestUrl = "/archives/" + (props.captureGUID ? `${props.captureGUID}/` : "")
+    const { data, error, response } = await fetchDataOrError(requestUrl, {
+        method: requestType,
+        data: formDataObj,
+    })
 
-    try {
-        const response = await fetch(requestUrl,
-            {
-                headers: {
-                    "X-CSRFToken": csrf,
-                },
-                method: requestType,
-                credentials: "same-origin",
-                body: formDataObj
-            })
-
-
-        if (!response?.ok) {
-            const errorResponse = await getErrorResponse(response)
-            throw errorResponse
-        }
-
-        const { guid } = await response.json()
-        globalStore.captureStatus = "success"
-
-        handleReset()
-
-        window.location.href = `${window.location.origin}/${guid}`
-    } catch (error) {
-        globalStore.captureError = "uploadError"
-        console.error("Upload request failed:", error);
-
-        if (error?.response) {
-            errors.value = error.response
+    // error handling
+    if (error) {
+        console.log(error, response)
+        if (data) {
+            errors.value = data
         } else {
-            errors.value = error.status ? getErrorFromStatus(error.status) : defaultError
+            globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
         }
+        return;
     }
+
+    // success
+    const { guid } = data
+    globalStore.components.createLink.resetForm()
+    window.location.href = `${window.location.origin}/${guid}`
 };
 
 
@@ -125,7 +112,7 @@ defineExpose({
 
 <template>
     <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="formDialogRef">
-        <div class="modal-dialog modal-content">
+        <div class="modal-dialog modal-content modal-lg">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
                     <span aria-hidden="true">&times;</span>
@@ -135,38 +122,65 @@ defineExpose({
                     Upload a file to Perma.cc
                 </h3>
             </div>
-            <p class="modal-description">
-                {{
-        !!globalStore.captureGUID ?
-            "This will update the Perma Link you have created." :
-            "This will create a new Perma Link." }}
+            <p v-if="props.captureGUID" class="modal-description">
+                This will update the Perma Link you have created.
+            </p>
+            <p v-else class="modal-description">
+                This will create a new Perma Link.
             </p>
             <div class="modal-body">
 
                 <div class="u-min-h-48" v-if="globalStore.isLoading">
-                    <Spinner length="2" color="#2D76EE" top="48px" />
+                    <Spinner />
                 </div>
 
                 <form id="archive_upload_form" @submit.prevent>
-                    <template v-for="(_, key) in formData" :key="key" v-if="globalStore.isReady">
-                        <TextInput v-if="formData[key].type === 'text'" v-model="formData[key]" :error="errors[key]"
-                            :id="key" />
-                        <FileInput v-if="formData[key].type === 'file'" v-model="formData[key]" :error="errors[key]"
-                            :id="key" />
+                    <template v-if="!props.captureGUID">
+                        <TextInput
+                            v-model="title"
+                            name="New Perma Link title"
+                            description="The page title associated with this upload"
+                            placeholder="Example Page Title"
+                            id="title"
+                            :error="errors.title"
+                        />
+                        <TextInput
+                            v-model="description"
+                            name="New Perma Link description"
+                            description="The page description associated with this upload"
+                            placeholder="Example Page Description"
+                            id="description"
+                            :error="errors.description"
+                        />
+                        <TextInput
+                            v-model="url"
+                            name="New Perma Link URL"
+                            description="The URL associated with this upload"
+                            placeholder="https://www.example.com"
+                            id="url"
+                            type="url"
+                            :error="errors.url"
+                        />
                     </template>
+                    
+                    <FileInput
+                        v-model="file"
+                        name="Choose a file"
+                        :description="`.gif, .jpg, .pdf, and .png allowed, up to ${globalStore.maxSize} MB`"
+                        id="file"
+                        accept=".png,.jpg,.jpeg,.gif,.pdf"
+                        :error="errors.file"
+                    />
+
                     <div class="form-buttons">
-                        <button type="submit" @click.prevent="handleUploadRequest" class="btn btn-primary btn-large">{{
-        !!globalStore.captureGUID ?
-            "Upload" :
-            "Create a Perma Link" }}</button>
+                        <button type="submit" @click.prevent="handleUploadRequest" class="btn btn-primary btn-large">
+                            {{ !!props.captureGUID ? "Upload" : "Create a Perma Link" }}
+                        </button>
                         <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
                     </div>
 
-                    <p v-if="hasErrors" class="field-error">
-                        Upload failed.
-                        <span v-if="globalErrors">
-                            {{ globalErrors }}
-                        </span>
+                    <p v-if="globalErrors" class="field-error">
+                        Upload failed. {{ globalErrors }}
                     </p>
 
                 </form>
