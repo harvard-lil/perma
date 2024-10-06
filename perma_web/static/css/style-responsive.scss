@@ -2609,16 +2609,12 @@ figcaption + .img-responsive {
       background-color: transparent !important;
       text-align: center;
       padding-bottom: 0px;
-      padding-top: 32px;
       color: $color-blue;
       border-color: transparent !important;
       opacity: 1;
-      .spinner {
-        left: 50%;
-        top: 10px;
-      }
       &:hover, &:focus {
         color: $color-blue !important;
+        outline: none !important;
       }
     }
   }

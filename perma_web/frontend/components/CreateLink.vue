@@ -19,20 +19,8 @@ const batchDialogOpen = () => {
 }
 const captureStatus = ref('ready')
 const isReady = computed(() => ["ready", "urlError", "captureError", "uploadError"].includes(captureStatus.value))
-const isLoading = computed(() => ["isValidating", "isQueued", "isCapturing"].includes(captureStatus.value))
-
 const userLink = ref('')
 const userLinkProgressBar = ref('0%')
-
-const submitButtonText = computed(() => {
-    if (isReady.value) {
-        if (globalStore.selectedFolder.isPrivate) {
-            return 'Create Private Perma Link'
-        }
-        return 'Create Perma Link'
-    }
-    return 'Creating your Perma Link'
-})
 
 let progressInterval;
 
@@ -154,7 +142,7 @@ const handleProgressUpdate = async () => {
 
     if (status === 'in_progress') {
         captureStatus.value = 'isCapturing'
-        userLinkProgressBar.value = `${response.step_count / 5 * 100}%`
+        userLinkProgressBar.value = `${Math.round(response.step_count / 5 * 100)}%`
     }
 
     if (status === 'completed') {
@@ -215,10 +203,11 @@ onBeforeUnmount(() => {
                           :class="{ '_isWorking': !isReady }"
                           id="addlink" type="submit"
                         >
-                            <Spinner v-if="isLoading" top="-20px" />
-                            {{ submitButtonText }}
-                            <ProgressBar v-if="captureStatus === 'isCapturing'"
-                                :progress="userLinkProgressBar" />
+                            <Spinner v-if="captureStatus === 'isValidating' || captureStatus === 'isQueued'" />
+                            <ProgressBar v-if="captureStatus === 'isCapturing'" :progress="userLinkProgressBar" style="height: 32px"/>
+                            {{ isReady ? "Create" : "Creating" }}
+                            {{ globalStore.selectedFolder.isPrivate ? "Private" : "" }}
+                            Perma Link
                         </button>
                         <p id="create-batch-links">or <button @click.prevent="batchDialogOpen" class="c-button"
                                 :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
