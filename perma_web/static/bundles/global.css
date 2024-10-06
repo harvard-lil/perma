@@ -6504,8 +6504,7 @@ ul {
 }
 
 html {
-  height: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   margin: 0;
 }
 
@@ -6514,14 +6513,19 @@ body {
   color: #222;
   font-family: "Roboto Slab", sans-serif;
   margin: 0;
-  min-height: 100%;
 }
 
 body {
-  height: 100%;
+  min-height: 100vh;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+      flex-direction: column;
 }
-body #after-modals {
-  min-height: 100%;
+
+#after-modals {
+  -ms-flex: 1;
+      flex: 1;
 }
 
 footer {
@@ -8939,17 +8943,13 @@ figcaption + .img-responsive {
   background-color: transparent !important;
   text-align: center;
   padding-bottom: 0px;
-  padding-top: 32px;
   color: #2D76EE;
   border-color: transparent !important;
   opacity: 1;
 }
-#linker .form-priority-fieldset .btn._isWorking .spinner {
-  left: 50%;
-  top: 10px;
-}
 #linker .form-priority-fieldset .btn._isWorking:hover, #linker .form-priority-fieldset .btn._isWorking:focus {
   color: #2D76EE !important;
+  outline: none !important;
 }
 #linker #create-batch-links {
   width: 100%;
@@ -9527,12 +9527,6 @@ button#addlink,
 }
 #batch-modal textarea {
   height: 20em;
-}
-#batch-modal .spinner {
-  position: relative;
-  height: 50px;
-  width: 50px;
-  margin: 8px 0 0 0;
 }
 
 #batch-create-input {
