@@ -242,6 +242,12 @@ class RegistrarFactory(DjangoModelFactory):
 class PendingRegistrarFactory(RegistrarFactory):
     status = 'pending'
 
+    pending_users = factory.RelatedFactoryList(
+        'conftest.LinkUserFactory',
+        size=1,
+        factory_related_name='pending_registrar'
+    )
+
 
 @register_factory
 class DeniedRegistrarFactory(RegistrarFactory):
@@ -279,7 +285,7 @@ class LinkUserFactory(DjangoModelFactory):
 
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-    email = factory.Sequence(lambda n: 'user%s@example.com' % n)
+    email = factory.LazyAttribute(lambda o: f'{o.first_name}_{o.last_name}@example.com')
 
     # Default to confirmed and active in the fixtures for convenience
     is_active = True
