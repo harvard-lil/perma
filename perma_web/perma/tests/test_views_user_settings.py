@@ -624,7 +624,7 @@ def test_affiliations_org_user(client, multi_registrar_org_user):
 def test_affiliations_registrar_user(client, registrar_user):
     _, soup = get_afffilation_markup_for_user(client, registrar_user)
 
-    [registrar] = soup.select('h4')
+    registrar = soup.select_one('h4')
     assert registrar.text.strip() == registrar_user.registrar.name
 
     registrar_settings = soup.select('dt')
