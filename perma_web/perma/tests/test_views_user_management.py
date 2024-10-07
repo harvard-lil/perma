@@ -17,6 +17,88 @@ from django.test import override_settings
 from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 
+from conftest import submit_form
+
+
+###
+### REGISTRAR A/E/D VIEWS ###
+###
+
+def test_admin_can_create_registrar(client, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        'user_management_manage_registrar',
+        data={
+            'a-name':'test_views_registrar',
+            'a-email':'test@test.com',
+            'a-website':'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='test_views_registrar')
+    )
+
+
+def test_admin_can_update_registrar(client, admin_user, registrar):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        data={
+          'a-name': 'new_name',
+          'a-email': 'test@test.com2',
+          'a-website': 'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_update_registrar(client, registrar_user):
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar_user.registrar.pk]),
+        data={
+         'a-name': 'new_name',
+         'a-email': 'test@test.com2',
+         'a-website': 'http://test.com'
+        },
+        success_url=reverse('settings_affiliations'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_cannot_update_unrelated_registrar(client, registrar, registrar_user):
+    assert registrar_user.registrar_id != registrar.id
+    client.force_login(registrar_user)
+    response = client.get(
+        reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def test_admin_can_approve_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status':'approved'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="approved").exists()
+    )
+
+
+def test_admin_can_deny_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status': 'denied'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="denied").exists()
+    )
+
+
 
 class UserManagementViewsTestCase(PermaTestCase):
 
@@ -140,60 +222,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'deactivated account'), 0)
         self.assertEqual(response.count(b'User must activate account'), 1)
 
-    def test_admin_can_create_registrar(self):
-        self.submit_form(
-            'user_management_manage_registrar', {
-                'a-name':'test_views_registrar',
-                'a-email':'test@test.com',
-                'a-website':'http://test.com'
-            },
-            user=self.admin_user,
-            success_url=reverse('user_management_manage_registrar'),
-            success_query=Registrar.objects.filter(name='test_views_registrar'))
 
-    def test_admin_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.admin_user,
-                         reverse_kwargs={'args':[self.unrelated_registrar.pk]},
-                         data={
-                              'a-name': 'new_name',
-                              'a-email': 'test@test.com2',
-                              'a-website': 'http://test.com'},
-                         success_url=reverse('user_management_manage_registrar'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.registrar_user,
-                         reverse_kwargs={'args': [self.registrar.pk]},
-                         data={
-                             'a-name': 'new_name',
-                             'a-email': 'test@test.com2',
-                             'a-website': 'http://test.com'},
-                         success_url=reverse('settings_affiliations'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_cannot_update_unrelated_registrar(self):
-        self.get('user_management_manage_single_registrar',
-                 user=self.registrar_user,
-                 reverse_kwargs={'args': [self.unrelated_registrar.pk]},
-                 require_status_code=403)
-
-    def test_admin_can_approve_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status':'approved'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="approved").exists())
-
-    def test_admin_can_deny_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status': 'denied'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="denied").exists())
 
     ### ORGANIZATION A/E/D VIEWS ###
 
