@@ -15,7 +15,7 @@ const globalStore = useGlobalStore();
 const jstreeRef = ref(null);
 
 onMounted(() => {
-  globalStore.jstreeInstance = jstreeRef.value;
+  globalStore.components.jstree = jstreeRef.value;
 });
 
 const onNodeSelect = (node) => {

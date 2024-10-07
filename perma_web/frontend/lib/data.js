@@ -18,18 +18,31 @@ export const fetchDataOrError = async (url, options = {}) => {
     options.headers = {
       ...options.headers,
       "X-CSRFToken": getCookie("csrftoken"),
-      "Content-Type": "application/json"
     };
+
+    // process options.data
+    if (options.data) {
+      if (options.data instanceof FormData) {
+        // For FormData, let the browser set the Content-Type
+        options.body = options.data;
+      } else {
+        // For JSON data
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(options.data);
+      }
+      delete options.data;
+    }
   }
 
+  let response = null;
   try {
-    const response = await fetch(url, options);
+    response = await fetch(url, options);
     if (!response?.ok) {
       throw new Error(response.statusText);
     }
-    return {data: await response.json(), error: ''}
+    return {data: await response.json(), error: null, response}
   } catch (err) {
-    return {data: null, error: err?.message || defaultError}
+    return {data: await response?.json().catch(() => null), error: err?.message || defaultError, response}
   }
 }
 

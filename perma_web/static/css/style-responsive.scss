@@ -295,8 +295,7 @@ ul { list-style-type: none; }
 // The Basics (Structure)
 
 html {
-  height: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   margin: 0;
 }
 
@@ -305,17 +304,18 @@ body {
   color: $color-black;
   font-family: $font-body;
   margin: 0;
-  min-height: 100%;
 }
 
-// This appears to give us a sticky footer without breaking anything.
-// But I'm not sure about it.
 body {
-  height: 100%;
+  // for sticky footer
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  #after-modals {
-    min-height: 100%
-  }
+#after-modals {
+  // for sticky footer
+  flex: 1;
 }
 
 footer {
@@ -2609,16 +2609,12 @@ figcaption + .img-responsive {
       background-color: transparent !important;
       text-align: center;
       padding-bottom: 0px;
-      padding-top: 32px;
       color: $color-blue;
       border-color: transparent !important;
       opacity: 1;
-      .spinner {
-        left: 50%;
-        top: 10px;
-      }
       &:hover, &:focus {
         color: $color-blue !important;
+        outline: none !important;
       }
     }
   }
@@ -3195,12 +3191,6 @@ button#addlink,
   }
   textarea {
       height: 20em;
-  }
-  .spinner {
-    position: relative;
-    height: 50px;
-    width: 50px;
-    margin: $grid 0 0 0;
   }
 }
 

@@ -1,22 +1,18 @@
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useGlobalStore } from '../stores/globalStore'
-import { getCookie } from '../../static/js/helpers/general.helpers'
 import FolderSelect from './FolderSelect.vue';
 import Spinner from './Spinner.vue';
-import {fetchDataOrError} from '../lib/data';
+import { fetchDataOrError } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
 import {
   folderError,
-  getErrorFromResponseOrStatus,
   missingUrlError,
-  getErrorResponse,
   getErrorFromNestedObject
 } from '../lib/errors';
 import { useToast } from '../lib/notifications';
-import { defaultError } from '../lib/errors';
-import {transitionalStates, validStates, showDevPlayground} from "../lib/consts";
+import { transitionalStates, validStates, showDevPlayground } from "../lib/consts";
 
 const globalStore = useGlobalStore()
 
@@ -32,9 +28,6 @@ const targetFolderName = ref('')
 
 const showBatchDetails = computed(() => batchCaptureStatus.value !== 'ready' && batchCaptureStatus.value !== 'isValidating')
 const userSubmittedLinks = ref('')
-
-const readyStates = ["ready", "urlError", "folderSelectionError"]
-const isReady = computed(() => { readyStates.includes(batchCaptureStatus.value) })
 
 let progressInterval;
 
@@ -74,7 +67,7 @@ const handleClick = (e) => {
 }
 
 const handleBatchCaptureRequest = async () => {
-    if (!isReady) {
+    if (!["ready", "urlError", "folderSelectionError"].includes(batchCaptureStatus.value)) {
         return
     }
 
@@ -86,52 +79,40 @@ const handleBatchCaptureRequest = async () => {
         human: true,
     }
 
-    const csrf = getCookie("csrftoken")
+    if (!formData.urls.length) {
+        handleBatchError({ error: missingUrlError, errorType: 'urlError' })
+        return;
+    }
+    if (!formData.target_folder) {
+        handleBatchError({ error: folderError, errorType: 'folderSelectionError' })
+        return;
+    }
 
-    try {
-        if (!formData.urls.length) {
-            batchCaptureStatus.value = 'urlError'
-            throw missingUrlError
-        }
+    const { data, error } = await fetchDataOrError("/archives/batches/", {
+        method: "POST",
+        data: formData
+    });
 
-        if (!formData.target_folder) {
-            batchCaptureStatus.value = 'folderSelectionError'
-            throw folderError
-        }
-
-        const response = await fetch("/api/v1/archives/batches/",
-            {
-                headers: {
-                    "X-CSRFToken": csrf,
-                    "Content-Type": "application/json"
-                },
-                method: "POST",
-                credentials: "same-origin",
-                body: JSON.stringify(formData)
-            })
-
-        if (!response?.ok) {
-            throw await getErrorResponse(response)
-        }
-
-        const data = await response.json()
-
-        batchCaptureId.value = data.id // Triggers periodic polling
-        batchCaptureStatus.value = 'isQueued'
-
-        batchDialogTitle.value = "Link Batch Details"
-        batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
-
-        // show new links in links list
-        if (showDevPlayground) {
-            globalStore.refreshLinkList.value();
-        } else {
-            const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-            window.dispatchEvent(batchCreated);
-        }
-
-    } catch (error) {
+    if (error) {
         handleBatchError({ error, errorType: 'urlError' })
+        return;
+    }
+
+    batchCaptureId.value = data.id
+    batchCaptureStatus.value = 'isQueued'
+    batchDialogTitle.value = "Link Batch Details"
+    batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
+
+    // poll for updates
+    handleBatchDetailsFetch()
+    progressInterval = setInterval(handleBatchDetailsFetch, 2000)
+
+    // show new links in links list
+    if (showDevPlayground) {
+        globalStore.components.linkList.fetchLinks();
+    } else {
+        const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
+        window.dispatchEvent(batchCreated);
     }
 };
 
@@ -139,28 +120,7 @@ const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
     batchCaptureStatus.value = errorType
 
-    let errorMessage
-
-    // Handle API-generated error messages
-    if (error?.response) {
-        errorMessage = getErrorFromResponseOrStatus(error.status, error.response)
-    }
-
-    else if (error?.status) {
-        errorMessage = `Error: ${error.status}`
-    }
-
-    // Handle frontend-generated error messages
-    else if (error.length) {
-        errorMessage = error
-    }
-
-    // Handle uncaught errors
-    else {
-        errorMessage = defaultError
-    }
-
-    toggleToast(errorMessage)
+    toggleToast(error)
     handleClose()
 }
 
@@ -224,7 +184,7 @@ const handleBatchDetailsFetch = async () => {
 
     // show new links in links list
     if (showDevPlayground) {
-      globalStore.refreshLinkList.value();
+      globalStore.components.linkList.fetchLinks();
     } else {
       const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
       window.dispatchEvent(batchCreated);
@@ -238,14 +198,12 @@ const toggleToast = (errorMessage) => {
     addToast(errorMessage, 'error');
 }
 
-watch(batchCaptureId, () => {
-  handleBatchDetailsFetch()
-  if (batchCaptureStatus.value === 'isQueued') {
-    progressInterval = setInterval(handleBatchDetailsFetch, 2000);
-  }
+onMounted(() => {
+  globalStore.components.batchDialog = getCurrentInstance().exposed
 })
 
 onBeforeUnmount(() => {
+    globalStore.components.batchDialog = null
     clearInterval(progressInterval)
 });
 
@@ -282,8 +240,7 @@ defineExpose({
                 </div>
 
                 <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
-                    <span class="sr-only">Loading</span>
-                    <Spinner top="32px" length="10" color="#222222" classList="spinner" />
+                    <Spinner />
                 </div>
 
                 <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary

@@ -13,6 +13,7 @@ onBeforeMount(() => {
     globalStore.setLinksRemainingFromGlobals(links_remaining, is_nonpaying)
     globalStore.setUserTypesFromGlobals(is_individual, is_organization_user, is_registrar_user, is_sponsored_user, is_staff)
     globalStore.subscriptionStatus = subscription_status;
+    globalStore.maxSize = max_size;
 })
 </script>
 

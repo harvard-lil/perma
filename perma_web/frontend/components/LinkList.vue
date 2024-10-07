@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, getCurrentInstance, onBeforeUnmount, nextTick } from 'vue';
 import { useGlobalStore } from '../stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { fetchDataOrError } from '../lib/data'
 import { useInfiniteScroll } from '@vueuse/core'
 import { useToast } from '../lib/notifications'
+import Spinner from './Spinner.vue'
 
 /*** Component setup ***/
 const globalStore = useGlobalStore();
@@ -118,12 +119,14 @@ const clearSearch = () => {
   fetchLinks();
 };
 
-const toggleLinkDetails = function(e, link) {
+const toggleLinkDetails = async (e, link, focusSelector) => {
   if (e.target.classList.contains('no-drag')) {
     // Don't toggle details if the user has clicked on the Perma Link URL,
     // the original URL, or the delete button
     return
   }
+
+  const itemContainer = e.target.closest('.item-container')
 
   if (selectedLink.value === link) {
     link.showDetails = false;
@@ -139,7 +142,7 @@ const toggleLinkDetails = function(e, link) {
     // TODO: we redo this every time because it shows the currently opened folders
     // in the tree. Ideally we'd only do it if the tree was updated.
     const options = [];
-    const folderTree = globalStore.jstreeInstance.getFolderTree();
+    const folderTree = globalStore.components.jstree.getFolderTree();
     // recursively populate select
     function addChildren(node, depth) {
       for (var i = 0; i < node.children.length; i++) {
@@ -161,6 +164,11 @@ const toggleLinkDetails = function(e, link) {
     addChildren(folderTree.get_node('#'), 1);
     folderOptions.value = options;
   }
+
+  // focus handling: if using .toggle-details button, focus stays on the button
+  // if clicking on the row, focus moves to the first input field
+  await nextTick()
+  itemContainer.querySelector(focusSelector)?.focus()
 }
 
 const moveLink = async (folderID, guid) => {
@@ -232,13 +240,20 @@ function handleMouseDown (e, link) {
   if (e.target.classList.contains('no-drag'))
     return;
 
-  globalStore.jstreeInstance.dnd.start(e, {
+  globalStore.components.jstree.dnd.start(e, {
     jstree: true,
-    // obj: $(e.currentTarget),
     nodes: [
         {id: link.guid}
     ]
-  }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
+  }, `<div style="
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  ">${truncateChars(link.title || 'Link', 30)}</div>`);
 
   // record drag start position so we can check how far we were dragged on mouseup
   dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
@@ -246,13 +261,13 @@ function handleMouseDown (e, link) {
 
 function handleMouseUp (e, link) {
   // prevent JSTree's tap-to-drag behavior
-  globalStore.jstreeInstance.dnd.stop(e);
+  globalStore.components.jstree.dnd.stop(e);
 
   // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
   if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
     return;
 
-  toggleLinkDetails(e, link);
+  toggleLinkDetails(e, link, `#link-title-${link.guid}`);
 }
 
 /*** Infinite scroll setup ***/
@@ -274,7 +289,17 @@ watch([selectedFolder, query], () => {
   fetchLinks();
 });
 
-globalStore.refreshLinkList.value = fetchLinks;
+onMounted(() => {
+  globalStore.components.linkList = getCurrentInstance().exposed;
+});
+
+onBeforeUnmount(() => {
+  globalStore.components.linkList = null;
+});
+
+defineExpose({
+  fetchLinks
+});
 
 </script>
 
@@ -311,7 +336,20 @@ globalStore.refreshLinkList.value = fetchLinks;
         <a href="#" class="clear-search" @click.prevent="clearSearch">Clear search.</a>
       </div>
 
-      <template v-if="links.length">
+
+      <template v-if="!selectedFolder.folderId">
+        <div class="item-notification">No folder selected</div>
+      </template>
+
+      <template v-else-if="loading">
+        <div class="item-notification"><Spinner /></div>
+      </template>
+
+      <template v-else-if="!links.length">
+        <div class="item-notification">This is an empty folder</div>
+      </template>
+      
+      <template v-else>
         <div v-for="link in links" 
           :key="link.guid" 
           class="item-container _isExpandable" 
@@ -326,21 +364,18 @@ globalStore.refreshLinkList.value = fetchLinks;
             <div class="row">
               <div class="col col-sm-6 col-md-60 item-title-col">
                 <button
-                  aria-label="Show Details for Link {{ link.guid }}"
-                  class="_visuallyHidden toggle-details expand-details"
-                  title="Show Link Details for Link {{ link.guid }}"
-                  @click.stop="(e) => toggleLinkDetails(e, link)"
-                  v-if="!link.showDetails"
+                  :aria-label="`${link.showDetails ? 'Hide' : 'Show'} Details for Link ${link.guid}`"
+                  class="toggle-details"
+                  :class="{
+                    '_visuallyHidden': !link.showDetails,
+                    'collapse-details': link.showDetails,
+                    'expand-details': !link.showDetails
+                  }"
+                  :title="`${link.showDetails ? 'Hide' : 'Show'} Details for Link ${link.guid}`"
+                  @click.stop.prevent="(e) => toggleLinkDetails(e, link, '.toggle-details')"
+                  @mousedown.stop
+                  @mouseup.stop
                 ></button>
-
-                <button
-                  aria-label="Hide Details for Link {{ link.guid }}"
-                  class="toggle-details collapse-details"
-                  title="Hide Link Details for Link {{ link.guid }}"
-                  @click.stop="(e) => toggleLinkDetails(e, link)"
-                  v-if="link.showDetails"
-                ></button>
-
                 <div v-if="link.is_pending" class="failed_header">Capture In Progress</div>
                 <div v-if="link.is_failed" class="failed_header">Capture Failed</div>
                 <div v-if="link.is_private" class="item-private">
@@ -469,21 +504,6 @@ globalStore.refreshLinkList.value = fetchLinks;
           </div>
         </div>
       </template>
-      <template v-else>
-        <div class="row item-row row-no-bleed">
-          <div class="row">
-            <div class="col col-xs-12">
-              <div class="item-title">
-                <p class="item-notification">This is an empty folder</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <!-- do this as an empty div so we can CSS transition -->
-      <Transition name="loading">
-        <div v-if="loading" class="links-loading-more">Loading links...</div>
-      </Transition>
     </div>
   </div>
 </template>
