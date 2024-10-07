@@ -4,10 +4,10 @@
 
 $grid: 8px;
 $double: $grid * 2;
-$half: $grid / 2;
+$half: $grid * 0.5;
 
 $col-gutter: $grid * 4;
-$bleed: -1 * ($col-gutter / 2);
+$bleed: -1 * ($col-gutter * 0.5);
 $page-margin: $grid * 2;
 
 /////////////////////////
