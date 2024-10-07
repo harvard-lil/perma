@@ -814,6 +814,7 @@ pytest==7.4.4 \
     #   pytest-cov
     #   pytest-django
     #   pytest-django-ordering
+    #   pytest-mock
     #   pytest-playwright
     #   pytest-xdist
 pytest-base-url==2.0.0 \
@@ -838,6 +839,10 @@ pytest-django-liveserver-ssl==0.0.2 \
 pytest-django-ordering==1.2.0 \
     --hash=sha256:1bfaed312d8f4f1cda38840e459287ec7619e9b14d052b060775444641062aad \
     --hash=sha256:21764c5c50c533b08a5584c7713c53a9380c7c996026584c410ad514cf287581
+    # via -r requirements.in
+pytest-mock==3.14.0 \
+    --hash=sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f \
+    --hash=sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0
     # via -r requirements.in
 pytest-playwright==0.4.4 \
     --hash=sha256:5488db4cc49028491c5130af0a2bb6b1d0b222a202217f6d14491d4c9aa67ff9 \
