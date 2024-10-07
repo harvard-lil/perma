@@ -639,7 +639,7 @@ def test_affiliations_pending_registrar_user(client, pending_registrar_user):
     assert b'Pending Registrar'in response.content
     assert b'Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.' in response.content
 
-    [registrar] = soup.select('.sponsor-name')
+    registrar = soup.select_one('.sponsor-name')
     assert registrar.text.strip() == pending_registrar_user.pending_registrar.name
 
     registrar_settings = soup.select('dt')
