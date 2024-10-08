@@ -32,7 +32,7 @@ def test_user_can_change_own_settings(client, link_user):
     first_name, last_name, email = get_name_and_email()
     assert first_name == link_user.first_name
     assert last_name == link_user.last_name
-    assert email == link_user.email
+    assert email == link_user.raw_email
 
     # We can submit the change form
     new_first, new_last, new_email = "Newfirst", "Newlast", "newemail@example.com"
