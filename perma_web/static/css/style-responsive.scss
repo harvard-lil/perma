@@ -2,6 +2,8 @@
 
 //	Global imports
 
+@use "sass:math";
+
 @import "bootstrap-custom";
 @import "bootstrap-mod";
 
@@ -1033,9 +1035,9 @@ a.cc {
 }
 
 .row.row-halfgutter {
-  margin: 0 $bleed / 2 !important;
+  margin: 0 $bleed * 0.5 !important;
   @include all-columns {
-    padding: 0 $bleed / -2;
+    padding: 0 math.div($bleed, -2);
   }
 }
 
@@ -1048,8 +1050,6 @@ a.cc {
   margin-left: -2px;
   margin-right: -2px;
 }
-
-.col {}
 
 .col.col-no-gutter {
   padding-left: 0;
@@ -1075,7 +1075,7 @@ div.col-right {
 
 .col-sm-10by3 {
   @include respond-tablet {
-    width: 100% * (5 / 18); // 10/3 width
+    width: 100% * math.div(5, 18); // 10/3 width
     float: left;
   }
 }
@@ -1083,7 +1083,7 @@ div.col-right {
 .col-sm-by4 {
   width: 100%;
   @include respond-desktop {
-    width: 100 / 4 * 1%;
+    width: 100 * 0.25 * 1%;
     float: left;
   }
 }
@@ -1091,7 +1091,7 @@ div.col-right {
 .col-sm-by5 {
   width: 100%;
   @include respond-desktop {
-    width: 100 / 5 * 1%;
+    width: 100 * 0.2 * 1%;
     float: left;
   }
 }
@@ -1099,7 +1099,7 @@ div.col-right {
 .col-sm-by6 {
   width: 100%;
   @include respond-desktop {
-    width: 100 / 6 * 1%;
+    width: math.div(100, 6) * 1%;
     float: left;
   }
 }
@@ -4039,10 +4039,10 @@ footer {
 .item-container._isExpandable {
   &._active {
     @include style-card(black);
-    margin: 0 -$grid $double -$grid;
+    margin: 0 (-$grid) $double (-$grid);
     padding: $grid * 2 $grid;
     @include respond-tablet {
-      margin: 0 -$double $double -$double;
+      margin: 0 (-$double) $double (-$double);
       padding: $grid * 2 $double;
     }
     &:hover {
@@ -4891,7 +4891,7 @@ h6.image-hed {
     border-bottom: 1px solid $color-blue;
   }
   .row.outer {
-    margin: 0 -$grid * 4;
+    margin: 0 (-$grid * 4);
   }
   .col-xs-12 {
     border-bottom: 1px solid $color-blue;

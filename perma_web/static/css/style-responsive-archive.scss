@@ -1046,19 +1046,13 @@ li.dropdown {
 }
 
 .navbar-nav {
-  margin: 0 -$grid $double -$grid;
+  margin: 0 (-$grid) $double (-$grid);
   @include respond-tablet {
     margin: 0;
   }
 }
 
 // ui-tray
-
-%ui-tray-alignment {
-  padding-left: $grid * 5;
-  padding-right: $grid * 5;
-  margin: 0 -$double;
-}
 
 .ui-tray {
   z-index: 100;

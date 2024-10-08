@@ -10557,12 +10557,12 @@ footer #footer-nav a, footer #boilerplate a {
   border: 1px solid black;
   border-radius: 2px;
   background-clip: padding-box;
-  margin: -8px 8px;
+  margin: 0 -8px 16px -8px;
   padding: 16px 8px;
 }
 @media only screen and (min-width: 768px) {
   .item-container._isExpandable._active {
-    margin: -16px 0px;
+    margin: 0 -16px 16px -16px;
     padding: 16px 16px;
   }
 }
@@ -11457,7 +11457,7 @@ h6.image-hed {
   }
 }
 #minisxs .row.outer {
-  margin: -32px;
+  margin: 0 -32px;
 }
 #minisxs .col-xs-12 {
   border-bottom: 1px solid #2D76EE;
