@@ -289,6 +289,15 @@ class OrganizationFactory(DjangoModelFactory):
 
 
 @register_factory
+class OrganizationWithLinksFactory(OrganizationFactory):
+    links = factory.RelatedFactoryList(
+        'conftest.LinkFactory',
+        size=1,
+        factory_related_name='organization'
+    )
+
+
+@register_factory
 class LinkUserFactory(DjangoModelFactory):
     class Meta:
         model = LinkUser
