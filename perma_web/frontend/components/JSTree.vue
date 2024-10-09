@@ -4,18 +4,13 @@ import { useGlobalStore } from '../stores/globalStore';
 import 'jstree';
 import 'jstree-css/default/style.min.css';
 
-const props = defineProps({
-  // Add any props you need here
-});
 
 const emit = defineEmits(['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeCollapse']);
 
-const globalStore = useGlobalStore();
 const folderTreeRef = ref(null);
 
 let APIModule = require('../../static/js/helpers/api.module.js');
 let Helpers = require('../../static/js/helpers/general.helpers.js');
-let DOMHelpers = require('../../static/js/helpers/dom.helpers.js');
 
 let localStorageKey = Helpers.variables.localStorageKey;
 let allowedEventsCount = 0;
@@ -32,7 +27,6 @@ function init () {
 onMounted(() => {
   init();
 });
-
 
 
 /* move to foldertree */
@@ -437,14 +431,12 @@ function domTreeInit () {
 
     // handle open/close folder icon
     }).on('after_open.jstree', function (e, data) {
-      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-open-alt");
 
       emit('nodeExpand', data.node);
 
     }).on('after_close.jstree', function (e, data) {
-      DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-close-alt");
 
@@ -504,9 +496,6 @@ function setupEventHandlers () {
       data = JSON.parse(data);
       moveLink(data.folderId, data.linkId);
     });
-
-  // scroll helper
-  DOMHelpers.markIfScrolled('.col-folders');
 
   // set body class during drag'n'drop
   $(document).on('dnd_start.vakata', function (e, data) {

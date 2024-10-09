@@ -23,31 +23,37 @@ const onNodeSelect = (node) => {
 };
 
 const updateSelectedFolder = (node) => {
+  const {
+    organization_id: orgId, 
+    sponsor_id: sponsorId, 
+    folder_id: folderId, 
+    read_only: isReadOnly
+  } = node.data;
+  const org = orgId ? globalStore.userOrganizations.find(org => org.id === orgId) : null;
+  const isOutOfLinks = !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
   globalStore.selectedFolder = {
+    folderId,
+    orgId,
+    sponsorId,
+    isReadOnly,
+    isOutOfLinks,
     path: jstreeRef.value.getFolderTree().get_path(node) || [],
-    folderId: node.data.folder_id || '',
-    orgId: node.data.organization_id || '',
-    sponsorId: node.data.sponsor_id || '',
-    isPrivate: node.data.is_private || false,
-    isReadOnly: node.data.read_only || false,
-    isOutOfLinks: node.data.out_of_links || false,
+    isPrivate: org?.default_to_private || false,
   };
 };
 </script>
 
 <template>
-  <div>
-    <div class="panel-heading">
-      Folders
-      <span class="buttons">
-        <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder" title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
-        <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder" title="Rename Selected Folder" @click.prevent="editFolder"></a>
-        <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder" @click.prevent="newFolder"></a>
-      </span>
-    </div>
-    <JSTree
-      ref="jstreeRef"
-      @nodeSelect="onNodeSelect"
-    />
+  <div class="panel-heading">
+    Folders
+    <span class="buttons">
+      <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder" title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
+      <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder" title="Rename Selected Folder" @click.prevent="editFolder"></a>
+      <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder" @click.prevent="newFolder"></a>
+    </span>
   </div>
+  <JSTree
+    ref="jstreeRef"
+    @nodeSelect="onNodeSelect"
+  />
 </template>

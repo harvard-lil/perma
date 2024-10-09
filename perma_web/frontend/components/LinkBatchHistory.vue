@@ -6,6 +6,7 @@ import { useGlobalStore } from '../stores/globalStore'
 const globalStore = useGlobalStore()
 const linkRecords = ref([])
 const limit = ref(7)
+const isExpanded = ref(false)
 
 const { isLoading, hasError, error, data, fetchData } = useFetch('/archives/batches/')
 
@@ -51,27 +52,28 @@ function human_timestamp (datetime) {
     });
 }
 
+const toggleExpanded = () => {
+  isExpanded.value = !isExpanded.value
+}
 
 </script>
 
 <template>
-  <div id="batch-list-container" :class="{ '_hide': linkRecords.length === 0 }">
-    <div id="batch-list-toggle">
-      <a role="button" class="dropdown" data-toggle="collapse" href="#batch-history" aria-expanded="false" aria-controls="batch-history">
-        <h3>Link Batch History</h3>
-      </a>
-    </div>
-    <div id="batch-history" class="collapse">
-      <ul v-if="!isLoading && !hasError" class="item-container">
-        <li v-for="batch in linkRecords" :key="batch.id" class="item-subtitle">
-          <a href="#" @click="(e) => handleBatchClick(e, batch)">
-            <span class="sr-only">Batch created </span>{{ human_timestamp(batch.started_on) }}
-          </a>
-        </li>
-      </ul>
-      <p v-else-if="hasError">{{ error || '(unavailable)' }}</p>
-      <p v-else>Loading...</p>
-      <a v-if="data?.meta?.next" href="#" id="all-batches" @click="limit = null">all batches</a>
-    </div>
+  <div v-if="linkRecords.length > 0" id="batch-list-toggle">
+    <a role="button" @click="toggleExpanded" :aria-expanded="isExpanded">
+      <h3>Link Batch History</h3>
+    </a>
+  </div>
+  <div id="batch-history" v-show="isExpanded">
+    <ul v-if="!isLoading && !hasError" class="item-container">
+      <li v-for="batch in linkRecords" :key="batch.id" class="item-subtitle">
+        <a href="#" @click="(e) => handleBatchClick(e, batch)">
+          <span class="sr-only">Batch created </span>{{ human_timestamp(batch.started_on) }}
+        </a>
+      </li>
+    </ul>
+    <p v-else-if="hasError">{{ error || '(unavailable)' }}</p>
+    <p v-else>Loading...</p>
+    <a v-if="data?.meta?.next" href="#" id="all-batches" @click.prevent="limit = null">all batches</a>
   </div>
 </template>

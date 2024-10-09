@@ -15621,90 +15621,7 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
 
 /***/ }),
 /* 391 */,
-/* 392 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setInputValue", function() { return setInputValue; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeElement", function() { return removeElement; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "changeText", function() { return changeText; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toggleBtnDisable", function() { return toggleBtnDisable; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "changeHTML", function() { return changeHTML; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "emptyElement", function() { return emptyElement; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getValue", function() { return getValue; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeClass", function() { return removeClass; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showElement", function() { return showElement; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideElement", function() { return hideElement; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addCSS", function() { return addCSS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scrollIfTallerThanFractionOfViewport", function() { return scrollIfTallerThanFractionOfViewport; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "viewportHeight", function() { return viewportHeight; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "markIfScrolled", function() { return markIfScrolled; });
-function setInputValue(domSelector, value) {
-  $(domSelector).val(value);
-}
-function removeElement(domSelector) {
-  $(domSelector).remove();
-}
-function changeText(domSelector, text) {
-  $(domSelector).text(text);
-}
-function toggleBtnDisable(domSelector, disableStatus) {
-  // if disableStatus is false, enable.
-  // if disableStatus is true, disable.
-  $(domSelector).prop('disabled', disableStatus);
-}
-function changeHTML(domSelector, value) {
-  $(domSelector).html(value);
-}
-function emptyElement(domSelector) {
-  $(domSelector).empty();
-}
-function getValue(domSelector) {
-  return $(domSelector).val();
-}
-function removeClass(domSelector, className) {
-  $(domSelector).removeClass(className);
-}
-function showElement(domSelector) {
-  $(domSelector).show();
-}
-function hideElement(domSelector) {
-  $(domSelector).hide();
-}
-function addCSS(domSelector, propertyName, propertyValue) {
-  $(domSelector).css(propertyName, propertyValue);
-}
-function scrollIfTallerThanFractionOfViewport(domSelector, fraction) {
-  var limit = fraction * viewportHeight();
-  var elem = $(domSelector);
-  if (elem.prop('scrollHeight') < limit) {
-    elem.removeClass('scrolling');
-    elem.css('max-height', 'initial');
-  } else {
-    elem.addClass('scrolling');
-    elem.css('max-height', limit);
-  }
-}
-function viewportHeight() {
-  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-}
-function markIfScrolled(domSelector) {
-  var elem = $(domSelector);
-  elem.scroll(function () {
-    if (hasScrolled(elem)) {
-      elem.addClass('scrolled');
-    } else {
-      elem.removeClass('scrolled');
-    }
-  });
-}
-function hasScrolled(elem) {
-  return elem.children().first().position().top < 0;
-}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
-
-/***/ }),
+/* 392 */,
 /* 393 */,
 /* 394 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -46845,6 +46762,7 @@ __webpack_require__.r(__webpack_exports__);
       // handle globals set by Django
       globalStore.setLinksRemainingFromGlobals(links_remaining, is_nonpaying);
       globalStore.setUserTypesFromGlobals(is_individual, is_organization_user, is_registrar_user, is_sponsored_user, is_staff);
+      globalStore.linkCreationAllowed = link_creation_allowed;
       globalStore.subscriptionStatus = subscription_status;
       globalStore.maxSize = max_size;
     });
@@ -46940,6 +46858,7 @@ var _hoisted_5 = {
   class: "wrapper"
 };
 var _hoisted_6 = {
+  key: 0,
   id: "create-batch-links"
 };
 var _hoisted_7 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("a", {
@@ -46983,12 +46902,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     style: {
       "height": "32px"
     }
-  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_2__["toDisplayString"])($setup.isReady ? "Create" : "Creating") + " " + Object(vue__WEBPACK_IMPORTED_MODULE_2__["toDisplayString"])($setup.globalStore.selectedFolder.isPrivate ? "Private" : "") + " Perma Link ", 1 /* TEXT */)], 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("p", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])("or "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
-    onClick: _cache[1] || (_cache[1] = Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])(function ($event) {
-      $setup.batchDialogRef.handleOpen();
+  }, null, 8 /* PROPS */, ["progress"])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_2__["toDisplayString"])($setup.isReady ? "Create" : "Creating") + " " + Object(vue__WEBPACK_IMPORTED_MODULE_2__["toDisplayString"])($setup.globalStore.selectedFolder.isPrivate ? "Private" : "") + " Perma Link ", 1 /* TEXT */)], 2 /* CLASS */), $setup.isReady ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])("p", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createTextVNode"])(" or "), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
+    onClick: _cache[1] || (_cache[1] = Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])(function () {
+      var _$setup$batchDialogRe;
+      return $setup.batchDialogRef.handleOpen && (_$setup$batchDialogRe = $setup.batchDialogRef).handleOpen.apply(_$setup$batchDialogRe, arguments);
     }, ["prevent"])),
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["c-button", $setup.globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'])
-  }, "create multiple links", 2 /* CLASS */)])]), _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context = $setup.globalStore.userTypes).call(_context, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["LinkCount"], {
+  }, " create multiple links ", 2 /* CLASS */)])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)]), _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context = $setup.globalStore.userTypes).call(_context, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["LinkCount"], {
     key: 0
   })) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = $setup.globalStore.userTypes).call(_context2, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["FolderSelect"], {
     key: 1,
@@ -51088,6 +51008,7 @@ var useGlobalStore = Object(pinia__WEBPACK_IMPORTED_MODULE_4__["defineStore"])('
   state: function state() {
     return {
       fetchErrorMessage: '',
+      linkCreationAllowed: false,
       linksRemaining: Infinity,
       linksRemainingStatus: '',
       userTypes: [],
@@ -64786,10 +64707,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
 
 var _hoisted_1 = {
-  class: "container cont-fixed manage-links",
-  style: {
-    "background-color": "rgb(246, 248, 241)"
-  }
+  class: "container cont-fixed manage-links"
 };
 var _hoisted_2 = {
   class: "row"
@@ -64885,61 +64803,59 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(510);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(523);
 
-var _hoisted_1 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", {
+
+var _hoisted_1 = {
+  key: 0,
   id: "batch-list-toggle"
-}, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
-  role: "button",
-  class: "dropdown",
-  "data-toggle": "collapse",
-  href: "#batch-history",
-  "aria-expanded": "false",
-  "aria-controls": "batch-history"
-}, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("h3", null, "Link Batch History")])], -1 /* HOISTED */);
-var _hoisted_2 = {
-  id: "batch-history",
-  class: "collapse"
 };
-var _hoisted_3 = {
+var _hoisted_2 = ["aria-expanded"];
+var _hoisted_3 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h3", null, "Link Batch History", -1 /* HOISTED */);
+var _hoisted_4 = [_hoisted_3];
+var _hoisted_5 = {
+  id: "batch-history"
+};
+var _hoisted_6 = {
   key: 0,
   class: "item-container"
 };
-var _hoisted_4 = ["onClick"];
-var _hoisted_5 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
+var _hoisted_7 = ["onClick"];
+var _hoisted_8 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
   class: "sr-only"
 }, "Batch created ", -1 /* HOISTED */);
-var _hoisted_6 = {
+var _hoisted_9 = {
   key: 1
 };
-var _hoisted_7 = {
+var _hoisted_10 = {
   key: 2
 };
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  var _$setup$data;
-  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", {
-    id: "batch-list-container",
-    class: Object(vue__WEBPACK_IMPORTED_MODULE_0__["normalizeClass"])({
-      '_hide': $setup.linkRecords.length === 0
-    })
-  }, [_hoisted_1, Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_2, [!$setup.isLoading && !$setup.hasError ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("ul", _hoisted_3, [(Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_0__["renderList"])($setup.linkRecords, function (batch) {
-    return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("li", {
+  var _context, _$setup$data;
+  return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [$setup.linkRecords.length > 0 ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("a", {
+    role: "button",
+    onClick: $setup.toggleExpanded,
+    "aria-expanded": $setup.isExpanded
+  }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(_context = []).call(_context, _hoisted_4), 8 /* PROPS */, _hoisted_2)])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_5, [!$setup.isLoading && !$setup.hasError ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("ul", _hoisted_6, [(Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.linkRecords, function (batch) {
+    return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("li", {
       key: batch.id,
       class: "item-subtitle"
-    }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
+    }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("a", {
       href: "#",
       onClick: function onClick(e) {
         return $setup.handleBatchClick(e, batch);
       }
-    }, [_hoisted_5, Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.human_timestamp(batch.started_on)), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_4)]);
-  }), 128 /* KEYED_FRAGMENT */))])) : $setup.hasError ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_6, Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.error || '(unavailable)'), 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_7, "Loading...")), (_$setup$data = $setup.data) !== null && _$setup$data !== void 0 && (_$setup$data = _$setup$data.meta) !== null && _$setup$data !== void 0 && _$setup$data.next ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("a", {
+    }, [_hoisted_8, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.human_timestamp(batch.started_on)), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_7)]);
+  }), 128 /* KEYED_FRAGMENT */))])) : $setup.hasError ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.error || '(unavailable)'), 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_10, "Loading...")), (_$setup$data = $setup.data) !== null && _$setup$data !== void 0 && (_$setup$data = _$setup$data.meta) !== null && _$setup$data !== void 0 && _$setup$data.next ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("a", {
     key: 3,
     href: "#",
     id: "all-batches",
-    onClick: _cache[0] || (_cache[0] = function ($event) {
+    onClick: _cache[0] || (_cache[0] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
       return $setup.limit = null;
-    })
-  }, "all batches")) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)])], 2 /* CLASS */);
+    }, ["prevent"]))
+  }, "all batches")) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_1__["vShow"], $setup.isExpanded]])], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -64979,6 +64895,7 @@ __webpack_require__.r(__webpack_exports__);
     var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["useGlobalStore"])();
     var linkRecords = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])([]);
     var limit = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(7);
+    var isExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_2__["ref"])(false);
     var _useFetch = Object(_lib_data__WEBPACK_IMPORTED_MODULE_3__["useFetch"])('/archives/batches/'),
       isLoading = _useFetch.isLoading,
       hasError = _useFetch.hasError,
@@ -65038,10 +64955,14 @@ __webpack_require__.r(__webpack_exports__);
         minute: "2-digit"
       });
     }
+    var toggleExpanded = function toggleExpanded() {
+      isExpanded.value = !isExpanded.value;
+    };
     var __returned__ = {
       globalStore: globalStore,
       linkRecords: linkRecords,
       limit: limit,
+      isExpanded: isExpanded,
       isLoading: isLoading,
       hasError: hasError,
       error: error,
@@ -65050,6 +64971,7 @@ __webpack_require__.r(__webpack_exports__);
       fetchBatchData: fetchBatchData,
       handleBatchClick: handleBatchClick,
       human_timestamp: human_timestamp,
+      toggleExpanded: toggleExpanded,
       ref: vue__WEBPACK_IMPORTED_MODULE_2__["ref"],
       watch: vue__WEBPACK_IMPORTED_MODULE_2__["watch"],
       computed: vue__WEBPACK_IMPORTED_MODULE_2__["computed"],
@@ -65118,7 +65040,7 @@ var _hoisted_2 = {
   class: "buttons"
 };
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" Folders "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" Folders "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
     href: "#",
     class: "pull-right delete-folder icon-trash",
     "aria-label": "Delete Selected Folder",
@@ -65145,7 +65067,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   })])]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["JSTree"], {
     ref: "jstreeRef",
     onNodeSelect: $setup.onNodeSelect
-  }, null, 512 /* NEED_PATCH */)]);
+  }, null, 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -65165,9 +65087,12 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(692);
-/* harmony import */ var _JSTree_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(838);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(65);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(523);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(692);
+/* harmony import */ var _JSTree_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(838);
+
 
 
 
@@ -65184,23 +65109,33 @@ __webpack_require__.r(__webpack_exports__);
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
-    var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["useGlobalStore"])();
-    var jstreeRef = Object(vue__WEBPACK_IMPORTED_MODULE_0__["ref"])(null);
-    Object(vue__WEBPACK_IMPORTED_MODULE_0__["onMounted"])(function () {
+    var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_2__["useGlobalStore"])();
+    var jstreeRef = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])(null);
+    Object(vue__WEBPACK_IMPORTED_MODULE_1__["onMounted"])(function () {
       globalStore.components.jstree = jstreeRef.value;
     });
     var onNodeSelect = function onNodeSelect(node) {
       updateSelectedFolder(node);
     };
     var updateSelectedFolder = function updateSelectedFolder(node) {
+      var _context;
+      var _node$data = node.data,
+        orgId = _node$data.organization_id,
+        sponsorId = _node$data.sponsor_id,
+        folderId = _node$data.folder_id,
+        isReadOnly = _node$data.read_only;
+      var org = orgId ? _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context = globalStore.userOrganizations).call(_context, function (org) {
+        return org.id === orgId;
+      }) : null;
+      var isOutOfLinks = !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
       globalStore.selectedFolder = {
+        folderId: folderId,
+        orgId: orgId,
+        sponsorId: sponsorId,
+        isReadOnly: isReadOnly,
+        isOutOfLinks: isOutOfLinks,
         path: jstreeRef.value.getFolderTree().get_path(node) || [],
-        folderId: node.data.folder_id || '',
-        orgId: node.data.organization_id || '',
-        sponsorId: node.data.sponsor_id || '',
-        isPrivate: node.data.is_private || false,
-        isReadOnly: node.data.read_only || false,
-        isOutOfLinks: node.data.out_of_links || false
+        isPrivate: (org === null || org === void 0 ? void 0 : org.default_to_private) || false
       };
     };
     var __returned__ = {
@@ -65208,12 +65143,12 @@ __webpack_require__.r(__webpack_exports__);
       jstreeRef: jstreeRef,
       onNodeSelect: onNodeSelect,
       updateSelectedFolder: updateSelectedFolder,
-      ref: vue__WEBPACK_IMPORTED_MODULE_0__["ref"],
-      onMounted: vue__WEBPACK_IMPORTED_MODULE_0__["onMounted"],
+      ref: vue__WEBPACK_IMPORTED_MODULE_1__["ref"],
+      onMounted: vue__WEBPACK_IMPORTED_MODULE_1__["onMounted"],
       get useGlobalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_1__["useGlobalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_2__["useGlobalStore"];
       },
-      JSTree: _JSTree_vue__WEBPACK_IMPORTED_MODULE_2__["default"]
+      JSTree: _JSTree_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
       enumerable: false,
@@ -65320,20 +65255,14 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   __name: 'JSTree',
-  props: {
-    // Add any props you need here
-  },
   emits: ['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeCollapse'],
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose,
       __emit = _ref.emit;
-    var props = __props;
     var emit = __emit;
-    var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_7__["useGlobalStore"])();
     var folderTreeRef = Object(vue__WEBPACK_IMPORTED_MODULE_6__["ref"])(null);
     var APIModule = __webpack_require__(399);
     var Helpers = __webpack_require__(261);
-    var DOMHelpers = __webpack_require__(392);
     var localStorageKey = Helpers.variables.localStorageKey;
     var allowedEventsCount = 0;
     var lastSelectedFolder = null;
@@ -65744,11 +65673,9 @@ __webpack_require__.r(__webpack_exports__);
 
         // handle open/close folder icon
       }).on('after_open.jstree', function (e, data) {
-        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
         if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-open-alt");
         emit('nodeExpand', data.node);
       }).on('after_close.jstree', function (e, data) {
-        DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
         if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-close-alt");
         emit('nodeCollapse', data.node);
       }).on('load_node.jstree', function (e, data) {
@@ -65802,9 +65729,6 @@ __webpack_require__.r(__webpack_exports__);
         moveLink(data.folderId, data.linkId);
       });
 
-      // scroll helper
-      DOMHelpers.markIfScrolled('.col-folders');
-
       // set body class during drag'n'drop
       $(document).on('dnd_start.vakata', function (e, data) {
         $('body').addClass("dragging");
@@ -65848,9 +65772,7 @@ __webpack_require__.r(__webpack_exports__);
       handleSelectionChange: handleSelectionChange
     });
     var __returned__ = {
-      props: props,
       emit: emit,
-      globalStore: globalStore,
       folderTreeRef: folderTreeRef,
       get APIModule() {
         return APIModule;
@@ -65863,12 +65785,6 @@ __webpack_require__.r(__webpack_exports__);
       },
       set Helpers(v) {
         Helpers = v;
-      },
-      get DOMHelpers() {
-        return DOMHelpers;
-      },
-      set DOMHelpers(v) {
-        DOMHelpers = v;
       },
       get localStorageKey() {
         return localStorageKey;
@@ -66032,11 +65948,7 @@ var _hoisted_8 = /*#__PURE__*/_withScopeId(function () {
 });
 var _hoisted_9 = {
   class: "container item-rows",
-  ref: "linkScrollContainer",
-  style: {
-    "overflow-y": "auto",
-    "height": "60vh"
-  }
+  ref: "linkScrollContainer"
 };
 var _hoisted_10 = {
   key: 0,
@@ -66169,29 +66081,32 @@ var _hoisted_55 = {
   class: "default-to-screenshot-view"
 };
 var _hoisted_56 = {
-  class: "default_to_screenshot_view-save-status"
+  class: "default-to-screenshot-view"
 };
 var _hoisted_57 = {
+  class: "default_to_screenshot_view-save-status"
+};
+var _hoisted_58 = {
   class: "radio-inline"
 };
-var _hoisted_58 = ["onUpdate:modelValue", "onChange"];
-var _hoisted_59 = {
+var _hoisted_59 = ["onUpdate:modelValue", "onChange"];
+var _hoisted_60 = {
   class: "radio-inline"
 };
-var _hoisted_60 = ["onUpdate:modelValue", "onChange"];
-var _hoisted_61 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_61 = ["onUpdate:modelValue", "onChange"];
+var _hoisted_62 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
     class: "muted"
   }, " Default view preference is private to you and your organization(s) ", -1 /* HOISTED */);
 });
-var _hoisted_62 = {
+var _hoisted_63 = {
   class: "col-sm-5 link-stats"
 };
-var _hoisted_63 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_64 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("strong", null, "Created by:", -1 /* HOISTED */);
 });
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_3, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h3", _hoisted_4, [$setup.organization ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("span", _hoisted_5, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.path) + " Links", 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_3, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h3", _hoisted_4, [$setup.organization ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("span", _hoisted_5, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.path) + " Links", 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
     key: 1
   }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Your Perma Links ")], 64 /* STABLE_FRAGMENT */)), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("a", {
     href: "/api/v1/folders/".concat($setup.folder, "/archives/export"),
@@ -66313,7 +66228,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         disabled: option.disabled,
         "data-orgid": option['data-orgid']
       }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(option.text), 9 /* TEXT, PROPS */, _hoisted_53);
-    }), 128 /* KEYED_FRAGMENT */))], 40 /* PROPS, NEED_HYDRATION */, _hoisted_51)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_54, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_55, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("legend", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("Default view "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_56, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-default_to_screenshot_view")]), 1 /* TEXT */)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_57, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+    }), 128 /* KEYED_FRAGMENT */))], 40 /* PROPS, NEED_HYDRATION */, _hoisted_51)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_54, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_55, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("legend", _hoisted_56, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("Default view "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_57, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-default_to_screenshot_view")]), 1 /* TEXT */)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_58, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "radio",
       class: "link-default-to-screenshot-view",
       name: "default-view",
@@ -66324,7 +66239,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onChange: function onChange(e) {
         return $setup.handleInput(link.guid, 'default_to_screenshot_view', false);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_58), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Standard ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_59, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_59), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Standard ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_60, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "radio",
       class: "link-default-to-screenshot-view",
       name: "default-view",
@@ -66335,8 +66250,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onChange: function onChange(e) {
         return $setup.handleInput(link.guid, 'default_to_screenshot_view', true);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_60), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Screenshot ")])]), _hoisted_61])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_62, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", null, [_hoisted_63, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.created_by.full_name), 1 /* TEXT */)])])])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */);
-  }), 128 /* KEYED_FRAGMENT */))], 512 /* NEED_PATCH */)]);
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_61), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Screenshot ")])]), _hoisted_62])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_63, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", null, [_hoisted_64, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.created_by.full_name), 1 /* TEXT */)])])])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */);
+  }), 128 /* KEYED_FRAGMENT */))], 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),

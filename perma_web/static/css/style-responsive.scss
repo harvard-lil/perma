@@ -2650,7 +2650,13 @@ figcaption + .img-responsive {
       }
     }
     .form-priority-fieldset .btn {
-      background-color: $color-orange;
+      background-color: $color-orange-a;
+      &:hover, &:focus {
+        background-color: $color-orange !important;
+      }
+      &._isWorking {
+        background-color: transparent !important;
+      }
     }
     #organization_select_form {
       .selector {
@@ -2768,10 +2774,6 @@ figcaption + .img-responsive {
       }
     }
   }
-}
-
-.manage-links {
-  margin-top: $grid * 4;
 }
 
 /////////////////////////////////////////
@@ -3822,6 +3824,19 @@ footer {
 
 // Link browser
 
+.manage-links {
+  margin-top: $grid * 4;
+  @include bottom-shadow;
+
+  > .row {
+    height: 100%; // so columns fill .manage-links height
+  }
+
+  @media (min-width: $width-desktop) {
+    height: 90vh;
+  }
+}
+
 .panel {
   box-shadow: none;
   -webkit-box-shadow: none;
@@ -3845,10 +3860,20 @@ footer {
 }
 
 .col-folders {
-  overflow-y: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding-bottom: 0;
 
+  #batch-list-toggle {
+    flex-shrink: 0;
+  }
+  #batch-history {
+    flex: 1;
+    overflow-y: auto;
+  }
  .panel-heading {
+    flex-shrink: 0;
     border-top: 2px solid #2D76EE;
     padding-top: 8px;
     margin-bottom: $double;
@@ -3865,7 +3890,9 @@ footer {
       @extend .style-standard-hover;
     }
   }
- #folder-tree {
+  #folder-tree {
+    flex: 1;
+    overflow-y: auto;
     font-family: $font-hed-alt;
     padding: $grid $grid 0 0;
     border-top: 1px solid $color-trans-lightgray;
@@ -3945,27 +3972,13 @@ footer {
 .col-links, .col-folders {
   border-left: none;
   position: relative;
-  padding-bottom: $grid * 3;
-
-  @media (max-width: $width-desktop) {
-    // override IE-10 compatible JS on mobile
-    // to improve experience for users w/ few folders
-    height: 75vh !important;
-  }
-
-  &.scrolling {
-    overflow-y: scroll;
-    @include bottom-shadow;
-  }
-  &.scrolled {
-    @include top-bottom-shadow;
-  }
 }
 
 .col-links {
-  &.scrolling {
-    overflow-x: hidden;
-  }
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
   &.recent-links {
     width: 100%;
     padding-top: $grid * 3;
@@ -4001,10 +4014,15 @@ footer {
   }
   .link-headers {
     padding: 0 0 $double;
+    flex-shrink: 0;
+  }
+  .search-query-form {
+    flex-shrink: 0;
   }
   .item-rows {
+    flex: 1;
+    overflow-y: auto;
     padding: $grid * 3 0 0;
-    overflow: visible;
     .alert-success {
       margin-top: 0;
     }
