@@ -10590,14 +10590,7 @@ footer #footer-nav a, footer #boilerplate a {
   border: 1px solid black;
   border-radius: 2px;
   background-clip: padding-box;
-  margin: 0 -8px 16px -8px;
-  padding: 16px 8px;
-}
-@media only screen and (min-width: 768px) {
-  .item-container._isExpandable._active {
-    margin: 0 -16px 16px -16px;
-    padding: 16px 16px;
-  }
+  padding-bottom: 0;
 }
 .item-container._isExpandable._active:hover {
   border-top-color: black;
