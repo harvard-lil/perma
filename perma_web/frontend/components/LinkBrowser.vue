@@ -5,7 +5,7 @@ import LinkList from './LinkList.vue';
 </script>
 
 <template>
-  <div class="container cont-fixed manage-links" style="background-color: rgb(246, 248, 241)">
+  <div class="container cont-fixed manage-links">
     <div class="row">
       <div class="col-md-3 col-folders">
         <LinkBatchHistory />

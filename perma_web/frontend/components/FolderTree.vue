@@ -44,18 +44,16 @@ const updateSelectedFolder = (node) => {
 </script>
 
 <template>
-  <div>
-    <div class="panel-heading">
-      Folders
-      <span class="buttons">
-        <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder" title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
-        <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder" title="Rename Selected Folder" @click.prevent="editFolder"></a>
-        <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder" @click.prevent="newFolder"></a>
-      </span>
-    </div>
-    <JSTree
-      ref="jstreeRef"
-      @nodeSelect="onNodeSelect"
-    />
+  <div class="panel-heading">
+    Folders
+    <span class="buttons">
+      <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder" title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
+      <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder" title="Rename Selected Folder" @click.prevent="editFolder"></a>
+      <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder" @click.prevent="newFolder"></a>
+    </span>
   </div>
+  <JSTree
+    ref="jstreeRef"
+    @nodeSelect="onNodeSelect"
+  />
 </template>
