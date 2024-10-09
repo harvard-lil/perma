@@ -23,14 +23,22 @@ const onNodeSelect = (node) => {
 };
 
 const updateSelectedFolder = (node) => {
+  const {
+    organization_id: orgId, 
+    sponsor_id: sponsorId, 
+    folder_id: folderId, 
+    read_only: isReadOnly
+  } = node.data;
+  const org = orgId ? globalStore.userOrganizations.find(org => org.id === orgId) : null;
+  const isOutOfLinks = !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
   globalStore.selectedFolder = {
+    folderId,
+    orgId,
+    sponsorId,
+    isReadOnly,
+    isOutOfLinks,
     path: jstreeRef.value.getFolderTree().get_path(node) || [],
-    folderId: node.data.folder_id || '',
-    orgId: node.data.organization_id || '',
-    sponsorId: node.data.sponsor_id || '',
-    isPrivate: node.data.is_private || false,
-    isReadOnly: node.data.read_only || false,
-    isOutOfLinks: node.data.out_of_links || false,
+    isPrivate: org?.default_to_private || false,
   };
 };
 </script>

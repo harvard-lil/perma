@@ -4,6 +4,7 @@ import { fetchDataOrError } from '../lib/data'
 export const useGlobalStore = defineStore('global', {
   state: () => ({
     fetchErrorMessage: '',
+    linkCreationAllowed: false,
     linksRemaining: Infinity,
     linksRemainingStatus: '',
     userTypes: [],
