@@ -168,10 +168,15 @@ defineExpose({
                             {{ globalStore.selectedFolder.isPrivate ? "Private" : "" }}
                             Perma Link
                         </button>
-                        <p id="create-batch-links">or <button @click.prevent="batchDialogRef.handleOpen();" class="c-button"
-                                :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'">create
-                                multiple
-                                links</button>
+                        <p id="create-batch-links" v-if="isReady">
+                            or 
+                            <button 
+                                @click.prevent="batchDialogRef.handleOpen" 
+                                class="c-button"
+                                :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'"
+                            >
+                                create multiple links
+                            </button>
                         </p>
                     </div>
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
