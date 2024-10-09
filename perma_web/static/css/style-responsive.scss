@@ -2650,7 +2650,13 @@ figcaption + .img-responsive {
       }
     }
     .form-priority-fieldset .btn {
-      background-color: $color-orange;
+      background-color: $color-orange-a;
+      &:hover, &:focus {
+        background-color: $color-orange !important;
+      }
+      &._isWorking {
+        background-color: transparent !important;
+      }
     }
     #organization_select_form {
       .selector {
