@@ -4057,12 +4057,7 @@ footer {
 .item-container._isExpandable {
   &._active {
     @include style-card(black);
-    margin: 0 (-$grid) $double (-$grid);
-    padding: $grid * 2 $grid;
-    @include respond-tablet {
-      margin: 0 (-$double) $double (-$double);
-      padding: $grid * 2 $double;
-    }
+    padding-bottom: 0;
     &:hover {
       border-top-color: black;
       .item-title-display {
