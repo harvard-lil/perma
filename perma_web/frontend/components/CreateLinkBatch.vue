@@ -1,17 +1,20 @@
 <script setup>
-import { ref, watch, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useGlobalStore } from '../stores/globalStore'
 import FolderSelect from './FolderSelect.vue';
 import Spinner from './Spinner.vue';
 import { fetchDataOrError } from '../lib/data';
 import LinkBatchDetails from './LinkBatchDetails.vue'
 import Dialog from './Dialog.vue';
+import TextAreaInput from './forms/TextAreaInput.vue';
+import BaseInput from './forms/BaseInput.vue';
 import {
   folderError,
   missingUrlError,
-  getErrorFromNestedObject
+  getErrorFromNestedObject,
+  getErrorFromStatus,
+  defaultError
 } from '../lib/errors';
-import { useToast } from '../lib/notifications';
 import { transitionalStates, validStates, showDevPlayground } from "../lib/consts";
 
 const globalStore = useGlobalStore()
@@ -28,6 +31,9 @@ const targetFolderName = ref('')
 
 const showBatchDetails = computed(() => batchCaptureStatus.value !== 'ready' && batchCaptureStatus.value !== 'isValidating')
 const userSubmittedLinks = ref('')
+
+const errors = ref({})
+const globalErrors = ref()
 
 let progressInterval;
 
@@ -51,6 +57,8 @@ const handleReset = () => {
     batchCaptureJobs.value = []
     batchDialogTitle.value = defaultDialogTitle
     batchCaptureStatus.value = "ready"
+    errors.value = {}
+    globalErrors.value = null
 }
 
 const handleClose = () => {
@@ -72,6 +80,8 @@ const handleBatchCaptureRequest = async () => {
     }
 
     batchCaptureStatus.value = 'isValidating'
+    errors.value = {}
+    globalErrors.value = null
 
     const formData = {
         urls: userSubmittedLinks.value.split("\n").map(s => { return s.trim() }).filter(Boolean),
@@ -80,21 +90,30 @@ const handleBatchCaptureRequest = async () => {
     }
 
     if (!formData.urls.length) {
-        handleBatchError({ error: missingUrlError, errorType: 'urlError' })
-        return;
+        errors.value.userSubmittedLinks = [missingUrlError]
+        batchCaptureStatus.value = 'ready'
     }
     if (!formData.target_folder) {
-        handleBatchError({ error: folderError, errorType: 'folderSelectionError' })
-        return;
+        errors.value.folder = [folderError]
+        batchCaptureStatus.value = 'ready'
     }
 
-    const { data, error } = await fetchDataOrError("/archives/batches/", {
+    if (Object.keys(errors.value).length > 0) {
+        return
+    }
+
+    const { data, error, response } = await fetchDataOrError("/archives/batches/", {
         method: "POST",
         data: formData
     });
 
     if (error) {
-        handleBatchError({ error, errorType: 'urlError' })
+        if (data) {
+            errors.value = data
+        } else {
+            globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
+        }
+        batchCaptureStatus.value = 'ready'
         return;
     }
 
@@ -119,9 +138,6 @@ const handleBatchCaptureRequest = async () => {
 const handleBatchError = ({ error, errorType }) => {
     clearInterval(progressInterval)
     batchCaptureStatus.value = errorType
-
-    toggleToast(error)
-    handleClose()
 }
 
 const handleBatchDetailsFetch = async () => {
@@ -192,12 +208,6 @@ const handleBatchDetailsFetch = async () => {
   }
 };
 
-const { addToast } = useToast();
-
-const toggleToast = (errorMessage) => {
-    addToast(errorMessage, 'error');
-}
-
 onMounted(() => {
   globalStore.components.batchDialog = getCurrentInstance().exposed
 })
@@ -226,17 +236,28 @@ defineExpose({
             </div>
             <div class="modal-body">
                 <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
-                    <div class="form-group">
-                        <FolderSelect selectLabel="These Perma Links will be affiliated with" />
-                    </div>
-                    <div class="form-group">
-                        <textarea v-model="userSubmittedLinks" aria-label="Paste your URLs here (one URL per line)"
-                            placeholder="Paste your URLs here (one URL per line)"></textarea>
-                    </div>
+                    <BaseInput
+                        name="Folder"
+                        description="These Perma Links will be affiliated with"
+                        :error="errors.folder"
+                    >
+                        <FolderSelect />
+                    </BaseInput>
+                    <TextAreaInput
+                        v-model="userSubmittedLinks"
+                        name="URLs"
+                        description="Paste your URLs here (one URL per line)"
+                        placeholder="https://example.com"
+                        id="userSubmittedLinks"
+                        :error="errors.userSubmittedLinks"
+                    />
                     <div class="form-buttons">
                         <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
                         <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
                     </div>
+                    <p v-if="globalErrors" class="field-error">
+                        Batch creation failed. {{ globalErrors }}
+                    </p>
                 </div>
 
                 <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">

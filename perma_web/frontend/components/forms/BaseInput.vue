@@ -20,8 +20,11 @@ const props = defineProps({
             <span v-if="props.description" class="label-instruction">{{ props.description }}</span>
         </label>
         <slot></slot>
-        <template v-for="error in props.error">
-            <span class="help-block js-warning">{{ error }}</span>
-        </template>
+        
+        <span class="help-block js-warning" aria-live="assertive" role="alert">
+            <template v-for="error in props.error">
+                {{ error }}
+            </template>
+        </span>
     </div>
 </template>

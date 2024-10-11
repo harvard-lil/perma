@@ -40,6 +40,7 @@ watch(
         else if (errorMessage.includes("limit")) {
             globalStore.linksRemaining = 0;
             showUploadLink.value = false;
+            showGeneric.value = false;
         }
 
         else if (errorMessage.includes("subscription")) {
@@ -49,6 +50,11 @@ watch(
 
         else if (errorMessage.includes("Error 0") || errorMessage.includes("folder")) {
             showUploadLink.value = false;
+        }
+
+        else if (errorMessage.includes("account needs attention")) {
+            showUploadLink.value = false;
+            showGeneric.value = false;
         }
 
         else if (errorMessage.includes("Not a valid URL")) {
@@ -65,24 +71,22 @@ defineExpose({
 </script>
 
 <template>
-
-    <div class="container cont-fixed">
-        <div id="error-container">
-            <p class="message-large">{{ errorMessage }} <span v-if="showLoginLink">
-                    Please <a href='/login'>log in</a> to continue.
-                </span></p>
-            <p v-if="showGeneric" class="message">We’re unable to create your Perma Link.</p>
-            <template v-if="showUploadLink">
-                <template v-if="showDevPlayground">
-                    <p>You can <button @click.prevent="handleOpen">upload your own
-                            archive</button> or <a href="{{contact_url}}">contact
-                            us about this error.</a></p>
-                </template>
-                <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
-                        href="/contact">contact us
-                        about this error.</a></p>
+    <div id="error-container" role="alert" aria-live="assertive">
+        <p class="message">
+            {{ errorMessage }}
+            <template v-if="showLoginLink">Please <a href='/login'>log in</a> to continue.</template>
+            <template v-else-if="showGeneric">We’re unable to create your Perma Link.</template>
+        </p>
+        <template v-if="showUploadLink">
+            <template v-if="showDevPlayground">
+                <p>You can <button @click.prevent="handleOpen">upload your own
+                        archive</button> or <a href="{{contact_url}}">contact
+                        us about this error.</a></p>
             </template>
-        </div>
+            <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
+                    href="/contact">contact us
+                    about this error.</a></p>
+        </template>
     </div>
 
     <UploadForm

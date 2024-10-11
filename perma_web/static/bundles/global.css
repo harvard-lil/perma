@@ -7607,7 +7607,7 @@ button #addlink {
 }
 
 .dropdown .selector {
-  width: 100.3%;
+  width: 100%;
   text-align: left;
   font-size: 18px;
   font-weight: 200;
@@ -7676,6 +7676,8 @@ button #addlink {
   list-style: none;
   background-color: white;
   padding-bottom: 0px;
+  max-height: 50vh;
+  overflow-y: auto;
 }
 @media only screen and (min-width: 768px) {
   .dropdown .selector-menu {
@@ -8841,9 +8843,6 @@ figcaption + .img-responsive {
 }
 
 .label-affil {
-  width: 100%;
-  float: left;
-  text-align: left;
   border-color: transparent;
   border-top-width: 1px;
   border-bottom-width: 1px;
@@ -8888,49 +8887,40 @@ figcaption + .img-responsive {
     padding: 48px 32px;
   }
 }
+#linker .input-bar {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: row;
+      flex-direction: row;
+  -ms-flex-align: start;
+      align-items: start;
+}
 #linker input.form-priority-input {
+  -ms-flex: 1;
+      flex: 1;
   margin: 0;
-  width: 100%;
+  margin-right: 8px;
   padding: 16px 14px;
   height: auto;
   font-size: 16px;
 }
 @media only screen and (min-width: 768px) {
   #linker input.form-priority-input {
-    margin: 0;
-    width: 456px;
-    float: left;
     padding: 14px;
     height: auto;
     font-size: 20px;
   }
 }
-@media only screen and (min-width: 990px) {
-  #linker input.form-priority-input {
-    width: 680px;
-  }
-}
-@media only screen and (min-width: 1200px) {
-  #linker input.form-priority-input {
-    width: 888px;
-  }
-}
 #linker .wrapper {
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
   position: relative;
-  width: 100%;
   margin-top: 16px;
   text-align: center;
 }
 @media only screen and (min-width: 768px) {
   #linker .wrapper {
     margin-top: 0;
-    float: right;
-    width: 184px;
-  }
-}
-@media only screen and (min-width: 990px) {
-  #linker .wrapper {
-    width: 200px;
   }
 }
 #linker .form-priority-fieldset .btn {
@@ -8996,7 +8986,7 @@ figcaption + .img-responsive {
 #linker._isPrivate #organization_select_form .selector {
   background-color: transparent;
 }
-#linker._isPrivate #organization_select_form .dropdown.open .selector {
+#linker._isPrivate #organization_select_form.open .selector {
   color: #2D76EE;
   background-color: white;
 }
@@ -9011,7 +9001,6 @@ figcaption + .img-responsive {
 #linker #organization_select_form {
   margin-top: 24px;
   text-align: center;
-  float: left;
   width: 100%;
   max-width: none;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -9046,6 +9035,9 @@ figcaption + .img-responsive {
 }
 #linker #organization_select_form {
   margin-top: 40px;
+  text-align: left;
+  margin-top: 8px;
+  width: 100%;
 }
 #linker #organization_select_form .selector-affil:disabled {
   color: rgba(0, 0, 0, 0.5);
@@ -9053,22 +9045,16 @@ figcaption + .img-responsive {
 #linker #organization_select_form .selector-affil:disabled .links-remaining {
   background-color: rgba(0, 0, 0, 0.5);
 }
-#linker #organization_select_form .dropdown-affil {
-  float: left;
-  text-align: left;
-  margin-top: 8px;
-  width: 100%;
-}
 @media only screen and (min-width: 768px) {
+  #linker #organization_select_form {
+    margin-top: 0;
+  }
   #linker #organization_select_form .label-affil {
     width: 328px;
   }
   #linker #organization_select_form .dropdown-affil,
   #linker #organization_select_form .dropdown.open .selector-menu {
     width: 328px;
-  }
-  #linker #organization_select_form .dropdown-affil {
-    margin-top: 0;
   }
 }
 @media only screen and (min-width: 990px) {
@@ -9126,7 +9112,6 @@ figcaption + .img-responsive {
 }
 @media only screen and (min-width: 768px) {
   #error-container {
-    margin-top: 0;
     padding: 16px 8px 24px;
   }
 }

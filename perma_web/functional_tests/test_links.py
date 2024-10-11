@@ -56,7 +56,7 @@ def test_link_required(page, user, log_in_user) -> None:
     log_in_user(page, user)
 
     page.locator('#addlink').click()
-    expect(page.locator("p.message-large")).to_contain_text("URL cannot be empty")
+    expect(page.locator("#error-container")).to_contain_text("URL cannot be empty")
 
 def test_upload_nonexistent(page, user, log_in_user) -> None:
     """A modal should be displayed if the user input a domain we can't resolve"""
@@ -66,7 +66,7 @@ def test_upload_nonexistent(page, user, log_in_user) -> None:
     url_field.focus()
     url_field.type("https://fakedomain.fakething/")
     page.locator('#addlink').click()
-    expect(page.locator("p.message-large")).to_contain_text("Couldn't resolve domain.")
+    expect(page.locator("#error-container")).to_contain_text("Couldn't resolve domain.")
 
 def test_bookmarklet_redirect(page, user, log_in_user, urls) -> None:
     """Test that the URL parameter prepopulates the input field for the bookmarklet."""

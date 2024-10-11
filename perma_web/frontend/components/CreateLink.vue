@@ -152,36 +152,45 @@ defineExpose({
         <div class="container cont-full-bleed cont-sm-fixed">
             <form class="form-priority" :class="{ '_isPrivate': globalStore.selectedFolder.isPrivate }" id="linker">
                 <fieldset class="form-priority-fieldset">
-                    <input v-model="userLink" id="rawUrl" name="url"
-                        class="text-input select-on-click form-priority-input" type="text"
-                        placeholder="Paste your URL here." />
-                    <div class="wrapper">
-                        <button 
-                          @click.prevent="handleArchiveRequest" 
-                          class="btn btn-large btn-info _active-when-valid"
-                          :class="{ '_isWorking': !isReady }"
-                          id="addlink" type="submit"
-                        >
-                            <Spinner v-if="captureStatus === 'isValidating' || captureStatus === 'isQueued'" />
-                            <ProgressBar v-if="captureStatus === 'isCapturing'" :progress="userLinkProgressBar" style="height: 32px"/>
-                            {{ isReady ? "Create" : "Creating" }}
-                            {{ globalStore.selectedFolder.isPrivate ? "Private" : "" }}
-                            Perma Link
-                        </button>
-                        <p id="create-batch-links" v-if="isReady">
-                            or 
+                    <div class="input-bar">
+                        <input v-model="userLink" id="rawUrl" name="url"
+                            class="text-input select-on-click form-priority-input" type="text"
+                            placeholder="Paste your URL here." />
+                        <div class="wrapper">
                             <button 
-                                @click.prevent="batchDialogRef.handleOpen" 
-                                class="c-button"
-                                :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'"
+                            @click.prevent="handleArchiveRequest" 
+                            class="btn btn-large btn-info _active-when-valid"
+                            :class="{ '_isWorking': !isReady }"
+                            id="addlink" type="submit"
                             >
-                                create multiple links
+                                <Spinner v-if="captureStatus === 'isValidating' || captureStatus === 'isQueued'" />
+                                <ProgressBar v-if="captureStatus === 'isCapturing'" :progress="userLinkProgressBar" style="height: 32px"/>
+                                {{ isReady ? "Create" : "Creating" }}
+                                {{ globalStore.selectedFolder.isPrivate ? "Private" : "" }}
+                                Perma Link
                             </button>
-                        </p>
+                            <p id="create-batch-links" v-if="isReady">
+                                or 
+                                <button 
+                                    @click.prevent="batchDialogRef.handleOpen" 
+                                    class="c-button"
+                                    :class="globalStore.selectedFolder.isPrivate ? 'c-button--privateLink' : 'c-button--link'"
+                                >
+                                    create multiple links
+                                </button>
+                            </p>
+                        </div>
                     </div>
+                    <CaptureError
+                      v-if="captureErrorMessage"
+                      :errorMessage="captureErrorMessage"
+                      :captureGUID="captureGUID"
+                    />
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect"
-                        selectLabel="This Perma Link will be affiliated with" />
+                    <div v-if="!globalStore.userTypes.includes('individual')" style="display: flex; align-items: center;">
+                        <span class="label-affil" style="flex-shrink: 0; margin-right: 14px;">This Perma Link will be affiliated with</span>
+                        <FolderSelect style="flex-grow: 1" />
+                    </div>
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
                     :class="globalStore.userTypes === 'individual' && 'limit-true'">
@@ -195,10 +204,6 @@ defineExpose({
             </form><!--/#linker-->
         </div><!-- cont-full-bleed cont-sm-fixed -->
     </div><!-- container cont-full-bleed -->
-    <CaptureError 
-        v-if="captureErrorMessage"
-        :errorMessage="captureErrorMessage"
-        :captureGUID="captureGUID"
-    />
+
     <CreateLinkBatch ref="batchDialogRef" />
 </template>

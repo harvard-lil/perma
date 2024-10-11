@@ -17,7 +17,6 @@ if (!showDevPlayground) {
     const handleDispatch = (name, data) => {
         switch (name) {
             case "updateFolderSelection":
-                globalStore.additionalSubfolder = false
                 globalStore.selectedFolder = data
                 break;
             default:
