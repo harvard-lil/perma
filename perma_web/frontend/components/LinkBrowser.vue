@@ -8,11 +8,11 @@ import LinkList from './LinkList.vue';
   <div class="container cont-fixed manage-links">
     <div class="row">
       <div class="col-md-3 col-folders">
-        <LinkBatchHistory />
-        <FolderTree />
+        <LinkBatchHistory/>
+        <FolderTree/>
       </div>
       <div class="col-md-9 col-links">
-        <LinkList />
+        <LinkList/>
       </div>
     </div>
   </div>

@@ -10,7 +10,7 @@ export const useGlobalStore = defineStore('global', {
     userTypes: [],
     selectedFolder: {
       path: [],
-      folderId: '', 
+      folderId: '',
       orgId: '',
       sponsorId: '',
       isPrivate: false,
@@ -63,13 +63,13 @@ export const useGlobalStore = defineStore('global', {
       }
       if (this.userTypes.includes('sponsored')) {
         this.setFromAPI('sponsoredFolders', fetchDataOrError(`/folders/${current_user.top_level_folders[1].id}/folders/`))
-    }
+      }
     },
     async setFromAPI(attribute, fetchPromise) {
-      const { data, error } = await fetchPromise
+      const {data, error} = await fetchPromise
 
       if (error) {
-          this.fetchErrorMessage = error
+        this.fetchErrorMessage = error
       }
 
       this[attribute] = data.objects

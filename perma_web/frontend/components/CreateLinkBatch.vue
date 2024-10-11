@@ -39,7 +39,7 @@ let progressInterval;
 
 const dialogRef = ref('')
 const handleOpen = () => {
-    dialogRef.value.handleDialogOpen();
+  dialogRef.value.handleDialogOpen();
 }
 
 const showBatchHistory = (id) => {
@@ -52,95 +52,97 @@ const showBatchHistory = (id) => {
 }
 
 const handleReset = () => {
-    clearInterval(progressInterval)
-    userSubmittedLinks.value = ''
-    batchCaptureJobs.value = []
-    batchDialogTitle.value = defaultDialogTitle
-    batchCaptureStatus.value = "ready"
-    errors.value = {}
-    globalErrors.value = null
+  clearInterval(progressInterval)
+  userSubmittedLinks.value = ''
+  batchCaptureJobs.value = []
+  batchDialogTitle.value = defaultDialogTitle
+  batchCaptureStatus.value = "ready"
+  errors.value = {}
+  globalErrors.value = null
 }
 
 const handleClose = () => {
-    handleReset()
-    dialogRef.value.handleDialogClose();
+  handleReset()
+  dialogRef.value.handleDialogClose();
 }
 
 const handleClick = (e) => {
-    // Close dialog if users click outside of the inner dialog container
-    // For example, clicks on the dialog's ::backdrop pseudo-element will trigger this
-    if (e.target.classList.contains('c-dialog')) {
-        handleClose();
-    }
+  // Close dialog if users click outside of the inner dialog container
+  // For example, clicks on the dialog's ::backdrop pseudo-element will trigger this
+  if (e.target.classList.contains('c-dialog')) {
+    handleClose();
+  }
 }
 
 const handleBatchCaptureRequest = async () => {
-    if (!["ready", "urlError", "folderSelectionError"].includes(batchCaptureStatus.value)) {
-        return
+  if (!["ready", "urlError", "folderSelectionError"].includes(batchCaptureStatus.value)) {
+    return
+  }
+
+  batchCaptureStatus.value = 'isValidating'
+  errors.value = {}
+  globalErrors.value = null
+
+  const formData = {
+    urls: userSubmittedLinks.value.split("\n").map(s => {
+      return s.trim()
+    }).filter(Boolean),
+    target_folder: globalStore.selectedFolder.folderId,
+    human: true,
+  }
+
+  if (!formData.urls.length) {
+    errors.value.userSubmittedLinks = [missingUrlError]
+    batchCaptureStatus.value = 'ready'
+  }
+  if (!formData.target_folder) {
+    errors.value.folder = [folderError]
+    batchCaptureStatus.value = 'ready'
+  }
+
+  if (Object.keys(errors.value).length > 0) {
+    return
+  }
+
+  const {data, error, response} = await fetchDataOrError("/archives/batches/", {
+    method: "POST",
+    data: formData
+  });
+
+  if (error) {
+    if (data) {
+      errors.value = data
+    } else {
+      globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
     }
+    batchCaptureStatus.value = 'ready'
+    return;
+  }
 
-    batchCaptureStatus.value = 'isValidating'
-    errors.value = {}
-    globalErrors.value = null
+  batchCaptureId.value = data.id
+  batchCaptureStatus.value = 'isQueued'
+  batchDialogTitle.value = "Link Batch Details"
+  batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
 
-    const formData = {
-        urls: userSubmittedLinks.value.split("\n").map(s => { return s.trim() }).filter(Boolean),
-        target_folder: globalStore.selectedFolder.folderId,
-        human: true,
-    }
+  // poll for updates
+  handleBatchDetailsFetch()
+  progressInterval = setInterval(handleBatchDetailsFetch, 2000)
 
-    if (!formData.urls.length) {
-        errors.value.userSubmittedLinks = [missingUrlError]
-        batchCaptureStatus.value = 'ready'
-    }
-    if (!formData.target_folder) {
-        errors.value.folder = [folderError]
-        batchCaptureStatus.value = 'ready'
-    }
-
-    if (Object.keys(errors.value).length > 0) {
-        return
-    }
-
-    const { data, error, response } = await fetchDataOrError("/archives/batches/", {
-        method: "POST",
-        data: formData
-    });
-
-    if (error) {
-        if (data) {
-            errors.value = data
-        } else {
-            globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
-        }
-        batchCaptureStatus.value = 'ready'
-        return;
-    }
-
-    batchCaptureId.value = data.id
-    batchCaptureStatus.value = 'isQueued'
-    batchDialogTitle.value = "Link Batch Details"
-    batchCSVUrl.value = `/api/v1/archives/batches/${data.id}/export`
-
-    // poll for updates
-    handleBatchDetailsFetch()
-    progressInterval = setInterval(handleBatchDetailsFetch, 2000)
-
-    // show new links in links list
-    globalStore.components.linkList.fetchLinks();
+  // show new links in links list
+  globalStore.components.linkList.fetchLinks();
 };
 
-const handleBatchError = ({ error, errorType }) => {
-    clearInterval(progressInterval)
-    batchCaptureStatus.value = errorType
+const handleBatchError = ({error, errorType}) => {
+  clearInterval(progressInterval)
+  batchCaptureStatus.value = errorType
 }
 
 const handleBatchDetailsFetch = async () => {
 
-  const { data, error } = await fetchDataOrError(`/archives/batches/${batchCaptureId.value}`);
+  const {data, error} = await fetchDataOrError(`/archives/batches/${batchCaptureId.value}`);
 
   if (error) {
-    handleBatchError({ error, errorType: 'urlError' })
+    handleBatchError({error, errorType: 'urlError'})
     return
   }
 
@@ -203,8 +205,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-    globalStore.components.batchDialog = null
-    clearInterval(progressInterval)
+  globalStore.components.batchDialog = null
+  clearInterval(progressInterval)
 });
 
 defineExpose({
@@ -215,49 +217,49 @@ defineExpose({
 </script>
 
 <template>
-    <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
-        <div class="modal-dialog modal-content modal-lg">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only" id="loading">Close</span>
-                </button>
-                <h3 id="batch-modal-title" class="modal-title">{{ batchDialogTitle }}</h3>
-            </div>
-            <div class="modal-body">
-                <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
-                    <BaseInput
-                        name="Folder"
-                        description="These Perma Links will be affiliated with"
-                        :error="errors.folder"
-                    >
-                        <FolderSelect />
-                    </BaseInput>
-                    <TextAreaInput
-                        v-model="userSubmittedLinks"
-                        name="URLs"
-                        description="Paste your URLs here (one URL per line)"
-                        placeholder="https://example.com"
-                        id="userSubmittedLinks"
-                        :error="errors.userSubmittedLinks"
-                    />
-                    <div class="form-buttons">
-                        <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
-                        <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
-                    </div>
-                    <p v-if="globalErrors" class="field-error">
-                        Batch creation failed. {{ globalErrors }}
-                    </p>
-                </div>
-
-                <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
-                    <Spinner />
-                </div>
-
-                <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary
-                    :showBatchCSVUrl="batchCaptureStatus === 'isCompleted'" :batchCSVUrl
-                    :targetFolder="targetFolderName" />
-            </div>
+  <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
+    <div class="modal-dialog modal-content modal-lg">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only" id="loading">Close</span>
+        </button>
+        <h3 id="batch-modal-title" class="modal-title">{{ batchDialogTitle }}</h3>
+      </div>
+      <div class="modal-body">
+        <div id="batch-create-input" v-if="batchCaptureStatus === 'ready'">
+          <BaseInput
+              name="Folder"
+              description="These Perma Links will be affiliated with"
+              :error="errors.folder"
+          >
+            <FolderSelect/>
+          </BaseInput>
+          <TextAreaInput
+              v-model="userSubmittedLinks"
+              name="URLs"
+              description="Paste your URLs here (one URL per line)"
+              placeholder="https://example.com"
+              id="userSubmittedLinks"
+              :error="errors.userSubmittedLinks"
+          />
+          <div class="form-buttons">
+            <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
+            <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
+          </div>
+          <p v-if="globalErrors" class="field-error">
+            Batch creation failed. {{ globalErrors }}
+          </p>
         </div>
-    </Dialog>
+
+        <div v-if="batchCaptureStatus === 'isValidating'" style="height: 200px;">
+          <Spinner/>
+        </div>
+
+        <LinkBatchDetails v-if="showBatchDetails" :handleClose :batchCaptureJobs :batchCaptureSummary
+                          :showBatchCSVUrl="batchCaptureStatus === 'isCompleted'" :batchCSVUrl
+                          :targetFolder="targetFolderName"/>
+      </div>
+    </div>
+  </Dialog>
 </template>

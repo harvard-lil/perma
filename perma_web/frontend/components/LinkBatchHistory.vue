@@ -42,14 +42,14 @@ const handleBatchClick = (e, batch) => {
   globalStore.components.batchDialog.showBatchHistory(batch.id)
 }
 
-function human_timestamp (datetime) {
-    return new Date(datetime).toLocaleString("en-us", {
-        year:   "numeric",
-        month:  "long",
-        day:    "numeric",
-        hour:   "numeric",
-        minute: "2-digit"
-    });
+function human_timestamp(datetime) {
+  return new Date(datetime).toLocaleString("en-us", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
 
 const toggleExpanded = () => {

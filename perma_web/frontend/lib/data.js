@@ -12,7 +12,7 @@ export const fetchDataOrError = async (url, options = {}) => {
     url += `?${new URLSearchParams(options.params)}`;
     delete options.params;
   }
-  
+
   // add csrf and content type headers
   if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(options.method)) {
     options.headers = {
@@ -59,12 +59,12 @@ export const useFetch = (url) => {
     isLoading.value = true;
 
     const {data: dataValue, error: errorValue} = await fetchDataOrError(url, options);
-    
+
     data.value = dataValue;
     error.value = errorValue;
     hasError.value = !!errorValue;
     isLoading.value = false;
   };
 
-  return { isLoading, hasError, error, data, fetchData }
+  return {isLoading, hasError, error, data, fetchData}
 }
