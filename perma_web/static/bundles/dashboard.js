@@ -37379,7 +37379,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     placeholder: "Paste your URL here."
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_2__["vModelText"], $setup.userLink]]), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_2__["withModifiers"])($setup.handleArchiveRequest, ["prevent"]),
-    class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["btn btn-large btn-info _active-when-valid", {
+    class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["btn btn-large btn-info _active-when-valid capture-button", {
       '_isWorking': !$setup.isReady
     }]),
     id: "addlink",

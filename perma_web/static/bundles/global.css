@@ -8923,12 +8923,12 @@ figcaption + .img-responsive {
     margin-top: 0;
   }
 }
-#linker .form-priority-fieldset .btn {
+#linker .capture-button {
   width: 100%;
   margin-top: 2px;
   margin-bottom: 8px;
 }
-#linker .form-priority-fieldset .btn._isWorking {
+#linker .capture-button._isWorking {
   font-size: 13px;
   background-color: transparent !important;
   text-align: center;
@@ -8937,7 +8937,7 @@ figcaption + .img-responsive {
   border-color: transparent !important;
   opacity: 1;
 }
-#linker .form-priority-fieldset .btn._isWorking:hover, #linker .form-priority-fieldset .btn._isWorking:focus {
+#linker .capture-button._isWorking:hover, #linker .capture-button._isWorking:focus {
   color: #2D76EE !important;
   outline: none !important;
 }
@@ -8974,13 +8974,13 @@ figcaption + .img-responsive {
     width: 240px;
   }
 }
-#linker._isPrivate .form-priority-fieldset .btn {
+#linker._isPrivate .capture-button {
   background-color: #C65300;
 }
-#linker._isPrivate .form-priority-fieldset .btn:hover, #linker._isPrivate .form-priority-fieldset .btn:focus {
+#linker._isPrivate .capture-button:hover, #linker._isPrivate .capture-button:focus {
   background-color: #DD671A !important;
 }
-#linker._isPrivate .form-priority-fieldset .btn._isWorking {
+#linker._isPrivate .capture-button._isWorking {
   background-color: transparent !important;
 }
 #linker._isPrivate #organization_select_form .selector {
@@ -10329,7 +10329,6 @@ footer #footer-nav a, footer #boilerplate a {
 }
 
 .manage-links {
-  margin-top: 32px;
   box-shadow: 0 15px 15px -15px rgba(0, 0, 0, 0.1);
 }
 .manage-links > .row {

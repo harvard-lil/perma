@@ -2591,7 +2591,7 @@ figcaption + .img-responsive {
       margin-top: 0;
     }
   }
-  .form-priority-fieldset .btn {
+  .capture-button {
     width: 100%;
     margin-top: 2px;
     margin-bottom: $grid;
@@ -2640,7 +2640,7 @@ figcaption + .img-responsive {
         width: $grid * 30;
       }
     }
-    .form-priority-fieldset .btn {
+    .capture-button {
       background-color: $color-orange-a;
       &:hover, &:focus {
         background-color: $color-orange !important;
@@ -3809,7 +3809,6 @@ footer {
 // Link browser
 
 .manage-links {
-  margin-top: $grid * 4;
   @include bottom-shadow;
 
   > .row {

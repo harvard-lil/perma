@@ -159,7 +159,7 @@ defineExpose({
             <div class="wrapper">
               <button
                   @click.prevent="handleArchiveRequest"
-                  class="btn btn-large btn-info _active-when-valid"
+                  class="btn btn-large btn-info _active-when-valid capture-button"
                   :class="{ '_isWorking': !isReady }"
                   id="addlink" type="submit"
               >
