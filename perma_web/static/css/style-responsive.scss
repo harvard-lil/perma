@@ -2786,7 +2786,6 @@ figcaption + .img-responsive {
   text-align: center;
   margin-top: $grid * 3;
   @include respond-tablet {
-    margin-top: 0;
     padding: $grid * 2 $grid $grid * 3;
   }
   @include respond-desktop {
