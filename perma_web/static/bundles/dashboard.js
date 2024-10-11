@@ -25112,8 +25112,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var pinia__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(530);
 /* harmony import */ var _components_App_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(545);
 /* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(692);
-/* harmony import */ var _lib_consts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(715);
-
 
 
 
@@ -25122,23 +25120,6 @@ var app = Object(vue__WEBPACK_IMPORTED_MODULE_0__["createApp"])(_components_App_
 var pinia = Object(pinia__WEBPACK_IMPORTED_MODULE_1__["createPinia"])();
 app.use(pinia);
 app.mount('#vue-app');
-if (!_lib_consts__WEBPACK_IMPORTED_MODULE_4__["showDevPlayground"]) {
-  // Handle updates the legacy application needs to make to the store
-  var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_3__["useGlobalStore"])();
-  var handleDispatch = function handleDispatch(name, data) {
-    switch (name) {
-      case "updateFolderSelection":
-        globalStore.selectedFolder = data;
-        break;
-      default:
-        console.warn("Unhandled dispatch: ".concat(name));
-        break;
-    }
-  };
-  document.addEventListener("vueDispatch", function (e) {
-    return handleDispatch(e.detail.name, e.detail.data);
-  });
-}
 
 /***/ }),
 /* 523 */
@@ -46717,9 +46698,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(523);
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["Toast"]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["CreateLink"]), $setup.showDevPlayground ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createBlock"])($setup["LinkBrowser"], {
-    key: 0
-  })) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)], 64 /* STABLE_FRAGMENT */);
+  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["Toast"]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["CreateLink"]), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createVNode"])($setup["LinkBrowser"])], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -46744,8 +46723,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _LinkBrowser_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(818);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(523);
 /* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(692);
-/* harmony import */ var _lib_consts__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(715);
-
 
 
 
@@ -46773,9 +46750,6 @@ __webpack_require__.r(__webpack_exports__);
       onBeforeMount: vue__WEBPACK_IMPORTED_MODULE_3__["onBeforeMount"],
       get useGlobalStore() {
         return _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["useGlobalStore"];
-      },
-      get showDevPlayground() {
-        return _lib_consts__WEBPACK_IMPORTED_MODULE_5__["showDevPlayground"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
@@ -52045,25 +52019,14 @@ var _hoisted_4 = {
 var _hoisted_5 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
   href: "{{contact_url}}"
 }, "contact us about this error.", -1 /* HOISTED */);
-var _hoisted_6 = {
-  key: 1
-};
-var _hoisted_7 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
-  id: "upload-form-button"
-}, "upload your own archive", -1 /* HOISTED */);
-var _hoisted_8 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
-  href: "/contact"
-}, "contact us about this error.", -1 /* HOISTED */);
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($props.errorMessage) + " ", 1 /* TEXT */), $setup.showLoginLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
     key: 0
   }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("Please "), _hoisted_3, Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" to continue.")], 64 /* STABLE_FRAGMENT */)) : $setup.showGeneric ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
     key: 1
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("We’re unable to create your Perma Link.")], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
-    key: 0
-  }, [$setup.showDevPlayground ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("You can "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("We’re unable to create your Perma Link.")], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("You can "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_0__["withModifiers"])($setup.handleOpen, ["prevent"])
-  }, "upload your own archive"), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), _hoisted_5])) : (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_6, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("You can "), _hoisted_7, Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), _hoisted_8]))], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showDevPlayground && $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createBlock"])($setup["UploadForm"], {
+  }, "upload your own archive"), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), _hoisted_5])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createBlock"])($setup["UploadForm"], {
     key: 0,
     ref: "uploadDialogRef",
     captureGUID: $props.captureGUID
@@ -52092,8 +52055,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(523);
 /* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(692);
 /* harmony import */ var _UploadForm_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(733);
-/* harmony import */ var _lib_consts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(715);
-
 
 
 
@@ -52164,10 +52125,7 @@ __webpack_require__.r(__webpack_exports__);
       get useGlobalStore() {
         return _stores_globalStore__WEBPACK_IMPORTED_MODULE_2__["useGlobalStore"];
       },
-      UploadForm: _UploadForm_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
-      get showDevPlayground() {
-        return _lib_consts__WEBPACK_IMPORTED_MODULE_4__["showDevPlayground"];
-      }
+      UploadForm: _UploadForm_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
       enumerable: false,
@@ -62990,8 +62948,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(692);
 /* harmony import */ var _vueuse_core__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(758);
 /* harmony import */ var pinia__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(530);
-/* harmony import */ var _lib_consts__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(715);
-
 
 
 
@@ -63115,23 +63071,10 @@ __webpack_require__.r(__webpack_exports__);
       var folder = JSON.parse(folderJSON);
       var orgId = folder.sponsored_by ? null : folder.id;
       var folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.shared_folder.id;
-      if (_lib_consts__WEBPACK_IMPORTED_MODULE_7__["showDevPlayground"]) {
-        globalStore.components.jstree.handleSelectionChange({
-          orgId: orgId,
-          folderId: folderId
-        });
-      } else {
-        // Call a custom event that triggers triggerOnWindow function
-        var updateSelections = new CustomEvent("dropdown.selectionChange", {
-          detail: {
-            data: {
-              orgId: orgId,
-              folderId: folderId
-            }
-          }
-        });
-        window.dispatchEvent(updateSelections);
-      }
+      globalStore.components.jstree.handleSelectionChange({
+        orgId: orgId,
+        folderId: folderId
+      });
       handleClose();
     };
     var __returned__ = {
@@ -63165,9 +63108,6 @@ __webpack_require__.r(__webpack_exports__);
       },
       get storeToRefs() {
         return pinia__WEBPACK_IMPORTED_MODULE_6__["storeToRefs"];
-      },
-      get showDevPlayground() {
-        return _lib_consts__WEBPACK_IMPORTED_MODULE_7__["showDevPlayground"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
@@ -63451,7 +63391,7 @@ var defaultDialogTitle = "Create a Link Batch";
     var handleBatchCaptureRequest = /*#__PURE__*/function () {
       var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_5___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_6___default.a.mark(function _callee() {
         var _context, _context2, _context3;
-        var formData, _yield$fetchDataOrErr, data, error, response, batchCreated;
+        var formData, _yield$fetchDataOrErr, data, error, response;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_6___default.a.wrap(function _callee$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
@@ -63517,12 +63457,7 @@ var defaultDialogTitle = "Create a Link Batch";
               progressInterval = _babel_runtime_corejs3_core_js_stable_set_interval__WEBPACK_IMPORTED_MODULE_12___default()(handleBatchDetailsFetch, 2000);
 
               // show new links in links list
-              if (_lib_consts__WEBPACK_IMPORTED_MODULE_24__["showDevPlayground"]) {
-                globalStore.components.linkList.fetchLinks();
-              } else {
-                batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-                window.dispatchEvent(batchCreated);
-              }
+              globalStore.components.linkList.fetchLinks();
             case 27:
             case "end":
               return _context4.stop();
@@ -63541,7 +63476,7 @@ var defaultDialogTitle = "Create a Link Batch";
     };
     var handleBatchDetailsFetch = /*#__PURE__*/function () {
       var _ref4 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_5___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_6___default.a.mark(function _callee2() {
-        var _yield$fetchDataOrErr2, data, error, captureJobs, steps, allJobs, totalProgress, maxProgress, percentComplete, progressSummary, batchCreated;
+        var _yield$fetchDataOrErr2, data, error, captureJobs, steps, allJobs, totalProgress, maxProgress, percentComplete, progressSummary;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_6___default.a.wrap(function _callee2$(_context7) {
           while (1) switch (_context7.prev = _context7.next) {
             case 0:
@@ -63602,12 +63537,7 @@ var defaultDialogTitle = "Create a Link Batch";
                 batchCaptureStatus.value = 'isCompleted';
 
                 // show new links in links list
-                if (_lib_consts__WEBPACK_IMPORTED_MODULE_24__["showDevPlayground"]) {
-                  globalStore.components.linkList.fetchLinks();
-                } else {
-                  batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-                  window.dispatchEvent(batchCreated);
-                }
+                globalStore.components.linkList.fetchLinks();
               }
             case 18:
             case "end":
@@ -63696,9 +63626,6 @@ var defaultDialogTitle = "Create a Link Batch";
       },
       get validStates() {
         return _lib_consts__WEBPACK_IMPORTED_MODULE_24__["validStates"];
-      },
-      get showDevPlayground() {
-        return _lib_consts__WEBPACK_IMPORTED_MODULE_24__["showDevPlayground"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {

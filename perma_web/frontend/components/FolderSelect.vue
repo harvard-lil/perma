@@ -3,7 +3,6 @@ import { computed, ref, nextTick } from 'vue'
 import { useGlobalStore } from '../stores/globalStore'
 import { onClickOutside } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-import { showDevPlayground } from '../lib/consts'
 
 const globalStore = useGlobalStore()
 const { selectedFolder } = storeToRefs(globalStore)
@@ -108,13 +107,7 @@ const handleSelection = (e) => {
     const folder = JSON.parse(folderJSON)
     const orgId = folder.sponsored_by ? null : folder.id
     const folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.shared_folder.id
-    if (showDevPlayground) {
-        globalStore.components.jstree.handleSelectionChange({orgId, folderId})
-    } else {
-        // Call a custom event that triggers triggerOnWindow function
-        const updateSelections = new CustomEvent("dropdown.selectionChange", { detail: { data: {orgId, folderId} } });
-        window.dispatchEvent(updateSelections);
-    }
+    globalStore.components.jstree.handleSelectionChange({orgId, folderId})
     handleClose()
 }
 </script>

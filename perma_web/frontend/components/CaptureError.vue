@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue'
 import { useGlobalStore } from '../stores/globalStore';
 import UploadForm from './UploadForm.vue';
-import { showDevPlayground } from '../lib/consts'
 
 const globalStore = useGlobalStore()
 const showUploadLink = ref()
@@ -78,19 +77,14 @@ defineExpose({
             <template v-else-if="showGeneric">We’re unable to create your Perma Link.</template>
         </p>
         <template v-if="showUploadLink">
-            <template v-if="showDevPlayground">
-                <p>You can <button @click.prevent="handleOpen">upload your own
-                        archive</button> or <a href="{{contact_url}}">contact
-                        us about this error.</a></p>
-            </template>
-            <p v-else>You can <button id="upload-form-button">upload your own archive</button> or <a
-                    href="/contact">contact us
-                    about this error.</a></p>
+            <p>You can <button @click.prevent="handleOpen">upload your own
+                    archive</button> or <a href="{{contact_url}}">contact
+                    us about this error.</a></p>
         </template>
     </div>
 
     <UploadForm
-        v-if="showDevPlayground && showUploadLink"
+        v-if="showUploadLink"
         ref="uploadDialogRef"
         :captureGUID="captureGUID"
     />

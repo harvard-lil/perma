@@ -15,7 +15,7 @@ import {
   getErrorFromStatus,
   defaultError
 } from '../lib/errors';
-import { transitionalStates, validStates, showDevPlayground } from "../lib/consts";
+import { transitionalStates, validStates } from "../lib/consts";
 
 const globalStore = useGlobalStore()
 
@@ -127,12 +127,7 @@ const handleBatchCaptureRequest = async () => {
     progressInterval = setInterval(handleBatchDetailsFetch, 2000)
 
     // show new links in links list
-    if (showDevPlayground) {
-        globalStore.components.linkList.fetchLinks();
-    } else {
-        const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-        window.dispatchEvent(batchCreated);
-    }
+    globalStore.components.linkList.fetchLinks();
 };
 
 const handleBatchError = ({ error, errorType }) => {
@@ -199,12 +194,7 @@ const handleBatchDetailsFetch = async () => {
     batchCaptureStatus.value = 'isCompleted';
 
     // show new links in links list
-    if (showDevPlayground) {
-      globalStore.components.linkList.fetchLinks();
-    } else {
-      const batchCreated = new CustomEvent("BatchLinkModule.batchCreated");
-      window.dispatchEvent(batchCreated);
-    }
+    globalStore.components.linkList.fetchLinks();
   }
 };
 
