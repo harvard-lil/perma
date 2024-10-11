@@ -187,8 +187,10 @@ defineExpose({
                       :captureGUID="captureGUID"
                     />
                     <LinkCount v-if="globalStore.userTypes.includes('individual')" />
-                    <FolderSelect v-if="!globalStore.userTypes.includes('individual')" option="customSelect"
-                        selectLabel="This Perma Link will be affiliated with" />
+                    <div v-if="!globalStore.userTypes.includes('individual')" style="display: flex; align-items: center;">
+                        <span class="label-affil" style="flex-shrink: 0; margin-right: 14px;">This Perma Link will be affiliated with</span>
+                        <FolderSelect style="flex-grow: 1" />
+                    </div>
                 </fieldset>
                 <p v-if="!isToolsReminderSuppressed" id="browser-tools-message" class="u-pb-150"
                     :class="globalStore.userTypes === 'individual' && 'limit-true'">

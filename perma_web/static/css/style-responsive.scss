@@ -1448,7 +1448,7 @@ button {
 
 .dropdown {
   .selector {
-    width: 100.3%;
+    width: 100%;
     text-align: left;
     font-size: 18px;
     font-weight: 200;
@@ -1496,6 +1496,8 @@ button {
   .selector-menu {
     @include style-dropdown;
     padding-bottom: 0px;
+    max-height: 50vh;
+    overflow-y: auto;
     a {
       font-size: 18px;
       font-weight: 200;
@@ -2521,9 +2523,6 @@ figcaption + .img-responsive {
 }
 
 .label-affil {
-  width: 100%;
-  float: left;
-  text-align: left;
   border-color: transparent;
   border-top-width: 1px;
   border-bottom-width: 1px;
@@ -2565,39 +2564,31 @@ figcaption + .img-responsive {
       padding: $grid * 6 $grid * 4;
     }
   }
+  .input-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+  }
   input.form-priority-input {
+    flex: 1;
     margin: 0;
-    width: 100%;
+    margin-right: $grid;
     padding: 16px 14px;
     height: auto;
     font-size: 16px;
     @include respond-tablet {
-      margin: 0;
-      width: $grid * 57;
-      float: left;
       padding: 14px;
       height: auto;
       font-size: 20px;
     }
-    @include respond-desktop {
-      width: $grid * 85;
-    }
-    @include respond-wide {
-      width: $grid * 111;
-    }
   }
   .wrapper {
+    flex-shrink: 0;
     position: relative;
-    width: 100%;
     margin-top: $double;
     text-align: center;
     @include respond-tablet {
       margin-top: 0;
-      float: right;
-      width: $grid * 23;
-    }
-    @include respond-desktop {
-      width: $grid * 25;
     }
   }
   .form-priority-fieldset .btn {
@@ -2662,7 +2653,7 @@ figcaption + .img-responsive {
       .selector {
         background-color: transparent;
       }
-      .dropdown.open {
+      &.open {
         .selector {
           color: $color-blue;
           background-color: white;
@@ -2684,7 +2675,6 @@ figcaption + .img-responsive {
   #organization_select_form {
     margin-top: $grid * 3;
     text-align: center;
-    float: left;
     width: 100%;
     max-width: none;
     font-family: $font-hed-alt;
@@ -2716,6 +2706,9 @@ figcaption + .img-responsive {
   }
   #organization_select_form {
     margin-top: $grid * 5;
+    text-align: left;
+    margin-top: $grid;
+    width: 100%;
     .selector-affil:disabled {
       color:$color-trans-darkgray;
 
@@ -2723,18 +2716,10 @@ figcaption + .img-responsive {
         background-color:$color-trans-darkgray;
       }
     }
-    .dropdown-affil {
-      float: left;
-      text-align: left;
-      margin-top: $grid;
-      width: 100%;
-    }
 
     @include respond-tablet {
       @include link-dropdown-widths(656px, $grid * 41);
-      .dropdown-affil {
-        margin-top: 0;
-      }
+      margin-top: 0;
     }
     @include respond-desktop {
       @include link-dropdown-widths(894px, $grid * 46);

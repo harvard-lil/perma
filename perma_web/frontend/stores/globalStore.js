@@ -19,7 +19,6 @@ export const useGlobalStore = defineStore('global', {
     },
     userOrganizations: [],
     sponsoredFolders: [],
-    additionalSubfolder: false,
     subscriptionStatus: '',
     maxSize: 0,
     components: {
