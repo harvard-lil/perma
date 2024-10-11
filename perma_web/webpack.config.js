@@ -22,7 +22,6 @@ module.exports = {
     ],
 
     // each of these entry points will also include global.js, so should be listed in CommonsChunkPlugin below
-    'create': './static/js/create',
     'single-link-permissions': './static/js/single-link-permissions.module',
     'link-delete-confirm': './static/js/link-delete-confirm',
     'developer-docs': './static/js/developer-docs',
@@ -82,18 +81,6 @@ module.exports = {
             ]
           ],  // add polyfills for <es6 browsers
           presets: ['@babel/preset-env']
-        }
-      },
-
-      // handlebars template
-      {
-        test: /\.handlebars$/,
-        loader: 'handlebars-loader',
-        options: {
-          runtime: 'handlebars/dist/handlebars.min.js',
-          helperDirs: [
-            __dirname + "/static/js/hbs/helpers",
-          ]
         }
       },
 

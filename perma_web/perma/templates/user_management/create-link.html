@@ -6,7 +6,7 @@
 {% block bodyFlags %}{% endblock bodyFlags %}
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 {% block styles %}
-  {% render_bundle 'create' 'css' %}
+  {% render_bundle 'dashboard' 'css' %}
 {% endblock %}
 
 {% block mainContent %}

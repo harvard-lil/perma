@@ -93,22 +93,6 @@
       "name": "cb3625efa7f7697e0609b1ee54353306.eot",
       "path": "/perma/perma_web/static/bundles/cb3625efa7f7697e0609b1ee54353306.eot"
     },
-    "create.css": {
-      "name": "create.css",
-      "path": "/perma/perma_web/static/bundles/create.css"
-    },
-    "create.css.map": {
-      "name": "create.css.map",
-      "path": "/perma/perma_web/static/bundles/create.css.map"
-    },
-    "create.js": {
-      "name": "create.js",
-      "path": "/perma/perma_web/static/bundles/create.js"
-    },
-    "create.js.map": {
-      "name": "create.js.map",
-      "path": "/perma/perma_web/static/bundles/create.js.map"
-    },
     "d8472f7b6012706fc028021e5a654843.ttf": {
       "name": "d8472f7b6012706fc028021e5a654843.ttf",
       "path": "/perma/perma_web/static/bundles/d8472f7b6012706fc028021e5a654843.ttf"
@@ -202,12 +186,6 @@
     "admin-stats": [
       "admin-stats.js",
       "admin-stats.js.map"
-    ],
-    "create": [
-      "create.css",
-      "create.js",
-      "create.css.map",
-      "create.js.map"
     ],
     "dashboard": [
       "dashboard.css",
