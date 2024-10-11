@@ -28,7 +28,7 @@ module.exports = {
     'admin-stats': './static/js/admin-stats',
 
     // for the new Vue frontend
-    'dashboard': './frontend/pages/dashboard.js',
+    'dashboard': './static/frontend/pages/dashboard.js',
   },
 
   output: {

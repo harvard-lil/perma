@@ -9,8 +9,8 @@ const emit = defineEmits(['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeColla
 
 const folderTreeRef = ref(null);
 
-let APIModule = require('../../static/js/helpers/api.module.js');
-let Helpers = require('../../static/js/helpers/general.helpers.js');
+let APIModule = require('../../js/helpers/api.module.js');
+let Helpers = require('../../js/helpers/general.helpers.js');
 
 let localStorageKey = Helpers.variables.localStorageKey;
 let allowedEventsCount = 0;
