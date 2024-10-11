@@ -217,7 +217,5 @@
       "single-link-permissions.js",
       "single-link-permissions.js.map"
     ]
-  },
-  "error": "ModuleNotFoundError",
-  "message": "Module not found: Error: Can't resolve '../../static/js/helpers/api.module.js' in '/perma/perma_web/static/frontend/components'"
+  }
 }
