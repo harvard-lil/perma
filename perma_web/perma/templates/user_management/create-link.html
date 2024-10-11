@@ -6,64 +6,13 @@
 {% block bodyFlags %}{% endblock bodyFlags %}
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 {% block styles %}
-  {% render_bundle 'create' 'css' %}
+  {% render_bundle 'dashboard' 'css' %}
 {% endblock %}
 
 {% block mainContent %}
 
  <!-- vue app -->
 <div id="vue-app"></div>
-
-{% flag "developer-playground" %}
-{% else %}
-<!-- Your Perma Links -->
-{% if messages %}
-<div class="container cont-fixed">
-  <div class="row">
-    {% for message in messages %}
-      <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-<div class="container cont-fixed manage-links">
-  <div class="row">
-    <div class="col-md-3 col-folders">
-      <div id="batch-list-container" class="_hide">
-        <div id="batch-list-toggle">
-          <a role="button" class="dropdown" data-toggle="collapse" href="#batch-history" aria-expanded="false" aria-controls="batch-history">
-            <h3>Link Batch History</h3>
-          </a>
-        </div>
-        <div id="batch-history" class="collapse">
-        </div>
-      </div>
-      <div class="panel-heading">
-        Folders
-        <span class="buttons">
-          <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder" title="Delete Selected Folder"></a>
-          <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder" title="Rename Selected Folder"></a>
-          <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder"></a>
-        </span>
-      </div>
-      <div id="folder-tree"></div>
-    </div>
-
-    <div class="col-md-9 col-links">
-      <div class="container link-headers">
-        <div class="row">
-          <div class="col-xs-12">
-            <h3 id="link-list-header" class="body-ah">Your Perma Links</h3>
-          </div>
-        </div>
-      </div>
-      {% include "user_management/includes/search_form.html" with search_placeholder="Search" %}
-      <div class="container item-rows"></div>
-    </div>
-  </div>
-</div>
-<!-- / Your Perma Links -->
-{% endflag %}
 
 {% endblock %}
 
@@ -90,10 +39,6 @@
         max_size = {{ max_size }};
   </script>
 
-{% flag "developer-playground" %}
-{% else %}
-  {% render_bundle 'create' 'js' %}
-{% endflag %}
 {% render_bundle 'dashboard' 'js' %}
 
 {% endblock %}

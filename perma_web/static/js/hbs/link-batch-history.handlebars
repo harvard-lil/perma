@@ -1,9 +1,0 @@
-<ul class="item-container">
-{{# each link_batches}}
-  <li class="item-subtitle">
-    <a href="#" data-batch={{ id }} data-folderpath="{{ target_folder.path }}" data-org="{{ target_folder.organization}}"><span class="sr-only">Batch created </span>{{ human_timestamp started_on }}</a>
-  </li>
-{{/each}}
-</ul>
-{{#if next}}<a href="#" id="all-batches">all batches</a>{{/if}}
-

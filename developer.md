@@ -166,14 +166,6 @@ We have several types of users:
 
 Users that belong to organizations can belong to many, including organizations belonging to multiple registrars. Users who belong to a registrar may only belong to a single registrar. Users should not simultaneously belong to both organizations and to a registrar.
 
-
-### Javascript templates
-
-Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
-
-Our templates are pre-compiled by webpack. The source files are in `perma_web > static > js > hbs`
-
-
 ### Sending email
 
 *All emails* should be sent using `perma.email.send_user_email` (for an email from us to a user) or

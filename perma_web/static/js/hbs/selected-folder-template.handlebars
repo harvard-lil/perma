@@ -1,6 +1,0 @@
-{{ path }}
-{{#if private}}
-  <span class="ui-private"></span>
-{{/if}}{{#if links_remaining}}
-  <span class="links-remaining">{{#compare links_remaining "==" 'Infinity' }}unlimited{{ else }}{{ links_remaining }}{{/compare}}</span>
-{{/if}}
