@@ -182,6 +182,7 @@ def log_in_user(urls):
 
 import factory
 from factory.django import DjangoModelFactory, Password
+from faker import Faker
 import humps
 
 from decimal import Decimal
@@ -193,6 +194,7 @@ from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Ca
 from perma.utils import pp_date_from_post
 
 
+FAKE = Faker()
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 # this gives us a variable that we can use unhashed in tests
 TEST_USER_PASSWORD = 'pass'
@@ -252,6 +254,12 @@ class RegistrarFactory(DjangoModelFactory):
 class PendingRegistrarFactory(RegistrarFactory):
     status = 'pending'
 
+    pending_users = factory.RelatedFactoryList(
+        'conftest.LinkUserFactory',
+        size=1,
+        factory_related_name='pending_registrar'
+    )
+
 
 @register_factory
 class DeniedRegistrarFactory(RegistrarFactory):
@@ -283,13 +291,22 @@ class OrganizationFactory(DjangoModelFactory):
 
 
 @register_factory
+class OrganizationWithLinksFactory(OrganizationFactory):
+    links = factory.RelatedFactoryList(
+        'conftest.LinkFactory',
+        size=1,
+        factory_related_name='organization'
+    )
+
+
+@register_factory
 class LinkUserFactory(DjangoModelFactory):
     class Meta:
         model = LinkUser
 
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-    email = factory.Sequence(lambda n: 'user%s@example.com' % n)
+    email = factory.LazyAttribute(lambda o: f'{o.first_name}_{o.last_name}@example.com')
 
     # Default to confirmed and active in the fixtures for convenience
     is_active = True
@@ -506,6 +523,19 @@ def perma_client():
                 return super().generic(*args, **kwargs)
 
     return UserClient()
+
+
+@pytest.fixture
+def user_data():
+    first_name = FAKE.first_name()
+    last_name = FAKE.last_name()
+    email = f"{first_name}_{last_name}@example.com"
+    return {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "normalized_email": email.lower()
+    }
 
 
 @pytest.fixture

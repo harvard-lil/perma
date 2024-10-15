@@ -17,6 +17,224 @@ from django.test import override_settings
 from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 
+from conftest import submit_form
+
+
+###
+### REGISTRAR A/E/D VIEWS ###
+###
+
+def test_admin_can_create_registrar(client, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        'user_management_manage_registrar',
+        data={
+            'a-name':'test_views_registrar',
+            'a-email':'test@test.com',
+            'a-website':'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='test_views_registrar')
+    )
+
+
+def test_admin_can_update_registrar(client, admin_user, registrar):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_update_registrar(client, registrar_user):
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar_user.registrar.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
+        },
+        success_url=reverse('settings_affiliations'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_cannot_update_unrelated_registrar(client, registrar, registrar_user):
+    assert registrar_user.registrar_id != registrar.id
+    client.force_login(registrar_user)
+    response = client.get(
+        reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def test_admin_can_approve_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status':'approved'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="approved").exists()
+    )
+
+
+def test_admin_can_deny_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status': 'denied'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="denied").exists()
+    )
+
+
+###
+### ORGANIZATION A/E/D VIEWS ###
+###
+
+def test_admin_can_create_organization(client, registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        'user_management_manage_organization',
+        data={
+            'a-name': 'new_name',
+            'a-registrar': registrar.pk
+        },
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_create_organization(client, registrar_user):
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        'user_management_manage_organization',
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_admin_can_update_organization(client, organization, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[organization.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-registrar': organization.registrar.pk
+        },
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_update_organization(client, registrar_user):
+    org = registrar_user.registrar.organizations.first()
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[org.pk]),
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_org_user_can_update_organization(client, org_user):
+    org = org_user.organizations.first()
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[org.pk]),
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_cannot_update_unrelated_organization(client, registrar_user, organization):
+    client.force_login(registrar_user)
+    response = client.get(
+        reverse('user_management_manage_single_organization', args=[organization.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def test_org_user_cannot_update_unrelated_organization(client, org_user, organization_factory):
+    other_org = organization_factory()
+    client.force_login(org_user)
+    response = client.get(
+        reverse('user_management_manage_single_organization', args=[other_org.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def _delete_organization(client, user, org, expect="success"):
+    url = reverse('user_management_manage_single_organization_delete', args=[org.pk])
+    client.force_login(user)
+    if expect == 'success':
+        return submit_form(
+            client,
+            url=url,
+            success_url=reverse('user_management_manage_organization'),
+            success_query=Organization.objects.filter(user_deleted=True, pk=org.pk)
+        )
+    else:
+        response = submit_form(
+            client,
+            url=url
+        )
+        assert response.status_code == expect
+        return response
+
+
+def test_admin_user_can_delete_organization_without_links(client, admin_user, organization):
+    _delete_organization(client, admin_user, organization)
+    _delete_organization(client, admin_user, organization, 404)
+
+
+def test_registrar_user_cannot_delete_unrelated_organization(client, registrar_user, organization):
+    _delete_organization(client, registrar_user, organization, 403)
+
+
+def test_registrar_user_can_delete_organization_without_links(client, registrar_user):
+    org = registrar_user.registrar.organizations.first()
+    _delete_organization(client, registrar_user, org)
+    _delete_organization(client, registrar_user, org, 404)
+
+
+def test_org_user_cannot_delete_unrelated_organization(client, org_user, organization_factory):
+    org = organization_factory()
+    _delete_organization(client, org_user, org, 403)
+
+
+def test_org_user_can_delete_organization_without_links(client, multi_registrar_org_user):
+    # Use multi_registrar_org_user so that the user is still an org user, even after the org is deleted
+    user = multi_registrar_org_user
+    org = user.organizations.first()
+    _delete_organization(client, user, org)
+    _delete_organization(client, user, org, 404)
+
+
+def test_even_admin_cannot_delete_organization_with_links(client, admin_user, organization_with_links):
+    _delete_organization(client, admin_user, organization_with_links, 403)
+
 
 class UserManagementViewsTestCase(PermaTestCase):
 
@@ -140,60 +358,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'deactivated account'), 0)
         self.assertEqual(response.count(b'User must activate account'), 1)
 
-    def test_admin_can_create_registrar(self):
-        self.submit_form(
-            'user_management_manage_registrar', {
-                'a-name':'test_views_registrar',
-                'a-email':'test@test.com',
-                'a-website':'http://test.com'
-            },
-            user=self.admin_user,
-            success_url=reverse('user_management_manage_registrar'),
-            success_query=Registrar.objects.filter(name='test_views_registrar'))
 
-    def test_admin_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.admin_user,
-                         reverse_kwargs={'args':[self.unrelated_registrar.pk]},
-                         data={
-                              'a-name': 'new_name',
-                              'a-email': 'test@test.com2',
-                              'a-website': 'http://test.com'},
-                         success_url=reverse('user_management_manage_registrar'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.registrar_user,
-                         reverse_kwargs={'args': [self.registrar.pk]},
-                         data={
-                             'a-name': 'new_name',
-                             'a-email': 'test@test.com2',
-                             'a-website': 'http://test.com'},
-                         success_url=reverse('settings_affiliations'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_cannot_update_unrelated_registrar(self):
-        self.get('user_management_manage_single_registrar',
-                 user=self.registrar_user,
-                 reverse_kwargs={'args': [self.unrelated_registrar.pk]},
-                 require_status_code=403)
-
-    def test_admin_can_approve_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status':'approved'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="approved").exists())
-
-    def test_admin_can_deny_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status': 'denied'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="denied").exists())
 
     ### ORGANIZATION A/E/D VIEWS ###
 
@@ -436,96 +601,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual("Found: 2 users", count)
 
         # user status filter tested in test_registrar_user_list_filters
-
-
-
-    def test_admin_can_create_organization(self):
-        self.submit_form('user_management_manage_organization',
-                         user=self.admin_user,
-                         data={
-                             'a-name': 'new_name',
-                             'a-registrar': self.registrar.pk},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_can_create_organization(self):
-        self.submit_form('user_management_manage_organization',
-                         user=self.registrar_user,
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_admin_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.admin_user,
-                         reverse_kwargs={'args':[self.organization.pk]},
-                         data={
-                             'a-name': 'new_name',
-                             'a-registrar': self.registrar.pk},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.registrar_user,
-                         reverse_kwargs={'args':[self.organization.pk]},
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_org_user_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.organization_user,
-                         reverse_kwargs={'args': [self.organization.pk]},
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_cannot_update_unrelated_organization(self):
-        self.get('user_management_manage_single_organization',
-                 user=self.registrar_user,
-                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=403)
-
-    def test_org_user_cannot_update_unrelated_organization(self):
-        self.get('user_management_manage_single_organization',
-                 user=self.organization_user,
-                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=403)
-
-    def _delete_organization(self, user, should_succeed=True):
-        if should_succeed:
-            self.submit_form('user_management_manage_single_organization_delete',
-                              user=user,
-                              reverse_kwargs={'args': [self.deletable_organization.pk]},
-                              success_url=reverse('user_management_manage_organization'),
-                              success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
-        else:
-            self.submit_form('user_management_manage_single_organization_delete',
-                              user=user,
-                              reverse_kwargs={'args': [self.deletable_organization.pk]},
-                              require_status_code=404)
-
-    def test_admin_user_can_delete_empty_organization(self):
-        self._delete_organization(self.admin_user)
-        self._delete_organization(self.admin_user, False)
-
-    def test_registrar_user_can_delete_empty_organization(self):
-        self._delete_organization(self.deletable_organization.registrar.users.first())
-        self._delete_organization(self.deletable_organization.registrar.users.first(), False)
-
-    def test_org_user_can_delete_empty_organization(self):
-        self._delete_organization(self.deletable_organization.users.first())
-        self._delete_organization(self.deletable_organization.users.first(), False)
-
-    def test_cannot_delete_nonempty_organization(self):
-        self.submit_form('user_management_manage_single_organization_delete',
-                         user=self.admin_user,
-                         reverse_kwargs={'args': [self.organization.pk]},
-                         require_status_code=404)
 
 
     ### USER A/E/D VIEWS ###
