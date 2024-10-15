@@ -182,6 +182,7 @@ def log_in_user(urls):
 
 import factory
 from factory.django import DjangoModelFactory, Password
+from faker import Faker
 import humps
 
 from decimal import Decimal
@@ -193,6 +194,7 @@ from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Ca
 from perma.utils import pp_date_from_post
 
 
+FAKE = Faker()
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 # this gives us a variable that we can use unhashed in tests
 TEST_USER_PASSWORD = 'pass'
@@ -521,6 +523,19 @@ def perma_client():
                 return super().generic(*args, **kwargs)
 
     return UserClient()
+
+
+@pytest.fixture
+def user_data():
+    first_name = FAKE.first_name()
+    last_name = FAKE.last_name()
+    email = f"{first_name}_{last_name}@example.com"
+    return {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "normalized_email": email.lower()
+    }
 
 
 @pytest.fixture
