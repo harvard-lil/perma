@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useGlobalStore } from '../stores/globalStore';
+import { ref, onMounted } from 'vue';
+import $ from 'jquery';
 import 'jstree';
 import 'jstree-css/default/style.min.css';
 
@@ -9,10 +9,10 @@ const emit = defineEmits(['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeColla
 
 const folderTreeRef = ref(null);
 
-let APIModule = require('../../js/helpers/api.module.js');
-let Helpers = require('../../js/helpers/general.helpers.js');
+import { request } from '../../js/helpers/api.module.js';
+import { variables, jsonLocalStorage, triggerOnWindow, informUser } from '../../js/helpers/general.helpers.js';
 
-let localStorageKey = Helpers.variables.localStorageKey;
+let localStorageKey = variables.localStorageKey;
 let allowedEventsCount = 0;
 let lastSelectedFolder = null;
 let hoveredNode = null;  // track currently hovered node in jsTree
@@ -31,26 +31,6 @@ onMounted(() => {
 
 /* move to foldertree */
 
-// local storage
-
-const jsonLocalStorage = {
-  getItem: function (key) {
-    var result = localStorage.getItem(key);
-    try {
-      result = JSON.parse(result);
-    } catch (e) {
-      result
-    }
-    return result;
-  },
-  setItem: function (key, value) {
-    if (typeof value !== "string") {
-      value = JSON.stringify(value);
-    }
-    localStorage.setItem(key, value);
-  }
-}
-
 // When a user selects a folder, we store that choice in Local Storage
 // and attempt to reselect on subsequent page loads.
 var ls = {
@@ -61,7 +41,7 @@ var ls = {
   // introduce to user support: we don't want to have to walk people through clearing local
   // storage if unexpected behavior surfaces)
   getAll: function () {
-    let folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+    let folders = jsonLocalStorage.getItem(localStorageKey);
     return folders || {};
   },
   getCurrent: function () {
@@ -200,7 +180,7 @@ function sendSelectionChangeEvent(node) {
     data.readOnly = node.data.read_only;
     data.path = folderTree.get_path(node);
   }
-  Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
+  triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
 }
 
 function handleShowFoldersEvent(currentFolder, callback) {
@@ -250,7 +230,7 @@ function apiFoldersToJsTreeFolders(apiFolders) {
 function loadSingleFolder(folderId, callback) {
   // Grab a single folder ID from the server and pass back to jsTree.
   // Temporarily limit response to 500; TODO: handle pagination
-  APIModule.request("GET", `/folders/${folderId}/folders/?limit=500`).done(function (data) {
+  request("GET", `/folders/${folderId}/folders/?limit=500`).done(function(data){
     callback(apiFoldersToJsTreeFolders(data.objects));
   });
 }
@@ -267,7 +247,7 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
   // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
   // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
   // Temporarily limit response to 500; TODO: handle pagination
-  $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", `/folders/${folderId}/folders/?limit=500`, null, {"error": null})))
+  $.when.apply($, subfoldersToPreload.map(folderId => request("GET", `/folders/${folderId}/folders/?limit=500`, null, {"error": null})))
 
       // When all API requests have returned, loop through the responses and build the folder tree:
       .done(function () {
@@ -392,7 +372,7 @@ function domTreeInit() {
           error: (errorInfo) => {
             if (errorInfo.reason.substr(0, 11) != "User config" // "User config" means we canceled the operation ourself while we talk to the server
                 && errorInfo.reason != "Moving parent inside child") {  // error is self-explanatory
-              Helpers.informUser(errorInfo.reason);
+              informUser(errorInfo.reason);
             }
           },
 
@@ -450,9 +430,9 @@ function domTreeInit() {
     // (without this, doesn't select saved folders on load.)
     selectSavedFolder();
 
-  }).on('ready.jstree', function (e, data) {
-    Helpers.triggerOnWindow("folderTree.ready");
-  })
+    }).on('ready.jstree', function (e, data) {
+      triggerOnWindow("folderTree.ready");
+    })
 
       // track currently hovered node in the hoveredNode variable:
       .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
@@ -461,24 +441,24 @@ function domTreeInit() {
   folderTree = $.jstree.reference(folderTreeRef.value);
 }
 
-function createFolder(parentFolderID, newName) {
-  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
+function createFolder (parentFolderID, newName) {
+  return request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
 }
 
-function renameFolder(folderID, newName) {
-  return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
+function renameFolder (folderID, newName) {
+  return request("PATCH", "/folders/" + folderID + "/", {name: newName});
 }
 
-function moveFolder(parentID, childID) {
-  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+function moveFolder (parentID, childID) {
+  return request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
 }
 
-function deleteFolder(folderID) {
-  return APIModule.request("DELETE", "/folders/" + folderID + "/");
+function deleteFolder (folderID) {
+  return request("DELETE", "/folders/" + folderID + "/");
 }
 
-function moveLink(folderID, linkID) {
-  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
+function moveLink (folderID, linkID) {
+  return request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
     $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
     // once we're done moving the link, hide it from the current folder
     $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();

@@ -52,7 +52,7 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
 
     # Only run the webpack background process in debug mode -- with debug False, dev server uses static assets,
     # and running webpack just messes up the webpack stats file.
-    if settings.DEBUG:
+    if settings.DJANGO_VITE['default']['dev_mode']:
         commands.append('npm start')
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import * as Spinner from 'spin.js'
-import { prefersReducedMotion } from "../lib/helpers";
+import Spinner from 'spin.js'
+import { prefersReducedMotion } from "../lib/helpers"
 
 const { size, config } = defineProps({
   // spinner will be in a div with this length and width in pixels

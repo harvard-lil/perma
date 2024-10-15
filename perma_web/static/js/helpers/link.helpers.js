@@ -1,6 +1,6 @@
-var DOMHelpers = require('./dom.helpers.js');
-var APIModule = require('./api.module.js');
-require('./local-datetime.js'); // add .format() to Date object
+import { changeHTML, getValue } from './dom.helpers.js'
+import { request } from './api.module.js';
+import './local-datetime.js' // add .format() to Date object
 
 export function findFaviconURL(linkObj) {
   if (!linkObj.captures) return '';
@@ -60,7 +60,7 @@ export function generateLinkFields(link, query) {
 var timeouts = {};
 // save changes in a given text box to the server
 export function saveInput(guid, inputElement, statusElement, name, callback) {
-  DOMHelpers.changeHTML(statusElement, 'Saving...');
+  changeHTML(statusElement, 'Saving...');
 
   var timeoutKey = guid+name;
   if(timeouts[timeoutKey])
@@ -69,9 +69,9 @@ export function saveInput(guid, inputElement, statusElement, name, callback) {
   // use a setTimeout so notes are only saved once every half second
   timeouts[timeoutKey] = setTimeout(function () {
     var data = {};
-    data[name] = DOMHelpers.getValue(inputElement);
-    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function(data){
-      DOMHelpers.changeHTML(statusElement, 'Saved!');
+    data[name] = getValue(inputElement);
+    request("PATCH", '/archives/' + guid + '/', data).done(function(data){
+      changeHTML(statusElement, 'Saved!');
       if (callback)
         callback(data);
     });

@@ -66,6 +66,7 @@ STATIC_URL = '/static/'         # URL to serve static files
 # where to look for static files (in addition to app/static/)
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
+    os.path.join(PROJECT_ROOT, 'static_vite'),
 )
 
 STATICFILES_FINDERS = (         # how to look for static files
@@ -74,11 +75,12 @@ STATICFILES_FINDERS = (         # how to look for static files
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-WEBPACK_LOADER = {
-    'DEFAULT': {
-        'BUNDLE_DIR_NAME': 'bundles/',
-        'STATS_FILE': os.path.join(PROJECT_ROOT, 'webpack-stats.json'),
-    }
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": True,
+        "manifest_path": os.path.join(PROJECT_ROOT, 'static_vite', 'manifest.json'),
+        "ws_client_url": "/@vite/client",
+    },
 }
 
 # user-generated files / default_storage config
@@ -175,7 +177,7 @@ INSTALLED_APPS = (
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
-    'webpack_loader',  # track frontend assets
+    'django_vite',  # track frontend assets
     'axes',  # limit login attempts
     'django_json_widget',
     'waffle',  # feature flags

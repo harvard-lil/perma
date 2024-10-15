@@ -1,0 +1,2 @@
+var i=require("./helpers/api.module.js");$(function(){$("button.delete-confirm").click(function(){var e=$(this),r=e.text();return e.hasClass("disabled")||(e.addClass("disabled"),e.text("Deleting link..."),i.request("DELETE","/archives/"+archive.guid+"/",null,{success:function(){window.location=url_link_browser+"/?deleted="+archive.guid},error:function(t){e.removeClass("disabled"),e.text(r),i.showError(t)}})),!1})});
+//# sourceMappingURL=link-delete-confirm-6KTaD-QX.js.map

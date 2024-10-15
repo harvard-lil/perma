@@ -1,4 +1,4 @@
-{% load render_bundle from webpack_loader %}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en-us">
   <head>
     <title>Perma{% block title %}{% endblock %}</title>
@@ -14,8 +14,6 @@
 
     {# Python variables for use in Javascript #}
     {% include 'js_config.html' %}
-
-    {% render_bundle 'single-link' 'css' %}
 
     {% block header_scripts %}{% endblock %}
     {% block styles %}{% endblock %}

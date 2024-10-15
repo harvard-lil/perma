@@ -1,0 +1,2 @@
+var t=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function n(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}function a(e){let o=document.cookie.match(new RegExp("(?:^|; )"+e.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g,"\\$1")+"=([^;]*)"));return o?decodeURIComponent(o[1]):void 0}function l(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}export{a,t as b,l as c,n as g};
+//# sourceMappingURL=general.helpers-DS1UbbHo.js.map
