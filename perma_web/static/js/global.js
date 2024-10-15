@@ -1,3 +1,6 @@
+import '@/css/style-responsive.scss';
+import '@/vendors/font-awesome/font-awesome.min.css';
+
 import * as Sentry from "@sentry/browser";
 
 if (settings.USE_SENTRY) {
@@ -14,24 +17,18 @@ if (settings.USE_SENTRY) {
   });
 }
 
-var FastClick = require('fastclick');
+import * as Helpers from './helpers/general.helpers.js';
+import './helpers/fix-links.js';  // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 
-var Helpers = require('./helpers/general.helpers.js');
-require('./helpers/fix-links.js');  // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
-
-
-require('bootstrap-js/dropdown');  // make menus work
-require('bootstrap-js/collapse');  // make menu toggle for small screen work
-require('bootstrap-js/carousel');  // make carousels work
-require('bootstrap-js/tab');       // make tabs work (used on /manage/stats)
+import 'bootstrap-js/dropdown';  // make menus work
+import 'bootstrap-js/collapse';  // make menu toggle for small screen work
+import 'bootstrap-js/carousel';  // make carousels work
+import 'bootstrap-js/tab';       // make tabs work (used on /manage/stats)
 
 // We used to use modernizr but have currently dropped it.
 // If we want to include it again this is where to put it --
 //    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
 // https://www.npmjs.com/package/modernizr-webpack-plugin
-
-// initialize fastclick
-FastClick.attach(document.body);
 
 // set up jquery to properly set CSRF header on AJAX post
 // via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
