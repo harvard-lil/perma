@@ -45,9 +45,9 @@ def test_admin_can_update_registrar(client, admin_user, registrar):
         client,
         url=reverse('user_management_manage_single_registrar', args=[registrar.pk]),
         data={
-          'a-name': 'new_name',
-          'a-email': 'test@test.com2',
-          'a-website': 'http://test.com'
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
         },
         success_url=reverse('user_management_manage_registrar'),
         success_query=Registrar.objects.filter(name='new_name')
@@ -60,9 +60,9 @@ def test_registrar_can_update_registrar(client, registrar_user):
         client,
         url=reverse('user_management_manage_single_registrar', args=[registrar_user.registrar.pk]),
         data={
-         'a-name': 'new_name',
-         'a-email': 'test@test.com2',
-         'a-website': 'http://test.com'
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
         },
         success_url=reverse('settings_affiliations'),
         success_query=Registrar.objects.filter(name='new_name')
@@ -108,12 +108,12 @@ def test_admin_can_create_organization(client, registrar, admin_user):
     submit_form(
         client,
         'user_management_manage_organization',
-         data={
-             'a-name': 'new_name',
-             'a-registrar': registrar.pk
-         },
-         success_url=reverse('user_management_manage_organization'),
-         success_query=Organization.objects.filter(name='new_name')
+        data={
+            'a-name': 'new_name',
+            'a-registrar': registrar.pk
+        },
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
     )
 
 
@@ -122,9 +122,9 @@ def test_registrar_can_create_organization(client, registrar_user):
     submit_form(
         client,
         'user_management_manage_organization',
-         data={'a-name': 'new_name'},
-         success_url=reverse('user_management_manage_organization'),
-         success_query=Organization.objects.filter(name='new_name')
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
     )
 
 
@@ -134,8 +134,8 @@ def test_admin_can_update_organization(client, organization, admin_user):
         client,
         url=reverse('user_management_manage_single_organization', args=[organization.pk]),
         data={
-         'a-name': 'new_name',
-         'a-registrar': organization.registrar.pk
+            'a-name': 'new_name',
+            'a-registrar': organization.registrar.pk
         },
         success_url=reverse('user_management_manage_organization'),
         success_query=Organization.objects.filter(name='new_name')
