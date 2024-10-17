@@ -188,7 +188,9 @@ defineExpose({
               :captureGUID="captureGUID"
           />
           <LinkCount v-if="globalStore.userTypes.includes('individual')"/>
-          <div v-if="!globalStore.userTypes.includes('individual')" style="display: flex; align-items: center;">
+          <div v-if="!globalStore.userTypes.includes('individual')"
+              id="organization_select_form"
+              style="display: flex; align-items: center;">
             <span class="label-affil" style="flex-shrink: 0; margin-right: 14px;">This Perma Link will be affiliated with</span>
             <FolderSelect style="flex-grow: 1"/>
           </div>

@@ -2719,7 +2719,6 @@ figcaption + .img-responsive {
 
     @include respond-tablet {
       @include link-dropdown-widths(656px, $grid * 41);
-      margin-top: 0;
     }
     @include respond-desktop {
       @include link-dropdown-widths(894px, $grid * 46);
