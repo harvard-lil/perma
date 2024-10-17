@@ -2565,9 +2565,11 @@ figcaption + .img-responsive {
     }
   }
   .input-bar {
-    display: flex;
-    flex-direction: row;
-    align-items: start;
+    @include respond-tablet {
+      display: flex;
+      flex-direction: row;
+      align-items: start;
+    }
   }
   input.form-priority-input {
     flex: 1;
