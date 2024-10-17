@@ -2707,7 +2707,6 @@ figcaption + .img-responsive {
   #organization_select_form {
     margin-top: $grid * 5;
     text-align: left;
-    margin-top: $grid;
     width: 100%;
     .selector-affil:disabled {
       color:$color-trans-darkgray;
@@ -3181,6 +3180,10 @@ button#addlink,
 
 #batch-create-input {
   margin-top: 20px;
+
+  .selector-affil {
+    margin-top: 8px;
+  }
 }
 
 #batch-target {
