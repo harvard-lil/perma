@@ -165,10 +165,11 @@ const toggleLinkDetails = async (e, link, focusSelector) => {
     folderOptions.value = options;
   }
 
+  if (focusSelector){
   // focus handling: if using .toggle-details button, focus stays on the button
-  // if clicking on the row, focus moves to the first input field
-  await nextTick()
-  itemContainer.querySelector(focusSelector)?.focus()
+    await nextTick()
+    itemContainer.querySelector(focusSelector)?.focus()
+  }
 }
 
 const moveLink = async (folderID, guid) => {
@@ -267,7 +268,7 @@ function handleMouseUp (e, link) {
   if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
     return;
 
-  toggleLinkDetails(e, link, `#link-title-${link.guid}`);
+  toggleLinkDetails(e, link);
 }
 
 /*** Infinite scroll setup ***/
