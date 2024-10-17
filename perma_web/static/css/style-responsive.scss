@@ -2716,8 +2716,23 @@ figcaption + .img-responsive {
       }
     }
 
+    .label-affil {
+      margin-bottom: 8px;
+    }
+
     @include respond-tablet {
+      display: flex;
+      align-items: center;
       @include link-dropdown-widths(656px, $grid * 41);
+
+      .label-affil {
+        flex-shrink: 0;
+        margin-bottom: 0;
+      }
+
+      .dropdown-affil {
+        flex-grow: 1;
+      }
     }
     @include respond-desktop {
       @include link-dropdown-widths(894px, $grid * 46);
