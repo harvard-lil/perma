@@ -3834,6 +3834,7 @@ footer {
 // Link browser
 
 .manage-links {
+  margin-top: $grid * 4;
   @include bottom-shadow;
 
   > .row {
