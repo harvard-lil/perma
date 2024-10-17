@@ -3199,6 +3199,12 @@ button#addlink,
   .selector-affil {
     margin-top: 8px;
   }
+
+  .selector-menu {
+    @include respond-tablet {
+      top: $grid * 6;
+    }
+  }
 }
 
 #batch-target {
