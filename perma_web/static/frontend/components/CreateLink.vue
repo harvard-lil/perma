@@ -188,7 +188,7 @@ defineExpose({
               :captureGUID="captureGUID"
           />
           <LinkCount v-if="globalStore.userTypes.includes('individual')"/>
-          <div v-if="!globalStore.userTypes.includes('individual')" id="organization_select_form">
+          <div v-if="!globalStore.userTypes.includes('individual')" id="organization_select_wrapper">
             <div class="label-affil">This Perma Link will be affiliated with</div>
             <FolderSelect/>
           </div>

@@ -102,7 +102,7 @@
   @include respond-tablet {
     margin-top: 2px;
     position: absolute;
-    top: $grid * 4;
+    top: $grid * 6;
   }
   li { margin-bottom: 0; }
   .dropdown-item, a {
@@ -2671,11 +2671,14 @@ figcaption + .img-responsive {
     }
   }
 
+  .links-remaining-message,
+  #browser-tools-message {
+    margin-top: $grid * 3;
+  }
 
   .links-remaining-message,
   #browser-tools-message,
   #organization_select_form {
-    margin-top: $grid * 3;
     text-align: center;
     width: 100%;
     max-width: none;
@@ -2706,8 +2709,31 @@ figcaption + .img-responsive {
       }
     }
   }
-  #organization_select_form {
+
+  #organization_select_wrapper {
     margin-top: $grid * 5;
+
+    .label-affil {
+      margin-bottom: 8px;
+    }
+
+    @include respond-tablet {
+      display: flex;
+      align-items: center;
+
+      .label-affil {
+        flex-shrink: 0;
+        margin-bottom: 0;
+        margin-right: 14px;
+      }
+
+      .dropdown-affil {
+        flex-grow: 1;
+      }
+    }
+  }
+
+  #organization_select_form {
     text-align: left;
     width: 100%;
     .selector-affil:disabled {
@@ -2718,24 +2744,8 @@ figcaption + .img-responsive {
       }
     }
 
-    .label-affil {
-      margin-bottom: 8px;
-    }
+    @include link-dropdown-widths(656px, $grid * 41);
 
-    @include respond-tablet {
-      display: flex;
-      align-items: center;
-      @include link-dropdown-widths(656px, $grid * 41);
-
-      .label-affil {
-        flex-shrink: 0;
-        margin-bottom: 0;
-      }
-
-      .dropdown-affil {
-        flex-grow: 1;
-      }
-    }
     @include respond-desktop {
       @include link-dropdown-widths(894px, $grid * 46);
     }
@@ -3198,14 +3208,8 @@ button#addlink,
 #batch-create-input {
   margin-top: 20px;
 
-  .selector-affil {
+  #organization_select_form {
     margin-top: 8px;
-  }
-
-  .selector-menu {
-    @include respond-tablet {
-      top: $grid * 6;
-    }
   }
 }
 

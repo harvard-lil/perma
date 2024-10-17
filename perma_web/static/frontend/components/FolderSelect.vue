@@ -112,6 +112,7 @@ const handleSelection = (e) => {
 
 <template>
   <div
+      id="organization_select_form"
       ref="selectContainerRef"
       @keydown.home.prevent="handleFocus(0)"
       @keydown.end.prevent="handleFocus(folders.length)"
