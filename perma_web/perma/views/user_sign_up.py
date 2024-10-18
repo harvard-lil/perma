@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def libraries(request):
+def sign_up_libraries(request):
     """
     Info for libraries, allow them to request accounts
     """
