@@ -123,7 +123,7 @@ defineExpose({
         </h3>
       </div>
       <p v-if="props.captureGUID" class="modal-description">
-        This will update the Perma Link you have created.
+        This will update the Perma Link you were trying to create.
       </p>
       <p v-else class="modal-description">
         This will create a new Perma Link.
