@@ -218,7 +218,7 @@ defineExpose({
 
 <template>
   <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="dialogRef">
-    <div class="modal-dialog modal-content modal-lg">
+    <div id="batch-modal" class="modal-dialog modal-content modal-lg">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
           <span aria-hidden="true">&times;</span>

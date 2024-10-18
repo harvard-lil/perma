@@ -102,7 +102,7 @@
   @include respond-tablet {
     margin-top: 2px;
     position: absolute;
-    top: $grid * 4;
+    top: $grid * 6;
   }
   li { margin-bottom: 0; }
   .dropdown-item, a {
@@ -2565,9 +2565,11 @@ figcaption + .img-responsive {
     }
   }
   .input-bar {
-    display: flex;
-    flex-direction: row;
-    align-items: start;
+    @include respond-tablet {
+      display: flex;
+      flex-direction: row;
+      align-items: start;
+    }
   }
   input.form-priority-input {
     flex: 1;
@@ -2669,11 +2671,14 @@ figcaption + .img-responsive {
     }
   }
 
+  .links-remaining-message,
+  #browser-tools-message {
+    margin-top: $grid * 3;
+  }
 
   .links-remaining-message,
   #browser-tools-message,
   #organization_select_form {
-    margin-top: $grid * 3;
     text-align: center;
     width: 100%;
     max-width: none;
@@ -2704,10 +2709,32 @@ figcaption + .img-responsive {
       }
     }
   }
-  #organization_select_form {
+
+  #organization_select_wrapper {
     margin-top: $grid * 5;
+
+    .label-affil {
+      margin-bottom: 8px;
+    }
+
+    @include respond-tablet {
+      display: flex;
+      align-items: center;
+
+      .label-affil {
+        flex-shrink: 0;
+        margin-bottom: 0;
+        margin-right: 14px;
+      }
+
+      .dropdown-affil {
+        flex-grow: 1;
+      }
+    }
+  }
+
+  #organization_select_form {
     text-align: left;
-    margin-top: $grid;
     width: 100%;
     .selector-affil:disabled {
       color:$color-trans-darkgray;
@@ -2717,10 +2744,8 @@ figcaption + .img-responsive {
       }
     }
 
-    @include respond-tablet {
-      @include link-dropdown-widths(656px, $grid * 41);
-      margin-top: 0;
-    }
+    @include link-dropdown-widths(656px, $grid * 41);
+
     @include respond-desktop {
       @include link-dropdown-widths(894px, $grid * 46);
     }
@@ -3182,6 +3207,10 @@ button#addlink,
 
 #batch-create-input {
   margin-top: 20px;
+
+  #organization_select_form {
+    margin-top: 8px;
+  }
 }
 
 #batch-target {
@@ -3809,6 +3838,7 @@ footer {
 // Link browser
 
 .manage-links {
+  margin-top: $grid * 4;
   @include bottom-shadow;
 
   > .row {
@@ -3916,11 +3946,7 @@ footer {
 
 .col-folders, #folder-tree {
   @media (max-width: $width-desktop) {
-    margin-bottom: $double;
-    // override IE-10 compatible JS on mobile
-    // to improve experience for users w/ few folders
-    height: 30vh !important;
-    padding-bottom: 5ex !important;
+    height: 50vh;
   }
 }
 
@@ -4029,12 +4055,9 @@ footer {
   text-align: center;
   font-weight: 200;
   font-size: 24px;
-  margin-top: $double;
+  margin: $grid * 4 0 $grid * 7;
   font-family: $font-hed-alt;
   color: $color-blue;
-  @include respond-tablet {
-    margin-top: $grid * 6;
-  }
 }
 
 .item-container._isExpandable {

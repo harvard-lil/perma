@@ -14,7 +14,7 @@ const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
 const selectListRef = ref(null)
 const isSelectExpanded = ref(false)
-const selectedOption = computed(() => selectedFolder.value.path ? selectedFolder.value.path.join(" > ") : 'Please select a folder')
+const selectedOption = computed(() => selectedFolder.value.path.length ? selectedFolder.value.path.join(" > ") : 'Please select a folder')
 
 const getFolderHeader = (folder) => {
   if (folder.registrar) {
