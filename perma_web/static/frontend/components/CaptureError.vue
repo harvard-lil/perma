@@ -64,9 +64,8 @@ defineExpose({
 <template>
   <div id="error-container" role="alert" aria-live="assertive">
     <p class="message">
-      <strong v-if="showLoginLink">Please <a href='/login'>log in</a> to continue.</strong>
-      <strong v-else-if="showGeneric">We’re unable to create your Perma Link.</strong>
-      <br>
+      <template v-if="showLoginLink"><strong>Please <a href='/login'>log in</a> to continue.</strong><br></template>
+      <template v-else-if="showGeneric"><strong>We’re unable to create your Perma Link.</strong><br></template>
       {{ errorMessage }}
     </p>
     <p v-if="showUploadLink">
