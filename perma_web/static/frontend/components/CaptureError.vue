@@ -46,8 +46,6 @@ watch(
       } else if (errorMessage.includes("account needs attention")) {
         showUploadLink.value = false;
         showGeneric.value = false;
-      } else if (errorMessage.includes("Not a valid URL")) {
-        showUploadLink.value = false;
       }
     },
     {immediate: true},
