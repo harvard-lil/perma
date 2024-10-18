@@ -213,7 +213,9 @@ def sign_up_firm(request):
             usage_form = FirmUsageForm()
 
     else:
-        user_form = CreateUserFormWithFirm()
+        # TODO: Consider relocating would_be_org_admin field from user form to organization form so
+        # we don't have to do any special handling to display that field in template when logged in
+        user_form = None if request.user.is_authenticated else CreateUserFormWithFirm()
         organization_form = FirmOrganizationForm()
         usage_form = FirmUsageForm()
 
