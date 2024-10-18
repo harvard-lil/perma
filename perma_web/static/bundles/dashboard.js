@@ -37339,17 +37339,10 @@ var _hoisted_7 = {
 };
 var _hoisted_8 = {
   key: 2,
-  style: {
-    "display": "flex",
-    "align-items": "center"
-  }
+  id: "organization_select_wrapper"
 };
-var _hoisted_9 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("span", {
-  class: "label-affil",
-  style: {
-    "flex-shrink": "0",
-    "margin-right": "14px"
-  }
+var _hoisted_9 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("div", {
+  class: "label-affil"
 }, "This Perma Link will be affiliated with", -1 /* HOISTED */);
 var _hoisted_10 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementVNode"])("a", {
   href: "/settings/tools"
@@ -37404,11 +37397,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     captureGUID: $setup.captureGUID
   }, null, 8 /* PROPS */, ["errorMessage", "captureGUID"])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context = $setup.globalStore.userTypes).call(_context, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createBlock"])($setup["LinkCount"], {
     key: 1
-  })) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = $setup.globalStore.userTypes).call(_context2, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])("div", _hoisted_8, [_hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["FolderSelect"], {
-    style: {
-      "flex-grow": "1"
-    }
-  })])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)]), !$setup.isToolsReminderSuppressed ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])("p", {
+  })) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true), !_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = $setup.globalStore.userTypes).call(_context2, 'individual') ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])("div", _hoisted_8, [_hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_2__["createVNode"])($setup["FolderSelect"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_2__["createCommentVNode"])("v-if", true)]), !$setup.isToolsReminderSuppressed ? (Object(vue__WEBPACK_IMPORTED_MODULE_2__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_2__["createElementBlock"])("p", {
     key: 0,
     id: "browser-tools-message",
     class: Object(vue__WEBPACK_IMPORTED_MODULE_2__["normalizeClass"])(["u-pb-150", $setup.globalStore.userTypes === 'individual' && 'limit-true'])
@@ -53974,7 +53963,7 @@ __webpack_require__.r(__webpack_exports__);
     var selectListRef = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(null);
     var isSelectExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(false);
     var selectedOption = Object(vue__WEBPACK_IMPORTED_MODULE_3__["computed"])(function () {
-      return selectedFolder.value.path ? selectedFolder.value.path.join(" > ") : 'Please select a folder';
+      return selectedFolder.value.path.length ? selectedFolder.value.path.join(" > ") : 'Please select a folder';
     });
     var getFolderHeader = function getFolderHeader(folder) {
       if (folder.registrar) {
@@ -54165,6 +54154,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var _hoisted_1 = {
+  id: "batch-modal",
   class: "modal-dialog modal-content modal-lg"
 };
 var _hoisted_2 = {
@@ -66182,8 +66172,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
     };
     var toggleLinkDetails = /*#__PURE__*/function () {
       var _ref3 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_6___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_7___default.a.mark(function _callee2(e, link, focusSelector) {
-        var _itemContainer$queryS;
-        var itemContainer, addChildren, options, folderTree;
+        var itemContainer, addChildren, options, folderTree, _itemContainer$queryS;
         return _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_7___default.a.wrap(function _callee2$(_context7) {
           while (1) switch (_context7.prev = _context7.next) {
             case 0:
@@ -66231,14 +66220,15 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
                 addChildren(folderTree.get_node('#'), 1);
                 folderOptions.value = options;
               }
-
-              // focus handling: if using .toggle-details button, focus stays on the button
-              // if clicking on the row, focus moves to the first input field
-              _context7.next = 6;
+              if (!focusSelector) {
+                _context7.next = 8;
+                break;
+              }
+              _context7.next = 7;
               return Object(vue__WEBPACK_IMPORTED_MODULE_17__["nextTick"])();
-            case 6:
-              (_itemContainer$queryS = itemContainer.querySelector(focusSelector)) === null || _itemContainer$queryS === void 0 || _itemContainer$queryS.focus();
             case 7:
+              (_itemContainer$queryS = itemContainer.querySelector(focusSelector)) === null || _itemContainer$queryS === void 0 || _itemContainer$queryS.focus();
+            case 8:
             case "end":
               return _context7.stop();
           }
@@ -66388,7 +66378,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 
       // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
       if (dragStartPosition && Math.sqrt(Math.pow(e.pageX - dragStartPosition[0], 2) * Math.pow(e.pageY - dragStartPosition[1], 2)) > 5) return;
-      toggleLinkDetails(e, link, "#link-title-".concat(link.guid));
+      toggleLinkDetails(e, link);
     }
 
     /*** Infinite scroll setup ***/
