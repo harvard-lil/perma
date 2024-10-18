@@ -42,7 +42,7 @@ export const getErrorFromStatusOrData = (status, response) => {
   }
 
   if (errorMessage.includes("Error 0")) {
-    errorMessage = "Perma.cc Temporarily Unavailable"
+    errorMessage = "Perma.cc is temporarily unavailable"
   }
 
   return errorMessage
@@ -59,5 +59,5 @@ export const getErrorResponse = async (response) => {
 
 export const defaultError = "We're sorry, we've encountered an error processing your request."
 export const loggedOutError = "You appear to be logged out."
-export const folderError = "Missing folder selection. Please select a folder."
-export const missingUrlError = "Missing urls. Please submit valid urls."
+export const folderError = "No folder selected: please select a folder."
+export const missingUrlError = "Missing URLs: please submit a list of valid URLs."
