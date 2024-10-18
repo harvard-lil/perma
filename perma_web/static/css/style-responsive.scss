@@ -3946,11 +3946,7 @@ footer {
 
 .col-folders, #folder-tree {
   @media (max-width: $width-desktop) {
-    margin-bottom: $double;
-    // override IE-10 compatible JS on mobile
-    // to improve experience for users w/ few folders
-    height: 30vh !important;
-    padding-bottom: 5ex !important;
+    height: 50vh;
   }
 }
 
@@ -4059,12 +4055,9 @@ footer {
   text-align: center;
   font-weight: 200;
   font-size: 24px;
-  margin-top: $double;
+  margin: $grid * 4 0 $grid * 7;
   font-family: $font-hed-alt;
   color: $color-blue;
-  @include respond-tablet {
-    margin-top: $grid * 6;
-  }
 }
 
 .item-container._isExpandable {
