@@ -23,8 +23,10 @@
       <h2 class="body-ah">Request information for courts</h2>
       <form method="post" action="">
         {% csrf_token %}
+        <h3 class="body-bh">Your court information</h3>
         <fieldset>
           {% for field in form %}
+            {% if field.name == 'requested_account_note' or not request.user.is_authenticated %}
             <div class="form-group{% if field.errors %} _error{% endif %}">
               <label for="id_{{ field.name }}">{{ field.label }}</label>
               {{ field }}
@@ -34,7 +36,9 @@
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}
             </div>
+            {% endif %}
           {% endfor %}
+          {% if not request.user.is_authenticated %}
           <div class="checkbox">
             <label>
               <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
@@ -42,6 +46,7 @@
           </div>
           {% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
           <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+          {% endif %}
         </fieldset>
         <button type="submit" class="btn">Send request</button>
       </form>
