@@ -303,10 +303,18 @@ class CreateUserFormWithFirm(UserForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateUserFormWithFirm, self).__init__(*args, **kwargs)
-        self.fields['first_name'].label = "Your first name"
-        self.fields['last_name'].label = "Your last name"
-        self.fields['email'].label = "Your email"
+
+        self.fields['first_name'].label = 'Your first name'
+        self.fields['last_name'].label = 'Your last name'
+        self.fields['email'].label = 'Your email'
         self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
+
+        # Populate from logged-in user
+        if hasattr(self, 'request') and hasattr(self.request, 'user'):
+            fields = ['first_name', 'last_name', 'email']
+            for field in fields:
+                self.fields[field].initial = getattr(self.request.user, field, None)
+                self.fields[field].widget = self.fields[field].hidden_widget()
 
 
 class CreateUserFormWithUniversity(UserForm):

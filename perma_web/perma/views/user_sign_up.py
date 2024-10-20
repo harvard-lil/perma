@@ -170,8 +170,8 @@ def sign_up_firm(request):
         if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
             return something_took_the_bait
 
-        user_form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('e-address', '').lower()
+        user_form = CreateUserFormWithFirm(request.POST, prefix='a')
+        user_email = request.POST.get('a-e-address', '').lower()
 
         try:
             existing_user = LinkUser.objects.get(email=user_email)
@@ -213,9 +213,7 @@ def sign_up_firm(request):
             usage_form = FirmUsageForm()
 
     else:
-        # TODO: Consider relocating would_be_org_admin field from user form to organization form so
-        # we don't have to do any special handling to display that field in template when logged in
-        user_form = None if request.user.is_authenticated else CreateUserFormWithFirm()
+        user_form = CreateUserFormWithFirm(prefix='a', request=request)
         organization_form = FirmOrganizationForm()
         usage_form = FirmUsageForm()
 
@@ -431,7 +429,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     organization_form = FirmOrganizationForm(request.POST)
     usage_form = FirmUsageForm(request.POST)
-    user_form = CreateUserFormWithFirm(request.POST)
+    user_form = CreateUserFormWithFirm(request.POST, prefix='a')
 
     # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
     # attribute is only populated after checking
@@ -439,7 +437,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
         return HttpResponseBadRequest('Form data contains validation errors')
 
     try:
-        existing_user = LinkUser.objects.get(email=user_form.data['e-address'].casefold())
+        existing_user = LinkUser.objects.get(email=user_form.data['a-e-address'].casefold())
     except LinkUser.DoesNotExist:
         existing_user = None
 
