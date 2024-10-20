@@ -213,7 +213,11 @@ def sign_up_firm(request):
             usage_form = FirmUsageForm()
 
     else:
-        user_form = CreateUserFormWithFirm(prefix='a', request=request)
+        initial = {}
+        if hasattr(request, 'user'):
+            fields = ['first_name', 'last_name', 'email']
+            initial = {field: getattr(request.user, field, None) for field in fields}
+        user_form = CreateUserFormWithFirm(initial=initial, prefix='a', request=request)
         organization_form = FirmOrganizationForm()
         usage_form = FirmUsageForm()
 

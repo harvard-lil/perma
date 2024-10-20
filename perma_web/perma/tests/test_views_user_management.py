@@ -1635,7 +1635,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Existing user's email address, no firm info (should not succeed due to missing values)
         self.submit_form(
             'sign_up_firm',
-            data={'e-address': self.randomize_capitalization(existing_user['email'])},
+            data={'a-e-address': self.randomize_capitalization(existing_user['email'])},
             success_url=reverse('firm_request_response'),
         )
         expected_emails_sent += 0
@@ -1645,8 +1645,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': self.randomize_capitalization(existing_user['email']),
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': self.randomize_capitalization(existing_user['email']),
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -1660,8 +1660,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -1675,8 +1675,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1698,8 +1698,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1719,8 +1719,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': self.randomize_capitalization(existing_user['email']),
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': self.randomize_capitalization(existing_user['email']),
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1740,9 +1740,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form(
             'sign_up_firm',
             data={
-                'e-address': firm_user_form['raw_email'],
+                'a-e-address': firm_user_form['raw_email'],
                 'create_account': True,
-                'telephone': "I'm a bot.",
+                'a-telephone': "I'm a bot.",
                 **firm_organization_form,
                 **firm_usage_form,
             },

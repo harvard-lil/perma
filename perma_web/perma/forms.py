@@ -309,11 +309,15 @@ class CreateUserFormWithFirm(UserForm):
         self.fields['email'].label = 'Your email'
         self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
 
-        # Populate from logged-in user
-        if hasattr(self, 'request') and hasattr(self.request, 'user'):
+        # Populate and set visibility of fields based on whether user is logged in
+        user_is_logged_in = (
+            hasattr(self, 'request')
+            and hasattr(self.request, 'user')
+            and isinstance(self.request.user, LinkUser)
+        )
+        if user_is_logged_in:
             fields = ['first_name', 'last_name', 'email']
             for field in fields:
-                self.fields[field].initial = getattr(self.request.user, field, None)
                 self.fields[field].widget = self.fields[field].hidden_widget()
 
 
