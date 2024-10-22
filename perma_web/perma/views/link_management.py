@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
