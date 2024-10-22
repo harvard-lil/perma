@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
@@ -13,15 +12,6 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_titl
 
 @login_required
 def create_link(request):
-
-    deleted = request.GET.get('deleted', '')
-    if deleted:
-        try:
-            link = Link.objects.all_with_deleted().get(guid=deleted)
-        except Link.DoesNotExist:
-            link = None
-        if link:
-            messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
     # Get subscription info first, so that it is refreshed before we calculate how many links the user has left.
     subscription_status = request.user.subscription_status

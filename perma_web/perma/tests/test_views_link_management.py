@@ -7,26 +7,6 @@ from mock import patch
 from perma.views.link_management import Link
 
 
-### create_link function ###
-
-def test_display_after_delete_real_link(perma_client, link_factory, link_user):
-    new_link = link_factory(created_by=link_user)
-    response = perma_client.get(reverse('create_link'),
-                            as_user=link_user,
-                            data={'deleted': new_link.guid})
-    messages = list(response.context['messages'])
-    assert len(messages) == 1
-    assert str(messages[0]) == f"Deleted - {new_link.submitted_title}"
-
-def test_display_after_delete_fake_link(perma_client, link_user):
-    assert not Link.objects.filter(guid='ZZZZ-ZZZZ').exists()
-    response = perma_client.get(reverse('create_link'),
-                                as_user=link_user,
-                                data={'deleted': 'ZZZZ-ZZZZ'})
-    messages = list(response.context['messages'])
-    assert len(messages) == 0
-
-
 ### user_delete_link function ###
 
 def test_confirm_delete_unpermitted_link(perma_client, link, link_user):

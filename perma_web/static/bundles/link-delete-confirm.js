@@ -15321,7 +15321,7 @@ $(function () {
       $this.text('Deleting link...');
       APIModule.request('DELETE', '/archives/' + archive.guid + '/', null, {
         success: function success() {
-          window.location = url_link_browser + '/?deleted=' + archive.guid;
+          window.location = url_link_browser;
         },
         error: function error(jqXHR) {
           $this.removeClass('disabled');

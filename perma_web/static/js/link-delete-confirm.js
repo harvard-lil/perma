@@ -12,7 +12,7 @@ $(function(){
 
       APIModule.request('DELETE', '/archives/' + archive.guid + '/', null, {
         success: function(){
-          window.location = url_link_browser + '/?deleted=' + archive.guid;
+          window.location = url_link_browser;
         },
         error: function(jqXHR){
           $this.removeClass('disabled');
