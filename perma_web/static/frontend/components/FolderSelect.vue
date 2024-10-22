@@ -7,8 +7,12 @@ import { storeToRefs } from 'pinia'
 const globalStore = useGlobalStore()
 const { selectedFolder } = storeToRefs(globalStore)
 
-const folders = computed(() => globalStore.userOrganizations.concat(globalStore.sponsoredFolders))
-const personalFolderId = current_user.top_level_folders[0].id
+const folders = computed(() => {
+  const orgFolders = globalStore.userOrganizations.map((o) => o.shared_folder);
+  return orgFolders.concat(globalStore.sponsoredFolders)
+})
+
+const personalFolder = current_user.top_level_folders[0]
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
@@ -26,7 +30,7 @@ const getFolderHeader = (folder) => {
   return "Personal Links"
 }
 
-const showLinksRemaining = computed(() => selectedFolder.value.folderId === personalFolderId || !!selectedFolder.value.isReadOnly)
+const showLinksRemaining = computed(() => selectedFolder.value.folderId === personalFolder.id || !!selectedFolder.value.isReadOnly)
 const linksRemaining = computed(() => {
   if (selectedFolder.value.isReadOnly) {
     return 0
@@ -103,8 +107,8 @@ const handleSelection = (e) => {
     return handleClose()
   }
   const folder = JSON.parse(folderJSON)
-  const orgId = folder.sponsored_by ? null : folder.id
-  const folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.shared_folder.id
+  const orgId = folder.organization
+  const folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.id
   globalStore.components.jstree.handleSelectionChange({orgId, folderId})
   handleClose()
 }
@@ -158,8 +162,8 @@ const handleSelection = (e) => {
       </template>
       <li class="dropdown-header personal" role="presentation" aria-hidden="true">Personal Links</li>
       <li tabindex="-1" class="dropdown-item personal-links" role="option"
-          :aria-selected="selectedFolder.folderId === personalFolderId"
-          :data-index="folders.length" :data-folderid="personalFolderId">Personal Links <span
+          :aria-selected="selectedFolder.folderId === personalFolder.id"
+          :data-index="folders.length" :data-folder="JSON.stringify(personalFolder)">Personal Links <span
           class="dropdown-item-supplement links-remaining">{{
           globalStore.linksRemaining ===
           Infinity ?

@@ -53846,7 +53846,7 @@ var _hoisted_8 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createEle
   role: "presentation",
   "aria-hidden": "true"
 }, "Personal Links", -1 /* HOISTED */);
-var _hoisted_9 = ["aria-selected", "data-index", "data-folderid"];
+var _hoisted_9 = ["aria-selected", "data-index", "data-folder"];
 var _hoisted_10 = {
   class: "dropdown-item-supplement links-remaining"
 };
@@ -53905,9 +53905,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "-1",
     class: "dropdown-item personal-links",
     role: "option",
-    "aria-selected": $setup.selectedFolder.folderId === $setup.personalFolderId,
+    "aria-selected": $setup.selectedFolder.folderId === $setup.personalFolder.id,
     "data-index": $setup.folders.length,
-    "data-folderid": $setup.personalFolderId
+    "data-folder": _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_0___default()($setup.personalFolder)
   }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("Personal Links "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_10, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.globalStore.linksRemaining === Infinity ? 'unlimited' : $setup.globalStore.linksRemaining), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_9)], 42 /* CLASS, PROPS, NEED_HYDRATION */, _hoisted_4)) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 34 /* CLASS, NEED_HYDRATION */);
 }
 
@@ -53932,12 +53932,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(498);
 /* harmony import */ var _babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(434);
-/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(394);
-/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(567);
-/* harmony import */ var _vueuse_core__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(639);
-/* harmony import */ var pinia__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(401);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(590);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(434);
+/* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(394);
+/* harmony import */ var _stores_globalStore__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(567);
+/* harmony import */ var _vueuse_core__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(639);
+/* harmony import */ var pinia__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(401);
+
 
 
 
@@ -53950,19 +53953,22 @@ __webpack_require__.r(__webpack_exports__);
   setup: function setup(__props, _ref) {
     var __expose = _ref.expose;
     __expose();
-    var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["useGlobalStore"])();
-    var _storeToRefs = Object(pinia__WEBPACK_IMPORTED_MODULE_6__["storeToRefs"])(globalStore),
+    var globalStore = Object(_stores_globalStore__WEBPACK_IMPORTED_MODULE_5__["useGlobalStore"])();
+    var _storeToRefs = Object(pinia__WEBPACK_IMPORTED_MODULE_7__["storeToRefs"])(globalStore),
       selectedFolder = _storeToRefs.selectedFolder;
-    var folders = Object(vue__WEBPACK_IMPORTED_MODULE_3__["computed"])(function () {
+    var folders = Object(vue__WEBPACK_IMPORTED_MODULE_4__["computed"])(function () {
       var _context;
-      return _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_2___default()(_context = globalStore.userOrganizations).call(_context, globalStore.sponsoredFolders);
+      var orgFolders = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_2___default()(_context = globalStore.userOrganizations).call(_context, function (o) {
+        return o.shared_folder;
+      });
+      return _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default()(orgFolders).call(orgFolders, globalStore.sponsoredFolders);
     });
-    var personalFolderId = current_user.top_level_folders[0].id;
-    var selectContainerRef = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(null);
-    var selectButtonRef = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(null);
-    var selectListRef = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(null);
-    var isSelectExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_3__["ref"])(false);
-    var selectedOption = Object(vue__WEBPACK_IMPORTED_MODULE_3__["computed"])(function () {
+    var personalFolder = current_user.top_level_folders[0];
+    var selectContainerRef = Object(vue__WEBPACK_IMPORTED_MODULE_4__["ref"])(null);
+    var selectButtonRef = Object(vue__WEBPACK_IMPORTED_MODULE_4__["ref"])(null);
+    var selectListRef = Object(vue__WEBPACK_IMPORTED_MODULE_4__["ref"])(null);
+    var isSelectExpanded = Object(vue__WEBPACK_IMPORTED_MODULE_4__["ref"])(false);
+    var selectedOption = Object(vue__WEBPACK_IMPORTED_MODULE_4__["computed"])(function () {
       return selectedFolder.value.path.length ? selectedFolder.value.path.join(" > ") : 'Please select a folder';
     });
     var getFolderHeader = function getFolderHeader(folder) {
@@ -53973,10 +53979,10 @@ __webpack_require__.r(__webpack_exports__);
       }
       return "Personal Links";
     };
-    var showLinksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_3__["computed"])(function () {
-      return selectedFolder.value.folderId === personalFolderId || !!selectedFolder.value.isReadOnly;
+    var showLinksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_4__["computed"])(function () {
+      return selectedFolder.value.folderId === personalFolder.id || !!selectedFolder.value.isReadOnly;
     });
-    var linksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_3__["computed"])(function () {
+    var linksRemaining = Object(vue__WEBPACK_IMPORTED_MODULE_4__["computed"])(function () {
       if (selectedFolder.value.isReadOnly) {
         return 0;
       } else if (globalStore.linksRemaining === Infinity) {
@@ -53986,7 +53992,7 @@ __webpack_require__.r(__webpack_exports__);
     });
 
     // Select Event Handlers
-    Object(_vueuse_core__WEBPACK_IMPORTED_MODULE_5__["onClickOutside"])(selectContainerRef, function () {
+    Object(_vueuse_core__WEBPACK_IMPORTED_MODULE_6__["onClickOutside"])(selectContainerRef, function () {
       if (!isSelectExpanded) {
         return;
       }
@@ -54016,7 +54022,7 @@ __webpack_require__.r(__webpack_exports__);
             case 5:
               handleSelectToggle();
               _context2.next = 8;
-              return Object(vue__WEBPACK_IMPORTED_MODULE_3__["nextTick"])();
+              return Object(vue__WEBPACK_IMPORTED_MODULE_4__["nextTick"])();
             case 8:
             case "end":
               return _context2.stop();
@@ -54059,8 +54065,8 @@ __webpack_require__.r(__webpack_exports__);
         return handleClose();
       }
       var folder = JSON.parse(folderJSON);
-      var orgId = folder.sponsored_by ? null : folder.id;
-      var folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.shared_folder.id;
+      var orgId = folder.organization;
+      var folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.id;
       globalStore.components.jstree.handleSelectionChange({
         orgId: orgId,
         folderId: folderId
@@ -54071,7 +54077,7 @@ __webpack_require__.r(__webpack_exports__);
       globalStore: globalStore,
       selectedFolder: selectedFolder,
       folders: folders,
-      personalFolderId: personalFolderId,
+      personalFolder: personalFolder,
       selectContainerRef: selectContainerRef,
       selectButtonRef: selectButtonRef,
       selectListRef: selectListRef,
@@ -54087,17 +54093,17 @@ __webpack_require__.r(__webpack_exports__);
       handleArrowUp: handleArrowUp,
       handleClose: handleClose,
       handleSelection: handleSelection,
-      computed: vue__WEBPACK_IMPORTED_MODULE_3__["computed"],
-      ref: vue__WEBPACK_IMPORTED_MODULE_3__["ref"],
-      nextTick: vue__WEBPACK_IMPORTED_MODULE_3__["nextTick"],
+      computed: vue__WEBPACK_IMPORTED_MODULE_4__["computed"],
+      ref: vue__WEBPACK_IMPORTED_MODULE_4__["ref"],
+      nextTick: vue__WEBPACK_IMPORTED_MODULE_4__["nextTick"],
       get useGlobalStore() {
-        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_4__["useGlobalStore"];
+        return _stores_globalStore__WEBPACK_IMPORTED_MODULE_5__["useGlobalStore"];
       },
       get onClickOutside() {
-        return _vueuse_core__WEBPACK_IMPORTED_MODULE_5__["onClickOutside"];
+        return _vueuse_core__WEBPACK_IMPORTED_MODULE_6__["onClickOutside"];
       },
       get storeToRefs() {
-        return pinia__WEBPACK_IMPORTED_MODULE_6__["storeToRefs"];
+        return pinia__WEBPACK_IMPORTED_MODULE_7__["storeToRefs"];
       }
     };
     Object.defineProperty(__returned__, '__isScriptSetup', {
