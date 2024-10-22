@@ -195,8 +195,8 @@ class UserForm(forms.ModelForm):
         """
         return (
             hasattr(self, 'request')
-            and hasattr(self.request, 'user')
-            and isinstance(self.request.user, LinkUser)
+            and hasattr(self.request, 'user')  # noqa: W503
+            and isinstance(self.request.user, LinkUser)  # noqa: W503
         )
 
 
