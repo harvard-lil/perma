@@ -187,6 +187,19 @@ class UserForm(forms.ModelForm):
         user = forms.ModelForm.save(self, commit)
         return user
 
+    def user_is_logged_in(self) -> bool:
+        """Determine whether there is a currently logged-in user.
+
+        This may be useful for determining, e.g., whether or not to
+        display certain user registration fields.
+        """
+        return (
+            hasattr(self, 'request')
+            and hasattr(self.request, 'user')
+            and isinstance(self.request.user, LinkUser)
+        )
+
+
 class UserFormWithAdmin(UserForm):
     """
         User form that causes the created user to be an admin.
@@ -290,12 +303,7 @@ class CreateUserFormWithCourt(UserForm):
         self.fields['email'].label = "Your email"
 
         # Populate and set visibility of fields based on whether user is logged in
-        user_is_logged_in = (
-            hasattr(self, 'request')
-            and hasattr(self.request, 'user')
-            and isinstance(self.request.user, LinkUser)
-        )
-        if user_is_logged_in:
+        if self.user_is_logged_in():
             fields = ['first_name', 'last_name', 'email']
             for field in fields:
                 self.fields[field].widget = self.fields[field].hidden_widget()
@@ -323,12 +331,7 @@ class CreateUserFormWithFirm(UserForm):
         self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
 
         # Populate and set visibility of fields based on whether user is logged in
-        user_is_logged_in = (
-            hasattr(self, 'request')
-            and hasattr(self.request, 'user')
-            and isinstance(self.request.user, LinkUser)
-        )
-        if user_is_logged_in:
+        if self.user_is_logged_in():
             fields = ['first_name', 'last_name', 'email']
             for field in fields:
                 self.fields[field].widget = self.fields[field].hidden_widget()
