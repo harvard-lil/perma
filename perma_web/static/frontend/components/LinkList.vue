@@ -30,17 +30,25 @@ const linkScrollContainer = ref(null);
 
 /*** Methods ***/
 const fetchLinks = async (append = false) => {
-  if (!folder.value) {
+  const folderId = selectedFolder.value?.folderId;
+  if (!folderId) {
     return;
   }
   loading.value = true;
-  const { data, error } = await fetchDataOrError(`/folders/${folder.value}/archives/`, {
+  if (!append) {
+    resetPagination();
+  }
+  const { data, error } = await fetchDataOrError(`/folders/${folderId}/archives/`, {
     params: {
       q: query.value,
       limit: limit.value,
       offset: offset.value
     }
   });
+  if (selectedFolder.value.folderId !== folderId) {
+    // folder changed while we were fetching
+    return;
+  }
   loading.value = false;
   if (error) {
     addToast({message: 'Error fetching data. Please try again.', status: 'error'});
@@ -336,17 +344,11 @@ defineExpose({
       <a href="#" class="clear-search" @click.prevent="clearSearch">Clear search.</a>
     </div>
 
-
-    <template v-if="!selectedFolder.folderId">
-      <div class="item-notification">No folder selected</div>
-    </template>
-
-    <template v-else-if="loading">
-      <div class="item-notification"><Spinner /></div>
-    </template>
+    <div v-if="!selectedFolder.folderId" class="item-notification">No folder selected</div>
 
     <template v-else-if="!links.length">
-      <div class="item-notification">This is an empty folder</div>
+      <div v-if="loading" class="item-notification"><Spinner /></div>
+      <div v-else class="item-notification">This is an empty folder</div>
     </template>
     
     <template v-else>
@@ -503,6 +505,7 @@ defineExpose({
           </div>
         </div>
       </div>
+      <div v-if="loading" class="item-notification"><Spinner /></div>
     </template>
   </div>
 </template>
