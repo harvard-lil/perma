@@ -67,7 +67,7 @@ urlpatterns = [
     # Sign-up/registration
     re_path(r'^sign-up/?$', user_sign_up.sign_up, name='sign_up'),
     re_path(r'^sign-up/courts/?$', user_sign_up.sign_up_courts, name='sign_up_courts'),
-    re_path(r'^sign-up/firms/?$', user_sign_up.sign_up_firm, name='sign_up_firm'),
+    re_path(r'^sign-up/firms/?$', user_sign_up.sign_up_firms, name='sign_up_firms'),
     re_path(r'^sign-up/libraries/?$', user_sign_up.sign_up_libraries, name='sign_up_libraries'),
     # Redirect from /libraries to /sign-up/libraries with an HTTP 301 for consistency
     re_path(

@@ -161,10 +161,8 @@ def sign_up_courts(request):
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def sign_up_firm(request):
-    """
-    Register a new law firm user
-    """
+def sign_up_firms(request: HttpRequest):
+    """Display the sign-up page for submitting a firm/other org request."""
     if request.method == 'POST':
         something_took_the_bait = check_honeypot(
             request, 'register_email_instructions', honey_pot_fieldname='a-telephone', check_js=True

@@ -1634,7 +1634,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Existing user's email address, no firm info (should not succeed due to missing values)
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={'a-e-address': self.randomize_capitalization(existing_user['email'])},
             success_url=reverse('firm_request_response'),
         )
@@ -1643,7 +1643,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Existing user's email address + firm info
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': self.randomize_capitalization(existing_user['email']),
                 'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
@@ -1658,7 +1658,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # New user email address, don't create account
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
                 'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
@@ -1673,7 +1673,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # New user email address, create account
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
                 'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
@@ -1696,7 +1696,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (This succeeds and creates a new account; see issue 1749)
         firm_user_form = self.create_firm_user_form()
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
                 'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
@@ -1717,7 +1717,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Existing user's email address, not that of the user logged in.
         # (This is odd; see issue 1749)
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': self.randomize_capitalization(existing_user['email']),
                 'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
@@ -1738,7 +1738,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         firm_usage_form = self.create_firm_usage_form()
         firm_user_form = self.create_firm_user_form()
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
                 'create_account': True,
@@ -1761,7 +1761,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         '''
         # Not logged in, blank submission reports correct fields required
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
             error_keys=['email', 'would_be_org_admin'],
@@ -1771,7 +1771,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Logged in, blank submission reports same fields required
         # (This is odd; see issue 1749)
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
             user='test_user@example.com',
