@@ -12,7 +12,7 @@ const folders = computed(() => {
   return orgFolders.concat(globalStore.sponsoredFolders)
 })
 
-const personalFolderId = current_user.top_level_folders[0].id
+const personalFolder = current_user.top_level_folders[0]
 
 const selectContainerRef = ref(null)
 const selectButtonRef = ref(null)
@@ -30,7 +30,7 @@ const getFolderHeader = (folder) => {
   return "Personal Links"
 }
 
-const showLinksRemaining = computed(() => selectedFolder.value.folderId === personalFolderId || !!selectedFolder.value.isReadOnly)
+const showLinksRemaining = computed(() => selectedFolder.value.folderId === personalFolder.id || !!selectedFolder.value.isReadOnly)
 const linksRemaining = computed(() => {
   if (selectedFolder.value.isReadOnly) {
     return 0
@@ -162,8 +162,8 @@ const handleSelection = (e) => {
       </template>
       <li class="dropdown-header personal" role="presentation" aria-hidden="true">Personal Links</li>
       <li tabindex="-1" class="dropdown-item personal-links" role="option"
-          :aria-selected="selectedFolder.folderId === personalFolderId"
-          :data-index="folders.length" :data-folder="JSON.stringify({'id': personalFolderId})">Personal Links <span
+          :aria-selected="selectedFolder.folderId === personalFolder.id"
+          :data-index="folders.length" :data-folder="JSON.stringify(personalFolder)">Personal Links <span
           class="dropdown-item-supplement links-remaining">{{
           globalStore.linksRemaining ===
           Infinity ?
