@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms import Form, ModelForm
-from django.http import HttpResponseRedirect
+from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import mark_safe
 
@@ -187,6 +187,15 @@ class UserForm(forms.ModelForm):
         user = forms.ModelForm.save(self, commit)
         return user
 
+    def user_is_logged_in(self, request: HttpRequest) -> bool:
+        """Determine whether there is a currently logged-in user.
+
+        This may be useful for determining, e.g., whether or not to
+        display certain user registration fields.
+        """
+        return hasattr(request, 'user') and request.user.is_authenticated
+
+
 class UserFormWithAdmin(UserForm):
     """
         User form that causes the created user to be an admin.
@@ -283,10 +292,18 @@ class CreateUserFormWithCourt(UserForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateUserFormWithCourt, self).__init__(*args, **kwargs)
+
         self.fields['requested_account_note'].label = "Your court"
         self.fields['first_name'].label = "Your first name"
         self.fields['last_name'].label = "Your last name"
         self.fields['email'].label = "Your email"
+
+        # Populate and set visibility of fields based on whether user is logged in
+        if hasattr(self, 'request') and self.user_is_logged_in(self.request):
+            fields = ['first_name', 'last_name', 'email']
+            for field in fields:
+                self.fields[field].widget = self.fields[field].hidden_widget()
+
 
 class CreateUserFormWithFirm(UserForm):
     """
@@ -303,10 +320,17 @@ class CreateUserFormWithFirm(UserForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateUserFormWithFirm, self).__init__(*args, **kwargs)
-        self.fields['first_name'].label = "Your first name"
-        self.fields['last_name'].label = "Your last name"
-        self.fields['email'].label = "Your email"
+
+        self.fields['first_name'].label = 'Your first name'
+        self.fields['last_name'].label = 'Your last name'
+        self.fields['email'].label = 'Your email'
         self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
+
+        # Populate and set visibility of fields based on whether user is logged in
+        if hasattr(self, 'request') and self.user_is_logged_in(self.request):
+            fields = ['first_name', 'last_name', 'email']
+            for field in fields:
+                self.fields[field].widget = self.fields[field].hidden_widget()
 
 
 class CreateUserFormWithUniversity(UserForm):

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from django.urls import re_path
+from django.urls import re_path, reverse_lazy
 from django.views.generic import RedirectView
 
 from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddSponsoredUserToRegistrar, AddUserToAdmin, AddRegularUser
@@ -64,10 +64,17 @@ urlpatterns = [
     # Users with old-style activation links should get redirected so they can generate a new one
     re_path(r'^register/password/(?P<token>.*)/?$', user_management.redirect_to_reset, name='redirect_to_reset'),
 
+    # Sign-up/registration
     re_path(r'^sign-up/?$', user_sign_up.sign_up, name='sign_up'),
     re_path(r'^sign-up/courts/?$', user_sign_up.sign_up_courts, name='sign_up_courts'),
-    re_path(r'^sign-up/firms/?$', user_sign_up.sign_up_firm, name='sign_up_firm'),
-    re_path(r'^libraries/?$', user_sign_up.libraries, name='libraries'),
+    re_path(r'^sign-up/firms/?$', user_sign_up.sign_up_firms, name='sign_up_firms'),
+    re_path(r'^sign-up/libraries/?$', user_sign_up.sign_up_libraries, name='sign_up_libraries'),
+    # Redirect from /libraries to /sign-up/libraries with an HTTP 301 for consistency
+    re_path(
+        r'^libraries/?$',
+        RedirectView.as_view(url=reverse_lazy('sign_up_libraries'), permanent=True),
+        name='libraries'
+    ),
     re_path(r'^register/email/?$', user_sign_up.register_email_instructions, name='register_email_instructions'),
     re_path(r'^register/library/?$', user_sign_up.register_library_instructions, name='register_library_instructions'),
     re_path(r'^register/court/?$', user_sign_up.court_request_response, name='court_request_response'),

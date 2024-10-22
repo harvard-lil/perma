@@ -29,7 +29,7 @@
           <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
         {% else %}
           <a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and use Perma.cc</a>
-          <a href="{% url 'libraries' %}" class="btn btn-large-alt">How can my library get involved?</a>
+          <a href="{% url 'sign_up_libraries' %}" class="btn btn-large-alt">How can my library get involved?</a>
         {% endif %}
       </div>
     </div>
@@ -286,7 +286,7 @@
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-libraries-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Libraries<span class="_verbose">.</span></strong> Libraries play a critical role in powering and supporting Perma.cc.</p>
-        <a href="{% url 'libraries' %}" class="btn btn-small center">Perma.cc for libraries</a>
+        <a href="{% url 'sign_up_libraries' %}" class="btn btn-small center">Perma.cc for libraries</a>
       </div>
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-courts-bg.png" aria-hidden="true" alt="" />
@@ -296,7 +296,7 @@
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-everyone-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Other organizations<span class="_verbose">.</span></strong> There are wide-ranging applications for Perma.cc tools.</p>
-        <a href="{% url 'sign_up_firm' %}" class="btn btn-small center">Perma.cc for other orgs</a>
+        <a href="{% url 'sign_up_firms' %}" class="btn btn-small center">Perma.cc for other orgs</a>
       </div>
       <div class="col-xs-12 col-sm-3 _isCentered signup-module">
         <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-individuals-bg.png" aria-hidden="true" alt="" />

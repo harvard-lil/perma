@@ -1267,7 +1267,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Registrar and user forms are displayed,
         # inputs are blank, and labels are customized as expected
-        response = self.get('libraries').content
+        response = self.get('sign_up_libraries').content
         soup = BeautifulSoup(response, 'html.parser')
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
@@ -1293,7 +1293,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                     'a-last_name': new_lib_user['last'],
                                     'csrfmiddlewaretoken': '11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
         session.save()
-        response = self.get('libraries').content
+        response = self.get('sign_up_libraries').content
         soup = BeautifulSoup(response, 'html.parser')
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
@@ -1308,7 +1308,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 self.assertFalse(input.get('value', ''))
 
         # If there's an unsuccessful submission, field labels are still as expected.
-        response = self.post('libraries').content
+        response = self.post('sign_up_libraries').content
         soup = BeautifulSoup(response, 'html.parser')
         self.check_library_labels(soup)
         self.check_lib_user_labels(soup)
@@ -1317,7 +1317,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Registrar form is displayed, but user form is not,
         # inputs are blank, and labels are still customized as expected
-        response = self.get('libraries', user="test_user@example.com").content
+        response = self.get('sign_up_libraries', user="test_user@example.com").content
         soup = BeautifulSoup(response, 'html.parser')
         self.check_library_labels(soup)
         inputs = soup.select('input')
@@ -1339,7 +1339,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Not logged in, submit all fields sans first and last name
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = { 'b-email': new_lib['email'],
                                    'b-website': new_lib['website'],
                                    'b-name': new_lib['name'],
@@ -1353,7 +1353,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Not logged in, submit all fields including first and last name
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = { 'b-email': new_lib['email'],
                                    'b-website': new_lib['website'],
                                    'b-name': new_lib['name'],
@@ -1372,7 +1372,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'raw_email': 'test_user@example.com',
             'normalized_email': 'test_user@example.com',
         }
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = { 'b-email': new_lib['email'],
                                    'b-website': new_lib['website'],
                                    'b-name': new_lib['name'] },
@@ -1386,7 +1386,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_new_library_form_honeypot(self):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = { 'b-email': new_lib['email'],
                                    'b-website': new_lib['website'],
                                    'b-name': new_lib['name'],
@@ -1409,14 +1409,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Not logged in, blank submission reports correct fields required
         # ('email' catches both registrar and user email errors, unavoidably,
         # so test with just that missing separately)
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = {},
                           form_keys = ['registrar_form', 'user_form'],
                           error_keys = ['website', 'name', 'email'])
         self.assertEqual(len(mail.outbox), 0)
 
         # (checking user email missing separately)
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = {'b-email': new_lib['email'],
                                   'b-website': new_lib['website'],
                                   'b-name': new_lib['name']},
@@ -1429,7 +1429,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 'b-website': new_lib['website'],
                 'b-name': new_lib['name'],
                 'a-e-address': self.randomize_capitalization(existing_lib_user['email'])}
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = data,
                           form_keys = ['registrar_form', 'user_form'],
                           success_url = '/login?next=/libraries/')
@@ -1440,7 +1440,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (actually, this doesn't currently fail)
 
         # Logged in, blank submission reports all fields required
-        self.submit_form('libraries',
+        self.submit_form('sign_up_libraries',
                           data = {},
                           user = existing_lib_user['email'],
                           error_keys = ['website', 'name', 'email'])
@@ -1634,8 +1634,8 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Existing user's email address, no firm info (should not succeed due to missing values)
         self.submit_form(
-            'sign_up_firm',
-            data={'e-address': self.randomize_capitalization(existing_user['email'])},
+            'sign_up_firms',
+            data={'a-e-address': self.randomize_capitalization(existing_user['email'])},
             success_url=reverse('firm_request_response'),
         )
         expected_emails_sent += 0
@@ -1643,10 +1643,10 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # Existing user's email address + firm info
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': self.randomize_capitalization(existing_user['email']),
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': self.randomize_capitalization(existing_user['email']),
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -1658,10 +1658,10 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # New user email address, don't create account
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
             },
@@ -1673,10 +1673,10 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # New user email address, create account
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1696,10 +1696,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (This succeeds and creates a new account; see issue 1749)
         firm_user_form = self.create_firm_user_form()
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': firm_user_form['raw_email'],
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': firm_user_form['raw_email'],
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1717,10 +1717,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Existing user's email address, not that of the user logged in.
         # (This is odd; see issue 1749)
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': self.randomize_capitalization(existing_user['email']),
-                'would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-e-address': self.randomize_capitalization(existing_user['email']),
+                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
                 **firm_organization_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1738,13 +1738,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         firm_usage_form = self.create_firm_usage_form()
         firm_user_form = self.create_firm_user_form()
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={
-                'e-address': firm_user_form['raw_email'],
+                'a-e-address': firm_user_form['raw_email'],
                 'create_account': True,
-                'telephone': "I'm a bot.",
+                'a-telephone': "I'm a bot.",
                 **firm_organization_form,
                 **firm_usage_form,
+                'a-would_be_org_admin': True,
             },
             success_url=reverse('register_email_instructions'),
         )
@@ -1760,7 +1761,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         '''
         # Not logged in, blank submission reports correct fields required
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
             error_keys=['email', 'would_be_org_admin'],
@@ -1770,7 +1771,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         # Logged in, blank submission reports same fields required
         # (This is odd; see issue 1749)
         self.submit_form(
-            'sign_up_firm',
+            'sign_up_firms',
             data={},
             form_keys=['organization_form', 'usage_form', 'user_form'],
             user='test_user@example.com',

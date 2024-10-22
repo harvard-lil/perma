@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def libraries(request):
+def sign_up_libraries(request):
     """
     Info for libraries, allow them to request accounts
     """
@@ -120,8 +120,10 @@ def sign_up_courts(request):
     Register a new court user
     """
     if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
+        something_took_the_bait = check_honeypot(
+            request, 'register_email_instructions', check_js=True
+        )
+        if something_took_the_bait:
             return something_took_the_bait
 
         form = CreateUserFormWithCourt(request.POST)
@@ -155,23 +157,27 @@ def sign_up_courts(request):
                 return HttpResponseRedirect(reverse('court_request_response'))
 
     else:
-        form = CreateUserFormWithCourt()
+        initial = {}
+        if hasattr(request, 'user'):
+            fields = ['first_name', 'last_name', 'email']
+            initial = {field: getattr(request.user, field, None) for field in fields}
+        form = CreateUserFormWithCourt(initial=initial, request=request)
 
     return render(request, "registration/sign-up-courts.html", {'form': form})
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
-def sign_up_firm(request):
-    """
-    Register a new law firm user
-    """
+def sign_up_firms(request: HttpRequest):
+    """Display the sign-up page for submitting a firm/other org request."""
     if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
+        something_took_the_bait = check_honeypot(
+            request, 'register_email_instructions', honey_pot_fieldname='a-telephone', check_js=True
+        )
+        if something_took_the_bait:
             return something_took_the_bait
 
-        user_form = CreateUserFormWithFirm(request.POST)
-        user_email = request.POST.get('e-address', '').lower()
+        user_form = CreateUserFormWithFirm(request.POST, prefix='a')
+        user_email = request.POST.get('a-e-address', '').lower()
 
         try:
             existing_user = LinkUser.objects.get(email=user_email)
@@ -213,7 +219,11 @@ def sign_up_firm(request):
             usage_form = FirmUsageForm()
 
     else:
-        user_form = CreateUserFormWithFirm()
+        initial = {}
+        if hasattr(request, 'user'):
+            fields = ['first_name', 'last_name', 'email']
+            initial = {field: getattr(request.user, field, None) for field in fields}
+        user_form = CreateUserFormWithFirm(initial=initial, prefix='a', request=request)
         organization_form = FirmOrganizationForm()
         usage_form = FirmUsageForm()
 
@@ -429,7 +439,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     organization_form = FirmOrganizationForm(request.POST)
     usage_form = FirmUsageForm(request.POST)
-    user_form = CreateUserFormWithFirm(request.POST)
+    user_form = CreateUserFormWithFirm(request.POST, prefix='a')
 
     # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
     # attribute is only populated after checking
@@ -437,7 +447,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
         return HttpResponseBadRequest('Form data contains validation errors')
 
     try:
-        existing_user = LinkUser.objects.get(email=user_form.data['e-address'].casefold())
+        existing_user = LinkUser.objects.get(email=user_form.data['a-e-address'].casefold())
     except LinkUser.DoesNotExist:
         existing_user = None
 

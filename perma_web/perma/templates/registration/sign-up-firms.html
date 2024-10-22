@@ -31,23 +31,29 @@
         <h3 class="body-bh">Your information</h3>
         <fieldset>
           {% for field in user_form %}
-            <div class="form-group{% if field.errors %} _error{% endif %}">
-              <label for="id_{{ field.name }}">{{ field.label }}</label>
+            {% if field in user_form.visible_fields %}
+              <div class="form-group{% if field.errors %} _error{% endif %}">
+                <label for="id_{{ field.name }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                  {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+                {% elif field.help_text %}
+                  <span class="help-inline">{{ field.help_text }}</span>
+                {% endif %}
+              </div>
+            {% else %}
               {{ field }}
-              {% if field.errors %}
-                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-              {%elif field.help_text %}
-                <span class="help-inline">{{ field.help_text }}</span>
-              {% endif %}
-            </div>
+            {% endif %}
           {% endfor %}
-          <div class="checkbox">
-            <label>
-              <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
-            </label>
-          </div>
-          {% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+          {% if not request.user.is_authenticated %}
+            <div class="checkbox">
+              <label>
+                <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
+              </label>
+            </div>
+            {% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
           <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+          {% endif %}
         </fieldset>
         <button type="submit" class="btn">Send request</button>
       </form>

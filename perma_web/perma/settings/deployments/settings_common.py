@@ -614,8 +614,8 @@ USE_ANALYTICS_VIEWS = [
     'dev_docs',
     'sign_up',
     'sign_up_courts',
-    'sign_up_firm',
-    'libraries'
+    'sign_up_firms',
+    'sign_up_libraries'
 ]
 
 # If USE_SENTRY is True, SENTRY_DSN must be set
