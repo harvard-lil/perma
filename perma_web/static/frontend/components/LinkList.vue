@@ -74,8 +74,8 @@ const generateLinkFields = (link, query) => {
   // mark the capture as pending if either the primary or the screenshot capture are pending
   // mark the capture as failed if both the primary and the screenshot capture failed.
   // (ignore the favicon capture)
-  let primary_failed = false;
-  let screenshot_failed = false;
+  let primary_failed = true;
+  let screenshot_failed = true;
   let primary_pending = false;
   let screenshot_pending = false;
   link.favicon_url = '';
@@ -83,14 +83,14 @@ const generateLinkFields = (link, query) => {
     if (c.role==="primary"){
       if (c.status==="pending"){
         primary_pending = true;
-      } else if (c.status==="failed"){
-        primary_failed = true;
+      } else if (c.status==="success"){
+        primary_failed = false;
       }
     } else if (c.role==="screenshot"){
       if (c.status==="pending"){
         screenshot_pending = true;
-      } else if (c.status==="failed"){
-        screenshot_failed = true;
+      } else if (c.status==="success"){
+        screenshot_failed = false;
       }
     } else if (c.role==="favicon" && c.status==="success"){
       link.favicon_url = c.playback_url;
@@ -99,7 +99,7 @@ const generateLinkFields = (link, query) => {
   if (primary_pending || screenshot_pending){
     link.is_pending = true;
   }
-  if (primary_failed && screenshot_failed){
+  if (!link.is_pending && primary_failed && screenshot_failed){
     link.is_failed = true;
   }
   return link;
