@@ -107,7 +107,7 @@ const handleSelection = (e) => {
     return handleClose()
   }
   const folder = JSON.parse(folderJSON)
-  const orgId = folder.sponsored_by ? null : folder.organization
+  const orgId = folder.organization
   const folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.id
   globalStore.components.jstree.handleSelectionChange({orgId, folderId})
   handleClose()
