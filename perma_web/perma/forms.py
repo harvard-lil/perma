@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms import Form, ModelForm
-from django.http import HttpResponseRedirect
+from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import mark_safe
 
@@ -187,17 +187,13 @@ class UserForm(forms.ModelForm):
         user = forms.ModelForm.save(self, commit)
         return user
 
-    def user_is_logged_in(self) -> bool:
+    def user_is_logged_in(self, request: HttpRequest) -> bool:
         """Determine whether there is a currently logged-in user.
 
         This may be useful for determining, e.g., whether or not to
         display certain user registration fields.
         """
-        return (
-            hasattr(self, 'request')
-            and hasattr(self.request, 'user')  # noqa: W503
-            and isinstance(self.request.user, LinkUser)  # noqa: W503
-        )
+        return hasattr(request, 'user') and request.user.is_authenticated
 
 
 class UserFormWithAdmin(UserForm):
@@ -303,7 +299,7 @@ class CreateUserFormWithCourt(UserForm):
         self.fields['email'].label = "Your email"
 
         # Populate and set visibility of fields based on whether user is logged in
-        if self.user_is_logged_in():
+        if hasattr(self, 'request') and self.user_is_logged_in(self.request):
             fields = ['first_name', 'last_name', 'email']
             for field in fields:
                 self.fields[field].widget = self.fields[field].hidden_widget()
@@ -331,7 +327,7 @@ class CreateUserFormWithFirm(UserForm):
         self.fields['would_be_org_admin'].label = 'Would you be an administrator on this account?'
 
         # Populate and set visibility of fields based on whether user is logged in
-        if self.user_is_logged_in():
+        if hasattr(self, 'request') and self.user_is_logged_in(self.request):
             fields = ['first_name', 'last_name', 'email']
             for field in fields:
                 self.fields[field].widget = self.fields[field].hidden_widget()
