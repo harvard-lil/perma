@@ -56,9 +56,6 @@ const handleUploadRequest = async () => {
     errors.value.file = ['File is required']
   }
   if (!props.captureGUID) {
-    if (!title.value) {
-      errors.value.title = ['Title is required']
-    }
     if (!url.value) {
       errors.value.url = ['URL is required']
     }
@@ -72,9 +69,9 @@ const handleUploadRequest = async () => {
   const formDataObj = new FormData();
   formDataObj.append('folder', globalStore.selectedFolder.folderId);
   formDataObj.append('file', file.value);
+  formDataObj.append('title', title.value);
+  formDataObj.append('description', description.value);
   if (!props.captureGUID) {
-    formDataObj.append('title', title.value);
-    formDataObj.append('description', description.value);
     formDataObj.append('url', url.value);
   }
 
@@ -123,7 +120,7 @@ defineExpose({
         </h3>
       </div>
       <p v-if="props.captureGUID" class="modal-description">
-        This will update the Perma Link you have created.
+        This will update the Perma Link you were trying to create.
       </p>
       <p v-else class="modal-description">
         This will create a new Perma Link.
@@ -135,7 +132,6 @@ defineExpose({
         </div>
 
         <form id="archive_upload_form" @submit.prevent>
-          <template v-if="!props.captureGUID">
             <TextInput
                 v-model="title"
                 name="New Perma Link title"
@@ -152,6 +148,7 @@ defineExpose({
                 id="description"
                 :error="errors.description"
             />
+          <template v-if="!props.captureGUID">
             <TextInput
                 v-model="url"
                 name="New Perma Link URL"

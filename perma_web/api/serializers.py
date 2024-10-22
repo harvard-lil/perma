@@ -80,15 +80,15 @@ class FolderSerializer(BaseSerializer):
         if self.instance:
             # moving
             if self.instance.is_shared_folder:
-                raise serializers.ValidationError("You can't move organization's shared folder.")
+                raise serializers.ValidationError("You can't move an organization's shared folder.")
             if self.instance.is_sponsored_root_folder:
-                raise serializers.ValidationError("You can't move Sponsored Links folder.")
+                raise serializers.ValidationError("You can't move your Sponsored Links folder.")
             if parent.is_sponsored_root_folder:
                 raise serializers.ValidationError("You can't make top-level sponsored folders.")
             if self.instance.sponsorship and self.instance.parent == self.instance.sponsorship.user.sponsored_root_folder:
                 raise serializers.ValidationError("You can't move top-level sponsored folders.")
             if self.instance.is_root_folder:
-                raise serializers.ValidationError("You can't move Personal Links folder.")
+                raise serializers.ValidationError("You can't move your Personal Links folder.")
             if self.instance.id == parent.id:
                 raise serializers.ValidationError("A node may not be made a child of itself.")
             if parent.id in list(self.instance.get_descendants().tree_filter(tree_root__id=self.instance.tree_root_id).values_list('id', flat=True)):

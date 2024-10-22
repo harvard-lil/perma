@@ -7,6 +7,7 @@ const globalStore = useGlobalStore()
 const showUploadLink = ref()
 const showGeneric = ref()
 const showLoginLink = ref()
+const showContactLink = ref()
 
 const uploadDialogRef = ref('')
 const handleOpen = () => {
@@ -30,6 +31,7 @@ watch(
       showUploadLink.value = true
       showGeneric.value = true
       showLoginLink.value = false
+      showContactLink.value = true
 
       if (errorMessage.includes("logged out")) {
         showLoginLink.value = true;
@@ -46,8 +48,8 @@ watch(
       } else if (errorMessage.includes("account needs attention")) {
         showUploadLink.value = false;
         showGeneric.value = false;
-      } else if (errorMessage.includes("Not a valid URL")) {
-        showUploadLink.value = false;
+      } else if (errorMessage.includes("URL cannot be empty")) {
+        showContactLink.value = false
       }
     },
     {immediate: true},
@@ -62,15 +64,16 @@ defineExpose({
 <template>
   <div id="error-container" role="alert" aria-live="assertive">
     <p class="message">
+      <template v-if="showLoginLink"><strong>Please <a href='/login'>log in</a> to continue.</strong><br></template>
+      <template v-else-if="showGeneric"><strong>We’re unable to create your Perma Link.</strong><br></template>
       {{ errorMessage }}
-      <template v-if="showLoginLink">Please <a href='/login'>log in</a> to continue.</template>
-      <template v-else-if="showGeneric">We’re unable to create your Perma Link.</template>
     </p>
     <p v-if="showUploadLink">
       You can
-      <button @click.prevent="handleOpen">upload your own archive</button>
-      or
-      <a href="{{contact_url}}">contact us about this error.</a>
+      <button @click.prevent="handleOpen">upload your own archive{{ showContactLink ? '' : '.'}}</button>
+      <template v-if="showContactLink"> or
+        <a href="{{contact_url}}">contact us about this error.</a>
+      </template>
     </p>
   </div>
 

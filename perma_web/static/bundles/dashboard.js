@@ -42131,7 +42131,7 @@ var getErrorFromStatusOrData = function getErrorFromStatusOrData(status, respons
       break;
   }
   if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_6___default()(errorMessage).call(errorMessage, "Error 0")) {
-    errorMessage = "Perma.cc Temporarily Unavailable";
+    errorMessage = "Perma.cc is temporarily unavailable";
   }
   return errorMessage;
 };
@@ -42168,8 +42168,8 @@ var getErrorResponse = /*#__PURE__*/function () {
 }();
 var defaultError = "We're sorry, we've encountered an error processing your request.";
 var loggedOutError = "You appear to be logged out.";
-var folderError = "Missing folder selection. Please select a folder.";
-var missingUrlError = "Missing urls. Please submit valid urls.";
+var folderError = "No folder selected: please select a folder.";
+var missingUrlError = "Missing URLs: please submit a list of valid URLs.";
 
 /***/ }),
 /* 590 */
@@ -43000,23 +43000,28 @@ var _hoisted_1 = {
 var _hoisted_2 = {
   class: "message"
 };
-var _hoisted_3 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
+var _hoisted_3 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("strong", null, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("Please "), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
   href: "/login"
-}, "log in", -1 /* HOISTED */);
-var _hoisted_4 = {
+}, "log in"), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" to continue.")], -1 /* HOISTED */);
+var _hoisted_4 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("br", null, null, -1 /* HOISTED */);
+var _hoisted_5 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("strong", null, "We’re unable to create your Perma Link.", -1 /* HOISTED */);
+var _hoisted_6 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("br", null, null, -1 /* HOISTED */);
+var _hoisted_7 = {
   key: 0
 };
-var _hoisted_5 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
+var _hoisted_8 = /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("a", {
   href: "{{contact_url}}"
 }, "contact us about this error.", -1 /* HOISTED */);
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($props.errorMessage) + " ", 1 /* TEXT */), $setup.showLoginLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
+  return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("p", _hoisted_2, [$setup.showLoginLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
     key: 0
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("Please "), _hoisted_3, Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" to continue.")], 64 /* STABLE_FRAGMENT */)) : $setup.showGeneric ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
+  }, [_hoisted_3, _hoisted_4], 64 /* STABLE_FRAGMENT */)) : $setup.showGeneric ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
     key: 1
-  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])("We’re unable to create your Perma Link.")], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_4, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" You can "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
+  }, [_hoisted_5, _hoisted_6], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($props.errorMessage), 1 /* TEXT */)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("p", _hoisted_7, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" You can "), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("button", {
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_0__["withModifiers"])($setup.handleOpen, ["prevent"])
-  }, "upload your own archive"), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), _hoisted_5])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createBlock"])($setup["UploadForm"], {
+  }, "upload your own archive" + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.showContactLink ? '' : '.'), 1 /* TEXT */), $setup.showContactLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], {
+    key: 0
+  }, [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" or "), _hoisted_8], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)])) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true)]), $setup.showUploadLink ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createBlock"])($setup["UploadForm"], {
     key: 0,
     ref: "uploadDialogRef",
     captureGUID: $props.captureGUID
@@ -43067,6 +43072,7 @@ __webpack_require__.r(__webpack_exports__);
     var showUploadLink = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])();
     var showGeneric = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])();
     var showLoginLink = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])();
+    var showContactLink = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])();
     var uploadDialogRef = Object(vue__WEBPACK_IMPORTED_MODULE_1__["ref"])('');
     var handleOpen = function handleOpen() {
       uploadDialogRef.value.handleOpen();
@@ -43078,6 +43084,7 @@ __webpack_require__.r(__webpack_exports__);
       showUploadLink.value = true;
       showGeneric.value = true;
       showLoginLink.value = false;
+      showContactLink.value = true;
       if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(errorMessage).call(errorMessage, "logged out")) {
         showLoginLink.value = true;
         showUploadLink.value = false;
@@ -43093,8 +43100,8 @@ __webpack_require__.r(__webpack_exports__);
       } else if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(errorMessage).call(errorMessage, "account needs attention")) {
         showUploadLink.value = false;
         showGeneric.value = false;
-      } else if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(errorMessage).call(errorMessage, "Not a valid URL")) {
-        showUploadLink.value = false;
+      } else if (_babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_0___default()(errorMessage).call(errorMessage, "URL cannot be empty")) {
+        showContactLink.value = false;
       }
     }, {
       immediate: true
@@ -43107,6 +43114,7 @@ __webpack_require__.r(__webpack_exports__);
       showUploadLink: showUploadLink,
       showGeneric: showGeneric,
       showLoginLink: showLoginLink,
+      showContactLink: showContactLink,
       uploadDialogRef: uploadDialogRef,
       handleOpen: handleOpen,
       props: props,
@@ -43223,11 +43231,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         class: "close",
         "data-dismiss": "modal",
         onClick: Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.handleClose, ["prevent"])
-      }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(_context = []).call(_context, _hoisted_5)), _hoisted_6]), $setup.props.captureGUID ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_7, " This will update the Perma Link you have created. ")) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_8, " This will create a new Perma Link. ")), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_9, [$setup.globalStore.isLoading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_10, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("form", {
+      }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(_context = []).call(_context, _hoisted_5)), _hoisted_6]), $setup.props.captureGUID ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_7, " This will update the Perma Link you were trying to create. ")) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_8, " This will create a new Perma Link. ")), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_9, [$setup.globalStore.isLoading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_10, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("form", {
         id: "archive_upload_form",
         onSubmit: _cache[4] || (_cache[4] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function () {}, ["prevent"]))
-      }, [!$setup.props.captureGUID ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
-        key: 0
       }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["TextInput"], {
         modelValue: $setup.title,
         "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
@@ -43248,7 +43254,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         placeholder: "Example Page Description",
         id: "description",
         error: $setup.errors.description
-      }, null, 8 /* PROPS */, ["modelValue", "error"]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["TextInput"], {
+      }, null, 8 /* PROPS */, ["modelValue", "error"]), !$setup.props.captureGUID ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createBlock"])($setup["TextInput"], {
+        key: 0,
         modelValue: $setup.url,
         "onUpdate:modelValue": _cache[2] || (_cache[2] = function ($event) {
           return $setup.url = $event;
@@ -43259,7 +43266,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         id: "url",
         type: "url",
         error: $setup.errors.url
-      }, null, 8 /* PROPS */, ["modelValue", "error"])], 64 /* STABLE_FRAGMENT */)) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["FileInput"], {
+      }, null, 8 /* PROPS */, ["modelValue", "error"])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["FileInput"], {
         modelValue: $setup.file,
         "onUpdate:modelValue": _cache[3] || (_cache[3] = function ($event) {
           return $setup.file = $event;
@@ -43382,9 +43389,6 @@ __webpack_require__.r(__webpack_exports__);
                 errors.value.file = ['File is required'];
               }
               if (!props.captureGUID) {
-                if (!title.value) {
-                  errors.value.title = ['Title is required'];
-                }
                 if (!url.value) {
                   errors.value.url = ['URL is required'];
                 }
@@ -43400,27 +43404,27 @@ __webpack_require__.r(__webpack_exports__);
               formDataObj = new FormData();
               formDataObj.append('folder', globalStore.selectedFolder.folderId);
               formDataObj.append('file', file.value);
+              formDataObj.append('title', title.value);
+              formDataObj.append('description', description.value);
               if (!props.captureGUID) {
-                formDataObj.append('title', title.value);
-                formDataObj.append('description', description.value);
                 formDataObj.append('url', url.value);
               }
 
               // send request
               requestType = props.captureGUID ? "PATCH" : "POST";
               requestUrl = "/archives/" + (props.captureGUID ? "".concat(props.captureGUID, "/") : "");
-              _context2.next = 16;
+              _context2.next = 18;
               return Object(_lib_data__WEBPACK_IMPORTED_MODULE_9__["fetchDataOrError"])(requestUrl, {
                 method: requestType,
                 data: formDataObj
               });
-            case 16:
+            case 18:
               _yield$fetchDataOrErr = _context2.sent;
               data = _yield$fetchDataOrErr.data;
               error = _yield$fetchDataOrErr.error;
               response = _yield$fetchDataOrErr.response;
               if (!error) {
-                _context2.next = 24;
+                _context2.next = 26;
                 break;
               }
               console.log(error, response);
@@ -43430,12 +43434,12 @@ __webpack_require__.r(__webpack_exports__);
                 globalErrors.value = response.status ? Object(_lib_errors__WEBPACK_IMPORTED_MODULE_8__["getErrorFromStatus"])(response.status) : _lib_errors__WEBPACK_IMPORTED_MODULE_8__["defaultError"];
               }
               return _context2.abrupt("return");
-            case 24:
+            case 26:
               // success
               guid = data.guid;
               globalStore.components.createLink.resetForm();
               window.location.href = _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_3___default()(_context = "".concat(window.location.origin, "/")).call(_context, guid);
-            case 27:
+            case 29:
             case "end":
               return _context2.stop();
           }
