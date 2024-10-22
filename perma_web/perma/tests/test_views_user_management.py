@@ -1745,6 +1745,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 'a-telephone': "I'm a bot.",
                 **firm_organization_form,
                 **firm_usage_form,
+                'a-would_be_org_admin': True,
             },
             success_url=reverse('register_email_instructions'),
         )

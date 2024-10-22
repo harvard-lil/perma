@@ -166,8 +166,10 @@ def sign_up_firm(request):
     Register a new law firm user
     """
     if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
+        something_took_the_bait = check_honeypot(
+            request, 'register_email_instructions', honey_pot_fieldname='a-telephone', check_js=True
+        )
+        if something_took_the_bait:
             return something_took_the_bait
 
         user_form = CreateUserFormWithFirm(request.POST, prefix='a')
