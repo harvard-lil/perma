@@ -325,7 +325,7 @@ def suggest_registrars(user: LinkUser, limit: int = 5) -> BaseManager[Registrar]
     base_domain = '.'.join(email_domain.rsplit('.', 2)[-2:])
     pattern = f'^https?://([a-zA-Z0-9\\-\\.]+\\.)?{re.escape(base_domain)}(/.*)?$'
     registrars = (
-        Registrar.objects.exclude(status='pending')
+        Registrar.objects.filter(status='approved')
         .filter(website__iregex=pattern)
         .order_by('-link_count', 'name')[:limit]
     )
