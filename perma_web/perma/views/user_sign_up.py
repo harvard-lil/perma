@@ -120,8 +120,10 @@ def sign_up_courts(request):
     Register a new court user
     """
     if request.method == 'POST':
-
-        if something_took_the_bait := check_honeypot(request, 'register_email_instructions', check_js=True):
+        something_took_the_bait = check_honeypot(
+            request, 'register_email_instructions', check_js=True
+        )
+        if something_took_the_bait:
             return something_took_the_bait
 
         form = CreateUserFormWithCourt(request.POST)
@@ -155,7 +157,11 @@ def sign_up_courts(request):
                 return HttpResponseRedirect(reverse('court_request_response'))
 
     else:
-        form = CreateUserFormWithCourt()
+        initial = {}
+        if hasattr(request, 'user'):
+            fields = ['first_name', 'last_name', 'email']
+            initial = {field: getattr(request.user, field, None) for field in fields}
+        form = CreateUserFormWithCourt(initial=initial, request=request)
 
     return render(request, "registration/sign-up-courts.html", {'form': form})
 

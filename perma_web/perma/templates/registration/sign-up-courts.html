@@ -26,16 +26,18 @@
         <h3 class="body-bh">Your court information</h3>
         <fieldset>
           {% for field in form %}
-            {% if field.name == 'requested_account_note' or not request.user.is_authenticated %}
-            <div class="form-group{% if field.errors %} _error{% endif %}">
-              <label for="id_{{ field.name }}">{{ field.label }}</label>
+            {% if field in form.visible_fields %}
+              <div class="form-group{% if field.errors %} _error{% endif %}">
+                <label for="id_{{ field.name }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                  {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+                {% elif field.help_text %}
+                  <span class="help-inline">{{ field.help_text }}</span>
+                {% endif %}
+              </div>
+            {% else %}
               {{ field }}
-              {% if field.errors %}
-                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-              {%elif field.help_text %}
-                <span class="help-inline">{{ field.help_text }}</span>
-              {% endif %}
-            </div>
             {% endif %}
           {% endfor %}
           {% if not request.user.is_authenticated %}

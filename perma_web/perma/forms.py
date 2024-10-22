@@ -283,10 +283,23 @@ class CreateUserFormWithCourt(UserForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateUserFormWithCourt, self).__init__(*args, **kwargs)
+
         self.fields['requested_account_note'].label = "Your court"
         self.fields['first_name'].label = "Your first name"
         self.fields['last_name'].label = "Your last name"
         self.fields['email'].label = "Your email"
+
+        # Populate and set visibility of fields based on whether user is logged in
+        user_is_logged_in = (
+            hasattr(self, 'request')
+            and hasattr(self.request, 'user')
+            and isinstance(self.request.user, LinkUser)
+        )
+        if user_is_logged_in:
+            fields = ['first_name', 'last_name', 'email']
+            for field in fields:
+                self.fields[field].widget = self.fields[field].hidden_widget()
+
 
 class CreateUserFormWithFirm(UserForm):
     """
