@@ -11,3 +11,5 @@ export function getCookie(name) {
 export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
+
+export const sleep = ms => new Promise(r => setTimeout(r, ms));
