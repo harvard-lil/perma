@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { fetchDataOrError } from '../lib/data'
+import { sleep } from '../lib/helpers'
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
@@ -27,6 +28,7 @@ export const useGlobalStore = defineStore('global', {
       jstree: null,
       linkList: null,
     },
+    toasts: [],
   }),
   actions: {
     setLinksRemainingFromGlobals(linksRemaining, isNonpaying) {
@@ -73,6 +75,14 @@ export const useGlobalStore = defineStore('global', {
       }
 
       this[attribute] = data.objects
+    },
+    async addToast(message, level = 'success', duration = 3000) {
+      const toast = {id: Date.now(), message, level};
+      this.toasts.push(toast);
+      if (duration) {
+        await sleep(duration);
+        this.toasts = this.toasts.filter(t => t.id !== toast.id);
+      }
     },
   },
 })

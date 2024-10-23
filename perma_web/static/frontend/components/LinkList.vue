@@ -4,13 +4,11 @@ import { useGlobalStore } from '../stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { fetchDataOrError } from '../lib/data'
 import { useInfiniteScroll } from '@vueuse/core'
-import { useToast } from '../lib/notifications'
 import Spinner from './Spinner.vue'
 
 /*** Component setup ***/
 const globalStore = useGlobalStore();
 const { selectedFolder } = storeToRefs(globalStore);
-const { addToast } = useToast();
 
 /*** Variables ***/
 const searchQuery = ref('');
@@ -51,7 +49,7 @@ const fetchLinks = async (append = false) => {
   }
   loading.value = false;
   if (error) {
-    addToast({message: 'Error fetching data. Please try again.', status: 'error'});
+    globalStore.addToast('Error fetching data. Please try again.', 'error');
     return;
   }
   const newLinks = data.objects.map(link => ({
@@ -185,7 +183,7 @@ const moveLink = async (folderID, guid) => {
     method: 'PUT',
   });
   if (error) {
-    addToast({message: 'Error fetching data. Please try again.', status: 'error'});
+    globalStore.addToast('Error fetching data. Please try again.', 'error');
     return;
   }
   globalStore.linksRemaining = data.links_remaining;
@@ -227,7 +225,7 @@ const handleInput = async (guid, field, value) => {
 
     if (error) {
       saveStatuses.value[statusKey] = 'Error saving';
-      addToast({message: 'Error fetching data. Please try again.', status: 'error'});
+      globalStore.addToast('Error fetching data. Please try again.', 'error');
       return;
     }
 
