@@ -55765,9 +55765,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       class: "item-subtitle"
     }, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("a", {
       href: "#",
-      onClick: function onClick(e) {
-        return $setup.handleBatchClick(e, batch);
-      }
+      onClick: Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
+        return $setup.handleBatchClick(batch);
+      }, ["prevent"])
     }, [_hoisted_8, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.human_timestamp(batch.started_on)), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_7)]);
   }), 128 /* KEYED_FRAGMENT */))])) : $setup.hasError ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_9, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.error || '(unavailable)'), 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("p", _hoisted_10, "Loading...")), (_$setup$data = $setup.data) !== null && _$setup$data !== void 0 && (_$setup$data = _$setup$data.meta) !== null && _$setup$data !== void 0 && _$setup$data.next ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("a", {
     key: 3,
@@ -55848,23 +55848,9 @@ __webpack_require__.r(__webpack_exports__);
     Object(vue__WEBPACK_IMPORTED_MODULE_2__["watch"])(data, function () {
       if (data.value) {
         linkRecords.value = data.value.objects;
-        // TODO: previously this called
-        //     DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
-        // not sure if necessary in Vue
       }
     });
-    var handleBatchClick = function handleBatchClick(e, batch) {
-      e.preventDefault();
-      var folderPath = batch.target_folder.path;
-      var org = parseInt(batch.target_folder.organization);
-
-      // TODO: previously this forced a reload of the folder tree with
-      //       Helpers.triggerOnWindow('batchLink.reloadTreeForFolder', {
-      //         folderId: folderPath.split('-'),
-      //         orgId: org
-      //       });
-      // not sure if necessary in Vue
-
+    var handleBatchClick = function handleBatchClick(batch) {
       globalStore.components.batchDialog.showBatchHistory(batch.id);
     };
     function human_timestamp(datetime) {
@@ -65632,11 +65618,11 @@ var _hoisted_11 = {
   class: "item-notification"
 };
 var _hoisted_12 = {
-  key: 2,
+  key: 0,
   class: "item-notification"
 };
 var _hoisted_13 = {
-  key: 3,
+  key: 1,
   class: "item-notification"
 };
 var _hoisted_14 = ["data-link_id", "onMousedown", "onMouseup"];
@@ -65778,6 +65764,10 @@ var _hoisted_63 = {
 var _hoisted_64 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("strong", null, "Created by:", -1 /* HOISTED */);
 });
+var _hoisted_65 = {
+  key: 0,
+  class: "item-notification"
+};
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_1, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_2, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_3, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("h3", _hoisted_4, [$setup.organization ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("span", _hoisted_5, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.path) + " Links", 1 /* TEXT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
     key: 1
@@ -65803,9 +65793,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     href: "#",
     class: "clear-search",
     onClick: Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])($setup.clearSearch, ["prevent"])
-  }, "Clear search.")])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), !$setup.selectedFolder.folderId ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_11, "No folder selected")) : $setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_12, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : !$setup.links.length ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_13, "This is an empty folder")) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
-    key: 4
-  }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.links, function (link) {
+  }, "Clear search.")])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true), !$setup.selectedFolder.folderId ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_11, "No folder selected")) : !$setup.links.length ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
+    key: 2
+  }, [$setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_12, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_13, "This is an empty folder"))], 64 /* STABLE_FRAGMENT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
+    key: 3
+  }, [(Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.links, function (link) {
     var _context, _context2, _context3;
     return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", {
       key: link.guid,
@@ -65924,7 +65916,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         return $setup.handleInput(link.guid, 'default_to_screenshot_view', true);
       }
     }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_61), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Screenshot ")])]), _hoisted_62])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_63, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", null, [_hoisted_64, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.created_by.full_name), 1 /* TEXT */)])])])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */);
-  }), 128 /* KEYED_FRAGMENT */))], 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
+  }), 128 /* KEYED_FRAGMENT */)), $setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_65, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 64 /* STABLE_FRAGMENT */))], 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -66049,8 +66041,9 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
     /*** Methods ***/
     var fetchLinks = /*#__PURE__*/function () {
       var _ref2 = _babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_6___default()( /*#__PURE__*/_babel_runtime_corejs3_regenerator__WEBPACK_IMPORTED_MODULE_7___default.a.mark(function _callee() {
-        var _context;
+        var _selectedFolder$value, _context;
         var append,
+          folderId,
           _yield$fetchDataOrErr,
           data,
           error,
@@ -66061,28 +66054,38 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
               append = _args.length > 0 && _args[0] !== undefined ? _args[0] : false;
-              if (folder.value) {
-                _context4.next = 3;
+              folderId = (_selectedFolder$value = selectedFolder.value) === null || _selectedFolder$value === void 0 ? void 0 : _selectedFolder$value.folderId;
+              if (folderId) {
+                _context4.next = 4;
                 break;
               }
               return _context4.abrupt("return");
-            case 3:
+            case 4:
               loading.value = true;
-              _context4.next = 6;
-              return Object(_lib_data__WEBPACK_IMPORTED_MODULE_20__["fetchDataOrError"])("/folders/".concat(folder.value, "/archives/"), {
+              if (!append) {
+                resetPagination();
+              }
+              _context4.next = 8;
+              return Object(_lib_data__WEBPACK_IMPORTED_MODULE_20__["fetchDataOrError"])("/folders/".concat(folderId, "/archives/"), {
                 params: {
                   q: query.value,
                   limit: limit.value,
                   offset: offset.value
                 }
               });
-            case 6:
+            case 8:
               _yield$fetchDataOrErr = _context4.sent;
               data = _yield$fetchDataOrErr.data;
               error = _yield$fetchDataOrErr.error;
+              if (!(selectedFolder.value.folderId !== folderId)) {
+                _context4.next = 13;
+                break;
+              }
+              return _context4.abrupt("return");
+            case 13:
               loading.value = false;
               if (!error) {
-                _context4.next = 13;
+                _context4.next = 17;
                 break;
               }
               addToast({
@@ -66090,7 +66093,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
                 status: 'error'
               });
               return _context4.abrupt("return");
-            case 13:
+            case 17:
               newLinks = _babel_runtime_corejs3_core_js_stable_instance_map__WEBPACK_IMPORTED_MODULE_8___default()(_context = data.objects).call(_context, function (link) {
                 var _context2;
                 return _objectSpread(_objectSpread({}, generateLinkFields(link)), {}, {
@@ -66104,7 +66107,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
               }
               hasMore.value = newLinks.length === limit.value;
               offset.value += limit.value;
-            case 17:
+            case 21:
             case "end":
               return _context4.stop();
           }

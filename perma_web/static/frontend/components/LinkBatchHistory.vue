@@ -21,24 +21,10 @@ watch(limit, fetchBatchData)
 watch(data, () => {
   if (data.value) {
     linkRecords.value = data.value.objects
-    // TODO: previously this called
-    //     DOMHelpers.scrollIfTallerThanFractionOfViewport(".col-folders", 0.9);
-    // not sure if necessary in Vue
   }
 })
 
-const handleBatchClick = (e, batch) => {
-  e.preventDefault()
-  const folderPath = batch.target_folder.path
-  const org = parseInt(batch.target_folder.organization)
-
-  // TODO: previously this forced a reload of the folder tree with
-  //       Helpers.triggerOnWindow('batchLink.reloadTreeForFolder', {
-  //         folderId: folderPath.split('-'),
-  //         orgId: org
-  //       });
-  // not sure if necessary in Vue
-
+const handleBatchClick = (batch) => {
   globalStore.components.batchDialog.showBatchHistory(batch.id)
 }
 
@@ -67,7 +53,7 @@ const toggleExpanded = () => {
   <div id="batch-history" v-show="isExpanded">
     <ul v-if="!isLoading && !hasError" class="item-container">
       <li v-for="batch in linkRecords" :key="batch.id" class="item-subtitle">
-        <a href="#" @click="(e) => handleBatchClick(e, batch)">
+        <a href="#" @click.prevent="handleBatchClick(batch)">
           <span class="sr-only">Batch created </span>{{ human_timestamp(batch.started_on) }}
         </a>
       </li>
