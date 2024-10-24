@@ -1,3 +1,4 @@
+from decimal import Decimal, DecimalException
 import logging
 import re
 
@@ -239,9 +240,8 @@ def sign_up_firms(request: HttpRequest):
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
-def approve_pending_registrar(request, registrar_id):
-    """Perma admins can approve account requests from libraries"""
-
+def approve_pending_registrar(request: HttpRequest, registrar_id: int):
+    """A view enabling admins to approve or deny a pending registrar."""
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
     target_registrar_user = target_registrar.pending_users.first()
 
@@ -250,6 +250,16 @@ def approve_pending_registrar(request, registrar_id):
             new_status = request.POST.get('status')
             if new_status in ['approved', 'denied']:
                 target_registrar.status = new_status
+
+                # If base rate is supplied (and is a valid decimal), set it on the registrar
+                if base_rate_raw := request.POST.get('base_rate') is not None:
+                    try:
+                        base_rate = Decimal(base_rate_raw)
+                    except DecimalException:
+                        pass
+                    else:
+                        target_registrar.base_rate = base_rate
+
                 target_registrar.save()
 
                 if new_status == 'approved':
