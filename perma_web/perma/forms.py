@@ -96,7 +96,7 @@ class LibraryRegistrarForm(ModelForm):
 
 ### FIRM (OTHER ORG) QUOTE FORMS ###
 
-class FirmOrganizationForm(ModelForm):
+class FirmRegistrarForm(ModelForm):
     class Meta:
         model = Registrar
         fields = ['name', 'email', 'website']

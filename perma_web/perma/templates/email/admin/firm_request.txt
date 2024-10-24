@@ -1,8 +1,8 @@
 {{ user_form.data.email }}{% if user_form.data.first_name or user_form.data.last_name %} ({{ user_form.data.first_name }} {{ user_form.data.last_name }}){% endif %} has requested more information about creating an account for a law firm or other organization:
 
-Organization name: {{ organization_form.cleaned_data.name }}
-Organization email: {{ organization_form.cleaned_data.email }}
-Organization website: {{ organization_form.cleaned_data.website }}
+Organization name: {{ registrar_form.cleaned_data.name }}
+Organization email: {{ registrar_form.cleaned_data.email }}
+Organization website: {{ registrar_form.cleaned_data.website }}
 
 Estimated number of individual accounts: {{ usage_form.cleaned_data.estimated_number_of_accounts }}
 Estimated number of Perma Links created each month (per user): {{ usage_form.cleaned_data.estimated_perma_links_per_month }}

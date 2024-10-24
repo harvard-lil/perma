@@ -24,7 +24,7 @@
       <form method="post" action="">
         {% csrf_token %}
         <h3 class="body-bh">Your team information</h3>
-        {% include "includes/fieldset.html" with form=organization_form %}
+        {% include "includes/fieldset.html" with form=registrar_form %}
         <h3 class="body-bh">Estimated usage information</h3>
         <p>Quotes are based on the expected volume of use by your whole team.</p>
         {% include "includes/fieldset.html" with form=usage_form %}

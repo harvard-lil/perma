@@ -18,7 +18,7 @@ from perma.email import send_admin_email, send_user_email
 from perma.forms import (
     CreateUserFormWithCourt,
     CreateUserFormWithFirm,
-    FirmOrganizationForm,
+    FirmRegistrarForm,
     FirmUsageForm,
     LibraryRegistrarForm,
     UserForm,
@@ -216,7 +216,7 @@ def sign_up_firms(request: HttpRequest):
                 return HttpResponseRedirect(reverse('firm_request_response'))
 
         else:
-            organization_form = FirmOrganizationForm()
+            registrar_form = FirmRegistrarForm()
             usage_form = FirmUsageForm()
 
     else:
@@ -225,7 +225,7 @@ def sign_up_firms(request: HttpRequest):
             fields = ['first_name', 'last_name', 'email']
             initial = {field: getattr(request.user, field, None) for field in fields}
         user_form = CreateUserFormWithFirm(initial=initial, prefix='a', request=request)
-        organization_form = FirmOrganizationForm()
+        registrar_form = FirmRegistrarForm()
         usage_form = FirmUsageForm()
 
     return render(
@@ -233,7 +233,7 @@ def sign_up_firms(request: HttpRequest):
         'registration/sign-up-firms.html',
         {
             'user_form': user_form,
-            'organization_form': organization_form,
+            'registrar_form': registrar_form,
             'usage_form': usage_form,
         },
     )
@@ -447,13 +447,13 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
     """
     Send email to Perma.cc admins when a firm requests an account
     """
-    organization_form = FirmOrganizationForm(request.POST)
+    registrar_form = FirmRegistrarForm(request.POST)
     usage_form = FirmUsageForm(request.POST)
     user_form = CreateUserFormWithFirm(request.POST, prefix='a')
 
     # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
     # attribute is only populated after checking
-    if organization_form.errors or usage_form.errors:
+    if registrar_form.errors or usage_form.errors:
         return HttpResponseBadRequest('Form data contains validation errors')
 
     try:
@@ -468,7 +468,7 @@ def email_firm_request(request: HttpRequest, user: LinkUser):
         'email/admin/firm_request.txt',
         {
             'existing_user': existing_user,
-            'organization_form': organization_form,
+            'registrar_form': registrar_form,
             'usage_form': usage_form,
             'user_form': user_form,
         },
