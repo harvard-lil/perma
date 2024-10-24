@@ -1,4 +1,5 @@
-A new library account request from pending registrar, named {{ name }} (at {{ email }}) is awaiting review and approval.
-Requesting user's email:  {{ requested_by_email }}
+A new account request from a pending registrar, named {{ name }} ({{ email }}), is awaiting review and approval.
+
+Requesting user's email: {{ requested_by_email }}
 
 http://{{ host }}{{ confirmation_route}}

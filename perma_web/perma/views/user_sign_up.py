@@ -14,7 +14,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from ratelimit.decorators import ratelimit
 
-from perma.email import send_admin_email, send_user_email
+from perma.email import send_admin_email, send_user_email, send_user_email_copy_admins
 from perma.forms import (
     CreateUserFormWithCourt,
     CreateUserFormWithFirm,
@@ -69,7 +69,7 @@ def sign_up_libraries(request):
             form_is_valid = registrar_form.is_valid()
         if form_is_valid:
             new_registrar = registrar_form.save()
-            email_registrar_request(request, new_registrar)
+            email_library_registrar_request(request, new_registrar)
             if user_form:
                 new_user = user_form.save(commit=False)
                 new_user.pending_registrar = new_registrar
@@ -177,8 +177,10 @@ def sign_up_firms(request: HttpRequest):
         if something_took_the_bait:
             return something_took_the_bait
 
-        user_form = CreateUserFormWithFirm(request.POST, prefix='a')
         user_email = request.POST.get('a-e-address', '').lower()
+        user_form = CreateUserFormWithFirm(request.POST, prefix='a')
+        registrar_form = FirmRegistrarForm(request.POST)
+        usage_form = FirmUsageForm(request.POST)
 
         try:
             existing_user = LinkUser.objects.get(email=user_email)
@@ -187,24 +189,30 @@ def sign_up_firms(request: HttpRequest):
 
         # If user email in form matches an existing user in database, update user record to include
         # organization name under `LinkUser.requested_account_note` field
-        if existing_user is not None:
-            organization_name = request.POST.get('name', None)
+        if existing_user is not None and registrar_form.is_valid():
+            new_registrar: Registrar = registrar_form.save()
             existing_user.requested_account_type = 'firm'
-            existing_user.requested_account_note = organization_name
+            existing_user.requested_account_note = registrar_form.cleaned_data['name']
+            existing_user.pending_registrar = new_registrar
             existing_user.save()
-            email_firm_request(request, existing_user)
+
+            email_firm_request(request, new_registrar, existing_user)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
         # Otherwise, validate the user form, create a new user account (if requested), and email a
         # firm request to Perma administrators
-        elif user_form.is_valid():
-            new_user = user_form.save(commit=False)
+        elif user_form.is_valid() and registrar_form.is_valid():
+            new_registrar: Registrar = registrar_form.save()
+            new_user: LinkUser = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
             create_account = request.POST.get('create_account', None)
             if create_account:
                 new_user.save()
-                email_new_user(request, new_user)
-                email_firm_request(request, new_user)
+                email_firm_request(request, new_registrar, new_user)
+                if user_form.cleaned_data['registrar_user_candidate'] is True:
+                    email_pending_registrar_user(request, new_user)
+                else:
+                    email_new_user(request, new_user)
                 messages.add_message(
                     request,
                     messages.INFO,
@@ -212,12 +220,8 @@ def sign_up_firms(request: HttpRequest):
                 )
                 return HttpResponseRedirect(reverse('register_email_instructions'))
             else:
-                email_firm_request(request, new_user)
+                email_firm_request(request, new_registrar, new_user)
                 return HttpResponseRedirect(reverse('firm_request_response'))
-
-        else:
-            registrar_form = FirmRegistrarForm()
-            usage_form = FirmUsageForm()
 
     else:
         initial = {}
@@ -347,10 +351,15 @@ def email_new_user(request, user, template='email/new_user.txt', context=None):
     Send email to newly created accounts
     """
     # This uses the forgot-password flow; logic is borrowed from auth_forms.PasswordResetForm.save()
-    activation_route = request.build_absolute_uri(reverse('password_reset_confirm', args=[
-        urlsafe_base64_encode(force_bytes(user.pk)),
-        default_token_generator.make_token(user),
-    ]))
+    activation_route = request.build_absolute_uri(
+        reverse(
+            'password_reset_confirm',
+            args=[
+                urlsafe_base64_encode(force_bytes(user.pk)),
+                default_token_generator.make_token(user),
+            ],
+        )
+    )
 
     # Include context variables
     template_is_default = template == 'email/new_user.txt'
@@ -365,24 +374,16 @@ def email_new_user(request, user, template='email/new_user.txt', context=None):
         }
     )
 
-    send_user_email(
-        user.raw_email,
-        template,
-        context
-    )
+    send_user_email(user.raw_email, template, context)
 
 
-def email_pending_registrar_user(request, user):
-    """
-    Send email to newly created accounts for folks requesting library accounts
-    """
+def email_pending_registrar_user(request: HttpRequest, user: LinkUser):
+    """Send email to a newly created user whose registrar is pending."""
     email_new_user(request, user, template='email/pending_registrar.txt')
 
 
-def email_registrar_request(request, pending_registrar):
-    """
-    Send email to Perma.cc admins when a library requests an account
-    """
+def email_library_registrar_request(request: HttpRequest, pending_registrar: Registrar):
+    """Send email to admins when a registrar account is requested."""
     host = request.get_host()
     try:
         email = request.user.raw_email
@@ -391,17 +392,19 @@ def email_registrar_request(request, pending_registrar):
         email = request.POST.get('a-e-address')
 
     send_admin_email(
-        "Perma.cc new library registrar account request",
+        'Perma.cc new library registrar account request',
         email,
         request,
         'email/admin/registrar_request.txt',
         {
-            "name": pending_registrar.name,
-            "email": pending_registrar.email,
-            "requested_by_email": email,
-            "host": host,
-            "confirmation_route": reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.id])
-        }
+            'name': pending_registrar.name,
+            'email': pending_registrar.email,
+            'requested_by_email': email,
+            'host': host,
+            'confirmation_route': reverse(
+                'user_sign_up_approve_pending_registrar', args=[pending_registrar.id]
+            ),
+        },
     )
 
 
@@ -443,35 +446,38 @@ def email_court_request(request, user):
     )
 
 
-def email_firm_request(request: HttpRequest, user: LinkUser):
-    """
-    Send email to Perma.cc admins when a firm requests an account
-    """
-    registrar_form = FirmRegistrarForm(request.POST)
+def email_firm_request(request: HttpRequest, registrar: Registrar, user: LinkUser):
+    """Send email to admins when a paid registrar account is requested."""
     usage_form = FirmUsageForm(request.POST)
     user_form = CreateUserFormWithFirm(request.POST, prefix='a')
 
     # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
     # attribute is only populated after checking
-    if registrar_form.errors or usage_form.errors:
-        return HttpResponseBadRequest('Form data contains validation errors')
+    if usage_form.errors:
+        return HttpResponseBadRequest('Usage form data contains validation errors')
 
     try:
         existing_user = LinkUser.objects.get(email=user_form.data['a-e-address'].casefold())
     except LinkUser.DoesNotExist:
         existing_user = None
 
-    send_admin_email(
-        'Perma.cc new law firm account information request',
-        user.raw_email,
-        request,
-        'email/admin/firm_request.txt',
-        {
-            'existing_user': existing_user,
-            'registrar_form': registrar_form,
-            'usage_form': usage_form,
-            'user_form': user_form,
-        },
+    context = {
+        'user': user,
+        'existing_user': existing_user,
+        'usage_form': usage_form,
+        'user_form': user_form,
+        'registrar': registrar,
+        'confirmation_route': reverse(
+            'user_sign_up_approve_pending_registrar', args=[registrar.id]
+        ),
+    }
+    send_user_email_copy_admins(
+        title='Perma.cc new paid registrar account request',
+        from_address=settings.DEFAULT_FROM_EMAIL,
+        to_addresses=[user.raw_email],
+        request=request,
+        template='email/admin/firm_request.txt',
+        context=context,
     )
 
 

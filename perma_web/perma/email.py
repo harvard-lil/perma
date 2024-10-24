@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.http import HttpRequest
 from django.template import Context, RequestContext, engines
 from django.utils import timezone
 
@@ -101,19 +102,35 @@ def send_self_email(title, request, template="email/default.txt", context={}, de
     return message.send(fail_silently=False)
 
 
-def send_user_email_copy_admins(title, from_address, to_addresses, request, template="email/default.txt", context={}):
+def send_user_email_copy_admins(
+    title: str,
+    from_address: str,
+    to_addresses: list[str],
+    request: HttpRequest,
+    template: str = 'email/default.txt',
+    context: dict | None = None,
+):
+    """Send a message to a user, CCing the sender and the Perma admins.
+
+    This can be used to send a message from one user to another while
+    copying the admins, or to send a message from Perma to a user while
+    CCing a copy to the admins.
+
+    Use reply_to for the user address so we can use email services that
+    require authenticated from addresses.
     """
-        Send a message on behalf of a user to another user, cc'ing
-        the sender and the Perma admins.
-        Use reply-to for the user address so we can use email services that require authenticated from addresses.
-    """
+    # Handle cases where we want to email a user and CC ourselves
+    cc_addresses = [settings.DEFAULT_FROM_EMAIL]
+    if from_address != settings.DEFAULT_FROM_EMAIL:
+        cc_addresses.append(from_address)
+    context = context if context is not None else {}
     message = EmailMessage(
-        title,
-        render_email(template, context, request),
-        settings.DEFAULT_FROM_EMAIL,
-        to_addresses,
-        cc=[settings.DEFAULT_FROM_EMAIL, from_address],
-        reply_to=[from_address]
+        subject=title,
+        body=render_email(template, context, request),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=to_addresses,
+        cc=cc_addresses,
+        reply_to=[from_address],
     )
     return message.send(fail_silently=False)
 
@@ -172,4 +189,3 @@ def registrar_users_plus_stats(registrars=None, year=None):
                            "most_active_org": registrar.most_active_org_in_time_period(start_time, end_time),
                            "registrar_users": registrar_users })
     return users
-
