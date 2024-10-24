@@ -110,7 +110,7 @@
     padding-top: 11px;
     &:hover {
       span.ui-private {
-        background-image: url('../img/ui/perma-ui-private-white.png') !important;
+        background-image: url('@/img/ui/perma-ui-private-white.png') !important;
       }
     }
   }
@@ -700,7 +700,7 @@ a {
       right: -8px;
       border-radius: $grid * 8;
       //box-shadow: 0px 0px 0px 1px $color-blue;
-      background-image: url('../img/ui/perma-ui-success.svg');
+      background-image: url('@/img/ui/perma-ui-success.svg');
       background-size: contain;
       background-repeat: no-repeat;
     }
@@ -817,7 +817,7 @@ a.cc {
   overflow: hidden;
   text-indent: -10000px;
   background-color: $color-blue;
-  background-image: url('../img/ui/perma-ui-8-small.png');
+  background-image: url('@/img/ui/perma-ui-8-small.png');
   background-size: 90px 7px;
   background-repeat: no-repeat;
   background-position: -74px center;
@@ -1386,7 +1386,7 @@ button {
   @extend .style-ui-inline;
   height: 16px;
   width: 18px;
-  background-image: url('../img/ui/perma-ui-private.png');
+  background-image: url('@/img/ui/perma-ui-private.png');
   background-size: cover;
   margin-left: 4px;
   bottom: -1px;
@@ -1434,7 +1434,7 @@ button {
   &:after {
     height: 17px;
     width: 9px;
-    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+    background-image: url('@/img/ui/perma-ui-chev-right-small.png');
     background-size: 54px 17px;
     background-position: -9px * 2;
     top: 3px;
@@ -1463,7 +1463,7 @@ button {
       height: 9px;
       width: 18px;
       display: inline-block;
-      background-image: url('../img/ui/perma-ui-chev-down.png');
+      background-image: url('@/img/ui/perma-ui-chev-down.png');
       background-repeat: no-repeat;
       background-size: 102px 9px;
       background-position: -17px * 0;
@@ -2545,7 +2545,7 @@ figcaption + .img-responsive {
     display: inline-block;
     position: relative;
     top: 1px;
-    background-image: url('../img/ui/perma-ui-affil.svg');
+    background-image: url('@/img/ui/perma-ui-affil.svg');
     background-repeat: no-repeat;
     background-position: 0 0;
     background-size: 19px 18px;
@@ -3157,7 +3157,7 @@ button#addlink,
       position: relative;
       height: 16px;
       width: 18px;
-      background: url('../img/ui/perma-ui-private.png') no-repeat;
+      background: url('@/img/ui/perma-ui-private.png') no-repeat;
       background-size: cover;
       margin-right: 0px;
       bottom: -2px;
@@ -3682,7 +3682,7 @@ footer {
       height: 19px;
       width: 42px;
       display: inline-block;
-      background-image: url('../img/perma-logo-white.svg');
+      background-image: url('@/img/perma-logo-white.svg');
       background-repeat: no-repeat;
       background-size: contain;
       top: 1px;
@@ -4113,7 +4113,7 @@ ol.result-list {
       position: relative;
       height: 16px;
       width: 18px;
-      background-image: url('../img/ui/perma-ui-private.png');
+      background-image: url('@/img/ui/perma-ui-private.png');
       background-repeat: no-repeat;
       background-size: cover;
       margin-right: 4px;
@@ -4421,12 +4421,12 @@ ol.result-list {
     height: 7px !important;
   }
   .expand-details::before {
-    background: url('../img/expand.svg') no-repeat;
+    background: url('@/img/expand.svg') no-repeat;
   }
   .collapse-details {
     display: none;
     &::before {
-      background: url('../img/collapse.svg') no-repeat;
+      background: url('@/img/collapse.svg') no-repeat;
     }
   }
 }
@@ -5481,53 +5481,53 @@ img.img-sxs {
 
 @-webkit-keyframes healthy {
   0% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
   25% {
-    background-image: url('../img/link-rot-healthy-1.gif');
+    background-image: url('@/img/link-rot-healthy-1.gif');
   }
   50% {
-    background-image: url('../img/link-rot-healthy-2.gif');
+    background-image: url('@/img/link-rot-healthy-2.gif');
   }
   75% {
-    background-image: url('../img/link-rot-healthy-3.gif');
+    background-image: url('@/img/link-rot-healthy-3.gif');
   }
   100% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
 }
 @-moz-keyframes healthy {
   0% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
   25% {
-    background-image: url('../img/link-rot-healthy-1.gif');
+    background-image: url('@/img/link-rot-healthy-1.gif');
   }
   50% {
-    background-image: url('../img/link-rot-healthy-2.gif');
+    background-image: url('@/img/link-rot-healthy-2.gif');
   }
   75% {
-    background-image: url('../img/link-rot-healthy-3.gif');
+    background-image: url('@/img/link-rot-healthy-3.gif');
   }
   100% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
 }
 @keyframes healthy {
   0% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
   25% {
-    background-image: url('../img/link-rot-healthy-1.gif');
+    background-image: url('@/img/link-rot-healthy-1.gif');
   }
   50% {
-    background-image: url('../img/link-rot-healthy-2.gif');
+    background-image: url('@/img/link-rot-healthy-2.gif');
   }
   75% {
-    background-image: url('../img/link-rot-healthy-3.gif');
+    background-image: url('@/img/link-rot-healthy-3.gif');
   }
   100% {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
   }
 }
 
@@ -5548,7 +5548,7 @@ img.img-sxs {
     }
   }
   @include respond-tablet {
-    background-image: url('../img/link-rot-healthy.gif');
+    background-image: url('@/img/link-rot-healthy.gif');
     -webkit-animation: healthy 1s linear infinite;
     -moz-animation: healthy 1s linear infinite;
     -o-animation: healthy 1s linear infinite;
@@ -5573,7 +5573,7 @@ img#healthylinks {
   width: 100%;
   max-width: none;
   height: auto;
-  background-image: url('../img/link-rot-healthy.gif');
+  background-image: url('@/img/link-rot-healthy.gif');
   -webkit-animation: healthy 1s linear infinite;
   -moz-animation: healthy 1s linear infinite;
   -o-animation: healthy 1s linear infinite;

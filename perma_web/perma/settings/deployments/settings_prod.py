@@ -58,3 +58,9 @@ CONTACT_DAY_LIMIT = '10/d'
 REPORT_MINUTE_LIMIT = '2/m'
 REPORT_HOUR_LIMIT = '10/h'
 REPORT_DAY_LIMIT = '50/d'
+
+DJANGO_VITE = {
+  "default": {
+    "dev_mode": False
+  }
+}

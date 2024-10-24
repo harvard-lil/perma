@@ -1,7 +1,7 @@
 // perma imports
 // must be loaded in this order
 
-@import "~compass-mixins/lib/compass/css3";					// 1. import compass mixins
+@import "compass-mixins/lib/compass/css3";					// 1. import compass mixins
 @import "_fonts.scss";						// 2. import font definitions
 @import "_vars-global.scss";				// 3. import global variables
 @import "_mixins-global.scss";			// 4. import global mixins

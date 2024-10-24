@@ -1,6 +1,6 @@
 {% extends "archive/base-archive-responsive.html" %}
 {% load local_datetime archive_description %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 {% block header_scripts %}
   {% local_datetime_js %}{# allow local_datetime filter to work #}
@@ -303,10 +303,10 @@
   </script>
 
   {% if request.user.is_authenticated %}
-    {% render_bundle 'global' 'js' %}
-    {% render_bundle 'single-link-permissions' 'js' %}
+    {% vite_asset 'js/global.js' %}
+    {% vite_asset 'js/single-link-permissions.module.js' %}
   {% else %}
-    {% render_bundle 'single-link' 'js' %}
+    {% vite_asset 'js/single-link.js' %}
   {% endif %}
 
 {% endblock %}
