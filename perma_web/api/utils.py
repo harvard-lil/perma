@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class TastypiePagination(LimitOffsetPagination):
     """
-        Modify DRF's LimitOffsetPagination to return results in the same format as paginated results returned by Tastypie.
+        Modify DRF's LimitOffsetPagination to return results in the same format as paginated results returned by Tastypie. Omit count from output and use a false, large count internally to allow `next` links to work. This breaks the convention that the last page has a null `next` link -- instead, a consumer of the paginated API should follow next links until `objects` is an empty list.
     """
     def get_paginated_response(self, data):
         return Response(OrderedDict([
@@ -33,11 +33,13 @@ class TastypiePagination(LimitOffsetPagination):
                 ('limit', self.limit),
                 ('next', self.get_next_link()),
                 ('offset', self.offset),
-                ('previous', self.get_previous_link()),
-                ('total_count', self.count)
+                ('previous', self.get_previous_link())
             ])),
             ('objects', data)
         ]))
+
+    def get_count(self, queryset):
+        return 2**31
 
 
 def raise_general_validation_error(message):
