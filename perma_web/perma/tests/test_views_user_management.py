@@ -1606,7 +1606,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'normalized_email': email.lower(),
             'first': 'Joe',
             'last': 'Yacobówski',
-            'would_be_org_admin': bool(getrandbits(1)),
+            'registrar_user_candidate': bool(getrandbits(1)),
         }
 
     def check_firm_email(self, message, firm_email):
@@ -1646,7 +1646,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={
                 'a-e-address': self.randomize_capitalization(existing_user['email']),
-                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
             },
@@ -1661,7 +1661,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
-                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
             },
@@ -1676,7 +1676,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
-                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1699,7 +1699,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={
                 'a-e-address': firm_user_form['raw_email'],
-                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1720,7 +1720,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={
                 'a-e-address': self.randomize_capitalization(existing_user['email']),
-                'a-would_be_org_admin': firm_user_form['would_be_org_admin'],
+                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
                 'create_account': True,
@@ -1745,7 +1745,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 'a-telephone': "I'm a bot.",
                 **firm_registrar_form,
                 **firm_usage_form,
-                'a-would_be_org_admin': True,
+                'a-registrar_user_candidate': True,
             },
             success_url=reverse('register_email_instructions'),
         )
@@ -1764,7 +1764,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             'sign_up_firms',
             data={},
             form_keys=['registrar_form', 'usage_form', 'user_form'],
-            error_keys=['email', 'would_be_org_admin'],
+            error_keys=['email', 'registrar_user_candidate'],
         )
         self.assertEqual(len(mail.outbox), 0)
 
@@ -1775,7 +1775,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             data={},
             form_keys=['registrar_form', 'usage_form', 'user_form'],
             user='test_user@example.com',
-            error_keys=['email', 'would_be_org_admin'],
+            error_keys=['email', 'registrar_user_candidate'],
         )
         self.assertEqual(len(mail.outbox), 0)
 
