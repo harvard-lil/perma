@@ -1614,7 +1614,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         self.assertEqual(message.subject, 'Perma.cc new paid registrar account request')
         self.assertEqual(message.from_email, perma_admin_email)
-        self.assertEqual(message.to, [firm_email])
+        self.assertEqual(message.to, [firm_email.lower()])
         self.assertEqual(message.cc, [perma_admin_email])
         self.assertEqual(message.reply_to, [perma_admin_email])
 
@@ -1688,7 +1688,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         # LOGGED IN
 
         # Existing user
-        firm_user_form = self.create_firm_user_form()
         self.submit_form(
             'sign_up_firms',
             data={
@@ -1696,7 +1695,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                 'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
                 **firm_registrar_form,
                 **firm_usage_form,
-                'create_account': True,
             },
             user=existing_user['email'],
             success_url=reverse('firm_request_response'),

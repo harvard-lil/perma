@@ -196,7 +196,7 @@ def sign_up_firms(request: HttpRequest):
             existing_user.pending_registrar = new_registrar
             existing_user.save()
 
-            email_firm_request(request, new_registrar, existing_user)
+            email_firm_request(request, new_registrar)
             return HttpResponseRedirect(reverse('firm_request_response'))
 
         # Otherwise, validate the user form, create a new user account (if requested), and email a
@@ -208,7 +208,7 @@ def sign_up_firms(request: HttpRequest):
             create_account = request.POST.get('create_account', None)
             if create_account:
                 new_user.save()
-                email_firm_request(request, new_registrar, new_user)
+                email_firm_request(request, new_registrar)
                 if user_form.cleaned_data['registrar_user_candidate'] is True:
                     email_pending_registrar_user(request, new_user)
                 else:
@@ -220,7 +220,7 @@ def sign_up_firms(request: HttpRequest):
                 )
                 return HttpResponseRedirect(reverse('register_email_instructions'))
             else:
-                email_firm_request(request, new_registrar, new_user)
+                email_firm_request(request, new_registrar)
                 return HttpResponseRedirect(reverse('firm_request_response'))
 
     else:
@@ -446,7 +446,7 @@ def email_court_request(request, user):
     )
 
 
-def email_firm_request(request: HttpRequest, registrar: Registrar, user: LinkUser):
+def email_firm_request(request: HttpRequest, registrar: Registrar):
     """Send email to admins when a paid registrar account is requested."""
     usage_form = FirmUsageForm(request.POST)
     user_form = CreateUserFormWithFirm(request.POST, prefix='a')
@@ -454,19 +454,24 @@ def email_firm_request(request: HttpRequest, registrar: Registrar, user: LinkUse
     # Validate form values; this should rarely or never arise in practice, but the `cleaned_data`
     # attribute is only populated after checking
     if usage_form.errors:
-        return HttpResponseBadRequest('Usage form data contains validation errors')
+        return HttpResponseBadRequest('Form data contains validation errors')
+    user_name = ' '.join(
+        [user_form.data.get('a-first_name', ''), user_form.data.get('a-last_name', '')]
+    ).strip()
+    user_email = user_form.data['a-e-address'].lower()
 
     try:
-        existing_user = LinkUser.objects.get(email=user_form.data['a-e-address'].casefold())
+        existing_user = LinkUser.objects.get(email=user_email)
     except LinkUser.DoesNotExist:
         existing_user = None
 
     context = {
-        'user': user,
         'existing_user': existing_user,
+        'user_email': user_email,
+        'user_name': user_name,
         'usage_form': usage_form,
-        'user_form': user_form,
         'registrar': registrar,
+        'host': request.get_host(),
         'confirmation_route': reverse(
             'user_sign_up_approve_pending_registrar', args=[registrar.id]
         ),
@@ -474,7 +479,7 @@ def email_firm_request(request: HttpRequest, registrar: Registrar, user: LinkUse
     send_user_email_copy_admins(
         title='Perma.cc new paid registrar account request',
         from_address=settings.DEFAULT_FROM_EMAIL,
-        to_addresses=[user.raw_email],
+        to_addresses=[user_email],
         request=request,
         template='email/admin/firm_request.txt',
         context=context,

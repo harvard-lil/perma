@@ -7,8 +7,8 @@ Registrar website: {{ registrar.website }}
 Estimated number of individual accounts: {{ usage_form.cleaned_data.estimated_number_of_accounts }}
 Estimated number of Perma Links created each month (per user): {{ usage_form.cleaned_data.estimated_perma_links_per_month }}
 
-User name: {{ user_form.data.first_name }} {{ user_form.data.last_name }}
-User email: {{ user.raw_email }}
+User name: {{ user_name }}
+User email: {{ user_email }}
 User would be an administrator on the account: {{ user_form.data.registrar_user_candidate | yesno }}
 
 This user {% if existing_user %}has{% else %}does not have{% endif %} an account.
