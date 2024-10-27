@@ -34,6 +34,10 @@
 
     <form action="" method="POST">
       {% csrf_token %}
+      {% if not target_registrar.nonpaying %}
+        <label for="base_rate">Base rate</label>
+        <input id="base_rate" type="number" name="base_rate" step="0.01" value={{ target_registrar.base_rate }} style="width: 20rem;" min="0" max="1000000" />
+      {% endif %}
       <a class="btn cancel" href="../">Cancel</a>
       <button type="submit" name="status" value="approved" class="btn delete-confirm">Approve</button>
       <button type="submit" name="status" value="denied" class="btn delete-confirm">Deny</button>

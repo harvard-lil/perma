@@ -191,6 +191,8 @@ def sign_up_firms(request: HttpRequest):
         # organization name under `LinkUser.requested_account_note` field
         if existing_user is not None and registrar_form.is_valid():
             new_registrar: Registrar = registrar_form.save()
+            new_registrar.nonpaying = False
+            new_registrar.save()
             existing_user.requested_account_type = 'firm'
             existing_user.requested_account_note = registrar_form.cleaned_data['name']
             existing_user.pending_registrar = new_registrar
@@ -203,6 +205,8 @@ def sign_up_firms(request: HttpRequest):
         # firm request to Perma administrators
         elif user_form.is_valid() and registrar_form.is_valid():
             new_registrar: Registrar = registrar_form.save()
+            new_registrar.nonpaying = False
+            new_registrar.save()
             new_user: LinkUser = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
             create_account = request.POST.get('create_account', None)
