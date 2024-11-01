@@ -497,10 +497,7 @@ class AuthenticatedLinkListView(BaseView):
                 if not folder.organization and not folder.sponsored_by:
                     links_remaining, _ , bonus_links = user.get_links_remaining()
                     if bonus_links and not links_remaining:
-                        # (this works because it's part of the same transaction with the select_for_update --
-                        # we don't have to use the same object)
-                        request.user.bonus_links = bonus_links - 1
-                        request.user.save(update_fields=['bonus_links'])
+                        user.update_bonus_links(-1)
                         bonus_link = True
 
                 link = serializer.save(created_by=request.user, bonus_link=bonus_link)
@@ -665,8 +662,7 @@ class AuthenticatedLinkDetailView(BaseView):
             link.save()
 
             if link.bonus_link:
-                link.created_by.bonus_links = (link.created_by.bonus_links or 0) + 1
-                link.created_by.save(update_fields=['bonus_links'])
+                link.created_by.update_bonus_links(1)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
