@@ -26,6 +26,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.contrib.postgres.fields import ArrayField, DateTimeRangeField
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.storage import storages
 from django.db import models, transaction
 from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists, OuterRef
@@ -1204,6 +1205,16 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     def remove_line_from_notes(self, containing):
         if self.notes:
             self.notes = re.sub(f"\n*{containing}.*", '', self.notes)
+
+    ### validators ###
+
+    @classmethod
+    def validate_exists(cls, email: str):
+        """Given an email address, validate whether a matching LinkUser exists."""
+        try:
+            cls.objects.get(email=email.lower())
+        except ObjectDoesNotExist:
+            raise ValidationError(f'Email {email} does not match an existing user account')
 
 
 class UserOrganizationAffiliation(models.Model):

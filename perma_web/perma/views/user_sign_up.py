@@ -16,6 +16,7 @@ from ratelimit.decorators import ratelimit
 
 from perma.email import send_admin_email, send_user_email, send_user_email_copy_admins
 from perma.forms import (
+    ApproveRegistrarForm,
     CreateUserFormWithCourt,
     CreateUserFormWithFirm,
     FirmRegistrarForm,
@@ -255,6 +256,12 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
 
     if request.method == 'POST':
         with transaction.atomic():
+            if registrar_user_email := request.POST.get('registrar_user'):
+                target_registrar_user = LinkUser.objects.get(email=registrar_user_email.lower())
+                target_registrar_user.pending_registrar = target_registrar
+                target_registrar_user.save()
+                return HttpResponseRedirect(reverse('approve_pending_registrar'))
+
             new_status = request.POST.get('status')
             if new_status in ['approved', 'denied']:
                 target_registrar.status = new_status
@@ -298,6 +305,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
         {
             'target_registrar': target_registrar,
             'target_registrar_user': target_registrar_user,
+            'approve_registrar_form': ApproveRegistrarForm(registrar=target_registrar),
             'this_page': 'users_registrars',
         },
     )

@@ -107,6 +107,30 @@ class FirmRegistrarForm(ModelForm):
         }
 
 
+class ApproveRegistrarForm(ModelForm):
+    registrar_user = forms.EmailField(
+        required=True,
+        label='Registrar user',
+        validators=[LinkUser.validate_exists],
+    )
+
+    class Meta:
+        model = Registrar
+        fields = ['base_rate', 'status']
+
+    def __init__(self, registrar: Registrar, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Populate base rate; also, require it if this is a paid registrar
+        self.fields['base_rate'].initial = registrar.base_rate
+        if registrar.nonpaying is False:
+            self.fields['base_rate'].required = True
+
+        # If we already have a registrar user, no need to require another
+        if registrar.pending_users:
+            self.fields['registrar_user'].required = False
+
+
 class FirmUsageForm(Form):
     estimated_number_of_accounts = forms.ChoiceField(
         choices=[(option, option) for option in ['1 - 10', '10 - 50', '50 - 100', '100+']],

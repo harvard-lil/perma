@@ -7487,7 +7487,7 @@ a.cc:active, p a.cc.perma:active {
   background-color: red;
 }
 .btn.delete-confirm:hover, .btn.delete-confirm:focus {
-  background-color: #222 !important;
+  background-color: red !important;
 }
 .btn.delete-confirm:active {
   background-color: red !important;
@@ -9295,6 +9295,10 @@ input[type=file] {
   padding-top: 0px;
   font-size: 14px;
   line-height: 1ex;
+}
+
+input[type=number] {
+  width: 160px;
 }
 
 div.checkbox {
