@@ -2,6 +2,7 @@
 {% block title %} | Approve pending registrar{% endblock %}
 
 {% block dashboardContent %}
+  <h2 class="body-ah">Registrars</h2>
 
   {% if target_registrar.status == "approved" %}
     <h3 class="body-bh">Already approved!</h3>
@@ -15,7 +16,6 @@
     {% endif %}
 
     <h4 class="body-ch">Registrar information</h4>
-
     <p class="body-text">
       <strong>Name:</strong> {{ target_registrar.name }}<br />
       <strong>Email:</strong> {{ target_registrar.email }}<br />
@@ -37,8 +37,15 @@
           <strong>Email:</strong> {{ target_registrar_user.email }}<br />
         </p>
       {% else %}
-        <label for="id_registrar_user" class="body-text">This registrar is not associated with any registrar users. Enter an existing user's email address to use as a registrar user:</label>
+        <label for="id_registrar_user" class="body-text">Before this registrar can be approved, it must be assigned a registrar user. Enter an existing user's email address to assign them as a registrar user:</label>
         {{ approve_registrar_form.registrar_user }}
+        {% if approve_registrar_form.registrar_user.errors %}
+          {% for error in approve_registrar_form.registrar_user.errors %}
+            <span class="field-error">{{ error }}</span>
+          {% endfor %}
+        {% elif approve_registrar_form.registrar_user.help_text %}
+          <span class="help-inline">{{ approve_registrar_form.registrar_user.help_text }}</span>
+        {% endif %}
       {% endif %}
 
       {% if target_registrar_user and not target_registrar.nonpaying %}

@@ -255,8 +255,21 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
     target_registrar_user = target_registrar.pending_users.first()
 
     if request.method == 'POST':
+        form = ApproveRegistrarForm(request.POST, target_registrar)
+        if not form.is_valid():
+            return render(
+                request,
+                'user_management/approve_pending_registrar.html',
+                {
+                    'target_registrar': target_registrar,
+                    'target_registrar_user': target_registrar_user,
+                    'approve_registrar_form': form,
+                    'this_page': 'users_registrars',
+                },
+            )
+
         with transaction.atomic():
-            if registrar_user_email := request.POST.get('registrar_user'):
+            if registrar_user_email := form.cleaned_data.get('registrar_user', None):
                 target_registrar_user = LinkUser.objects.get(email=registrar_user_email.lower())
                 target_registrar_user.pending_registrar = target_registrar
                 target_registrar_user.save()
@@ -305,7 +318,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
         {
             'target_registrar': target_registrar,
             'target_registrar_user': target_registrar_user,
-            'approve_registrar_form': ApproveRegistrarForm(registrar=target_registrar),
+            'approve_registrar_form': ApproveRegistrarForm(request.GET, registrar=target_registrar),
             'this_page': 'users_registrars',
         },
     )

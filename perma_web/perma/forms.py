@@ -1,7 +1,9 @@
-from axes.utils import reset as reset_login_attempts
-import string
+import logging
 import secrets
+import string
+from typing import Any, Mapping
 
+from axes.utils import reset as reset_login_attempts
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
@@ -12,10 +14,9 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import mark_safe
 
-from perma.models import Registrar, Organization, LinkUser, Sponsorship, UserOrganizationAffiliation
+from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.utils import get_client_ip
 
-import logging
 logger = logging.getLogger(__name__)
 
 ### HELPERS ###
@@ -115,8 +116,8 @@ class ApproveRegistrarForm(ModelForm):
         model = Registrar
         fields = ['base_rate', 'status']
 
-    def __init__(self, registrar: Registrar, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, data: Mapping[str, Any], registrar: Registrar, *args, **kwargs):
+        super().__init__(data, *args, **kwargs)
 
         # Populate base rate; also, require it if this is a paid registrar
         self.fields['base_rate'].initial = registrar.base_rate
@@ -128,13 +129,17 @@ class ApproveRegistrarForm(ModelForm):
             self.fields['registrar_user'].required = False
 
     def clean_registrar_user(self):
-        """Validate whether a matching LinkUser exists."""
+        """Validate whether a LinkUser matching the supplied email exists."""
+        cleaned_value = self.cleaned_data['registrar_user'].lower()
+        if not cleaned_value:
+            return
+
         try:
-            LinkUser.objects.get(email=self.registrar_user.lower())
+            LinkUser.objects.get(email=cleaned_value)
         except ObjectDoesNotExist as error:
             raise ValidationError(
                 'Email %(email)s does not match an existing user account',
-                params={'email': self.registrar_user},
+                params={'email': self.cleaned_data['registrar_user']},
             ) from error
 
 
