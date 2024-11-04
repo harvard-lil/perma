@@ -5,6 +5,7 @@ import secrets
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms import Form, ModelForm
 from django.http import HttpRequest, HttpResponseRedirect
@@ -108,11 +109,7 @@ class FirmRegistrarForm(ModelForm):
 
 
 class ApproveRegistrarForm(ModelForm):
-    registrar_user = forms.EmailField(
-        required=True,
-        label='Registrar user',
-        validators=[LinkUser.validate_exists],
-    )
+    registrar_user = forms.EmailField(required=True, label='Registrar user')
 
     class Meta:
         model = Registrar
@@ -129,6 +126,16 @@ class ApproveRegistrarForm(ModelForm):
         # If we already have a registrar user, no need to require another
         if registrar.pending_users:
             self.fields['registrar_user'].required = False
+
+    def clean_registrar_user(self):
+        """Validate whether a matching LinkUser exists."""
+        try:
+            LinkUser.objects.get(email=self.registrar_user.lower())
+        except ObjectDoesNotExist as error:
+            raise ValidationError(
+                'Email %(email)s does not match an existing user account',
+                params={'email': self.registrar_user},
+            ) from error
 
 
 class FirmUsageForm(Form):
