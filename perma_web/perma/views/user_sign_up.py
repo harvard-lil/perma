@@ -30,6 +30,7 @@ from perma.models import (
     Registrar,
 )
 from perma.utils import (
+    apply_search_query,
     ratelimit_ip_key,
     user_passes_test_or_403,
 )
@@ -252,11 +253,38 @@ def sign_up_firms(request: HttpRequest):
 def approve_pending_registrar(request: HttpRequest, registrar_id: int):
     """A view enabling admins to approve or deny a pending registrar."""
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    target_registrar_user = target_registrar.pending_users.first()
+    target_registrar_user = target_registrar.pending_users.first() or target_registrar.users.first()
 
     if request.method == 'POST':
         form = ApproveRegistrarForm(request.POST, target_registrar)
-        if not form.is_valid():
+
+        search_query: str = form.data.get('q', '').strip()
+        if search_query and not form.data.get('registrar_user'):
+            queryset = LinkUser.objects.filter(
+                is_confirmed=True,
+                is_active=True,
+                is_staff=False,
+                registrar=None,
+                pending_registrar=None,
+                organizations=None,
+                sponsoring_registrars=None,
+            )
+            users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
+            return render(
+                request,
+                'user_management/approve_pending_registrar.html',
+                {
+                    'target_registrar': target_registrar,
+                    'target_registrar_user': target_registrar_user,
+                    'approve_registrar_form': form,
+                    'search_query': search_query,
+                    'users': users,
+                    'this_page': 'users_registrars',
+                },
+            )
+
+        elif not form.is_valid():
+            print(form.errors)
             return render(
                 request,
                 'user_management/approve_pending_registrar.html',
@@ -269,25 +297,19 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
             )
 
         with transaction.atomic():
-            if registrar_user_email := form.cleaned_data.get('registrar_user', None):
+            registrar_user_email = form.cleaned_data.get('registrar_user', None)
+            if registrar_user_email and not target_registrar_user:
                 target_registrar_user = LinkUser.objects.get(email=registrar_user_email.lower())
                 target_registrar_user.pending_registrar = target_registrar
                 target_registrar_user.save()
-                return HttpResponseRedirect(reverse('approve_pending_registrar'))
+                return HttpResponseRedirect(
+                    reverse('user_sign_up_approve_pending_registrar', args=[target_registrar.id])
+                )
 
             new_status = request.POST.get('status')
             if new_status in ['approved', 'denied']:
                 target_registrar.status = new_status
-
-                # If base rate is supplied (and is a valid decimal), set it on the registrar
-                if base_rate_raw := request.POST.get('base_rate') is not None:
-                    try:
-                        base_rate = Decimal(base_rate_raw)
-                    except DecimalException:
-                        pass
-                    else:
-                        target_registrar.base_rate = base_rate
-
+                target_registrar.base_rate = form.cleaned_data['base_rate']
                 target_registrar.save()
 
                 if new_status == 'approved':

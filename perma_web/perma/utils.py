@@ -17,6 +17,7 @@ import string
 import surt
 import tempdir
 import tempfile
+from typing import TypeVar
 from ua_parser import user_agent_parser
 import unicodedata
 from warcio.warcwriter import BufferWARCWriter
@@ -24,11 +25,18 @@ from wsgiref.util import FileWrapper
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
+from django.db.models.manager import BaseManager
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponseForbidden, Http404, StreamingHttpResponse, HttpResponse
+from django.http import (
+    HttpRequest,
+    HttpResponseForbidden,
+    Http404,
+    StreamingHttpResponse,
+    HttpResponse,
+)
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import storages
 from django.utils import timezone
@@ -38,6 +46,8 @@ from .exceptions import InvalidTransmissionException, ScoopAPIException, ScoopAP
 
 logger = logging.getLogger(__name__)
 warn = logger.warn
+
+T = TypeVar('T')
 
 
 def protocol():
@@ -100,13 +110,17 @@ class AlphaNumericValidator:
 
 ### list view helpers ###
 
-def apply_search_query(request, queryset, fields):
+def apply_search_query(
+    request: HttpRequest, queryset: BaseManager[T], fields: list[str]
+) -> tuple[BaseManager[T], str]:
     """
-        For the given `queryset`,
-        apply consecutive .filter()s such that each word
-        in request.GET['q'] appears in one of the `fields`.
+    For the given `queryset`,
+    apply consecutive .filter()s such that each word
+    in parameter 'q' appears in one of the `fields`.
     """
-    search_string = request.GET.get('q', '')
+    # Support either GET or POST request params
+    params = getattr(request, request.method)
+    search_string = params.get('q', '')
     if not search_string:
         return queryset, ''
 

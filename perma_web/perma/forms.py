@@ -110,7 +110,8 @@ class FirmRegistrarForm(ModelForm):
 
 
 class ApproveRegistrarForm(ModelForm):
-    registrar_user = forms.EmailField(required=True, label='Registrar user')
+    q = forms.CharField(required=False)
+    registrar_user = forms.EmailField(required=False)
 
     class Meta:
         model = Registrar
@@ -119,20 +120,25 @@ class ApproveRegistrarForm(ModelForm):
     def __init__(self, data: Mapping[str, Any], registrar: Registrar, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
 
-        # Populate base rate; also, require it if this is a paid registrar
+        # Populate base rate default value from model
         self.fields['base_rate'].initial = registrar.base_rate
-        if registrar.nonpaying is False:
+        self.fields['base_rate'].widget.attrs.setdefault('value', str(registrar.base_rate))
+
+        # Require base rate and status only if paid registrar has a registrar user
+        has_registrar_user = bool(registrar.pending_users.first() or registrar.users.first())
+        is_paid_registrar = registrar.nonpaying is False
+        if has_registrar_user and is_paid_registrar:
             self.fields['base_rate'].required = True
+            self.fields['status'].required = True
+        else:
+            self.fields['base_rate'].required = False
+            self.fields['status'].required = False
 
-        # If we already have a registrar user, no need to require another
-        if registrar.pending_users:
-            self.fields['registrar_user'].required = False
-
-    def clean_registrar_user(self):
+    def clean_registrar_user(self) -> str | None:
         """Validate whether a LinkUser matching the supplied email exists."""
         cleaned_value = self.cleaned_data['registrar_user'].lower()
         if not cleaned_value:
-            return
+            return None
 
         try:
             LinkUser.objects.get(email=cleaned_value)
@@ -141,6 +147,8 @@ class ApproveRegistrarForm(ModelForm):
                 'Email %(email)s does not match an existing user account',
                 params={'email': self.cleaned_data['registrar_user']},
             ) from error
+        else:
+            return cleaned_value
 
 
 class FirmUsageForm(Form):

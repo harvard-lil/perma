@@ -25,27 +25,75 @@
       {% endif %}
     </p>
 
-    <form action="" method="POST">
+    <form id="form" action="" method="POST">
       {% csrf_token %}
 
       <h4 class="body-ch">Registrar user</h4>
+
       {% if target_registrar_user %}
+
         <p class="body-text">
         {% if target_registrar_user.first_name or target_registrar_user.last_name %}
           <strong>Name:</strong> {{ target_registrar_user.first_name }} {{ target_registrar_user.last_name }}<br />
         {% endif %}
           <strong>Email:</strong> {{ target_registrar_user.email }}<br />
         </p>
+
       {% else %}
-        <label for="id_registrar_user" class="body-text">Before this registrar can be approved, it must be assigned a registrar user. Enter an existing user's email address to assign them as a registrar user:</label>
-        {{ approve_registrar_form.registrar_user }}
-        {% if approve_registrar_form.registrar_user.errors %}
-          {% for error in approve_registrar_form.registrar_user.errors %}
-            <span class="field-error">{{ error }}</span>
+
+        <p class="body-text">Before this registrar can be approved, you must assign a registrar user:</p>
+        {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" search_query=search_query %}
+
+        {% if users %}
+        <div class="row row-no-bleed">
+          <div class="col admin-found col-no-gutter">
+            <h5 class="sr-only">User List</h3>
+            <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.count }} user{{ users.count|pluralize }}</div>
+            <div class="sort-filter-bar">&nbsp;</div>
+          </div><!-- admin found -->
+        </div><!-- row -->
+
+        {% csrf_token %}
+        <ol class="result-list">
+          {% for listed_user in users %}
+            <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
+              <div class="col col-sm-8 col-no-gutter">
+                <h5 class="item-title" id="user-{{ listed_user.id }}">
+                  {% if not listed_user.first_name and not listed_user.last_name %}
+                    {{ listed_user.raw_email }}
+                  {% else %}
+                    {{ listed_user.first_name }} {{ listed_user.last_name }}
+                  {% endif %}
+                  {% if listed_user == request.user %}(you){% endif %}
+                </h5>
+                <div class="item-subtitle">{{ listed_user.raw_email }}</div>
+
+                {% if request.user.is_staff and listed_user.requested_account_type %}
+                  <div class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</div>
+                {% endif %}
+              </div>
+
+              <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+                <div>
+                  <div class="item-activity">
+                    created {{ listed_user.date_joined|date:'F j, Y' }}
+                    {% if listed_user.is_confirmed %}
+                      <br>
+                      last active {{ listed_user.last_login|date:'F j, Y' }}
+                    {% endif %}
+                  </div>
+                </div>
+                {% if request.user.is_staff %}
+                  <div>
+                    <button type="submit" name="registrar_user" value="{{ listed_user.email }}" class="btn btn-small pull-right" form="form">Select<span class="sr-only"> {{ listed_user.get_full_name }}</button>
+                  </div>
+                {% endif %}
+              </div>
+            </li>
           {% endfor %}
-        {% elif approve_registrar_form.registrar_user.help_text %}
-          <span class="help-inline">{{ approve_registrar_form.registrar_user.help_text }}</span>
+        </ol>
         {% endif %}
+
       {% endif %}
 
       {% if target_registrar_user and not target_registrar.nonpaying %}
@@ -56,10 +104,8 @@
 
       <a class="btn cancel" href="../">Cancel</a>
       {% if target_registrar_user %}
-        <button type="submit" name="status" value="approved" class="btn delete-confirm">Approve</button>
+        <button type="submit" name="status" value="approved" class="btn">Approve</button>
         <button type="submit" name="status" value="denied" class="btn delete-confirm">Deny</button>
-      {% else %}
-        <button type="submit" class="btn">Submit User</button>
       {% endif %}
     </form>
   {% endif %}
