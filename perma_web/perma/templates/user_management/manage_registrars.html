@@ -156,7 +156,7 @@
             </div>
           </div>
           <div>
-            <div class="itlem-status">
+            <div class="item-status">
               {% if registrar.status != "approved" %}
                 <a class="action action-approve" href="{% url 'user_sign_up_approve_pending_registrar' registrar.id %}">
                   {% if registrar.status == "pending" %}
