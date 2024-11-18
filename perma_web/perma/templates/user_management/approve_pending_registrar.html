@@ -45,54 +45,57 @@
         {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" search_query=search_query %}
 
         {% if users %}
-        <div class="row row-no-bleed">
-          <div class="col admin-found col-no-gutter">
-            <h5 class="sr-only">User List</h3>
-            <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.count }} user{{ users.count|pluralize }}</div>
-            <div class="sort-filter-bar">&nbsp;</div>
-          </div><!-- admin found -->
-        </div><!-- row -->
+          <div class="row row-no-bleed">
+            <div class="col admin-found col-no-gutter">
+              <h5 class="sr-only">User List</h3>
+              <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
+              <div class="sort-filter-bar">&nbsp;</div>
+            </div><!-- admin found -->
+          </div><!-- row -->
 
-        {% csrf_token %}
-        <ol class="result-list">
-          {% for listed_user in users %}
-            <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
-              <div class="col col-sm-8 col-no-gutter">
-                <h5 class="item-title" id="user-{{ listed_user.id }}">
-                  {% if not listed_user.first_name and not listed_user.last_name %}
-                    {{ listed_user.raw_email }}
-                  {% else %}
-                    {{ listed_user.first_name }} {{ listed_user.last_name }}
-                  {% endif %}
-                  {% if listed_user == request.user %}(you){% endif %}
-                </h5>
-                <div class="item-subtitle">{{ listed_user.raw_email }}</div>
-
-                {% if request.user.is_staff and listed_user.requested_account_type %}
-                  <div class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</div>
-                {% endif %}
-              </div>
-
-              <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-                <div>
-                  <div class="item-activity">
-                    created {{ listed_user.date_joined|date:'F j, Y' }}
-                    {% if listed_user.is_confirmed %}
-                      <br>
-                      last active {{ listed_user.last_login|date:'F j, Y' }}
+          {% csrf_token %}
+          <ol class="result-list">
+            {% for listed_user in users %}
+              <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
+                <div class="col col-sm-8 col-no-gutter">
+                  <h5 class="item-title" id="user-{{ listed_user.id }}">
+                    {% if not listed_user.first_name and not listed_user.last_name %}
+                      {{ listed_user.raw_email }}
+                    {% else %}
+                      {{ listed_user.first_name }} {{ listed_user.last_name }}
                     {% endif %}
-                  </div>
+                    {% if listed_user == request.user %}(you){% endif %}
+                  </h5>
+                  <div class="item-subtitle">{{ listed_user.raw_email }}</div>
+
+                  {% if request.user.is_staff and listed_user.requested_account_type %}
+                    <div class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</div>
+                  {% endif %}
                 </div>
-                {% if request.user.is_staff %}
+
+                <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
                   <div>
-                    <button type="submit" name="registrar_user" value="{{ listed_user.email }}" class="btn btn-small pull-right" form="form">Select<span class="sr-only"> {{ listed_user.get_full_name }}</button>
+                    <div class="item-activity">
+                      created {{ listed_user.date_joined|date:'F j, Y' }}
+                      {% if listed_user.is_confirmed %}
+                        <br>
+                        last active {{ listed_user.last_login|date:'F j, Y' }}
+                      {% endif %}
+                    </div>
                   </div>
-                {% endif %}
-              </div>
-            </li>
-          {% endfor %}
-        </ol>
+                  {% if request.user.is_staff %}
+                    <div>
+                      <button type="submit" name="registrar_user" value="{{ listed_user.email }}" class="btn btn-small pull-right" form="form">Select<span class="sr-only"> {{ listed_user.get_full_name }}</button>
+                    </div>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ol>
+
         {% endif %}
+
+        {% include "user_management/includes/paginator.html" with page=users title='User List' %}
 
       {% endif %}
 

@@ -23,7 +23,7 @@ import unicodedata
 from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator, EmptyPage, Page
 from django.db.models import Q
 from django.db.models.manager import BaseManager
 from django.conf import settings
@@ -149,13 +149,16 @@ def apply_sort_order(request, queryset, valid_sorts, default_sort=None):
         sort = default_sort
     return queryset.order_by(sort), sort
 
-def apply_pagination(request, queryset):
+def apply_pagination(request: HttpRequest, queryset: BaseManager[T]) -> Page:
     """
         For the given `queryset`,
         apply pagination based on request.GET['page'].
     """
+    # Support either GET or POST request params
+    params = getattr(request, request.method)
+
     try:
-        page = max(int(request.GET.get('page', 1)), 1)
+        page = max(int(params.get('page', 1)), 1)
     except ValueError:
         page = 1
     paginator = Paginator(queryset, settings.MAX_USER_LIST_SIZE)

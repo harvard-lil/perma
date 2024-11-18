@@ -30,6 +30,7 @@ from perma.models import (
     Registrar,
 )
 from perma.utils import (
+    apply_pagination,
     apply_search_query,
     ratelimit_ip_key,
     user_passes_test_or_403,
@@ -270,6 +271,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                 sponsoring_registrars=None,
             )
             users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
+            users = apply_pagination(request, users)
             return render(
                 request,
                 'user_management/approve_pending_registrar.html',
