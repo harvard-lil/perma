@@ -55,6 +55,7 @@ Welcome to the Perma.cc developer guide.
       <pre>curl {{base_url}}/public/archives/?offset=1</pre>
       <p class="body-text">If you'd prefer a smaller or larger result set, specify the desired size of the pages using the <i>limit</i> parameter. In this example, we request results returned one at a time.</p>
       <pre>curl {{base_url}}/public/archives/?limit=1</pre>
+      <p>You can use the value of <i>next</i> in the <i>meta</i> section of the response to move to the next page of results, but note that <i>next</i> will be populated even if there are no more results at that offset; stop getting more results when <i>objects</i> is an empty list.</p>
 
       <h3 id="examples-in-curl" class="body-bh">Examples in cURL</h3>
       <p class="body-text">Our API documentation is example based, and our examples show you how to interact with the API using the <a href="http://en.wikipedia.org/wiki/CURL">cURL command line utility</a>. A friendly tip - you can add the -v option to help debug your HTTP interactions.</p>
@@ -77,7 +78,7 @@ Welcome to the Perma.cc developer guide.
     <p class="body-text">Use HTTP GET to retrieve every public archive in Perma.cc. (In order to keep this example short, we limit the number of returned items to one.)</p>
     <pre>curl {{base_url}}/public/archives/?limit=1</pre>
     <p class="body-text">Response:</p>
-    <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/public/archives/?limit=1&offset=1","offset":0,"previous":null,"total_count":410},"objects":[{"guid":"W6PY-UZ99","creation_timestamp":"2018-05-15T18:13:52Z","url":"http://example.com","title":"Example Domain","description":null,"warc_size":20932,"warc_download_url":"{{ base_url }}/public/archives/W6PY-UZ99/download","captures":[{"role":"primary","status":"success","url":"http://example.com","record_type":"response","content_type":"text/html","user_upload":false},{"role":"screenshot","status":"success","url":"file:///W6PY-UZ99/cap.png","record_type":"resource","content_type":"image/png","user_upload":false}],"queue_time":0,"capture_time":4}]}</pre>
+    <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/public/archives/?limit=1&offset=1","offset":0,"previous":null},"objects":[{"guid":"W6PY-UZ99","creation_timestamp":"2018-05-15T18:13:52Z","url":"http://example.com","title":"Example Domain","description":null,"warc_size":20932,"warc_download_url":"{{ base_url }}/public/archives/W6PY-UZ99/download","captures":[{"role":"primary","status":"success","url":"http://example.com","record_type":"response","content_type":"text/html","user_upload":false},{"role":"screenshot","status":"success","url":"file:///W6PY-UZ99/cap.png","record_type":"resource","content_type":"image/png","user_upload":false}],"queue_time":0,"capture_time":4}]}</pre>
 
     <h3 id="get-one-archive" class="body-bh">Get a single public archive's details</h3>
     <p class="body-text">If we have the globally unique ID (GUID) of one public archive, we can GET details about it.</p>
@@ -108,8 +109,33 @@ Welcome to the Perma.cc developer guide.
       <p class="body-text">Use GET to retrieve your account details. (You only have access to your own account.)</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/user/</pre>
       <p class="body-text">The response includes your user ID and a list of all the top-level folders you have access to. For more information about these folders, their subfolders, and their associated organizations, use the Folders and Organizations API endpoints.</p>
-      <pre class="prettyprint">{"id": 4, "first_name": "Jane", "last_name": "Doe", "full_name": "Jane Doe", "short_name": "Jane", "top_level_folders":[{"id":25,"name":"Personal Links","parent":null,"has_children":true,"path":"25","organization":null}]}</pre>
-
+      <pre class="prettyprint">
+        {
+          "id": 4,
+          "first_name": "Jane",
+          "last_name": "Doe",
+          "full_name": "Jane Doe",
+          "short_name": "Jane",
+          "top_level_folders": [
+            {
+              "id": 25,
+              "name": "Personal Links",
+              "parent": null,
+              "organization": null,
+              "sponsored_by": null,
+              "is_sponsored_root_folder": false,
+              "read_only": false,
+              "has_children": false,
+              "path": "25",
+              "registrar": null,
+              "registrar_name": null,
+              "default_to_private": false
+            }
+          ]
+        }
+      </pre>
+      In addition to the keys returned by the folder endpoing, top_level_folders also includes some extra fields that are useful for displaying a user's affiliations:
+      <code>registrar</code>, <code>registrar_name</code>, and <code>default_to_private</code>.
     </div>
   </div>
 </div>
@@ -128,7 +154,7 @@ Welcome to the Perma.cc developer guide.
       <p class="body-text">Use GET to retrieve a list of all of the organizations you belong to or manage.</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/organizations/</pre>
       <p class="body-text">Response:</p>
-      <pre class="prettyprint">{"meta":{"limit":300,"next":null,"offset":0,"previous":null,"total_count":2},"objects":[{"id":4,"name":"Another Library's Journal","registrar":"Another Library","default_to_private":false,"shared_folder":{"id":40,"name":"Another Library's Journal","parent":null,"has_children":true,"path":"40","organization":4}},{"id":9,"name":"Some Org","registrar":"Test Library","default_to_private":false,"shared_folder":{"id":57,"name":"Some Org","parent":null,"has_children":false,"path":"57","organization":9}}]}</pre>
+      <pre class="prettyprint">{"meta":{"limit":300,"next":"{{ base_url }}/organizations/?limit=300&offset=300","offset":0,"previous":null},"objects":[{"id":4,"name":"Another Library's Journal","registrar":"Another Library","default_to_private":false,"shared_folder":{"id":40,"name":"Another Library's Journal","parent":null,"has_children":true,"path":"40","organization":4}},{"id":9,"name":"Some Org","registrar":"Test Library","default_to_private":false,"shared_folder":{"id":57,"name":"Some Org","parent":null,"has_children":false,"path":"57","organization":9}}]}</pre>
 
       <h3 id="get-one-organization" class="body-bh">Get an organization's details</h3>
       <p class="body-text">Use GET to retrieve details about an organization.</p>
@@ -206,7 +232,7 @@ curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-k
       <p class="body-text">This includes both public and private archives and includes all folders. (We're limiting ourselves to just 1 result to keep this example short.)</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/archives/?limit=1</pre>
       <p class="body-text">Response:</p>
-      <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/archives/?limit=1&offset=1","offset":0,"previous":null,"total_count":147},"objects":[{"guid":"F9BV-XLHU","creation_timestamp":"2018-05-05T23:03:41Z","url":"http://example.com","title":"example.com","description":"","warc_size":null,"warc_download_url":"{{ base_url }}/archives/F9BV-XLHU/download","captures":[{"role":"primary","status":"success","url":"file:///F9BV-XLHU/upload.png","record_type":"resource","content_type":"image/png","user_upload":true}],"queue_time":null,"capture_time":null,"notes":"","created_by":{"id":1,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":true,"private_reason":"user","user_deleted":false,"archive_timestamp":"2018-05-06T23:03:41Z","organization":{"id":3,"name":"A Third Journal","registrar":"Test Library","default_to_private":true,"shared_folder":{"id":31,"name":"A Third Journal","parent":null,"has_children":true,"path":"31","organization":3}}}]}</pre>
+      <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/archives/?limit=1&offset=1","offset":0,"previous":null},"objects":[{"guid":"F9BV-XLHU","creation_timestamp":"2018-05-05T23:03:41Z","url":"http://example.com","title":"example.com","description":"","warc_size":null,"warc_download_url":"{{ base_url }}/archives/F9BV-XLHU/download","captures":[{"role":"primary","status":"success","url":"file:///F9BV-XLHU/upload.png","record_type":"resource","content_type":"image/png","user_upload":true}],"queue_time":null,"capture_time":null,"notes":"","created_by":{"id":1,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":true,"private_reason":"user","user_deleted":false,"archive_timestamp":"2018-05-06T23:03:41Z","organization":{"id":3,"name":"A Third Journal","registrar":"Test Library","default_to_private":true,"shared_folder":{"id":31,"name":"A Third Journal","parent":null,"has_children":true,"path":"31","organization":3}}}]}</pre>
       <p class="body-text">To restrict the results to a single folder, use the Folders API endpoint.</p>
 
       <h3 id="batches" class="body-bh">Work with batches of archives</h3>
@@ -251,13 +277,13 @@ curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-k
       <h3 id="view-folder-subfolders" class="body-bh">View a folder's subfolders</h3>
       <p class="body-text">Use GET to list a "parent" folder's "children" (subfolders). Include the ID of the parent folder in the URL.</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/folders/24/folders</pre>
-      <pre class="prettyprint">{"meta":{"limit":300,"next":null,"offset":0,"previous":null,"total_count":2},"objects":[{"id":106,"name":"a new folder","parent":24,"has_children":false,"path":"24-106","organization":null},{"id":74,"name":"Another Folder","parent":24,"has_children":false,"path":"24-74","organization":null}]}</pre>
+      <pre class="prettyprint">{"meta":{"limit":300,"next":"{{ base_url }}/folders/24/folders?limit=300&offset=300","offset":0,"previous":null},"objects":[{"id":106,"name":"a new folder","parent":24,"has_children":false,"path":"24-106","organization":null},{"id":74,"name":"Another Folder","parent":24,"has_children":false,"path":"24-74","organization":null}]}</pre>
       <p class="body-text">"Path" describes the full ancestry of the folder. If folder 36 is nested inside folder 35 and folder 35 is nested in folder 25, the "path" for folder 36 is "25-35-36"</p>
 
       <h3 id="view-folder-archives" class="body-bh">View a folder's archives</h3>
       <p class="body-text">Use GET to list the archives stored in a folder. (We're limiting ourselves to just 1 result to keep this example short.)</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/folders/25/archives?limit=1</pre>
-      <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/folders/24/archives?limit=1&offset=1","offset":0,"previous":null,"total_count":49},"objects":[{"guid":"X5BR-VEZT","creation_timestamp":"2018-01-31T14:46:49Z","url":"http://perma.cc","title":"Perma.cc","description":" Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.","warc_size":2700433,"warc_download_url":"{{base_url }}/v1/archives/X5BR-VEZT/download","captures":[{"role":"primary","status":"success","url":"http://perma.cc","record_type":"response","content_type":"text/html; charset=utf-8","user_upload":false},{"role":"screenshot","status":"success","url":"file:///X5BR-VEZT/cap.png","record_type":"resource","content_type":"image/png","user_upload":false},{"role":"favicon","status":"success","url":"https://perma.cc/static/img/favicon.ico","record_type":"response","content_type":"image/x-icon","user_upload":false}],"queue_time":0,"capture_time":10,"notes":"","created_by":{"id":3,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":false,"private_reason":null,"user_deleted":false,"archive_timestamp":"2018-02-01T14:46:49Z","organization":null}]}</pre>
+      <pre class="prettyprint">{"meta":{"limit":1,"next":"{{ base_url }}/folders/24/archives?limit=1&offset=1","offset":0,"previous":null},"objects":[{"guid":"X5BR-VEZT","creation_timestamp":"2018-01-31T14:46:49Z","url":"http://perma.cc","title":"Perma.cc","description":" Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.","warc_size":2700433,"warc_download_url":"{{base_url }}/v1/archives/X5BR-VEZT/download","captures":[{"role":"primary","status":"success","url":"http://perma.cc","record_type":"response","content_type":"text/html; charset=utf-8","user_upload":false},{"role":"screenshot","status":"success","url":"file:///X5BR-VEZT/cap.png","record_type":"resource","content_type":"image/png","user_upload":false},{"role":"favicon","status":"success","url":"https://perma.cc/static/img/favicon.ico","record_type":"response","content_type":"image/x-icon","user_upload":false}],"queue_time":0,"capture_time":10,"notes":"","created_by":{"id":3,"first_name":"Jane","last_name":"Doe","full_name":"Jane Doe","short_name":"Jane"},"is_private":false,"private_reason":null,"user_deleted":false,"archive_timestamp":"2018-02-01T14:46:49Z","organization":null}]}</pre>
       <p class="body-text">Note that archives stored in the folder's subfolders are not included.</p>
 
       <h3 id="rename-folder" class="body-bh">Rename a folder</h3>
@@ -284,7 +310,7 @@ curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-k
       <p class="body-text">Use GET to retrieve a list of all the top-level folders you have access to. This information is also available at the User API endpoint.</p>
       <pre>curl -H "Authorization: ApiKey {{ request.user.get_api_key | default:'your-api-key'}}" {{ base_url }}/folders</pre>
       <p class="body-text">Response:</p>
-      <pre class="prettyprint">{"meta":{"limit":300,"next":null,"offset":0,"previous":null,"total_count":2},"objects":[{"id":24,"name":"Personal Links","parent":null,"has_children":true,"path":"24","organization":null},{"id":31,"name":"A Third Journal","parent":null,"has_children":true,"path":"31","organization":3}]}</pre>
+      <pre class="prettyprint">{"meta":{"limit":300,"next":"{{ base_url }}/folders?limit=300&offset=300","offset":0,"previous":null},"objects":[{"id":24,"name":"Personal Links","parent":null,"has_children":true,"path":"24","organization":null},{"id":31,"name":"A Third Journal","parent":null,"has_children":true,"path":"31","organization":3}]}</pre>
       <p class="body-text">Use additional Folders API endpoints to retrieve details about these folders, including listing their subfolders and the archives they contain.</p>
     </div>
   </div>

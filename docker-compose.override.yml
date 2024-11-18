@@ -6,7 +6,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:127-a25bd11a95f3066784c6f89a12c2568d
+          - registry.lil.tools/harvardlil/perma-web:128-66ca6d620a12658fe002d23bfe01ff37
         platforms:
           - linux/amd64
           - linux/arm64
@@ -52,7 +52,7 @@ services:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:89-b2e7cae3535cd354e51b1c53f145abac
+    image: registry.lil.tools/harvardlil/scoop-rest-api:114-3fce3766dcb4fc615ddf470a202914a0
     init: true
     tty: true
     depends_on:
@@ -91,7 +91,7 @@ services:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:17-cef860948eab13a44deb5600bac2806c
+    image: registry.lil.tools/harvardlil/perma-payments:19-feb5e21507118e85975cc35a5e15c5c4
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && invoke run"

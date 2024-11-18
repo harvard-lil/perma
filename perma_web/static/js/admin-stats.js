@@ -2,7 +2,9 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 function fillSection(name, callback){
-  $.getJSON(location.pathname + "/" + name).then(function (data) {
+  let path = location.pathname
+  path += path.endsWith("/") ? "" : "/"
+  $.getJSON(path + name).then(function (data) {
     if (name == 'celery' && (!data.queues || !Boolean(data.queues.length))){
       // If no data was returned, don't redraw the section.
       return

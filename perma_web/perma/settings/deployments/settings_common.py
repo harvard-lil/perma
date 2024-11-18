@@ -91,7 +91,7 @@ WACZ_STORAGE = 'secondary'
 WACZ_STORAGE_DIR = 'waczs'
 WACZ_PRESIGNED_URL_EXPIRES = 15 * 60
 
-ARCHIVE_FORMATS = ['warc']
+ARCHIVE_FORMATS = ['wacz']
 
 WARC_TO_WACZ_ON_DEMAND = False
 WARC_TO_WACZ_ON_DEMAND_SIZE_LIMIT = 1024 * 1024 * 100 # 100 MB
@@ -553,6 +553,7 @@ SCOOP_API_URL = None
 SCOOP_API_USERAGENT = 'Perma capture worker'
 SCOOP_POLL_FREQUENCY = 0.5
 SCOOP_POLL_NETWORK_ERROR_LIMIT = 10
+SCOOP_WACZ_DOWNLOAD_RETRIES = 3
 
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
@@ -561,10 +562,6 @@ MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 # set to the Scoop API's own 502 threshold, currently 60s, plus two seconds for network conditions
 RESOURCE_LOAD_TIMEOUT = 60 + 2
 
-# We're finding that warcs aren't always available for download from S3
-# instantly, immediately after upload. How long do we want to wait for S3
-# to catch up, during first playback, before raising an error?
-WARC_AVAILABLE_RETRIES = 9
 CHECK_WARC_BEFORE_PLAYBACK = False
 
 # tests

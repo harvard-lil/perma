@@ -25,6 +25,7 @@ let progressInterval;
 const resetForm = () => {
   captureStatus.value = 'ready'
   captureErrorMessage.value = ''
+  captureGUID.value = ''
   userLink.value = ''
   userLinkProgressBar.value = '0%'
   clearInterval(progressInterval)
@@ -108,8 +109,9 @@ const handleProgressUpdate = async () => {
   }
 
   if (status === 'completed') {
-    resetForm()
-    window.location.href = `${window.location.origin}/${captureGUID.value}`
+    const url = `${window.location.origin}/${captureGUID.value}`;
+    resetForm();
+    window.location.href = url;
   }
 
   if (status === 'failed') {

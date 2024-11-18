@@ -1,5 +1,5 @@
-# This is the default config.py from the Scoop REST API as of 7/19/2024
-# https://github.com/harvard-lil/perma-scoop-api/blob/ac4691f4716ac1481dcecdc87c2b2302406aa3c3/scoop_rest_api/config.py
+# This is the default config.py from the Scoop REST API as of 11/12/2024
+# https://github.com/harvard-lil/perma-scoop-api/blob/main/scoop_rest_api/config.py
 # We use it to:
 # - override the blocklist, to allow the capturing of docker-hosted pages in our test suite;
 # - enable additional attachments
@@ -76,14 +76,8 @@ API_STORAGE_URL = f"{API_DOMAIN}/storage"
 #
 # Background processing options
 #
-PROCESSES = int(os.environ.get("PROCESSES", "6"))
-""" How many tick commands (capture processing) should run in parallel."""
-
-PROCESSES_PROXY_PORT = 9000
-"""
-    Default port for Scoop Proxy for a given process.
-    Will be incremented by 1 for each new parallel process.
-"""
+PROXY_PORT = 9000
+"""Default port for Scoop Proxy."""
 
 #
 # Scoop settings
@@ -124,7 +118,7 @@ SCOOP_CLI_OPTIONS = {
     # "--signing-url": "https://authsign.lil.tools/sign",
     # "--signing-token": "",
     "--screenshot": "true",
-    "--pdf-snapshot": "false",
+    "--pdf-snapshot": "true",
     "--dom-snapshot": "true",
     "--capture-video-as-attachment": "true",
     "--capture-certificates-as-attachment": "true",
@@ -156,8 +150,20 @@ SCOOP_CLI_OPTIONS = {
     - utils.config_check.EXCLUDED_SCOOP_CLI_OPTIONS
 """
 
-SCOOP_TIMEOUT_FUSE = 35
+SCOOP_TIMEOUT_FUSE = 60
 """ Number of seconds to wait before "killing" a Scoop progress after capture timeout. """
+
+
+if "VIDEO_ATTACHMENT_DOMAINS" in os.environ:
+    VIDEO_ATTACHMENT_DOMAINS = os.environ["VIDEO_ATTACHMENT_DOMAINS"].split(",")
+else:
+    VIDEO_ATTACHMENT_DOMAINS = []
+"""
+    Optionally override Scoop setting "--capture-video-as-attachment": "true",
+    so that video captures are only attempted when the target URL's domain is
+    in this list. (May enhance performance; may reduce the incidence of
+    low-quality video captures.)
+"""
 
 
 #
@@ -204,6 +210,7 @@ if "CELERYBEAT_TASKS" in os.environ:
     CELERYBEAT_TASKS = os.environ["CELERYBEAT_TASKS"].split(",")
 else:
     CELERYBEAT_TASKS = ["run-next-capture"]
+
 
 #
 # Command for wrapping Scoop, e.g. firejail

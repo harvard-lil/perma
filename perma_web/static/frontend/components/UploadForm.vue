@@ -1,13 +1,12 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref } from 'vue'
 import TextInput from './forms/TextInput.vue';
 import Dialog from './Dialog.vue'
 import { useGlobalStore } from '../stores/globalStore'
-import { getErrorFromStatus, defaultError } from '../lib/errors'
 import { fetchDataOrError } from '../lib/data'
 import Spinner from './Spinner.vue'
 import FileInput from './forms/FileInput.vue';
-
+import { getErrorMessages } from '../lib/errors'
 const props = defineProps({
   captureGUID: {
     type: String,
@@ -19,7 +18,7 @@ const globalStore = useGlobalStore()
 
 const captureStatus = ref('ready')
 const errors = ref({})
-const globalErrors = ref()
+const globalError = ref()
 const title = ref('')
 const description = ref('')
 const url = ref('')
@@ -85,12 +84,8 @@ const handleUploadRequest = async () => {
 
   // error handling
   if (error) {
-    console.log(error, response)
-    if (data) {
-      errors.value = data
-    } else {
-      globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
-    }
+    captureStatus.value = "ready";
+    ({formErrors: errors.value, globalError: globalError.value} = getErrorMessages(error, data, response, formDataObj.keys()));
     return;
   }
 
@@ -176,8 +171,8 @@ defineExpose({
             <button type="button" @click.prevent="handleClose" class="btn cancel">Cancel</button>
           </div>
 
-          <p v-if="globalErrors" class="field-error">
-            Upload failed. {{ globalErrors }}
+          <p v-if="globalError" class="field-error">
+            Upload failed. {{ globalError }}
           </p>
 
         </form>

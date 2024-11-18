@@ -217,13 +217,11 @@ def stats(request, stat_type=None):
             #
 
             completed = CaptureJob.objects.filter(
-                engine='scoop-api',
                 status='completed',
                 capture_start_time__range=range_tuple
             ).count()
 
             failed = CaptureJob.objects.filter(
-                engine='scoop-api',
                 status='failed',
                 capture_start_time__range=range_tuple
             ).count()

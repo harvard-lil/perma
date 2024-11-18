@@ -3,7 +3,6 @@ from warcio.timeutils import datetime_to_http_date
 from django.urls import reverse
 
 import pytest
-from waffle.testutils import override_flag
 
 #
 #  Helpers
@@ -52,19 +51,7 @@ def test_regular_archive(user, client, complete_link, request):
     check_memento_headers(link, response)
 
 
-@override_flag('wacz-playback', active=False)
-def test_regular_archive_with_wacz_and_flag_off(client, complete_link_factory):
-    link = complete_link_factory({"wacz_size": 1})
-
-    response = get_playback(client, link.guid)
-    # We are playing back a WARC
-    assert b".warc.gz?" in response.content
-    # We are not playing back a WACZ
-    assert b".wacz?" not in response.content
-
-
-@override_flag('wacz-playback', active=True)
-def test_regular_archive_with_wacz_and_flag_on(client, complete_link_factory):
+def test_regular_archive_with_wacz(client, complete_link_factory):
     link = complete_link_factory({"wacz_size": 1})
 
     response = get_playback(client, link.guid)
@@ -74,8 +61,7 @@ def test_regular_archive_with_wacz_and_flag_on(client, complete_link_factory):
     assert b".wacz?" in response.content
 
 
-@override_flag('wacz-playback', active=True)
-def test_regular_archive_without_wacz_and_flag_on(client, complete_link_factory):
+def test_regular_archive_without_wacz(client, complete_link_factory):
     link = complete_link_factory({"wacz_size": 0})
 
     response = get_playback(client, link.guid)

@@ -17,6 +17,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from celery.signals import task_failure
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import ProtocolError, ReadTimeoutError
 from zipfile import ZipFile
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -31,13 +32,14 @@ from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
     CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
-from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException
+from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException, ScoopAPIException
 from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
     copy_file_data, date_range, send_to_scoop, calculate_s3_etag)
 from perma.email import send_user_email
+from perma.wsgi_utils import retry_on_exception
 
 import logging
 logger = logging.getLogger('celery.django')
@@ -89,19 +91,63 @@ def inc_progress(capture_job, inc, description):
     print(f"{capture_job.link.guid} step {capture_job.step_count}: {capture_job.step_description}")
 
 
-
 ### CAPTURE COMPLETION ###
 
-def save_scoop_capture(link, capture_job, data):
+def save_scoop_archive(link, capture_job, data):
+    inc_progress(capture_job, 1, "Downloading web archive file (WACZ)")
+
+    # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
+    with tempfile.TemporaryFile('ab+') as tmp_file:
+
+        def download_wacz():
+
+            # Send the API request
+            response, _ = send_to_scoop(
+                method="get",
+                path=f"artifact/{data['id_capture']}/archive.wacz",
+                valid_if=lambda code, _: code == 200,
+                stream=True
+            )
+
+            # Write the response, chunk by chunk, into the temp file.
+            # Use the raw response, because Python requests standard methods gunzip the file
+            tmp_file.seek(0)
+            for chunk in response.raw.stream(10 * 1024, decode_content=False):
+                if chunk:
+                    tmp_file.write(chunk)
+
+            # Record the file size
+            tmp_file.flush()
+            link.wacz_size = tmp_file.tell()
+            link.save(update_fields=['wacz_size'])
+
+        # See Linear issue LIL-2877 for discussion of these exceptions
+        retry_on_exception(
+            download_wacz,
+            exception=(
+                ProtocolError,
+                ReadTimeoutError,
+                ScoopAPINetworkException,
+                ScoopAPIException,
+                SoftTimeLimitExceeded
+            ),
+            attempts=settings.SCOOP_WACZ_DOWNLOAD_RETRIES
+        )
+        inc_progress(capture_job, 1, "Saving web archive file (WACZ)")
+        tmp_file.seek(0)
+        storages[settings.WACZ_STORAGE].store_file(
+            tmp_file, link.wacz_storage_file(), overwrite=True
+        )
+
+
+def save_archive_metadata(link, capture_job, data):
 
     inc_progress(capture_job, 1, "Saving metadata")
 
-    #
-    # PRIMARY CAPTURE
-    #
-
+    # Primary capture
+    link.primary_capture.status = 'success'
     link.primary_capture.content_type = data['scoop_capture_summary']['targetUrlContentType']
-    link.primary_capture.save(update_fields=['content_type'])
+    link.primary_capture.save(update_fields=['status', 'content_type'])
 
     if 'pageInfo' in data['scoop_capture_summary']:
         title = data['scoop_capture_summary']['pageInfo'].get('title')
@@ -130,29 +176,7 @@ def save_scoop_capture(link, capture_job, data):
                 'private_reason'
             ])
 
-    #
-    # SCREENSHOT
-    #
-
-    screenshot_filename = data['scoop_capture_summary']['attachments'].get("screenshot")
-    if screenshot_filename:
-        Capture(
-            link=link,
-            role='screenshot',
-            status='success',
-            record_type='response',
-            url=f"file:///{screenshot_filename}",
-            content_type='image/png',
-        ).save()
-        try:
-            assert screenshot_filename.lower().endswith('.png')
-        except AssertionError:
-            logger.error(f"The screenshot for {link.guid} is not a PNG. Please update its record and our codebase!")
-
-    #
     # Provenance
-    #
-
     provenance_filename = data['scoop_capture_summary']['attachments'].get("provenanceSummary")
     if provenance_filename:
         Capture(
@@ -176,10 +200,12 @@ def save_scoop_capture(link, capture_job, data):
         link.tags.add('scoop-missing-provenance')
         logger.warning(f"{capture_job.link_id}: Scoop warc does not contain provenance summary ({data['id_capture']}).")
 
-    #
-    # OTHER ATTACHMENTS
-    #
+    # Other attachments
     supported_attachments = {
+        "screenshot": {
+            'attr': 'screenshot',
+            'content_type': 'image/png',
+        },
         "pdf_snapshot": {
             'attr': 'pdfSnapshot',
             'content_type': 'application/pdf',
@@ -205,62 +231,6 @@ def save_scoop_capture(link, capture_job, data):
                 url=f"file:///{attachment_filename}",
                 content_type=supported_attachments[attachment_type]['content_type'],
             ).save()
-
-    #
-    # WARC
-    #
-    if 'warc' in capture_job.archive_formats:
-        # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
-        with tempfile.TemporaryFile('ab+') as tmp_file:
-            inc_progress(capture_job, 1, "Downloading web archive file (WARC)")
-            response, _ = send_to_scoop(
-                method="get",
-                path=f"artifact/{data['id_capture']}/archive.warc.gz",
-                valid_if=lambda code, _: code == 200,
-                stream=True
-            )
-            # Use the raw response, because Python requests standard methods gunzip the file
-            for chunk in response.raw.stream(10*1024, decode_content=False):
-                if chunk:
-                    tmp_file.write(chunk)
-            tmp_file.flush()
-            link.warc_size = tmp_file.tell()
-            link.save(update_fields=['warc_size'])
-            tmp_file.seek(0)
-
-            inc_progress(capture_job, 1, "Saving web archive file (WARC)")
-            storages[settings.WARC_STORAGE].store_file(
-                tmp_file, link.warc_storage_file(), overwrite=True
-            )
-
-    #
-    # WACZ
-    #
-    if 'wacz' in capture_job.archive_formats:
-        # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
-        with tempfile.TemporaryFile('ab+') as tmp_file:
-            inc_progress(capture_job, 1, "Downloading web archive file (WACZ)")
-            response, _ = send_to_scoop(
-                method="get",
-                path=f"artifact/{data['id_capture']}/archive.wacz",
-                valid_if=lambda code, _: code == 200,
-                stream=True
-            )
-            # Use the raw response, because Python requests standard methods gunzip the file
-            for chunk in response.raw.stream(10 * 1024, decode_content=False):
-                if chunk:
-                    tmp_file.write(chunk)
-            tmp_file.flush()
-            link.wacz_size = tmp_file.tell()
-            link.save(update_fields=['wacz_size'])
-            tmp_file.seek(0)
-
-            inc_progress(capture_job, 1, "Saving web archive file (WACZ)")
-            storages[settings.WACZ_STORAGE].store_file(
-                tmp_file, link.wacz_storage_file(), overwrite=True
-            )
-
-    capture_job.mark_completed()
 
 
 def clean_up_failed_captures():
@@ -314,6 +284,7 @@ def capture_with_scoop(capture_job):
         # Basic setup
         link = capture_job.link
         target_url = link.ascii_safe_url
+        success = False
 
         # Get started, unless the user has deleted the capture in the meantime
         inc_progress(capture_job, 0, "Starting capture")
@@ -378,8 +349,7 @@ def capture_with_scoop(capture_job):
         capture_job.save(update_fields=['scoop_logs', 'scoop_state'])
 
         if poll_data['status'] == 'success':
-            link.primary_capture.status = 'success'
-            link.primary_capture.save(update_fields=['status'])
+            success = True
         else:
             didnt_load = "ERROR Navigation to page failed (about:blank)"
             proxy_error = "ERROR An error occurred during capture setup"
@@ -411,8 +381,10 @@ def capture_with_scoop(capture_job):
         logger.exception(f"Exception while capturing job {capture_job.link_id}:")
     finally:
         try:
-            if link.primary_capture.status == 'success':
-                save_scoop_capture(link, capture_job, poll_data)
+            if success:
+                save_scoop_archive(link, capture_job, poll_data)
+                save_archive_metadata(link, capture_job, poll_data)
+                capture_job.mark_completed()
                 print(f"{capture_job.link_id} capture succeeded.")
             else:
                 print(f"{capture_job.link_id} capture failed.")
@@ -703,8 +675,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             # copy warc to local disk storage for upload.
             # (potentially not necessary, but we think more robust against network conditions
             # https://github.com/harvard-lil/perma/commit/25eb14ce634675ffe67d0f14f51308f1202b53ea)
-            with storages[settings.WARC_STORAGE].open(link.warc_storage_file()) as warc_file:
-                logger.info(f"Downloading {link.warc_storage_file()} from S3.")
+            with link.get_warc() as warc_file:
+                logger.info("Downloading archive from S3.")
                 copy_file_data(warc_file, temp_warc_file)
                 temp_warc_file.seek(0)
 

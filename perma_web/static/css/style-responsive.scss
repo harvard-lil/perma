@@ -77,6 +77,7 @@
   word-wrap: normal;
   color: $color-black;
   font-size: 12px;
+  font-variant-ligatures: none;
   @include respond-tablet {
     font-size: 13px;
   }
@@ -100,8 +101,10 @@
   list-style: none;
   background-color: white;
   @include respond-tablet {
-    margin-top: 2px;
     position: absolute;
+    top: 37px;
+  }
+  @include respond-desktop {
     top: $grid * 6;
   }
   li { margin-bottom: 0; }

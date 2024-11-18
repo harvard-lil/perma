@@ -103,6 +103,16 @@ class LinkIDFilter(InputFilter):
             return queryset.filter(link__guid__icontains=value)
 
 
+class ScoopStateFilter(InputFilter):
+    parameter_name = 'scoop_state'
+    title = 'Scoop State'
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(scoop_state=value)
+
+
 class ScoopJobIDFilter(InputFilter):
     parameter_name = 'scoop_job_id'
     title = 'Scoop Job ID'
@@ -629,12 +639,12 @@ class LinkAdmin(SimpleHistoryAdmin):
         IAFileInline
     ]
     raw_id_fields = ['created_by','replacement_link']
-
+    ordering = ['-creation_timestamp', 'guid']
     paginator = FasterAdminPaginator
     show_full_result_count = False
 
     def get_queryset(self, request):
-        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'capture_job').prefetch_related('tags')
+        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by').prefetch_related('tags')
         qs.query.where = WhereNode()  # reset filters to include "deleted" objs
         return qs
 
@@ -685,7 +695,7 @@ class CaptureJobForm(ModelForm):
 
 class CaptureJobAdmin(admin.ModelAdmin):
     list_display = ['id', 'engine', 'status', 'superseded', 'message', 'archive_formats', 'created_by_id', 'link_id', 'human', 'submitted_url', 'scoop_state', 'scoop_job_id']
-    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', LinkTagFilter, MessageFilter, 'superseded', JobWithDeletedLinkFilter, 'scoop_state', ScoopJobIDFilter]
+    list_filter = ['engine', CreatedByFilter, LinkIDFilter, 'status', LinkTagFilter, MessageFilter, 'superseded', JobWithDeletedLinkFilter, ScoopStateFilter, ScoopJobIDFilter]
     raw_id_fields = ['link', 'created_by', 'link_batch']
 
     paginator = FasterAdminPaginator

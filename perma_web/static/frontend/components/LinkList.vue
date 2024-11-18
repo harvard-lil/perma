@@ -225,7 +225,6 @@ const handleInput = async (guid, field, value) => {
 
     if (error) {
       saveStatuses.value[statusKey] = 'Error saving';
-      globalStore.addToast('Error fetching data. Please try again.', 'error');
       return;
     }
 

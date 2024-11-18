@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useGlobalStore } from '../stores/globalStore';
 import JSTree from './JSTree.vue';
 
@@ -13,6 +13,11 @@ import JSTree from './JSTree.vue';
 
 const globalStore = useGlobalStore();
 const jstreeRef = ref(null);
+const privateOrgIds = computed(() => 
+  globalStore.currentUser.top_level_folders
+    .filter(folder => folder.default_to_private)
+    .map(folder => folder.organization)
+);
 
 onMounted(() => {
   globalStore.components.jstree = jstreeRef.value;
@@ -29,7 +34,7 @@ const updateSelectedFolder = (node) => {
     folder_id: folderId,
     read_only: isReadOnly
   } = node.data;
-  const org = orgId ? globalStore.userOrganizations.find(org => org.id === orgId) : null;
+  const isPrivate = orgId ? privateOrgIds.value.includes(orgId) : false;
   const isOutOfLinks = !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
   globalStore.selectedFolder = {
     folderId,
@@ -38,7 +43,7 @@ const updateSelectedFolder = (node) => {
     isReadOnly,
     isOutOfLinks,
     path: jstreeRef.value.getFolderTree().get_path(node) || [],
-    isPrivate: org?.default_to_private || false,
+    isPrivate,
   };
 };
 </script>

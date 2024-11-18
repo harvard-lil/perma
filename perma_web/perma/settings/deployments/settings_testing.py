@@ -125,5 +125,3 @@ TIERS = {
         }
     ]
 }
-
-ARCHIVE_FORMATS = ['warc', 'wacz']

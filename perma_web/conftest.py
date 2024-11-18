@@ -4,9 +4,9 @@ from dataclasses import dataclass
 import os
 from random import choice
 import subprocess
-from waffle import get_waffle_flag_model
 
 from django.conf import settings
+from django.core.files.storage import storages
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
@@ -116,24 +116,23 @@ def cleanup_storage():
         storage.objects.delete()
 
 
-URL_MAP = {
-    'homepage': reverse('landing'),
-    'login': reverse('user_management_limited_login'),
-    'about': reverse('about'),
-    'contact': reverse('contact'),
-    'folders': reverse('create_link'),
-    'bookmarklet': reverse('service_bookmarklet_create'),
-}
-
-
-class URLs:
-    def __init__(self, base_url):
-        for name, url in URL_MAP.items():
-            setattr(self, name, base_url + url)
-
-
 @pytest.fixture
-def urls(transactional_db, live_server_ssl):
+def urls(transactional_db, live_server_ssl, complete_link_with_warc):
+    urls = {
+        'homepage': reverse('landing'),
+        'login': reverse('user_management_limited_login'),
+        'about': reverse('about'),
+        'contact': reverse('contact'),
+        'folders': reverse('create_link'),
+        'bookmarklet': reverse('service_bookmarklet_create'),
+        'perma_link_with_warc': reverse('single_permalink', args=[complete_link_with_warc.guid])
+    }
+
+    class URLs:
+        def __init__(self, base_url):
+            for name, url in urls.items():
+                setattr(self, name, base_url + url)
+
     return URLs(f'https://{settings.HOST}')
 
 
@@ -146,15 +145,6 @@ class User:
 @pytest.fixture
 def user() -> User:
     return User("functional_test_user@example.com", "pass")
-
-
-@pytest.fixture
-def wacz_user() -> User:
-    """For this user, the 'wacz-playback' flag is True"""
-    u = LinkUser.objects.get(email="wacz_functional_test_user@example.com")
-    flag, _created = get_waffle_flag_model().objects.get_or_create(name="wacz-playback")
-    flag.users.add(u.id)
-    return User(u.email, "pass")
 
 
 @pytest.fixture
@@ -948,6 +938,30 @@ def complete_link_factory(completed_capture_job_factory, primary_capture_factory
 @pytest.fixture
 def complete_link(complete_link_factory):
     return complete_link_factory()
+
+
+@pytest.fixture
+def complete_link_with_warc(complete_link_factory):
+    link = complete_link_factory({
+        "submitted_url": "http://example.com",
+        "submitted_title": "Example Domain"
+    })
+
+    with open(
+        os.path.join(
+            settings.PROJECT_ROOT, "perma/tests/assets/new_style_archive/archive.warc.gz"
+        ),
+        "rb",
+    ) as warc_file:
+
+        storages[settings.WARC_STORAGE].store_file(
+            warc_file, link.warc_storage_file(), overwrite=True
+        )
+        link.warc_size = warc_file.tell()
+        link.save()
+
+    return link
+
 
 
 @pytest.fixture

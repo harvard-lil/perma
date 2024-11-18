@@ -6340,6 +6340,7 @@ pre {
   word-wrap: normal;
   color: #222;
   font-size: 12px;
+  font-variant-ligatures: none;
 }
 @media only screen and (min-width: 768px) {
   .style-code, code, div.code-block,
@@ -7681,8 +7682,12 @@ button #addlink {
 }
 @media only screen and (min-width: 768px) {
   .dropdown .selector-menu {
-    margin-top: 2px;
     position: absolute;
+    top: 37px;
+  }
+}
+@media only screen and (min-width: 990px) {
+  .dropdown .selector-menu {
     top: 48px;
   }
 }

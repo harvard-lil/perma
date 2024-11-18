@@ -563,14 +563,15 @@ def get_warc_stream(link, stream=True):
         }]
     )
 
-    warc_stream = FileWrapper(storages[settings.WARC_STORAGE].open(link.warc_storage_file()))
-    warc_stream = itertools.chain([warcinfo], warc_stream)
-    if stream:
-        response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
-    else:
-        response = HttpResponse(warc_stream, content_type="application/gzip")
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+    with link.get_warc() as warc_file:
+        warc_stream = itertools.chain([warcinfo], FileWrapper(warc_file))
+        if stream:
+            response = StreamingHttpResponse(warc_stream, content_type="application/gzip")
+        else:
+            response = HttpResponse(warc_stream, content_type="application/gzip")
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
 
 def stream_warc(link, stream=True):
     # `link.user_deleted` is checked here for dev convenience:

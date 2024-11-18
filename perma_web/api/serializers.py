@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import URLValidator
+from django.db.models import F, Case, When, Value, BooleanField
 import requests
 from rest_framework import serializers
 
@@ -47,8 +48,32 @@ class LinkUserSerializer(BaseSerializer):
         return field_names
 
     def get_top_level_folders(self, user):
-        serializer = FolderSerializer(user.top_level_folders(), many=True)
-        return serializer.data
+        # For users with a lot of top level folders, like admins, building Folder objects and serializing
+        # with FolderSerializer is very slow. Instead, fetch a list of dicts directly with values().
+        return list(user.top_level_folders().select_related('organization__registrar').annotate(
+            has_children=F('cached_has_children'),
+            path=F('cached_path'),
+            registrar=F('organization__registrar_id'),
+            registrar_name=F('organization__registrar__name'),
+            default_to_private=Case(
+                When(organization__isnull=True, then=Value(False)),
+                default=F('organization__default_to_private'),
+                output_field=BooleanField()
+            ),
+        ).values(
+            'id',
+            'name', 
+            'parent',
+            'has_children',
+            'path',
+            'organization',
+            'registrar',
+            'registrar_name',
+            'sponsored_by',
+            'is_sponsored_root_folder',
+            'read_only',
+            'default_to_private',
+        ))
 
 
 ### FOLDER ###
@@ -235,10 +260,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                 errors['url'] = "URL cannot be empty."
             else:
                 if uploaded_file:
-                    # Validate, but don't force URL validation if a file is provided
-                    validate = URLValidator()
+                    # Validate, but don't force Scoop validation if a file is provided
                     temp_link = Link(submitted_url=data['submitted_url'])
-                    validate(temp_link.ascii_safe_url)
+                    try:
+                        URLValidator()(temp_link.ascii_safe_url)
+                    except ValidationError as e:
+                        errors['url'] = e.message
                 else:
                     # Ask the Scoop API to validate and resolve the URL
                     try:

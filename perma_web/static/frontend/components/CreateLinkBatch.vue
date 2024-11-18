@@ -12,8 +12,7 @@ import {
   folderError,
   missingUrlError,
   getErrorFromNestedObject,
-  getErrorFromStatus,
-  defaultError
+  getErrorMessages
 } from '../lib/errors';
 import { transitionalStates, validStates } from "../lib/consts";
 
@@ -33,7 +32,7 @@ const showBatchDetails = computed(() => batchCaptureStatus.value !== 'ready' && 
 const userSubmittedLinks = ref('')
 
 const errors = ref({})
-const globalErrors = ref()
+const globalError = ref()
 
 let progressInterval;
 
@@ -58,7 +57,7 @@ const handleReset = () => {
   batchDialogTitle.value = defaultDialogTitle
   batchCaptureStatus.value = "ready"
   errors.value = {}
-  globalErrors.value = null
+  globalError.value = null
 }
 
 const handleClose = () => {
@@ -81,7 +80,7 @@ const handleBatchCaptureRequest = async () => {
 
   batchCaptureStatus.value = 'isValidating'
   errors.value = {}
-  globalErrors.value = null
+  globalError.value = null
 
   const formData = {
     urls: userSubmittedLinks.value.split("\n").map(s => {
@@ -92,11 +91,11 @@ const handleBatchCaptureRequest = async () => {
   }
 
   if (!formData.urls.length) {
-    errors.value.userSubmittedLinks = [missingUrlError]
+    errors.value.urls = [missingUrlError]
     batchCaptureStatus.value = 'ready'
   }
   if (!formData.target_folder) {
-    errors.value.folder = [folderError]
+    errors.value.target_folder = [folderError]
     batchCaptureStatus.value = 'ready'
   }
 
@@ -110,11 +109,7 @@ const handleBatchCaptureRequest = async () => {
   });
 
   if (error) {
-    if (data) {
-      errors.value = data
-    } else {
-      globalErrors.value = response.status ? getErrorFromStatus(response.status) : defaultError
-    }
+    ({formErrors: errors.value, globalError: globalError.value} = getErrorMessages(error, data, response, Object.keys(formData)))
     batchCaptureStatus.value = 'ready'
     return;
   }
@@ -132,17 +127,13 @@ const handleBatchCaptureRequest = async () => {
   globalStore.components.linkList.fetchLinks();
 };
 
-const handleBatchError = ({error, errorType}) => {
-  clearInterval(progressInterval)
-  batchCaptureStatus.value = errorType
-}
-
 const handleBatchDetailsFetch = async () => {
 
   const {data, error} = await fetchDataOrError(`/archives/batches/${batchCaptureId.value}`);
 
   if (error) {
-    handleBatchError({error, errorType: 'urlError'})
+    clearInterval(progressInterval)
+    batchCaptureStatus.value = 'urlError'
     return
   }
 
@@ -231,7 +222,7 @@ defineExpose({
           <BaseInput
               name="Folder"
               description="These Perma Links will be affiliated with"
-              :error="errors.folder"
+              :error="errors.target_folder"
           >
             <FolderSelect/>
           </BaseInput>
@@ -241,14 +232,14 @@ defineExpose({
               description="Paste your URLs here (one URL per line)"
               placeholder="https://example.com"
               id="userSubmittedLinks"
-              :error="errors.userSubmittedLinks"
+              :error="errors.urls"
           />
           <div class="form-buttons">
             <button class="btn" @click.prevent="handleBatchCaptureRequest">Create Links</button>
             <button class="btn cancel" @click.prevent="handleClose">Cancel</button>
           </div>
-          <p v-if="globalErrors" class="field-error">
-            Batch creation failed. {{ globalErrors }}
+          <p v-if="globalError" class="field-error">
+            Batch creation failed. {{ globalError }}
           </p>
         </div>
 
