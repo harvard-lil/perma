@@ -180,20 +180,26 @@ class UserManagementViewsTestCase(PermaTestCase):
                  require_status_code=403)
 
     def test_admin_can_approve_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status':'approved'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="approved").exists())
+        self.submit_form(
+            'user_sign_up_approve_pending_registrar',
+            user=self.admin_user,
+            data={'status': 'approved', 'base_rate': '100.00'},
+            reverse_kwargs={'args': [self.pending_registrar.pk]},
+            success_query=Registrar.objects.filter(
+                pk=self.pending_registrar.pk, status='approved'
+            ).exists(),
+        )
 
     def test_admin_can_deny_pending_registrar(self):
-        self.submit_form('user_sign_up_approve_pending_registrar',
-                         user=self.admin_user,
-                         data={'status': 'denied'},
-                         reverse_kwargs={'args': [self.pending_registrar.pk]},
-                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
-                                                                status="denied").exists())
+        self.submit_form(
+            'user_sign_up_approve_pending_registrar',
+            user=self.admin_user,
+            data={'status': 'denied', 'base_rate': '100.00'},
+            reverse_kwargs={'args': [self.pending_registrar.pk]},
+            success_query=Registrar.objects.filter(
+                pk=self.pending_registrar.pk, status='denied'
+            ).exists(),
+        )
 
     ### ORGANIZATION A/E/D VIEWS ###
 
