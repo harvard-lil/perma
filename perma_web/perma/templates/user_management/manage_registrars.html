@@ -160,9 +160,9 @@
               {% if registrar.status != "approved" %}
                 <a class="action action-approve" href="{% url 'user_sign_up_approve_pending_registrar' registrar.id %}">
                   {% if registrar.status == "pending" %}
-                    Review and approve <span class="sr-only">{{ registrar.name }}</span>
+                    review and approve <span class="sr-only">{{ registrar.name }}</span>
                   {% else %}
-                    Denied <span class="sr-only">{{ registrar.name }}</span>
+                    denied <span class="sr-only">{{ registrar.name }}</span>
                   {% endif %}
                 </a>
               {% else %}
