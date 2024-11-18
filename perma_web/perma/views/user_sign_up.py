@@ -1,4 +1,3 @@
-from decimal import Decimal, DecimalException
 import logging
 import re
 
