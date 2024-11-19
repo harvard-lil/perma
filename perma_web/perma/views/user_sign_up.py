@@ -267,6 +267,8 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                 registrar=None,
                 pending_registrar=None,
                 organizations=None,
+                # Note: while it's technically possible for a sponsored user to become a registrar
+                # user for another registrar, we exclude sponsored users here to avoid confusion
                 sponsoring_registrars=None,
             )
             users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
