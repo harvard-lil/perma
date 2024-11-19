@@ -125,7 +125,7 @@ class ApproveRegistrarForm(ModelForm):
         self.fields['base_rate'].widget.attrs.setdefault('value', str(registrar.base_rate))
 
         # Require base rate and status only if paid registrar has a registrar user
-        has_registrar_user = bool(registrar.pending_users.first() or registrar.users.first())
+        has_registrar_user = registrar.pending_users.exists() or registrar.users.exists()
         is_paid_registrar = registrar.nonpaying is False
         if has_registrar_user and is_paid_registrar:
             self.fields['base_rate'].required = True
