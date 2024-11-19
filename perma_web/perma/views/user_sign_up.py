@@ -285,7 +285,6 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
             )
 
         elif not form.is_valid():
-            print(form.errors)
             return render(
                 request,
                 'user_management/approve_pending_registrar.html',
