@@ -468,16 +468,13 @@ def email_library_registrar_request(request: HttpRequest, pending_registrar: Reg
 
 def email_approved_registrar_user(request, user):
     """
-    Send email to newly approved registrar accounts for folks requesting library accounts
+    Send email to newly approved registrar accounts for folks requesting accounts
     """
     host = request.get_host()
     send_user_email(
         user.raw_email,
-        "email/library_approved.txt",
-        {
-            "host": host,
-            "account_route": reverse('user_management_manage_organization')
-        }
+        'email/registrar_approved.txt',
+        {'host': host, 'account_route': reverse('user_management_manage_organization')},
     )
 
 
