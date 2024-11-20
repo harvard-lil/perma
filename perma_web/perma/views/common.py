@@ -61,3 +61,39 @@ def robots_txt(request):
             pass
     disallow = list(Link.GUID_CHARACTER_SET) + disallowed_prefixes
     return render(request, 'robots.txt', {'allow': allow, 'disallow': disallow}, content_type='text/plain; charset=utf-8')
+
+
+### SORTS ###
+
+valid_member_sorts = [
+    'last_name',
+    '-last_name',
+    'date_joined',
+    '-date_joined',
+    'last_login',
+    '-last_login',
+    'link_count',
+    '-link_count',
+]
+valid_registrar_sorts = [
+    'name',
+    '-name',
+    'link_count',
+    '-link_count',
+    '-date_created',
+    'date_created',
+    'last_active',
+    '-last_active',
+]
+valid_org_sorts = [
+    'name',
+    '-name',
+    'link_count',
+    '-link_count',
+    '-date_created',
+    'date_created',
+    'last_active',
+    '-last_active',
+    'organization_users',
+    'organization_users',
+]

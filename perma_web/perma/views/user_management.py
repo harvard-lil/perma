@@ -60,12 +60,10 @@ from perma.utils import (
     ratelimit_ip_key,
     user_passes_test_or_403,
 )
+from perma.views.common import valid_member_sorts, valid_org_sorts, valid_registrar_sorts
 from perma.views.user_sign_up import email_new_user
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
-valid_registrar_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created', 'date_created', 'last_active', '-last_active']
-valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
 
 
 ### HELPERS ###
