@@ -281,10 +281,10 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                     reverse('user_sign_up_approve_pending_registrar', args=[target_registrar.id])
                 )
 
-            new_status = request.POST.get('status')
+            new_status = form.cleaned_data['status']
             if new_status in ['approved', 'denied']:
                 target_registrar.status = new_status
-                if form.cleaned_data['base_rate'] is not None:
+                if form.cleaned_data['base_rate'] is not None and new_status == 'approved':
                     target_registrar.base_rate = form.cleaned_data['base_rate']
                 target_registrar.save()
 
