@@ -137,14 +137,23 @@ def apply_search_query(
 
     return queryset, search_string
 
-def apply_sort_order(request, queryset, valid_sorts, default_sort=None):
+def apply_sort_order(
+    request: HttpRequest,
+    queryset: BaseManager[T],
+    valid_sorts: list[str],
+    default_sort: str | None = None,
+) -> tuple[BaseManager[T], str]:
     """
         For the given `queryset`,
         apply sort order based on request.GET['sort'].
     """
     if not default_sort:
         default_sort = valid_sorts[0]
-    sort = request.GET.get('sort', default_sort)
+
+    # Support either GET or POST request params
+    params = getattr(request, request.method)
+
+    sort = params.get('sort', default_sort)
     if sort not in valid_sorts:
         sort = default_sort
     return queryset.order_by(sort), sort

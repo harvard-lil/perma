@@ -31,9 +31,11 @@ from perma.models import (
 from perma.utils import (
     apply_pagination,
     apply_search_query,
+    apply_sort_order,
     ratelimit_ip_key,
     user_passes_test_or_403,
 )
+from perma.views.common import valid_member_sorts
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +273,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                 # user for another registrar, we exclude sponsored users here to avoid confusion
                 sponsoring_registrars=None,
             )
+            users, _ = apply_sort_order(request, queryset, valid_member_sorts)
             users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
             users = apply_pagination(request, users)
             return render(
