@@ -213,6 +213,7 @@ def sign_up_firms(request: HttpRequest):
             new_registrar.save()
             new_user: LinkUser = user_form.save(commit=False)
             new_user.requested_account_type = 'firm'
+            new_user.requested_account_note = registrar_form.cleaned_data['name']
             create_account = request.POST.get('create_account', None)
             if create_account:
                 new_user.save()
