@@ -1,4 +1,6 @@
 {% extends "manage-layout.html" %}
+{% load current_query_string %}
+
 {% block title %} | Approve pending registrar{% endblock %}
 
 {% block dashboardContent %}
@@ -46,12 +48,43 @@
         <p class="body-text">Before this registrar can be approved, you must assign a registrar user:</p>
         {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" search_query=search_query form_id="search_form" %}
 
-        {% if users %}
+        {% if users.paginator.count %}
           <div class="row row-no-bleed">
             <div class="col admin-found col-no-gutter">
               <h5 class="sr-only">User List</h3>
               <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
-              <div class="sort-filter-bar">&nbsp;</div>
+              <div class="sort-filter-bar">
+                <strong>Filter &amp; Sort:</strong>
+                <div class="dropdown">
+                  <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sort <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a {% if sort == 'last_name' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i aria-hidden="true" class="icon-ok"></i> Last name A - Z</a>
+                    </li>
+                    <li>
+                      <a {% if sort == '-last_name' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-last_name" %}"><i aria-hidden="true" class="icon-ok"></i> Last name Z - A</a>
+                    </li>
+                    <li>
+                      <a {% if sort == '-date_joined' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-date_joined" %}"><i aria-hidden="true" class="icon-ok"></i> Newest</a>
+                    </li>
+                    <li>
+                      <a {% if sort == 'date_joined' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="date_joined" %}"><i aria-hidden="true" class="icon-ok"></i> Oldest</a>
+                    </li>
+                    <li>
+                      <a {% if sort == '-last_login' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-last_login" %}"><i aria-hidden="true" class="icon-ok"></i> Recently active</a>
+                    </li>
+                    <li>
+                      <a {% if sort == 'last_login' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="last_login" %}"><i aria-hidden="true" class="icon-ok"></i> Least recently active</a>
+                    </li>
+                    <li>
+                      <a {% if sort == '-link_count' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i aria-hidden="true" class="icon-ok"></i> Most links</a>
+                    </li>
+                    <li>
+                      <a {% if sort == 'link_count' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i aria-hidden="true" class="icon-ok"></i> Least links</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div><!-- admin found -->
           </div><!-- row -->
 
@@ -66,7 +99,6 @@
                     {% else %}
                       {{ listed_user.first_name }} {{ listed_user.last_name }}
                     {% endif %}
-                    {% if listed_user == request.user %}(you){% endif %}
                   </h6>
                   <div class="item-subtitle">{{ listed_user.raw_email }}</div>
 
@@ -94,6 +126,10 @@
               </li>
             {% endfor %}
           </ol>
+
+        {% elif users.paginator.count == 0 %}
+
+          <div class="item-notification">No user{{ users.paginator.count|pluralize }} found.</div>
 
         {% endif %}
 

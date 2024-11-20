@@ -316,7 +316,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
     # Handle user search query, if supplied
     search_query = request.GET.get('q', '').strip()
     if search_query and not target_registrar_user:
-        queryset = LinkUser.objects.filter(
+        users = LinkUser.objects.distinct().filter(
             is_confirmed=True,
             is_active=True,
             is_staff=False,
@@ -327,8 +327,8 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
             # user for another registrar, we exclude sponsored users here to avoid confusion
             sponsoring_registrars=None,
         )
-        users, _ = apply_sort_order(request, queryset, valid_member_sorts)
-        users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
+        users, sort = apply_sort_order(request, users, valid_member_sorts)
+        users, _ = apply_search_query(request, users, ['email', 'first_name', 'last_name'])
         users = apply_pagination(request, users)
 
         return render(
@@ -339,6 +339,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                 'target_registrar_user': target_registrar_user,
                 'approve_registrar_form': form,
                 'search_query': search_query,
+                'sort': sort,
                 'users': users,
                 'this_page': 'users_registrars',
             },
