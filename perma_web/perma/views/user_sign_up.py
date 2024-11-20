@@ -284,7 +284,8 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
             new_status = request.POST.get('status')
             if new_status in ['approved', 'denied']:
                 target_registrar.status = new_status
-                target_registrar.base_rate = form.cleaned_data['base_rate']
+                if form.cleaned_data['base_rate'] is not None:
+                    target_registrar.base_rate = form.cleaned_data['base_rate']
                 target_registrar.save()
 
                 if new_status == 'approved':
