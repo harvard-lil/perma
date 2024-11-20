@@ -25,6 +25,8 @@
       {% endif %}
     </p>
 
+    <form id="search_form" action="" method="GET"></form>
+
     <form id="form" action="" method="POST">
       {% csrf_token %}
 
@@ -42,7 +44,7 @@
       {% else %}
 
         <p class="body-text">Before this registrar can be approved, you must assign a registrar user:</p>
-        {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" search_query=search_query %}
+        {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" search_query=search_query form_id="search_form" %}
 
         {% if users %}
           <div class="row row-no-bleed">

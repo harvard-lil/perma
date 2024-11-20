@@ -110,7 +110,6 @@ class FirmRegistrarForm(ModelForm):
 
 
 class ApproveRegistrarForm(ModelForm):
-    q = forms.CharField(required=False)
     registrar_user = forms.EmailField(required=False)
 
     class Meta:

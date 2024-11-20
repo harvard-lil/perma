@@ -259,37 +259,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
 
     if request.method == 'POST':
         form = ApproveRegistrarForm(request.POST, target_registrar)
-
-        search_query: str = form.data.get('q', '').strip()
-        if search_query and not form.data.get('registrar_user'):
-            queryset = LinkUser.objects.filter(
-                is_confirmed=True,
-                is_active=True,
-                is_staff=False,
-                registrar=None,
-                pending_registrar=None,
-                organizations=None,
-                # Note: while it's technically possible for a sponsored user to become a registrar
-                # user for another registrar, we exclude sponsored users here to avoid confusion
-                sponsoring_registrars=None,
-            )
-            users, _ = apply_sort_order(request, queryset, valid_member_sorts)
-            users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
-            users = apply_pagination(request, users)
-            return render(
-                request,
-                'user_management/approve_pending_registrar.html',
-                {
-                    'target_registrar': target_registrar,
-                    'target_registrar_user': target_registrar_user,
-                    'approve_registrar_form': form,
-                    'search_query': search_query,
-                    'users': users,
-                    'this_page': 'users_registrars',
-                },
-            )
-
-        elif not form.is_valid():
+        if not form.is_valid():
             return render(
                 request,
                 'user_management/approve_pending_registrar.html',
@@ -339,13 +309,47 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
+    # GET request
+    form = ApproveRegistrarForm(request.GET, registrar=target_registrar)
+
+    # Handle user search query, if supplied
+    search_query = request.GET.get('q', '').strip()
+    if search_query and not target_registrar_user:
+        queryset = LinkUser.objects.filter(
+            is_confirmed=True,
+            is_active=True,
+            is_staff=False,
+            registrar=None,
+            pending_registrar=None,
+            organizations=None,
+            # Note: while it's technically possible for a sponsored user to become a registrar
+            # user for another registrar, we exclude sponsored users here to avoid confusion
+            sponsoring_registrars=None,
+        )
+        users, _ = apply_sort_order(request, queryset, valid_member_sorts)
+        users, _ = apply_search_query(request, queryset, ['email', 'first_name', 'last_name'])
+        users = apply_pagination(request, users)
+
+        return render(
+            request,
+            'user_management/approve_pending_registrar.html',
+            {
+                'target_registrar': target_registrar,
+                'target_registrar_user': target_registrar_user,
+                'approve_registrar_form': form,
+                'search_query': search_query,
+                'users': users,
+                'this_page': 'users_registrars',
+            },
+        )
+
     return render(
         request,
         'user_management/approve_pending_registrar.html',
         {
             'target_registrar': target_registrar,
             'target_registrar_user': target_registrar_user,
-            'approve_registrar_form': ApproveRegistrarForm(request.GET, registrar=target_registrar),
+            'approve_registrar_form': form,
             'this_page': 'users_registrars',
         },
     )
