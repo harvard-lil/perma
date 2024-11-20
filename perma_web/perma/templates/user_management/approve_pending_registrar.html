@@ -58,14 +58,14 @@
             {% for listed_user in users %}
               <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
                 <div class="col col-sm-8 col-no-gutter">
-                  <h5 class="item-title" id="user-{{ listed_user.id }}">
+                  <h6 class="item-title" id="user-{{ listed_user.id }}">
                     {% if not listed_user.first_name and not listed_user.last_name %}
                       {{ listed_user.raw_email }}
                     {% else %}
                       {{ listed_user.first_name }} {{ listed_user.last_name }}
                     {% endif %}
                     {% if listed_user == request.user %}(you){% endif %}
-                  </h5>
+                  </h6>
                   <div class="item-subtitle">{{ listed_user.raw_email }}</div>
 
                   {% if request.user.is_staff and listed_user.requested_account_type %}

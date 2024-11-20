@@ -6588,7 +6588,7 @@ td {
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
-h1, h2, h3, h4, h5 {
+h1, h2, h3, h4, h5, h6 {
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 900;
   line-height: 1.2;
@@ -6596,11 +6596,11 @@ h1, h2, h3, h4, h5 {
   color: #222;
 }
 @media only screen and (min-width: 768px) {
-  h1, h2, h3, h4, h5 {
+  h1, h2, h3, h4, h5, h6 {
     font-weight: 300;
   }
 }
-h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child {
+h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child {
   margin-top: 0;
 }
 
@@ -11424,6 +11424,7 @@ h6.image-hed {
   font-size: 16px;
   display: inline-block;
   border-bottom: 2px solid #2D76EE;
+  margin-top: 10px;
   margin-bottom: 0px;
   padding-top: 0;
   color: #2D76EE;
