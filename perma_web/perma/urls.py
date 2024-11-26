@@ -147,6 +147,7 @@ urlpatterns = [
     re_path(r'^manage/users/resend-activation/(?P<user_id>\d+)/?$', user_management.resend_activation, name='user_management_resend_activation'),
 
     re_path(r'^manage/organization-users/?$', user_management.manage_organization_user, name='user_management_manage_organization_user'),
+    re_path(r'^manage/organization-users/export/?$', user_management.manage_organization_user_export_user_list, name='user_management_manage_organization_user_export_user_list'),
     re_path(r'^manage/organization-users/add-user/?$', AddUserToOrganization.as_view(), name='user_management_organization_user_add_user'),
     re_path(r'^manage/organization-users/(?P<user_id>\d+)/?$', user_management.manage_single_organization_user, name='user_management_manage_single_organization_user'),
     re_path(r'^manage/organization-users/(?P<user_id>\d+)/delete/?$', user_management.manage_single_organization_user_delete, name='user_management_manage_single_organization_user_delete'),

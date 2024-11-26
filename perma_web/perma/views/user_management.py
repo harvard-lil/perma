@@ -367,6 +367,35 @@ def manage_single_user_reactivate(request, user_id):
 def manage_organization_user(request):
     return list_users_in_group(request, 'organization_user')
 
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_organization_user_export_user_list(request: HttpRequest):
+    """Return a file listing users across organizations."""
+    # Get query results via list_sponsored_users
+    field_names = [
+        'email',
+        'first_name',
+        'last_name',
+        'date_joined',
+        'last_login',
+        'organization_name',
+    ]
+    records = list_users_in_group(request, 'organization_user', export=True)
+    org_users = (
+        records.values('email', 'first_name', 'last_name', 'date_joined', 'last_login')
+        .annotate(organization_name=F('organizations__name'))
+        .values(*field_names)
+    )
+    filename = 'perma-organization-users'
+
+    # Export records in appropriate format based on `format` URL parameter
+    export_format = request.GET.get('format', '').casefold()
+    if export_format not in ['csv', 'json']:
+        export_format = 'csv'
+    response = export_queryset(org_users, export_format, field_names, filename)
+    return response
+
+
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_user(request, user_id):
     return edit_user_in_group(request, user_id, 'organization_user')
@@ -410,7 +439,7 @@ def manage_single_organization_export_user_list(
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
-def list_users_in_group(request, group_name):
+def list_users_in_group(request: HttpRequest, group_name: str, export: bool = False):
     """
         Show list of users with given group name.
     """
@@ -495,6 +524,10 @@ def list_users_in_group(request, group_name):
     sponsorship_status = request.GET.get('sponsorship_status', '')
     if sponsorship_status:
         users = users.filter(sponsorships__status=sponsorship_status)
+
+    # if exporting records (e.g. for CSV or JSON output), return query manager directly
+    if export is True:
+        return users
 
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
