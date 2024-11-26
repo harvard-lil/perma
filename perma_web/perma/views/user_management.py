@@ -381,11 +381,7 @@ def manage_organization_user_export_user_list(request: HttpRequest):
         'organization_name',
     ]
     records = list_users_in_group(request, 'organization_user', export=True)
-    org_users = (
-        records.values('email', 'first_name', 'last_name', 'date_joined', 'last_login')
-        .annotate(organization_name=F('organizations__name'))
-        .values(*field_names)
-    )
+    org_users = records.annotate(organization_name=F('organizations__name')).values(*field_names)
     filename = 'perma-organization-users'
 
     # Export records in appropriate format based on `format` URL parameter
