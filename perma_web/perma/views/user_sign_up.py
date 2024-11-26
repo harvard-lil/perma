@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
-from django.db.models.manager import BaseManager
+from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -386,7 +386,7 @@ def firm_request_response(request):
     return render(request, 'registration/firm_request.html')
 
 
-def suggest_registrars(user: LinkUser, limit: int = 5) -> BaseManager[Registrar]:
+def suggest_registrars(user: LinkUser, limit: int = 5) -> QuerySet[Registrar]:
     """Suggest potential registrars for a user based on email domain.
 
     This queries the database for registrars whose website matches the

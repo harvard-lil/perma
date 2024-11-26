@@ -24,7 +24,7 @@ from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
-from django.db.models.manager import BaseManager
+from django.db.models.query import QuerySet
 from django.http import (
     Http404,
     HttpRequest,
@@ -118,8 +118,8 @@ class AlphaNumericValidator:
 ### list view helpers ###
 
 def apply_search_query(
-    request: HttpRequest, queryset: BaseManager[T], fields: list[str]
-) -> tuple[BaseManager[T], str]:
+    request: HttpRequest, queryset: QuerySet[T], fields: list[str]
+) -> tuple[QuerySet[T], str]:
     """
     For the given `queryset`,
     apply consecutive .filter()s such that each word
@@ -146,10 +146,10 @@ def apply_search_query(
 
 def apply_sort_order(
     request: HttpRequest,
-    queryset: BaseManager[T],
+    queryset: QuerySet[T],
     valid_sorts: list[str],
     default_sort: str | None = None,
-) -> tuple[BaseManager[T], str]:
+) -> tuple[QuerySet[T], str]:
     """
         For the given `queryset`,
         apply sort order based on request.GET['sort'].
@@ -165,7 +165,7 @@ def apply_sort_order(
         sort = default_sort
     return queryset.order_by(sort), sort
 
-def apply_pagination(request: HttpRequest, queryset: BaseManager[T]) -> Page:
+def apply_pagination(request: HttpRequest, queryset: QuerySet[T]) -> Page:
     """
         For the given `queryset`,
         apply pagination based on request.GET['page'].
@@ -185,7 +185,7 @@ def apply_pagination(request: HttpRequest, queryset: BaseManager[T]) -> Page:
 
 
 def export_queryset(
-    queryset: BaseManager[T],
+    queryset: QuerySet[T],
     export_format: Literal['csv', 'json'],
     field_names: list[str],
     filename: str = 'export',

@@ -8,7 +8,7 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, F, Max, Sum
 from django.db.models.functions import Coalesce, Greatest
-from django.db.models.manager import BaseManager
+from django.db.models.query import QuerySet
 from django.http import (
     Http404,
     HttpRequest,
@@ -578,7 +578,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def list_sponsored_users(
     request: HttpRequest, group_name: str = 'sponsored_user', export: bool = False
-) -> HttpResponse | BaseManager[LinkUser]:
+) -> HttpResponse | QuerySet[LinkUser]:
     """
     Show list of sponsored users. Adapted from `list_users_in_group` for improved performance.
 
