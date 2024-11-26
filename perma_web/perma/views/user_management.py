@@ -420,15 +420,21 @@ def manage_single_organization_export_user_list(
     if not request.user.can_edit_organization(target_org):
         return HttpResponseForbidden()
 
+    # Generate output records from query results and add organization name
+    field_names = [
+        'email',
+        'first_name',
+        'last_name',
+        'date_joined',
+        'last_login',
+        'organization_name',
+    ]
     org_users = (
         LinkUser.objects.filter(organizations__id=org_id)
         .annotate(organization_name=F('organizations__name'))
-        .values('email', 'first_name', 'last_name', 'organization_name')
+        .values(*field_names)
     )
     filename = f'perma-organization-{org_id}-users'
-
-    # Generate output records from query results and add organization name
-    field_names = ['email', 'first_name', 'last_name', 'organization_name']
 
     # Export records in appropriate format based on `format` URL parameter
     export_format = request.GET.get('format', '').casefold()
