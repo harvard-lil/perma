@@ -91,6 +91,7 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
         {
             'urls': [
                 ['user_management_manage_organization_user'],
+                ['user_management_manage_organization_user_export_user_list'],
                 ['user_management_manage_organization'],
                 ['user_management_organization_user_add_user'],
             ],
