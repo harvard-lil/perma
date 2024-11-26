@@ -1,48 +1,55 @@
-from contextlib import contextmanager
 from collections import OrderedDict
-from datetime import datetime, timedelta, timezone as tz
-from dateutil.relativedelta import relativedelta
-from functools import wraps, reduce
+from contextlib import contextmanager
+import csv
+from datetime import datetime, timedelta
+from datetime import timezone as tz
+from functools import reduce, wraps
 import hashlib
-from hanzo import warctools
 import itertools
 import json
 import logging
-from nacl import encoding
-from nacl.public import Box, PrivateKey, PublicKey
 import operator
 import os
-import requests
 import string
-import surt
-import tempdir
 import tempfile
-from typing import TypeVar
-from ua_parser import user_agent_parser
+from typing import Literal, TypeVar
 import unicodedata
-from warcio.warcwriter import BufferWARCWriter
 from wsgiref.util import FileWrapper
 
-from django.core.paginator import Paginator, EmptyPage, Page
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.files.storage import storages
+from django.core.paginator import EmptyPage, Page, Paginator
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 from django.db.models.manager import BaseManager
-from django.conf import settings
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.urls import reverse
-from django.core.serializers.json import DjangoJSONEncoder
 from django.http import (
-    HttpRequest,
-    HttpResponseForbidden,
     Http404,
-    StreamingHttpResponse,
+    HttpRequest,
     HttpResponse,
+    HttpResponseForbidden,
+    JsonResponse,
+    StreamingHttpResponse,
 )
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import storages
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
+from hanzo import warctools
+from nacl import encoding
+from nacl.public import Box, PrivateKey, PublicKey
+import requests
+import surt
+import tempdir
+from ua_parser import user_agent_parser
+from warcio.warcwriter import BufferWARCWriter
 
-from .exceptions import InvalidTransmissionException, ScoopAPIException, ScoopAPINetworkException
+from perma.exceptions import (
+    InvalidTransmissionException,
+    ScoopAPIException,
+    ScoopAPINetworkException,
+)
 
 logger = logging.getLogger(__name__)
 warn = logger.warn
@@ -175,6 +182,31 @@ def apply_pagination(request: HttpRequest, queryset: BaseManager[T]) -> Page:
         return paginator.page(page)
     except EmptyPage:
         return paginator.page(1)
+
+
+def export_queryset(
+    queryset: BaseManager[T],
+    export_format: Literal['csv', 'json'],
+    field_names: list[str],
+    filename: str = 'export',
+) -> HttpResponse | JsonResponse:
+    """Export a queryset as a CSV or JSON response."""
+    match export_format:
+        case 'csv':
+            response = HttpResponse(
+                content_type='text/csv',
+                headers={'Content-Disposition': f'attachment; filename="{filename}.csv"'},
+            )
+            writer = csv.DictWriter(response, fieldnames=field_names)
+            writer.writeheader()
+            for record in queryset:
+                writer.writerow(record)
+        case 'json':
+            response = JsonResponse(list(queryset), safe=False)
+        case _:
+            raise ValueError('export_format must be one of: csv, json')
+    return response
+
 
 ### form view helpers ###
 
