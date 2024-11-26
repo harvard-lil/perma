@@ -86,7 +86,9 @@
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
         {% if group_name == 'sponsored_user' %}
-        <div class="dropdown"><button class="btn-transparent"><a href="{% url 'user_management_manage_sponsored_user_export_user_list' %}?{% current_query_string format='csv' %}" id="export-sponsored-user-csv" class="icon-download-alt" title="Export CSV"></a></button></div>
+          <div class="dropdown"><button class="btn-transparent"><a href="{% url 'user_management_manage_sponsored_user_export_user_list' %}?{% current_query_string format='csv' %}" id="export-sponsored-user-csv" class="icon-download-alt" title="Export CSV"></a></button></div>
+        {% elif group_name == 'organization_user' %}
+          <div class="dropdown"><button class="btn-transparent"><a href="{% url 'user_management_manage_organization_user_export_user_list' %}?{% current_query_string format='csv' %}" id="export-organization-user-csv" class="icon-download-alt" title="Export CSV"></a></button></div>
         {% endif %}
         <div class="dropdown">
           <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sort <span class="caret"></span></button>
