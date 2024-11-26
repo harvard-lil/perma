@@ -368,7 +368,9 @@ def manage_organization_user(request):
     return list_users_in_group(request, 'organization_user')
 
 
-@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+@user_passes_test_or_403(
+    lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user
+)
 def manage_organization_user_export_user_list(request: HttpRequest):
     """Return a file listing users across organizations."""
     # Get query results via list_sponsored_users
