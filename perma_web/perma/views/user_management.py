@@ -1,6 +1,4 @@
-import csv
 import logging
-from typing import Literal
 
 from django.conf import settings
 from django.contrib import messages
@@ -56,6 +54,7 @@ from perma.utils import (
     apply_pagination,
     apply_search_query,
     apply_sort_order,
+    export_queryset,
     get_form_data,
     ratelimit_ip_key,
     user_passes_test_or_403,
@@ -326,21 +325,13 @@ def manage_sponsored_user_export_user_list(request: HttpRequest) -> HttpResponse
         sponsorship_status=F('sponsorships__status'),
         sponsorship_created_at=F('sponsorships__created_at'),
     ).values(*field_names)
+    filename = 'perma-sponsored-users'
 
     # Export records in appropriate format based on `format` URL parameter
-    export_format: Literal['csv', 'json'] = request.GET.get('format', 'csv').casefold()
-    match export_format:
-        case 'json':
-            response = JsonResponse(list(users), safe=False)
-        case 'csv' | _:
-            response = HttpResponse(
-                content_type='text/csv',
-                headers={'Content-Disposition': 'attachment; filename="perma-sponsored-users.csv"'},
-            )
-            writer = csv.DictWriter(response, fieldnames=field_names)
-            writer.writeheader()
-            for user in users:
-                writer.writerow(user)
+    export_format = request.GET.get('format', '').casefold()
+    if export_format not in ['csv', 'json']:
+        export_format = 'csv'
+    response = export_queryset(users, export_format, field_names, filename)
     return response
 
 
@@ -405,25 +396,16 @@ def manage_single_organization_export_user_list(
         .annotate(organization_name=F('organizations__name'))
         .values('email', 'first_name', 'last_name', 'organization_name')
     )
-    filename_stem = f'perma-organization-{org_id}-users'
+    filename = f'perma-organization-{org_id}-users'
 
     # Generate output records from query results and add organization name
     field_names = ['email', 'first_name', 'last_name', 'organization_name']
 
     # Export records in appropriate format based on `format` URL parameter
-    export_format: Literal['csv', 'json'] = request.GET.get('format', 'csv').casefold()
-    match export_format:
-        case 'json':
-            response = JsonResponse(list(org_users), safe=False)
-        case 'csv' | _:
-            response = HttpResponse(
-                content_type='text/csv',
-                headers={'Content-Disposition': f'attachment; filename="{filename_stem}.csv"'},
-            )
-            writer = csv.DictWriter(response, fieldnames=field_names)
-            writer.writeheader()
-            for org_user in org_users:
-                writer.writerow(org_user)
+    export_format = request.GET.get('format', '').casefold()
+    if export_format not in ['csv', 'json']:
+        export_format = 'csv'
+    response = export_queryset(org_users, export_format, field_names, filename)
     return response
 
 
