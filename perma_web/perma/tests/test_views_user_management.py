@@ -351,6 +351,54 @@ class UserManagementViewsTestCase(PermaTestCase):
                 reader_record_count += 1
             self.assertEqual(reader_record_count, record_count)
 
+    def test_organization_user_export_user_list(self):
+        expected_results = [
+            ('case_one_lawyer@firm.com', 'Some Case'),
+            ('multi_registrar_org_user@example.com', 'Another Journal'),
+            ('multi_registrar_org_user@example.com', "Another Library's Journal"),
+            ('multi_registrar_org_user@example.com', 'A Third Journal'),
+            ('multi_registrar_org_user@example.com', 'Test Journal'),
+            ('test_another_library_org_user@example.com', "Another Library's Journal"),
+            ('test_another_library_org_user@example.com', 'A Third Journal'),
+            ('test_yet_another_library_org_user@example.com', "Another Library's Journal"),
+            ('test_another_org_user@example.com', 'A Third Journal'),
+            ('test_org_rando_user@example.com', 'Test Journal'),
+            ('test_org_user@example.com', 'Test Journal'),
+        ]
+
+        # Get CSV export output
+        csv_response: HttpResponse = self.get(
+            'user_management_manage_organization_user_export_user_list',
+            request_kwargs={'data': {'format': 'csv'}},
+            user=self.admin_user,
+        )
+        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
+
+        # Validate CSV output against expected results
+        csv_file = StringIO(csv_response.content.decode('utf8'))
+        reader = csv.DictReader(csv_file)
+        for index, record in enumerate(reader):
+            expected_email, expected_organization_name = expected_results[index]
+            self.assertEqual(record['email'], expected_email)
+            self.assertEqual(record['organization_name'], expected_organization_name)
+        self.assertEqual(index + 1, len(expected_results))
+
+        # Get JSON export output
+        json_response: HttpResponse = self.get(
+            'user_management_manage_organization_user_export_user_list',
+            request_kwargs={'data': {'format': 'json'}},
+            user=self.admin_user,
+        )
+        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
+
+        # Validate JSON output against expected results
+        reader = json.loads(json_response.content)
+        for index, record in enumerate(reader):
+            expected_email, expected_organization_name = expected_results[index]
+            self.assertEqual(record['email'], expected_email)
+            self.assertEqual(record['organization_name'], expected_organization_name)
+        self.assertEqual(index + 1, len(expected_results))
+
     def test_sponsored_user_export_user_list(self):
         expected_results = [
             ('another_inactive_sponsored_user@example.com', 'inactive'),
