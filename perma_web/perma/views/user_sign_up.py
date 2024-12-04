@@ -24,10 +24,7 @@ from perma.forms import (
     UserForm,
     check_honeypot,
 )
-from perma.models import (
-    LinkUser,
-    Registrar,
-)
+from perma.models import LinkUser, Registrar
 from perma.utils import (
     apply_pagination,
     apply_search_query,

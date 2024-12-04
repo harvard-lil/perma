@@ -4,10 +4,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.shortcuts import render
 from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods
 
