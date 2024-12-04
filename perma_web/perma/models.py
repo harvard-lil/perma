@@ -30,7 +30,7 @@ from django.contrib.postgres.fields import ArrayField, DateTimeRangeField
 from django.conf import settings
 from django.core.files.storage import storages
 from django.db import models, transaction
-from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists, OuterRef, When, Case
+from django.db.models import Q, Max, Count, Sum, JSONField, F, Exists, OuterRef, When, Case, Greatest
 from django.db.models.functions import Now, Upper, TruncDate
 from django.db.models.query import QuerySet
 from django.contrib.postgres.indexes import GistIndex, GinIndex, OpClass
@@ -200,7 +200,7 @@ class CustomerModel(models.Model):
     unlimited = models.BooleanField(default=False, help_text="If unlimited, link_limit and related fields are ignored.")
     link_limit = models.IntegerField(default=settings.DEFAULT_CREATE_LIMIT)
     link_limit_period = models.CharField(max_length=8, default=settings.DEFAULT_CREATE_LIMIT_PERIOD, choices=(('once','once'),('monthly','monthly'),('annually','annually')))
-    bonus_links = models.PositiveIntegerField(blank=True, null=True)
+    bonus_links = models.PositiveIntegerField(default=0)
 
     @cached_property
     def customer_type(self):
@@ -506,8 +506,7 @@ class CustomerModel(models.Model):
             try:
                 with transaction.atomic():
                     link_quantity = int(purchase["link_quantity"])
-                    self.bonus_links = (self.bonus_links or 0) + link_quantity
-                    self.save(update_fields=['bonus_links'])
+                    self.update_bonus_links(link_quantity)
                     try:
                         r = requests.post(
                             settings.ACKNOWLEDGE_PURCHASE_URL,
@@ -881,11 +880,11 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             # make sure email is still formatted correctly.
             self.format_email_fields()
 
-        with transaction.atomic():
-            super().save(*args, **kwargs)
-
+        if not self.root_folder_id:
             # make sure root folder is created for each user.
-            if not self.root_folder_id:
+            with transaction.atomic():
+                super().save(*args, **kwargs)
+
                 root_folder = Folder.objects.create(
                     name='Personal Links',
                     created_by=self,
@@ -895,6 +894,10 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
                 # Save with super again, instead of plain save,
                 # so we don't run through our custom logic twice
                 super().save()
+
+        else:
+            # regular save, no transaction
+            super().save(*args, **kwargs)
 
     def get_full_name(self):
         """ Use either First Last or first half of email address as user's name. """
@@ -1143,8 +1146,8 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         # Special handling for non-trial users who lack active paid subscriptions:
         # apply the same rules that are applied to new users
         if not self.in_trial and not self.nonpaying and self.subscription_status != 'active':
-            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links or 0)
-        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links or 0)
+            return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links)
+        return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links)
 
     def link_creation_allowed(self):
         links_remaining, _, bonus_links = self.get_links_remaining()
@@ -1219,6 +1222,19 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     def remove_line_from_notes(self, containing):
         if self.notes:
             self.notes = re.sub(f"\n*{containing}.*", '', self.notes)
+
+    def update_bonus_links(self, count):
+        # Use Greatest to ensure bonus_links doesn't go below 0
+        LinkUser.objects.filter(id=self.id).update(
+            bonus_links=Greatest(F('bonus_links') + count, 0)
+        )
+
+        # mark field as deferred so we don't rely on an outdated value
+        if not hasattr(self, '_deferred_fields'):
+            self._deferred_fields = set()
+        self._deferred_fields.add('bonus_links')
+        if hasattr(self, 'bonus_links'):
+            delattr(self, 'bonus_links')
 
 
 class UserOrganizationAffiliation(models.Model):
@@ -1495,8 +1511,7 @@ class Folder(TreeNode):
                 if (parent.organization_id or parent.sponsored_by_id) and (any_link := bonus_links.first()):
                     user = any_link.created_by
                     count = bonus_links.update(bonus_link=False)
-                    user.bonus_links = F('bonus_links') + count
-                    user.save(update_fields=['bonus_links'])
+                    user.update_bonus_links(count)
 
                 # update the cached paths of this folder and all its descendants
                 update_cached_path(subtree_ids, parent.tree_root_id)
@@ -1829,8 +1844,7 @@ class Link(DeletableModel):
             # Don't let anybody move folders around, until this link is
             # safely inside its destination folder, lest denormalized
             # ownership-related fields get out of sync
-            for folder in itertools.chain(self.folders.all(), [folder]):
-                Folder.objects.select_for_update().get(pk=folder.tree_root_id)
+            Folder.objects.filter(pk_in=itertools.chain(self.folders.all(), [folder])).select_for_update().values_list('id')
 
             # remove this link from any folders it's in for this user
             self.folders.remove(*self.folders.accessible_to(user))
@@ -1842,10 +1856,9 @@ class Link(DeletableModel):
                 self.organization = folder.organization
             if self.bonus_link and (folder.organization or folder.sponsored_by):
                 self.bonus_link = False
-                user.bonus_links = F('bonus_links') + 1
+                user.update_bonus_links(1)
 
             self.save(update_fields=['organization', 'bonus_link'])
-            user.save(update_fields=['bonus_links'])
 
     def guid_as_path(self):
         # For a GUID like ABCD-1234, return a path like AB/CD/12.
