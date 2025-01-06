@@ -1,18 +1,14 @@
 {
   "manifest_version": 2,
-
   "name": "Perma.cc",
   "description": "Enter any URL to preserve it forever.",
-  "version": "1.0.0",
+  "version": "1.0.1resigned1",
   "applications": {
     "gecko": {
       "id": "firefox@perma.cc"
-      }
+    }
   },
-  "permissions": [
-    "activeTab"
-  ],
-
+  "permissions": ["activeTab"],
   "icons": {
     "16": "infinity16.png",
     "48": "infinity48.png",
