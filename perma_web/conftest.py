@@ -99,6 +99,23 @@ def _live_server_db_helper(request):
     _load_json_fixtures()
 
 
+@pytest.fixture()
+def flush_db(django_db_blocker):
+    """
+    While we are still using django_db_setup with session scope to install the legacy JSON fixtures,
+    it is occasionally convenient to flush the database before a given test.
+
+    Include this as the FIRST fixture in any test to install any other pytest fixtures into a
+    blank, clean database.
+
+    The JSON fixtures will be re-installed on teardown.
+    """
+    with django_db_blocker.unblock():
+        call_command('flush', verbosity=0, interactive=False)
+        yield
+        _load_json_fixtures()
+
+
 @pytest.fixture(autouse=True, scope='function')
 def cleanup_storage():
     """
@@ -534,12 +551,13 @@ def admin_user(link_user_factory):
 
 
 @pytest.fixture
-def org_user_factory(link_user, organization):
+def org_user_factory(link_user_factory, organization_factory):
     def f(orgs=None):
+        link_user = link_user_factory()
         if orgs:
             link_user.organizations.set(orgs)
         else:
-            link_user.organizations.add(organization)
+            link_user.organizations.add(organization_factory())
         return link_user
     return f
 
@@ -548,12 +566,41 @@ def org_user_factory(link_user, organization):
 def org_user(org_user_factory):
     return org_user_factory()
 
+
 @pytest.fixture
 def multi_registrar_org_user(org_user_factory, organization_factory):
     first = organization_factory()
     second = organization_factory()
     assert first.registrar != second.registrar
     return org_user_factory(orgs=[first, second])
+
+
+@pytest.fixture
+def org_user_list(multi_registrar_org_user, org_user_factory):
+    single_organization_users = []
+    for _ in range(5):
+        single_organization_users.append(org_user_factory())
+
+    user_data = []
+    for user in sorted([multi_registrar_org_user] + single_organization_users, key=lambda u: u.last_name):
+        for org in user.organizations.all().order_by('name'):
+            user_data.append((user.email, org.name))
+
+    return user_data
+
+
+@pytest.fixture
+def sponsored_user_list(sponsored_user_factory):
+    users = []
+    for _ in range(5):
+        users.append(sponsored_user_factory())
+
+    user_data = []
+    for user in sorted(users, key=lambda u: u.last_name):
+        user_data.append((user.email, user.sponsorships.first().status))
+
+    return user_data
+
 
 
 ### For testing customer interactions
@@ -941,6 +988,18 @@ def spoof_pp_response_subscription_with_pending_change():
         assert pp_date_from_post(response['subscription']['link_limit_effective_timestamp']), timezone.now()
         return response
     return f
+
+
+# For working with registrars
+
+# For working with organizations
+
+@pytest.fixture
+def org_with_five_users(link_user_factory, organization):
+    for _ in range(5):
+        user = link_user_factory()
+        user.organizations.add(organization)
+    return organization
 
 
 ### For working with links ###

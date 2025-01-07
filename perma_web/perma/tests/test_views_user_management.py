@@ -3,6 +3,7 @@
 import csv
 from io import StringIO
 import json
+import pytest
 from random import random, getrandbits
 import re
 
@@ -239,6 +240,128 @@ def test_even_admin_cannot_delete_organization_with_links(client, admin_user, or
     _delete_organization(client, admin_user, organization_with_links, 403)
 
 
+###
+### EXPORT LISTS
+###
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_org_export_user_list(export_format, mime_type, client, org_with_five_users):
+    """Export all users in a single org"""
+
+    # Log in as one of the org's users
+    user = org_with_five_users.users.order_by('?').first()
+    client.force_login(user)
+
+    # Get the export output
+    url = reverse(
+        'user_management_manage_single_organization_export_user_list',
+        args=[org_with_five_users.id]
+    )
+    response = client.get(
+        url,
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against the expected results
+    reader_record_count = 0
+    for record in reader:
+        assert record['organization_name'] == org_with_five_users.name
+        reader_record_count += 1
+    assert reader_record_count == 5
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_organization_user_export_user_list(flush_db, export_format, mime_type, client, admin_user, org_user_list):
+    """Export all org users accessible to given user"""
+    # Log in as an admin, to see the full list
+    client.force_login(admin_user)
+
+    # Get the export output
+    response = client.get(
+        reverse('user_management_manage_organization_user_export_user_list'),
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against expected results
+    for index, record in enumerate(reader):
+        expected_email, expected_organization_name = org_user_list[index]
+        assert record['email'] == expected_email
+        assert record['organization_name'] == expected_organization_name
+    assert index + 1 == len(org_user_list)
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_sponsored_user_export_user_list(flush_db, export_format, mime_type, client, admin_user, sponsored_user_list):
+    """Export all sponsored users accessible to given user"""
+    # Log in as an admin, to see the full list
+    client.force_login(admin_user)
+
+    # Get the export output
+    response = client.get(
+        reverse('user_management_manage_sponsored_user_export_user_list'),
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against expected results
+    for index, record in enumerate(reader):
+        expected_email, expected_sponsorship_status = sponsored_user_list[index]
+        assert record['email'] == expected_email
+        assert record['sponsorship_status'] == expected_sponsorship_status
+    assert index + 1 == len(sponsored_user_list)
+
+
 class UserManagementViewsTestCase(PermaTestCase):
 
     @classmethod
@@ -466,140 +589,6 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # status filter tested in test_registrar_user_list_filters
 
-    def test_org_export_user_list(self):
-        expected_results = {
-            # Org ID: (record count, org name)
-            1: (3, 'Test Journal'),
-            2: (1, 'Another Journal'),
-            3: (3, 'A Third Journal'),
-            4: (3, "Another Library's Journal"),
-            5: (1, 'Some Case'),
-            6: (0, 'Some Other Case'),
-        }
-        for org_id, (record_count, org_name) in expected_results.items():
-            # Get CSV export output
-            csv_response: HttpResponse = self.get(
-                'user_management_manage_single_organization_export_user_list',
-                request_kwargs={'data': {'format': 'csv'}},
-                reverse_kwargs={'args': [org_id]},
-                user=self.admin_user,
-            )
-            self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-            # Validate CSV output against expected results
-            csv_file = StringIO(csv_response.content.decode('utf8'))
-            reader = csv.DictReader(csv_file)
-            reader_record_count = 0
-            for record in reader:
-                self.assertEqual(record['organization_name'], org_name)
-                reader_record_count += 1
-            self.assertEqual(reader_record_count, record_count)
-
-            # Get JSON export output
-            json_response: JsonResponse = self.get(
-                'user_management_manage_single_organization_export_user_list',
-                request_kwargs={'data': {'format': 'json'}},
-                reverse_kwargs={'args': [org_id]},
-                user=self.admin_user,
-            )
-            self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-            # Validate JSON output against expected results
-            reader = json.loads(json_response.content)
-            reader_record_count = 0
-            for record in reader:
-                self.assertEqual(record['organization_name'], org_name)
-                reader_record_count += 1
-            self.assertEqual(reader_record_count, record_count)
-
-    def test_organization_user_export_user_list(self):
-        expected_results = [
-            ('case_one_lawyer@firm.com', 'Some Case'),
-            ('multi_registrar_org_user@example.com', 'Another Journal'),
-            ('multi_registrar_org_user@example.com', "Another Library's Journal"),
-            ('multi_registrar_org_user@example.com', 'A Third Journal'),
-            ('multi_registrar_org_user@example.com', 'Test Journal'),
-            ('test_another_library_org_user@example.com', "Another Library's Journal"),
-            ('test_another_library_org_user@example.com', 'A Third Journal'),
-            ('test_yet_another_library_org_user@example.com', "Another Library's Journal"),
-            ('test_another_org_user@example.com', 'A Third Journal'),
-            ('test_org_rando_user@example.com', 'Test Journal'),
-            ('test_org_user@example.com', 'Test Journal'),
-        ]
-
-        # Get CSV export output
-        csv_response: HttpResponse = self.get(
-            'user_management_manage_organization_user_export_user_list',
-            request_kwargs={'data': {'format': 'csv'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-        # Validate CSV output against expected results
-        csv_file = StringIO(csv_response.content.decode('utf8'))
-        reader = csv.DictReader(csv_file)
-        for index, record in enumerate(reader):
-            expected_email, expected_organization_name = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['organization_name'], expected_organization_name)
-        self.assertEqual(index + 1, len(expected_results))
-
-        # Get JSON export output
-        json_response: HttpResponse = self.get(
-            'user_management_manage_organization_user_export_user_list',
-            request_kwargs={'data': {'format': 'json'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-        # Validate JSON output against expected results
-        reader = json.loads(json_response.content)
-        for index, record in enumerate(reader):
-            expected_email, expected_organization_name = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['organization_name'], expected_organization_name)
-        self.assertEqual(index + 1, len(expected_results))
-
-    def test_sponsored_user_export_user_list(self):
-        expected_results = [
-            ('another_inactive_sponsored_user@example.com', 'inactive'),
-            ('another_sponsored_user@example.com', 'active'),
-            ('inactive_sponsored_user@example.com', 'inactive'),
-            ('test_sponsored_user@example.com', 'active'),
-        ]
-
-        # Get CSV export output
-        csv_response: HttpResponse = self.get(
-            'user_management_manage_sponsored_user_export_user_list',
-            request_kwargs={'data': {'format': 'csv'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-        # Validate CSV output against expected results
-        csv_file = StringIO(csv_response.content.decode('utf8'))
-        reader = csv.DictReader(csv_file)
-        for index, record in enumerate(reader):
-            expected_email, expected_sponsorship_status = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
-        self.assertEqual(index + 1, len(expected_results))
-
-        # Get JSON export output
-        json_response: HttpResponse = self.get(
-            'user_management_manage_sponsored_user_export_user_list',
-            request_kwargs={'data': {'format': 'json'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-        # Validate JSON output against expected results
-        reader = json.loads(json_response.content)
-        for index, record in enumerate(reader):
-            expected_email, expected_sponsorship_status = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
-        self.assertEqual(index + 1, len(expected_results))
 
     def test_sponsored_user_list_filters(self):
         # test assumptions: four users, with five sponsorships between them
