@@ -8,7 +8,6 @@ from random import random, getrandbits
 import re
 
 from bs4 import BeautifulSoup
-from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
