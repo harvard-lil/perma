@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Perma.cc",
   "description": "Enter any URL to preserve it forever.",
-  "version": "1.0.1resigned1",
+  "version": "1.0.2",
   "applications": {
     "gecko": {
       "id": "firefox@perma.cc"
