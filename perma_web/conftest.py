@@ -197,7 +197,9 @@ from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Capture, Sponsorship, Folder
+from perma.models import (Registrar, Organization, LinkUser, UserOrganizationAffiliation,
+    Link, CaptureJob, Capture, Sponsorship, Folder
+)
 from perma.utils import pp_date_from_post
 
 
@@ -348,8 +350,22 @@ class PayingRegistrarUserFactory(LinkUserFactory):
     registrar = factory.SubFactory(PayingRegistrarFactory)
 
 
-# SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
-# and before SponsoredUserFactory
+@register_factory
+class UnconfirmedRegistrarUserFactory(
+        UnactivatedUserFactory,
+        RegistrarUserFactory
+    ):
+        pass
+
+
+@register_factory
+class DeactivatedRegistrarUserFactory(
+        DeactivatedUserFactory,
+        RegistrarUserFactory
+    ):
+        pass
+
+
 @register_factory
 class SponsorshipFactory(DjangoModelFactory):
     class Meta:
@@ -374,6 +390,21 @@ class SponsoredUserFactory(LinkUserFactory):
 
 
 @register_factory
+class UnconfirmedSponsoredUserFactory(
+        UnactivatedUserFactory,
+        SponsoredUserFactory
+    ):
+        pass
+
+@register_factory
+class DeactivatedSponsoredUserFactory(
+        DeactivatedUserFactory,
+        SponsoredUserFactory
+    ):
+        pass
+
+
+@register_factory
 class NonpayingUserFactory(LinkUserFactory):
     nonpaying = True
 
@@ -386,6 +417,41 @@ class PayingUserFactory(LinkUserFactory):
     cached_subscription_rate = Decimal(0.01)
     base_rate = Decimal(100.00)
     in_trial = False
+
+
+@register_factory
+class UserOrganizationAffiliationFactory(DjangoModelFactory):
+    class Meta:
+        model = UserOrganizationAffiliation
+
+    user = factory.SubFactory(LinkUserFactory)
+    organization = factory.SubFactory(OrganizationFactory)
+
+
+@register_factory
+class OrgUserFactory(LinkUserFactory):
+
+    organizations = factory.RelatedFactoryList(
+        UserOrganizationAffiliationFactory,
+        size=1,
+        factory_related_name='user'
+    )
+
+
+@register_factory
+class UnconfirmedOrgUserFactory(
+        UnactivatedUserFactory,
+        OrgUserFactory
+    ):
+        pass
+
+
+@register_factory
+class DeactivatedOrgUserFactory(
+        DeactivatedUserFactory,
+        OrgUserFactory
+    ):
+        pass
 
 
 @register_factory
@@ -533,16 +599,23 @@ def perma_client():
 
 
 @pytest.fixture
-def user_data():
-    first_name = FAKE.first_name()
-    last_name = FAKE.last_name()
-    email = f"{first_name}_{last_name}@example.com"
-    return {
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": email,
-        "normalized_email": email.lower()
-    }
+def user_data_factory():
+    def f():
+        first_name = FAKE.first_name()
+        last_name = FAKE.last_name()
+        email = f"{first_name}_{last_name}@example.com"
+        return {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "normalized_email": email.lower()
+        }
+    return f
+
+
+@pytest.fixture
+def user_data(user_data_factory):
+    return user_data_factory()
 
 
 @pytest.fixture
@@ -551,28 +624,13 @@ def admin_user(link_user_factory):
 
 
 @pytest.fixture
-def org_user_factory(link_user_factory, organization_factory):
-    def f(orgs=None):
-        link_user = link_user_factory()
-        if orgs:
-            link_user.organizations.set(orgs)
-        else:
-            link_user.organizations.add(organization_factory())
-        return link_user
-    return f
-
-
-@pytest.fixture
-def org_user(org_user_factory):
-    return org_user_factory()
-
-
-@pytest.fixture
-def multi_registrar_org_user(org_user_factory, organization_factory):
+def multi_registrar_org_user(link_user_factory, organization_factory):
     first = organization_factory()
     second = organization_factory()
     assert first.registrar != second.registrar
-    return org_user_factory(orgs=[first, second])
+    user = link_user_factory()
+    user.organizations.set([first, second])
+    return user
 
 
 @pytest.fixture
