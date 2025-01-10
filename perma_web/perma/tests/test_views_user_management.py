@@ -240,7 +240,132 @@ def test_even_admin_cannot_delete_organization_with_links(client, admin_user, or
 
 
 ###
-### EXPORT LISTS
+### USER A/E/D VIEWS ###
+###
+
+@pytest.mark.parametrize(
+    "view_name,form_field",
+    [
+        ('user', ''),
+        ('registrar_user', 'a-registrar'),
+        ('organization_user', 'a-organizations'),
+        ('sponsored_user', 'a-sponsoring_registrars')
+    ]
+)
+def test_admin_can_create_users(view_name, form_field, client, admin_user, registrar, user_data_factory):
+    # Setup
+    client.force_login(admin_user)
+    user_data = user_data_factory()
+    common_fields = {
+        'a-first_name': user_data['first_name'],
+        'a-last_name': user_data['last_name'],
+        'a-e-address': user_data['email']
+    }
+    match view_name:
+        case 'registrar_user':
+            view_specific_fields = {form_field: registrar.id}
+        case 'organization_user':
+            view_specific_fields = {form_field: registrar.organizations.first().id}
+        case 'sponsored_user':
+            view_specific_fields = {form_field: registrar.id}
+        case _:
+            view_specific_fields = {}
+
+    # Create the user
+    submit_form(
+        client,
+        data={**common_fields, **view_specific_fields},
+        view_name='user_management_' + view_name + '_add_user',
+        success_url=reverse('user_management_manage_' + view_name),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email']
+        )
+    )
+
+
+def attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=False):
+    client.force_login(admin_user)
+    user = request.getfixturevalue(user_type)
+    if deactivate:
+        assert user.is_active
+
+    submit_form(
+        client,
+        url=reverse(
+            'user_management_manage_single_' + view_name + '_delete',
+            args=[user.id]
+        ),
+        success_url=reverse('user_management_manage_' + view_name)
+    )
+
+    if deactivate:
+        user.refresh_from_db()
+        assert not user.is_active
+    else:
+        with pytest.raises(LinkUser.DoesNotExist):
+            user.refresh_from_db()
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('link_user', 'user'),
+        ('registrar_user', 'registrar_user'),
+        ('org_user', 'organization_user'),
+        ('sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_deactivate_confirmed_users(user_type, view_name, request, client, admin_user):
+    # If you attempt to delete a user where is_confirmed is True,
+    # they are not deleted, they are deactivated
+    attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=True)
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('unactivated_user', 'user'),
+        ('unconfirmed_registrar_user', 'registrar_user'),
+        ('unconfirmed_org_user', 'organization_user'),
+        ('unconfirmed_sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_delete_unconfirmed_users(user_type, view_name, request, client, admin_user):
+    # If you attempt to delete a user where is_confirmed is False,
+    # they are deleted
+    attempt_deletion(user_type, view_name, request, client, admin_user)
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('deactivated_user', 'user'),
+        ('deactivated_registrar_user', 'registrar_user'),
+        ('deactivated_org_user', 'organization_user'),
+        ('deactivated_sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_reactivate_deactivated_users(user_type, view_name, request, client, admin_user):
+    client.force_login(admin_user)
+    user = request.getfixturevalue(user_type)
+    assert not user.is_active
+
+    submit_form(
+        client,
+        url=reverse(
+            'user_management_manage_single_' + view_name + '_reactivate',
+            args=[user.id]
+        ),
+        success_url=reverse('user_management_manage_' + view_name)
+    )
+
+    user.refresh_from_db()
+    assert user.is_active
+
+
+###
+### EXPORT USER LISTS
 ###
 
 
@@ -361,126 +486,10 @@ def test_sponsored_user_export_user_list(flush_db, export_format, mime_type, cli
     assert index + 1 == len(sponsored_user_list)
 
 
-@pytest.mark.parametrize(
-    "view_name,form_field",
-    [
-        ('user', ''),
-        ('registrar_user', 'a-registrar'),
-        ('organization_user', 'a-organizations'),
-        ('sponsored_user', 'a-sponsoring_registrars')
-    ]
-)
-def test_admin_can_create_users(view_name, form_field, client, admin_user, registrar, user_data_factory):
-    # Setup
-    client.force_login(admin_user)
-    user_data = user_data_factory()
-    common_fields = {
-        'a-first_name': user_data['first_name'],
-        'a-last_name': user_data['last_name'],
-        'a-e-address': user_data['email']
-    }
-    match view_name:
-        case 'registrar_user':
-            view_specific_fields = {form_field: registrar.id}
-        case 'organization_user':
-            view_specific_fields = {form_field: registrar.organizations.first().id}
-        case 'sponsored_user':
-            view_specific_fields = {form_field: registrar.id}
-        case _:
-            view_specific_fields = {}
-
-    # Create the user
-    submit_form(
-        client,
-        data={**common_fields, **view_specific_fields},
-        view_name='user_management_' + view_name + '_add_user',
-        success_url=reverse('user_management_manage_' + view_name),
-        success_query=LinkUser.objects.filter(
-            email=user_data['normalized_email'],
-            raw_email=user_data['email']
-        )
-    )
-
-
-def attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=False):
-    client.force_login(admin_user)
-    user = request.getfixturevalue(user_type)
-    if deactivate:
-        assert user.is_active
-
-    submit_form(
-        client,
-        url=reverse(
-            'user_management_manage_single_' + view_name + '_delete',
-            args=[user.id]
-        ),
-        success_url=reverse('user_management_manage_' + view_name)
-    )
-
-    if deactivate:
-        user.refresh_from_db()
-        assert not user.is_active
-    else:
-        with pytest.raises(LinkUser.DoesNotExist):
-            user.refresh_from_db()
 
 
 
-@pytest.mark.parametrize(
-    "user_type, view_name",
-    [
-        ('link_user', 'user'),
-        ('registrar_user', 'registrar_user'),
-        ('org_user', 'organization_user'),
-        ('sponsored_user', 'sponsored_user'),
-    ]
-)
-def test_admin_can_deactivate_confirmed_users(user_type, view_name, request, client, admin_user):
-    # If you attempt to delete a user where is_confirmed is True,
-    # they are not deleted, they are deactivated
-    attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=True)
 
-
-@pytest.mark.parametrize(
-    "user_type, view_name",
-    [
-        ('unactivated_user', 'user'),
-        ('unconfirmed_registrar_user', 'registrar_user'),
-        ('unconfirmed_org_user', 'organization_user'),
-        ('unconfirmed_sponsored_user', 'sponsored_user'),
-    ]
-)
-def test_admin_can_delete_unconfirmed_users(user_type, view_name, request, client, admin_user):
-    # If you attempt to delete a user where is_confirmed is False,
-    # they are deleted
-    attempt_deletion(user_type, view_name, request, client, admin_user)
-
-
-@pytest.mark.parametrize(
-    "user_type, view_name",
-    [
-        ('deactivated_user', 'user'),
-        ('deactivated_registrar_user', 'registrar_user'),
-        ('deactivated_org_user', 'organization_user'),
-        ('deactivated_sponsored_user', 'sponsored_user'),
-    ]
-)
-def test_admin_can_reactivate_deactivated_users(user_type, view_name, request, client, admin_user):
-    client.force_login(admin_user)
-    user = request.getfixturevalue(user_type)
-    assert not user.is_active
-
-    submit_form(
-        client,
-        url=reverse(
-            'user_management_manage_single_' + view_name + '_reactivate',
-            args=[user.id]
-        ),
-        success_url=reverse('user_management_manage_' + view_name)
-    )
-
-    user.refresh_from_db()
-    assert user.is_active
 
 
 class UserManagementViewsTestCase(PermaTestCase):
