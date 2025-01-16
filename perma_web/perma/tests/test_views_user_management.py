@@ -16,7 +16,7 @@ from django.db import IntegrityError
 from django.test import override_settings
 from django.test.client import RequestFactory
 
-from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
+from perma.models import LinkUser, Organization, Registrar, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 from perma.forms import MultipleUsersFormWithOrganization
 

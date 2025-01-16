@@ -197,7 +197,8 @@ from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from perma.models import (Registrar, Organization, LinkUser, UserOrganizationAffiliation,
+from perma.models import (
+    Registrar, Organization, LinkUser, UserOrganizationAffiliation,
     Link, CaptureJob, Capture, Sponsorship, Folder
 )
 from perma.utils import pp_date_from_post
@@ -352,18 +353,18 @@ class PayingRegistrarUserFactory(LinkUserFactory):
 
 @register_factory
 class UnconfirmedRegistrarUserFactory(
-        UnactivatedUserFactory,
-        RegistrarUserFactory
-    ):
-        pass
+    UnactivatedUserFactory,
+    RegistrarUserFactory
+):
+    pass
 
 
 @register_factory
 class DeactivatedRegistrarUserFactory(
-        DeactivatedUserFactory,
-        RegistrarUserFactory
-    ):
-        pass
+    DeactivatedUserFactory,
+    RegistrarUserFactory
+):
+    pass
 
 
 @register_factory
@@ -391,17 +392,17 @@ class SponsoredUserFactory(LinkUserFactory):
 
 @register_factory
 class UnconfirmedSponsoredUserFactory(
-        UnactivatedUserFactory,
-        SponsoredUserFactory
-    ):
-        pass
+    UnactivatedUserFactory,
+    SponsoredUserFactory
+):
+    pass
 
 @register_factory
 class DeactivatedSponsoredUserFactory(
-        DeactivatedUserFactory,
-        SponsoredUserFactory
-    ):
-        pass
+    DeactivatedUserFactory,
+    SponsoredUserFactory
+):
+    pass
 
 @register_factory
 class InactiveSponsoredUserFactory(LinkUserFactory):
@@ -451,18 +452,18 @@ class OrgUserFactory(LinkUserFactory):
 
 @register_factory
 class UnconfirmedOrgUserFactory(
-        UnactivatedUserFactory,
-        OrgUserFactory
-    ):
-        pass
+    UnactivatedUserFactory,
+    OrgUserFactory
+):
+    pass
 
 
 @register_factory
 class DeactivatedOrgUserFactory(
-        DeactivatedUserFactory,
-        OrgUserFactory
-    ):
-        pass
+    DeactivatedUserFactory,
+    OrgUserFactory
+):
+    pass
 
 
 @register_factory
