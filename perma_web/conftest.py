@@ -403,6 +403,17 @@ class DeactivatedSponsoredUserFactory(
     ):
         pass
 
+@register_factory
+class InactiveSponsoredUserFactory(LinkUserFactory):
+
+    sponsorships = factory.RelatedFactoryList(
+        SponsorshipFactory,
+        size=1,
+        factory_related_name='user',
+        status='inactive'
+    )
+
+
 
 @register_factory
 class NonpayingUserFactory(LinkUserFactory):
