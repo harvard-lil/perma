@@ -20,7 +20,7 @@ from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrg
 from perma.tests.utils import PermaTestCase
 from perma.forms import MultipleUsersFormWithOrganization
 
-from conftest import submit_form
+from conftest import submit_form, randomize_capitalization
 
 
 ###
@@ -365,6 +365,275 @@ def test_admin_can_reactivate_deactivated_users(user_type, view_name, request, c
 
 
 ###
+### ADDING USERS TO ORGANIZATIONS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_new_user_to_org(user_type, request, client, user_data):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-organizations": org.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-e-address": user_data['email'],
+        },
+        success_url=reverse("user_management_manage_organization_user"),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email'],
+            organizations=org
+        ).exists()
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_add_new_user_to_inaccessible_org(user_type, request, client, user_data, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org = organization_factory()
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-organizations": unrelated_org.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-e-address": user_data['email'],
+        },
+        error_keys=['organizations']
+    )
+    assert not LinkUser.objects.filter(email__iexact=user_data['email']).exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_existing_user_to_org(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": org.id
+        },
+        success_url=reverse("user_management_manage_organization_user"),
+        success_query=link_user.organizations.filter(id=org.id)
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_add_existing_user_to_inaccessible_org(user_type, request, client, link_user, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org = organization_factory()
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": unrelated_org.id
+        },
+        error_keys=['organizations']
+    )
+    assert not link_user.organizations.filter(id=unrelated_org.id).exists()
+
+
+def test_cannot_add_admin_user_to_org(client, admin_user, organization):
+    client.force_login(admin_user)
+
+    scrambled_email = randomize_capitalization(admin_user.email)
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": organization.id
+        }
+    )
+
+    assert b"is an admin user" in response.content
+    assert not admin_user.organizations.exists()
+
+
+def test_cannot_add_registrar_user_to_org(client, admin_user, registrar_user):
+    client.force_login(admin_user)
+    org = registrar_user.registrar.organizations.first()
+
+    scrambled_email = randomize_capitalization(registrar_user.email)
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": org.id
+        }
+    )
+    assert b"is already a registrar user"in response.content
+    assert not registrar_user.organizations.exists()
+
+
+###
+# REMOVING USERS FROM ORGANIZATIONS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_visit_org_user_edit_page(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    link_user.organizations.set([org])
+
+    response = client.get(
+        reverse('user_management_manage_single_organization_user', args=[link_user.id]),
+        secure=True
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+    ]
+)
+def test_cannot_visit_unrelated_org_user_edit_page(user_type, request, client, org_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org_user = org_user_factory()
+
+    response = client.get(
+        reverse('user_management_manage_single_organization_user', args=[unrelated_org_user.id]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_remove_user_from_organization(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    link_user.organizations.set([org])
+
+    assert link_user.organizations.filter(id=org.id).exists()
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[link_user.id]),
+        data={'affiliation': link_user.userorganizationaffiliation_set.first().id},
+        success_url=reverse('user_management_manage_organization_user')
+    )
+    assert not link_user.organizations.filter(id=org.id).exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+    ]
+)
+def test_cannot_remove_user_from_unrelated_organization(user_type, request, client, org_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org_user = org_user_factory()
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[unrelated_org_user.id]),
+        data={'affiliation': unrelated_org_user.userorganizationaffiliation_set.first().id},
+        require_status_code=404
+    )
+
+
+def test_can_remove_self_from_organization(client, org_user):
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[org_user.id]),
+        data={'affiliation': org_user.userorganizationaffiliation_set.first().id},
+        success_url=reverse('create_link')
+    )
+    assert not org_user.organizations.exists()
+
+
+###
 ### EXPORT USER LISTS
 ###
 
@@ -484,12 +753,6 @@ def test_sponsored_user_export_user_list(flush_db, export_format, mime_type, cli
         assert record['email'] == expected_email
         assert record['sponsorship_status'] == expected_sponsorship_status
     assert index + 1 == len(sponsored_user_list)
-
-
-
-
-
-
 
 
 class UserManagementViewsTestCase(PermaTestCase):
@@ -818,24 +1081,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         # status filter tested in test_registrar_user_list_filters
 
 
-    ### ADDING NEW USERS TO ORGANIZATIONS ###
-
-    def add_org_user(self):
-        email = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_email = email.lower()
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': email},
-                         query_params={'email': email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_email,
-                             raw_email=email,
-                             organizations=self.organization
-                         ).exists())
-
     def test_add_multiple_org_users_via_csv(self):
         def create_csv_file(filename, content):
             return SimpleUploadedFile(filename, content.encode('utf-8'), content_type='text/csv')
@@ -910,217 +1155,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(form5.ineligible_users), 1)
         self.assertEqual("johndoe@example.com", next(iter(form5.ineligible_users)))
 
-    def test_admin_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.admin_user)
-        self.add_org_user()
-
-    def test_registrar_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.registrar_user)
-        self.add_org_user()
-
-    def test_org_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        self.add_org_user()
-
-    def test_registrar_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['organizations'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 organizations=self.unrelated_organization).exists())
-
-    def test_org_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['organizations'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 organizations=self.unrelated_organization).exists())
-
-    ### ADDING EXISTING USERS TO ORGANIZATIONS ###
-
-    def add_org_users(self):
-        # submit email with the same capitalization
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
-
-        # submit email with a different capitalization
-        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.another_regular_user.organizations.filter(pk=self.organization.pk))
-
-    def test_admin_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.admin_user)
-        self.add_org_users()
-
-    def test_registrar_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.registrar_user)
-        self.add_org_users()
-
-    def test_org_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        self.add_org_users()
-
-    def test_registrar_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['organizations'])
-        self.assertFalse(self.regular_user.organizations.filter(pk=self.unrelated_organization.pk).exists())
-
-    def test_org_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.another_organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['organizations'])
-        self.assertFalse(self.regular_user.organizations.filter(pk=self.another_organization.pk).exists())
-
-    def test_cannot_add_admin_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        resp = self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.admin_user.email})
-        self.assertIn(b"is an admin user", resp.content)
-        self.assertFalse(self.admin_user.organizations.exists())
-
-    def test_cannot_add_registrar_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        resp = self.submit_form('user_management_organization_user_add_user',
-                                data={'a-organizations': self.organization.pk},
-                                query_params={'email': self.registrar_user.email})
-        self.assertIn(b"is already a registrar user", resp.content)
-        self.assertFalse(self.registrar_user.organizations.exists())
-
-    ### VOLUNTARILY LEAVING ORGANIZATIONS ###
-
-    def test_org_user_can_leave_org(self):
-        u = LinkUser.objects.get(email='test_another_library_org_user@example.com')
-        orgs = u.organizations.all()
-
-        # check assumptions
-        self.assertEqual(len(orgs), 2)
-
-        # 404 if tries to leave non-existent org
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [999]},
-                          require_status_code=404)
-
-        # returns to affiliations page if still a member of at least one org
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[0].pk]},
-                          success_url=reverse('settings_affiliations'))
-
-        # returns to create/manage page if no longer a member of any orgs
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[1].pk]},
-                          success_url=reverse('create_link'))
-
-        # 404 if tries to leave an org they are not a member of
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[1].pk]},
-                          require_status_code=404)
-
-
-    ### REMOVING USERS FROM ORGANIZATIONS ###
-
-    # Just try to access the page with remove/deactivate links
-
-    def test_registrar_can_edit_org_user(self):
-        # User from one of registrar's own orgs succeeds
-        self.log_in_user(self.registrar_user)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.organization_user.pk]})
-        # User from another registrar's org fails
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]},
-                  require_status_code=403)
-        # Repeat with the other registrar, to confirm we're
-        # getting 404s because of permission reasons, not because the
-        # test fixtures are broken.
-        self.log_in_user(self.unrelated_registrar_user)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.organization_user.pk]},
-                  require_status_code=403)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]})
-
-    def test_org_can_edit_org_user(self):
-        # User from own org succeeds
-        org_one_users = ['test_org_user@example.com', 'test_org_rando_user@example.com']
-        org_two_users = ['test_another_library_org_user@example.com', 'test_another_org_user@example.com']
-
-        self.log_in_user(org_one_users[0])
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]})
-        # User from another org fails
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]},
-                  require_status_code=403)
-
-        # Repeat with another org
-        self.log_in_user(org_two_users[1])
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]},
-                  require_status_code=403)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]})
-
-    # Actually try removing them
-
-    def test_can_remove_user_from_organization(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'affiliation': self.user_organization_affiliation.pk},
-                         reverse_kwargs={'args': [self.organization_user.pk]},
-                         success_url=reverse('user_management_manage_organization_user'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
-
-    def test_registrar_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.unrelated_organization.pk},
-                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
-                         require_status_code=404)
-
-    def test_org_user_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.unrelated_organization.pk},
-                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
-                         require_status_code=404)
-
-    def test_can_remove_self_from_organization(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'affiliation': self.user_organization_affiliation.pk},
-                         reverse_kwargs={'args': [self.organization_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
 
     ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
 
