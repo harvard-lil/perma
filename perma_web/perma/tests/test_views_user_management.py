@@ -521,7 +521,7 @@ def test_cannot_add_registrar_user_to_org(client, admin_user, registrar_user):
 
 
 ###
-# REMOVING USERS FROM ORGANIZATIONS ###
+### REMOVING USERS FROM ORGANIZATIONS ###
 ###
 
 @pytest.mark.parametrize(
