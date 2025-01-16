@@ -665,7 +665,7 @@ def sponsored_user_list(sponsored_user_factory):
         users.append(sponsored_user_factory())
 
     user_data = []
-    for user in sorted(users, key=lambda u: u.last_name):
+    for user in sorted(users, key=lambda u: (u.last_name, u.first_name)):
         user_data.append((user.email, user.sponsorships.first().status))
 
     return user_data
