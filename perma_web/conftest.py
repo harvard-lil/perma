@@ -326,6 +326,11 @@ class LinkUserFactory(DjangoModelFactory):
 
 
 @register_factory
+class AdminUserFactory(LinkUserFactory):
+    is_staff = True
+
+
+@register_factory
 class DeactivatedUserFactory(LinkUserFactory):
     is_active = False
 
@@ -628,11 +633,6 @@ def user_data_factory():
 @pytest.fixture
 def user_data(user_data_factory):
     return user_data_factory()
-
-
-@pytest.fixture
-def admin_user(link_user_factory):
-    return link_user_factory(is_staff=True)
 
 
 @pytest.fixture

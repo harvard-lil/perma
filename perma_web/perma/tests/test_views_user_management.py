@@ -842,6 +842,72 @@ def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registr
 
 
 ###
+### ADDING ADMINS ###
+###
+
+def test_admin_user_can_add_new_user_as_admin(client, admin_user, user_data):
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        'user_management_admin_user_add_user',
+        data={
+            'a-first_name': user_data['first_name'],
+            'a-last_name': user_data['last_name'],
+            'a-e-address': user_data['email']
+        },
+        success_url=reverse('user_management_manage_admin_user'),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email'],
+            is_staff=True
+        )
+    )
+
+
+def test_admin_user_can_add_existing_user_as_admin(client, admin_user, link_user):
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_admin_user_add_user')}?email={randomize_capitalization(link_user.email)}",
+        success_url=reverse('user_management_manage_admin_user'),
+        success_query=LinkUser.objects.filter(id=link_user.id, is_staff=True)
+    )
+
+
+### DEMOTING ADMINS ###
+
+def test_can_remove_admin_privileges(client, admin_user_factory):
+    admin_user = admin_user_factory()
+    another_admin_user = admin_user_factory()
+    assert another_admin_user.is_staff
+
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_admin_user_remove', args=[another_admin_user.id]),
+        success_url=reverse('user_management_manage_admin_user')
+    )
+
+    another_admin_user.refresh_from_db()
+    assert not another_admin_user.is_staff
+
+
+def test_can_remove_own_admin_privileges(client, admin_user):
+    assert admin_user.is_staff
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_admin_user_remove', args=[admin_user.id]),
+        success_url=reverse('create_link')
+    )
+
+    admin_user.refresh_from_db()
+    assert not admin_user.is_staff
+
+
+###
 ### EXPORT USER LISTS
 ###
 
@@ -1512,51 +1578,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                          reverse_kwargs={'args': [self.registrar_user.pk]},
                          success_url=reverse('create_link'))
         self.assertFalse(LinkUser.objects.filter(pk=self.registrar_user.pk, registrar=self.registrar).exists())
-
-    ### ADDING NEW USERS AS ADMINS ###
-
-    def test_admin_user_can_add_new_user_as_admin(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_admin_user_add_user',
-                         data={'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': address},
-                         query_params={'email': address},
-                         success_url=reverse('user_management_manage_admin_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_address,
-                             raw_email=address,
-                             is_staff=True).exists()
-                         )
-
-    ### ADDING EXISTING USERS AS ADMINS ###
-
-    def test_admin_user_can_add_existing_user_as_admin(self):
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_admin_user_add_user',
-                         query_params={'email': self.randomize_capitalization(self.regular_user.email)},
-                         success_url=reverse('user_management_manage_admin_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
-
-    ### REMOVING USERS AS ADMINS ###
-
-    def test_can_remove_user_from_admin(self):
-        self.log_in_user(self.admin_user)
-        self.regular_user.is_staff = True
-        self.regular_user.save()
-        self.submit_form('user_management_manage_single_admin_user_remove',
-                         reverse_kwargs={'args': [self.regular_user.pk]},
-                         success_url=reverse('user_management_manage_admin_user'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True).exists())
-
-    def test_can_remove_self_from_admin(self):
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_manage_single_admin_user_remove',
-                         reverse_kwargs={'args': [self.admin_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, is_staff=True).exists())
 
 
     ###
