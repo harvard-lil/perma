@@ -912,6 +912,14 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
                     return False, f"{self.object} is already a member of another registrar and cannot be added to your registrar."
             if self.object.organizations.exclude(registrar=self.request.user.registrar).exists():
                 return False, f"{self.object} belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations."
+
+        if self.object.registrar_id:
+            if not 'registrar' in self.get_form().changed_data:
+                return False, f"{self.object} is already a registrar user for that registrar."
+
+        if len(set(org.registrar_id for org in self.object.organizations.all())) > 1:
+            return False, f"{self.object} is associated with the organizations of multiple registrars. You cannot make them a registrar unless they leave one registrars' organizations."
+
         return True, ""
 
 
@@ -1037,16 +1045,14 @@ def manage_single_organization_user_remove(request, user_id):
     return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
 
 
-@user_passes_test_or_403(lambda user: user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
 def manage_single_registrar_user_remove(request, user_id):
     """
         Remove a registrar user from a registrar.
     """
 
     target_user = get_object_or_404(LinkUser, id=user_id)
-
-    # Registrar users can only edit their own registrar users
-    if request.user.registrar_id != target_user.registrar_id:
+    if not request.user.shares_scope_with_user(target_user):
         return HttpResponseForbidden()
 
     context = {'target_user': target_user,

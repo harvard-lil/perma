@@ -757,6 +757,7 @@ def test_cannot_create_duplicative_sponsorships(client, admin_user, sponsored_us
     )
     assert b"Select a valid choice. That choice is not one of the available choices" in response.content
 
+
 ###
 ### TOGGLING SPONSORSHIP STATUS ###
 ###
@@ -839,6 +840,351 @@ def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registr
     )
     sponsorship.refresh_from_db()
     assert sponsorship.status == 'inactive'
+
+
+###
+### ADDING REGISTRAR USERS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_new_user_to_registrar(user_type, request, client, user_data):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-registrar": registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-e-address": user_data['email'],
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+        success_query=LinkUser.objects.filter(
+              email=user_data['normalized_email'],
+              raw_email=user_data['email'],
+              registrar=registrar
+        )
+    )
+
+
+def test_cannot_add_new_user_to_inaccessible_registrar(client, registrar_user, user_data, registrar_factory):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-registrar": unrelated_registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-e-address": user_data['email'],
+        },
+        error_keys=['registrar']
+    )
+    assert not LinkUser.objects.filter(email__iexact=user_data['email'])
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_existing_user_to_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-registrar": registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+    )
+
+    link_user.refresh_from_db()
+    assert link_user.registrar == registrar
+
+
+def test_cannot_add_existing_user_to_inaccessible_registrar(client, registrar_user, registrar_factory, link_user):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-registrar": unrelated_registrar.id,
+        },
+        error_keys=['registrar']
+    )
+
+    link_user.refresh_from_db()
+    assert not link_user.registrar
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_readd_user_to_registrar(user_type, request, client, registrar_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = registrar_user.registrar
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={registrar_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"already a registrar user" in response.content
+
+
+def test_registrar_user_cannot_change_registrar_users_registrar(client, registrar_user, registrar_user_factory):
+    unrelated_registrar_user = registrar_user_factory()
+    client.force_login(registrar_user)
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={unrelated_registrar_user.email}",
+        data={
+            "a-registrar": registrar_user.registrar.id
+        }
+    )
+
+    unrelated_registrar_user.refresh_from_db()
+    assert b"is already a member" in response.content
+    assert registrar_user.registrar != unrelated_registrar_user.registrar
+
+
+def test_admin_user_can_change_registrar_users_registrar(client, admin_user, registrar_user, registrar_factory):
+    unrelated_registrar = registrar_factory()
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={registrar_user.email}",
+        data={
+            "a-registrar": unrelated_registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+    )
+
+    registrar_user.refresh_from_db()
+    assert registrar_user.registrar == unrelated_registrar
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_upgrade_org_user_to_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    link_user.organizations.set([registrar.organizations.get()])
+    assert link_user.is_organization_user
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={link_user.email}",
+        data={
+            "a-registrar": registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user")
+    )
+
+    link_user.refresh_from_db()
+    assert link_user.registrar == registrar
+    assert not link_user.organizations.exists()
+
+
+def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(client, registrar_user, org_user):
+    client.force_login(registrar_user)
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={org_user.email}",
+        data={
+            "a-registrar": registrar_user.registrar.id
+        }
+    )
+
+    assert b"belongs to organizations that are not controlled by your registrar" in response.content
+    org_user.refresh_from_db()
+    assert not org_user.registrar
+    assert org_user.organizations.exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_upgrade_multi_registrar_org_user_to_registrar(user_type, request, client, link_user, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    unrelated_org = organization_factory()
+    link_user.organizations.set([registrar.organizations.get(), unrelated_org])
+    assert link_user.organizations.count() == 2
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={link_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"You cannot make them a registrar" in response.content
+    link_user.refresh_from_db()
+    assert not link_user.registrar
+    assert link_user.organizations.count() == 2
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_add_admin_user_to_registrar(user_type, request, client, admin_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    admin_user = admin_user_factory()
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={admin_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"is an admin user" in response.content
+    admin_user.refresh_from_db()
+    assert not admin_user.registrar
+    assert admin_user.is_staff
+
+
+###
+### REMOVING REGISTRAR USERS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_remove_user_from_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    link_user.registrar = registrar
+    link_user.save()
+    link_user.refresh_from_db()
+    assert link_user.is_registrar_user()
+
+    response = submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[link_user.id]),
+        success_url=reverse('user_management_manage_registrar_user')
+    )
+
+    link_user.refresh_from_db()
+    assert not link_user.is_registrar_user()
+
+
+def test_registrar_cannot_remove_unrelated_user_from_registrar(client, registrar_user_factory):
+    registrar_user = registrar_user_factory()
+    unrelated_registrar_user = registrar_user_factory()
+    client.force_login(registrar_user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[unrelated_registrar_user.id]),
+        require_status_code=404
+    )
+
+
+def test_can_remove_self_from_registrar(client, registrar_user):
+    client.force_login(registrar_user)
+
+    response = submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[registrar_user.id]),
+        success_url=reverse('create_link')
+    )
+
+    registrar_user.refresh_from_db()
+    assert not registrar_user.is_registrar_user()
 
 
 ###
@@ -1428,156 +1774,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         form5.save(commit=True)
         self.assertEqual(len(form5.ineligible_users), 1)
         self.assertEqual("johndoe@example.com", next(iter(form5.ineligible_users)))
-
-
-    ### ADDING NEW USERS TO REGISTRARS AS REGISTRAR USERS) ###
-
-    def test_admin_user_can_add_new_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                          data={'a-registrar': self.registrar.pk,
-                                'a-first_name': 'First',
-                                'a-last_name': 'Last',
-                                'a-e-address': address},
-                          query_params={'email': address},
-                          success_url=reverse('user_management_manage_registrar_user'),
-                          success_query=LinkUser.objects.filter(
-                              email=normalized_address,
-                              raw_email=address,
-                              registrar=self.registrar).exists()
-                         )
-
-    def test_registrar_user_can_add_new_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': address},
-                         query_params={'email': address},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_address,
-                             raw_email=address,
-                             registrar=self.registrar).exists()
-                         )
-
-        # Try to add the same person again; should fail
-        scrambled_email = self.randomize_capitalization(address)
-        response = self.submit_form('user_management_registrar_user_add_user',
-                                     data={'a-registrar': self.registrar.pk,
-                                           'a-first_name': 'First',
-                                           'a-last_name': 'Last',
-                                           'a-e-address': scrambled_email},
-                                     query_params={'email': scrambled_email}).content
-        self.assertIn(bytes("{} is already a registrar user for your registrar.".format(normalized_address), 'utf-8'), response)
-
-    def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.unrelated_registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-e-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['registrar'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 registrar=self.unrelated_registrar).exists())
-
-    ### ADDING EXISTING USERS TO REGISTRARS ###
-
-    def add_registrars(self):
-        # submit email with the same capitalization
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
-
-        # submit email with a different capitalization
-        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.another_regular_user.pk, registrar=self.registrar))
-
-    def test_admin_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.admin_user)
-        self.add_registrars()
-
-    def test_registrar_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.add_registrars()
-
-    def test_registrar_user_can_upgrade_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.organization_user.email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.organization_user.pk, registrar=self.registrar))
-        self.assertFalse(LinkUser.objects.filter(pk=self.organization_user.pk, organizations=self.organization).exists())
-
-    def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                                data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.unrelated_organization_user.email})
-        self.assertIn(b"belongs to organizations that are not controlled by your registrar", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_organization_user.pk, registrar=self.registrar).exists())
-
-    def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.unrelated_registrar.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['registrar'])
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.unrelated_registrar).exists())
-
-    def test_cannot_add_admin_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.admin_user.email})
-        self.assertIn(b"is an admin user", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, registrar=self.registrar).exists())
-
-    def test_cannot_add_registrar_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                                data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.unrelated_registrar_user.email})
-        self.assertIn(b"is already a member of another registrar", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_user.pk, registrar=self.registrar).exists())
-
-    ### REMOVING REGISTRAR USERS FROM REGISTRARS ###
-
-    def test_can_remove_user_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.regular_user.registrar = self.registrar
-        self.regular_user.save()
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.regular_user.pk]},
-                         success_url=reverse('user_management_manage_registrar_user'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar).exists())
-
-    def test_registrar_cannot_remove_unrelated_user_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.unrelated_registrar_user.pk]},
-                         require_status_code=404)
-
-    def test_can_remove_self_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.registrar_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.registrar_user.pk, registrar=self.registrar).exists())
 
 
     ###
