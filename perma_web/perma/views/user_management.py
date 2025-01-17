@@ -914,7 +914,7 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
                 return False, f"{self.object} belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations."
 
         if self.object.registrar_id:
-            if not 'registrar' in self.get_form().changed_data:
+            if 'registrar' not in self.get_form().changed_data:
                 return False, f"{self.object} is already a registrar user for that registrar."
 
         if len(set(org.registrar_id for org in self.object.organizations.all())) > 1:

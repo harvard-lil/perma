@@ -1152,7 +1152,7 @@ def test_can_remove_user_from_registrar(user_type, request, client, link_user):
     link_user.refresh_from_db()
     assert link_user.is_registrar_user()
 
-    response = submit_form(
+    submit_form(
         client,
         url=reverse('user_management_manage_single_registrar_user_remove', args=[link_user.id]),
         success_url=reverse('user_management_manage_registrar_user')
@@ -1177,7 +1177,7 @@ def test_registrar_cannot_remove_unrelated_user_from_registrar(client, registrar
 def test_can_remove_self_from_registrar(client, registrar_user):
     client.force_login(registrar_user)
 
-    response = submit_form(
+    submit_form(
         client,
         url=reverse('user_management_manage_single_registrar_user_remove', args=[registrar_user.id]),
         success_url=reverse('create_link')
