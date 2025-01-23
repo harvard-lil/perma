@@ -10,17 +10,14 @@ import re
 from bs4 import BeautifulSoup
 from django.urls import reverse
 from django.core import mail
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from django.db import IntegrityError
 from django.test import override_settings
-from django.test.client import RequestFactory
 
 from perma.models import LinkUser, Organization, Registrar, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
-from perma.forms import MultipleUsersFormWithOrganization
 
-from conftest import submit_form, randomize_capitalization
+from conftest import submit_form, randomize_capitalization, GENESIS
 
 
 ###
@@ -518,6 +515,592 @@ def test_cannot_add_registrar_user_to_org(client, admin_user, registrar_user):
     )
     assert b"is already a registrar user"in response.content
     assert not registrar_user.organizations.exists()
+
+
+###
+### ADDING MULTIPLE ORG USERS VIA CSV
+###
+
+
+def test_multiple_org_user_form_populates_org_user_organization(
+        client,
+        org_user,
+        organization_factory
+):
+    unrelated_org = organization_factory()
+    assert not org_user.organizations.filter(id=unrelated_org.id).exists()
+    client.force_login(org_user)
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(form.fields['organizations'].queryset) == list(org_user.organizations.all())
+
+
+def test_multiple_org_user_form_populates_registrar_user_organizations(
+        client,
+        registrar_with_five_orgs,
+        organization_factory
+):
+    unrelated_org = organization_factory()
+    assert not registrar_with_five_orgs.organizations.filter(id=unrelated_org.id).exists()
+    user = registrar_with_five_orgs.users.get()
+    client.force_login(user)
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(
+        form.fields['organizations'].queryset.order_by('name')
+    ) == list(
+        registrar_with_five_orgs.organizations.all().order_by('name')
+    )
+
+
+def test_multiple_org_user_form_populates_admin_user_organizations(
+        client,
+        admin_user,
+        organization_factory
+):
+    client.force_login(admin_user)
+    for _ in range(5):
+        organization_factory()
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(
+        form.fields['organizations'].queryset.order_by('name')
+    ) == list(
+        Organization.objects.all().order_by('name')
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_wrong_extension(
+        user_type,
+        request,
+        client,
+        tsv
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": tsv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"The file must be a CSV" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_unreadable_file(
+        user_type,
+        request,
+        client,
+        corrupted_csv
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": corrupted_csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"We cannot parse the uploaded file" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+@pytest.mark.parametrize(
+    "skip_headers",
+    [
+        "all",
+        "first_name",
+        "last_name",
+        "email"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_headers_absent(
+        user_type,
+        skip_headers,
+        request,
+        client,
+        org_user_csv_missing_headers
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_headers(skip_headers=skip_headers)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file must contain a header row with first_name, last_name and email columns." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_no_rows(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='all')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file must contain at least one user" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_any_email_absent(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='email')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=["csv_file"]
+    )
+    assert b"Each row in the CSV file must contain email." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_any_email_invalid(
+        user_type,
+        request,
+        client,
+        org_user_csv_invalid_email
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_invalid_email
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file contains invalid email address" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_multiple_org_user_form_disallows_unrelated_organization(
+        user_type,
+        request,
+        client,
+        org_user_csv_complete,
+        organization_factory
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_complete
+    unrelated_org = organization_factory()
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": unrelated_org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['organizations']
+    )
+    assert b"That choice is not one of the available choices." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_creates_without_names(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='first_name,last_name')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    created_user_ids = [user.id for user in form.created_users.values()]
+    assert len(created_user_ids) == 10
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids,
+        user__first_name='',
+        user__last_name=''
+    ).count() == 1
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_creates_with_names(
+        user_type,
+        request,
+        client,
+        org_user_csv_complete
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_complete
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    created_user_ids = [user.id for user in form.created_users.values()]
+    assert len(created_user_ids) == 10
+    assert not UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids,
+        user__first_name='',
+        user__last_name=''
+    ).exists()
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_updates_expiry_date(
+        user_type,
+        request,
+        client,
+        org_user_csv_existing_org_users
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    csv = org_user_csv_existing_org_users(org)
+    affiliations = UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    )
+    user_count = affiliations.count()
+    assert all(affiliation.expires_at is None for affiliation in affiliations.all())
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv,
+            "a-expires_at": GENESIS
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    updated_user_ids = [user.id for user in form.updated_users.values()]
+    assert len(updated_user_ids) == user_count
+    assert all(affiliation.expires_at == GENESIS for affiliation in affiliations.all())
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_upgrades_regular_users(
+        user_type,
+        request,
+        client,
+        org_user_csv_existing_regular_users
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_existing_regular_users
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    assert not UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    ).exists()
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    updated_user_ids = [user.id for user in form.updated_users.values()]
+    assert len(updated_user_ids) == 10
+    assert UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_rejects_admins_and_registrars(
+        user_type,
+        request,
+        client,
+        org_user_csv_admin_and_registrar
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_admin_and_registrar
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    assert len(form.updated_users) == 0
+    assert len(form.ineligible_users) == 2
+    for email in form.ineligible_users:
+        ineligible_user = LinkUser.objects.get(email=email)
+        assert not ineligible_user.organizations.exists()
 
 
 ###
@@ -1699,81 +2282,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # status filter tested in test_registrar_user_list_filters
-
-
-    def test_add_multiple_org_users_via_csv(self):
-        def create_csv_file(filename, content):
-            return SimpleUploadedFile(filename, content.encode('utf-8'), content_type='text/csv')
-
-        def initialize_form(csv_file, data=None):
-            data = {'organizations': selected_organization.pk, 'indefinite_affiliation': True}
-            return MultipleUsersFormWithOrganization(request=request, data=data, files={'csv_file': csv_file})
-
-        # --- initialize data ---
-        csv_data = 'first_name,last_name,email\nJohn,Doe,johndoe@example.com\nJane,Smith,janesmith@example.com'
-        another_csv_data = 'first_name,last_name,email\nJohn2,Doe,john2doe@example.com\nJane2,Smith,jane2smith@example.com'
-        invalid_csv_data = 'name\nJohn Doe'
-        another_invalid_csv_data = 'first_name,last_name,email\nJohn,Doe,\nJane,Smith,janesmith@example.com'
-
-        valid_csv_file = create_csv_file('users.csv', csv_data)
-        another_valid_csv_file = create_csv_file('another_valid_users.csv', another_csv_data)
-        one_more_valid_csv_file = create_csv_file('one_more_valid_users.csv', csv_data)
-        invalid_csv_file = create_csv_file('invalid_users.csv', invalid_csv_data)
-        another_invalid_csv_file = create_csv_file('another_invalid_users.csv', another_invalid_csv_data)
-
-        request = RequestFactory().get('/')
-        request.user = self.registrar_user
-        selected_organization = self.another_organization
-
-        # --- test form initialization ---
-        form = MultipleUsersFormWithOrganization(request=request)
-        # the registrar user has 3 organizations tied to it as verified in the users.json sample data
-        self.assertEqual(form.fields['organizations'].queryset.count(), 3)
-        # confirm that the first item in organization selection field matches the first organization of the registrar
-        self.assertEqual(form.fields['organizations'].queryset.first(), request.user.registrar.organizations
-                         .order_by('name').first())
-
-        # --- test csv validation ---
-        # valid csv
-        form1 = initialize_form(valid_csv_file)
-        self.assertTrue(form1.is_valid())
-
-        # invalid csv - missing headers
-        form2 = initialize_form(invalid_csv_file)
-        self.assertFalse(form2.is_valid())
-        self.assertTrue("CSV file must contain a header row with first_name, last_name and email columns."
-                        in form2.errors['csv_file'])
-
-        # invalid csv - missing email field
-        form3 = initialize_form(another_invalid_csv_file)
-        self.assertFalse(form3.is_valid())
-        self.assertTrue("Each row in the CSV file must contain email."
-                        in form3.errors['csv_file'])
-
-        # --- test user creation ---
-        self.assertTrue(form1.is_valid())
-        form1.save(commit=True)
-        created_user_ids = [user.id for user in form1.created_users.values()]
-        self.assertEqual(len(created_user_ids), 2)
-        self.assertEqual(UserOrganizationAffiliation.objects.filter(user_id__in=created_user_ids).count(), 2)
-
-        # --- test user update ---
-        existing_user = LinkUser.objects.create(email="john2doe@example.com", first_name="John2", last_name="Doe")
-        form4 = initialize_form(another_valid_csv_file)
-        self.assertTrue(form4.is_valid())
-        form4.save(commit=True)
-        self.assertEqual(len(form4.updated_users), 1)
-        self.assertTrue(existing_user in form4.updated_users.values())
-        self.assertEqual(len(form4.created_users), 1)
-        self.assertEqual(next(iter(form4.updated_users)), "john2doe@example.com")
-
-        # --- test validation errors ---
-        LinkUser.objects.filter(raw_email="johndoe@example.com").update(is_staff=True)
-        form5 = initialize_form(one_more_valid_csv_file)
-        self.assertTrue(form5.is_valid())
-        form5.save(commit=True)
-        self.assertEqual(len(form5.ineligible_users), 1)
-        self.assertEqual("johndoe@example.com", next(iter(form5.ineligible_users)))
 
 
     ###

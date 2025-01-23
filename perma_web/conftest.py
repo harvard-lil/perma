@@ -2,7 +2,7 @@ import pytest
 import boto3
 from dataclasses import dataclass
 import os
-from random import choice
+from random import choice, randrange
 import subprocess
 
 from django.conf import settings
@@ -195,7 +195,9 @@ import humps
 from decimal import Decimal
 from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
+
 
 from perma.models import (
     Registrar, Organization, LinkUser, UserOrganizationAffiliation,
@@ -1060,7 +1062,160 @@ def spoof_pp_response_subscription_with_pending_change():
     return f
 
 
+# For adding org users via a CSV
+
+@pytest.fixture
+def tsv():
+    return SimpleUploadedFile(
+        'users.tsv',
+        FAKE.tsv(
+            data_columns=('{{first_name}}', '{{last_name}}', '{{email}}'),
+            num_rows=10,
+            include_row_ids=False
+        ).encode('utf-8'),
+        content_type="text/tsv"
+    )
+
+
+@pytest.fixture
+def corrupted_csv():
+    return SimpleUploadedFile(
+        'users.csv',
+        FAKE.csv(
+            data_columns=('{{first_name}}', '{{last_name}}', '{{email}}'),
+            num_rows=10,
+            include_row_ids=False
+        ).encode('utf-16'),
+        content_type="text/csv"
+    )
+
+
+def wrap_csv_data_in_file(filename, data):
+    return SimpleUploadedFile(filename, data.encode('utf-8'), content_type='text/csv')
+
+
+def get_org_user_csv(user_data_factory=None, users=None, skip_headers=None, skip_fields=None, invalid_email=False):
+    if user_data_factory and users:
+        raise Exception("Please pass user list or user_data_factory, not both.")
+
+    rows = []
+    if not skip_headers:
+        skip_headers = []
+    if not skip_fields:
+        skip_fields = []
+
+    # Add headers
+    all_headers = ["email", "first_name", "last_name"]
+    headers = []
+    match skip_headers:
+        case 'all':
+            pass
+        case _:
+            for header in all_headers:
+                if header not in skip_headers:
+                    headers.append(header)
+    if headers:
+        rows.append(",".join(headers))
+
+    # Add fields
+    all_fields = ["email", "first_name", "last_name"]
+
+    row_count = len(users) if users else 10
+    random_row = randrange(0, row_count)
+    for n in range(row_count):
+        fields = []
+
+        if users:
+            user_data = {
+                "first_name": users[n].first_name,
+                "last_name": users[n].last_name,
+                "email": users[n].raw_email,
+            }
+        else:
+            user_data = user_data_factory()
+
+        match skip_fields:
+            case 'all':
+                pass
+            case _:
+                for field in all_fields:
+                    if field in skip_fields and n == random_row:
+                        fields.append("")
+                    elif invalid_email and field == 'email' and n == random_row:
+                        fields.append('1@1com')
+                    else:
+                        fields.append(user_data[field])
+
+        rows.append(",".join(fields))
+
+    # Add line breaks
+    csv_data = "\r\n".join(rows)
+
+    # Make it look like a file uploaded via an HTML form, to Django
+    return wrap_csv_data_in_file('users.csv', csv_data)
+
+
+@pytest.fixture
+def org_user_csv_complete(user_data_factory):
+    return get_org_user_csv(user_data_factory)
+
+
+@pytest.fixture
+def org_user_csv_missing_headers(user_data_factory):
+    def f(skip_headers='all'):
+        return get_org_user_csv(user_data_factory, skip_headers=skip_headers)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_missing_data(user_data_factory):
+    def f(skip_fields='all'):
+        return get_org_user_csv(user_data_factory, skip_fields=skip_fields)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_invalid_email(user_data_factory):
+    return get_org_user_csv(user_data_factory, invalid_email=True)
+
+
+@pytest.fixture
+def org_user_csv_existing_regular_users(link_user_factory):
+    users = []
+    for _ in range(10):
+        user = link_user_factory()
+        users.append(user)
+    return get_org_user_csv(users=users)
+
+
+@pytest.fixture
+def org_user_csv_existing_org_users(link_user_factory):
+    def f(organization):
+        users = []
+        for _ in range(10):
+            user = link_user_factory()
+            user.organizations.add(organization)
+            users.append(user)
+        return get_org_user_csv(users=users)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_admin_and_registrar(admin_user_factory, registrar_user_factory):
+    return get_org_user_csv(users=[
+        admin_user_factory(),
+        registrar_user_factory(),
+    ])
+
+
 # For working with registrars
+
+@pytest.fixture
+def registrar_with_five_orgs(registrar_user, organization_factory):
+    for _ in range(5):
+        organization_factory(registrar=registrar_user.registrar)
+    return registrar_user.registrar
+
 
 # For working with organizations
 
@@ -1296,5 +1451,8 @@ def submit_form(client,
     if error_keys:
         keys = set(form_errors().keys())
         assert set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys)
+
+    if error_keys is None:
+        assert not set(form_errors().keys())
 
     return resp

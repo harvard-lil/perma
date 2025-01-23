@@ -489,15 +489,17 @@ class MultipleUsersFormWithOrganization(ModelForm):
     def clean_csv_file(self):
         file = self.cleaned_data['csv_file']
 
-        # check if file is CSV
+        # check if file is valid CSV
         if not file.name.endswith('.csv'):
             raise forms.ValidationError("The file must be a CSV.")
-
-        file = TextIOWrapper(file, encoding='utf-8')
-        reader = csv.DictReader(file)
+        try:
+            file = TextIOWrapper(file, encoding='utf-8')
+            reader = csv.DictReader(file)
+            headers = reader.fieldnames
+        except Exception:
+            raise forms.ValidationError("We cannot parse the uploaded file.")
 
         # validate the headers
-        headers = reader.fieldnames
         if not all(item in headers for item in ['first_name', 'last_name', 'email']):
             raise forms.ValidationError("CSV file must contain a header row with first_name, last_name and email columns.")
 

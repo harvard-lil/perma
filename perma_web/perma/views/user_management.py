@@ -835,6 +835,12 @@ class BaseAddUserToGroup(UpdateView):
             else:
                 add_message(messages.SUCCESS, "Success!", success_message)
 
+        if settings.TESTING:
+            # Calling render causes response.context to be available from
+            # the Django test client, which in turn gives us access to `form`
+            # in our tests.
+            render(self.request, self.template_name, context)
+
         return response
 
 
