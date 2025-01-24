@@ -1958,6 +1958,173 @@ def test_sponsored_user_export_user_list(flush_db, export_format, mime_type, cli
     assert index + 1 == len(sponsored_user_list)
 
 
+###
+### RESENDING ACTIVATION EMAILS ###
+###
+
+def resend_should_succeed(client, target_user, mailoutbox):
+    client.get(
+        reverse(
+            'user_management_resend_activation', args=[target_user.id]
+        ),
+        secure=True
+    )
+
+    assert len(mailoutbox) == 1
+    message = mailoutbox[0]
+    assert message.subject == "A Perma.cc account has been created for you"
+    assert message.recipients() == [target_user.raw_email]
+
+
+def resend_should_fail(client, target_user, mailoutbox):
+    response = client.get(
+        reverse(
+            'user_management_resend_activation', args=[target_user.id]
+        ),
+        secure=True
+    )
+    assert response.status_code == 403
+    assert len(mailoutbox) == 0
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_resend_activation_email_to_org_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    target_user = unactivated_user
+    target_user.organizations.set([org])
+
+    resend_should_succeed(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_resend_activation_email_to_unrelated_org_user(
+    user_type,
+    request,
+    client,
+    unconfirmed_org_user_factory,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    target_user = unconfirmed_org_user_factory()
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_resend_activation_email_to_registrar_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    target_user = unactivated_user
+    target_user.registrar = registrar
+    target_user.save()
+
+    resend_should_succeed(client, target_user, mailoutbox)
+
+
+def test_cannot_resend_activation_email_to_unrelated_registrar_user(
+    client,
+    registrar_user,
+    unconfirmed_registrar_user_factory,
+    mailoutbox
+):
+    client.force_login(registrar_user)
+    target_user = unconfirmed_registrar_user_factory()
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+def test_org_user_cannot_resend_activation_email_to_registrar_user(
+    client,
+    org_user,
+    unconfirmed_registrar_user_factory,
+    mailoutbox
+):
+    client.force_login(org_user)
+    target_user = unconfirmed_registrar_user_factory(
+        registrar=org_user.organizations.first().registrar
+    )
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "org_user"
+    ]
+)
+def test_cannot_resend_activation_email_to_regular_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    target_user = unactivated_user
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+def test_can_resend_activation_email_to_regular_user(
+    client,
+    admin_user,
+    unactivated_user,
+    mailoutbox
+):
+    client.force_login(admin_user)
+    target_user = unactivated_user
+    resend_should_succeed(client, target_user, mailoutbox)
+
+
 class UserManagementViewsTestCase(PermaTestCase):
 
     @classmethod
@@ -2956,60 +3123,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.check_new_activation_email(mail.outbox[0], 'unactivated_faculty_user@example.com')
 
-    ### RESENDING ACTIVATION EMAILS ###
-
-    def check_activation_resent(self, user, other_user):
-        self.get('user_management_resend_activation',
-                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
-                  user = user)
-        self.assertEqual(len(mail.outbox), 1)
-        self.check_new_activation_email(mail.outbox[0], other_user)
-
-    def check_activation_not_resent(self, user, other_user):
-        self.get('user_management_resend_activation',
-                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
-                  user = user,
-                  require_status_code = 403)
-        self.assertEqual(len(mail.outbox), 0)
-
-    # Registrar Users
-    def test_registrar_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_registrar_user@example.com','test_org_user@example.com')
-
-    def test_registrar_can_resend_activation_to_registrar_user(self):
-        self.check_activation_resent('another_library_user@example.com','unactivated_registrar_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_unrelated_org_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','test_yet_another_library_org_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_regular_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','test_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_unrelated_registrar_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','another_library_user@example.com')
-
-    # Org Users
-    def test_org_user_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_org_user@example.com','multi_registrar_org_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_unrelated_org_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_yet_another_library_org_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_regular_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_registrar_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_registrar_user@example.com')
-
-    # Admin Users
-    def test_admin_can_resend_activation_to_regular_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_user@example.com')
-
-    def test_admin_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_org_user@example.com')
-
-    def test_admin_can_resend_activation_to_registrar_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_registrar_user@example.com')
 
     ### PASSWORD RESETS ###
 
