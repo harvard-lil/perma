@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.shortcuts import redirect
+from urllib.parse import urlencode
 
 
 def bookmarklet_create(request):
@@ -16,5 +17,9 @@ def bookmarklet_create(request):
     ...and passes the query string values to /manage/create/
     '''
     tocapture = request.GET.get('url', '')
-    add_url = f"{reverse('create_link')}?url={tocapture}"
+    if tocapture:
+        params = urlencode({'url': tocapture})
+        add_url = f"{reverse('create_link')}?{params}"
+    else:
+        add_url = reverse('create_link')
     return redirect(add_url)
