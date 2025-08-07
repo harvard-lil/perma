@@ -287,7 +287,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                     target_registrar.base_rate = form.cleaned_data['base_rate']
                 target_registrar.save()
 
-                if new_status == 'approved':
+                if new_status == 'approved' and target_registrar_user:
                     target_registrar_user.registrar = target_registrar
                     target_registrar_user.pending_registrar = None
                     target_registrar_user.save()
@@ -300,10 +300,13 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                         extra_tags='safe',
                     )
                 else:
+                    message = f'Registrar request for <strong>{target_registrar}</strong> denied.'
+                    if target_registrar_user:
+                        message += f' Please inform {target_registrar_user.email} if appropriate.'
                     messages.add_message(
                         request,
                         messages.SUCCESS,
-                        f'Registrar request for <strong>{target_registrar}</strong> denied. Please inform {target_registrar_user.email} if appropriate.',
+                        message,
                         extra_tags='safe',
                     )
 

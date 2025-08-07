@@ -144,9 +144,11 @@
       {% endif %}
 
       <a class="btn cancel" href="../">Cancel</a>
-      {% if target_registrar_user %}
-        <button type="submit" name="status" value="approved" class="btn">Approve</button>
-        <button type="submit" name="status" value="denied" class="btn delete-confirm">Deny</button>
+      {% if target_registrar_user and target_registrar.status != "approved" %}
+        <button type="submit" name="status" value="approved" class="btn" form="form">Approve</button>
+      {% endif %}
+      {% if target_registrar.status != "denied" %}
+        <button type="submit" name="status" value="denied" class="btn delete-confirm" form="form">Deny</button>
       {% endif %}
     </form>
   {% endif %}
