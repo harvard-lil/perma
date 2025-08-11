@@ -139,6 +139,15 @@ class ApproveRegistrarForm(ModelForm):
             self.fields['base_rate'].required = False
             self.fields['status'].required = False
 
+    def clean_status(self) -> str | None:
+        status = self.cleaned_data.get('status')
+        registrar_user = self.cleaned_data.get('registrar_user')
+
+        if status == 'approved' and not registrar_user:
+            raise ValidationError('To approve a registrar, you must first add a registrar user')
+
+        return status
+
     def clean_registrar_user(self) -> str | None:
         """Validate whether a LinkUser matching the supplied email exists."""
         cleaned_value = self.cleaned_data['registrar_user'].lower()
