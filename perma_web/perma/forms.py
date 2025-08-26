@@ -124,6 +124,7 @@ class ApproveRegistrarForm(ModelForm):
 
     def __init__(self, data: Mapping[str, Any], registrar: Registrar, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
+        self.registrar = registrar
 
         # Populate base rate default value from model
         self.fields['base_rate'].initial = registrar.base_rate
@@ -141,9 +142,10 @@ class ApproveRegistrarForm(ModelForm):
 
     def clean_status(self) -> str | None:
         status = self.cleaned_data.get('status')
-        registrar_user = self.cleaned_data.get('registrar_user')
 
-        if status == 'approved' and not registrar_user:
+        # Only approve registrar if it has an associated registrar user
+        has_registrar_user = self.registrar.pending_users.exists() or self.registrar.users.exists()
+        if status == 'approved' and not has_registrar_user:
             raise ValidationError('To approve a registrar, you must first add a registrar user')
 
         return status
