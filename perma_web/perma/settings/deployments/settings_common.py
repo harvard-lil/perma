@@ -481,7 +481,8 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.deactivate_expired_sponsored_users': {'queue': 'background'},
     'perma.celery_tasks.warn_expiring_sponsored_users': {'queue': 'background'},
     'perma.celery_tasks.remove_expired_organization_user_affiliations': {'queue': 'background'},
-    'perma.celery_tasks.warn_expiring_organization_users': {'queue': 'background'}
+    'perma.celery_tasks.warn_expiring_organization_users': {'queue': 'background'},
+    'perma.celery_tasks.send_user_email_from_bulk_addition': {'queue': 'background'}
 }
 
 # Schedule celerybeat jobs.
@@ -562,8 +563,6 @@ MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 # set to the Scoop API's own 502 threshold, currently 60s, plus two seconds for network conditions
 RESOURCE_LOAD_TIMEOUT = 60 + 2
 
-CHECK_WARC_BEFORE_PLAYBACK = False
-
 # tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
 TESTING = False
@@ -624,6 +623,10 @@ SENTRY_SEND_DEFAULT_PII = False
 
 # Before deployment, we suppress the addition of new capture jobs when this file is present
 DEPLOYMENT_SENTINEL = '/tmp/perma-deployment-pending'
+
+# for inclusion in datapackage.json for user uploads; to be replaced with a
+# short commit hash in deployments
+PERMA_VERSION = 'dev'
 
 # Which settings should be available in all Django templates,
 # without needing to explicitly pass them via the view?

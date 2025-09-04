@@ -620,7 +620,7 @@ class AuthenticatedLinkDetailView(BaseView):
                 link.mark_capturejob_superseded()
 
                 # write new warc and capture
-                link.write_uploaded_file(uploaded_file, cache_break=True)
+                link.write_uploaded_file(uploaded_file)
 
             # update internet archive if privacy changes
             if 'is_private' in data and was_private != bool(data.get("is_private")) and link.is_permanent():

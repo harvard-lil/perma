@@ -252,7 +252,7 @@ def test_admin_can_create_users(view_name, form_field, client, admin_user, regis
     common_fields = {
         'a-first_name': user_data['first_name'],
         'a-last_name': user_data['last_name'],
-        'a-e-address': user_data['email']
+        'a-address': user_data['email']
     }
     match view_name:
         case 'registrar_user':
@@ -388,7 +388,7 @@ def test_can_add_new_user_to_org(user_type, request, client, user_data):
             "a-organizations": org.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         success_url=reverse("user_management_manage_organization_user"),
         success_query=LinkUser.objects.filter(
@@ -418,7 +418,7 @@ def test_cannot_add_new_user_to_inaccessible_org(user_type, request, client, use
             "a-organizations": unrelated_org.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         error_keys=['organizations']
     )
@@ -631,7 +631,7 @@ def test_multiple_org_user_form_invalid_if_unreadable_file(
         user_type,
         request,
         client,
-        corrupted_csv
+        utf16_csv
 ):
     user = request.getfixturevalue(user_type)
     client.force_login(user)
@@ -650,11 +650,11 @@ def test_multiple_org_user_form_invalid_if_unreadable_file(
         data = {
             "a-organizations": org.id,
             "a-indefinite_affiliation": True,
-            "a-csv_file": corrupted_csv
+            "a-csv_file": utf16_csv
         },
         error_keys=['csv_file']
     )
-    assert b"We cannot parse the uploaded file" in response.content
+    assert b"CSV file must be encoded with UTF-8" in response.content
 
 
 @pytest.mark.parametrize(
@@ -1248,7 +1248,7 @@ def test_can_add_new_sponsored_user_to_registrar(user_type, request, client, use
             "a-sponsoring_registrars": registrar.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         success_url=reverse("user_management_manage_sponsored_user"),
     )
@@ -1272,7 +1272,7 @@ def test_cannot_add_sponsored_user_to_inaccessible_registrar(client, user_data, 
             "a-sponsoring_registrars": unrelated_registrar.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         error_keys=['sponsoring_registrars']
     )
@@ -1449,7 +1449,7 @@ def test_can_add_new_user_to_registrar(user_type, request, client, user_data):
             "a-registrar": registrar.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         success_url=reverse("user_management_manage_registrar_user"),
         success_query=LinkUser.objects.filter(
@@ -1471,7 +1471,7 @@ def test_cannot_add_new_user_to_inaccessible_registrar(client, registrar_user, u
             "a-registrar": unrelated_registrar.id,
             "a-first_name": user_data['first_name'],
             "a-last_name": user_data['last_name'],
-            "a-e-address": user_data['email'],
+            "a-address": user_data['email'],
         },
         error_keys=['registrar']
     )
@@ -1779,7 +1779,7 @@ def test_admin_user_can_add_new_user_as_admin(client, admin_user, user_data):
         data={
             'a-first_name': user_data['first_name'],
             'a-last_name': user_data['last_name'],
-            'a-e-address': user_data['email']
+            'a-address': user_data['email']
         },
         success_url=reverse('user_management_manage_admin_user'),
         success_query=LinkUser.objects.filter(
@@ -2423,3 +2423,80 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # status filter tested in test_registrar_user_list_filters
+
+    # These tests were added to test_view_user_management.py
+    # after this branch was created, but before we merged develop back in.
+    # Rather than converting them during the resolution of merge conflicts,
+    # I am adding them here, commented out, and then will convert them
+    # in a separate commit after the merge is complete.
+    #
+    # RLC 9/4/25
+    #
+
+    # ### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
+
+    # def test_admin_user_can_modify_affiliation_of_existing_org_user(self):
+    #     self.log_in_user(self.admin_user)
+    #     affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
+    #     affiliation.expires_at = datetime.strptime('2025-04-30T00:00:00+00:00', "%Y-%m-%dT%H:%M:%S%z")
+    #     affiliation.save()
+    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
+    #                      data={'expires_at': ''},
+    #                      success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
+    #     affiliation.refresh_from_db()
+    #     self.assertEqual(affiliation.expires_at, None)
+
+    # def test_registrar_user_can_modify_affiliation_of_existing_org_user(self):
+    #     # can only modify user affiliations if registrar is affiliated with the same org
+    #     self.log_in_user(self.registrar_user)
+    #     affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
+    #     expires_at = '2025-04-30T00:00:00+00:00'
+    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
+    #                      data={'expires_at': expires_at},
+    #                      success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
+    #     affiliation.refresh_from_db()
+    #     self.assertEqual(affiliation.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
+
+    #     # cannot modify user affiliations if registrar isn't affiliated with the same org
+    #     self.log_in_user(self.registrar_user)
+    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.organization_user.id, self.unrelated_organization.id]},
+    #                      require_status_code=403)
+
+
+    # ### MODIFYING SPONSORSHIPS ###
+
+    # def test_admin_user_can_modify_sponsorship_of_existing_user(self):
+    #     self.log_in_user(self.admin_user)
+    #     sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+    #     sponsorship.expires_at = '2025-12-29'
+    #     sponsorship.save()
+    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
+    #                      data={'expires_at': ''},
+    #                      success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
+    #                      success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
+    #     sponsorship.refresh_from_db()
+    #     self.assertEqual(sponsorship.expires_at, None)
+
+
+    # def test_registrar_user_can_modify_sponsorship_of_existing_affiliated_user(self):
+    #     # can only modify sponsorships affiliated with itself
+    #     self.log_in_user(self.registrar_user)
+    #     sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
+    #     expires_at = '2025-04-30T00:00:00+00:00'
+    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
+    #                      data={'expires_at': expires_at},
+    #                      success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
+    #                      success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
+    #     sponsorship.refresh_from_db()
+    #     self.assertEqual(sponsorship.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
+
+    #     # cannot modify sponsorships affiliated with another registrar
+    #     self.log_in_user(self.registrar_user)
+    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
+    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.unrelated_registrar.pk]},
+    #                      require_status_code=403)

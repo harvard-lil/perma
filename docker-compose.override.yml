@@ -6,7 +6,7 @@ services:
       dockerfile: perma_web/Dockerfile
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/perma-web:129-f2b07d94d3ab843bcf4afb6f753b2e70
+          - registry.lil.tools/harvardlil/perma-web:137-ee9792e3a3584ee5197a8fdc3abf3b90
         platforms:
           - linux/amd64
           - linux/arm64
@@ -20,10 +20,10 @@ services:
     build:
       context: ./services/docker/wacz-exhibitor
       args:
-        RELEASE: v0.1.7
+        RELEASE: v0.2.18
       x-bake:
         tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:5-14853706630a07e835ebb9da840ece83
+          - registry.lil.tools/harvardlil/wacz-exhibitor:6-ec122b8e74374fd90ad71189cbd42b62
         platforms:
           - linux/amd64
           - linux/arm64
@@ -52,7 +52,7 @@ services:
       - scoop_rest_api_internal
 
   scoop-rest-api:
-    image: registry.lil.tools/harvardlil/scoop-rest-api:124-f89c580766f587f5156b10f873972ea8
+    image: registry.lil.tools/harvardlil/scoop-rest-api:149-4549304a548ed1501543c9dfcaa88b82
     init: true
     tty: true
     depends_on:
@@ -82,16 +82,16 @@ services:
   # Perma Payments
   #
   pp_db:
-    image: registry.lil.tools/library/postgres:12.8
+    image: registry.lil.tools/library/postgres:16.6
     environment:
       - POSTGRES_PASSWORD=example
     volumes:
-      - pp_db_data:/var/lib/postgresql/data:delegated
+      - pp_db_data_16:/var/lib/postgresql/data:delegated
     networks:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:19-feb5e21507118e85975cc35a5e15c5c4
+    image: registry.lil.tools/harvardlil/perma-payments:25-3949b25fd5ccdf171af5a41809cccdff
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && invoke run"

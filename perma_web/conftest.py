@@ -1078,7 +1078,7 @@ def tsv():
 
 
 @pytest.fixture
-def corrupted_csv():
+def utf16_csv():
     return SimpleUploadedFile(
         'users.csv',
         FAKE.csv(

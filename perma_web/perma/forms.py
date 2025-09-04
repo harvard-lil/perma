@@ -1,7 +1,7 @@
 import logging
 import secrets
 import csv
-from io import TextIOWrapper
+from io import StringIO
 import string
 from typing import Any, Mapping
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 ### HELPERS ###
 
-def check_honeypot(request, redirect_to_view, honey_pot_fieldname='telephone', check_js=False):
+def check_honeypot(request, redirect_to_view, honey_pot_fieldname='email_confirmation', check_js=False):
     def reject_request():
         user_ip = get_client_ip(request)
         logger.info(f"Suppressing invalid form submission from {user_ip}: {request.POST}")
@@ -124,6 +124,7 @@ class ApproveRegistrarForm(ModelForm):
 
     def __init__(self, data: Mapping[str, Any], registrar: Registrar, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
+        self.registrar = registrar
 
         # Populate base rate default value from model
         self.fields['base_rate'].initial = registrar.base_rate
@@ -138,6 +139,16 @@ class ApproveRegistrarForm(ModelForm):
         else:
             self.fields['base_rate'].required = False
             self.fields['status'].required = False
+
+    def clean_status(self) -> str | None:
+        status = self.cleaned_data.get('status')
+
+        # Only approve registrar if it has an associated registrar user
+        has_registrar_user = self.registrar.pending_users.exists() or self.registrar.users.exists()
+        if status == 'approved' and not has_registrar_user:
+            raise ValidationError('To approve a registrar, you must first add a registrar user')
+
+        return status
 
     def clean_registrar_user(self) -> str | None:
         """Validate whether a LinkUser matching the supplied email exists."""
@@ -203,15 +214,15 @@ class UserForm(forms.ModelForm):
     """
     User add form.
     """
-    telephone = forms.CharField(label="Do not fill out this box", required=False)  # field to fool bots
+    email_confirmation = forms.CharField(label="Email confirmation: humans, do not fill out this box", required=False)  # field to fool bots
 
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "telephone"]
+        fields = ["first_name", "last_name", "email", "email_confirmation"]
 
     def add_prefix(self, field_name):
         # rename the email field in the HTML to foil bots that are spamming us
-        field_name = "e-address" if field_name == "email" else field_name
+        field_name = "address" if field_name == "email" else field_name
         return super().add_prefix(field_name)
 
     def __init__(self, *args, **kwargs):
@@ -492,14 +503,18 @@ class MultipleUsersFormWithOrganization(ModelForm):
         # check if file is valid CSV
         if not file.name.endswith('.csv'):
             raise forms.ValidationError("The file must be a CSV.")
+
+        # validate for encoding errors
         try:
-            file = TextIOWrapper(file, encoding='utf-8')
-            reader = csv.DictReader(file)
-            headers = reader.fieldnames
-        except Exception:
-            raise forms.ValidationError("We cannot parse the uploaded file.")
+            raw_contents = file.read().decode('utf-8')
+        except UnicodeDecodeError:
+            raise forms.ValidationError("CSV file must be encoded with UTF-8.")
+
+        csv_file = StringIO(raw_contents)
+        reader = csv.DictReader(csv_file)
 
         # validate the headers
+        headers = reader.fieldnames
         if not all(item in headers for item in ['first_name', 'last_name', 'email']):
             raise forms.ValidationError("CSV file must contain a header row with first_name, last_name and email columns.")
 
@@ -687,7 +702,7 @@ class ContactForm(forms.Form):
     email = forms.EmailField(label="Your email address")
     registrar = forms.ChoiceField(choices = (), label = 'Your library')
     subject = forms.CharField(widget=forms.HiddenInput, required=False)
-    telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
+    email_confirmation = forms.CharField(label="Email confirmation: humans, do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
     box2 = forms.CharField(label="Message", widget=forms.Textarea)
     referer = forms.URLField(widget=forms.HiddenInput, required=False)
 
@@ -711,7 +726,7 @@ class ReportForm(forms.Form):
         widget=forms.Textarea
     )
     email = forms.EmailField(label="Your email address")
-    telephone = forms.CharField(label="Do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
+    email_confirmation = forms.CharField(label="Email confirmation: humans, do not fill out this box", required=False, widget=forms.Textarea)  # fake message box to fool bots
     guid = forms.CharField(widget=forms.HiddenInput, required=False)
     referer = forms.CharField(widget=forms.HiddenInput, required=False)
 

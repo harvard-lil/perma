@@ -94,7 +94,7 @@ class LinkResourceTestMixin():
             'private_reason',
         ]
 
-    def assertRecordsInArchive(self, link, upload=False, expected_records=None, check_screenshot=False, check_provenance_summary=False, filetype='wacz'):
+    def assertRecordsInArchive(self, link, upload=False, expected_records=None, check_screenshot=False, check_provenance_summary=False):
 
         def find_recording_in_warc(index, capture_url, content_type):
             warc_content_type = "application/http; msgtype=response"
@@ -129,8 +129,7 @@ class LinkResourceTestMixin():
         self.assertTrue(link.primary_capture.content_type, "Capture is missing a content type.")
 
         # create an index of the warc
-        extract = filetype == 'wacz'
-        with link.get_warc(extract) as warc_file:
+        with link.get_warc() as warc_file:
             index = index_warc_file(warc_file)
 
         # see if the index reports the content is in the warc
@@ -450,7 +449,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertEqual(link.submitted_title, "Test title.")
         self.assertEqual(link.submitted_description, "Test description.")
         self.assertRegex(link.captured_by_software, r'scoop @ harvard library innovation lab: \d+\.\d+.\d+')
-        expected_size = 21954
+        expected_size = 22054
         self.assertLessEqual(abs(link.wacz_size-expected_size), 100)
 
         # check folder
@@ -655,7 +654,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertRecordsInArchive(link, upload=True, filetype='warc')
+            self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_create_archive_from_jpg_file(self):
@@ -666,7 +665,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertRecordsInArchive(link, upload=True, filetype='warc')
+            self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_reject_jpg_file_with_invalid_url(self):
@@ -678,7 +677,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
             self.assertIn(b'Enter a valid URL', obj.content)
 
-    def test_should_should_create_archive_from_jpg_file_with_nonloading_url(self):
+    def test_should_create_archive_from_jpg_file_with_nonloading_url(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
             obj = self.successful_post(self.list_url,
                                        format='multipart',
@@ -687,7 +686,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertEqual(link.submitted_url, 'http://asdf.asdf')
-            self.assertRecordsInArchive(link, upload=True, filetype='warc')
+            self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_reject_invalid_file(self):

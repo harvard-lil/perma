@@ -1,3 +1,4 @@
+from io import StringIO
 from warcio.timeutils import datetime_to_http_date
 
 from django.urls import reverse
@@ -310,3 +311,36 @@ def test_replacement_link_redirects(client, link_factory):
     response = get_playback(client, link.guid, expect_iframe=False)
     assert response.status_code == 302
     assert response.headers['location'] == reverse('single_permalink', kwargs={'guid': to_replace.guid})
+
+
+@pytest.mark.parametrize(
+    "download_format",
+    [
+        'warc',
+        'wacz',
+    ]
+)
+def test_can_download_if_logged_in(link_user, complete_link, client, mocker, download_format):
+    get_warc = mocker.patch('perma.models.Link.get_warc', autospec=True)
+    get_wacz = mocker.patch('perma.models.Link.get_wacz', autospec=True)
+    get_warc.return_value = StringIO("warc placeholder")
+    get_wacz.return_value = StringIO("wacz placeholder")
+
+    client.force_login(link_user)
+    url = reverse('single_permalink', kwargs={'guid': complete_link.guid}) + f"?type={download_format}_download"
+    response = client.get(url, secure=True)
+    assert response.status_code == 200
+    assert response.get('Content-Disposition', '').startswith("attachment; filename=")
+
+
+@pytest.mark.parametrize(
+    "download_format",
+    [
+        'warc',
+        'wacz',
+    ]
+)
+def test_cannot_download_if_logged_out(complete_link, client, download_format):
+    url = reverse('single_permalink', kwargs={'guid': complete_link.guid}) + f"?type={download_format}_download"
+    response = client.get(url, secure=True)
+    assert response.status_code == 401

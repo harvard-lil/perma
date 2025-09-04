@@ -11,13 +11,19 @@
         {% for sponsorship in status.list %}
           <div class="settings-block">
             <p>{{ sponsorship.registrar.name }}</p>
-            {% if sponsorship.status == 'active' %}
+            {% if sponsorship.status == 'active' %}<br>
+              <p>
+                {% if sponsorship.expires_at %}
+                Expiration:
+                  {{ sponsorship.expires_at }}
+                {% else %}
+                  Permanent affiliation
+                {% endif %}
+              </p>
               <a href="{% url 'user_management_manage_single_sponsored_user_remove' user_id=target_user.id registrar_id=sponsorship.registrar.id %}" class="btn cancel btn-xs leave-org-btn">Deactivate sponsorship</a>
+              <a href="{% url 'user_management_manage_single_sponsored_user_expiration_date' user_id=target_user.id registrar_id=sponsorship.registrar.id %}" class="btn btn-xs update-affiliation-btn">Update sponsorship</a>
             {% else %}
               <a href="{% url 'user_management_manage_single_sponsored_user_readd' user_id=target_user.id registrar_id=sponsorship.registrar.id %}" name="registrar" class="btn btn-default btn-xs leave-org-btn">Reactivate</a>
-            {% endif %}
-            {% if sponsorship.expires_at %}
-              <br><p>Expiration date: {{ sponsorship.expires_at }}</p>
             {% endif %}
           </div>
         {% endfor %}
@@ -25,20 +31,25 @@
     </div>
   {% elif this_page == 'users_organization_users' and affiliations %}
     <div class="orgs-list-container">
-      <h3 class="body-bh">Remove from organization</h3>
+      <h3 class="body-bh">Edit organization affiliation</h3>
       <p class="page-dek"><strong>{{ target_user.raw_email }}</strong> is a member of the following organization{{ affiliations|pluralize }}:</p>
-      <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
-        {% csrf_token %}
-        {% for aff in affiliations %}
-          <div class="settings-block">
-            <p>{{ aff.organization.name }}</p>
+      {% for aff in affiliations %}
+        <div class="settings-block org-user-actions">
+          <p>{{ aff.organization.name }}</p><br>
+          <p>
+          {% if aff.expires_at %}
+            Expiration: {{ aff.expires_at }}
+          {% else %}
+            Permanent affiliation
+          {% endif %}
+          </p>
+          <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
+            {% csrf_token %}
             <button name="affiliation" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
-            {% if aff.expires_at %}
-              <br><p>Expiration date: {{ aff.expires_at }}</p>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </form>
+          </form>
+          <a href="{% url 'user_management_manage_single_organization_user_expiration_date' user_id=target_user.id organization_id=aff.organization_id %}" class="btn btn-xs modify-org-exp-btn">Update</a>
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
   {% if request.user.is_staff %}

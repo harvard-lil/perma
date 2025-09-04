@@ -1242,7 +1242,7 @@ div.col-right {
       background-color: $color-active !important;
     }
   }
-  &.cancel {
+  &.cancel, &.update-affiliation-btn {
     border-color: $color-orange;
     color: $color-orange;
     background-color: white;
@@ -1256,6 +1256,12 @@ div.col-right {
       background-color: white !important;
       border-color: $color-black;
       color: $color-black !important;
+    }
+  }
+  &.update-affiliation-btn {
+    &:hover, &:focus {
+      color: $color-green !important;
+      border-color: $color-green;
     }
   }
   &.btn-bookmarklet {
@@ -2977,7 +2983,7 @@ div.checkbox {
   padding-left: 36px;
 }
 
-div.checkbox:has(#id_a-indefinite_sponsorship),  div.checkbox:has(#id_a-indefinite_affiliation) {
+div.checkbox:has(#id_a-indefinite_sponsorship), div.checkbox:has(#indefinite_sponsorship), div.checkbox:has(#id_a-indefinite_affiliation), div.checkbox:has(#indefinite_affiliation) {
   background-color: inherit;
   padding-left: 0;
   margin-right: 0;
@@ -3136,11 +3142,11 @@ button#addlink,
 }
 
 .contact-form {
-  // hide telephone so it will only be filled by spam bots
-  label[for="id_telephone"] {
+  // hide email_conformation so it will only be filled by spam bots
+  label[for="id_email_confirmation"] {
     display: none;
   }
-  textarea[name="telephone"] {
+  textarea[name="email_confirmation"] {
     display: none;
   }
 }
@@ -3154,11 +3160,11 @@ button#addlink,
 }
 
 .signup-learnMore-form, .add-user, .change-user {
-  // hide telephone so it will only be filled by spam bots
-  label[for="id_telephone"], label[for="id_a-telephone"] {
+  // hide email_confirmation so it will only be filled by spam bots
+  label[for="id_email_confirmation"], label[for="id_a-email_confirmation"] {
     display: none;
   }
-  input[name="telephone"], input[name="a-telephone"] {
+  input[name="email_confirmation"], input[name="a-email_confirmation"] {
     display: none;
   }
 }
@@ -3178,6 +3184,10 @@ button#addlink,
       bottom: -2px;
     }
   }
+}
+
+.org-user-actions form {
+  display: inline;
 }
 
 // special styling for subscription forms
@@ -5362,6 +5372,13 @@ section .caption {
   }
 }
 
+#supporting-partners a img.wide {
+  padding: $grid;
+  @include respond-tablet {
+    padding: $double;
+  }
+}
+
 .row-stats {
   margin-bottom: $grid;
   margin-top: $grid * 3;
@@ -6021,4 +6038,79 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.modify-org-exp-btn {
+  width: 100%;
+  margin-top: 6px !important;
+  @include respond-tablet {
+    width: auto;
+    margin-top: 0 !important;
+  }
+}
+
+/* copy link button */
+
+.copy-icon-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin-left: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  color: #666;
+  vertical-align: middle;
+}
+
+.copy-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.copy-icon-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
+}
+
+.copy-icon-btn:active {
+  background-color: rgba(0, 0, 0, 0.15);
+  transform: scale(0.95);
+}
+
+.copy-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.5;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Success feedback animation */
+.copy-icon-btn.copied {
+  color: #28a745;
+}
+
+.copy-icon-btn.copied svg {
+  animation: copySuccess 0.3s ease;
+}
+
+@keyframes copySuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }

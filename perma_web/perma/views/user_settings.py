@@ -1,4 +1,5 @@
 import itertools
+import uuid
 
 from django.conf import settings
 from django.contrib import messages
@@ -49,7 +50,7 @@ def delete_account(request):
         request.user.notes = f"Requested account deletion {timezone.now()}\n" + request.user.notes
         request.user.save()
         send_admin_email(
-            "Perma.cc account deletion request",
+            f"Perma.cc account deletion request ({str(uuid.uuid4())})",
             request.user.raw_email,
             request,
             "email/admin/deletion_request.txt",

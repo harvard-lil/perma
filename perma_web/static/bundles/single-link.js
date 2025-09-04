@@ -107,6 +107,9 @@ var resizeTimeout, wrapper;
 var detailsButton = document.getElementById("details-button");
 var detailsTray = document.getElementById("collapse-details");
 var viewMode = document.getElementsByClassName("view-mode")[0];
+var copyBtn = document.getElementById('copy-link-btn');
+var copyText = copyBtn === null || copyBtn === void 0 ? void 0 : copyBtn.querySelector('.copy-text');
+var copiedText = copyBtn === null || copyBtn === void 0 ? void 0 : copyBtn.querySelector('.copied-text');
 function init() {
   adjustTopMargin();
   var clicked = false;
@@ -116,6 +119,7 @@ function init() {
       handleShowDetails(clicked);
     };
   }
+  initCopyLink();
   window.onresize = function () {
     if (resizeTimeout != null) clearTimeout(resizeTimeout);
     resizeTimeout = _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_0___default()(adjustTopMargin, 200);
@@ -132,6 +136,60 @@ function adjustTopMargin() {
   if (!wrapper) return;
   wrapper.style.marginTop = "".concat(header.offsetHeight, "px");
   wrapper.style.height = "calc(100% - ".concat(header.offsetHeight, "px)");
+}
+function initCopyLink() {
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      var permalinkUrl = document.getElementById('permalink-url').textContent;
+
+      // Modern clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(permalinkUrl).then(function () {
+          showCopiedFeedback();
+        }).catch(function (err) {
+          console.error('Failed to copy: ', err);
+          fallbackCopyTextToClipboard(permalinkUrl);
+        });
+      } else {
+        // Fallback for older browsers
+        fallbackCopyTextToClipboard(permalinkUrl);
+      }
+    });
+  }
+}
+function showCopiedFeedback() {
+  if (copyBtn) {
+    copyBtn.classList.add('copied');
+    var originalTitle = copyBtn.title;
+    copyBtn.title = 'Copied!';
+
+    // Reset after 2 seconds
+    _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_0___default()(function () {
+      copyBtn.classList.remove('copied');
+      copyBtn.title = originalTitle;
+    }, 2000);
+  }
+}
+function fallbackCopyTextToClipboard(text) {
+  var textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    // I know this is deprecated, using it purely as a fallback 
+    // mechanism for browsers that do not support the clipboard api
+    var successful = document.execCommand('copy');
+    if (successful) {
+      showCopiedFeedback();
+    }
+  } catch (err) {
+    console.error('Fallback copy failed: ', err);
+  }
+  document.body.removeChild(textArea);
 }
 init();
 

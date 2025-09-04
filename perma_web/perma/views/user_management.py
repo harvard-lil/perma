@@ -62,6 +62,7 @@ from perma.utils import (
 )
 from perma.views.common import valid_member_sorts, valid_org_sorts, valid_registrar_sorts
 from perma.views.user_sign_up import email_new_user
+from perma.celery_tasks import send_user_email_from_bulk_addition
 from waffle import flag_is_active
 
 logger = logging.getLogger(__name__)
@@ -775,43 +776,51 @@ class BaseAddUserToGroup(UpdateView):
         def add_message(level, title, body):
             messages.add_message(self.request, level, f'<h4>{title}</h4>{body}', extra_tags='safe')
 
-        def send_emails(users, email_function, email_template, extra_context, *args):
+        def send_bulk_addition_emails(users, email_function, template):
+            extra_context = {
+                'org': form.cleaned_data['organizations'].name,
+                'requester': self.request.user.get_full_name(),
+                'account_settings_page': self.request.build_absolute_uri(reverse('settings_profile')),
+            }
+            host = f"{self.request.scheme}://{self.request.get_host()}"
+
             for obj in users.values():
                 try:
                     if email_function == 'email_new_user':
-                        email_new_user(*args, obj, email_template, extra_context)
+                        send_user_email_from_bulk_addition.delay(obj.raw_email, extra_context, template, host, is_new_user=True)
                     else:
-                        send_user_email(obj.raw_email, email_template, extra_context)
+                        send_user_email_from_bulk_addition.delay(obj.raw_email, extra_context, template, is_new_user=False)
                 except Exception as e:
                     logger.exception(f"Failed to send email to {obj.raw_email}: {e}")
 
-        context = {'form': form}
-
         if not self.is_batch:
-            user = {self.object.email: self.object}
             if self.is_new:
-                send_emails(user, 'email_new_user', self.user_added_email_template, context, self.request)
+                email_new_user(
+                    self.request,
+                    self.object,
+                    self.user_added_email_template,
+                    {'form': form}
+                )
                 add_message(
                     messages.SUCCESS,
                     "Account created!",
                     f"<strong>{self.object.email}</strong> will receive an email with instructions on how to activate the account and create a password."
                 )
             else:
-                send_emails(
-                    user,
-                    'send_user_email',
+                send_user_email(
+                    self.object.raw_email,
                     self.confirmation_email_template,
                     {
                         'account_settings_page': f"https://{self.request.get_host()}{reverse('settings_profile')}",
-                        'form': form,
-                    },
+                        'form': form
+                    }
                 )
                 add_message(messages.SUCCESS, "Success!", f"<strong>{self.object.email}</strong> added.")
         else:
             if form.created_users:
-                send_emails(form.created_users, 'email_new_user', self.user_added_email_template, context, self.request)
+                send_bulk_addition_emails(form.created_users, 'email_new_user', self.user_added_email_template)
             if form.updated_users:
-                send_emails(form.updated_users, 'send_user_email', self.confirmation_email_template, context)
+                send_bulk_addition_emails(form.updated_users, 'send_user_email', self.confirmation_email_template)
 
             success_message = (
                 "New users will receive an email with instructions on how to activate their accounts and create a password.<br>"
@@ -839,7 +848,7 @@ class BaseAddUserToGroup(UpdateView):
             # Calling render causes response.context to be available from
             # the Django test client, which in turn gives us access to `form`
             # in our tests.
-            render(self.request, self.template_name, context)
+            render(self.request, self.template_name, {'form': form})
 
         return response
 
@@ -872,8 +881,8 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
 class AddMultipleUsersToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/add_multiple_users_to_org.html'
     success_url = reverse_lazy('user_management_manage_organization_user')
-    confirmation_email_template = 'email/user_added_to_organization.txt'
-    user_added_email_template = 'email/new_user_added_to_org_by_other.txt'
+    confirmation_email_template = 'email/user_added_to_organization_from_bulk_form.txt'
+    user_added_email_template = 'email/new_user_added_to_org_by_other_from_bulk_form.txt'
     new_user_form = MultipleUsersFormWithOrganization
     is_batch = True
 
@@ -1048,7 +1057,36 @@ def manage_single_organization_user_remove(request, user_id):
         if request.user == target_user and not target_user.organizations.exists():
             return HttpResponseRedirect(reverse('create_link'))
 
+    # This is the original behavior
     return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
+
+    # Changed in https://github.com/harvard-lil/perma/commit/8558fa3acd6ff65426c48ddb5dc0c5585a923f9a#diff-2d23437eefdff0673773dfca3188a79c47219c64852a08809a1f0afb9c5b0c07
+    # We are looking into whether this change is desirable under certain conditions.
+    # return HttpResponseRedirect(reverse('user_management_manage_single_organization_user', args=[user_id]))
+
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_single_organization_user_expiration_date(request, user_id, organization_id):
+    """
+        Modify the affiliation expiration date of an org user
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    organization = get_object_or_404(Organization, id=organization_id)
+    affiliation = get_object_or_404(UserOrganizationAffiliation, organization=organization, user=target_user)
+
+    if not request.user.shares_scope_with_user(target_user):
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        expires_at = request.POST.get("expires_at") or None
+        affiliation.expires_at = expires_at
+        affiliation.save()
+        return HttpResponseRedirect(reverse('user_management_manage_single_organization_user', args=[user_id]))
+
+    return render(request, 'user_management/manage_organization_affiliation_expiration.html', {
+        'user': target_user,
+        'organization_id': organization.id
+    })
 
 
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
@@ -1079,7 +1117,7 @@ def manage_single_registrar_user_remove(request, user_id):
 
 def toggle_status(request, user_id, registrar_id, status):
     target_user = get_object_or_404(LinkUser, id=user_id)
-    registrar =  get_object_or_404(Registrar, id=registrar_id)
+    registrar = get_object_or_404(Registrar, id=registrar_id)
     sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
 
     # Registrar users can only edit their own sponsored users,
@@ -1133,6 +1171,33 @@ def manage_single_sponsored_user_links(request, user_id, registrar_id):
         'target_user': target_user,
         'registrar': registrar,
         'links': links
+    })
+
+
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
+def manage_single_sponsored_user_expiration_date(request, user_id, registrar_id):
+    """
+        Modify the sponsorship expiration date of a user
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    registrar = get_object_or_404(Registrar, id=registrar_id)
+    sponsorship = get_object_or_404(Sponsorship, user=target_user, registrar=registrar)
+
+    # Registrar users can only edit their own sponsored users
+    if request.user.is_registrar_user() and \
+        (request.user.registrar not in target_user.sponsoring_registrars.all() or
+         str(request.user.registrar_id) != registrar_id):
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        expires_at = request.POST.get("expires_at") or None
+        sponsorship.expires_at = expires_at
+        sponsorship.save()
+        return HttpResponseRedirect(reverse('user_management_manage_single_sponsored_user', args=[user_id]))
+
+    return render(request, 'user_management/manage_sponsorship_affiliation_expiration.html', {
+        'user': target_user,
+        'registrar_id': registrar_id
     })
 
 

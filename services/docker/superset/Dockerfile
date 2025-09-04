@@ -1,4 +1,4 @@
-FROM apache/superset:latest
+FROM apache/superset:3.1.3
 USER root
 
 ENV ADMIN_USERNAME $ADMIN_USERNAME

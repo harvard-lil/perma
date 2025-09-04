@@ -1,0 +1,234 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Perma.cc Codebase Context
+
+## Project Overview
+Perma.cc is a web archiving service that creates permanent links to web content. It's a Django-based application with a Vue.js frontend, designed to help authors and journals create permanent archived citations.
+
+## Architecture
+
+### Backend (Django)
+- **Main App**: `perma_web/perma/` - Core Django application
+- **API**: `perma_web/api/` - REST API built with Django REST Framework
+- **Settings**: `perma_web/perma/settings/` - Modular settings system
+  - `settings_common.py` - Base settings for all deployments
+  - `settings_dev.py` - Development settings
+  - `settings_prod.py` - Production settings
+  - `settings_testing.py` - Testing settings
+- **Models**: `perma_web/perma/models.py` - Core data models (Link, LinkUser, Folder, Organization, Registrar, etc.)
+
+### Frontend (Vue.js)
+- **Components**: `perma_web/static/frontend/components/` - Vue 3 components
+- **Stores**: `perma_web/static/frontend/stores/` - Pinia state management
+- **Assets**: `perma_web/static/` - Static files, CSS, JS, images
+
+### Infrastructure
+- **Docker**: `docker-compose.yml` - Multi-service container setup
+- **Services**: `services/` - External services (Redis, MinIO, etc.)
+
+## Key Models and Relationships
+
+### Core Models
+- **Link**: The main entity representing an archived URL (GUID is primary key)
+- **LinkUser**: Custom user model extending Django's AbstractBaseUser
+- **Folder**: Hierarchical organization of links (tree structure)
+- **Organization**: Groups that can contain folders and links
+- **Registrar**: Institutions (libraries, courts, firms) that sponsor users
+- **Capture**: Individual captures of a link (primary, screenshot, favicon, etc.)
+- **CaptureJob**: Tracks capture processing status and queue
+### User Types
+- **Individual**: Regular users with personal accounts
+- **Organization User**: Users belonging to organizations (journals, etc.)
+- **Registrar User**: Users belonging to registrars (libraries, courts)
+- **Sponsored User**: Users sponsored by registrars
+- **Staff**: Admin users
+
+### Access Control
+- Users can access links they created or links in folders they have access to
+- Organizations can have shared folders accessible to all org members
+- Registrars can sponsor users and provide access to sponsored folders
+- Private links are only visible to their creators
+
+## Development Environment
+
+### Setup
+- Uses Docker Compose for local development
+- PostgreSQL database with Redis for caching
+- MinIO for S3-compatible storage
+- Celery for background tasks
+
+### Key Commands
+- `d invoke run` - Start development server
+- `d pytest` - Run Python tests
+- `d npm test` - Run JavaScript tests
+- `d ./manage.py migrate` - Run database migrations
+- `d invoke pip-compile` - Update Python dependencies
+
+### File Structure Conventions
+- Python: Follow Django conventions, use `perma_` prefix for app-specific modules
+- JavaScript: ES6+ with Vue 3 Composition API
+- CSS: SCSS with Bootstrap customizations
+- Templates: Django templates with Vue components embedded
+
+## API Structure
+
+### REST API (`/api/v1/`)
+- **Authentication**: Token-based using ApiKey model
+- **Endpoints**:
+  - `/folders/` - Folder management
+  - `/archives/` - Link management (authenticated)
+  - `/public/archives/` - Public link access
+  - `/organizations/` - Organization management
+  - `/user/` - Current user info
+  - `/capture_jobs/` - Capture job status
+
+### Serializers
+- `LinkSerializer` - Basic link info (public)
+- `AuthenticatedLinkSerializer` - Full link info with user permissions
+- `FolderSerializer` - Folder hierarchy and metadata
+- `OrganizationSerializer` - Organization details
+
+## Frontend Architecture
+
+### Vue 3 + Pinia
+- **Global Store**: `globalStore.js` - Application state management
+- **Components**: Modular Vue components with Composition API
+- **Data Fetching**: Custom `fetchDataOrError` utility
+- **Error Handling**: Centralized error handling with toast notifications
+
+### Key Components
+- `CreateLink.vue` - Link creation interface
+- `LinkBrowser.vue` - Main dashboard with folder tree and link list
+- `FolderTree.vue` - Hierarchical folder navigation
+- `LinkList.vue` - Paginated link display with search/filter
+
+## Settings and Configuration
+
+### Environment Variables
+- `DJANGO__*` - Override Django settings via environment
+- `SECRET_KEY` - Django secret key (required)
+- `DEBUG` - Development mode flag
+
+### Storage Configuration
+- **WARC Storage**: S3-compatible storage for archive files
+- **WACZ Storage**: Secondary storage for WACZ format
+- **Static Files**: Webpack-compiled assets served via WhiteNoise
+
+### Celery Configuration
+- **Broker**: Redis for task queue
+- **Queues**: `background`, `ia`, `ia-readonly`, `wacz-conversion`
+- **Tasks**: Capture processing, IA uploads, subscription sync
+
+## Testing
+
+### Python Tests
+- **Framework**: pytest with Django integration
+- **Coverage**: pytest-cov for coverage reporting
+- **Fixtures**: Factory Boy for test data generation
+- **Location**: `perma_web/perma/tests/`, `perma_web/api/tests/`
+
+### JavaScript Tests
+- **Framework**: Karma + Jasmine
+- **Location**: `perma_web/spec/`
+
+### Integration Tests
+- **Framework**: Playwright
+- **Location**: `playwright/tests/`
+
+## Security Considerations
+
+### Authentication
+- Custom user model with email as username
+- API key authentication for API access
+- Session-based authentication for web interface
+
+### Authorization
+- Model-level access control via `accessible_to()` methods
+- Folder-based permissions
+- Organization/registrar membership checks
+
+### Rate Limiting
+- IP-based rate limiting with django-ratelimit
+- Login attempt limiting with django-axes
+- Configurable limits for different endpoints
+
+## Performance Considerations
+
+### Database
+- PostgreSQL with optimized indexes
+- Query optimization for large datasets
+- Caching with Redis
+
+### File Storage
+- S3-compatible storage for scalability
+- Presigned URLs for secure file access
+- WARC/WACZ format support for web archives
+
+### Frontend
+- Webpack for asset bundling
+- Vue 3 with Composition API for performance
+- Infinite scrolling for large link lists
+
+## Common Patterns
+
+### Django Patterns
+- Use `@transaction.atomic` for database operations
+- Implement `accessible_to()` methods on models
+- Use `cached_property` for expensive computations
+- Follow Django's model field conventions
+
+### Vue Patterns
+- Use Composition API with `<script setup>`
+- Centralize state in Pinia stores
+- Use `fetchDataOrError` for API calls
+- Implement proper error handling and loading states
+
+### API Patterns
+- Use DRF serializers for data transformation
+- Implement proper pagination with `TastypiePagination`
+- Use `BaseView` for consistent API structure
+- Validate permissions in view methods
+
+## Deployment
+
+### Docker
+- Multi-service container architecture
+- Separate containers for web, database, Redis, storage
+- Environment-specific configurations
+
+### Production
+- SSL/TLS termination
+- CDN for static assets
+- Monitoring with Sentry
+- Background task processing with Celery
+
+## When Working on Files
+
+### Django Files
+- Check model relationships in `perma/models.py`
+- Verify settings in appropriate settings file
+- Use Django's built-in admin for data management
+- Follow Django's URL routing patterns
+
+### API Files
+- Extend `BaseView` for new endpoints
+- Use appropriate serializers for data transformation
+- Implement proper permission checks
+- Follow existing URL patterns in `api/urls.py`
+
+### Frontend Files
+- Use Vue 3 Composition API
+- Access global state via `useGlobalStore()`
+- Use `fetchDataOrError` for API calls
+- Follow existing component patterns
+
+### Database Changes
+- Create migrations with `./manage.py makemigrations`
+- Test migrations in development environment
+- Consider data migration needs for existing records
+- Update model methods if relationships change
+
+This context should help understand the codebase structure and conventions when working with individual files. 

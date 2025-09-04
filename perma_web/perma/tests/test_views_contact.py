@@ -32,7 +32,7 @@ def test_contact_blank_when_logged_out(client):
     textareas = soup.select('textarea')
     assert len(textareas) == 2
     for textarea in textareas:
-        assert textarea['name'] in ['telephone', 'box2']
+        assert textarea['name'] in ['email_confirmation', 'box2']
         assert textarea.text.strip() == ""
 
 
@@ -58,7 +58,7 @@ def test_contact_blank_regular(client, link_user):
     textareas = soup.select('textarea')
     assert len(textareas) == 2
     for textarea in textareas:
-        assert textarea['name'] in ['telephone', 'box2']
+        assert textarea['name'] in ['email_confirmation', 'box2']
         assert textarea.text.strip() == ""
 
 
@@ -84,7 +84,7 @@ def test_contact_blank_registrar(client, registrar_user):
     textareas = soup.select('textarea')
     assert len(textareas) == 2
     for textarea in textareas:
-        assert textarea['name'] in ['telephone', 'box2']
+        assert textarea['name'] in ['email_confirmation', 'box2']
         assert textarea.text.strip() == ""
 
 
@@ -110,7 +110,7 @@ def test_contact_blank_single_reg_org_user(client, org_user):
     textareas = soup.select('textarea')
     assert len(textareas) == 2
     for textarea in textareas:
-        assert textarea['name'] in ['telephone', 'box2']
+        assert textarea['name'] in ['email_confirmation', 'box2']
         assert textarea.text.strip() == ""
 
 
@@ -136,7 +136,7 @@ def test_contact_blank_multi_reg_org_user(client, multi_registrar_org_user):
     textareas = soup.select('textarea')
     assert len(textareas) == 2
     for textarea in textareas:
-        assert textarea['name'] in ['telephone', 'box2']
+        assert textarea['name'] in ['email_confirmation', 'box2']
         assert textarea.text.strip() == ""
     selects = soup.select('select')
     assert len(selects) == 1
@@ -255,7 +255,7 @@ def test_contact_standard_submit_required_with_spam_catcher(client, email_detail
         client,
         'contact',
         data = { 'email': email_details["from_email"],
-               'telephone': "I'm a bot",
+               'email_confirmation': "I'm a bot",
                'box2': email_details["message_text"],
                'subject': email_details["custom_subject"],
                'referer': email_details["referring_page"] },
@@ -428,7 +428,7 @@ def test_report_post_with_spam_catcher1(client):
             'reason': "",
             'source': "",
             'email': "",
-            'telephone': "I'm a bot",
+            'email_confirmation': "I'm a bot",
             'guid': "AAAA-AAAA"
         },
         success_url=reverse('contact_thanks')

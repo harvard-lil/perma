@@ -224,7 +224,7 @@
         {% if request.user.is_staff %}
           <a href="?embed=False" class="btn btn-ui-small btn-dashboard">Show playback controls</a>
         {% endif %}
-        {% if link.can_play_back %}
+        {% if link.can_play_back and request.user.is_authenticated %}
           <a href="{% url 'single_permalink' guid=link.guid %}?type=warc_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download WARC</a>
             {% if link.wacz_size %}
               <a href="{% url 'single_permalink' guid=link.guid %}?type=wacz_download" role="button" class="btn btn-ui-small btn-dashboard" title="download">Download WACZ</a>
@@ -269,7 +269,16 @@
     {% if new_record %}
       <div class="banner banner-status row _isNewRecord">
         <span class="success">Success!</span>
-        <span class="message verbose">Your new Perma Link is <strong>https://{{ request.get_host }}{% url 'single_permalink' link.guid %}</strong></span>
+        <span class="message verbose">
+          Your new Perma Link is <strong id="permalink-url">https://{{ request.get_host }}{% url 'single_permalink' link.guid %}</strong>
+          <button id="copy-link-btn" class="copy-icon-btn" type="button" title="Copy link to clipboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="sr-only">Copy link</span>
+          </button>
+        </span>
         <span class="link-options verbose">
           <a class="edit-link" style="cursor:pointer;">Edit<span class="_verbose _toDesktop"> link details</span></a>
           <span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span>

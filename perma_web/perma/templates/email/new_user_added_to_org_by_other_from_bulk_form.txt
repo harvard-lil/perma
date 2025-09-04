@@ -1,0 +1,5 @@
+TITLE: A Perma.cc account has been created for you
+
+A Perma.cc account has been created for you by {{ requester }} on behalf of {{ org }}.
+
+{% include 'email/includes/activation.txt' %}

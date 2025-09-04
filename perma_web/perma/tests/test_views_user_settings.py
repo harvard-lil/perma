@@ -93,7 +93,7 @@ def test_user_can_request_deletion_once(client, link_user, mailoutbox):
     # Check that admins were emailed about the request
     assert len(mailoutbox) == 1
     message = mailoutbox[0]
-    assert message.subject == 'Perma.cc account deletion request'
+    assert message.subject.startswith('Perma.cc account deletion request')
 
 
 #

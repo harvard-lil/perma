@@ -1,0 +1,49 @@
+{% extends "admin-layout.html" %}
+
+{% block title %} | Modify affiliation expiration of user {% endblock %}
+
+{% block adminContent %}
+
+    <h3 class="body-bh">Modify affiliation expiration of {{ user }}</h3>
+
+    <form method="POST" action="{% url 'user_management_manage_single_organization_user_expiration_date' user_id=user.id organization_id=organization_id %}">
+        {% csrf_token %}
+        <fieldset>
+            <div class="checkbox">
+            <label for="indefinite_affiliation">
+                <input type="checkbox" name="indefinite_affiliation" id="indefinite_affiliation">
+                    Set permanent affiliation
+                </input>
+            </label>
+            </div>
+            <div class="form-group">
+                <label for="expires_at">Or set a new expiration date:
+                    <input type="date" name="expires_at" id="expires_at"/>
+                </label>
+            </div>
+        </fieldset>
+        <button type="submit" class="btn">Update</button>
+        <a href="{% url 'user_management_manage_single_organization_user' user_id=user.id %}" class="btn cancel">Cancel</a>
+    </form>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const checkbox = document.getElementById("indefinite_affiliation");
+            const datetimeField = document.getElementById("expires_at");
+            const today = new Date().toISOString().split('T')[0];
+            datetimeField.setAttribute('min', today);
+
+            const toggleExpirationDateField = () => {
+                if (checkbox.checked) {
+                    datetimeField.value = '';
+                    datetimeField.disabled = true;
+                } else {
+                    datetimeField.disabled = false;
+                }
+            };
+
+            checkbox.addEventListener("change", toggleExpirationDateField);
+            toggleExpirationDateField();
+        });
+    </script>
+
+{% endblock %}

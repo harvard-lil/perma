@@ -11,18 +11,18 @@ services:
     volumes:
       - redis_data:/data:delegated
   db:
-    image: registry.lil.tools/library/postgres:12.11
+    image: registry.lil.tools/library/postgres:16.6
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: perma
       POSTGRES_USER: perma
     volumes:
-      - postgres_data:/var/lib/postgresql/data:delegated
+      - postgres_data_16:/var/lib/postgresql/data:delegated
     networks:
       - default
       - superset
   web:
-    image: registry.lil.tools/harvardlil/perma-web:129-f2b07d94d3ab843bcf4afb6f753b2e70
+    image: registry.lil.tools/harvardlil/perma-web:137-ee9792e3a3584ee5197a8fdc3abf3b90
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -113,7 +113,7 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:5-14853706630a07e835ebb9da840ece83
+    image: registry.lil.tools/harvardlil/wacz-exhibitor:6-ec122b8e74374fd90ad71189cbd42b62
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
@@ -140,9 +140,9 @@ services:
 
 volumes:
   node_modules:
-  postgres_data:
+  postgres_data_16:
   redis_data:
-  pp_db_data:
+  pp_db_data_16:
   scoop_redis_data:
   scoop_postgres_data:
   scoop_access_key:

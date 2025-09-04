@@ -7433,21 +7433,25 @@ a.cc:active, p a.cc.perma:active {
 .btn._nav:active {
   background-color: #222 !important;
 }
-.btn.cancel {
+.btn.cancel, .btn.update-affiliation-btn {
   border-color: #DD671A;
   color: #DD671A;
   background-color: white;
 }
-.btn.cancel:hover, .btn.cancel:focus {
+.btn.cancel:hover, .btn.cancel:focus, .btn.update-affiliation-btn:hover, .btn.update-affiliation-btn:focus {
   background-color: white !important;
   color: red !important;
   border-color: red;
   text-decoration: none !important;
 }
-.btn.cancel:active {
+.btn.cancel:active, .btn.update-affiliation-btn:active {
   background-color: white !important;
   border-color: #222;
   color: #222 !important;
+}
+.btn.update-affiliation-btn:hover, .btn.update-affiliation-btn:focus {
+  color: #77AE3A !important;
+  border-color: #77AE3A;
 }
 .btn.btn-bookmarklet {
   padding: 8px;
@@ -9324,7 +9328,7 @@ div.checkbox {
   padding-left: 36px;
 }
 
-div.checkbox:has(#id_a-indefinite_sponsorship), div.checkbox:has(#id_a-indefinite_affiliation) {
+div.checkbox:has(#id_a-indefinite_sponsorship), div.checkbox:has(#indefinite_sponsorship), div.checkbox:has(#id_a-indefinite_affiliation), div.checkbox:has(#indefinite_affiliation) {
   background-color: inherit;
   padding-left: 0;
   margin-right: 0;
@@ -9489,10 +9493,10 @@ button#addlink,
   }
 }
 
-.contact-form label[for=id_telephone] {
+.contact-form label[for=id_email_confirmation] {
   display: none;
 }
-.contact-form textarea[name=telephone] {
+.contact-form textarea[name=email_confirmation] {
   display: none;
 }
 
@@ -9502,10 +9506,10 @@ button#addlink,
   padding-left: 3px;
 }
 
-.signup-learnMore-form label[for=id_telephone], .signup-learnMore-form label[for=id_a-telephone], .add-user label[for=id_telephone], .add-user label[for=id_a-telephone], .change-user label[for=id_telephone], .change-user label[for=id_a-telephone] {
+.signup-learnMore-form label[for=id_email_confirmation], .signup-learnMore-form label[for=id_a-email_confirmation], .add-user label[for=id_email_confirmation], .add-user label[for=id_a-email_confirmation], .change-user label[for=id_email_confirmation], .change-user label[for=id_a-email_confirmation] {
   display: none;
 }
-.signup-learnMore-form input[name=telephone], .signup-learnMore-form input[name=a-telephone], .add-user input[name=telephone], .add-user input[name=a-telephone], .change-user input[name=telephone], .change-user input[name=a-telephone] {
+.signup-learnMore-form input[name=email_confirmation], .signup-learnMore-form input[name=a-email_confirmation], .add-user input[name=email_confirmation], .add-user input[name=a-email_confirmation], .change-user input[name=email_confirmation], .change-user input[name=a-email_confirmation] {
   display: none;
 }
 
@@ -9520,6 +9524,10 @@ button#addlink,
   background-size: cover;
   margin-right: 0px;
   bottom: -2px;
+}
+
+.org-user-actions form {
+  display: inline;
 }
 
 .purchase-form, .upgrade-form {
@@ -11980,6 +11988,15 @@ section .caption a, section .caption p a.perma, p section .caption a.perma {
   }
 }
 
+#supporting-partners a img.wide {
+  padding: 8px;
+}
+@media only screen and (min-width: 768px) {
+  #supporting-partners a img.wide {
+    padding: 16px;
+  }
+}
+
 .row-stats {
   margin-bottom: 8px;
   margin-top: 24px;
@@ -12624,6 +12641,91 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.modify-org-exp-btn {
+  width: 100%;
+  margin-top: 6px !important;
+}
+@media only screen and (min-width: 768px) {
+  .modify-org-exp-btn {
+    width: auto;
+    margin-top: 0 !important;
+  }
+}
+
+/* copy link button */
+.copy-icon-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin-left: 8px;
+  cursor: pointer;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -ms-flex-align: center;
+      align-items: center;
+  -ms-flex-pack: center;
+      justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  color: #666;
+  vertical-align: middle;
+}
+
+.copy-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.copy-icon-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
+}
+
+.copy-icon-btn:active {
+  background-color: rgba(0, 0, 0, 0.15);
+  transform: scale(0.95);
+}
+
+.copy-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.5;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Success feedback animation */
+.copy-icon-btn.copied {
+  color: #28a745;
+}
+
+.copy-icon-btn.copied svg {
+  animation: copySuccess 0.3s ease;
+}
+
+@keyframes copySuccess {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 /*!
  *  Font Awesome 3.0.2

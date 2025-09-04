@@ -85,7 +85,8 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
                 ['user_management_manage_single_sponsored_user', {'kwargs':{'user_id': sponsored_user.id}}],
                 ['user_management_manage_single_sponsored_user_remove', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
                 ['user_management_manage_single_sponsored_user_readd', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
-                ['user_management_manage_single_sponsored_user_links', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}]
+                ['user_management_manage_single_sponsored_user_links', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}],
+                ['user_management_manage_single_sponsored_user_expiration_date', {'kwargs':{'user_id': sponsored_user.id, 'registrar_id': sponsored_user_registrar.id}}]
             ],
             'allowed': {admin_user, sponsored_user_registrar_user},
         },
@@ -109,6 +110,12 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
                  'success_status': 302}],
             ],
             'allowed': {admin_user, org_user_registrar_user, org_user},
+        },
+        {
+            'urls': [
+                ['user_management_manage_single_organization_user_expiration_date', {'kwargs': {'user_id': org_user.id, 'organization_id': org_user_org.id}}]
+            ],
+            'allowed': {admin_user, org_user_registrar_user},
         },
         {
             'urls': [

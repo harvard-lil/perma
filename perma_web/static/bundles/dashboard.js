@@ -66078,44 +66078,64 @@ var _hoisted_27 = {
 };
 var _hoisted_28 = ["href"];
 var _hoisted_29 = ["href"];
-var _hoisted_30 = {
+var _hoisted_30 = ["id", "onClick"];
+var _hoisted_31 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round"
+  }, [/*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("rect", {
+    x: "9",
+    y: "9",
+    width: "13",
+    height: "13",
+    rx: "2",
+    ry: "2"
+  }), /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("path", {
+    d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+  })], -1 /* HOISTED */);
+});
+var _hoisted_32 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
+    class: "sr-only"
+  }, "Copy link", -1 /* HOISTED */);
+});
+var _hoisted_33 = [_hoisted_31, _hoisted_32];
+var _hoisted_34 = {
   class: "row item-secondary"
 };
-var _hoisted_31 = {
+var _hoisted_35 = {
   class: "col col-sm-5 pull-right sm-align-right"
 };
-var _hoisted_32 = {
+var _hoisted_36 = {
   class: "item-date"
 };
-var _hoisted_33 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_37 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
     class: "label"
   }, "Created ", -1 /* HOISTED */);
 });
-var _hoisted_34 = {
+var _hoisted_38 = {
   key: 0,
   class: "row item-details",
   style: {
     "display": "block"
   }
 };
-var _hoisted_35 = {
+var _hoisted_39 = {
   class: "col-sm-7"
 };
-var _hoisted_36 = {
-  class: "form-group"
-};
-var _hoisted_37 = ["for"];
-var _hoisted_38 = {
-  class: "title-save-status"
-};
-var _hoisted_39 = ["id", "onUpdate:modelValue", "onInput"];
 var _hoisted_40 = {
   class: "form-group"
 };
 var _hoisted_41 = ["for"];
 var _hoisted_42 = {
-  class: "description-save-status"
+  class: "title-save-status"
 };
 var _hoisted_43 = ["id", "onUpdate:modelValue", "onInput"];
 var _hoisted_44 = {
@@ -66123,58 +66143,66 @@ var _hoisted_44 = {
 };
 var _hoisted_45 = ["for"];
 var _hoisted_46 = {
-  class: "notes-save-status"
+  class: "description-save-status"
 };
 var _hoisted_47 = ["id", "onUpdate:modelValue", "onInput"];
-var _hoisted_48 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_48 = {
+  class: "form-group"
+};
+var _hoisted_49 = ["for"];
+var _hoisted_50 = {
+  class: "notes-save-status"
+};
+var _hoisted_51 = ["id", "onUpdate:modelValue", "onInput"];
+var _hoisted_52 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
     class: "muted"
   }, " Notes are private to you and your organization(s) ", -1 /* HOISTED */);
 });
-var _hoisted_49 = {
+var _hoisted_53 = {
   class: "form-group"
 };
-var _hoisted_50 = ["for"];
-var _hoisted_51 = ["id", "onChange"];
-var _hoisted_52 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_54 = ["for"];
+var _hoisted_55 = ["id", "onChange"];
+var _hoisted_56 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("option", {
     value: "",
     disabled: ""
   }, " Please select a folder ", -1 /* HOISTED */);
 });
-var _hoisted_53 = ["value", "selected", "disabled", "data-orgid"];
-var _hoisted_54 = {
+var _hoisted_57 = ["value", "selected", "disabled", "data-orgid"];
+var _hoisted_58 = {
   class: "form-group"
 };
-var _hoisted_55 = {
+var _hoisted_59 = {
   class: "default-to-screenshot-view"
 };
-var _hoisted_56 = {
+var _hoisted_60 = {
   class: "default-to-screenshot-view"
 };
-var _hoisted_57 = {
+var _hoisted_61 = {
   class: "default_to_screenshot_view-save-status"
 };
-var _hoisted_58 = {
+var _hoisted_62 = {
   class: "radio-inline"
 };
-var _hoisted_59 = ["onUpdate:modelValue", "onChange"];
-var _hoisted_60 = {
+var _hoisted_63 = ["onUpdate:modelValue", "onChange"];
+var _hoisted_64 = {
   class: "radio-inline"
 };
-var _hoisted_61 = ["onUpdate:modelValue", "onChange"];
-var _hoisted_62 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_65 = ["onUpdate:modelValue", "onChange"];
+var _hoisted_66 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", {
     class: "muted"
   }, " Default view preference is private to you and your organization(s) ", -1 /* HOISTED */);
 });
-var _hoisted_63 = {
+var _hoisted_67 = {
   class: "col-sm-5 link-stats"
 };
-var _hoisted_64 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_68 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("strong", null, "Created by:", -1 /* HOISTED */);
 });
-var _hoisted_65 = {
+var _hoisted_69 = {
   key: 0,
   class: "item-notification"
 };
@@ -66208,7 +66236,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   }, [$setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_12, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_13, "This is an empty folder"))], 64 /* STABLE_FRAGMENT */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], {
     key: 3
   }, [(Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.links, function (link) {
-    var _context, _context2, _context3;
+    var _context, _context2, _context3, _context4;
     return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", {
       key: link.guid,
       class: Object(vue__WEBPACK_IMPORTED_MODULE_1__["normalizeClass"])(["item-container _isExpandable", {
@@ -66251,9 +66279,19 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       class: "perma no-drag",
       href: "//".concat(link.local_url),
       target: "_blank"
-    }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.local_url), 9 /* TEXT, PROPS */, _hoisted_29)])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_30, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_31, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_32, [_hoisted_33, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.creation_timestamp_formatted), 1 /* TEXT */)])])])], 40 /* PROPS, NEED_HYDRATION */, _hoisted_14), link.showDetails ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_34, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_35, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_36, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
+    }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.local_url), 9 /* TEXT, PROPS */, _hoisted_29), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("button", {
+      id: "copy-link-btn-".concat(link.guid),
+      class: "copy-icon-btn no-drag",
+      type: "button",
+      title: "Copy link to clipboard",
+      onClick: Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function ($event) {
+        return $setup.copyToClipboard(link.local_url, link.guid);
+      }, ["stop"]),
+      onMousedown: _cache[3] || (_cache[3] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function () {}, ["stop"])),
+      onMouseup: _cache[4] || (_cache[4] = Object(vue__WEBPACK_IMPORTED_MODULE_1__["withModifiers"])(function () {}, ["stop"]))
+    }, _babel_runtime_corejs3_core_js_stable_instance_concat__WEBPACK_IMPORTED_MODULE_0___default()(_context4 = []).call(_context4, _hoisted_33), 40 /* PROPS, NEED_HYDRATION */, _hoisted_30)])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_34, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_35, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_36, [_hoisted_37, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.creation_timestamp_formatted), 1 /* TEXT */)])])])], 40 /* PROPS, NEED_HYDRATION */, _hoisted_14), link.showDetails ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_38, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_39, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_40, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
       for: "link-title-".concat(link.guid)
-    }, "Display title", 8 /* PROPS */, _hoisted_37), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_38, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-title")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+    }, "Display title", 8 /* PROPS */, _hoisted_41), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_42, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-title")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "text",
       class: "link-title",
       id: "link-title-".concat(link.guid),
@@ -66263,9 +66301,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onInput: function onInput(e) {
         return $setup.handleInput(link.guid, 'title', e.target.value);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_39), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.title]])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_40, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_43), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.title]])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_44, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
       for: "link-description-".concat(link.guid)
-    }, "Display description", 8 /* PROPS */, _hoisted_41), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_42, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-description")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+    }, "Display description", 8 /* PROPS */, _hoisted_45), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_46, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-description")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "text",
       class: "link-description",
       id: "link-description-".concat(link.guid),
@@ -66275,9 +66313,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onInput: function onInput(e) {
         return $setup.handleInput(link.guid, 'description', e.target.value);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_43), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.description]])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_44, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_47), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.description]])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_48, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
       for: "link-notes-".concat(link.guid)
-    }, "Notes", 8 /* PROPS */, _hoisted_45), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_46, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-notes")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("textarea", {
+    }, "Notes", 8 /* PROPS */, _hoisted_49), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_50, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-notes")]), 1 /* TEXT */), Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("textarea", {
       id: "link-notes-".concat(link.guid),
       class: "link-notes",
       rows: "6",
@@ -66287,23 +66325,23 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onInput: function onInput(e) {
         return $setup.handleInput(link.guid, 'notes', e.target.value);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_47), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.notes]]), _hoisted_48]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_49, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_51), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelText"], link.notes]]), _hoisted_52]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_53, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", {
       for: "move-to-folder-".concat(link.guid)
-    }, "Move to folder", 8 /* PROPS */, _hoisted_50), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("select", {
+    }, "Move to folder", 8 /* PROPS */, _hoisted_54), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("select", {
       id: "move-to-folder-".concat(link.guid),
       class: "move-to-folder form-control",
       onChange: function onChange(e) {
         return $setup.onFolderSelectionChange(e, link.guid);
       }
-    }, [_hoisted_52, (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.folderOptions, function (option) {
+    }, [_hoisted_56, (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_1__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_1__["renderList"])($setup.folderOptions, function (option) {
       return Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("option", {
         key: option.value,
         value: option.value,
         selected: option.selected,
         disabled: option.disabled,
         "data-orgid": option['data-orgid']
-      }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(option.text), 9 /* TEXT, PROPS */, _hoisted_53);
-    }), 128 /* KEYED_FRAGMENT */))], 40 /* PROPS, NEED_HYDRATION */, _hoisted_51)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_54, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_55, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("legend", _hoisted_56, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("Default view "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_57, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-default_to_screenshot_view")]), 1 /* TEXT */)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_58, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+      }, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(option.text), 9 /* TEXT, PROPS */, _hoisted_57);
+    }), 128 /* KEYED_FRAGMENT */))], 40 /* PROPS, NEED_HYDRATION */, _hoisted_55)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_58, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("fieldset", _hoisted_59, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("legend", _hoisted_60, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])("Default view "), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", _hoisted_61, Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])($setup.saveStatuses["".concat(link.guid, "-default_to_screenshot_view")]), 1 /* TEXT */)]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_62, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "radio",
       class: "link-default-to-screenshot-view",
       name: "default-view",
@@ -66314,7 +66352,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onChange: function onChange(e) {
         return $setup.handleInput(link.guid, 'default_to_screenshot_view', false);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_59), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Standard ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_60, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_63), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Standard ")]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("label", _hoisted_64, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["withDirectives"])(Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("input", {
       type: "radio",
       class: "link-default-to-screenshot-view",
       name: "default-view",
@@ -66325,8 +66363,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onChange: function onChange(e) {
         return $setup.handleInput(link.guid, 'default_to_screenshot_view', true);
       }
-    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_61), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Screenshot ")])]), _hoisted_62])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_63, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", null, [_hoisted_64, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.created_by.full_name), 1 /* TEXT */)])])])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */);
-  }), 128 /* KEYED_FRAGMENT */)), $setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_65, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 64 /* STABLE_FRAGMENT */))], 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
+    }, null, 40 /* PROPS, NEED_HYDRATION */, _hoisted_65), [[vue__WEBPACK_IMPORTED_MODULE_1__["vModelRadio"], link.default_to_screenshot_view]]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" Screenshot ")])]), _hoisted_66])]), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", _hoisted_67, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("div", null, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementVNode"])("span", null, [_hoisted_68, Object(vue__WEBPACK_IMPORTED_MODULE_1__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_1__["toDisplayString"])(link.created_by.full_name), 1 /* TEXT */)])])])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 2 /* CLASS */);
+  }), 128 /* KEYED_FRAGMENT */)), $setup.loading ? (Object(vue__WEBPACK_IMPORTED_MODULE_1__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_1__["createElementBlock"])("div", _hoisted_69, [Object(vue__WEBPACK_IMPORTED_MODULE_1__["createVNode"])($setup["Spinner"])])) : Object(vue__WEBPACK_IMPORTED_MODULE_1__["createCommentVNode"])("v-if", true)], 64 /* STABLE_FRAGMENT */))], 512 /* NEED_PATCH */)], 64 /* STABLE_FRAGMENT */);
 }
 
 /***/ }),
@@ -66789,6 +66827,58 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
       if (dragStartPosition && Math.sqrt(Math.pow(e.pageX - dragStartPosition[0], 2) * Math.pow(e.pageY - dragStartPosition[1], 2)) > 5) return;
       toggleLinkDetails(e, link);
     }
+    function copyToClipboard(url, linkGuid) {
+      // Construct full URL
+      var fullUrl = "https://".concat(url);
+
+      // Modern clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullUrl).then(function () {
+          showCopiedFeedback(linkGuid);
+        }).catch(function (err) {
+          console.error('Failed to copy: ', err);
+          fallbackCopyTextToClipboard(fullUrl, linkGuid);
+        });
+      } else {
+        // Fallback for older browsers
+        fallbackCopyTextToClipboard(fullUrl, linkGuid);
+      }
+    }
+    function showCopiedFeedback(linkGuid) {
+      var copyBtn = document.getElementById("copy-link-btn-".concat(linkGuid));
+      if (copyBtn) {
+        copyBtn.classList.add('copied');
+        var originalTitle = copyBtn.title;
+        copyBtn.title = 'Copied!';
+
+        // Reset after 2 seconds
+        _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_15___default()(function () {
+          copyBtn.classList.remove('copied');
+          copyBtn.title = originalTitle;
+        }, 2000);
+      }
+    }
+    function fallbackCopyTextToClipboard(text, linkGuid) {
+      var textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        // I know this is deprecated, using it purely as a fallback 
+        // mechanism for browsers that do not support the clipboard api
+        var successful = document.execCommand('copy');
+        if (successful) {
+          showCopiedFeedback(linkGuid);
+        }
+      } catch (err) {
+        console.error('Fallback copy failed: ', err);
+      }
+      document.body.removeChild(textArea);
+    }
 
     /*** Infinite scroll setup ***/
     Object(_vueuse_core__WEBPACK_IMPORTED_MODULE_21__["useInfiniteScroll"])(linkScrollContainer, function () {
@@ -66851,6 +66941,9 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
       },
       handleMouseDown: handleMouseDown,
       handleMouseUp: handleMouseUp,
+      copyToClipboard: copyToClipboard,
+      showCopiedFeedback: showCopiedFeedback,
+      fallbackCopyTextToClipboard: fallbackCopyTextToClipboard,
       ref: vue__WEBPACK_IMPORTED_MODULE_17__["ref"],
       computed: vue__WEBPACK_IMPORTED_MODULE_17__["computed"],
       onMounted: vue__WEBPACK_IMPORTED_MODULE_17__["onMounted"],

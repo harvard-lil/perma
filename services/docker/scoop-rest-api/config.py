@@ -1,4 +1,4 @@
-# This is the default config.py from the Scoop REST API as of 12/10/2024
+# This is the default config.py from the Scoop REST API as of 2025-08-22
 # https://github.com/harvard-lil/perma-scoop-api/blob/main/scoop_rest_api/config.py
 # We use it to:
 # - override the blocklist, to allow the capturing of docker-hosted pages in our test suite;
@@ -12,7 +12,7 @@ import os
 
 from celery.schedules import crontab
 from dotenv import load_dotenv
-from playwright.sync_api import sync_playwright
+import json
 
 load_dotenv()
 
@@ -63,6 +63,7 @@ MAX_SUPPORTED_ARCHIVE_FILESIZE = int(os.environ.get("MAX_SUPPORTED_ARCHIVE_FILES
 """
     What is the largest archive this application can save and serve without failure? (In bytes).
     Can be provided via an environment variable.
+
     Default: 1GB
 """
 
@@ -160,7 +161,6 @@ SCOOP_CLI_OPTIONS = {
 SCOOP_TIMEOUT_FUSE = 60
 """ Number of seconds to wait before "killing" a Scoop progress after capture timeout. """
 
-
 if "VIDEO_ATTACHMENT_DOMAINS" in os.environ:
     VIDEO_ATTACHMENT_DOMAINS = os.environ["VIDEO_ATTACHMENT_DOMAINS"].split(",")
 else:
@@ -172,19 +172,37 @@ else:
     low-quality video captures.)
 """
 
+CUSTOM_USER_AGENT_DOMAINS = json.loads(os.getenv("CUSTOM_USER_AGENT_DOMAINS", "{}"))
+"""
+    If the API should use a particular user agent header when validating URLs
+    from a specific domain, and/or if Scoop should append a suffix to the browser's
+    user agent header when making captures from that domain, you can supply those
+    strings using this setting.
+
+    Takes a JSON dictionary.
+
+    Example:
+    {"www.fcc.gov": {"validator_ua": "Perma.cc/FCC URL Validator", "scoop_ua_suffix": "(Perma.cc/FCC)"}}
+"""
 
 #
 # Validation settings
 #
-with sync_playwright() as playwright:
-    VALIDATION_USER_AGENT = playwright.devices["Desktop Chrome"]["user_agent"]
+
+# Default to a simple identifying string
+VALIDATION_USER_AGENT = "Perma.cc URL Validator"
+# Default to the actual user agent used by the capturing browser
+#
+# from playwright.sync_api import sync_playwright
+# with sync_playwright() as playwright:
+#     VALIDATION_USER_AGENT = playwright.devices["Desktop Chrome"]["user_agent"]
 
 VALIDATION_EXTRA_HEADERS = {
-    "Accept": "*/*",
-    "Accept-Encoding": "*",
-    "Accept-Language": "*",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",
 }
+
 VALIDATION_TIMEOUT = int(os.environ.get("VALIDATION_TIMEOUT", "45"))
 
 
@@ -217,7 +235,6 @@ if "CELERYBEAT_TASKS" in os.environ:
     CELERYBEAT_TASKS = os.environ["CELERYBEAT_TASKS"].split(",")
 else:
     CELERYBEAT_TASKS = ["run-next-capture"]
-
 
 #
 # Command for wrapping Scoop, e.g. firejail

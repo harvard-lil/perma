@@ -26,18 +26,22 @@
     </form>
 
     <script>
-      const checkbox = document.getElementById("id_a-indefinite_affiliation");
-      const datetimeField = document.getElementById("id_a-expires_at");
-      const datetimeFieldLabel = document.querySelector('label[for="id_a-expires_at"]');
+      document.addEventListener("DOMContentLoaded", function () {
+        const checkbox = document.getElementById("id_a-indefinite_affiliation");
+        const datetimeField = document.getElementById("id_a-expires_at");
+        const datetimeFieldLabel = document.querySelector('label[for="id_a-expires_at"]');
+        const today = new Date().toISOString().split('T')[0];
+        datetimeField.setAttribute('min', today);
 
-      const toggleExpirationDateField = () => {
-        const displayStyle = checkbox.checked ? "none" : "block";
-        datetimeField.style.display = displayStyle;
-        datetimeFieldLabel.style.display = displayStyle;
-      };
+        const toggleExpirationDateField = () => {
+          const displayStyle = checkbox.checked ? "none" : "block";
+          datetimeField.style.display = displayStyle;
+          datetimeFieldLabel.style.display = displayStyle;
+        };
 
-      document.addEventListener("DOMContentLoaded", toggleExpirationDateField);
-      checkbox.addEventListener("change", toggleExpirationDateField);
+        toggleExpirationDateField();
+        checkbox.addEventListener("change", toggleExpirationDateField);
+      });
     </script>
 
   {% endif %}

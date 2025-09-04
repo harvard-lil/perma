@@ -276,6 +276,64 @@ function handleMouseUp (e, link) {
   toggleLinkDetails(e, link);
 }
 
+function copyToClipboard(url, linkGuid) {
+  // Construct full URL
+  const fullUrl = `https://${url}`;
+  
+  // Modern clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(fullUrl).then(function() {
+      showCopiedFeedback(linkGuid);
+    }).catch(function(err) {
+      console.error('Failed to copy: ', err);
+      fallbackCopyTextToClipboard(fullUrl, linkGuid);
+    });
+  } else {
+    // Fallback for older browsers
+    fallbackCopyTextToClipboard(fullUrl, linkGuid);
+  }
+}
+
+function showCopiedFeedback(linkGuid) {
+  const copyBtn = document.getElementById(`copy-link-btn-${linkGuid}`);
+  if (copyBtn) {
+    copyBtn.classList.add('copied');
+    
+    const originalTitle = copyBtn.title;
+    copyBtn.title = 'Copied!';
+    
+    // Reset after 2 seconds
+    setTimeout(function() {
+      copyBtn.classList.remove('copied');
+      copyBtn.title = originalTitle;
+    }, 2000);
+  }
+}
+
+function fallbackCopyTextToClipboard(text, linkGuid) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    // I know this is deprecated, using it purely as a fallback 
+    // mechanism for browsers that do not support the clipboard api
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopiedFeedback(linkGuid);
+    }
+  } catch (err) {
+    console.error('Fallback copy failed: ', err);
+  }
+  
+  document.body.removeChild(textArea);
+}
+
 /*** Infinite scroll setup ***/
 useInfiniteScroll(
   linkScrollContainer,
@@ -393,6 +451,21 @@ defineExpose({
             <div class="col col-sm-6 col-md-40 align-right item-permalink">
               <a v-if="link.delete_available" class="delete no-drag" :href="`/manage/delete-link/${link.guid}`">Delete</a>
               <a class="perma no-drag" :href="`//${link.local_url}`" target="_blank">{{ link.local_url }}</a>
+              <button 
+                :id="`copy-link-btn-${link.guid}`" 
+                class="copy-icon-btn no-drag" 
+                type="button" 
+                :title="`Copy link to clipboard`"
+                @click.stop="copyToClipboard(link.local_url, link.guid)"
+                @mousedown.stop
+                @mouseup.stop
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span class="sr-only">Copy link</span>
+              </button>
             </div>
           </div>
           <div class="row item-secondary">

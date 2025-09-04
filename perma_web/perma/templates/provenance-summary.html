@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Provenance summary for user upload for {{url}}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <style>
+    * {
+      padding: 0px;
+      margin: 0px;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    video {
+      max-width: 100%;
+    }
+
+    main {
+      width: 100%;
+      padding: 1rem;
+      margin: auto;
+      max-width: 90ch;
+    }
+
+    section {
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid gray;
+    }
+
+    h1, h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p span {
+      display: inline-block;
+      background-color: antiquewhite;
+      padding: 0.2rem;
+      padding-left: 0.35rem;
+      padding-right: 0.35rem;
+      border-radius: 0.25rem;
+    }
+
+    ul {
+      list-style-position: inside;
+    }
+
+    table {
+      table-layout: fixed;
+      border-collapse: collapse;
+      width: 100%;
+      text-align: left;
+    }
+
+    table * {
+      word-break: break-word;
+    }
+
+    table tr {
+      border-bottom: 1px solid lightgray;
+    }
+    
+    table tr td, table tr th {
+      padding: 0.75rem 0.25rem;
+    }
+
+    table tr td:first-of-type {
+      min-width: 34ch;
+    }
+
+    table tr:last-of-type {
+      border-bottom: 0px;
+    }
+    </style>
+
+  </head>
+
+  <body>
+    
+    <main>
+
+      <header>
+        <h1>Provenance Summary</h1>
+        <p>The data present in this capture, with MIME type <code>{{ mime_type }}</code>, were uploaded by a Perma user at {{ now }} to replace a failed or unsatisfactory capture of {{ url }} at {{ creation_timestamp }}.</p>
+      </header>
+        
+    </main>
+
+  </body>
+
+</html>
+

@@ -140,7 +140,7 @@ def single_permalink(request, guid):
         ):
             convert_warc_to_wacz.delay(link.guid)
 
-        logger.info(f'Preparing client-side playback for {link.guid}')
+        logger.debug(f'Preparing client-side playback for {link.guid}')
         context['client_side_playback_host'] = settings.PLAYBACK_HOST
         context['embed'] = False if request.GET.get('embed') == 'False' else True
 
