@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+from datetime import timedelta
 from io import StringIO
 import json
 import pytest
@@ -1212,6 +1213,63 @@ def test_can_remove_self_from_organization(client, org_user):
     assert not org_user.organizations.exists()
 
 
+### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
+
+def test_admin_user_can_modify_affiliation_of_existing_org_user(client, admin_user, org_user_with_expiring_affiliation):
+    client.force_login(admin_user)
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    assert affiliation.expires_at
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, affiliation.organization.id]),
+        data={'expires_at': ''},
+        success_url=reverse('user_management_manage_single_organization_user', args=[org_user.id])
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at is None
+
+
+def test_registrar_user_can_modify_affiliation_of_org_user(client, org_user_with_expiring_affiliation):
+
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    org = affiliation.organization
+    registrar_user = org.registrar.users.first()
+
+    assert affiliation.expires_at == GENESIS
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, org.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        success_url=reverse('user_management_manage_single_organization_user', args=[org_user.id])
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at == GENESIS + timedelta(days=1)
+
+
+def test_registrar_user_cannot_modify_affiliation_of_unrelated_org_user(client, registrar_user, org_user_with_expiring_affiliation):
+
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    org = affiliation.organization
+    registrar_users = org.registrar.users.all()
+
+    assert affiliation.expires_at == GENESIS
+    assert registrar_users
+    assert registrar_user not in registrar_users
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, org.id]),
+        data={'expires_at': ''},
+        require_status_code=404
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at == GENESIS
+
+
 ###
 ### ADDING SPONSORED USERS
 ###
@@ -1419,6 +1477,60 @@ def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registr
     )
     sponsorship.refresh_from_db()
     assert sponsorship.status == 'inactive'
+
+
+### MODIFYING SPONSORSHIP EXPIRATION DATES ###
+
+def test_admin_user_can_modify_sponsorship_of_existing_sponsored_user(client, admin_user, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    assert sponsorship.expires_at
+
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': ''},
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[sponsored_user.id]),
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at is None
+
+def test_registrar_user_can_modify_expiration_of_sponsored_user(client, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    registrar_user = registrar.users.first()
+    assert sponsorship.expires_at == GENESIS
+
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[sponsored_user.id]),
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at == GENESIS + timedelta(days=1)
+
+
+def test_registrar_user_cannot_modify_expiration_of_unrelated_sponsored_user(client, registrar_user, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+
+    assert sponsorship.expires_at == GENESIS
+    assert registrar_user not in registrar.users.all()
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        require_status_code=404,
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at == GENESIS
 
 
 ###
@@ -2423,80 +2535,3 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # status filter tested in test_registrar_user_list_filters
-
-    # These tests were added to test_view_user_management.py
-    # after this branch was created, but before we merged develop back in.
-    # Rather than converting them during the resolution of merge conflicts,
-    # I am adding them here, commented out, and then will convert them
-    # in a separate commit after the merge is complete.
-    #
-    # RLC 9/4/25
-    #
-
-    # ### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
-
-    # def test_admin_user_can_modify_affiliation_of_existing_org_user(self):
-    #     self.log_in_user(self.admin_user)
-    #     affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
-    #     affiliation.expires_at = datetime.strptime('2025-04-30T00:00:00+00:00', "%Y-%m-%dT%H:%M:%S%z")
-    #     affiliation.save()
-    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
-    #                      data={'expires_at': ''},
-    #                      success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
-    #     affiliation.refresh_from_db()
-    #     self.assertEqual(affiliation.expires_at, None)
-
-    # def test_registrar_user_can_modify_affiliation_of_existing_org_user(self):
-    #     # can only modify user affiliations if registrar is affiliated with the same org
-    #     self.log_in_user(self.registrar_user)
-    #     affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
-    #     expires_at = '2025-04-30T00:00:00+00:00'
-    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
-    #                      data={'expires_at': expires_at},
-    #                      success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
-    #     affiliation.refresh_from_db()
-    #     self.assertEqual(affiliation.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
-
-    #     # cannot modify user affiliations if registrar isn't affiliated with the same org
-    #     self.log_in_user(self.registrar_user)
-    #     self.submit_form('user_management_manage_single_organization_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.organization_user.id, self.unrelated_organization.id]},
-    #                      require_status_code=403)
-
-
-    # ### MODIFYING SPONSORSHIPS ###
-
-    # def test_admin_user_can_modify_sponsorship_of_existing_user(self):
-    #     self.log_in_user(self.admin_user)
-    #     sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-    #     sponsorship.expires_at = '2025-12-29'
-    #     sponsorship.save()
-    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-    #                      data={'expires_at': ''},
-    #                      success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
-    #                      success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-    #     sponsorship.refresh_from_db()
-    #     self.assertEqual(sponsorship.expires_at, None)
-
-
-    # def test_registrar_user_can_modify_sponsorship_of_existing_affiliated_user(self):
-    #     # can only modify sponsorships affiliated with itself
-    #     self.log_in_user(self.registrar_user)
-    #     sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-    #     expires_at = '2025-04-30T00:00:00+00:00'
-    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-    #                      data={'expires_at': expires_at},
-    #                      success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
-    #                      success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-    #     sponsorship.refresh_from_db()
-    #     self.assertEqual(sponsorship.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
-
-    #     # cannot modify sponsorships affiliated with another registrar
-    #     self.log_in_user(self.registrar_user)
-    #     self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-    #                      reverse_kwargs={'args': [self.sponsored_user.id, self.unrelated_registrar.pk]},
-    #                      require_status_code=403)

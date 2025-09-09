@@ -445,6 +445,7 @@ class UserOrganizationAffiliationFactory(DjangoModelFactory):
 
     user = factory.SubFactory(LinkUserFactory)
     organization = factory.SubFactory(OrganizationFactory)
+    expires_at = None
 
 
 @register_factory
@@ -644,6 +645,37 @@ def multi_registrar_org_user(link_user_factory, organization_factory):
     assert first.registrar != second.registrar
     user = link_user_factory()
     user.organizations.set([first, second])
+    return user
+
+@pytest.fixture
+def org_user_with_expiring_affiliation(org_user_factory, registrar_user_factory):
+    user = org_user_factory()
+    affiliation = user.userorganizationaffiliation_set.first()
+
+    assert not affiliation.expires_at
+    affiliation.expires_at = GENESIS
+    affiliation.save()
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at
+
+    assert not affiliation.organization.registrar.users.all()
+    affiliation.organization.registrar.users.add(registrar_user_factory())
+    assert affiliation.organization.registrar.users.all()
+
+    return user
+
+
+@pytest.fixture
+def sponsored_user_with_expiring_affiliation(sponsored_user_factory):
+    user = sponsored_user_factory()
+    sponsorship = user.sponsorships.first()
+
+    assert not sponsorship.expires_at
+    sponsorship.expires_at = GENESIS
+    sponsorship.save()
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at
+
     return user
 
 
