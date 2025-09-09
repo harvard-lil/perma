@@ -2,7 +2,7 @@ import pytest
 import boto3
 from dataclasses import dataclass
 import os
-from random import choice
+from random import choice, randrange
 import subprocess
 
 from django.conf import settings
@@ -99,6 +99,23 @@ def _live_server_db_helper(request):
     _load_json_fixtures()
 
 
+@pytest.fixture()
+def flush_db(django_db_blocker):
+    """
+    While we are still using django_db_setup with session scope to install the legacy JSON fixtures,
+    it is occasionally convenient to flush the database before a given test.
+
+    Include this as the FIRST fixture in any test to install any other pytest fixtures into a
+    blank, clean database.
+
+    The JSON fixtures will be re-installed on teardown.
+    """
+    with django_db_blocker.unblock():
+        call_command('flush', verbosity=0, interactive=False)
+        yield
+        _load_json_fixtures()
+
+
 @pytest.fixture(autouse=True, scope='function')
 def cleanup_storage():
     """
@@ -172,17 +189,24 @@ def log_in_user(urls):
 
 import factory
 from factory.django import DjangoModelFactory, Password
+from faker import Faker
 import humps
 
 from decimal import Decimal
 from datetime import datetime, timezone as tz
 from dateutil.relativedelta import relativedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Capture, Sponsorship, Folder
+
+from perma.models import (
+    Registrar, Organization, LinkUser, UserOrganizationAffiliation,
+    Link, CaptureJob, Capture, Sponsorship, Folder
+)
 from perma.utils import pp_date_from_post
 
 
+FAKE = Faker()
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 # this gives us a variable that we can use unhashed in tests
 TEST_USER_PASSWORD = 'pass'
@@ -242,6 +266,12 @@ class RegistrarFactory(DjangoModelFactory):
 class PendingRegistrarFactory(RegistrarFactory):
     status = 'pending'
 
+    pending_users = factory.RelatedFactoryList(
+        'conftest.LinkUserFactory',
+        size=1,
+        factory_related_name='pending_registrar'
+    )
+
 
 @register_factory
 class DeniedRegistrarFactory(RegistrarFactory):
@@ -273,19 +303,33 @@ class OrganizationFactory(DjangoModelFactory):
 
 
 @register_factory
+class OrganizationWithLinksFactory(OrganizationFactory):
+    links = factory.RelatedFactoryList(
+        'conftest.LinkFactory',
+        size=1,
+        factory_related_name='organization'
+    )
+
+
+@register_factory
 class LinkUserFactory(DjangoModelFactory):
     class Meta:
         model = LinkUser
 
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-    email = factory.Sequence(lambda n: 'user%s@example.com' % n)
+    email = factory.LazyAttribute(lambda o: f'{o.first_name}_{o.last_name}@example.com')
 
     # Default to confirmed and active in the fixtures for convenience
     is_active = True
     is_confirmed = True
 
     password = Password(TEST_USER_PASSWORD)
+
+
+@register_factory
+class AdminUserFactory(LinkUserFactory):
+    is_staff = True
 
 
 @register_factory
@@ -314,8 +358,22 @@ class PayingRegistrarUserFactory(LinkUserFactory):
     registrar = factory.SubFactory(PayingRegistrarFactory)
 
 
-# SponsorshipFactory has to come after RegistrarUserFactory and LinkUserFactory,
-# and before SponsoredUserFactory
+@register_factory
+class UnconfirmedRegistrarUserFactory(
+    UnactivatedUserFactory,
+    RegistrarUserFactory
+):
+    pass
+
+
+@register_factory
+class DeactivatedRegistrarUserFactory(
+    DeactivatedUserFactory,
+    RegistrarUserFactory
+):
+    pass
+
+
 @register_factory
 class SponsorshipFactory(DjangoModelFactory):
     class Meta:
@@ -340,6 +398,32 @@ class SponsoredUserFactory(LinkUserFactory):
 
 
 @register_factory
+class UnconfirmedSponsoredUserFactory(
+    UnactivatedUserFactory,
+    SponsoredUserFactory
+):
+    pass
+
+@register_factory
+class DeactivatedSponsoredUserFactory(
+    DeactivatedUserFactory,
+    SponsoredUserFactory
+):
+    pass
+
+@register_factory
+class InactiveSponsoredUserFactory(LinkUserFactory):
+
+    sponsorships = factory.RelatedFactoryList(
+        SponsorshipFactory,
+        size=1,
+        factory_related_name='user',
+        status='inactive'
+    )
+
+
+
+@register_factory
 class NonpayingUserFactory(LinkUserFactory):
     nonpaying = True
 
@@ -352,6 +436,42 @@ class PayingUserFactory(LinkUserFactory):
     cached_subscription_rate = Decimal(0.01)
     base_rate = Decimal(100.00)
     in_trial = False
+
+
+@register_factory
+class UserOrganizationAffiliationFactory(DjangoModelFactory):
+    class Meta:
+        model = UserOrganizationAffiliation
+
+    user = factory.SubFactory(LinkUserFactory)
+    organization = factory.SubFactory(OrganizationFactory)
+    expires_at = None
+
+
+@register_factory
+class OrgUserFactory(LinkUserFactory):
+
+    organizations = factory.RelatedFactoryList(
+        UserOrganizationAffiliationFactory,
+        size=1,
+        factory_related_name='user'
+    )
+
+
+@register_factory
+class UnconfirmedOrgUserFactory(
+    UnactivatedUserFactory,
+    OrgUserFactory
+):
+    pass
+
+
+@register_factory
+class DeactivatedOrgUserFactory(
+    DeactivatedUserFactory,
+    OrgUserFactory
+):
+    pass
 
 
 @register_factory
@@ -499,31 +619,92 @@ def perma_client():
 
 
 @pytest.fixture
-def admin_user(link_user_factory):
-    return link_user_factory(is_staff=True)
-
-
-@pytest.fixture
-def org_user_factory(link_user, organization):
-    def f(orgs=None):
-        if orgs:
-            link_user.organizations.set(orgs)
-        else:
-            link_user.organizations.add(organization)
-        return link_user
+def user_data_factory():
+    def f():
+        first_name = FAKE.first_name()
+        last_name = FAKE.last_name()
+        email = f"{first_name}_{last_name}@example.com"
+        return {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "normalized_email": email.lower()
+        }
     return f
 
 
 @pytest.fixture
-def org_user(org_user_factory):
-    return org_user_factory()
+def user_data(user_data_factory):
+    return user_data_factory()
+
 
 @pytest.fixture
-def multi_registrar_org_user(org_user_factory, organization_factory):
+def multi_registrar_org_user(link_user_factory, organization_factory):
     first = organization_factory()
     second = organization_factory()
     assert first.registrar != second.registrar
-    return org_user_factory(orgs=[first, second])
+    user = link_user_factory()
+    user.organizations.set([first, second])
+    return user
+
+@pytest.fixture
+def org_user_with_expiring_affiliation(org_user_factory, registrar_user_factory):
+    user = org_user_factory()
+    affiliation = user.userorganizationaffiliation_set.first()
+
+    assert not affiliation.expires_at
+    affiliation.expires_at = GENESIS
+    affiliation.save()
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at
+
+    assert not affiliation.organization.registrar.users.all()
+    affiliation.organization.registrar.users.add(registrar_user_factory())
+    assert affiliation.organization.registrar.users.all()
+
+    return user
+
+
+@pytest.fixture
+def sponsored_user_with_expiring_affiliation(sponsored_user_factory):
+    user = sponsored_user_factory()
+    sponsorship = user.sponsorships.first()
+
+    assert not sponsorship.expires_at
+    sponsorship.expires_at = GENESIS
+    sponsorship.save()
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at
+
+    return user
+
+
+@pytest.fixture
+def org_user_list(multi_registrar_org_user, org_user_factory):
+    single_organization_users = []
+    for _ in range(5):
+        single_organization_users.append(org_user_factory())
+
+    user_data = []
+    for user in sorted([multi_registrar_org_user] + single_organization_users, key=lambda u: u.last_name):
+        for org in user.organizations.all().order_by('name'):
+            user_data.append((user.email, org.name))
+
+    return user_data
+
+
+@pytest.fixture
+def sponsored_user_list(sponsored_user_factory):
+    users = []
+    for _ in range(5):
+        users.append(sponsored_user_factory())
+
+    user_data = []
+    for user in sorted(users, key=lambda u: (u.last_name, u.first_name)):
+        user_data.append((user.email, user.sponsorships.first().status))
+
+    return user_data
+
 
 
 ### For testing customer interactions
@@ -913,6 +1094,171 @@ def spoof_pp_response_subscription_with_pending_change():
     return f
 
 
+# For adding org users via a CSV
+
+@pytest.fixture
+def tsv():
+    return SimpleUploadedFile(
+        'users.tsv',
+        FAKE.tsv(
+            data_columns=('{{first_name}}', '{{last_name}}', '{{email}}'),
+            num_rows=10,
+            include_row_ids=False
+        ).encode('utf-8'),
+        content_type="text/tsv"
+    )
+
+
+@pytest.fixture
+def utf16_csv():
+    return SimpleUploadedFile(
+        'users.csv',
+        FAKE.csv(
+            data_columns=('{{first_name}}', '{{last_name}}', '{{email}}'),
+            num_rows=10,
+            include_row_ids=False
+        ).encode('utf-16'),
+        content_type="text/csv"
+    )
+
+
+def wrap_csv_data_in_file(filename, data):
+    return SimpleUploadedFile(filename, data.encode('utf-8'), content_type='text/csv')
+
+
+def get_org_user_csv(user_data_factory=None, users=None, skip_headers=None, skip_fields=None, invalid_email=False):
+    if user_data_factory and users:
+        raise Exception("Please pass user list or user_data_factory, not both.")
+
+    rows = []
+    if not skip_headers:
+        skip_headers = []
+    if not skip_fields:
+        skip_fields = []
+
+    # Add headers
+    all_headers = ["email", "first_name", "last_name"]
+    headers = []
+    match skip_headers:
+        case 'all':
+            pass
+        case _:
+            for header in all_headers:
+                if header not in skip_headers:
+                    headers.append(header)
+    if headers:
+        rows.append(",".join(headers))
+
+    # Add fields
+    all_fields = ["email", "first_name", "last_name"]
+
+    row_count = len(users) if users else 10
+    random_row = randrange(0, row_count)
+    for n in range(row_count):
+        fields = []
+
+        if users:
+            user_data = {
+                "first_name": users[n].first_name,
+                "last_name": users[n].last_name,
+                "email": users[n].raw_email,
+            }
+        else:
+            user_data = user_data_factory()
+
+        match skip_fields:
+            case 'all':
+                pass
+            case _:
+                for field in all_fields:
+                    if field in skip_fields and n == random_row:
+                        fields.append("")
+                    elif invalid_email and field == 'email' and n == random_row:
+                        fields.append('1@1com')
+                    else:
+                        fields.append(user_data[field])
+
+        rows.append(",".join(fields))
+
+    # Add line breaks
+    csv_data = "\r\n".join(rows)
+
+    # Make it look like a file uploaded via an HTML form, to Django
+    return wrap_csv_data_in_file('users.csv', csv_data)
+
+
+@pytest.fixture
+def org_user_csv_complete(user_data_factory):
+    return get_org_user_csv(user_data_factory)
+
+
+@pytest.fixture
+def org_user_csv_missing_headers(user_data_factory):
+    def f(skip_headers='all'):
+        return get_org_user_csv(user_data_factory, skip_headers=skip_headers)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_missing_data(user_data_factory):
+    def f(skip_fields='all'):
+        return get_org_user_csv(user_data_factory, skip_fields=skip_fields)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_invalid_email(user_data_factory):
+    return get_org_user_csv(user_data_factory, invalid_email=True)
+
+
+@pytest.fixture
+def org_user_csv_existing_regular_users(link_user_factory):
+    users = []
+    for _ in range(10):
+        user = link_user_factory()
+        users.append(user)
+    return get_org_user_csv(users=users)
+
+
+@pytest.fixture
+def org_user_csv_existing_org_users(link_user_factory):
+    def f(organization):
+        users = []
+        for _ in range(10):
+            user = link_user_factory()
+            user.organizations.add(organization)
+            users.append(user)
+        return get_org_user_csv(users=users)
+    return f
+
+
+@pytest.fixture
+def org_user_csv_admin_and_registrar(admin_user_factory, registrar_user_factory):
+    return get_org_user_csv(users=[
+        admin_user_factory(),
+        registrar_user_factory(),
+    ])
+
+
+# For working with registrars
+
+@pytest.fixture
+def registrar_with_five_orgs(registrar_user, organization_factory):
+    for _ in range(5):
+        organization_factory(registrar=registrar_user.registrar)
+    return registrar_user.registrar
+
+
+# For working with organizations
+
+@pytest.fixture
+def org_with_five_users(link_user_factory, organization):
+    for _ in range(5):
+        user = link_user_factory()
+        user.organizations.add(organization)
+    return organization
+
+
 ### For working with links ###
 
 @pytest.fixture
@@ -1137,5 +1483,8 @@ def submit_form(client,
     if error_keys:
         keys = set(form_errors().keys())
         assert set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys)
+
+    if error_keys is None:
+        assert not set(form_errors().keys())
 
     return resp

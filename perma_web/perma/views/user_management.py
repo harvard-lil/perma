@@ -844,6 +844,12 @@ class BaseAddUserToGroup(UpdateView):
             else:
                 add_message(messages.SUCCESS, "Success!", success_message)
 
+        if settings.TESTING:
+            # Calling render causes response.context to be available from
+            # the Django test client, which in turn gives us access to `form`
+            # in our tests.
+            render(self.request, self.template_name, {'form': form})
+
         return response
 
 
@@ -921,6 +927,14 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
                     return False, f"{self.object} is already a member of another registrar and cannot be added to your registrar."
             if self.object.organizations.exclude(registrar=self.request.user.registrar).exists():
                 return False, f"{self.object} belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations."
+
+        if self.object.registrar_id:
+            if 'registrar' not in self.get_form().changed_data:
+                return False, f"{self.object} is already a registrar user for that registrar."
+
+        if len(set(org.registrar_id for org in self.object.organizations.all())) > 1:
+            return False, f"{self.object} is associated with the organizations of multiple registrars. You cannot make them a registrar unless they leave one registrars' organizations."
+
         return True, ""
 
 
@@ -1043,7 +1057,12 @@ def manage_single_organization_user_remove(request, user_id):
         if request.user == target_user and not target_user.organizations.exists():
             return HttpResponseRedirect(reverse('create_link'))
 
-    return HttpResponseRedirect(reverse('user_management_manage_single_organization_user', args=[user_id]))
+    # This is the original behavior
+    return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
+
+    # Changed in https://github.com/harvard-lil/perma/commit/8558fa3acd6ff65426c48ddb5dc0c5585a923f9a#diff-2d23437eefdff0673773dfca3188a79c47219c64852a08809a1f0afb9c5b0c07
+    # We are looking into whether this change is desirable under certain conditions.
+    # return HttpResponseRedirect(reverse('user_management_manage_single_organization_user', args=[user_id]))
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
@@ -1070,16 +1089,14 @@ def manage_single_organization_user_expiration_date(request, user_id, organizati
     })
 
 
-@user_passes_test_or_403(lambda user: user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff)
 def manage_single_registrar_user_remove(request, user_id):
     """
         Remove a registrar user from a registrar.
     """
 
     target_user = get_object_or_404(LinkUser, id=user_id)
-
-    # Registrar users can only edit their own registrar users
-    if request.user.registrar_id != target_user.registrar_id:
+    if not request.user.shares_scope_with_user(target_user):
         return HttpResponseForbidden()
 
     context = {'target_user': target_user,

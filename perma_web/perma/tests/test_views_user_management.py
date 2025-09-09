@@ -1,25 +1,2236 @@
 # -*- coding: utf-8 -*-
 
 import csv
+from datetime import timedelta
 from io import StringIO
 import json
-from random import random, getrandbits
+import pytest
+
 import re
 
 from bs4 import BeautifulSoup
-from datetime import datetime
-from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
-from django.core import mail
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.conf import settings
-from django.db import IntegrityError
-from django.test import override_settings
-from django.test.client import RequestFactory
 
-from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
+from perma.models import LinkUser, Organization, Registrar, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
-from perma.forms import MultipleUsersFormWithOrganization
+
+from conftest import submit_form, randomize_capitalization, GENESIS
+
+
+###
+### REGISTRAR A/E/D VIEWS ###
+###
+
+def test_admin_can_create_registrar(client, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        'user_management_manage_registrar',
+        data={
+            'a-name':'test_views_registrar',
+            'a-email':'test@test.com',
+            'a-website':'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='test_views_registrar')
+    )
+
+
+def test_admin_can_update_registrar(client, admin_user, registrar):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
+        },
+        success_url=reverse('user_management_manage_registrar'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_update_registrar(client, registrar_user):
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar', args=[registrar_user.registrar.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-email': 'test@test.com2',
+            'a-website': 'http://test.com'
+        },
+        success_url=reverse('settings_affiliations'),
+        success_query=Registrar.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_cannot_update_unrelated_registrar(client, registrar, registrar_user):
+    assert registrar_user.registrar_id != registrar.id
+    client.force_login(registrar_user)
+    response = client.get(
+        reverse('user_management_manage_single_registrar', args=[registrar.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def test_admin_can_approve_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status':'approved', 'base_rate': '100.00'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="approved").exists()
+    )
+
+
+def test_admin_can_deny_pending_registrar(client, pending_registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_sign_up_approve_pending_registrar', args=[pending_registrar.pk]),
+        data={'status': 'denied', 'base_rate': '100.00'},
+        success_query=Registrar.objects.filter(pk=pending_registrar.pk, status="denied").exists()
+    )
+
+
+###
+### ORGANIZATION A/E/D VIEWS ###
+###
+
+def test_admin_can_create_organization(client, registrar, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        'user_management_manage_organization',
+        data={
+            'a-name': 'new_name',
+            'a-registrar': registrar.pk
+        },
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_create_organization(client, registrar_user):
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        'user_management_manage_organization',
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_admin_can_update_organization(client, organization, admin_user):
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[organization.pk]),
+        data={
+            'a-name': 'new_name',
+            'a-registrar': organization.registrar.pk
+        },
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_can_update_organization(client, registrar_user):
+    org = registrar_user.registrar.organizations.first()
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[org.pk]),
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_org_user_can_update_organization(client, org_user):
+    org = org_user.organizations.first()
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization', args=[org.pk]),
+        data={'a-name': 'new_name'},
+        success_url=reverse('user_management_manage_organization'),
+        success_query=Organization.objects.filter(name='new_name')
+    )
+
+
+def test_registrar_cannot_update_unrelated_organization(client, registrar_user, organization):
+    client.force_login(registrar_user)
+    response = client.get(
+        reverse('user_management_manage_single_organization', args=[organization.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def test_org_user_cannot_update_unrelated_organization(client, org_user, organization_factory):
+    other_org = organization_factory()
+    client.force_login(org_user)
+    response = client.get(
+        reverse('user_management_manage_single_organization', args=[other_org.pk]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+def _delete_organization(client, user, org, expect="success"):
+    url = reverse('user_management_manage_single_organization_delete', args=[org.pk])
+    client.force_login(user)
+    if expect == 'success':
+        return submit_form(
+            client,
+            url=url,
+            success_url=reverse('user_management_manage_organization'),
+            success_query=Organization.objects.filter(user_deleted=True, pk=org.pk)
+        )
+    else:
+        response = submit_form(
+            client,
+            url=url
+        )
+        assert response.status_code == expect
+        return response
+
+
+def test_admin_user_can_delete_organization_without_links(client, admin_user, organization):
+    _delete_organization(client, admin_user, organization)
+    _delete_organization(client, admin_user, organization, 404)
+
+
+def test_registrar_user_cannot_delete_unrelated_organization(client, registrar_user, organization):
+    _delete_organization(client, registrar_user, organization, 403)
+
+
+def test_registrar_user_can_delete_organization_without_links(client, registrar_user):
+    org = registrar_user.registrar.organizations.first()
+    _delete_organization(client, registrar_user, org)
+    _delete_organization(client, registrar_user, org, 404)
+
+
+def test_org_user_cannot_delete_unrelated_organization(client, org_user, organization_factory):
+    org = organization_factory()
+    _delete_organization(client, org_user, org, 403)
+
+
+def test_org_user_can_delete_organization_without_links(client, multi_registrar_org_user):
+    # Use multi_registrar_org_user so that the user is still an org user, even after the org is deleted
+    user = multi_registrar_org_user
+    org = user.organizations.first()
+    _delete_organization(client, user, org)
+    _delete_organization(client, user, org, 404)
+
+
+def test_even_admin_cannot_delete_organization_with_links(client, admin_user, organization_with_links):
+    _delete_organization(client, admin_user, organization_with_links, 403)
+
+
+###
+### USER A/E/D VIEWS ###
+###
+
+@pytest.mark.parametrize(
+    "view_name,form_field",
+    [
+        ('user', ''),
+        ('registrar_user', 'a-registrar'),
+        ('organization_user', 'a-organizations'),
+        ('sponsored_user', 'a-sponsoring_registrars')
+    ]
+)
+def test_admin_can_create_users(view_name, form_field, client, admin_user, registrar, user_data_factory):
+    # Setup
+    client.force_login(admin_user)
+    user_data = user_data_factory()
+    common_fields = {
+        'a-first_name': user_data['first_name'],
+        'a-last_name': user_data['last_name'],
+        'a-address': user_data['email']
+    }
+    match view_name:
+        case 'registrar_user':
+            view_specific_fields = {form_field: registrar.id}
+        case 'organization_user':
+            view_specific_fields = {form_field: registrar.organizations.first().id}
+        case 'sponsored_user':
+            view_specific_fields = {form_field: registrar.id}
+        case _:
+            view_specific_fields = {}
+
+    # Create the user
+    submit_form(
+        client,
+        data={**common_fields, **view_specific_fields},
+        view_name='user_management_' + view_name + '_add_user',
+        success_url=reverse('user_management_manage_' + view_name),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email']
+        )
+    )
+
+
+def attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=False):
+    client.force_login(admin_user)
+    user = request.getfixturevalue(user_type)
+    if deactivate:
+        assert user.is_active
+
+    submit_form(
+        client,
+        url=reverse(
+            'user_management_manage_single_' + view_name + '_delete',
+            args=[user.id]
+        ),
+        success_url=reverse('user_management_manage_' + view_name)
+    )
+
+    if deactivate:
+        user.refresh_from_db()
+        assert not user.is_active
+    else:
+        with pytest.raises(LinkUser.DoesNotExist):
+            user.refresh_from_db()
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('link_user', 'user'),
+        ('registrar_user', 'registrar_user'),
+        ('org_user', 'organization_user'),
+        ('sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_deactivate_confirmed_users(user_type, view_name, request, client, admin_user):
+    # If you attempt to delete a user where is_confirmed is True,
+    # they are not deleted, they are deactivated
+    attempt_deletion(user_type, view_name, request, client, admin_user, deactivate=True)
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('unactivated_user', 'user'),
+        ('unconfirmed_registrar_user', 'registrar_user'),
+        ('unconfirmed_org_user', 'organization_user'),
+        ('unconfirmed_sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_delete_unconfirmed_users(user_type, view_name, request, client, admin_user):
+    # If you attempt to delete a user where is_confirmed is False,
+    # they are deleted
+    attempt_deletion(user_type, view_name, request, client, admin_user)
+
+
+@pytest.mark.parametrize(
+    "user_type, view_name",
+    [
+        ('deactivated_user', 'user'),
+        ('deactivated_registrar_user', 'registrar_user'),
+        ('deactivated_org_user', 'organization_user'),
+        ('deactivated_sponsored_user', 'sponsored_user'),
+    ]
+)
+def test_admin_can_reactivate_deactivated_users(user_type, view_name, request, client, admin_user):
+    client.force_login(admin_user)
+    user = request.getfixturevalue(user_type)
+    assert not user.is_active
+
+    submit_form(
+        client,
+        url=reverse(
+            'user_management_manage_single_' + view_name + '_reactivate',
+            args=[user.id]
+        ),
+        success_url=reverse('user_management_manage_' + view_name)
+    )
+
+    user.refresh_from_db()
+    assert user.is_active
+
+
+###
+### ADDING USERS TO ORGANIZATIONS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_new_user_to_org(user_type, request, client, user_data):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-organizations": org.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        success_url=reverse("user_management_manage_organization_user"),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email'],
+            organizations=org
+        ).exists()
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_add_new_user_to_inaccessible_org(user_type, request, client, user_data, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org = organization_factory()
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-organizations": unrelated_org.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        error_keys=['organizations']
+    )
+    assert not LinkUser.objects.filter(email__iexact=user_data['email']).exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_existing_user_to_org(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": org.id
+        },
+        success_url=reverse("user_management_manage_organization_user"),
+        success_query=link_user.organizations.filter(id=org.id)
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_add_existing_user_to_inaccessible_org(user_type, request, client, link_user, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org = organization_factory()
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": unrelated_org.id
+        },
+        error_keys=['organizations']
+    )
+    assert not link_user.organizations.filter(id=unrelated_org.id).exists()
+
+
+def test_cannot_add_admin_user_to_org(client, admin_user, organization):
+    client.force_login(admin_user)
+
+    scrambled_email = randomize_capitalization(admin_user.email)
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": organization.id
+        }
+    )
+
+    assert b"is an admin user" in response.content
+    assert not admin_user.organizations.exists()
+
+
+def test_cannot_add_registrar_user_to_org(client, admin_user, registrar_user):
+    client.force_login(admin_user)
+    org = registrar_user.registrar.organizations.first()
+
+    scrambled_email = randomize_capitalization(registrar_user.email)
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_organization_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-organizations": org.id
+        }
+    )
+    assert b"is already a registrar user"in response.content
+    assert not registrar_user.organizations.exists()
+
+
+###
+### ADDING MULTIPLE ORG USERS VIA CSV
+###
+
+
+def test_multiple_org_user_form_populates_org_user_organization(
+        client,
+        org_user,
+        organization_factory
+):
+    unrelated_org = organization_factory()
+    assert not org_user.organizations.filter(id=unrelated_org.id).exists()
+    client.force_login(org_user)
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(form.fields['organizations'].queryset) == list(org_user.organizations.all())
+
+
+def test_multiple_org_user_form_populates_registrar_user_organizations(
+        client,
+        registrar_with_five_orgs,
+        organization_factory
+):
+    unrelated_org = organization_factory()
+    assert not registrar_with_five_orgs.organizations.filter(id=unrelated_org.id).exists()
+    user = registrar_with_five_orgs.users.get()
+    client.force_login(user)
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(
+        form.fields['organizations'].queryset.order_by('name')
+    ) == list(
+        registrar_with_five_orgs.organizations.all().order_by('name')
+    )
+
+
+def test_multiple_org_user_form_populates_admin_user_organizations(
+        client,
+        admin_user,
+        organization_factory
+):
+    client.force_login(admin_user)
+    for _ in range(5):
+        organization_factory()
+
+    response = client.get(
+        reverse("user_management_organization_user_add_multiple_users"),
+        secure=True
+    )
+
+    form = response.context["form"]
+    assert list(
+        form.fields['organizations'].queryset.order_by('name')
+    ) == list(
+        Organization.objects.all().order_by('name')
+    )
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_wrong_extension(
+        user_type,
+        request,
+        client,
+        tsv
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": tsv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"The file must be a CSV" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_unreadable_file(
+        user_type,
+        request,
+        client,
+        utf16_csv
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": utf16_csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file must be encoded with UTF-8" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+@pytest.mark.parametrize(
+    "skip_headers",
+    [
+        "all",
+        "first_name",
+        "last_name",
+        "email"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_headers_absent(
+        user_type,
+        skip_headers,
+        request,
+        client,
+        org_user_csv_missing_headers
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_headers(skip_headers=skip_headers)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file must contain a header row with first_name, last_name and email columns." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_no_rows(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='all')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file must contain at least one user" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_any_email_absent(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='email')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=["csv_file"]
+    )
+    assert b"Each row in the CSV file must contain email." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_invalid_if_any_email_invalid(
+        user_type,
+        request,
+        client,
+        org_user_csv_invalid_email
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_invalid_email
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['csv_file']
+    )
+    assert b"CSV file contains invalid email address" in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_multiple_org_user_form_disallows_unrelated_organization(
+        user_type,
+        request,
+        client,
+        org_user_csv_complete,
+        organization_factory
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_complete
+    unrelated_org = organization_factory()
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": unrelated_org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=['organizations']
+    )
+    assert b"That choice is not one of the available choices." in response.content
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_creates_without_names(
+        user_type,
+        request,
+        client,
+        org_user_csv_missing_data
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_missing_data(skip_fields='first_name,last_name')
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    created_user_ids = [user.id for user in form.created_users.values()]
+    assert len(created_user_ids) == 10
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids,
+        user__first_name='',
+        user__last_name=''
+    ).count() == 1
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_creates_with_names(
+        user_type,
+        request,
+        client,
+        org_user_csv_complete
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_complete
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    created_user_ids = [user.id for user in form.created_users.values()]
+    assert len(created_user_ids) == 10
+    assert not UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids,
+        user__first_name='',
+        user__last_name=''
+    ).exists()
+    assert UserOrganizationAffiliation.objects.filter(
+        user_id__in=created_user_ids
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_updates_expiry_date(
+        user_type,
+        request,
+        client,
+        org_user_csv_existing_org_users
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    csv = org_user_csv_existing_org_users(org)
+    affiliations = UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    )
+    user_count = affiliations.count()
+    assert all(affiliation.expires_at is None for affiliation in affiliations.all())
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv,
+            "a-expires_at": GENESIS
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    updated_user_ids = [user.id for user in form.updated_users.values()]
+    assert len(updated_user_ids) == user_count
+    assert all(affiliation.expires_at == GENESIS for affiliation in affiliations.all())
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_upgrades_regular_users(
+        user_type,
+        request,
+        client,
+        org_user_csv_existing_regular_users
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_existing_regular_users
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    assert not UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    ).exists()
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    updated_user_ids = [user.id for user in form.updated_users.values()]
+    assert len(updated_user_ids) == 10
+    assert UserOrganizationAffiliation.objects.filter(
+        user__in=org.users.exclude(id=user.id)
+    ).count() == 10
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_multiple_org_user_form_rejects_admins_and_registrars(
+        user_type,
+        request,
+        client,
+        org_user_csv_admin_and_registrar
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    csv = org_user_csv_admin_and_registrar
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+
+    response = submit_form(
+        client,
+        url = reverse("user_management_organization_user_add_multiple_users"),
+        data = {
+            "a-organizations": org.id,
+            "a-indefinite_affiliation": True,
+            "a-csv_file": csv
+        },
+        error_keys=None
+    )
+
+    form = response.context["form"]
+    assert len(form.updated_users) == 0
+    assert len(form.ineligible_users) == 2
+    for email in form.ineligible_users:
+        ineligible_user = LinkUser.objects.get(email=email)
+        assert not ineligible_user.organizations.exists()
+
+
+###
+### REMOVING USERS FROM ORGANIZATIONS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_visit_org_user_edit_page(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    link_user.organizations.set([org])
+
+    response = client.get(
+        reverse('user_management_manage_single_organization_user', args=[link_user.id]),
+        secure=True
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+    ]
+)
+def test_cannot_visit_unrelated_org_user_edit_page(user_type, request, client, org_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org_user = org_user_factory()
+
+    response = client.get(
+        reverse('user_management_manage_single_organization_user', args=[unrelated_org_user.id]),
+        secure=True
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_remove_user_from_organization(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    link_user.organizations.set([org])
+
+    assert link_user.organizations.filter(id=org.id).exists()
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[link_user.id]),
+        data={'affiliation': link_user.userorganizationaffiliation_set.first().id},
+        success_url=reverse('user_management_manage_organization_user')
+    )
+    assert not link_user.organizations.filter(id=org.id).exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+    ]
+)
+def test_cannot_remove_user_from_unrelated_organization(user_type, request, client, org_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    unrelated_org_user = org_user_factory()
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[unrelated_org_user.id]),
+        data={'affiliation': unrelated_org_user.userorganizationaffiliation_set.first().id},
+        require_status_code=404
+    )
+
+
+def test_can_remove_self_from_organization(client, org_user):
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_remove', args=[org_user.id]),
+        data={'affiliation': org_user.userorganizationaffiliation_set.first().id},
+        success_url=reverse('create_link')
+    )
+    assert not org_user.organizations.exists()
+
+
+### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
+
+def test_admin_user_can_modify_affiliation_of_existing_org_user(client, admin_user, org_user_with_expiring_affiliation):
+    client.force_login(admin_user)
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    assert affiliation.expires_at
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, affiliation.organization.id]),
+        data={'expires_at': ''},
+        success_url=reverse('user_management_manage_single_organization_user', args=[org_user.id])
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at is None
+
+
+def test_registrar_user_can_modify_affiliation_of_org_user(client, org_user_with_expiring_affiliation):
+
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    org = affiliation.organization
+    registrar_user = org.registrar.users.first()
+
+    assert affiliation.expires_at == GENESIS
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, org.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        success_url=reverse('user_management_manage_single_organization_user', args=[org_user.id])
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at == GENESIS + timedelta(days=1)
+
+
+def test_registrar_user_cannot_modify_affiliation_of_unrelated_org_user(client, registrar_user, org_user_with_expiring_affiliation):
+
+    org_user = org_user_with_expiring_affiliation
+    affiliation = org_user.userorganizationaffiliation_set.first()
+    org = affiliation.organization
+    registrar_users = org.registrar.users.all()
+
+    assert affiliation.expires_at == GENESIS
+    assert registrar_users
+    assert registrar_user not in registrar_users
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_organization_user_expiration_date', args=[org_user.id, org.id]),
+        data={'expires_at': ''},
+        require_status_code=404
+    )
+    affiliation.refresh_from_db()
+    assert affiliation.expires_at == GENESIS
+
+
+###
+### ADDING SPONSORED USERS
+###
+
+def check_sponsorship_is_set_up_correctly(sponsored_user):
+    sponsorship = sponsored_user.sponsorships.first()
+    sponsored_folder = sponsorship.folders.get()
+    assert sponsorship.status == 'active'
+    assert sponsored_folder.parent == sponsored_user.sponsored_root_folder
+    assert not sponsored_folder.read_only
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_new_sponsored_user_to_registrar(user_type, request, client, user_data):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_sponsored_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-sponsoring_registrars": registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        success_url=reverse("user_management_manage_sponsored_user"),
+    )
+
+    sponsored_user = LinkUser.objects.get(
+        email=user_data["normalized_email"],
+        raw_email=user_data["email"],
+        sponsoring_registrars=registrar
+    )
+    check_sponsorship_is_set_up_correctly(sponsored_user)
+
+
+def test_cannot_add_sponsored_user_to_inaccessible_registrar(client, user_data, registrar_user, registrar_factory):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_sponsored_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-sponsoring_registrars": unrelated_registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        error_keys=['sponsoring_registrars']
+    )
+    assert not LinkUser.objects.filter(email__iexact=user_data['email'])
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_sponsorship_to_existing_user(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_sponsored_user_add_user')}?email={scrambled_email}",
+        data={'a-sponsoring_registrars': registrar.id},
+        success_url=reverse('user_management_manage_sponsored_user'),
+        success_query=link_user.sponsorships.filter(registrar=registrar)
+    )
+
+    link_user.refresh_from_db()
+    check_sponsorship_is_set_up_correctly(link_user)
+
+
+def test_registrar_user_cannot_add_sponsorship_for_other_registrar_to_existing_user(client, registrar_user, registrar_factory, link_user):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_sponsored_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-sponsoring_registrars": unrelated_registrar.id,
+        },
+        error_keys=['sponsoring_registrars']
+    )
+    assert not link_user.sponsorships.filter(registrar=unrelated_registrar).exists()
+
+
+def test_cannot_create_duplicative_sponsorships(client, admin_user, sponsored_user):
+    client.force_login(admin_user)
+
+    scrambled_email = randomize_capitalization(sponsored_user.email)
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_sponsored_user_add_user')}?email={scrambled_email}",
+        data={'a-sponsoring_registrars': sponsored_user.sponsorships.first().registrar.id}
+    )
+    assert b"Select a valid choice. That choice is not one of the available choices" in response.content
+
+
+###
+### TOGGLING SPONSORSHIP STATUS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_deactivate_sponsorship(user_type, request, client, sponsored_user):
+    sponsorship = sponsored_user.sponsorships.get()
+    match user_type:
+        case "registrar_user":
+            user = sponsorship.registrar.users.first()
+        case "admin_user":
+            user = request.getfixturevalue("admin_user")
+    client.force_login(user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_remove', args= [sponsored_user.id, sponsorship.registrar.id]),
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[sponsored_user.id])
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.status == 'inactive'
+    assert all(folder.read_only for folder in sponsorship.folders)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_reactivate_sponsorship(user_type, request, client, inactive_sponsored_user):
+    sponsorship = inactive_sponsored_user.sponsorships.get()
+    match user_type:
+        case "registrar_user":
+            user = sponsorship.registrar.users.first()
+        case "admin_user":
+            user = request.getfixturevalue("admin_user")
+    client.force_login(user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_readd', args= [inactive_sponsored_user.id, sponsorship.registrar.id]),
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[inactive_sponsored_user.id])
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.status == 'active'
+    assert all(not folder.read_only for folder in sponsorship.folders)
+
+
+def test_registrar_user_cannot_deactivate_active_sponsorship_for_other_registrar(client, sponsored_user, registrar_user):
+    sponsorship = sponsored_user.sponsorships.get()
+    assert sponsorship.registrar != registrar_user.registrar
+    client.force_login(registrar_user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_remove', args= [sponsored_user.id, sponsorship.registrar.id]),
+        require_status_code=404
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.status == 'active'
+
+
+def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registrar(client, inactive_sponsored_user, registrar_user):
+    sponsorship = inactive_sponsored_user.sponsorships.get()
+    assert sponsorship.registrar != registrar_user.registrar
+    client.force_login(registrar_user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_readd', args= [inactive_sponsored_user.id, sponsorship.registrar.id]),
+        require_status_code=404
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.status == 'inactive'
+
+
+### MODIFYING SPONSORSHIP EXPIRATION DATES ###
+
+def test_admin_user_can_modify_sponsorship_of_existing_sponsored_user(client, admin_user, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    assert sponsorship.expires_at
+
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': ''},
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[sponsored_user.id]),
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at is None
+
+def test_registrar_user_can_modify_expiration_of_sponsored_user(client, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    registrar_user = registrar.users.first()
+    assert sponsorship.expires_at == GENESIS
+
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        success_url=reverse('user_management_manage_single_sponsored_user', args=[sponsored_user.id]),
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at == GENESIS + timedelta(days=1)
+
+
+def test_registrar_user_cannot_modify_expiration_of_unrelated_sponsored_user(client, registrar_user, sponsored_user_with_expiring_affiliation):
+    sponsored_user = sponsored_user_with_expiring_affiliation
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+
+    assert sponsorship.expires_at == GENESIS
+    assert registrar_user not in registrar.users.all()
+    client.force_login(registrar_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_sponsored_user_expiration_date', args=[sponsored_user.id, registrar.id]),
+        data={'expires_at': GENESIS + timedelta(days=1)},
+        require_status_code=404,
+    )
+    sponsorship.refresh_from_db()
+    assert sponsorship.expires_at == GENESIS
+
+
+###
+### ADDING REGISTRAR USERS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_new_user_to_registrar(user_type, request, client, user_data):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-registrar": registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+        success_query=LinkUser.objects.filter(
+              email=user_data['normalized_email'],
+              raw_email=user_data['email'],
+              registrar=registrar
+        )
+    )
+
+
+def test_cannot_add_new_user_to_inaccessible_registrar(client, registrar_user, user_data, registrar_factory):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={user_data['email']}",
+        data={
+            "a-registrar": unrelated_registrar.id,
+            "a-first_name": user_data['first_name'],
+            "a-last_name": user_data['last_name'],
+            "a-address": user_data['email'],
+        },
+        error_keys=['registrar']
+    )
+    assert not LinkUser.objects.filter(email__iexact=user_data['email'])
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_add_existing_user_to_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-registrar": registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+    )
+
+    link_user.refresh_from_db()
+    assert link_user.registrar == registrar
+
+
+def test_cannot_add_existing_user_to_inaccessible_registrar(client, registrar_user, registrar_factory, link_user):
+    client.force_login(registrar_user)
+    unrelated_registrar = registrar_factory()
+
+    scrambled_email = randomize_capitalization(link_user.email)
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={scrambled_email}",
+        data={
+            "a-registrar": unrelated_registrar.id,
+        },
+        error_keys=['registrar']
+    )
+
+    link_user.refresh_from_db()
+    assert not link_user.registrar
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_readd_user_to_registrar(user_type, request, client, registrar_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = registrar_user.registrar
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={registrar_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"already a registrar user" in response.content
+
+
+def test_registrar_user_cannot_change_registrar_users_registrar(client, registrar_user, registrar_user_factory):
+    unrelated_registrar_user = registrar_user_factory()
+    client.force_login(registrar_user)
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={unrelated_registrar_user.email}",
+        data={
+            "a-registrar": registrar_user.registrar.id
+        }
+    )
+
+    unrelated_registrar_user.refresh_from_db()
+    assert b"is already a member" in response.content
+    assert registrar_user.registrar != unrelated_registrar_user.registrar
+
+
+def test_admin_user_can_change_registrar_users_registrar(client, admin_user, registrar_user, registrar_factory):
+    unrelated_registrar = registrar_factory()
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={registrar_user.email}",
+        data={
+            "a-registrar": unrelated_registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user"),
+    )
+
+    registrar_user.refresh_from_db()
+    assert registrar_user.registrar == unrelated_registrar
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_upgrade_org_user_to_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    link_user.organizations.set([registrar.organizations.get()])
+    assert link_user.is_organization_user
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={link_user.email}",
+        data={
+            "a-registrar": registrar.id
+        },
+        success_url=reverse("user_management_manage_registrar_user")
+    )
+
+    link_user.refresh_from_db()
+    assert link_user.registrar == registrar
+    assert not link_user.organizations.exists()
+
+
+def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(client, registrar_user, org_user):
+    client.force_login(registrar_user)
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={org_user.email}",
+        data={
+            "a-registrar": registrar_user.registrar.id
+        }
+    )
+
+    assert b"belongs to organizations that are not controlled by your registrar" in response.content
+    org_user.refresh_from_db()
+    assert not org_user.registrar
+    assert org_user.organizations.exists()
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_upgrade_multi_registrar_org_user_to_registrar(user_type, request, client, link_user, organization_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    unrelated_org = organization_factory()
+    link_user.organizations.set([registrar.organizations.get(), unrelated_org])
+    assert link_user.organizations.count() == 2
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={link_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"You cannot make them a registrar" in response.content
+    link_user.refresh_from_db()
+    assert not link_user.registrar
+    assert link_user.organizations.count() == 2
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_cannot_add_admin_user_to_registrar(user_type, request, client, admin_user_factory):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    admin_user = admin_user_factory()
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+
+    response = submit_form(
+        client,
+        url=f"{reverse('user_management_registrar_user_add_user')}?email={admin_user.email}",
+        data={
+            "a-registrar": registrar.id
+        }
+    )
+
+    assert b"is an admin user" in response.content
+    admin_user.refresh_from_db()
+    assert not admin_user.registrar
+    assert admin_user.is_staff
+
+
+###
+### REMOVING REGISTRAR USERS ###
+###
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_remove_user_from_registrar(user_type, request, client, link_user):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    link_user.registrar = registrar
+    link_user.save()
+    link_user.refresh_from_db()
+    assert link_user.is_registrar_user()
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[link_user.id]),
+        success_url=reverse('user_management_manage_registrar_user')
+    )
+
+    link_user.refresh_from_db()
+    assert not link_user.is_registrar_user()
+
+
+def test_registrar_cannot_remove_unrelated_user_from_registrar(client, registrar_user_factory):
+    registrar_user = registrar_user_factory()
+    unrelated_registrar_user = registrar_user_factory()
+    client.force_login(registrar_user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[unrelated_registrar_user.id]),
+        require_status_code=404
+    )
+
+
+def test_can_remove_self_from_registrar(client, registrar_user):
+    client.force_login(registrar_user)
+
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_registrar_user_remove', args=[registrar_user.id]),
+        success_url=reverse('create_link')
+    )
+
+    registrar_user.refresh_from_db()
+    assert not registrar_user.is_registrar_user()
+
+
+###
+### ADDING ADMINS ###
+###
+
+def test_admin_user_can_add_new_user_as_admin(client, admin_user, user_data):
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        'user_management_admin_user_add_user',
+        data={
+            'a-first_name': user_data['first_name'],
+            'a-last_name': user_data['last_name'],
+            'a-address': user_data['email']
+        },
+        success_url=reverse('user_management_manage_admin_user'),
+        success_query=LinkUser.objects.filter(
+            email=user_data['normalized_email'],
+            raw_email=user_data['email'],
+            is_staff=True
+        )
+    )
+
+
+def test_admin_user_can_add_existing_user_as_admin(client, admin_user, link_user):
+    client.force_login(admin_user)
+
+    submit_form(
+        client,
+        url=f"{reverse('user_management_admin_user_add_user')}?email={randomize_capitalization(link_user.email)}",
+        success_url=reverse('user_management_manage_admin_user'),
+        success_query=LinkUser.objects.filter(id=link_user.id, is_staff=True)
+    )
+
+
+### DEMOTING ADMINS ###
+
+def test_can_remove_admin_privileges(client, admin_user_factory):
+    admin_user = admin_user_factory()
+    another_admin_user = admin_user_factory()
+    assert another_admin_user.is_staff
+
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_admin_user_remove', args=[another_admin_user.id]),
+        success_url=reverse('user_management_manage_admin_user')
+    )
+
+    another_admin_user.refresh_from_db()
+    assert not another_admin_user.is_staff
+
+
+def test_can_remove_own_admin_privileges(client, admin_user):
+    assert admin_user.is_staff
+    client.force_login(admin_user)
+    submit_form(
+        client,
+        url=reverse('user_management_manage_single_admin_user_remove', args=[admin_user.id]),
+        success_url=reverse('create_link')
+    )
+
+    admin_user.refresh_from_db()
+    assert not admin_user.is_staff
+
+
+###
+### EXPORT USER LISTS
+###
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_org_export_user_list(export_format, mime_type, client, org_with_five_users):
+    """Export all users in a single org"""
+
+    # Log in as one of the org's users
+    user = org_with_five_users.users.order_by('?').first()
+    client.force_login(user)
+
+    # Get the export output
+    url = reverse(
+        'user_management_manage_single_organization_export_user_list',
+        args=[org_with_five_users.id]
+    )
+    response = client.get(
+        url,
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against the expected results
+    reader_record_count = 0
+    for record in reader:
+        assert record['organization_name'] == org_with_five_users.name
+        reader_record_count += 1
+    assert reader_record_count == 5
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_organization_user_export_user_list(flush_db, export_format, mime_type, client, admin_user, org_user_list):
+    """Export all org users accessible to given user"""
+    # Log in as an admin, to see the full list
+    client.force_login(admin_user)
+
+    # Get the export output
+    response = client.get(
+        reverse('user_management_manage_organization_user_export_user_list'),
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against expected results
+    for index, record in enumerate(reader):
+        expected_email, expected_organization_name = org_user_list[index]
+        assert record['email'] == expected_email
+        assert record['organization_name'] == expected_organization_name
+    assert index + 1 == len(org_user_list)
+
+
+@pytest.mark.parametrize(
+    "export_format,mime_type",
+    [
+        ('csv', 'text/csv'),
+        ('json', 'application/json')
+    ]
+)
+def test_sponsored_user_export_user_list(flush_db, export_format, mime_type, client, admin_user, sponsored_user_list):
+    """Export all sponsored users accessible to given user"""
+    # Log in as an admin, to see the full list
+    client.force_login(admin_user)
+
+    # Get the export output
+    response = client.get(
+        reverse('user_management_manage_sponsored_user_export_user_list'),
+        data={'format': export_format},
+        secure=True
+    )
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == mime_type
+
+    # Parse the output
+    match export_format:
+        case 'csv':
+            csv_file = StringIO(response.content.decode('utf8'))
+            reader = csv.DictReader(csv_file)
+        case 'json':
+            reader = json.loads(response.content)
+
+    # Validate the output against expected results
+    for index, record in enumerate(reader):
+        expected_email, expected_sponsorship_status = sponsored_user_list[index]
+        assert record['email'] == expected_email
+        assert record['sponsorship_status'] == expected_sponsorship_status
+    assert index + 1 == len(sponsored_user_list)
+
+
+###
+### RESENDING ACTIVATION EMAILS ###
+###
+
+def resend_should_succeed(client, target_user, mailoutbox):
+    client.get(
+        reverse(
+            'user_management_resend_activation', args=[target_user.id]
+        ),
+        secure=True
+    )
+
+    assert len(mailoutbox) == 1
+    message = mailoutbox[0]
+    assert message.subject == "A Perma.cc account has been created for you"
+    assert message.recipients() == [target_user.raw_email]
+
+
+def resend_should_fail(client, target_user, mailoutbox):
+    response = client.get(
+        reverse(
+            'user_management_resend_activation', args=[target_user.id]
+        ),
+        secure=True
+    )
+    assert response.status_code == 403
+    assert len(mailoutbox) == 0
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_resend_activation_email_to_org_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "org_user":
+            org = user.organizations.first()
+        case "registrar_user":
+            org = user.registrar.organizations.first()
+        case "admin_user":
+            org = request.getfixturevalue("organization")
+    target_user = unactivated_user
+    target_user.organizations.set([org])
+
+    resend_should_succeed(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "org_user",
+        "registrar_user"
+    ]
+)
+def test_cannot_resend_activation_email_to_unrelated_org_user(
+    user_type,
+    request,
+    client,
+    unconfirmed_org_user_factory,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    target_user = unconfirmed_org_user_factory()
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "admin_user"
+    ]
+)
+def test_can_resend_activation_email_to_registrar_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+
+    match user_type:
+        case "registrar_user":
+            registrar = user.registrar
+        case "admin_user":
+            registrar = request.getfixturevalue("registrar")
+    target_user = unactivated_user
+    target_user.registrar = registrar
+    target_user.save()
+
+    resend_should_succeed(client, target_user, mailoutbox)
+
+
+def test_cannot_resend_activation_email_to_unrelated_registrar_user(
+    client,
+    registrar_user,
+    unconfirmed_registrar_user_factory,
+    mailoutbox
+):
+    client.force_login(registrar_user)
+    target_user = unconfirmed_registrar_user_factory()
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+def test_org_user_cannot_resend_activation_email_to_registrar_user(
+    client,
+    org_user,
+    unconfirmed_registrar_user_factory,
+    mailoutbox
+):
+    client.force_login(org_user)
+    target_user = unconfirmed_registrar_user_factory(
+        registrar=org_user.organizations.first().registrar
+    )
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+@pytest.mark.parametrize(
+    "user_type",
+    [
+        "registrar_user",
+        "org_user"
+    ]
+)
+def test_cannot_resend_activation_email_to_regular_user(
+    user_type,
+    request,
+    client,
+    unactivated_user,
+    mailoutbox
+):
+    user = request.getfixturevalue(user_type)
+    client.force_login(user)
+    target_user = unactivated_user
+
+    resend_should_fail(client, target_user, mailoutbox)
+
+
+def test_can_resend_activation_email_to_regular_user(
+    client,
+    admin_user,
+    unactivated_user,
+    mailoutbox
+):
+    client.force_login(admin_user)
+    target_user = unactivated_user
+    resend_should_succeed(client, target_user, mailoutbox)
 
 
 class UserManagementViewsTestCase(PermaTestCase):
@@ -27,29 +2238,7 @@ class UserManagementViewsTestCase(PermaTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_user = LinkUser.objects.get(pk=1)
-        cls.registrar_user = LinkUser.objects.get(pk=2)
-        cls.sponsored_user = LinkUser.objects.get(pk=20)
-        cls.another_sponsored_user = LinkUser.objects.get(pk=21)
-        cls.inactive_sponsored_user = LinkUser.objects.get(pk=22)
-        cls.another_inactive_sponsored_user = LinkUser.objects.get(pk=23)
-        cls.regular_user = LinkUser.objects.get(pk=4)
-        cls.another_regular_user = LinkUser.objects.get(pk=16)
-        cls.registrar = cls.registrar_user.registrar
-        cls.pending_registrar = Registrar.objects.get(pk=2)
-        cls.unrelated_registrar = Registrar.objects.get(pk=2)
-        cls.unrelated_registrar_user = cls.unrelated_registrar.users.first()
-        cls.organization = Organization.objects.get(pk=1)
-        cls.user_organization_affiliation = UserOrganizationAffiliation.objects.get(pk=1)
-        cls.organization_user = cls.organization.users.first()
-        cls.another_organization = Organization.objects.get(pk=2)
-        cls.unrelated_organization = cls.unrelated_registrar.organizations.first()
-        cls.unrelated_organization_user = cls.unrelated_organization.users.first()
-        cls.another_unrelated_organization_user = cls.unrelated_organization.users.get(pk=11)
-        cls.deletable_organization = Organization.objects.get(pk=3)
 
-    ### Helpers ###
-    def pk_from_email(self, email):
-        return LinkUser.objects.get(email=email).pk
 
     ### REGISTRAR A/E/D VIEWS ###
 
@@ -144,66 +2333,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'deactivated account'), 0)
         self.assertEqual(response.count(b'User must activate account'), 1)
 
-    def test_admin_can_create_registrar(self):
-        self.submit_form(
-            'user_management_manage_registrar', {
-                'a-name':'test_views_registrar',
-                'a-email':'test@test.com',
-                'a-website':'http://test.com'
-            },
-            user=self.admin_user,
-            success_url=reverse('user_management_manage_registrar'),
-            success_query=Registrar.objects.filter(name='test_views_registrar'))
-
-    def test_admin_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.admin_user,
-                         reverse_kwargs={'args':[self.unrelated_registrar.pk]},
-                         data={
-                              'a-name': 'new_name',
-                              'a-email': 'test@test.com2',
-                              'a-website': 'http://test.com'},
-                         success_url=reverse('user_management_manage_registrar'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_can_update_registrar(self):
-        self.submit_form('user_management_manage_single_registrar',
-                         user=self.registrar_user,
-                         reverse_kwargs={'args': [self.registrar.pk]},
-                         data={
-                             'a-name': 'new_name',
-                             'a-email': 'test@test.com2',
-                             'a-website': 'http://test.com'},
-                         success_url=reverse('settings_affiliations'),
-                         success_query=Registrar.objects.filter(name='new_name'))
-
-    def test_registrar_cannot_update_unrelated_registrar(self):
-        self.get('user_management_manage_single_registrar',
-                 user=self.registrar_user,
-                 reverse_kwargs={'args': [self.unrelated_registrar.pk]},
-                 require_status_code=403)
-
-    def test_admin_can_approve_pending_registrar(self):
-        self.submit_form(
-            'user_sign_up_approve_pending_registrar',
-            user=self.admin_user,
-            data={'status': 'approved', 'base_rate': '100.00'},
-            reverse_kwargs={'args': [self.pending_registrar.pk]},
-            success_query=Registrar.objects.filter(
-                pk=self.pending_registrar.pk, status='approved'
-            ).exists(),
-        )
-
-    def test_admin_can_deny_pending_registrar(self):
-        self.submit_form(
-            'user_sign_up_approve_pending_registrar',
-            user=self.admin_user,
-            data={'status': 'denied', 'base_rate': '100.00'},
-            reverse_kwargs={'args': [self.pending_registrar.pk]},
-            success_query=Registrar.objects.filter(
-                pk=self.pending_registrar.pk, status='denied'
-            ).exists(),
-        )
 
     ### ORGANIZATION A/E/D VIEWS ###
 
@@ -309,140 +2438,6 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # status filter tested in test_registrar_user_list_filters
 
-    def test_org_export_user_list(self):
-        expected_results = {
-            # Org ID: (record count, org name)
-            1: (3, 'Test Journal'),
-            2: (1, 'Another Journal'),
-            3: (3, 'A Third Journal'),
-            4: (3, "Another Library's Journal"),
-            5: (1, 'Some Case'),
-            6: (0, 'Some Other Case'),
-        }
-        for org_id, (record_count, org_name) in expected_results.items():
-            # Get CSV export output
-            csv_response: HttpResponse = self.get(
-                'user_management_manage_single_organization_export_user_list',
-                request_kwargs={'data': {'format': 'csv'}},
-                reverse_kwargs={'args': [org_id]},
-                user=self.admin_user,
-            )
-            self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-            # Validate CSV output against expected results
-            csv_file = StringIO(csv_response.content.decode('utf8'))
-            reader = csv.DictReader(csv_file)
-            reader_record_count = 0
-            for record in reader:
-                self.assertEqual(record['organization_name'], org_name)
-                reader_record_count += 1
-            self.assertEqual(reader_record_count, record_count)
-
-            # Get JSON export output
-            json_response: JsonResponse = self.get(
-                'user_management_manage_single_organization_export_user_list',
-                request_kwargs={'data': {'format': 'json'}},
-                reverse_kwargs={'args': [org_id]},
-                user=self.admin_user,
-            )
-            self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-            # Validate JSON output against expected results
-            reader = json.loads(json_response.content)
-            reader_record_count = 0
-            for record in reader:
-                self.assertEqual(record['organization_name'], org_name)
-                reader_record_count += 1
-            self.assertEqual(reader_record_count, record_count)
-
-    def test_organization_user_export_user_list(self):
-        expected_results = [
-            ('case_one_lawyer@firm.com', 'Some Case'),
-            ('multi_registrar_org_user@example.com', 'Another Journal'),
-            ('multi_registrar_org_user@example.com', "Another Library's Journal"),
-            ('multi_registrar_org_user@example.com', 'A Third Journal'),
-            ('multi_registrar_org_user@example.com', 'Test Journal'),
-            ('test_another_library_org_user@example.com', "Another Library's Journal"),
-            ('test_another_library_org_user@example.com', 'A Third Journal'),
-            ('test_yet_another_library_org_user@example.com', "Another Library's Journal"),
-            ('test_another_org_user@example.com', 'A Third Journal'),
-            ('test_org_rando_user@example.com', 'Test Journal'),
-            ('test_org_user@example.com', 'Test Journal'),
-        ]
-
-        # Get CSV export output
-        csv_response: HttpResponse = self.get(
-            'user_management_manage_organization_user_export_user_list',
-            request_kwargs={'data': {'format': 'csv'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-        # Validate CSV output against expected results
-        csv_file = StringIO(csv_response.content.decode('utf8'))
-        reader = csv.DictReader(csv_file)
-        for index, record in enumerate(reader):
-            expected_email, expected_organization_name = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['organization_name'], expected_organization_name)
-        self.assertEqual(index + 1, len(expected_results))
-
-        # Get JSON export output
-        json_response: HttpResponse = self.get(
-            'user_management_manage_organization_user_export_user_list',
-            request_kwargs={'data': {'format': 'json'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-        # Validate JSON output against expected results
-        reader = json.loads(json_response.content)
-        for index, record in enumerate(reader):
-            expected_email, expected_organization_name = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['organization_name'], expected_organization_name)
-        self.assertEqual(index + 1, len(expected_results))
-
-    def test_sponsored_user_export_user_list(self):
-        expected_results = [
-            ('another_inactive_sponsored_user@example.com', 'inactive'),
-            ('another_sponsored_user@example.com', 'active'),
-            ('inactive_sponsored_user@example.com', 'inactive'),
-            ('test_sponsored_user@example.com', 'active'),
-        ]
-
-        # Get CSV export output
-        csv_response: HttpResponse = self.get(
-            'user_management_manage_sponsored_user_export_user_list',
-            request_kwargs={'data': {'format': 'csv'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(csv_response.headers['Content-Type'], 'text/csv')
-
-        # Validate CSV output against expected results
-        csv_file = StringIO(csv_response.content.decode('utf8'))
-        reader = csv.DictReader(csv_file)
-        for index, record in enumerate(reader):
-            expected_email, expected_sponsorship_status = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
-        self.assertEqual(index + 1, len(expected_results))
-
-        # Get JSON export output
-        json_response: HttpResponse = self.get(
-            'user_management_manage_sponsored_user_export_user_list',
-            request_kwargs={'data': {'format': 'json'}},
-            user=self.admin_user,
-        )
-        self.assertEqual(json_response.headers['Content-Type'], 'application/json')
-
-        # Validate JSON output against expected results
-        reader = json.loads(json_response.content)
-        for index, record in enumerate(reader):
-            expected_email, expected_sponsorship_status = expected_results[index]
-            self.assertEqual(record['email'], expected_email)
-            self.assertEqual(record['sponsorship_status'], expected_sponsorship_status)
-        self.assertEqual(index + 1, len(expected_results))
 
     def test_sponsored_user_list_filters(self):
         # test assumptions: four users, with five sponsorships between them
@@ -496,96 +2491,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         # user status filter tested in test_registrar_user_list_filters
 
 
-
-    def test_admin_can_create_organization(self):
-        self.submit_form('user_management_manage_organization',
-                         user=self.admin_user,
-                         data={
-                             'a-name': 'new_name',
-                             'a-registrar': self.registrar.pk},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_can_create_organization(self):
-        self.submit_form('user_management_manage_organization',
-                         user=self.registrar_user,
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_admin_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.admin_user,
-                         reverse_kwargs={'args':[self.organization.pk]},
-                         data={
-                             'a-name': 'new_name',
-                             'a-registrar': self.registrar.pk},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.registrar_user,
-                         reverse_kwargs={'args':[self.organization.pk]},
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_org_user_can_update_organization(self):
-        self.submit_form('user_management_manage_single_organization',
-                         user=self.organization_user,
-                         reverse_kwargs={'args': [self.organization.pk]},
-                         data={
-                             'a-name': 'new_name'},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(name='new_name'))
-
-    def test_registrar_cannot_update_unrelated_organization(self):
-        self.get('user_management_manage_single_organization',
-                 user=self.registrar_user,
-                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=403)
-
-    def test_org_user_cannot_update_unrelated_organization(self):
-        self.get('user_management_manage_single_organization',
-                 user=self.organization_user,
-                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
-                 require_status_code=403)
-
-    def _delete_organization(self, user, should_succeed=True):
-        if should_succeed:
-            self.submit_form('user_management_manage_single_organization_delete',
-                              user=user,
-                              reverse_kwargs={'args': [self.deletable_organization.pk]},
-                              success_url=reverse('user_management_manage_organization'),
-                              success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
-        else:
-            self.submit_form('user_management_manage_single_organization_delete',
-                              user=user,
-                              reverse_kwargs={'args': [self.deletable_organization.pk]},
-                              require_status_code=404)
-
-    def test_admin_user_can_delete_empty_organization(self):
-        self._delete_organization(self.admin_user)
-        self._delete_organization(self.admin_user, False)
-
-    def test_registrar_user_can_delete_empty_organization(self):
-        self._delete_organization(self.deletable_organization.registrar.users.first())
-        self._delete_organization(self.deletable_organization.registrar.users.first(), False)
-
-    def test_org_user_can_delete_empty_organization(self):
-        self._delete_organization(self.deletable_organization.users.first())
-        self._delete_organization(self.deletable_organization.users.first(), False)
-
-    def test_cannot_delete_nonempty_organization(self):
-        self.submit_form('user_management_manage_single_organization_delete',
-                         user=self.admin_user,
-                         reverse_kwargs={'args': [self.organization.pk]},
-                         require_status_code=404)
-
-
     ### USER A/E/D VIEWS ###
 
     def test_user_list_filters(self):
@@ -630,1532 +2535,3 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(response.count(b'Interested in a faculty account'), 1)
 
         # status filter tested in test_registrar_user_list_filters
-
-    def test_create_and_delete_user(self):
-        self.log_in_user(self.admin_user)
-
-        base_user = {
-            'a-first_name':'First',
-            'a-last_name':'Last',
-        }
-        email = self.randomize_capitalization('test_views_test@test.com')
-        normalized_email = email.lower()
-
-        for view_name, form_extras in [
-            ['registrar_user', {'a-registrar': 1}],
-            ['user', {}],
-            ['organization_user', {'a-organizations': 1}],
-            ['sponsored_user', {'a-sponsoring_registrars': 1}],
-        ]:
-            # create user
-            email += '1'
-            normalized_email += '1'
-            self.submit_form('user_management_' + view_name + '_add_user',
-                           data=dict(list(base_user.items()) + list(form_extras.items()) + [['a-address', email]]),
-                           success_url=reverse('user_management_manage_' + view_name),
-                           success_query=LinkUser.objects.filter(email=normalized_email, raw_email=email))
-            new_user = LinkUser.objects.get(email=normalized_email)
-
-            # delete user (deactivate)
-            new_user.is_confirmed = True
-            new_user.save()
-            self.submit_form('user_management_manage_single_' + view_name + '_delete',
-                           reverse_kwargs={'args': [new_user.pk]},
-                           success_url=reverse('user_management_manage_' + view_name))
-
-            # reactivate user
-            self.submit_form('user_management_manage_single_' + view_name + '_reactivate',
-                           reverse_kwargs={'args': [new_user.pk]},
-                           success_url=reverse('user_management_manage_' + view_name))
-
-            # delete user (really delete)
-            new_user.is_confirmed = False
-            new_user.save()
-            self.submit_form('user_management_manage_single_' + view_name + '_delete',
-                           reverse_kwargs={'args': [new_user.pk]},
-                           success_url=reverse('user_management_manage_' + view_name))
-
-    ### ADDING NEW USERS TO ORGANIZATIONS ###
-
-    def add_org_user(self):
-        email = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_email = email.lower()
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': email},
-                         query_params={'email': email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_email,
-                             raw_email=email,
-                             organizations=self.organization
-                         ).exists())
-
-    def test_add_multiple_org_users_via_csv(self):
-        def create_csv_file(filename, content, encoding='utf-8'):
-            return SimpleUploadedFile(filename, content.encode(encoding), content_type='text/csv')
-
-        def initialize_form(csv_file, data=None):
-            data = {'organizations': selected_organization.pk, 'indefinite_affiliation': True}
-            return MultipleUsersFormWithOrganization(request=request, data=data, files={'csv_file': csv_file})
-
-        # --- initialize data ---
-        csv_data = 'first_name,last_name,email\nJohn,Doe,johndoe@example.com\nJane,Smith,janesmith@example.com'
-        another_csv_data = 'first_name,last_name,email\nJohn2,Doe,john2doe@example.com\nJane2,Smith,jane2smith@example.com'
-        invalid_csv_data = 'name\nJohn Doe'
-        another_invalid_csv_data = 'first_name,last_name,email\nJohn,Doe,\nJane,Smith,janesmith@example.com'
-
-        valid_csv_file = create_csv_file('users.csv', csv_data)
-        another_valid_csv_file = create_csv_file('another_valid_users.csv', another_csv_data)
-        one_more_valid_csv_file = create_csv_file('one_more_valid_users.csv', csv_data)
-        invalid_csv_file = create_csv_file('invalid_users.csv', invalid_csv_data)
-        another_invalid_csv_file = create_csv_file('another_invalid_users.csv', another_invalid_csv_data)
-        csv_file_with_invalid_encoding = create_csv_file('users.csv', csv_data, 'utf-16')
-
-        request = RequestFactory().get('/')
-        request.user = self.registrar_user
-        selected_organization = self.another_organization
-
-        # --- test form initialization ---
-        form = MultipleUsersFormWithOrganization(request=request)
-        # the registrar user has 3 organizations tied to it as verified in the users.json sample data
-        self.assertEqual(form.fields['organizations'].queryset.count(), 3)
-        # confirm that the first item in organization selection field matches the first organization of the registrar
-        self.assertEqual(form.fields['organizations'].queryset.first(), request.user.registrar.organizations
-                         .order_by('name').first())
-
-        # --- test csv validation ---
-        # valid csv
-        form1 = initialize_form(valid_csv_file)
-        self.assertTrue(form1.is_valid())
-
-        # invalid csv - missing headers
-        form2 = initialize_form(invalid_csv_file)
-        self.assertFalse(form2.is_valid())
-        self.assertTrue("CSV file must contain a header row with first_name, last_name and email columns."
-                        in form2.errors['csv_file'])
-
-        # invalid csv - missing email field
-        form3 = initialize_form(another_invalid_csv_file)
-        self.assertFalse(form3.is_valid())
-        self.assertTrue("Each row in the CSV file must contain email."
-                        in form3.errors['csv_file'])
-
-        # invalid csv - non utf-8 encoding
-        form4 = initialize_form(csv_file_with_invalid_encoding)
-        self.assertFalse(form4.is_valid())
-        self.assertTrue("CSV file must be encoded with UTF-8."
-                        in form4.errors['csv_file'])
-
-        # --- test user creation ---
-        self.assertTrue(form1.is_valid())
-        form1.save(commit=True)
-        created_user_ids = [user.id for user in form1.created_users.values()]
-        self.assertEqual(len(created_user_ids), 2)
-        self.assertEqual(UserOrganizationAffiliation.objects.filter(user_id__in=created_user_ids).count(), 2)
-
-        # --- test user update ---
-        existing_user = LinkUser.objects.create(email="john2doe@example.com", first_name="John2", last_name="Doe")
-        form4 = initialize_form(another_valid_csv_file)
-        self.assertTrue(form4.is_valid())
-        form4.save(commit=True)
-        self.assertEqual(len(form4.updated_users), 1)
-        self.assertTrue(existing_user in form4.updated_users.values())
-        self.assertEqual(len(form4.created_users), 1)
-        self.assertEqual(next(iter(form4.updated_users)), "john2doe@example.com")
-
-        # --- test validation errors ---
-        LinkUser.objects.filter(raw_email="johndoe@example.com").update(is_staff=True)
-        form5 = initialize_form(one_more_valid_csv_file)
-        self.assertTrue(form5.is_valid())
-        form5.save(commit=True)
-        self.assertEqual(len(form5.ineligible_users), 1)
-        self.assertEqual("johndoe@example.com", next(iter(form5.ineligible_users)))
-
-    def test_admin_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.admin_user)
-        self.add_org_user()
-
-    def test_registrar_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.registrar_user)
-        self.add_org_user()
-
-    def test_org_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        self.add_org_user()
-
-    def test_registrar_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['organizations'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 organizations=self.unrelated_organization).exists())
-
-    def test_org_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['organizations'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 organizations=self.unrelated_organization).exists())
-
-    ### ADDING EXISTING USERS TO ORGANIZATIONS ###
-
-    def add_org_users(self):
-        # submit email with the same capitalization
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
-
-        # submit email with a different capitalization
-        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_organization_user'),
-                         success_query=self.another_regular_user.organizations.filter(pk=self.organization.pk))
-
-    def test_admin_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.admin_user)
-        self.add_org_users()
-
-    def test_registrar_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.registrar_user)
-        self.add_org_users()
-
-    def test_org_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        self.add_org_users()
-
-    def test_registrar_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.unrelated_organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['organizations'])
-        self.assertFalse(self.regular_user.organizations.filter(pk=self.unrelated_organization.pk).exists())
-
-    def test_org_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.another_organization.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['organizations'])
-        self.assertFalse(self.regular_user.organizations.filter(pk=self.another_organization.pk).exists())
-
-    def test_cannot_add_admin_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        resp = self.submit_form('user_management_organization_user_add_user',
-                         data={'a-organizations': self.organization.pk},
-                         query_params={'email': self.admin_user.email})
-        self.assertIn(b"is an admin user", resp.content)
-        self.assertFalse(self.admin_user.organizations.exists())
-
-    def test_cannot_add_registrar_user_to_org(self):
-        self.log_in_user(self.organization_user)
-        resp = self.submit_form('user_management_organization_user_add_user',
-                                data={'a-organizations': self.organization.pk},
-                                query_params={'email': self.registrar_user.email})
-        self.assertIn(b"is already a registrar user", resp.content)
-        self.assertFalse(self.registrar_user.organizations.exists())
-
-    ### VOLUNTARILY LEAVING ORGANIZATIONS ###
-
-    def test_org_user_can_leave_org(self):
-        u = LinkUser.objects.get(email='test_another_library_org_user@example.com')
-        orgs = u.organizations.all()
-
-        # check assumptions
-        self.assertEqual(len(orgs), 2)
-
-        # 404 if tries to leave non-existent org
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [999]},
-                          require_status_code=404)
-
-        # returns to affiliations page if still a member of at least one org
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[0].pk]},
-                          success_url=reverse('settings_affiliations'))
-
-        # returns to create/manage page if no longer a member of any orgs
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[1].pk]},
-                          success_url=reverse('create_link'))
-
-        # 404 if tries to leave an org they are not a member of
-        self.submit_form('user_management_organization_user_leave_organization',
-                          user=u,
-                          data={},
-                          reverse_kwargs={'args': [orgs[1].pk]},
-                          require_status_code=404)
-
-
-    ### REMOVING USERS FROM ORGANIZATIONS ###
-
-    # Just try to access the page with remove/deactivate links
-
-    def test_registrar_can_edit_org_user(self):
-        # User from one of registrar's own orgs succeeds
-        self.log_in_user(self.registrar_user)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.organization_user.pk]})
-        # User from another registrar's org fails
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]},
-                  require_status_code=403)
-        # Repeat with the other registrar, to confirm we're
-        # getting 404s because of permission reasons, not because the
-        # test fixtures are broken.
-        self.log_in_user(self.unrelated_registrar_user)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.organization_user.pk]},
-                  require_status_code=403)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]})
-
-    def test_org_can_edit_org_user(self):
-        # User from own org succeeds
-        org_one_users = ['test_org_user@example.com', 'test_org_rando_user@example.com']
-        org_two_users = ['test_another_library_org_user@example.com', 'test_another_org_user@example.com']
-
-        self.log_in_user(org_one_users[0])
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]})
-        # User from another org fails
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]},
-                  require_status_code=403)
-
-        # Repeat with another org
-        self.log_in_user(org_two_users[1])
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]},
-                  require_status_code=403)
-        self.get('user_management_manage_single_organization_user',
-                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]})
-
-    # Actually try removing them
-
-    def test_can_remove_user_from_organization(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'affiliation': self.user_organization_affiliation.pk},
-                         reverse_kwargs={'args': [self.organization_user.pk]},
-                         success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.pk]))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
-
-    def test_registrar_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.unrelated_organization.pk},
-                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
-                         require_status_code=404)
-
-    def test_org_user_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'org': self.unrelated_organization.pk},
-                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
-                         require_status_code=404)
-
-    def test_can_remove_self_from_organization(self):
-        self.log_in_user(self.organization_user)
-        self.submit_form('user_management_manage_single_organization_user_remove',
-                         data={'affiliation': self.user_organization_affiliation.pk},
-                         reverse_kwargs={'args': [self.organization_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(self.organization_user.organizations.filter(pk=self.user_organization_affiliation.pk).exists())
-
-    ### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
-
-    def test_admin_user_can_modify_affiliation_of_existing_org_user(self):
-        self.log_in_user(self.admin_user)
-        affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
-        affiliation.expires_at = datetime.strptime('2025-04-30T00:00:00+00:00', "%Y-%m-%dT%H:%M:%S%z")
-        affiliation.save()
-        self.submit_form('user_management_manage_single_organization_user_expiration_date',
-                         reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
-                         data={'expires_at': ''},
-                         success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
-        affiliation.refresh_from_db()
-        self.assertEqual(affiliation.expires_at, None)
-
-    def test_registrar_user_can_modify_affiliation_of_existing_org_user(self):
-        # can only modify user affiliations if registrar is affiliated with the same org
-        self.log_in_user(self.registrar_user)
-        affiliation = UserOrganizationAffiliation.objects.get(user=self.organization_user, organization=self.organization)
-        expires_at = '2025-04-30T00:00:00+00:00'
-        self.submit_form('user_management_manage_single_organization_user_expiration_date',
-                         reverse_kwargs={'args': [self.organization_user.id, self.organization.id]},
-                         data={'expires_at': expires_at},
-                         success_url=reverse('user_management_manage_single_organization_user', args=[self.organization_user.id]))
-        affiliation.refresh_from_db()
-        self.assertEqual(affiliation.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
-
-        # cannot modify user affiliations if registrar isn't affiliated with the same org
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_organization_user_expiration_date',
-                         reverse_kwargs={'args': [self.organization_user.id, self.unrelated_organization.id]},
-                         require_status_code=403)
-
-    ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
-
-    def test_admin_user_can_add_new_sponsored_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_sponsored_user_add_user',
-                          data={'a-sponsoring_registrars': self.registrar.pk,
-                                'a-first_name': 'First',
-                                'a-last_name': 'Last',
-                                'a-address': address},
-                          query_params={'email': address},
-                          success_url=reverse('user_management_manage_sponsored_user'))
-
-        # Check that everything is set up correctly (we'll do this once, here, and not repeat in other tests)
-        user = LinkUser.objects.get(
-            email=normalized_address,
-            raw_email=address,
-            sponsoring_registrars=self.registrar
-        )
-        sponsorship = user.sponsorships.first()
-        sponsored_folder = sponsorship.folders.get()
-        self.assertEqual(sponsorship.status, 'active')
-        self.assertEqual(sponsored_folder.parent, user.sponsored_root_folder)
-        self.assertFalse(sponsored_folder.read_only)
-
-        # Try to add the same person again; should fail
-        scrambled_email = self.randomize_capitalization(address)
-        response = self.submit_form('user_management_sponsored_user_add_user',
-                                     data={'a-sponsoring_registrars': self.registrar.pk,
-                                           'a-first_name': 'First',
-                                           'a-last_name': 'Last',
-                                           'a-address': scrambled_email},
-                                     query_params={'email': scrambled_email}).content
-        self.assertIn(bytes("Select a valid choice. That choice is not one of the available choices", 'utf-8'), response)
-
-    def test_registrar_user_can_add_new_sponsored_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_sponsored_user_add_user',
-                         data={'a-sponsoring_registrars': self.registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': address},
-                         query_params={'email': address},
-                         success_url=reverse('user_management_manage_sponsored_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_address,
-                             raw_email=address,
-                             sponsoring_registrars=self.registrar
-                         ).exists())
-
-        # Try to add the same person again; should fail
-        scrambled_email = self.randomize_capitalization(address)
-        response = self.submit_form('user_management_sponsored_user_add_user',
-                                     data={'a-sponsoring_registrars': self.registrar.pk,
-                                           'a-first_name': 'First',
-                                           'a-last_name': 'Last',
-                                           'a-address': scrambled_email},
-                                     query_params={'email': scrambled_email}).content
-        self.assertIn(bytes("{} is already sponsored by your registrar.".format(normalized_address), 'utf-8'), response)
-
-    def test_registrar_user_cannot_add_sponsored_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_sponsored_user_add_user',
-                         data={'a-sponsoring_registrars': self.unrelated_registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['sponsoring_registrars'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 sponsoring_registrars=self.unrelated_registrar).exists())
-
-    ### ADDING EXISTING USERS TO REGISTRARS AS SPONSORED USERS ###
-
-    def test_admin_user_can_add_sponsorship_to_existing_user(self):
-        self.log_in_user(self.admin_user)
-        scrambled_email = self.randomize_capitalization(self.regular_user.email)
-        self.submit_form('user_management_sponsored_user_add_user',
-                         data={'a-sponsoring_registrars': self.registrar.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_sponsored_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-
-    def test_registrar_user_can_add_sponsorship_to_existing_user(self):
-        self.log_in_user(self.registrar_user)
-        scrambled_email = self.randomize_capitalization(self.regular_user.email)
-        self.submit_form('user_management_sponsored_user_add_user',
-                         data={'a-sponsoring_registrars': self.registrar.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_sponsored_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-
-    def test_registrar_user_cannot_add_sponsorship_for_other_registrar_to_existing_user(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_sponsored_user_add_user',
-                         data={'a-sponsoring_registrars': self.unrelated_registrar.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['sponsoring_registrars'])
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.unrelated_registrar).exists())
-
-    ### MODIFYING SPONSORSHIPS ###
-
-    def test_admin_user_can_modify_sponsorship_of_existing_user(self):
-        self.log_in_user(self.admin_user)
-        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-        sponsorship.expires_at = '2025-12-29'
-        sponsorship.save()
-        self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-                         data={'expires_at': ''},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.expires_at, None)
-
-        
-    def test_registrar_user_can_modify_sponsorship_of_existing_affiliated_user(self):
-        # can only modify sponsorships affiliated with itself
-        self.log_in_user(self.registrar_user)
-        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-        expires_at = '2025-04-30T00:00:00+00:00'
-        self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-                         data={'expires_at': expires_at},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, sponsoring_registrars=self.registrar))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.expires_at, datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S%z"))
-
-        # cannot modify sponsorships affiliated with another registrar
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_sponsored_user_expiration_date',
-                         reverse_kwargs={'args': [self.sponsored_user.id, self.unrelated_registrar.pk]},
-                         require_status_code=403)
-
-    ### TOGGLING THE STATUS OF SPONSORSHIPS ###
-
-    def test_admin_user_can_deactivate_active_sponsorship(self):
-        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_manage_single_sponsored_user_remove',
-                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.status, 'inactive')
-        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
-
-
-    def test_admin_user_can_reactivate_inactive_sponsorship(self):
-        sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
-        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_manage_single_sponsored_user_readd',
-                         reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.status, 'active')
-        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
-
-    def test_registrar_user_can_deactivate_active_sponsorship(self):
-        sponsorship = Sponsorship.objects.get(user=self.sponsored_user, registrar=self.registrar, status='active')
-        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_sponsored_user_remove',
-                         reverse_kwargs={'args': [self.sponsored_user.id, self.registrar.id]},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.sponsored_user.id]))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.status, 'inactive')
-        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
-
-    def test_registrar_user_cannot_deactivate_active_sponsorship_for_other_registrar(self):
-        self.assertTrue(self.unrelated_registrar in self.another_sponsored_user.sponsoring_registrars.all())
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_sponsored_user_remove',
-                         reverse_kwargs={'args': [self.another_sponsored_user.id, self.unrelated_registrar.id]},
-                         require_status_code=404)
-
-    def test_registrar_user_can_reactivate_inactive_sponsorship(self):
-        sponsorship = Sponsorship.objects.get(user=self.inactive_sponsored_user, registrar=self.registrar, status='inactive')
-        self.assertTrue(all(folder.read_only for folder in sponsorship.folders))
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_sponsored_user_readd',
-                         reverse_kwargs={'args': [self.inactive_sponsored_user.id, self.registrar.id]},
-                         success_url=reverse('user_management_manage_single_sponsored_user', args=[self.inactive_sponsored_user.id]))
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.status, 'active')
-        self.assertTrue(all(not folder.read_only for folder in sponsorship.folders))
-
-    def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registrar(self):
-        sponsorship = Sponsorship.objects.get(user=self.another_inactive_sponsored_user, registrar=self.unrelated_registrar, status='inactive')
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_sponsored_user_readd',
-                         reverse_kwargs={'args': [self.another_inactive_sponsored_user.id, self.unrelated_registrar.id]},
-                         require_status_code=404)
-        sponsorship.refresh_from_db()
-        self.assertEqual(sponsorship.status, 'inactive')
-
-
-    ### ADDING NEW USERS TO REGISTRARS AS REGISTRAR USERS ###
-
-    def test_admin_user_can_add_new_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                          data={'a-registrar': self.registrar.pk,
-                                'a-first_name': 'First',
-                                'a-last_name': 'Last',
-                                'a-address': address},
-                          query_params={'email': address},
-                          success_url=reverse('user_management_manage_registrar_user'),
-                          success_query=LinkUser.objects.filter(
-                              email=normalized_address,
-                              raw_email=address,
-                              registrar=self.registrar).exists()
-                         )
-
-    def test_registrar_user_can_add_new_user_to_registrar(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': address},
-                         query_params={'email': address},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_address,
-                             raw_email=address,
-                             registrar=self.registrar).exists()
-                         )
-
-        # Try to add the same person again; should fail
-        scrambled_email = self.randomize_capitalization(address)
-        response = self.submit_form('user_management_registrar_user_add_user',
-                                     data={'a-registrar': self.registrar.pk,
-                                           'a-first_name': 'First',
-                                           'a-last_name': 'Last',
-                                           'a-address': scrambled_email},
-                                     query_params={'email': scrambled_email}).content
-        self.assertIn(bytes("{} is already a registrar user for your registrar.".format(normalized_address), 'utf-8'), response)
-
-    def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.unrelated_registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         error_keys=['registrar'])
-        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                 registrar=self.unrelated_registrar).exists())
-
-    ### ADDING EXISTING USERS TO REGISTRARS ###
-
-    def add_registrars(self):
-        # submit email with the same capitalization
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
-
-        # submit email with a different capitalization
-        scrambled_email = self.randomize_capitalization(self.another_regular_user.email)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': scrambled_email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.another_regular_user.pk, registrar=self.registrar))
-
-    def test_admin_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.admin_user)
-        self.add_registrars()
-
-    def test_registrar_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.add_registrars()
-
-    def test_registrar_user_can_upgrade_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.organization_user.email},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.organization_user.pk, registrar=self.registrar))
-        self.assertFalse(LinkUser.objects.filter(pk=self.organization_user.pk, organizations=self.organization).exists())
-
-    def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                                data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.unrelated_organization_user.email})
-        self.assertIn(b"belongs to organizations that are not controlled by your registrar", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_organization_user.pk, registrar=self.registrar).exists())
-
-    def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.unrelated_registrar.pk},
-                         query_params={'email': self.regular_user.email},
-                         error_keys=['registrar'])
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.unrelated_registrar).exists())
-
-    def test_cannot_add_admin_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.admin_user.email})
-        self.assertIn(b"is an admin user", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, registrar=self.registrar).exists())
-
-    def test_cannot_add_registrar_user_to_registrar(self):
-        self.log_in_user(self.registrar_user)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                                data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.unrelated_registrar_user.email})
-        self.assertIn(b"is already a member of another registrar", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_user.pk, registrar=self.registrar).exists())
-
-    ### REMOVING REGISTRAR USERS FROM REGISTRARS ###
-
-    def test_can_remove_user_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.regular_user.registrar = self.registrar
-        self.regular_user.save()
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.regular_user.pk]},
-                         success_url=reverse('user_management_manage_registrar_user'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar).exists())
-
-    def test_registrar_cannot_remove_unrelated_user_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.unrelated_registrar_user.pk]},
-                         require_status_code=404)
-
-    def test_can_remove_self_from_registrar(self):
-        self.log_in_user(self.registrar_user)
-        self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.registrar_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.registrar_user.pk, registrar=self.registrar).exists())
-
-    ### ADDING NEW USERS AS ADMINS ###
-
-    def test_admin_user_can_add_new_user_as_admin(self):
-        address = self.randomize_capitalization('doesnotexist@example.com')
-        normalized_address = address.lower()
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_admin_user_add_user',
-                         data={'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-address': address},
-                         query_params={'email': address},
-                         success_url=reverse('user_management_manage_admin_user'),
-                         success_query=LinkUser.objects.filter(
-                             email=normalized_address,
-                             raw_email=address,
-                             is_staff=True).exists()
-                         )
-
-    ### ADDING EXISTING USERS AS ADMINS ###
-
-    def test_admin_user_can_add_existing_user_as_admin(self):
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_admin_user_add_user',
-                         query_params={'email': self.randomize_capitalization(self.regular_user.email)},
-                         success_url=reverse('user_management_manage_admin_user'),
-                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
-
-    ### REMOVING USERS AS ADMINS ###
-
-    def test_can_remove_user_from_admin(self):
-        self.log_in_user(self.admin_user)
-        self.regular_user.is_staff = True
-        self.regular_user.save()
-        self.submit_form('user_management_manage_single_admin_user_remove',
-                         reverse_kwargs={'args': [self.regular_user.pk]},
-                         success_url=reverse('user_management_manage_admin_user'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True).exists())
-
-    def test_can_remove_self_from_admin(self):
-        self.log_in_user(self.admin_user)
-        self.submit_form('user_management_manage_single_admin_user_remove',
-                         reverse_kwargs={'args': [self.admin_user.pk]},
-                         success_url=reverse('create_link'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, is_staff=True).exists())
-
-
-    ###
-    ### SIGNUP
-    ###
-
-    ### Libraries ###
-
-    def new_lib(self):
-        rand = random()
-        return { 'email': 'library{}@university.org'.format(rand),
-                 'name': 'University Library {}'.format(rand),
-                 'website': 'http://website{}.org'.format(rand),
-                 'address': '{} Main St., Boston MA 02144'.format(rand)}
-
-    def new_lib_user(self):
-        rand = random()
-        email = self.randomize_capitalization('user{}@university.org'.format(rand))
-        return { 'raw_email': email,
-                 'normalized_email': email.lower(),
-                 'first': 'Joe',
-                 'last': 'Yacobówski' }
-
-    def check_library_labels(self, soup):
-        name_label = soup.find('label', {'for': 'id_b-name'})
-        self.assertEqual(name_label.text, "Library name")
-        email_label = soup.find('label', {'for': 'id_b-email'})
-        self.assertEqual(email_label.text, "Library email")
-        website_label = soup.find('label', {'for': 'id_b-website'})
-        self.assertEqual(website_label.text, "Library website")
-
-    def check_lib_user_labels(self, soup):
-        email_label = soup.find('label', {'for': 'id_a-address'})
-        self.assertEqual(email_label.text, "Your email")
-
-    def check_lib_email(self, message, new_lib, user):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        self.assertIn(new_lib['name'], message.body)
-        self.assertIn(new_lib['email'], message.body)
-
-        self.assertIn(user['raw_email'], message.body)
-
-        id = Registrar.objects.get(email=new_lib['email']).id
-        approve_url = "http://testserver{}".format(reverse('user_sign_up_approve_pending_registrar', args=[id]))
-        self.assertIn(approve_url, message.body)
-        self.assertTrue(message.subject.startswith("Perma.cc new library registrar account request"))
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [our_address])
-        self.assertDictEqual(message.extra_headers, {'Reply-To': user['raw_email']})
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_library_render(self):
-        '''
-           Does the library signup form display as expected?
-        '''
-
-        # NOT LOGGED IN
-
-        # Registrar and user forms are displayed,
-        # inputs are blank, and labels are customized as expected
-        response = self.get('sign_up_libraries').content
-        soup = BeautifulSoup(response, 'html.parser')
-        self.check_library_labels(soup)
-        self.check_lib_user_labels(soup)
-        inputs = soup.select('input')
-        self.assertEqual(len(inputs), 9)
-        for input in inputs:
-            if input['name'] in ['csrfmiddlewaretoken', 'email_confirmation']:
-                self.assertTrue(input.get('value', ''))
-            else:
-                self.assertFalse(input.get('value', ''))
-
-        # If request_data is present in session, registrar form is prepopulated,
-        # and labels are still customized as expected
-        session = self.client.session
-        new_lib = self.new_lib()
-        new_lib_user = self.new_lib_user()
-        session['request_data'] = { 'b-email': new_lib['email'],
-                                    'b-website': new_lib['website'],
-                                    'b-name': new_lib['name'],
-                                    'b-address': new_lib['address'],
-                                    'a-address': new_lib_user['raw_email'],
-                                    'a-first_name': new_lib_user['first'],
-                                    'a-last_name': new_lib_user['last'],
-                                    'csrfmiddlewaretoken': '11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
-        session.save()
-        response = self.get('sign_up_libraries').content
-        soup = BeautifulSoup(response, 'html.parser')
-        self.check_library_labels(soup)
-        self.check_lib_user_labels(soup)
-        inputs = soup.select('input')
-        self.assertEqual(len(inputs), 9)
-        for input in inputs:
-            if input['name'] in ['csrfmiddlewaretoken', 'email_confirmation']:
-                self.assertTrue(input.get('value', ''))
-            elif input['name'][:2] == "b-":
-                self.assertTrue(input.get('value', ''))
-            else:
-                self.assertFalse(input.get('value', ''))
-
-        # If there's an unsuccessful submission, field labels are still as expected.
-        response = self.post('sign_up_libraries').content
-        soup = BeautifulSoup(response, 'html.parser')
-        self.check_library_labels(soup)
-        self.check_lib_user_labels(soup)
-
-        # LOGGED IN
-
-        # Registrar form is displayed, but user form is not,
-        # inputs are blank, and labels are still customized as expected
-        response = self.get('sign_up_libraries', user="test_user@example.com").content
-        soup = BeautifulSoup(response, 'html.parser')
-        self.check_library_labels(soup)
-        inputs = soup.select('input')
-        self.assertEqual(len(inputs), 6) # 6 because csrf is here and in the logout form
-        for input in inputs:
-            self.assertIn(input['name'],['csrfmiddlewaretoken', 'b-name', 'b-email', 'b-website', 'b-address'])
-            if input['name'] == 'csrfmiddlewaretoken':
-                self.assertTrue(input.get('value', ''))
-            else:
-                self.assertFalse(input.get('value', ''))
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_library_submit_success(self):
-        '''
-           Does the library signup form submit as expected? Success cases.
-        '''
-        expected_emails_sent = 0
-
-        # Not logged in, submit all fields sans first and last name
-        new_lib = self.new_lib()
-        new_lib_user = self.new_lib_user()
-        self.submit_form('sign_up_libraries',
-                          data = { 'b-email': new_lib['email'],
-                                   'b-website': new_lib['website'],
-                                   'b-name': new_lib['name'],
-                                   'a-address': new_lib_user['raw_email'] },
-                          success_url=reverse('register_library_instructions'))
-        expected_emails_sent += 2
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['raw_email'])
-
-        # Not logged in, submit all fields including first and last name
-        new_lib = self.new_lib()
-        new_lib_user = self.new_lib_user()
-        self.submit_form('sign_up_libraries',
-                          data = { 'b-email': new_lib['email'],
-                                   'b-website': new_lib['website'],
-                                   'b-name': new_lib['name'],
-                                   'a-address': new_lib_user['raw_email'],
-                                   'a-first_name': new_lib_user['first'],
-                                   'a-last_name': new_lib_user['last']},
-                          success_url=reverse('register_library_instructions'))
-        expected_emails_sent += 2
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib, new_lib_user)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 1], new_lib_user['raw_email'])
-
-        # Logged in
-        new_lib = self.new_lib()
-        existing_lib_user = {
-            'raw_email': 'test_user@example.com',
-            'normalized_email': 'test_user@example.com',
-        }
-        self.submit_form('sign_up_libraries',
-                          data = { 'b-email': new_lib['email'],
-                                   'b-website': new_lib['website'],
-                                   'b-name': new_lib['name'] },
-                          success_url=reverse('settings_affiliations'),
-                          user=existing_lib_user['raw_email'])
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib, existing_lib_user)
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_library_form_honeypot(self):
-        new_lib = self.new_lib()
-        new_lib_user = self.new_lib_user()
-        self.submit_form('sign_up_libraries',
-                          data = { 'b-email': new_lib['email'],
-                                   'b-website': new_lib['website'],
-                                   'b-name': new_lib['name'],
-                                   'a-address': new_lib_user['raw_email'],
-                                   'a-first_name': new_lib_user['first'],
-                                   'a-last_name': new_lib_user['last'],
-                                   'a-email_confirmation': "I'm a bot."},
-                          success_url=reverse('register_library_instructions'))
-        self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(Registrar.objects.filter(name=new_lib['name']).exists())
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_library_submit_failure(self):
-        '''
-           Does the library signup form submit as expected? Failures.
-        '''
-        new_lib = self.new_lib()
-        existing_lib_user = { 'email': 'test_user@example.com'}
-
-        # Not logged in, blank submission reports correct fields required
-        # ('email' catches both registrar and user email errors, unavoidably,
-        # so test with just that missing separately)
-        self.submit_form('sign_up_libraries',
-                          data = {},
-                          form_keys = ['registrar_form', 'user_form'],
-                          error_keys = ['website', 'name', 'email'])
-        self.assertEqual(len(mail.outbox), 0)
-
-        # (checking user email missing separately)
-        self.submit_form('sign_up_libraries',
-                          data = {'b-email': new_lib['email'],
-                                  'b-website': new_lib['website'],
-                                  'b-name': new_lib['name']},
-                          form_keys = ['registrar_form', 'user_form'],
-                          error_keys = ['email'])
-        self.assertEqual(len(mail.outbox), 0)
-
-        # Not logged in, user appears to have already registered
-        data = {'b-email': new_lib['email'],
-                'b-website': new_lib['website'],
-                'b-name': new_lib['name'],
-                'a-address': self.randomize_capitalization(existing_lib_user['email'])}
-        self.submit_form('sign_up_libraries',
-                          data = data,
-                          form_keys = ['registrar_form', 'user_form'],
-                          success_url = '/login?next=/libraries/')
-        self.assertDictEqual(self.client.session['request_data'], data)
-        self.assertEqual(len(mail.outbox), 0)
-
-        # Not logged in, registrar appears to exist already
-        # (actually, this doesn't currently fail)
-
-        # Logged in, blank submission reports all fields required
-        self.submit_form('sign_up_libraries',
-                          data = {},
-                          user = existing_lib_user['email'],
-                          error_keys = ['website', 'name', 'email'])
-        self.assertEqual(len(mail.outbox), 0)
-
-        # Logged in, registrar appears to exist already
-        # (actually, this doesn't currently fail)
-
-    ### Courts ###
-
-    def new_court(self):
-        rand = random()
-        return { 'requested_account_note': 'Court {}'.format(rand) }
-
-    def new_court_user(self):
-        rand = random()
-        email = self.randomize_capitalization('user{}@university.org'.format(rand))
-        return { 'raw_email': email,
-                 'normalized_email': email.lower(),
-                 'first': 'Joe',
-                 'last': 'Yacobówski' }
-
-    def check_court_email(self, message, court_email):
-        our_address = settings.DEFAULT_FROM_EMAIL
-
-        # Doesn't check email contents yet; too many variations possible presently
-        self.assertTrue(message.subject.startswith("Perma.cc new library court account information request"))
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [our_address])
-        self.assertDictEqual(message.extra_headers, {'Reply-To': court_email})
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_court_success(self):
-        '''
-            Does the court signup form submit as expected? Success cases.
-        '''
-        new_court = self.new_court()
-        new_user = self.new_court_user()
-        existing_user = { 'email': 'test_user@example.com'}
-        another_existing_user = { 'email': 'another_library_user@example.com'}
-        expected_emails_sent = 0
-
-        # NOT LOGGED IN
-
-        # Existing user's email address, no court info
-        # (currently succeeds, should probably fail; see issue 1746)
-        self.submit_form('sign_up_courts',
-                          data = { 'address': self.randomize_capitalization(existing_user['email'])},
-                          success_url = reverse('court_request_response'))
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-        # Existing user's email address + court info
-        self.submit_form('sign_up_courts',
-                          data = { 'address': self.randomize_capitalization(existing_user['email']),
-                                   'requested_account_note': new_court['requested_account_note']},
-                          success_url = reverse('court_request_response'))
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-        # New user email address, don't create account
-        self.submit_form('sign_up_courts',
-                          data = { 'address': new_user['raw_email'],
-                                   'requested_account_note': new_court['requested_account_note']},
-                          success_url = reverse('court_request_response'))
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
-
-        # New user email address, create account
-        self.submit_form('sign_up_courts',
-                          data = { 'address': new_user['raw_email'],
-                                   'requested_account_note': new_court['requested_account_note'],
-                                   'create_account': True },
-                          success_url = reverse('register_email_instructions'))
-        expected_emails_sent += 2
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
-
-        # LOGGED IN
-
-        # New user email address
-        # (This succeeds and creates a new account; see issue 1749)
-        new_user = self.new_court_user()
-        self.submit_form('sign_up_courts',
-                          data = { 'address': new_user['raw_email'],
-                                   'requested_account_note': new_court['requested_account_note'],
-                                   'create_account': True },
-                          user = existing_user['email'],
-                          success_url = reverse('register_email_instructions'))
-        expected_emails_sent += 2
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_new_activation_email(mail.outbox[expected_emails_sent - 2], new_user['raw_email'])
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], new_user['raw_email'])
-
-        # Existing user's email address, not that of the user logged in.
-        # (This is odd; see issue 1749)
-        self.submit_form('sign_up_courts',
-                          data = { 'address': self.randomize_capitalization(existing_user['email']),
-                                   'requested_account_note': new_court['requested_account_note'],
-                                   'create_account': True },
-                          user = another_existing_user['email'],
-                          success_url = reverse('court_request_response'))
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_court_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_court_form_honeypot(self):
-        new_court = self.new_court()
-        new_user = self.new_court_user()
-        self.submit_form('sign_up_courts',
-                          data = { 'email': new_user['raw_email'],
-                                   'requested_account_note': new_court['requested_account_note'],
-                                   'create_account': True,
-                                   'email_confirmation': "I'm a bot." },
-                          success_url = reverse('register_email_instructions'))
-        self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(LinkUser.objects.filter(email__iexact=new_user['raw_email']).exists())
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_court_failure(self):
-        '''
-            Does the court signup form submit as expected? Failure cases.
-        '''
-        # Not logged in, blank submission reports correct fields required
-        self.submit_form('sign_up_courts',
-                          data = {},
-                          error_keys = ['email', 'requested_account_note'])
-        self.assertEqual(len(mail.outbox), 0)
-
-        # Logged in, blank submission reports same fields required
-        # (This is odd; see issue 1749)
-        self.submit_form('sign_up_courts',
-                          data = {},
-                          user = 'test_user@example.com',
-                          error_keys = ['email', 'requested_account_note'])
-        self.assertEqual(len(mail.outbox), 0)
-
-
-    ### Firms ###
-
-    def create_firm_registrar_form(self):
-        return {
-            'name': f'Firm {random()}',
-            'email': 'test-firm@example.com',
-            'website': 'https://www.example.com',
-        }
-
-    def create_firm_usage_form(self):
-        return {
-            'estimated_number_of_accounts': '10 - 50',
-            'estimated_perma_links_per_month': '100+',
-        }
-
-    def create_firm_user_form(self):
-        email = self.randomize_capitalization(f'user{random()}@university.org')
-        return {
-            'raw_email': email,
-            'normalized_email': email.lower(),
-            'first': 'Joe',
-            'last': 'Yacobówski',
-            'registrar_user_candidate': bool(getrandbits(1)),
-        }
-
-    def check_firm_email(self, message: str, firm_email: str):
-        perma_admin_email = settings.DEFAULT_FROM_EMAIL
-
-        self.assertTrue(message.subject.startswith('Perma.cc new paid registrar account request'))
-        self.assertEqual(message.from_email, perma_admin_email)
-        self.assertEqual(message.to, [firm_email.lower()])
-        self.assertEqual(message.cc, [perma_admin_email])
-        self.assertEqual(message.reply_to, [perma_admin_email])
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_firm_success(self):
-        firm_registrar_form = self.create_firm_registrar_form()
-        firm_usage_form = self.create_firm_usage_form()
-        firm_user_form = self.create_firm_user_form()
-        existing_user = {'email': 'test_user@example.com'}
-        expected_emails_sent = 0
-
-        # NOT LOGGED IN
-
-        # Existing user's email address, no firm info (should not succeed due to missing values)
-        self.submit_form(
-            'sign_up_firms',
-            data={'a-address': self.randomize_capitalization(existing_user['email'])},
-        )
-        expected_emails_sent += 0
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-
-        # Existing user's email address + firm info
-        self.submit_form(
-            'sign_up_firms',
-            data={
-                'a-address': self.randomize_capitalization(existing_user['email']),
-                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
-                **firm_registrar_form,
-                **firm_usage_form,
-            },
-            success_url=reverse('firm_request_response'),
-        )
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-        # New user email address, don't create account
-        self.submit_form(
-            'sign_up_firms',
-            data={
-                'a-address': firm_user_form['raw_email'],
-                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
-                **firm_registrar_form,
-                **firm_usage_form,
-            },
-            success_url=reverse('firm_request_response'),
-        )
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], firm_user_form['raw_email'])
-
-        # New user email address, create account
-        self.submit_form(
-            'sign_up_firms',
-            data={
-                'a-address': firm_user_form['raw_email'],
-                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
-                **firm_registrar_form,
-                **firm_usage_form,
-                'create_account': True,
-            },
-            success_url=reverse('register_email_instructions'),
-        )
-        expected_emails_sent += 2
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 2], firm_user_form['raw_email'])
-        self.check_new_activation_email(
-            mail.outbox[expected_emails_sent - 1], firm_user_form['raw_email']
-        )
-
-        # LOGGED IN
-
-        # Existing user
-        self.submit_form(
-            'sign_up_firms',
-            data={
-                'a-address': existing_user['email'],
-                'a-registrar_user_candidate': firm_user_form['registrar_user_candidate'],
-                **firm_registrar_form,
-                **firm_usage_form,
-            },
-            user=existing_user['email'],
-            success_url=reverse('firm_request_response'),
-        )
-        expected_emails_sent += 1
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        self.check_firm_email(mail.outbox[expected_emails_sent - 1], existing_user['email'])
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_firm_form_honeypot(self):
-        firm_registrar_form = self.create_firm_registrar_form()
-        firm_usage_form = self.create_firm_usage_form()
-        firm_user_form = self.create_firm_user_form()
-        self.submit_form(
-            'sign_up_firms',
-            data={
-                'a-address': firm_user_form['raw_email'],
-                'create_account': True,
-                'a-email_confirmation': "I'm a bot.",
-                **firm_registrar_form,
-                **firm_usage_form,
-                'a-registrar_user_candidate': True,
-            },
-            success_url=reverse('register_email_instructions'),
-        )
-        self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(
-            LinkUser.objects.filter(email__iexact=firm_user_form['raw_email']).exists()
-        )
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_firm_failure(self):
-        '''
-            Does the firm signup form submit as expected? Failure cases.
-        '''
-        error_keys = [
-            'email',
-            'website',
-            'estimated_number_of_accounts',
-            'estimated_perma_links_per_month',
-            'name',
-            'registrar_user_candidate',
-        ]
-
-        # Not logged in, blank submission reports correct fields required
-        self.submit_form(
-            'sign_up_firms',
-            data={},
-            form_keys=['registrar_form', 'usage_form', 'user_form'],
-            error_keys=error_keys,
-        )
-        self.assertEqual(len(mail.outbox), 0)
-
-        # Logged in, blank submission reports same fields required
-        # (This is odd; see issue 1749)
-        self.submit_form(
-            'sign_up_firms',
-            data={},
-            form_keys=['registrar_form', 'usage_form', 'user_form'],
-            user='test_user@example.com',
-            error_keys=error_keys,
-        )
-        self.assertEqual(len(mail.outbox), 0)
-
-    ### Individual Users ###
-
-    def check_new_activation_email(self, message, user_email):
-        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
-        self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
-        self.assertEqual(message.recipients(), [user_email])
-
-        activation_url = next(
-            line for line in message.body.rstrip().split('\n') if line.strip().startswith('http')
-        )
-        return activation_url
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_account_creation_views(self):
-        # user registration
-        new_user_raw_email = self.randomize_capitalization("new_email@test.com")
-        new_user_normalized_email = new_user_raw_email.lower()
-        self.submit_form('sign_up', {'address': new_user_raw_email, 'first_name': 'Test', 'last_name': 'Test'},
-                         success_url=reverse('register_email_instructions'),
-                         success_query=LinkUser.objects.filter(
-                             email=new_user_normalized_email,
-                             raw_email=new_user_raw_email
-                         ))
-
-        # email sent
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
-        activation_url = self.check_new_activation_email(message, new_user_raw_email)
-
-        # the new user is created, but is unactivated
-        user = LinkUser.objects.get(email=new_user_normalized_email)
-        self.assertEqual(user.raw_email, new_user_raw_email)
-        self.assertFalse(user.is_active)
-        self.assertFalse(user.is_confirmed)
-
-        # if you tamper with the code, it is rejected
-        response = self.client.get(activation_url[:-1]+'wrong/', secure=True)
-        self.assertContains(response, 'This activation/reset link is invalid')
-
-        # reg confirm - non-matching passwords
-        response = self.client.get(activation_url, follow=True, secure=True)
-        post_url = response.redirect_chain[0][0]
-        self.assertTemplateUsed(response, 'registration/password_reset_confirm.html')
-        response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass2'}, follow=True, secure=True)
-        self.assertNotContains(response, 'Your password has been set')
-        self.assertContains(response, "The two password fields didn’t match")
-        # reg confirm - correct
-        response = self.client.post(post_url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, follow=True, secure=True)
-        self.assertContains(response, 'Your password has been set')
-
-        # Doesn't work twice.
-        response = self.client.post(post_url, {'new_password1': 'Anotherpass1', 'new_password2': 'Anotherpass1'}, follow=True, secure=True)
-        self.assertContains(response, 'This activation/reset link is invalid')
-
-        # the new user is now activated and can log in
-        user.refresh_from_db()
-        self.assertTrue(user.is_active)
-        self.assertTrue(user.is_confirmed)
-        response = self.client.post(reverse('user_management_limited_login'), {'username': new_user_raw_email, 'password': 'Anewpass1'}, follow=True, secure=True)
-        self.assertEqual(response.redirect_chain[0][0], '/manage/create/')
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_suggested_registrars(self):
-        # Register user
-        _, registrar_domain = self.registrar.email.split('@')
-        new_user_email = f'new_user@{registrar_domain}'
-        self.submit_form(
-            'sign_up',
-            {'address': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
-            success_url=reverse('register_email_instructions'),
-            success_query=LinkUser.objects.filter(email=new_user_email),
-        )
-        self.assertEqual(len(mail.outbox), 1)
-
-        # Obtain suggested registrar(s) from activation email message
-        message = mail.outbox[0]
-        lines = message.body.splitlines()
-        captures = []
-        for line in lines:
-            if line.lstrip().startswith('- '):
-                captures.append(line.strip('- '))
-
-        # Validate suggested registrar(s)
-        self.assertEqual(len(captures), 1)
-        self.assertEqual(captures[0], f'{self.registrar.name}: {self.registrar.email}')
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_signup_with_existing_email_rejected(self):
-        self.assertEqual(LinkUser.objects.filter(email__iexact=self.registrar_user.email).count(), 1)
-        self.submit_form('sign_up',
-                         {'address': self.registrar_user.email, 'first_name': 'Test', 'last_name': 'Test'},
-                         error_keys=['email'])
-        self.submit_form('sign_up',
-                 {'address': self.randomize_capitalization(self.registrar_user.email), 'first_name': 'Test', 'last_name': 'Test'},
-                 error_keys=['email'])
-        self.assertEqual(LinkUser.objects.filter(email__iexact=self.registrar_user.email).count(), 1)
-
-    @override_settings(REQUIRE_JS_FORM_SUBMISSIONS=False)
-    def test_new_user_form_honeypot(self):
-        new_user_email = "new_email@test.com"
-        self.submit_form('sign_up',
-                          data = { 'address': new_user_email,
-                                   'email_confirmation': "I'm a bot." },
-                          success_url = reverse('register_email_instructions'))
-        self.assertEqual(len(mail.outbox), 0)
-        self.assertFalse(LinkUser.objects.filter(email__iexact=new_user_email).exists())
-
-    def test_manual_user_creation_rejects_duplicative_emails(self):
-        email = 'test_user@example.com'
-        self.assertTrue(LinkUser.objects.filter(email=email).exists())
-        new_user = LinkUser(email=self.randomize_capitalization(email))
-        self.assertRaises(IntegrityError, new_user.save)
-
-    def test_get_new_activation_code(self):
-        self.submit_form('user_management_not_active',
-                          user = 'unactivated_faculty_user@example.com',
-                          data = {},
-                          success_url=reverse('user_management_limited_login'))
-        self.assertEqual(len(mail.outbox), 1)
-        self.check_new_activation_email(mail.outbox[0], 'unactivated_faculty_user@example.com')
-
-    ### RESENDING ACTIVATION EMAILS ###
-
-    def check_activation_resent(self, user, other_user):
-        self.get('user_management_resend_activation',
-                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
-                  user = user)
-        self.assertEqual(len(mail.outbox), 1)
-        self.check_new_activation_email(mail.outbox[0], other_user)
-
-    def check_activation_not_resent(self, user, other_user):
-        self.get('user_management_resend_activation',
-                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
-                  user = user,
-                  require_status_code = 403)
-        self.assertEqual(len(mail.outbox), 0)
-
-    # Registrar Users
-    def test_registrar_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_registrar_user@example.com','test_org_user@example.com')
-
-    def test_registrar_can_resend_activation_to_registrar_user(self):
-        self.check_activation_resent('another_library_user@example.com','unactivated_registrar_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_unrelated_org_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','test_yet_another_library_org_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_regular_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','test_user@example.com')
-
-    def test_registrar_cannot_resend_activation_to_unrelated_registrar_user(self):
-        self.check_activation_not_resent('test_registrar_user@example.com','another_library_user@example.com')
-
-    # Org Users
-    def test_org_user_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_org_user@example.com','multi_registrar_org_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_unrelated_org_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_yet_another_library_org_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_regular_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_user@example.com')
-
-    def test_org_user_cannot_resend_activation_to_registrar_user(self):
-        self.check_activation_not_resent('test_org_user@example.com','test_registrar_user@example.com')
-
-    # Admin Users
-    def test_admin_can_resend_activation_to_regular_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_user@example.com')
-
-    def test_admin_can_resend_activation_to_org_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_org_user@example.com')
-
-    def test_admin_can_resend_activation_to_registrar_user(self):
-        self.check_activation_resent('test_admin_user@example.com','test_registrar_user@example.com')
-
-    ### PASSWORD RESETS ###
-
-    def test_password_reset_is_case_insensitive(self):
-        email = 'test_user@example.com'
-        not_a_user = 'doesnotexist@example.com'
-        self.assertEqual(LinkUser.objects.filter(email__iexact=email).count(), 1)
-        self.assertFalse(LinkUser.objects.filter(email=not_a_user).exists())
-
-        self.submit_form('password_reset', data={})
-        self.submit_form('password_reset', data={'email': not_a_user})
-        self.assertEqual(len(mail.outbox), 0)
-
-        self.submit_form('password_reset', data={'email': email})
-        self.assertEqual(len(mail.outbox), 1)
-
-        self.submit_form('password_reset', data={'email': self.randomize_capitalization(email)})
-        self.assertEqual(len(mail.outbox), 2)

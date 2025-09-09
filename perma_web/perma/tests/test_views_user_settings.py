@@ -32,7 +32,7 @@ def test_user_can_change_own_settings(client, link_user):
     first_name, last_name, email = get_name_and_email()
     assert first_name == link_user.first_name
     assert last_name == link_user.last_name
-    assert email == link_user.email
+    assert email == link_user.raw_email
 
     # We can submit the change form
     new_first, new_last, new_email = "Newfirst", "Newlast", "newemail@example.com"
@@ -646,3 +646,48 @@ def test_affiliations_pending_registrar_user(client, pending_registrar_user):
     assert len(registrar_settings) == 2
     for setting in registrar_settings:
         assert setting.text.strip() in ["Website", "Email"]
+
+
+#
+# Affiliations: org users can voluntarily leave orgs
+# (can also "remove" themselves via manage/organization-users)
+#
+
+def test_org_user_can_leave_org(client, org_user):
+    # returns to create/manage page if no longer a member of any orgs
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_organization_user_leave_organization', args=[org_user.organizations.first().id]),
+        success_url=reverse('create_link')
+    )
+
+
+def test_multi_org_user_can_leave_single_org(client, multi_registrar_org_user):
+    # returns to affiliations page if still a member of at least one org
+    client.force_login(multi_registrar_org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_organization_user_leave_organization', args=[multi_registrar_org_user.organizations.first().id]),
+        success_url=reverse('settings_affiliations')
+    )
+
+
+def test_404_if_org_user_tries_to_leave_unrelated_org(client, org_user, organization_factory):
+    client.force_login(org_user)
+    unrelated_org = organization_factory()
+
+    submit_form(
+        client,
+        url=reverse('user_management_organization_user_leave_organization', args=[unrelated_org.id]),
+        require_status_code=404
+    )
+
+
+def test_404_if_org_user_tries_to_leave_nonexistent_org(client, org_user):
+    client.force_login(org_user)
+    submit_form(
+        client,
+        url=reverse('user_management_organization_user_leave_organization', args=[999]),
+        require_status_code=404
+    )

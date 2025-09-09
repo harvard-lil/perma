@@ -76,6 +76,7 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
         {
             'urls': [
                 ['user_management_manage_single_registrar', {'kwargs':{'registrar_id': registrar_user_registrar.id}}],
+                ['user_management_manage_single_registrar_user_remove', {'kwargs':{'user_id': registrar_user.id}}],
             ],
             'allowed': {admin_user, registrar_user},
         },
@@ -118,18 +119,10 @@ def test_permissions(client, admin_user, registrar_user, org_user, link_user_fac
         },
         {
             'urls': [
-                ['user_management_manage_single_registrar_user_remove', {'kwargs':{'user_id': registrar_user.id}}],
-            ],
-            'allowed': {registrar_user}
-        },
-
-        {
-            'urls': [
                 ['user_management_organization_user_leave_organization', {'kwargs':{'org_id': org_user_org.id}}],
             ],
             'allowed': {org_user}
         },
-
         {
             'urls': [
                 ['settings_profile'],

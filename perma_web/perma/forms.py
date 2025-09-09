@@ -500,7 +500,7 @@ class MultipleUsersFormWithOrganization(ModelForm):
     def clean_csv_file(self):
         file = self.cleaned_data['csv_file']
 
-        # check if file is CSV
+        # check if file is valid CSV
         if not file.name.endswith('.csv'):
             raise forms.ValidationError("The file must be a CSV.")
 
@@ -509,7 +509,7 @@ class MultipleUsersFormWithOrganization(ModelForm):
             raw_contents = file.read().decode('utf-8')
         except UnicodeDecodeError:
             raise forms.ValidationError("CSV file must be encoded with UTF-8.")
-        
+
         csv_file = StringIO(raw_contents)
         reader = csv.DictReader(csv_file)
 
