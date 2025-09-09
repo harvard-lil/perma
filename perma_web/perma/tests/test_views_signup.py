@@ -10,7 +10,7 @@ from django.urls import reverse
 from perma.models import LinkUser, Registrar
 from perma.tests.utils import PermaTestCase
 
-class UserManagementViewsTestCase(PermaTestCase):
+class SignupViewsTestCase(PermaTestCase):
 
     @classmethod
     def setUpTestData(cls):
