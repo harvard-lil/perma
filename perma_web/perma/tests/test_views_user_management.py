@@ -1215,7 +1215,7 @@ def test_can_remove_self_from_organization(client, org_user):
 
 ### MODIFYING ORG USER AFFILIATION EXPIRATION DATES ###
 
-def test_admin_user_can_modify_affiliation_of_existing_org_user(client, admin_user, org_user_with_expiring_affiliation):
+def test_admin_user_can_modify_expiration_of_org_user(client, admin_user, org_user_with_expiring_affiliation):
     client.force_login(admin_user)
     org_user = org_user_with_expiring_affiliation
     affiliation = org_user.userorganizationaffiliation_set.first()
@@ -1230,7 +1230,7 @@ def test_admin_user_can_modify_affiliation_of_existing_org_user(client, admin_us
     assert affiliation.expires_at is None
 
 
-def test_registrar_user_can_modify_affiliation_of_org_user(client, org_user_with_expiring_affiliation):
+def test_registrar_user_can_modify_expiration_of_org_user(client, org_user_with_expiring_affiliation):
 
     org_user = org_user_with_expiring_affiliation
     affiliation = org_user.userorganizationaffiliation_set.first()
@@ -1249,7 +1249,7 @@ def test_registrar_user_can_modify_affiliation_of_org_user(client, org_user_with
     assert affiliation.expires_at == GENESIS + timedelta(days=1)
 
 
-def test_registrar_user_cannot_modify_affiliation_of_unrelated_org_user(client, registrar_user, org_user_with_expiring_affiliation):
+def test_registrar_user_cannot_modify_expiration_of_unrelated_org_user(client, registrar_user, org_user_with_expiring_affiliation):
 
     org_user = org_user_with_expiring_affiliation
     affiliation = org_user.userorganizationaffiliation_set.first()
@@ -1481,7 +1481,7 @@ def test_registrar_user_cannot_reactivate_inactive_sponsorship_for_other_registr
 
 ### MODIFYING SPONSORSHIP EXPIRATION DATES ###
 
-def test_admin_user_can_modify_sponsorship_of_existing_sponsored_user(client, admin_user, sponsored_user_with_expiring_affiliation):
+def test_admin_user_can_modify_expiration_of_sponsored_user(client, admin_user, sponsored_user_with_expiring_affiliation):
     sponsored_user = sponsored_user_with_expiring_affiliation
     sponsorship = sponsored_user.sponsorships.first()
     registrar = sponsorship.registrar
