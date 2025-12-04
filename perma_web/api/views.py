@@ -323,11 +323,13 @@ class PublicLinkListView(BaseView):
     def get(self, request, format=None):
         """ List public links. """
 
-        queryset = Link.objects\
-            .order_by('-creation_timestamp')\
-            .select_related('capture_job')\
-            .prefetch_related('captures').discoverable()
-        return self.simple_list(request, queryset, paginator_class=LimitedTastypiePagination)
+        return HttpResponse('This route is temporarily unavailable', status=503)
+
+        # queryset = Link.objects\
+        #     .order_by('-creation_timestamp')\
+        #     .select_related('capture_job')\
+        #     .prefetch_related('captures').discoverable()
+        # return self.simple_list(request, queryset, paginator_class=LimitedTastypiePagination)
 
 
 # /archives

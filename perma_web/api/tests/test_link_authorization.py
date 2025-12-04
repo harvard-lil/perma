@@ -77,8 +77,8 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
     # GET #
     #######
 
-    def test_should_allow_logged_out_users_to_get_list(self):
-        self.successful_get(self.public_list_url)
+    # def test_should_allow_logged_out_users_to_get_list(self):
+    #     self.successful_get(self.public_list_url)
 
     def test_should_allow_logged_in_users_to_get_logged_in_list(self):
         self.successful_get(self.list_url, user=self.regular_user)
