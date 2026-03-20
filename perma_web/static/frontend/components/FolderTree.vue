@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useGlobalStore } from '../stores/globalStore';
+import { fetchDataOrError } from '../lib/data';
 import JSTree from './JSTree.vue';
 
 /*
@@ -13,7 +14,7 @@ import JSTree from './JSTree.vue';
 
 const globalStore = useGlobalStore();
 const jstreeRef = ref(null);
-const privateOrgIds = computed(() => 
+const privateOrgIds = computed(() =>
   globalStore.currentUser.top_level_folders
     .filter(folder => folder.default_to_private)
     .map(folder => folder.organization)
@@ -25,6 +26,32 @@ onMounted(() => {
 
 const onNodeSelect = (node) => {
   updateSelectedFolder(node);
+};
+
+const newFolder = () => {
+  const tree = jstreeRef.value.getFolderTree();
+  tree.create_node(tree.get_selected(true)[0], {}, "last");
+};
+
+const editFolder = () => {
+  const tree = jstreeRef.value.getFolderTree();
+  const node = tree.get_selected(true)[0];
+  if (node) setTimeout(() => tree.edit(node), 0);
+};
+
+const deleteFolder = () => {
+  const tree = jstreeRef.value.getFolderTree();
+  const node = tree.get_selected(true)[0];
+  if (!node || !confirm("Really delete folder '" + node.text.trim() + "'?")) return;
+  tree.delete_node(node);
+};
+
+const onMoveLink = async ({folderId, linkId}) => {
+  const {data, error} = await fetchDataOrError(`/folders/${folderId}/archives/${linkId}/`, { method: 'PUT' });
+  if (!error) {
+    globalStore.linksRemaining = data.links_remaining;
+    globalStore.components.linkList?.fetchLinks();
+  }
 };
 
 const updateSelectedFolder = (node) => {
@@ -63,5 +90,6 @@ const updateSelectedFolder = (node) => {
   <JSTree
       ref="jstreeRef"
       @nodeSelect="onNodeSelect"
+      @moveLink="onMoveLink"
   />
 </template>
