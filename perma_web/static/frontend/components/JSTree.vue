@@ -467,6 +467,12 @@ function domTreeInit() {
       .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
       .on('dehover_node.jstree', (e, data) => hoveredNode = null);
 
+  // support expansion of sponsored root folders, which are otherwise disabled/not selectable
+  $(folderTreeRef.value).on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+    let node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+    folderTree.toggle_node(node);
+  });
+
   folderTree = $.jstree.reference(folderTreeRef.value);
 }
 
