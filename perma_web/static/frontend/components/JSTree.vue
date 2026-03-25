@@ -473,6 +473,15 @@ function domTreeInit() {
     folderTree.toggle_node(node);
   });
 
+  // set body class during drag and drop
+  $(document).on(
+    'dnd_start.vakata',
+    () => document.body.classList.add('dragging')
+  ).on(
+    'dnd_stop.vakata',
+    () => document.body.classList.remove('dragging')
+  );
+
   folderTree = $.jstree.reference(folderTreeRef.value);
 }
 
