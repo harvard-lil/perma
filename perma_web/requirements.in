@@ -33,7 +33,7 @@ django-settings-context-processor       # make settings available in templates
 
 
 # assets
-django-webpack-loader~=1.0              # frontend assets building
+django-vite                             # frontend assets building
 whitenoise                              # serve static assets
 
 

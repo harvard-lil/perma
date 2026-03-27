@@ -1,3 +1,5 @@
+import '../css/style-responsive-archive.scss';
+
 var resizeTimeout, wrapper;
 
 export var detailsButton = document.getElementById("details-button");

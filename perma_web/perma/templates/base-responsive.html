@@ -1,4 +1,4 @@
-{% load render_bundle from webpack_loader %}<!DOCTYPE html>
+{% load django_vite %}<!DOCTYPE html>
 <html lang="en-us">
   {# Template is used at perma-archives and at perma; links should point to perma #}
   {% with base_url=request.scheme|add:"://"|add:HOST %}
@@ -27,11 +27,13 @@
 
     {% block meta %}{% endblock %}
     <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-    {% render_bundle 'global' 'css' %}
-
+    
     <!--Python variables for use in Javascript -->
     {% include 'js_config.html' %}
-
+    
+    {% vite_hmr_client %}
+    {% vite_asset 'js/global.js' %}
+    {% block scripts %}{% endblock %}
     {% block header_scripts %}{% endblock %}
     {% block styles %}{% endblock %}
 
@@ -116,8 +118,6 @@
         </footer>
       {% endblock %}
     </div>
-    {% render_bundle 'global' 'js' %}
-    {% block scripts %}{% endblock %}
     {% block templates %}{% endblock %}
   </body>
   {% include 'includes/analytics.html' %}

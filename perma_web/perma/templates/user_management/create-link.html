@@ -1,13 +1,10 @@
 {% extends "base-responsive.html" %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 {% load waffle_tags %}
 
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
-{% block styles %}
-  {% render_bundle 'dashboard' 'css' %}
-{% endblock %}
 
 {% block mainContent %}
 
@@ -39,8 +36,7 @@
         max_size = {{ max_size }};
   </script>
 
-{% render_bundle 'dashboard' 'js' %}
-
+  {% vite_asset 'frontend/pages/dashboard.js' %}
 {% endblock %}
 
 {% block modals %}

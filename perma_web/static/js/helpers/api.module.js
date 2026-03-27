@@ -1,4 +1,4 @@
-var Helpers = require('./general.helpers.js');
+import { csrfSafeMethod, getCookie, informUser } from './general.helpers.js';
 
 // Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
 // set up jquery to properly set CSRF header on AJAX post
@@ -6,8 +6,8 @@ var Helpers = require('./general.helpers.js');
 $.ajaxSetup({
   crossdomain: false, // obviates need for sameOrigin test
   beforeSend: function(xhr, settings) {
-    if (!Helpers.csrfSafeMethod(settings.type)) {
-      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
+    if (!csrfSafeMethod(settings.type)) {
+      xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
     }
   }
 });
@@ -80,5 +80,5 @@ export function stringFromNestedObject (object) {
 // display error results from API
 export function showError (jqXHR) {
   var message = getErrorMessage(jqXHR);
-  Helpers.informUser(message, 'danger');
+  informUser(message, 'danger');
 }
