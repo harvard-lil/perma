@@ -1,16 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useGlobalStore } from '../stores/globalStore';
-import { fetchDataOrError } from '../lib/data';
 import 'jstree';
 import 'jstree-css/default/style.min.css';
 
 
-const emit = defineEmits(['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeCollapse', 'moveLink']);
+const emit = defineEmits(['nodeSelect', 'nodeUnselect', 'nodeExpand', 'nodeCollapse']);
 
 const folderTreeRef = ref(null);
-const globalStore = useGlobalStore();
-let localStorageKey = "perma_selection";
+
+let APIModule = require('../../js/helpers/api.module.js');
+let Helpers = require('../../js/helpers/general.helpers.js');
+
+let localStorageKey = Helpers.variables.localStorageKey;
 let allowedEventsCount = 0;
 let lastSelectedFolder = null;
 let hoveredNode = null;  // track currently hovered node in jsTree
@@ -18,6 +20,7 @@ var folderTree = null;
 
 function init() {
   domTreeInit();
+  setupEventHandlers();
   folderTree.deselect_all();
 }
 
@@ -58,7 +61,7 @@ var ls = {
   // introduce to user support: we don't want to have to walk people through clearing local
   // storage if unexpected behavior surfaces)
   getAll: function () {
-    let folders = jsonLocalStorage.getItem(localStorageKey);
+    let folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
     return folders || {};
   },
   getCurrent: function () {
@@ -185,6 +188,19 @@ function setSavedFolder(node) {
     });
     ls.setCurrent(data.organization_id, folderIds);
   }
+  sendSelectionChangeEvent(node);
+}
+
+function sendSelectionChangeEvent(node) {
+  let data = {};
+  if (node.data) {
+    data.folderId = node.data.folder_id;
+    data.orgId = node.data.organization_id;
+    data.sponsorId = node.data.sponsor_id;
+    data.readOnly = node.data.read_only;
+    data.path = folderTree.get_path(node);
+  }
+  Helpers.triggerOnWindow("FolderTreeModule.selectionChange", JSON.stringify(data));
 }
 
 function handleShowFoldersEvent(currentFolder, callback) {
@@ -231,81 +247,72 @@ function apiFoldersToJsTreeFolders(apiFolders) {
   });
 }
 
-async function loadSingleFolder(folderId, callback) {
+function loadSingleFolder(folderId, callback) {
+  // Grab a single folder ID from the server and pass back to jsTree.
   // Temporarily limit response to 500; TODO: handle pagination
-  const {data, error} = await fetchDataOrError(`/folders/${folderId}/folders/`, {params: {limit: 500}});
-  if (!error) {
+  APIModule.request("GET", `/folders/${folderId}/folders/?limit=500`).done(function (data) {
     callback(apiFoldersToJsTreeFolders(data.objects));
-  }
+  });
 }
 
-async function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
+function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
   // This runs once at startup. Starting from the list of the user's root folders, fetch any
   // subfolders in the tree that the user previously had open, and load the entire tree into jsTree at the end.
 
+  // simple case -- user has no folders selected
   if (!subfoldersToPreload) {
     callback(preloadedData);
     return;
   }
-
-  // Fetch contents of all folders in the saved path.
+  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
+  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user.)
   // Temporarily limit response to 500; TODO: handle pagination
-  const responses = await Promise.all(
-    subfoldersToPreload.map(folderId =>
-      fetchDataOrError(`/folders/${folderId}/folders/`, {params: {limit: 500}})
-    )
-  );
+  $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", `/folders/${folderId}/folders/?limit=500`, null, {"error": null})))
 
-  // If any request errored, something is wrong with the saved folder path
-  // (like maybe another user moved the target folder) -- wipe the path and show top-level folders only.
-  if (responses.some(r => r.error)) {
-    localStorage.clear();
-    callback(preloadedData);
-    return;
-  }
+      // When all API requests have returned, loop through the responses and build the folder tree:
+      .done(function () {
+        let apiResponses = arguments;
+        let parentFolders = preloadedData;
 
-  // When all API requests have returned, loop through the responses and build the folder tree:
-  let parentFolders = preloadedData;
+        // for each folder in the path ...
+        for (let i = 0; i < subfoldersToPreload.length; i++) {
 
-  for (let i = 0; i < subfoldersToPreload.length; i++) {
-    // find the parent folder to load subfolders into, and mark it opened:
-    let folderId = subfoldersToPreload[i];
-    let parentFolder = parentFolders.find(folder => folderId == folder.data.folder_id);
-    if (!parentFolder)
-      // tree must have changed since last time user visited
-      break;
-    if (!parentFolder.state) {
-      parentFolder.state = {}
-    }
-    parentFolder.state.opened = true;
+          // find the parent folder to load subfolders into, and mark it opened:
+          let folderId = subfoldersToPreload[i];
+          let parentFolder = parentFolders.find(folder => folderId == folder.data.folder_id);
+          if (!parentFolder)
+              // tree must have changed since last time user visited
+            break;
+          if (!parentFolder.state) {
+            parentFolder.state = {}
+          }
+          parentFolder.state.opened = true;
 
-    // find the subfolders and load them in:
-    let subfolders = responses[i].data?.objects;
-    if (subfolders && subfolders.length) {
-      parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
-      parentFolders = parentFolder.children;
-    } else {
-      break;
-    }
-  }
+          // find the subfolders and load them in:
+          let apiResponse = apiResponses[i][0];
+          let subfolders = apiResponse ? apiResponse.objects : null;  // if API response doesn't make sense, we'll just stop loading the tree here
+          if (subfolders && subfolders.length) {
+            parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
 
-  callback(preloadedData);
-}
+            // set the loaded subfolders as the target for the next pass through this loop
+            parentFolders = parentFolder.children;
 
-function extractApiErrorMessage(obj) {
-  if (obj && typeof obj === 'object') {
-    for (const key of Object.keys(obj)) {
-      const result = extractApiErrorMessage(obj[key]);
-      if (result) return result;
-    }
-  } else if (typeof obj === 'string') {
-    return obj;
-  }
-  return null;
-}
+            // if no subfolders, we're done
+          } else {
+            break;
+          }
+        }
 
-function showApiError(data, fallback = "We're sorry, we've encountered an error processing your request.") {
-  globalStore.addToast(extractApiErrorMessage(data) || fallback, 'danger');
+        // pass our folder tree to jsTree for display
+        callback(preloadedData);
+      })
+
+      // If fetching saved folders threw any API errors, something is wrong with the saved folder path (like maybe another user
+      // moved the target folder) -- wipe the path and show top-level folders only.
+      .fail(function () {
+        localStorage.clear();
+        callback(preloadedData);
+      });
 }
 
 function domTreeInit() {
@@ -342,59 +349,41 @@ function domTreeInit() {
             if (more && more.is_foreign) {
               // link dragged onto folder
               if (operation == 'copy_node') {
-                emit('moveLink', { folderId: targetNode.data.folder_id, linkId: node.id });
+                moveLink(targetNode.data.folder_id, node.id);
               }
             } else {
               // internal folder action
               if (operation == 'rename_node') {
                 let newName = node_position;
-                (async () => {
-                  const {data, error} = await renameFolder(node.data.folder_id, newName);
-                  if (!error) {
-                    allowedEventsCount++;
-                    folderTree.rename_node(node, newName);
-                  } else {
-                    showApiError(data);
-                  }
-                })();
+                renameFolder(node.data.folder_id, newName)
+                    .done(function () {
+                      allowedEventsCount++;
+                      folderTree.rename_node(node, newName);
+                      sendSelectionChangeEvent(node);
+                    });
               } else if (operation == 'move_node') {
-                (async () => {
-                  const {data, error} = await moveFolder(targetNode.data.folder_id, node.data.folder_id);
-                  if (!error) {
-                    allowedEventsCount++;
-                    folderTree.move_node(node, targetNode);
-                  } else {
-                    showApiError(data);
-                  }
-                })();
+                moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
+                  allowedEventsCount++;
+                  folderTree.move_node(node, targetNode);
+                });
               } else if (operation == 'delete_node') {
-                (async () => {
-                  const {data, error} = await deleteFolder(node.data.folder_id);
-                  if (!error) {
-                    allowedEventsCount++;
-                    folderTree.delete_node(node);
-                    folderTree.select_node(node.parent);
-                  } else {
-                    showApiError(data);
-                  }
-                })();
+                deleteFolder(node.data.folder_id).done(function () {
+                  allowedEventsCount++;
+                  folderTree.delete_node(node);
+                  folderTree.select_node(node.parent);
+                });
               } else if (operation == 'create_node') {
                 let newName = node.text;
-                (async () => {
-                  const {data: serverResponse, error} = await createFolder(node_parent.data.folder_id, newName);
-                  if (!error) {
-                    allowedEventsCount++;
-                    folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
-                      new_folder_node.data = {
-                        folder_id: serverResponse.id,
-                        organization_id: node_parent.data.organization_id
-                      };
-                      editNodeName(new_folder_node);
-                    });
-                  } else {
-                    showApiError(serverResponse);
-                  }
-                })();
+                createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
+                  allowedEventsCount++;
+                  folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
+                    new_folder_node.data = {
+                      folder_id: server_response.id,
+                      organization_id: node_parent.data.organization_id
+                    };
+                    editNodeName(new_folder_node);
+                  });
+                });
               }
             }
             return false; // cancel first instance of event while we check with server
@@ -403,7 +392,7 @@ function domTreeInit() {
           error: (errorInfo) => {
             if (errorInfo.reason.substr(0, 11) != "User config" // "User config" means we canceled the operation ourself while we talk to the server
                 && errorInfo.reason != "Moving parent inside child") {  // error is self-explanatory
-              globalStore.addToast(errorInfo.reason, 'danger');
+              Helpers.informUser(errorInfo.reason);
             }
           },
 
@@ -461,51 +450,84 @@ function domTreeInit() {
     // (without this, doesn't select saved folders on load.)
     selectSavedFolder();
 
+  }).on('ready.jstree', function (e, data) {
+    Helpers.triggerOnWindow("folderTree.ready");
   })
 
       // track currently hovered node in the hoveredNode variable:
       .on('hover_node.jstree', (e, data) => hoveredNode = data.node)
       .on('dehover_node.jstree', (e, data) => hoveredNode = null);
 
-  // support expansion of sponsored root folders, which are otherwise disabled/not selectable
-  $(folderTreeRef.value).on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
-    let node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
-    folderTree.toggle_node(node);
-  });
-
-  // set body class during drag and drop
-  $(document).on(
-    'dnd_start.vakata',
-    () => document.body.classList.add('dragging')
-  ).on(
-    'dnd_stop.vakata',
-    () => document.body.classList.remove('dragging')
-  );
-
   folderTree = $.jstree.reference(folderTreeRef.value);
 }
 
-async function createFolder(parentFolderID, newName) {
-  return await fetchDataOrError(`/folders/${parentFolderID}/folders/`, {
-    method: "POST", data: {name: newName}
+function createFolder(parentFolderID, newName) {
+  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
+}
+
+function renameFolder(folderID, newName) {
+  return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
+}
+
+function moveFolder(parentID, childID) {
+  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+}
+
+function deleteFolder(folderID) {
+  return APIModule.request("DELETE", "/folders/" + folderID + "/");
+}
+
+function moveLink(folderID, linkID) {
+  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
+    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
+    // once we're done moving the link, hide it from the current folder
+    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
   });
 }
 
-async function renameFolder(folderID, newName) {
-  return await fetchDataOrError(`/folders/${folderID}/`, {
-    method: "PATCH", data: {name: newName}
-  });
-}
+function setupEventHandlers() {
+  $(window)
+      .on('dropdown.selectionChange', function (e, data) {
+        handleSelectionChange(data);
+      })
+      .on('batchLink.reloadTreeForFolder', function (e, data) {
+        handleSelectionChange(data);
+        folderTree.destroy();
+        domTreeInit();
+      })
+      .on('LinksListModule.moveLink', function (evt, data) {
+        data = JSON.parse(data);
+        moveLink(data.folderId, data.linkId);
+      });
 
-async function moveFolder(parentID, childID) {
-  return await fetchDataOrError(`/folders/${parentID}/folders/${childID}/`, {
-    method: "PUT"
-  });
-}
+  // set body class during drag'n'drop
+  $(document).on('dnd_start.vakata', function (e, data) {
+    $('body').addClass("dragging");
 
-async function deleteFolder(folderID) {
-  return await fetchDataOrError(`/folders/${folderID}/`, {
-    method: "DELETE"
+  }).on('dnd_stop.vakata', function (e, data) {
+    $('body').removeClass("dragging");
+  });
+
+  // folder buttons
+  $('a.new-folder').on('click', function () {
+    folderTree.create_node(getSelectedNode(), {}, "last");
+    return false;
+  });
+  $('a.edit-folder').on('click', function () {
+    editNodeName(getSelectedNode());
+    return false;
+  });
+  $('a.delete-folder').on('click', function () {
+    var node = getSelectedNode();
+    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
+    folderTree.delete_node(node);
+    return false;
+  });
+
+  // special handling for Sponsored Links parent folder
+  $('#folder-tree').on('click', 'li[data-is_sponsored_root_folder="true"] > a', function (e) {
+    let node = getNodeByFolderID(Number(e.target.parentNode.dataset.folder_id));
+    folderTree.toggle_node(node);
   });
 }
 
