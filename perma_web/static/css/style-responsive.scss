@@ -3935,38 +3935,100 @@ footer {
     padding: $grid $grid 0 0;
     border-top: 1px solid $color-trans-lightgray;
 
-    & .jstree-clicked, .jstree-clicked.jstree-hovered {
-      border: 1px solid $color-blue;
-      color: $color-white;
+    .folder-item {
+      display: block;
+      width: 100%;
+      border: 1px solid transparent;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+      padding: 2px 6px;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .folder-icon {
+        margin-right: 4px;
+      }
+
+      .loading-indicator {
+        margin-left: 4px;
+        font-size: 0.85em;
+        color: $color-trans-gray;
+      }
+
+      &:hover {
+        background-color: $color-highlight;
+        box-shadow: none;
+        color: $color-black;
+      }
+
+      &.selected {
+        border: 1px solid $color-blue;
+        color: $color-white;
+        background-color: $color-blue;
+        box-shadow: none;
+      }
+
+      &.focused {
+        outline: 2px solid $color-blue;
+        outline-offset: -2px;
+      }
+
+      &.selected.focused {
+        outline-color: $color-white;
+      }
+
+      &.drag-target {
+        background-color: $color-highlight;
+      }
+
+      &.is-disabled {
+        color: $color-trans-gray;
+        cursor: default;
+        font-style: italic;
+      }
+    }
+
+    .dragline {
+      height: 2px;
+      margin-top: -1px;
       background-color: $color-blue;
-      box-shadow: none;
-      padding-right: 6px;
+      pointer-events: none;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -3px;
+        height: 4px;
+        width: 4px;
+        background: $color-white;
+        border: 2px solid $color-blue;
+        border-radius: 99px;
+      }
     }
-    & .jstree-hovered {
-      background-color: $color-highlight;
-      box-shadow: none;
-      color: $color-black;
-    }
-  }
-  & .jstree-container-ul {
-    margin-left: -6px;
-    padding-bottom: 2ex;
-  }
-  li {
-    margin-left: 1em;
-  }
-  & .jstree-rename-input {
-    position: relative;
-    top: -1px;
-    width: 100% !important;
-    z-index: 1000;
-    background: white;
-    &:focus {
+
+    .folder-rename-input {
+      position: relative;
+      top: -1px;
+      width: 100% !important;
+      z-index: 1000;
       background: white;
-      color: $color-black;
+      border: 1px solid $color-blue;
+      padding-left: 5px !important;
+      margin-top: 0px;
+      font-family: inherit;
+      font-size: inherit;
+      &:focus {
+        background: white;
+        color: $color-black;
+        outline: 2px solid $color-blue;
+      }
     }
-    margin-top: 0px;
-    padding-left: 5px !important;
   }
 }
 
@@ -4471,15 +4533,6 @@ ol.result-list {
   }
 }
 
-//	hide red x in link drag-n-drop
-#jstree-dnd.jstree-default .jstree-er {
-  background-image: none !important;
-}
-
-//	hide black right arrow showing drop target in tree
-#jstree-marker {
-  display: none !important;
-}
 
 body.dragging,
 body.dragging * {

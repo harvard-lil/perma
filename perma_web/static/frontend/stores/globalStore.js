@@ -24,7 +24,7 @@ export const useGlobalStore = defineStore('global', {
     components: {
       createLink: null,
       batchDialog: null,
-      jstree: null,
+      folderTree: null,
       linkList: null,
     },
     toasts: [],

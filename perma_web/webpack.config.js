@@ -167,8 +167,6 @@ module.exports = {
       'airbrake-js$': 'airbrake-js/lib/client.js', // Exact match
       'airbrake-js': 'airbrake-js/lib', // and again with a fuzzy match,
 
-      'jstree-css': 'jstree/dist/themes',
-
       'handlebars': 'handlebars/dist/handlebars.min.js',
 
       'bootstrap': 'bootstrap-sass/assets/stylesheets/bootstrap',

@@ -131,9 +131,10 @@ const handleSelection = (e) => {
     return handleClose()
   }
   const folder = folders.value[target.dataset.index]
-  const orgId = folder.organization
-  const folderId = folder.sponsored_by ? [folder.parent, folder.id] : folder.id
-  globalStore.components.jstree.handleSelectionChange({orgId, folderId})
+  const folderId = folder.id
+  if (globalStore.components.folderTree) {
+    globalStore.components.folderTree.selectFolder(folderId);
+  }
   handleClose()
 }
 </script>

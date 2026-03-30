@@ -144,31 +144,10 @@ const toggleLinkDetails = async (e, link, focusSelector) => {
     selectedLink.value = link;
     link.showDetails = true;
 
-    // populate folder options
-    // TODO: we redo this every time because it shows the currently opened folders
-    // in the tree. Ideally we'd only do it if the tree was updated.
-    const options = [];
-    const folderTree = globalStore.components.jstree.getFolderTree();
-    // recursively populate select
-    function addChildren(node, depth) {
-      for (var i = 0; i < node.children.length; i++) {
-        var childNode = folderTree.get_node(node.children[i]);
-        options.push({
-          value: childNode.data.folder_id,
-          text: (depth > 1 ? '└'.padStart(depth, '\u00A0') + ' ' : '') + childNode.text.trim(),
-          selected: childNode.data.folder_id == folder.value,
-          disabled: childNode.data.is_sponsored_root_folder || childNode.data.read_only,
-          "data-orgid": childNode.data.organization_id,
-        });
-
-        // recurse
-        if (childNode.children && childNode.children.length) {
-          addChildren(childNode, depth + 1);
-        }
-      }
+    // Populate folder options from the folder tree's currently visible items
+    if (globalStore.components.folderTree) {
+      folderOptions.value = globalStore.components.folderTree.getOpenFolders();
     }
-    addChildren(folderTree.get_node('#'), 1);
-    folderOptions.value = options;
   }
 
   if (focusSelector){
@@ -240,40 +219,16 @@ const resetPagination = () => {
 };
 
 /*** Drag and drop ***/
-let dragStartPosition = null;
 
-function handleMouseDown (e, link) {
-  if (e.target.classList.contains('no-drag'))
-    return;
-
-  globalStore.components.jstree.dnd.start(e, {
-    jstree: true,
-    nodes: [
-        {id: link.guid}
-    ]
-  }, `<div style="
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px 10px;
-    font-size: 14px;
-    color: #333;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  ">${truncateChars(link.title || 'Link', 30)}</div>`);
-
-  // record drag start position so we can check how far we were dragged on mouseup
-  dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
+function handleDragStart(e, link) {
+  e.dataTransfer.setData('application/x-perma-link', link.guid);
+  e.dataTransfer.setData('text/plain', link.title || 'Link');
+  e.dataTransfer.effectAllowed = 'move';
+  document.body.classList.add('dragging');
 }
 
-function handleMouseUp (e, link) {
-  // prevent JSTree's tap-to-drag behavior
-  globalStore.components.jstree.dnd.stop(e);
-
-  // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
-  if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
-    return;
-
-  toggleLinkDetails(e, link);
+function handleDragEnd() {
+  document.body.classList.remove('dragging');
 }
 
 function copyToClipboard(url, linkGuid) {
@@ -414,9 +369,11 @@ defineExpose({
         >
         <div 
           class="row item-row row-no-bleed _isDraggable" 
-          :data-link_id="link.guid" 
-          @mousedown.stop="(e) => handleMouseDown(e, link)"
-          @mouseup.stop="(e) => handleMouseUp(e, link)"
+          :data-link_id="link.guid"
+          draggable="true"
+          @dragstart="(e) => handleDragStart(e, link)"
+          @dragend="handleDragEnd"
+          @click="(e) => toggleLinkDetails(e, link)"
         >
           <div class="row">
             <div class="col col-sm-6 col-md-60 item-title-col">
@@ -530,7 +487,7 @@ defineExpose({
                   :value="option.value" 
                   :selected="option.selected" 
                   :disabled="option.disabled" 
-                  :data-orgid="option['data-orgid']"
+                  :data-orgid="option.orgId"
                 >
                   {{ option.text }}
                 </option>
