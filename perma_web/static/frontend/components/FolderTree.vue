@@ -114,13 +114,26 @@ const customClickBehavior = {
 
         // Sponsored root folders: only toggle expand, never select
         if (data.is_sponsored_root_folder) {
-          if (item.isExpanded()) {
-            item.collapse();
-          } else {
-            item.expand();
+          if (data.has_children) {
+            if (item.isExpanded()) {
+              item.collapse();
+            } else {
+              item.expand();
+            }
           }
           return;
         }
+
+        // Click on disclosure triangle: toggle expand without selecting
+        if (e.target.closest('.tree-toggle')) {
+          if (data?.has_children) {
+            if (item.isExpanded()) item.collapse();
+            else item.expand();
+          }
+          return;
+        }
+
+        const wasAlreadySelected = item.isSelected();
 
         // Selection (mirrors selectionFeature's onClick)
         if (e.shiftKey) {
@@ -134,26 +147,22 @@ const customClickBehavior = {
           tree.getDataRef().current.selectUpToAnchorId = itemId;
         }
 
-        // Expand/collapse: expand if closed, collapse only if
-        // clicking the already-selected folder
-        if (item.isFolder()) {
+        // Expand/collapse only for folders with children
+        if (data?.has_children) {
           if (!item.isExpanded()) {
             item.expand();
-          } else if (item.isSelected()) {
+          } else if (wasAlreadySelected) {
             item.collapse();
           }
         }
 
         item.setFocused();
-        item.primaryAction();
+        if (!wasAlreadySelected) {
+          item.primaryAction();
+        }
         // Do NOT chain to prev?.()?.onClick?.(e) -- the core tree
         // feature's onClick has its own expand/collapse logic that
         // would immediately reverse what we just did.
-      },
-      onDblClick: () => {
-        if (item.canRename()) {
-          item.startRenaming();
-        }
       },
     }),
   },
@@ -177,25 +186,26 @@ const customClickBehavior = {
 //    We remap to onInput.
 
 function containerProps() {
-  const { ref, onDragOver, onDrop, ...attrs } = tree.getContainerProps();
-  return { attrs, events: { dragover: onDragOver, drop: onDrop } };
+  const { ref, onDragOver, onDrop, ...attrs } = tree.getContainerProps("Folders");
+  return { attrs, events: { dragover: (e) => { e.dataTransfer.dropEffect = 'move'; onDragOver(e); }, drop: onDrop } };
 }
 
 function itemProps(item) {
   const {
     ref,
     onDragStart, onDragEnd, onDragEnter, onDragOver, onDragLeave, onDrop,
-    onDblClick,
+    onDblClick: _onDblClick,
+    onKeyDown,
     ...attrs
   } = item.getProps();
   const events = {};
-  if (onDragStart) events.dragstart = onDragStart;
-  if (onDragEnd) events.dragend = onDragEnd;
+  if (onDragStart) events.dragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; document.body.classList.add('dragging'); onDragStart(e); };
+  if (onDragEnd) events.dragend = (e) => { document.body.classList.remove('dragging'); onDragEnd(e); };
   if (onDragEnter) events.dragenter = onDragEnter;
-  if (onDragOver) events.dragover = onDragOver;
+  if (onDragOver) events.dragover = (e) => { e.dataTransfer.dropEffect = 'move'; onDragOver(e); };
   if (onDragLeave) events.dragleave = onDragLeave;
   if (onDrop) events.drop = onDrop;
-  if (onDblClick) events.dblclick = onDblClick;
+  if (onKeyDown) events.keydown = onKeyDown;
   return { attrs, events };
 }
 
@@ -205,7 +215,7 @@ function vueRenameInputProps(item) {
 }
 
 function renameInputRef(el) {
-  if (el) {
+  if (el && document.activeElement !== el) {
     el.focus();
     requestAnimationFrame(() => el.select());
   }
@@ -283,8 +293,11 @@ const { tree, items } = useTree({
     return true;
   },
   canDrop: (dragItems, target) => {
+    // Allow root so Headless Tree's getDragTarget doesn't short-circuit
+    // the "drop INTO child folder" logic when canReorder is false.
+    if (target.item.getItemMeta().itemId === 'root') return true;
     const targetData = target.item.getItemData();
-    if (!targetData || targetData._isRoot || targetData._loading) return false;
+    if (!targetData || targetData._loading) return false;
     if (targetData.is_sponsored_root_folder) return false;
     if (targetData.read_only) return false;
     return true;
@@ -294,16 +307,25 @@ const { tree, items } = useTree({
     for (const item of dragItems) {
       const folderId = item.getItemMeta().itemId;
       const oldParent = item.getParent();
-      const { error } = await fetchDataOrError(
+      const oldSiblingCount = oldParent ? oldParent.getChildren().length : 0;
+      const { data: responseData, error } = await fetchDataOrError(
         `/folders/${newParentId}/folders/${folderId}/`,
         { method: 'PUT' }
       );
       if (error) {
-        globalStore.addToast('Error moving folder. Please try again.', 'error');
+        globalStore.addToast(apiErrorMessage(responseData, 'Error moving folder.'), 'error');
         return;
       }
-      // Invalidate both old and new parent's children
-      if (oldParent) oldParent.invalidateChildrenIds();
+      const targetData = folderCache[newParentId];
+      if (targetData) targetData.has_children = true;
+      if (oldParent) {
+        const oldParentId = oldParent.getItemMeta().itemId;
+        if (oldParentId !== 'root' && oldSiblingCount <= 1) {
+          const oldParentData = folderCache[oldParentId];
+          if (oldParentData) oldParentData.has_children = false;
+        }
+        oldParent.invalidateChildrenIds();
+      }
       target.item.invalidateChildrenIds();
     }
     tree.rebuildTree();
@@ -311,15 +333,17 @@ const { tree, items } = useTree({
 
   // --- Foreign DnD (links dragged from LinkList) ---
   canDropForeignDragObject: (dataTransfer, target) => {
+    if (target.item.getItemMeta().itemId === 'root') return true;
     const targetData = target.item.getItemData();
-    if (!targetData || targetData._isRoot || targetData._loading) return false;
+    if (!targetData || targetData._loading) return false;
     if (targetData.is_sponsored_root_folder) return false;
     if (targetData.read_only) return false;
     return true;
   },
   canDragForeignDragObjectOver: (dataTransfer, target) => {
+    if (target.item.getItemMeta().itemId === 'root') return true;
     const targetData = target.item.getItemData();
-    if (!targetData || targetData._isRoot || targetData._loading) return false;
+    if (!targetData || targetData._loading) return false;
     if (targetData.is_sponsored_root_folder) return false;
     if (targetData.read_only) return false;
     return true;
@@ -333,7 +357,7 @@ const { tree, items } = useTree({
       { method: 'PUT' }
     );
     if (error) {
-      globalStore.addToast('Error moving link. Please try again.', 'error');
+      globalStore.addToast(apiErrorMessage(data, 'Error moving link.'), 'error');
       return;
     }
     if (data?.links_remaining !== undefined) {
@@ -355,13 +379,13 @@ const { tree, items } = useTree({
   },
   onRename: async (item, newName) => {
     const folderId = item.getItemMeta().itemId;
-    const { error } = await fetchDataOrError(`/folders/${folderId}/`, {
+    const { data, error } = await fetchDataOrError(`/folders/${folderId}/`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newName }),
     });
     if (error) {
-      globalStore.addToast('Error renaming folder. Please try again.', 'error');
+      globalStore.addToast(apiErrorMessage(data, 'Error renaming folder.'), 'error');
       return;
     }
     // Update the cached data
@@ -385,6 +409,36 @@ const { tree, items } = useTree({
     renamingFeature,
     customClickBehavior,
   ],
+});
+
+// --- Tree connector lines ---
+// Computes vertical guide lines and ├/└ connectors for each item.
+// For each item: { isLast: bool, ancestors: number[] }
+//   isLast - whether the item is the last sibling at its level
+//   ancestors - levels where a vertical guide line should continue
+const treeConnectors = computed(() => {
+  const list = items.value;
+  const n = list.length;
+  const result = new Array(n);
+  const activeLevels = new Set();
+
+  for (let i = n - 1; i >= 0; i--) {
+    const level = list[i].getItemMeta().level;
+    const ancestors = [];
+    for (const l of activeLevels) {
+      if (l < level) ancestors.push(l);
+    }
+    result[i] = {
+      isLast: !activeLevels.has(level),
+      ancestors: ancestors.sort((a, b) => a - b),
+    };
+    activeLevels.add(level);
+    for (const l of [...activeLevels]) {
+      if (l > level) activeLevels.delete(l);
+    }
+  }
+
+  return result;
 });
 
 // --- Selection handling ---
@@ -452,101 +506,132 @@ onMounted(async () => {
   // Pre-fetch saved path folders so they're in the cache, then expand them
   const savedIds = getSavedFolderIds();
   if (savedIds && savedIds.length) {
+    const validIds = [];
     for (const folderId of savedIds) {
-      try {
-        const { data, error } = await fetchDataOrError(
-          `/folders/${folderId}/folders/?limit=500`
-        );
-        if (!error && data?.objects) {
-          cacheFolders(data.objects);
-        }
-      } catch {
-        break;
-      }
+      const { data, error } = await fetchDataOrError(
+        `/folders/${folderId}/folders/?limit=500`
+      );
+      if (error || !data?.objects) break;
+      cacheFolders(data.objects);
+      validIds.push(folderId);
     }
-    // Expand the saved path
-    tree.applySubStateUpdate('expandedItems', () => savedIds.map(String));
+    if (validIds.length) {
+      tree.applySubStateUpdate('expandedItems', () => validIds.map(String));
+    }
   }
 
-  // Select saved folder after tree is ready
-  setTimeout(() => {
-    selectInitialFolder();
-  }, 0);
+  // Select saved folder after tree has loaded the path
+  selectInitialFolder();
 });
 
 onBeforeUnmount(() => {
   globalStore.components.folderTree = null;
 });
 
-function selectInitialFolder() {
+async function selectInitialFolder() {
   let folderToSelect = getSavedFolderId();
   if (!folderToSelect && current_user.top_level_folders.length === 1) {
     folderToSelect = current_user.top_level_folders[0].id;
   }
-  if (folderToSelect) {
-    const itemId = String(folderToSelect);
+  if (!folderToSelect) return;
+
+  const itemId = String(folderToSelect);
+  // The async data loader may need several cycles to load the full path.
+  // Retry until the item appears or we give up.
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await new Promise(r => setTimeout(r, 50));
     try {
       const item = tree.getItemInstance(itemId);
       if (item) {
         tree.setSelectedItems([itemId]);
         item.setFocused();
         updateSelectedFolderFromItem(item);
+        return;
       }
     } catch {
-      // Item may not be loaded yet; this is OK on first load
+      // Item not loaded yet, retry
     }
   }
 }
 
 // --- Toolbar actions ---
 
+function apiErrorMessage(data, fallback) {
+  if (!data) return fallback;
+  if (Array.isArray(data)) return data[0] || fallback;
+  for (const messages of Object.values(data)) {
+    if (Array.isArray(messages) && messages.length) return `Error: ${messages[0]}`;
+  }
+  return fallback;
+}
+
+let creatingFolder = false;
+
 async function newFolder() {
-  const selectedItems = tree.getSelectedItems();
-  if (!selectedItems.length) {
-    globalStore.addToast('Please select a folder first.', 'warning');
-    return;
-  }
-  const parent = selectedItems[0];
-  const parentId = parent.getItemMeta().itemId;
-  const { data, error } = await fetchDataOrError(
-    `/folders/${parentId}/folders/`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'New Folder' }),
+  if (creatingFolder) return;
+  creatingFolder = true;
+  try {
+    const selectedItems = tree.getSelectedItems();
+    if (!selectedItems.length) {
+      globalStore.addToast('Please select a folder first.', 'warning');
+      return;
     }
-  );
-  if (error) {
-    globalStore.addToast('Error creating folder. Please try again.', 'error');
-    return;
-  }
-  // Cache the new folder
-  folderCache[String(data.id)] = {
-    id: data.id,
-    name: data.name || 'New Folder',
-    organization: data.organization,
-    sponsored_by: data.sponsored_by,
-    is_sponsored_root_folder: false,
-    read_only: false,
-    has_children: false,
-    parent: parseInt(parentId, 10),
-    is_shared_folder: false,
-  };
-  parent.invalidateChildrenIds();
-  if (!parent.isExpanded()) parent.expand();
-  // After re-fetch, start renaming
-  setTimeout(() => {
-    try {
-      const newItem = tree.getItemInstance(String(data.id));
-      if (newItem) {
-        tree.setSelectedItems([String(data.id)]);
-        newItem.setFocused();
-        newItem.startRenaming();
+    const parent = selectedItems[0];
+    const selectedData = parent.getItemData();
+    if (selectedData?.is_sponsored_root_folder) {
+      globalStore.addToast('Folders cannot be created in sponsored folders.', 'warning');
+      return;
+    }
+    if (selectedData?.read_only) {
+      globalStore.addToast('This folder is read-only.', 'warning');
+      return;
+    }
+    const parentId = parent.getItemMeta().itemId;
+    const { data, error } = await fetchDataOrError(
+      `/folders/${parentId}/folders/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'New Folder' }),
       }
-    } catch {
-      // Item may not be available yet
+    );
+    if (error) {
+      globalStore.addToast(apiErrorMessage(data, 'Error creating folder.'), 'error');
+      return;
     }
-  }, 300);
+    folderCache[String(data.id)] = {
+      id: data.id,
+      name: data.name || 'New Folder',
+      organization: data.organization,
+      sponsored_by: data.sponsored_by,
+      is_sponsored_root_folder: false,
+      read_only: false,
+      has_children: false,
+      parent: parseInt(parentId, 10),
+      is_shared_folder: false,
+    };
+    const parentData = folderCache[parentId];
+    if (parentData) parentData.has_children = true;
+    await parent.invalidateItemData();
+    await parent.invalidateChildrenIds();
+    if (!parent.isExpanded()) parent.expand();
+
+    const newId = String(data.id);
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await new Promise(r => setTimeout(r, 200));
+      try {
+        const newItem = tree.getItemInstance(newId);
+        if (newItem) {
+          tree.setSelectedItems([newId]);
+          newItem.setFocused();
+          newItem.startRenaming();
+          break;
+        }
+      } catch { /* item not available yet */ }
+    }
+  } finally {
+    creatingFolder = false;
+  }
 }
 
 function editFolder() {
@@ -577,26 +662,39 @@ async function deleteFolder() {
   const item = selectedItems[0];
   const data = item.getItemData();
   if (!data || data._isRoot) return;
+  if (data.is_sponsored_root_folder) {
+    globalStore.addToast('Sponsored folders cannot be deleted.', 'warning');
+    return;
+  }
 
   if (!confirm(`Really delete folder '${data.name}'?`)) return;
 
   const folderId = item.getItemMeta().itemId;
   const parent = item.getParent();
-  const { error } = await fetchDataOrError(`/folders/${folderId}/`, {
+  const { data: responseData, error } = await fetchDataOrError(`/folders/${folderId}/`, {
     method: 'DELETE',
   });
   if (error) {
-    globalStore.addToast('Error deleting folder. Please try again.', 'error');
+    globalStore.addToast(apiErrorMessage(responseData, 'Error deleting folder.'), 'error');
     return;
   }
   delete folderCache[folderId];
   if (parent) {
-    parent.invalidateChildrenIds();
+    const siblingCount = parent.getChildren().length;
     const parentId = parent.getItemMeta().itemId;
+    if (parentId !== 'root' && siblingCount <= 1) {
+      const parentData = folderCache[parentId];
+      if (parentData) parentData.has_children = false;
+      if (parent.isExpanded()) parent.collapse();
+    }
+    parent.invalidateChildrenIds();
     if (parentId !== 'root') {
       tree.setSelectedItems([parentId]);
       parent.setFocused();
       updateSelectedFolderFromItem(parent);
+    } else {
+      tree.setSelectedItems([]);
+      savedFoldersSetCurrent(null, []);
     }
   }
 }
@@ -669,35 +767,56 @@ defineExpose({
   </div>
   <div v-bind="containerProps().attrs" v-on="containerProps().events"
        :ref="(el) => el && tree.registerElement(el)" id="folder-tree">
-    <template v-for="item in items" :key="item.getId()">
+    <template v-for="(item, idx) in items" :key="item.getId()">
       <template v-if="item.isRenaming()">
-        <div class="folder-item renaming"
-             :style="{ paddingLeft: item.getItemMeta().level * 20 + 'px' }">
-          <input v-bind="vueRenameInputProps(item)" :ref="renameInputRef" class="folder-rename-input" />
+        <div class="folder-item-wrapper">
+          <span v-for="l in treeConnectors[idx].ancestors" :key="l"
+                class="tree-guide" :style="{ left: ((l + 1) * 20 - 12) + 'px' }"></span>
+          <span class="tree-vert" :class="{ 'tree-last': treeConnectors[idx].isLast }"
+                :style="{ left: ((item.getItemMeta().level + 1) * 20 - 12) + 'px' }"></span>
+          <span class="tree-horiz"
+                :style="{ left: ((item.getItemMeta().level + 1) * 20 - 12) + 'px' }"></span>
+          <div class="folder-item renaming"
+               :style="{ paddingLeft: (item.getItemMeta().level + 1) * 20 + 'px' }">
+            <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
+            <span v-if="item.getItemData()?.is_shared_folder" class="folder-icon icon-sitemap"></span>
+            <span v-else-if="item.isExpanded() && item.getItemData()?.has_children" class="folder-icon icon-folder-open-alt"></span>
+            <span v-else class="folder-icon icon-folder-close-alt"></span>
+            <input v-bind="vueRenameInputProps(item)" :ref="renameInputRef" class="folder-rename-input" />
+          </div>
         </div>
       </template>
       <template v-else>
-        <button
-          v-bind="itemProps(item).attrs"
-          v-on="itemProps(item).events"
-          :ref="(el) => el && item.registerElement(el)"
-          :style="{ paddingLeft: item.getItemMeta().level * 20 + 'px' }"
-          class="folder-item"
-          :class="{
-            selected: item.isSelected(),
-            focused: item.isFocused(),
-            expanded: item.isExpanded(),
-            'drag-target': item.isDragTarget?.(),
-            'is-shared': item.getItemData()?.is_shared_folder,
-            'is-disabled': item.getItemData()?.is_sponsored_root_folder,
-          }"
-        >
-          <span v-if="item.getItemData()?.is_shared_folder" class="folder-icon icon-sitemap"></span>
-          <span v-else-if="item.isExpanded()" class="folder-icon icon-folder-open-alt"></span>
-          <span v-else class="folder-icon icon-folder-close-alt"></span>
-          {{ item.getItemName() }}
-          <span v-if="item.isLoading()" class="loading-indicator">...</span>
-        </button>
+        <div class="folder-item-wrapper">
+          <span v-for="l in treeConnectors[idx].ancestors" :key="l"
+                class="tree-guide" :style="{ left: ((l + 1) * 20 - 12) + 'px' }"></span>
+          <span class="tree-vert" :class="{ 'tree-last': treeConnectors[idx].isLast }"
+                :style="{ left: ((item.getItemMeta().level + 1) * 20 - 12) + 'px' }"></span>
+          <span class="tree-horiz"
+                :style="{ left: ((item.getItemMeta().level + 1) * 20 - 12) + 'px' }"></span>
+          <button
+            v-bind="itemProps(item).attrs"
+            v-on="itemProps(item).events"
+            :ref="(el) => el && item.registerElement(el)"
+            :style="{ paddingLeft: (item.getItemMeta().level + 1) * 20 + 'px' }"
+            :aria-disabled="item.getItemData()?.is_sponsored_root_folder || undefined"
+            class="folder-item"
+            :class="{
+              selected: item.isSelected(),
+              focused: item.isFocused(),
+              expanded: item.isExpanded() && item.getItemData()?.has_children,
+              'drag-target': item.isDragTarget?.(),
+              'is-shared': item.getItemData()?.is_shared_folder,
+              'is-disabled': item.getItemData()?.is_sponsored_root_folder,
+            }"
+          >
+            <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
+            <span v-if="item.getItemData()?.is_shared_folder" class="folder-icon icon-sitemap"></span>
+            <span v-else-if="item.isExpanded() && item.getItemData()?.has_children" class="folder-icon icon-folder-open-alt"></span>
+            <span v-else class="folder-icon icon-folder-close-alt"></span>
+            {{ item.getItemName() }}
+          </button>
+        </div>
       </template>
     </template>
     <div :style="tree.getDragLineStyle()" class="dragline" />

@@ -40,7 +40,8 @@ export const fetchDataOrError = async (url, options = {}) => {
     if (!response?.ok) {
       throw new Error(response.statusText);
     }
-    return {data: await response.json(), error: null, response}
+    const data = response.status === 204 ? null : await response.json();
+    return {data, error: null, response}
   } catch (err) {
     return {data: await response?.json().catch(() => null), error: err?.message || defaultError, response}
   }

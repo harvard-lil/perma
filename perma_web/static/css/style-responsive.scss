@@ -3932,8 +3932,44 @@ footer {
     flex: 1;
     overflow-y: auto;
     font-family: $font-hed-alt;
-    padding: $grid $grid 0 0;
+    padding: $grid $grid 0 $half;
     border-top: 1px solid $color-trans-lightgray;
+
+    .folder-item-wrapper {
+      position: relative;
+
+      .tree-guide {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        border-left: 1px dotted $color-trans-gray;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .tree-vert {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        border-left: 1px dotted $color-trans-gray;
+        pointer-events: none;
+        z-index: 1;
+
+        &.tree-last {
+          bottom: auto;
+          height: 50%;
+        }
+      }
+
+      .tree-horiz {
+        position: absolute;
+        top: 50%;
+        width: 10px;
+        border-top: 1px dotted $color-trans-gray;
+        pointer-events: none;
+        z-index: 1;
+      }
+    }
 
     .folder-item {
       display: block;
@@ -3941,7 +3977,7 @@ footer {
       border: 1px solid transparent;
       background: none;
       text-align: left;
-      cursor: pointer;
+      cursor: default;
       padding: 2px 6px;
       font-family: inherit;
       font-size: inherit;
@@ -3950,20 +3986,62 @@ footer {
       overflow: hidden;
       text-overflow: ellipsis;
 
-      .folder-icon {
-        margin-right: 4px;
+      .tree-toggle {
+        display: inline-block;
+        width: 24px;
+        margin-left: -24px;
+        text-align: center;
+        vertical-align: baseline;
+        position: relative;
+        z-index: 2;
+
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 3.5px 0 3.5px 5px;
+          border-color: transparent transparent transparent $color-black;
+          position: relative;
+          top: -0.5px;
+
+          @media (prefers-reduced-motion: no-preference) {
+            transition: transform 0.15s ease;
+          }
+        }
       }
 
-      .loading-indicator {
-        margin-left: 4px;
-        font-size: 0.85em;
-        color: $color-trans-gray;
+      &.expanded .tree-toggle::before {
+        transform: rotate(90deg);
+      }
+
+      &.selected .tree-toggle::before {
+        border-left-color: $color-white;
+      }
+
+      &.drag-target .tree-toggle::before {
+        border-left-color: $color-black;
+      }
+
+      .folder-icon {
+        display: inline-block;
+        width: 1.2em;
+        text-align: left;
+        margin-right: 2px;
       }
 
       &:hover {
         background-color: $color-highlight;
         box-shadow: none;
         color: $color-black;
+      }
+
+      &:focus:hover {
+        outline-style: solid !important;
+        outline-color: rgba(0,0,0,0.07) !important;
+        outline-offset: 1px !important;
+        outline-width: 5px !important;
       }
 
       &.selected {
@@ -3973,17 +4051,9 @@ footer {
         box-shadow: none;
       }
 
-      &.focused {
-        outline: 2px solid $color-blue;
-        outline-offset: -2px;
-      }
-
-      &.selected.focused {
-        outline-color: $color-white;
-      }
-
       &.drag-target {
         background-color: $color-highlight;
+        color: $color-black;
       }
 
       &.is-disabled {
@@ -4012,17 +4082,24 @@ footer {
       }
     }
 
+    .folder-item.renaming {
+      display: flex;
+      align-items: baseline;
+    }
+
     .folder-rename-input {
-      position: relative;
-      top: -1px;
-      width: 100% !important;
-      z-index: 1000;
+      flex: 1;
+      min-width: 0;
+      box-sizing: border-box;
+      margin: 0;
       background: white;
       border: 1px solid $color-blue;
-      padding-left: 5px !important;
-      margin-top: 0px;
+      padding: 0 4px;
       font-family: inherit;
       font-size: inherit;
+      font-weight: inherit;
+      line-height: normal;
+      height: 1.2em;
       &:focus {
         background: white;
         color: $color-black;
