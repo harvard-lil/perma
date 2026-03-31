@@ -60,6 +60,7 @@ def test_link_required(page, user, log_in_user) -> None:
     """A friendly message should be displayed if the field is omitted"""
     log_in_user(page, user)
 
+    page.locator('#folder-tree [role="treeitem"]').first.wait_for()
     page.locator('#addlink').click()
     expect(page.locator("#error-container")).to_contain_text("URL cannot be empty")
 
