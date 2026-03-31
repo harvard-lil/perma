@@ -116,6 +116,12 @@ def cleanup_storage():
         storage.objects.delete()
 
 
+class URLs:
+    def __init__(self, base_url: str, urls: dict[str, str]):
+        for name, url in urls.items():
+            setattr(self, name, base_url + url)
+
+
 @pytest.fixture
 def urls(transactional_db, live_server_ssl, complete_link_with_warc):
     urls = {
@@ -125,15 +131,10 @@ def urls(transactional_db, live_server_ssl, complete_link_with_warc):
         'contact': reverse('contact'),
         'folders': reverse('create_link'),
         'bookmarklet': reverse('service_bookmarklet_create'),
-        'perma_link_with_warc': reverse('single_permalink', args=[complete_link_with_warc.guid])
+        'perma_link_with_warc': reverse('single_permalink', args=[complete_link_with_warc.guid]),
     }
 
-    class URLs:
-        def __init__(self, base_url):
-            for name, url in urls.items():
-                setattr(self, name, base_url + url)
-
-    return URLs(f'https://{settings.HOST}')
+    return URLs(f'https://{settings.HOST}', urls)
 
 
 @dataclass
