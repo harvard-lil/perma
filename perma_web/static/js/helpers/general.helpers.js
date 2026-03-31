@@ -75,10 +75,6 @@ export function getWindowLocationSearch() {
   return window.location.search;
 }
 
-export var variables = {
-  localStorageKey:"perma_selection"
-};
-
 export var jsonLocalStorage = {
   getItem: function (key) {
     var result = localStorage.getItem(key);
