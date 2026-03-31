@@ -111,9 +111,8 @@ function cacheFolders(apiFolders) {
 // Pre-cache top-level folders from user object
 cacheFolders(current_user.top_level_folders);
 
-// --- Custom click behavior ---
 // Clicking a closed folder expands it; clicking an already-selected
-// open folder collapses it. Sponsored root folders toggle expand only.
+// open folder collapses it
 const customClickBehavior = {
   itemInstance: {
     getProps: ({ tree, item, prev }) => ({
@@ -122,8 +121,9 @@ const customClickBehavior = {
         const itemId = item.getItemMeta().itemId;
         const data = item.getItemData();
 
-        // Sponsored root folders: only toggle expand, never select
+        // Sponsored root folders: toggle expand/collapse
         if (data.is_sponsored_root_folder) {
+          item.setFocused();
           if (data.has_children) {
             if (item.isExpanded()) {
               item.collapse();
