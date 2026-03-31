@@ -4054,6 +4054,7 @@ footer {
       &.drag-target {
         background-color: $color-highlight;
         color: $color-black;
+        border-color: $color-highlight;
       }
 
       &.is-disabled {
