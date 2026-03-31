@@ -122,15 +122,15 @@ class FolderSerializer(BaseSerializer):
         return parent
 
     def validate(self, data):
-        if 'name' in data:
-            # make sure folder name is unique in this location
+        if 'name' in data or 'parent' in data:
+            name = data.get('name', self.instance.name if self.instance else None)
             parent_id = data['parent'].pk if 'parent' in data else self.instance.parent_id if self.instance else None
-            if parent_id:
-                unique_query = Folder.objects.filter(parent_id=parent_id, name=data['name'])
+            if parent_id and name:
+                unique_query = Folder.objects.filter(parent_id=parent_id, name=name)
                 if self.instance:
                     unique_query = unique_query.exclude(pk=self.instance.pk)
                 if unique_query.exists():
-                    raise serializers.ValidationError({'name':"A folder with that name already exists at that location."})
+                    raise serializers.ValidationError({'name': "A folder with that name already exists at that location."})
         return data
 
 
