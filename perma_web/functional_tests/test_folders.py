@@ -1,7 +1,7 @@
 from typing import Callable
 
 from conftest import URLs, User
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Locator, Page, expect
 import pytest
 
 
@@ -45,7 +45,7 @@ def create_folder(folder_tree_page: Page):
     return count_next
 
 
-def test_create_folder(folder_tree_page):
+def test_create_folder(folder_tree_page: Page):
     folder_count = folder_tree_page.locator('#folder-tree [role="treeitem"]').count()
     folder_tree_page.locator('.new-folder').click()
     folder_tree_page.locator(
@@ -53,7 +53,7 @@ def test_create_folder(folder_tree_page):
     ).wait_for()
 
 
-def test_delete_folder(folder_tree_page):
+def test_delete_folder(folder_tree_page: Page):
     folder_count = create_folder(folder_tree_page)
     new_folder = folder_tree_page.locator(
         f':nth-match(#folder-tree [role="treeitem"], {folder_count})'
@@ -66,7 +66,7 @@ def test_delete_folder(folder_tree_page):
     new_folder.wait_for(state='hidden')
 
 
-def test_create_and_rename_folder(folder_tree_page):
+def test_create_and_rename_folder(folder_tree_page: Page):
     folder_tree_page.locator('.new-folder').click()
     rename_input = folder_tree_page.locator('input.folder-rename-input')
     rename_input.wait_for()
@@ -78,7 +78,7 @@ def test_create_and_rename_folder(folder_tree_page):
     expect(folder_tree_page.locator('#folder-tree')).to_contain_text('My Custom Folder')
 
 
-def test_rename_folder_via_toolbar(folder_tree_page):
+def test_rename_folder_via_toolbar(folder_tree_page: Page):
     folder_count = create_folder(folder_tree_page)
     folder = folder_tree_page.locator(f':nth-match(#folder-tree [role="treeitem"], {folder_count})')
     folder.click()
@@ -94,7 +94,7 @@ def test_rename_folder_via_toolbar(folder_tree_page):
     expect(folder_tree_page.locator('#folder-tree')).to_contain_text('Renamed Folder')
 
 
-def test_cannot_rename_root_folder(folder_tree_page):
+def test_cannot_rename_root_folder(folder_tree_page: Page):
     folder_tree_page.locator('#folder-tree [role="treeitem"]').first.click()
     folder_tree_page.locator('.edit-folder').click()
 
@@ -103,7 +103,7 @@ def test_cannot_rename_root_folder(folder_tree_page):
     expect(toast).to_contain_text('cannot be moved or renamed')
 
 
-def test_expand_collapse_folder(folder_tree_page):
+def test_expand_collapse_folder(folder_tree_page: Page):
     root_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
     root_folder.click()
 
@@ -127,7 +127,7 @@ def test_expand_collapse_folder(folder_tree_page):
     expect(child_folder).to_be_visible()
 
 
-def test_folder_selection(folder_tree_page):
+def test_folder_selection(folder_tree_page: Page):
     create_folder(folder_tree_page)
     create_folder(folder_tree_page)
 
@@ -144,7 +144,7 @@ def test_folder_selection(folder_tree_page):
     expect(first).to_have_attribute('aria-selected', 'false')
 
 
-def test_keyboard_navigation(folder_tree_page):
+def test_keyboard_navigation(folder_tree_page: Page):
     create_folder(folder_tree_page)
     create_folder(folder_tree_page)
 
@@ -164,3 +164,19 @@ def test_keyboard_navigation(folder_tree_page):
 
     folder_tree_page.keyboard.press('ArrowUp')
     expect(first_child).to_be_focused()
+
+
+def test_sponsored_folder_can_be_focused_but_not_selected(sponsored_folder: Locator):
+    expect(sponsored_folder).to_be_visible()
+    expect(sponsored_folder).to_be_disabled()
+
+    classes_before_click = sponsored_folder.get_attribute('class').split()
+    assert 'focused' not in classes_before_click
+    expect(sponsored_folder).to_have_attribute('aria-selected', 'false')
+
+    # For some reason sponsored_folder.click times out; maybe a z-index issue?
+    sponsored_folder.evaluate('element => element.click()')
+
+    classes_after_click = sponsored_folder.get_attribute('class').split()
+    assert 'focused' in classes_after_click
+    expect(sponsored_folder).to_have_attribute('aria-selected', 'false')
