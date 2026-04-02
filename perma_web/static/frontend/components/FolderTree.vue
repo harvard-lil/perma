@@ -12,7 +12,7 @@ import { fetchDataOrError } from "../lib/data";
 import { useGlobalStore } from "../stores/globalStore";
 
 const globalStore = useGlobalStore();
-const current_user = window.current_user;
+const currentUser = globalStore.currentUser;
 const LOCAL_STORAGE_KEY = "perma_selection";
 
 const privateOrgIds = computed(() =>
@@ -109,7 +109,7 @@ function cacheFolders(apiFolders) {
 }
 
 // Pre-cache top-level folders from user object
-cacheFolders(current_user.top_level_folders);
+cacheFolders(currentUser.top_level_folders);
 
 // Clicking a closed folder expands it; clicking an already-selected
 // open folder collapses it
@@ -317,7 +317,7 @@ const { tree, items } = useTree({
     getChildrenWithData: (itemId) => {
       if (itemId === "root") {
         return Promise.resolve(
-          current_user.top_level_folders.map((f) => ({
+          currentUser.top_level_folders.map((f) => ({
             id: String(f.id),
             data: folderCache[String(f.id)] || makeFolderCacheEntry(f),
           })),
@@ -591,8 +591,8 @@ onBeforeUnmount(() => {
 
 async function selectInitialFolder() {
   let folderToSelect = getSavedFolderId();
-  if (!folderToSelect && current_user.top_level_folders.length === 1) {
-    folderToSelect = current_user.top_level_folders[0].id;
+  if (!folderToSelect && currentUser.top_level_folders.length === 1) {
+    folderToSelect = currentUser.top_level_folders[0].id;
   }
   if (!folderToSelect) return;
 
