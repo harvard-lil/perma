@@ -281,7 +281,7 @@ function getFolderRestriction(item) {
     return "Shared folders cannot be moved or renamed.";
   const parent = item.getParent();
   if (!parent || parent.getItemMeta().itemId === "root")
-    return "Top-level folders cannot be moved or renamed.";
+    return "This folder cannot be moved or renamed.";
   return null;
 }
 
@@ -353,6 +353,12 @@ const { tree, items } = useTree({
     for (const item of dragItems) {
       const folderId = item.getItemMeta().itemId;
       const oldParent = item.getParent();
+
+      // If item was dropped on its own parent, do nothing
+      if (oldParent && oldParent.getItemMeta().itemId === newParentId) {
+        continue;
+      }
+
       const oldSiblingCount = oldParent ? oldParent.getChildren().length : 0;
       const {
         data: responseData,
