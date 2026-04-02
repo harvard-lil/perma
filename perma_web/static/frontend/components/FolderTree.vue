@@ -32,36 +32,32 @@ const getUrlFolderIds = () => {
   return ids.every(id => !isNaN(id)) ? ids : [];
 }
 
-// --- Folder data cache (for the async data loader) ---
-
-// folderCache maps string folder id -> folder data object
+// Mapping of folder ID (string) to folder data object
 const folderCache = {};
 
-function makeFolderCacheEntry(f) {
+const makeFolderCacheEntry = (folder) => {
   return {
-    id: f.id,
-    name: f.name,
-    organization: f.organization,
-    sponsored_by: f.sponsored_by,
-    is_sponsored_root_folder: f.is_sponsored_root_folder,
-    read_only: f.read_only,
-    has_children: f.has_children,
-    parent: f.parent,
-    is_shared_folder: !!(f.organization && !f.parent),
+    id: folder.id,
+    name: folder.name,
+    organization: folder.organization,
+    sponsored_by: folder.sponsored_by,
+    is_sponsored_root_folder: folder.is_sponsored_root_folder,
+    read_only: folder.read_only,
+    has_children: folder.has_children,
+    parent: folder.parent,
+    is_shared_folder: !!(folder.organization && !folder.parent),
   };
-}
+};
 
-function cacheFolders(apiFolders) {
+const cacheFolders = (apiFolders) => {
   for (const folder of apiFolders) {
     folderCache[String(folder.id)] = makeFolderCacheEntry(folder);
   }
 }
 
-// Pre-cache top-level folders from user object
 cacheFolders(currentUser.top_level_folders);
 
-// Clicking a closed folder expands it; clicking an already-selected
-// open folder collapses it
+// Custom click behavior for folders
 const customClickBehavior = {
   itemInstance: {
     getProps: ({ tree, item, prev }) => ({
@@ -70,7 +66,7 @@ const customClickBehavior = {
         const itemId = item.getItemMeta().itemId;
         const data = item.getItemData();
 
-        // Sponsored root folders: toggle expand/collapse
+        // Sponsored root folders: toggle expand/collapse without selecting
         if (data.is_sponsored_root_folder) {
           item.setFocused();
           if (data.has_children) {
@@ -83,7 +79,7 @@ const customClickBehavior = {
           return;
         }
 
-        // Click on disclosure triangle: toggle expand without selecting
+        // Disclosure triangle: toggle expand/collapse without selecting
         if (e.target.closest(".tree-toggle")) {
           if (data?.has_children) {
             if (item.isExpanded()) item.collapse();
@@ -94,7 +90,7 @@ const customClickBehavior = {
 
         const wasAlreadySelected = item.isSelected();
 
-        // Selection (mirrors selectionFeature's onClick)
+        // Selection (mirrors selectionFeature's onClick behavior)
         if (e.shiftKey) {
           item.selectUpTo(e.ctrlKey || e.metaKey);
         } else if (e.ctrlKey || e.metaKey) {
@@ -106,7 +102,7 @@ const customClickBehavior = {
           tree.getDataRef().current.selectUpToAnchorId = itemId;
         }
 
-        // Expand/collapse only for folders with children
+        // Expand/collapse folders if they have children
         if (data?.has_children) {
           if (!item.isExpanded()) {
             item.expand();
@@ -119,9 +115,6 @@ const customClickBehavior = {
         if (!wasAlreadySelected) {
           item.primaryAction();
         }
-        // Do NOT chain to prev?.()?.onClick?.(e) -- the core tree
-        // feature's onClick has its own expand/collapse logic that
-        // would immediately reverse what we just did.
       },
     }),
   },
@@ -219,7 +212,7 @@ function getApiErrorMessage(data, fallback) {
   return fallback;
 }
 
-// Returns a user-facing message string if the folder is restricted, or null if allowed.
+// Produce a user-facing message string about a folder restriction
 function getFolderRestriction(item) {
   const data = item.getItemData();
   if (!data || data._isRoot || data._loading)
@@ -230,7 +223,7 @@ function getFolderRestriction(item) {
     return "Shared folders cannot be moved or renamed.";
   const parent = item.getParent();
   if (!parent || parent.getItemMeta().itemId === "root")
-    return "This folder cannot be moved or renamed.";
+    return "Top-level folders cannot be moved or renamed.";
   return null;
 }
 
