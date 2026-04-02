@@ -6,6 +6,7 @@ import {
   renamingFeature,
   selectionFeature,
 } from "@headless-tree/core";
+import { useLocalStorage, useUrlSearchParams } from "@vueuse/core";
 import { computed, onBeforeUnmount, onMounted } from "vue";
 import { useTree } from "../composables/useTree";
 import { fetchDataOrError } from "../lib/data";
@@ -13,7 +14,10 @@ import { useGlobalStore } from "../stores/globalStore";
 
 const globalStore = useGlobalStore();
 const currentUser = globalStore.currentUser;
-const LOCAL_STORAGE_KEY = "perma_selection";
+
+const localStorageKey = "perma_selection";
+const savedFoldersState = useLocalStorage(localStorageKey, {});
+const urlParams = useUrlSearchParams("history");
 
 const privateOrgIds = computed(() =>
   globalStore.currentUser.top_level_folders
@@ -21,66 +25,11 @@ const privateOrgIds = computed(() =>
     .map((folder) => folder.organization),
 );
 
-// --- Local storage / URL persistence ---
-
-function jsonLocalStorageGet(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key));
-  } catch {
-    return localStorage.getItem(key);
-  }
-}
-
-function jsonLocalStorageSet(key, value) {
-  localStorage.setItem(
-    key,
-    typeof value === "string" ? value : JSON.stringify(value),
-  );
-}
-
-// This data structure supports multiple users' last-used folders stored
-// simultaneously, keyed by user id. Currently only one user is active at a
-// time (localStorage is cleared on logout).
-function savedFoldersGetAll() {
-  return jsonLocalStorageGet(LOCAL_STORAGE_KEY) || {};
-}
-
-function savedFoldersGetCurrent() {
-  return savedFoldersGetAll()[current_user.id] || {};
-}
-
-function savedFoldersSetCurrent(orgId, folderIds) {
-  const all = savedFoldersGetAll();
-  all[current_user.id] = { folderIds, orgId };
-  if (folderIds && folderIds.length) {
-    history.pushState(null, null, "?folder=" + folderIds.join("-"));
-  }
-  jsonLocalStorageSet(LOCAL_STORAGE_KEY, all);
-}
-
-function folderIdsFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const raw = params.get("folder");
+const getUrlFolderIds = () => {
+  const raw = urlParams.folder;
   if (!raw) return null;
-  try {
-    const ids = raw.split("-").map((s) => parseInt(s, 10));
-    ids.forEach((id) => {
-      if (isNaN(id)) throw new Error("Invalid folder id");
-    });
-    return ids;
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
-}
-
-function getSavedFolderIds() {
-  return folderIdsFromUrl() || savedFoldersGetCurrent().folderIds;
-}
-
-function getSavedFolderId() {
-  const ids = getSavedFolderIds();
-  return ids && ids.length ? ids[ids.length - 1] : null;
+  const ids = raw.split("-").map((s) => parseInt(s, 10));
+  return ids.every(id => !isNaN(id)) ? ids : [];
 }
 
 // --- Folder data cache (for the async data loader) ---
@@ -549,7 +498,12 @@ function updateSelectedFolderFromItem(item) {
     !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
   const { path, folderIds } = buildItemAncestry(item);
 
-  savedFoldersSetCurrent(orgId, folderIds);
+  savedFoldersState.value[currentUser.id] = { folderIds, orgId };
+  if (folderIds && folderIds.length) {
+    urlParams.folder = folderIds.join("-");
+  } else {
+    urlParams.folder = null; // Clear from URL if no folder
+  }
 
   globalStore.selectedFolder = {
     folderId,
@@ -571,7 +525,7 @@ onMounted(async () => {
   };
 
   // Pre-fetch saved path folders so they're in the cache, then expand them
-  const savedIds = getSavedFolderIds();
+  const savedIds = getUrlFolderIds() || savedFoldersState.value[currentUser.id]?.folderIds;
   if (savedIds && savedIds.length) {
     const validIds = [];
     for (const folderId of savedIds) {
@@ -596,7 +550,8 @@ onBeforeUnmount(() => {
 });
 
 async function selectInitialFolder() {
-  let folderToSelect = getSavedFolderId();
+  const savedIds = getUrlFolderIds() || savedFoldersState.value[currentUser.id]?.folderIds;
+  let folderToSelect = savedIds && savedIds.length ? savedIds[savedIds.length - 1] : null;
   if (!folderToSelect && currentUser.top_level_folders.length === 1) {
     folderToSelect = currentUser.top_level_folders[0].id;
   }
@@ -735,7 +690,8 @@ async function deleteFolder() {
       updateSelectedFolderFromItem(parent);
     } else {
       tree.setSelectedItems([]);
-      savedFoldersSetCurrent(null, []);
+      savedFoldersState.value[currentUser.id] = { folderIds: [], orgId: null };
+      urlParams.folder = null;
     }
   }
 }
@@ -765,7 +721,11 @@ function selectFolder(folderId) {
 
   // If item is not yet loaded, save it and reload the tree
   const orgId = folderCache[idStr]?.organization || "";
-  savedFoldersSetCurrent(orgId, [parseInt(folderId, 10)]);
+  savedFoldersState.value[currentUser.id] = {
+    folderIds: [parseInt(folderId, 10)],
+    orgId
+  };
+  urlParams.folder = String(folderId);
   window.location.reload();
 }
 
