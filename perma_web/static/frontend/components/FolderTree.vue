@@ -120,89 +120,8 @@ const customClickBehavior = {
   },
 };
 
-// --- Vue / React prop compatibility helpers ---
-//
-// Headless Tree generates React-style props (onDragStart, onChange, ref
-// callbacks, etc.). Three adjustments are needed for Vue:
-//
-// 1. `ref` callbacks: React passes `ref` to the framework; Vue's v-bind
-//    treats `ref` as a plain attribute. We strip it and bind via :ref.
-//
-// 2. `on*` drag events: Vue 3's v-bind does NOT reliably bind on* props
-//    as event listeners for drag events (onClick works, but onDragStart,
-//    onDragOver, etc. do not). We strip them from v-bind and use v-on
-//    with lowercase event names instead.
-//
-// 3. `onChange` on <input>: React fires onChange on every keystroke;
-//    Vue maps onChange to the native "change" event (blur/Enter only).
-//    We remap to onInput.
-
-function containerProps() {
-  const { ref, onDragOver, onDrop, ...attrs } = tree.getContainerProps(
-    "Folders",
-  );
-  return {
-    attrs,
-    events: {
-      dragover: (e) => {
-        e.dataTransfer.dropEffect = "move";
-        onDragOver(e);
-      },
-      drop: onDrop,
-    },
-  };
-}
-
-function itemProps(item) {
-  const {
-    ref,
-    onDragStart,
-    onDragEnd,
-    onDragEnter,
-    onDragOver,
-    onDragLeave,
-    onDrop,
-    onDblClick: _onDblClick,
-    onKeyDown,
-    ...attrs
-  } = item.getProps();
-  const events = {};
-  if (onDragStart)
-    events.dragstart = (e) => {
-      e.dataTransfer.effectAllowed = "move";
-      document.body.classList.add("dragging");
-      onDragStart(e);
-    };
-  if (onDragEnd)
-    events.dragend = (e) => {
-      document.body.classList.remove("dragging");
-      onDragEnd(e);
-    };
-  if (onDragEnter) events.dragenter = onDragEnter;
-  if (onDragOver)
-    events.dragover = (e) => {
-      e.dataTransfer.dropEffect = "move";
-      onDragOver(e);
-    };
-  if (onDragLeave) events.dragleave = onDragLeave;
-  if (onDrop) events.drop = onDrop;
-  if (onKeyDown) events.keydown = onKeyDown;
-  return { attrs, events };
-}
-
-function vueRenameInputProps(item) {
-  const { onChange, ref: _ref, ...rest } = item.getRenameInputProps();
-  return { ...rest, onInput: onChange };
-}
-
-function renameInputRef(el) {
-  if (el && document.activeElement !== el) {
-    el.focus();
-    requestAnimationFrame(() => el.select());
-  }
-}
-
-function getApiErrorMessage(data, fallback) {
+// Produce a user-facing message about an API error
+const getApiErrorMessage = (data, fallback) => {
   if (!data) return fallback;
   if (Array.isArray(data)) return data[0] || fallback;
   for (const messages of Object.values(data)) {
@@ -210,10 +129,10 @@ function getApiErrorMessage(data, fallback) {
       return `Error: ${messages[0]}`;
   }
   return fallback;
-}
+};
 
-// Produce a user-facing message string about a folder restriction
-function getFolderRestriction(item) {
+// Produce a user-facing message about a folder restriction
+const getFolderRestriction = (item) => {
   const data = item.getItemData();
   if (!data || data._isRoot || data._loading)
     return "This folder cannot be moved or renamed.";
@@ -225,7 +144,7 @@ function getFolderRestriction(item) {
   if (!parent || parent.getItemMeta().itemId === "root")
     return "Top-level folders cannot be moved or renamed.";
   return null;
-}
+};
 
 // Allows root so Headless Tree's getDragTarget doesn't short-circuit
 // the "drop INTO child folder" logic when canReorder is false.
@@ -240,7 +159,14 @@ function isValidDropTarget(target) {
 
 // --- Tree setup ---
 
-const { tree, items } = useTree({
+const {
+  tree,
+  items,
+  containerProps,
+  itemProps,
+  vueRenameInputProps,
+  renameInputRef
+} = useTree({
   rootItemId: "root",
   getItemName: (item) => item.getItemData().name,
   isItemFolder: () => true,
@@ -754,91 +680,41 @@ defineExpose({
   <div class="panel-heading">
     Folders
     <span class="buttons">
-      <a
-        href="#"
-        class="pull-right delete-folder icon-trash"
-        aria-label="Delete Selected Folder"
-        title="Delete Selected Folder"
-        @click.prevent="deleteFolder"
-      ></a>
-      <a
-        href="#"
-        class="pull-right edit-folder icon-edit"
-        aria-label="Rename Selected Folder"
-        title="Rename Selected Folder"
-        @click.prevent="editFolder"
-      ></a>
-      <a
-        href="#"
-        class="pull-right new-folder icon-plus"
-        aria-label="New Folder"
-        title="New Folder"
-        @click.prevent="newFolder"
-      ></a>
+      <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder"
+        title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
+      <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder"
+        title="Rename Selected Folder" @click.prevent="editFolder"></a>
+      <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder"
+        @click.prevent="newFolder"></a>
     </span>
   </div>
-  <div
-    v-bind="containerProps().attrs"
-    v-on="containerProps().events"
-    :ref="(el) => el && tree.registerElement(el)"
-    id="folder-tree"
-  >
+  <div v-bind="containerProps('Folders').attrs" v-on="containerProps('Folders').events"
+    :ref="(el) => el && tree.registerElement(el)" id="folder-tree">
     <template v-for="(item, idx) in items" :key="item.getId()">
       <div class="folder-item-wrapper">
-        <span
-          v-for="l in treeConnectors[idx].ancestors"
-          :key="l"
-          class="tree-guide"
-          :style="{ left: levelLineLeft(l) + 'px' }"
-        ></span>
-        <span
-          class="tree-vert"
-          :class="{ 'tree-last': treeConnectors[idx].isLast }"
-          :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"
-        ></span>
-        <span
-          class="tree-horiz"
-          :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"
-        ></span>
-        <div
-          v-if="item.isRenaming()"
-          class="folder-item renaming"
-          :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }"
-        >
-          <span
-            v-if="item.getItemData()?.has_children"
-            class="tree-toggle"
-          ></span>
+        <span v-for="l in treeConnectors[idx].ancestors" :key="l" class="tree-guide"
+          :style="{ left: levelLineLeft(l) + 'px' }"></span>
+        <span class="tree-vert" :class="{ 'tree-last': treeConnectors[idx].isLast }"
+          :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
+        <span class="tree-horiz" :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
+        <div v-if="item.isRenaming()" class="folder-item renaming"
+          :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }">
+          <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
           <span class="folder-icon" :class="getFolderIconClass(item)"></span>
-          <input
-            v-bind="vueRenameInputProps(item)"
-            :ref="renameInputRef"
-            class="folder-rename-input"
-          />
+          <input v-bind="vueRenameInputProps(item)" :ref="renameInputRef" class="folder-rename-input" />
         </div>
-        <button
-          v-else
-          v-bind="itemProps(item).attrs"
-          v-on="itemProps(item).events"
+        <button v-else v-bind="itemProps(item).attrs" v-on="itemProps(item).events"
           :ref="(el) => el && item.registerElement(el)"
-          :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }"
-          :aria-disabled="
-            item.getItemData()?.is_sponsored_root_folder || undefined
-          "
-          class="folder-item"
-          :class="{
-            selected: item.isSelected(),
-            focused: item.isFocused(),
-            expanded: item.isExpanded() && item.getItemData()?.has_children,
-            'drag-target': item.isDragTarget?.(),
-            'is-shared': item.getItemData()?.is_shared_folder,
-            'is-disabled': item.getItemData()?.is_sponsored_root_folder,
-          }"
-        >
-          <span
-            v-if="item.getItemData()?.has_children"
-            class="tree-toggle"
-          ></span>
+          :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }" :aria-disabled="item.getItemData()?.is_sponsored_root_folder || undefined
+            " class="folder-item" :class="{
+              selected: item.isSelected(),
+              focused: item.isFocused(),
+              expanded: item.isExpanded() && item.getItemData()?.has_children,
+              'drag-target': item.isDragTarget?.(),
+              'is-shared': item.getItemData()?.is_shared_folder,
+              'is-disabled': item.getItemData()?.is_sponsored_root_folder,
+            }">
+          <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
           <span class="folder-icon" :class="getFolderIconClass(item)"></span>
           {{ item.getItemName() }}
         </button>
