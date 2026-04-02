@@ -1,15 +1,15 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount } from "vue";
-import { useGlobalStore } from "../stores/globalStore";
-import { fetchDataOrError } from "../lib/data";
-import { useTree } from "../composables/useTree";
 import {
   asyncDataLoaderFeature,
-  hotkeysCoreFeature,
-  selectionFeature,
   dragAndDropFeature,
+  hotkeysCoreFeature,
   renamingFeature,
+  selectionFeature,
 } from "@headless-tree/core";
+import { computed, onBeforeUnmount, onMounted } from "vue";
+import { useTree } from "../composables/useTree";
+import { fetchDataOrError } from "../lib/data";
+import { useGlobalStore } from "../stores/globalStore";
 
 const globalStore = useGlobalStore();
 const current_user = window.current_user;
