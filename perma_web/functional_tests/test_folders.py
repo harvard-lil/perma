@@ -35,11 +35,13 @@ def sponsored_folder(sponsored_folder_tree_page: Page):
     )
 
 
-def create_folder(folder_tree_page: Page):
+def create_folder(folder_tree_page: Page, name: str = None):
     count_next = folder_tree_page.locator('#folder-tree [role="treeitem"]').count() + 1
     folder_tree_page.locator('.new-folder').click()
     folder_tree_page.locator('input.folder-rename-input').wait_for()
-    folder_tree_page.keyboard.press('Escape')
+    if name:
+        folder_tree_page.locator('input.folder-rename-input').fill(name)
+    folder_tree_page.keyboard.press('Enter')
     new_item = folder_tree_page.locator(f':nth-match(#folder-tree [role="treeitem"], {count_next})')
     new_item.wait_for()
     return count_next
