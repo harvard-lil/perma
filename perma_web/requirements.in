@@ -71,6 +71,7 @@ coverage                                # record code coverage
 django-admin-smoke-tests                # basic tests for the Django admin
 factory-boy                             # create django model fixtures on demand
 fakeredis[lua]                          # simulate redis backend for tests
+filelock                                # cross-worker lock for xdist cert setup
 flake8                                  # code linting
 hypothesis                              # run tests with lots of generated input
 mock                                    # safe monkey patching
@@ -89,6 +90,8 @@ django-debug-toolbar                    # see SQL queries, monitor signals, etc.
 ipdb                                    # improved debugger and interactive shell
 watchdog                                # watch for file changes
 pip-tools
+typing-extensions>=4.6                  # setuptools vendors typeguard which needs Buffer
+django-schema-viewer                    # db models visualization
 
 # instrumentation
 sentry-sdk

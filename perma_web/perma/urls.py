@@ -191,6 +191,15 @@ if settings.DEBUG:
             re_path(r'^__debug__/', include(debug_toolbar.urls)),
         ] + urlpatterns
 
+if settings.VIEW_SCHEMA:
+    # APPEND_SLASH is False in the app, but django-schema-viewer expects urls to have trailing slashes.
+    # The two redirects normalize slash-less URLs so the viewer works as expected.    
+    urlpatterns = [
+        re_path(r'^schema-viewer$', RedirectView.as_view(url='/schema-viewer/', permanent=False)),
+        re_path(r'^schema-viewer/schema$', RedirectView.as_view(url='/schema-viewer/schema/', permanent=False)),
+        re_path(r'^schema-viewer/', include('schema_viewer.urls')),
+    ] + urlpatterns
+
 # views that only load when running our tests:
 if settings.TESTING:
     from .tests import views as test_views

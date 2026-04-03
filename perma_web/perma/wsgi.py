@@ -21,10 +21,17 @@ from django.core.wsgi import get_wsgi_application
 from django.core.mail import EmailMessage
 from smtplib import SMTPException
 from perma.wsgi_utils import retry_on_exception
-_orig_send = EmailMessage.send
-def retrying_send(message, *args, **kwargs):
-    return retry_on_exception(_orig_send, args=([message] + list(args)), kwargs=kwargs, exception=(SMTPException, TimeoutError))
-EmailMessage.send = retrying_send
+if not getattr(EmailMessage.send, '_is_retry_wrapper', False):
+    _orig_send = EmailMessage.send
+    def retrying_send(message, *args, **kwargs):
+        return retry_on_exception(
+            _orig_send,
+            args=([message] + list(args)),
+            kwargs=kwargs,
+            exception=(SMTPException, TimeoutError),
+        )
+    retrying_send._is_retry_wrapper = True
+    EmailMessage.send = retrying_send
 
 # Main application setup
 application = DispatcherMiddleware(

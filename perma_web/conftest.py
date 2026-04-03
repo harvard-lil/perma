@@ -1,27 +1,30 @@
-import pytest
-import boto3
-from dataclasses import dataclass
 import os
-from random import choice
 import subprocess
+from dataclasses import dataclass
+from random import choice
 
+import boto3
 from django.conf import settings
 from django.core.files.storage import storages
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
-
+from filelock import FileLock
+from playwright.sync_api import Page, expect
+import pytest
+from pytest_django.plugin import blocking_manager_key
 
 # patch Playwright's screenshot method so that we get full-page screenshots
 # when functional tests fail, which is not presently configurable in pytest-playwright
 # https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249
-from playwright.sync_api import Page
 _orig = Page.screenshot
 def full_page_screenshot(*args, **kwargs):
     kwargs['full_page'] = True
     return _orig(*args, **kwargs)
 Page.screenshot = full_page_screenshot
 
+# Patch Playwright's expect timeout to 15 seconds (default: 5) to avoid spurious failures
+expect.set_options(timeout=15_000)
 
 # Allow setup of live server test cases; see https://github.com/microsoft/playwright-python/issues/439
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
@@ -29,7 +32,13 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
 # https://github.com/django/django/commit/823a9e6bac38d38f7b0347497b833eec732bd384
-from pytest_django_liveserver_ssl.live_server_ssl_helper import HTTPSLiveServerThread, SecureHTTPServer, WSGIRequestHandler
+from pytest_django_liveserver_ssl.live_server_ssl_helper import (
+    HTTPSLiveServerThread,
+    SecureHTTPServer,
+    WSGIRequestHandler,
+)
+
+
 def _create_server(self, connections_override=None):
     return SecureHTTPServer(
         (self.host, self.port),
@@ -43,23 +52,25 @@ HTTPSLiveServerThread._create_server = _create_server
 
 
 @pytest.fixture(scope="session")
-def set_up_certs():
-    certs = [
-        ('mkcert ca root', f'{settings.PROJECT_ROOT}/rootCA.pem'),
-        ('perma certs', f'{settings.PROJECT_ROOT}/perma-test.crt'),
-        ('minio cert', '/tmp/minio_ssl/public.crt')
-    ]
+def set_up_certs(tmp_path_factory):
+    lock = tmp_path_factory.getbasetemp().parent / "certutil.lock"
+    with FileLock(str(lock)):
+        certs = [
+            ("mkcert ca root", f"{settings.PROJECT_ROOT}/rootCA.pem"),
+            ("perma certs", f"{settings.PROJECT_ROOT}/perma-test.crt"),
+            ("minio cert", "/tmp/minio_ssl/public.crt"),
+        ]
 
-    for cert in certs:
-        completed = subprocess.run(
-            f'certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "{cert[0]}" -i {cert[1]}',
-            shell=True,
-            capture_output=True,
-            text=True
-        )
-        if completed.returncode != 0:
-            print(completed.stderr)
-            raise Exception('Cert installation failed.')
+        for cert in certs:
+            completed = subprocess.run(
+                f'certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "{cert[0]}" -i {cert[1]}',
+                shell=True,
+                capture_output=True,
+                text=True,
+            )
+            if completed.returncode != 0:
+                print(completed.stderr)
+                raise Exception("Cert installation failed.")
 
 
 @pytest.fixture(scope="session")
@@ -85,26 +96,74 @@ def django_db_setup(django_db_setup, django_db_blocker):
         _load_json_fixtures()
 
 
-@pytest.fixture(autouse=True, scope='function')
-def _live_server_db_helper(request):
-    """
-    When using the live_server fixture, the DB is flushed between tests:
-    load the fixtures for each test.
+# Track whether database has been flushed to avoid reloading fixtures gratuitously
+_db_fixtures_flushed = False
 
-    See https://github.com/pytest-dev/pytest-django/blob/fba51531f067a985ec6b6be4aec9a2ed5766d69c/pytest_django/fixtures.py#L545
-    and https://stackoverflow.com/questions/52561816/pytest-django-add-fixtures-to-live-server-fixture
+
+def _is_transactional_test(item: pytest.Item) -> bool:
+    from django.test import TestCase, TransactionTestCase
+
+    marker = item.get_closest_marker("django_db")
+    item_is_transactional = (
+        hasattr(item, "cls") and item.cls and issubclass(item.cls, TransactionTestCase) and not issubclass(item.cls, TestCase)
+    )
+
+    match marker:
+        case marker if marker and marker.kwargs.get("transaction"):
+            return True
+        case marker if "transactional_db" in getattr(item, "fixturenames", []):
+            return True
+        case marker if "live_server_ssl" in getattr(item, "fixturenames", []):
+            return True
+        case marker if item_is_transactional:
+            return True
+        case _:
+            return False
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
     """
-    if "live_server_ssl" not in request.fixturenames:
+    Reload JSON fixtures before test setup when a prior transactional
+    test on this worker has flushed the database. This runs at hook
+    level, before fixtures are resolved, so that Django's
+    `TestCase.setUpTestData` can find the expected rows.
+    """
+    global _db_fixtures_flushed
+
+    if _db_fixtures_flushed and not _is_transactional_test(item):
+        blocker = item.config.stash[blocking_manager_key]
+        with blocker.unblock():
+            _load_json_fixtures()
+        _db_fixtures_flushed = False
+
+
+@pytest.fixture(autouse=True, scope='function')
+def _live_server_db_helper(request, django_db_blocker):
+    """
+    Reload JSON fixtures before every live_server_ssl test, since each
+    transactional test starts with a fresh (empty) database.
+
+    django_db_blocker is accepted as a parameter to ensure this fixture
+    resolves after database setup fixtures, preventing `IntegrityError`s
+    caused by loading into a not-yet-cleaned database.
+    """
+    if "live_server_ssl" in request.fixturenames:
+        _load_json_fixtures()
+
+
+def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item):
+    """
+    Post-test cleanup: empty S3 storage after `uses_storage` tests and
+    track when transactional tests have flushed the database.
+    """
+    global _db_fixtures_flushed
+
+    if _is_transactional_test(item):
+        _db_fixtures_flushed = True
+
+    if not item.get_closest_marker('uses_storage'):
         return
-    _load_json_fixtures()
-
-
-@pytest.fixture(autouse=True, scope='function')
-def cleanup_storage():
-    """
-    Empty the configured storage after each test, so that it's fresh each time.
-    """
-    yield
     for storage_option in ['default', 'secondary']:
         storage = boto3.resource(
             's3',
@@ -114,6 +173,29 @@ def cleanup_storage():
             verify=False
         ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
         storage.objects.delete()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def create_storage_buckets():
+    """
+    Ensure the S3 buckets for a given worker exist. Under xdist, workers
+    receive uniquely-named buckets via `PYTEST_XDIST_WORKER` in
+    `settings_testing.py`.
+    """
+    for storage_option in ['default', 'secondary']:
+        options = settings.STORAGES[storage_option]['OPTIONS']
+        s3 = boto3.resource(
+            's3',
+            endpoint_url=options['endpoint_url'],
+            aws_access_key_id=options['access_key'],
+            aws_secret_access_key=options['secret_key'],
+            verify=False,
+        )
+        bucket = s3.Bucket(options['bucket_name'])
+        try:
+            bucket.create()
+        except bucket.meta.client.exceptions.BucketAlreadyOwnedByYou:
+            pass
 
 
 class URLs:
@@ -133,7 +215,6 @@ def urls(transactional_db, live_server_ssl, complete_link_with_warc):
         'bookmarklet': reverse('service_bookmarklet_create'),
         'perma_link_with_warc': reverse('single_permalink', args=[complete_link_with_warc.guid]),
     }
-
     return URLs(f'https://{settings.HOST}', urls)
 
 
@@ -171,18 +252,26 @@ def log_in_user(urls):
 # As we modernize the test suite, we can start putting new fixtures here.
 # The separation should make it easier to work out, going forward, what can be deleted.
 
-import factory
-from factory.django import DjangoModelFactory, Password
-import humps
-
+from datetime import datetime
+from datetime import timezone as tz
 from decimal import Decimal
-from datetime import datetime, timezone as tz
+
+import factory
+import humps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-
-from perma.models import Registrar, Organization, LinkUser, Link, CaptureJob, Capture, Sponsorship, Folder
+from factory.django import DjangoModelFactory, Password
+from perma.models import (
+    Capture,
+    CaptureJob,
+    Folder,
+    Link,
+    LinkUser,
+    Organization,
+    Registrar,
+    Sponsorship,
+)
 from perma.utils import pp_date_from_post
-
 
 GENESIS = datetime.fromtimestamp(0).replace(tzinfo=tz.utc)
 # this gives us a variable that we can use unhashed in tests

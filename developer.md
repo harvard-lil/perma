@@ -27,6 +27,7 @@ See the [installation documentation](./install.md) to get up and running.
    - [Schema and data migrations](#schema-and-data-migrations)
      - [Schema migrations and data migrations](#schema-migrations-and-data-migrations)
      - [Track migrations in Git and get started](#track-migrations-in-git-and-get-started)
+     - [Visualize schema](#visualize-schema)
    - [Testing and Test Coverage](#testing-and-test-coverage)
      - [Linting with flake8](#linting-with-flake8)
    - [Working with Celery](#working-with-celery)
@@ -278,6 +279,14 @@ You should commit your migrations to your repository and push to GitHub.
 
     $ git add perma_web/perma/migrations/0003_auto__add_org__add_field_linkuser_org.py
     $ git commit -m "Added migration"
+
+
+### Visualize schema
+
+In order to visualize the database schema and see all of the models, visit:
+
+`/schema-viewer/`: This route renders the chart of db models, allows a few customization options such as app filtering and visuals.
+`/schema-viewer/schema/`: This route displays the raw JSON data of the chart.
 
 
 ## Testing and Test Coverage

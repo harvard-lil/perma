@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from django.urls import reverse
 
 from .utils import TEST_ASSETS_DIR, ApiResourceTestCase, ApiResourceTransactionTestCase
@@ -133,6 +134,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
                             expected_status_code=403)
 
 
+    @pytest.mark.uses_storage
     def test_should_allow_user_to_patch_with_file(self):
         # fix up our old-fashioned test fixture to suit this test:
         # - the archive_timestamp needs to be adjusted so that this link is in the patchable window
@@ -175,6 +177,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
                                 expected_status_code=400)
         self.successful_get(self.link_url, user=self.org_user)
 
+    @pytest.mark.uses_storage
     def test_should_reject_patch_with_capture_in_progress(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf'), 'rb') as test_file:
             data=test_file.read()
@@ -293,6 +296,7 @@ class LinkAuthorizationTestCase(LinkAuthorizationMixin, ApiResourceTestCase):
         self.successful_delete(self.in_progress_link_url, user=self.registrar_user)
 
 
+@pytest.mark.uses_storage
 class LinkAuthorizationTransactionTestCase(LinkAuthorizationMixin, ApiResourceTransactionTestCase):
 
     def setUp(self):

@@ -332,6 +332,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
 
 
 # Use a TransactionTestCase here because archive capture is threaded
+@pytest.mark.uses_storage
 class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransactionTestCase):
 
     serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [

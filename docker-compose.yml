@@ -22,7 +22,7 @@ services:
       - default
       - superset
   web:
-    image: registry.lil.tools/harvardlil/perma-web:137-ee9792e3a3584ee5197a8fdc3abf3b90
+    image: registry.lil.tools/harvardlil/perma-web:139-5668bb9f42d4b308b90c9b9109da04e4
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -51,7 +51,7 @@ services:
     # https://github.com/elgalu/docker-selenium/issues/20
     shm_size: 2G
     environment:
-      - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0:8000
+      - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0
     extra_hosts:
       - "perma.test:127.0.0.1"
       - "api.perma.test:127.0.0.1"

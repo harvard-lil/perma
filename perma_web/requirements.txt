@@ -250,6 +250,7 @@ django==4.2.23 \
     #   django-filter
     #   django-model-utils
     #   django-redis
+    #   django-schema-viewer
     #   django-storages
     #   django-taggit
     #   django-waffle
@@ -293,6 +294,10 @@ django-ratelimit==3.0.1 \
 django-redis==5.2.0 \
     --hash=sha256:1d037dc02b11ad7aa11f655d26dac3fb1af32630f61ef4428860a2e29ff92026 \
     --hash=sha256:8a99e5582c79f894168f5865c52bd921213253b7fd64d16733ae4591564465de
+    # via -r requirements.in
+django-schema-viewer==0.5.3 \
+    --hash=sha256:d5bdaa7cfec0827d1232f1d79f746ea5a7f42bf6abf2359615084acb230b2d1c \
+    --hash=sha256:f6385d74c6e2c5e204fc7b2b8d7d25affe63f9f6b96b03e79e5b094b5012588a
     # via -r requirements.in
 django-settings-context-processor==0.2 \
     --hash=sha256:d37c853d69a3069f5abbf94c7f4f6fc0fac38bbd0524190cd5a250ba800e496a
@@ -351,7 +356,9 @@ fakeredis[lua]==2.21.1 \
 filelock==3.6.0 \
     --hash=sha256:9cd540a9352e432c7246a48fe4e8712b10acb1df2ad1f30e8c070b82ae1fed85 \
     --hash=sha256:f8314284bfffbdcfa0ff3d7992b023d4c628ced6feb957351d4c48d059f56bc0
-    # via tldextract
+    # via
+    #   -r requirements.in
+    #   tldextract
 flake8==7.0.0 \
     --hash=sha256:33f96621059e65eec474169085dc92bf26e7b2d47366b70be2f67ab80dc25132 \
     --hash=sha256:a6dfbb75e03252917f2473ea9653f7cd799c3064e54d4c8140044c5c065f53c3
@@ -964,10 +971,11 @@ traitlets==5.1.1 \
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.1.1 \
-    --hash=sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42 \
-    --hash=sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2
+typing-extensions==4.15.0 \
+    --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
+    --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via
+    #   -r requirements.in
     #   pyee
     #   pytest-django-liveserver-ssl
 ua-parser==0.10.0 \

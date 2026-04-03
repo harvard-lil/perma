@@ -1,9 +1,13 @@
+import pytest
 
+
+@pytest.mark.uses_storage
 def test_homepage(page, urls) -> None:
     """The homepage should render correctly"""
     page.goto(urls.homepage)
     assert page.title() == "Perma.cc"
 
+@pytest.mark.uses_storage
 def test_about(page, urls) -> None:
     """The About page should render correctly"""
     page.goto(urls.about)

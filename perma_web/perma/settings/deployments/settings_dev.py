@@ -54,7 +54,7 @@ if os.environ.get('DEBUG_TOOLBAR'):
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_TOOLBAR_CALLBACK': 'perma.utils.show_debug_toolbar'  # we have to override this check because the default depends on IP address, which doesn't work inside Vagrant
     }
-    MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE
+    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + MIDDLEWARE
 
 # django_extensions
 try:
@@ -109,3 +109,17 @@ if not SCOOP_API_KEY:
             SCOOP_API_KEY = match.groups()[0]
     except Exception:
         print("Did not locate Scoop API Key.")
+
+
+# schema viewer
+VIEW_SCHEMA = True
+
+if VIEW_SCHEMA:
+    try:
+        import schema_viewer
+        INSTALLED_APPS += (
+            'schema_viewer',
+        )
+    except ImportError:
+        VIEW_SCHEMA = False
+        print("django-schema-viewer is not installed")

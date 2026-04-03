@@ -1,4 +1,6 @@
 import re
+
+import pytest
 from playwright.sync_api import expect
 
 two_minutes = 120 * 1000
@@ -28,6 +30,7 @@ def check_example_playback(page):
                .locator('h1')).to_contain_text("Example Domain")
 
 
+@pytest.mark.uses_storage
 def test_create_link_wacz_playback(page, user, log_in_user) -> None:
     """
     It should be possible to successfully create a link from a URL.
@@ -43,6 +46,7 @@ def test_create_link_wacz_playback(page, user, log_in_user) -> None:
     assert ".wacz?" in page.content()
 
 
+@pytest.mark.uses_storage
 def test_warc_playback(page, user, log_in_user, urls) -> None:
     """
     The WARC of a legacy Perma Link with no WACZ should play back.
@@ -56,6 +60,7 @@ def test_warc_playback(page, user, log_in_user, urls) -> None:
     assert ".wacz?" not in page.content()
 
 
+@pytest.mark.uses_storage
 def test_link_required(page, user, log_in_user) -> None:
     """A friendly message should be displayed if the field is omitted"""
     log_in_user(page, user)
@@ -65,6 +70,7 @@ def test_link_required(page, user, log_in_user) -> None:
     expect(page.locator("#error-container")).to_contain_text("URL cannot be empty")
 
 
+@pytest.mark.uses_storage
 def test_upload_nonexistent(page, user, log_in_user) -> None:
     """A modal should be displayed if the user input a domain we can't resolve"""
     log_in_user(page, user)
@@ -76,6 +82,7 @@ def test_upload_nonexistent(page, user, log_in_user) -> None:
     expect(page.locator("#error-container")).to_contain_text("Couldn't resolve domain.")
 
 
+@pytest.mark.uses_storage
 def test_bookmarklet_redirect(page, user, log_in_user, urls) -> None:
     """Test that the URL parameter prepopulates the input field for the bookmarklet."""
     log_in_user(page, user)
@@ -89,6 +96,7 @@ def test_bookmarklet_redirect(page, user, log_in_user, urls) -> None:
     expect(url_field).to_have_value(test_url)
 
 
+@pytest.mark.uses_storage
 def test_reminder_suppression(page, user, log_in_user):
     """Test that the reminder suppression cookie works."""
     log_in_user(page, user)

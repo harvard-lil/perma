@@ -121,7 +121,7 @@ TEMPLATES = [
     },
 ]
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'perma.middleware.APISubdomainMiddleware',
@@ -143,7 +143,7 @@ MIDDLEWARE = (
     # you can skip installing the middleware and use your own views.
     'axes.middleware.AxesMiddleware',
     'api.middleware.CORSMiddleware'
-)
+]
 
 ROOT_URLCONF = 'urls'
 
@@ -668,3 +668,6 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_TRACES_SAMPLE_RATE',
     'PLAYBACK_HOST'
 )
+
+# schema viewer
+VIEW_SCHEMA = False

@@ -1,4 +1,7 @@
+import pytest
 
+
+@pytest.mark.uses_storage
 def test_contact(page, urls, mailoutbox) -> None:
     """The Contact form should submit"""
     msg = "I've got important things to say."
@@ -21,6 +24,7 @@ def test_contact(page, urls, mailoutbox) -> None:
     assert msg in m.body
 
 
+@pytest.mark.uses_storage
 def test_contact_no_js(page, urls, mailoutbox, caplog) -> None:
     """The Contact form should submit, but be rejected."""
     msg = "I've got important things to say."
@@ -44,6 +48,7 @@ def test_contact_no_js(page, urls, mailoutbox, caplog) -> None:
     assert len(mailoutbox) == 0
 
 
+@pytest.mark.uses_storage
 def test_contact_no_js_logged_in(page, user, log_in_user, urls, mailoutbox, caplog) -> None:
     """The Contact form should submit, and not be rejected despite no JS."""
     msg = "I've got important things to say."
