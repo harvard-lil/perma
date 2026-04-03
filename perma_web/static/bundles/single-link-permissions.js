@@ -12758,7 +12758,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isHighDensity", function() { return isHighDensity; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getQueryStringDict", function() { return getQueryStringDict; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getWindowLocationSearch", function() { return getWindowLocationSearch; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "variables", function() { return variables; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "jsonLocalStorage", function() { return jsonLocalStorage; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "triggerOnWindow", function() { return triggerOnWindow; });
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(262);
@@ -12831,9 +12830,6 @@ function getQueryStringDict() {
 function getWindowLocationSearch() {
   return window.location.search;
 }
-var variables = {
-  localStorageKey: "perma_selection"
-};
 var jsonLocalStorage = {
   getItem: function getItem(key) {
     var result = localStorage.getItem(key);
