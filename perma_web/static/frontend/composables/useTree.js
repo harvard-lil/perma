@@ -118,8 +118,8 @@ export function useTree(config) {
 
   return {
     tree,
-    items,
-    state: internalState,
+    treeItems: items,
+    treeState: internalState,
     containerProps,
     itemProps,
     vueRenameInputProps,

@@ -227,6 +227,14 @@ function handleDragStart(e, link) {
   document.body.classList.add('dragging');
 }
 
+function handleKeyboardDragStart(_event, link) {
+  const dataTransfer = new DataTransfer();
+  dataTransfer.setData("application/x-perma-link", link.guid);
+  dataTransfer.setData("text/plain", link.title || "Link");
+  dataTransfer.effectAllowed = "move";
+  globalStore.components.folderTree?.startKeyboardDragOnForeignObject(dataTransfer);
+}
+
 function handleDragEnd() {
   document.body.classList.remove('dragging');
 }
@@ -371,9 +379,11 @@ defineExpose({
           class="row item-row row-no-bleed _isDraggable" 
           :data-link_id="link.guid"
           draggable="true"
+          tabindex="0"
           @dragstart="(e) => handleDragStart(e, link)"
           @dragend="handleDragEnd"
           @click="(e) => toggleLinkDetails(e, link)"
+          @keydown.ctrl.shift.d.prevent="(e) => handleKeyboardDragStart(e, link)"
         >
           <div class="row">
             <div class="col col-sm-6 col-md-60 item-title-col">
@@ -406,6 +416,7 @@ defineExpose({
               </div>
             </div>
             <div class="col col-sm-6 col-md-40 align-right item-permalink">
+              <button class="sr-only" @click.stop="(e) => handleKeyboardDragStart(e, link)">Move link via keyboard drag and drop</button>
               <a v-if="link.delete_available" class="delete no-drag" :href="`/manage/delete-link/${link.guid}`">Delete</a>
               <a class="perma no-drag" :href="`//${link.local_url}`" target="_blank">{{ link.local_url }}</a>
               <button 

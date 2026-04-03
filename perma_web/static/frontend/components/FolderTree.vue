@@ -2,6 +2,7 @@
 import {
   asyncDataLoaderFeature,
   dragAndDropFeature,
+  keyboardDragAndDropFeature,
   hotkeysCoreFeature,
   renamingFeature,
   selectionFeature,
@@ -152,6 +153,9 @@ const getFolderRestriction = (item) => {
 
 // Determine whether a drag and drop target is valid
 function isValidDropTarget(target) {
+  // Prevent dropping "between" items to match canReorder: false behavior
+  if ("childIndex" in target) return false;
+
   if (target.item.getItemMeta().itemId === "root") return true;
   const data = target.item.getItemData();
   if (!data || data._loading) return false;
@@ -163,7 +167,8 @@ function isValidDropTarget(target) {
 // Initialize tree and related elements
 const {
   tree,
-  items,
+  treeItems,
+  treeState,
   containerProps,
   itemProps,
   vueRenameInputProps,
@@ -317,11 +322,77 @@ const {
     updateSelectedFolderFromItem(item);
   },
 
+  // Keyboard shortcuts for tree navigation and keyboard drag and drop
+  hotkeys: {
+    expandOrDown: {
+      hotkey: "ArrowRight",
+      canRepeat: true,
+      handler: (e, tree) => {
+        if (tree.getState().dnd) {
+          // If dragging, just expand the current drag target if it's closed
+          const target = tree.getDragTarget()?.item || tree.getFocusedItem();
+          if (target && target.isFolder() && !target.isExpanded()) {
+            target.expand();
+          }
+          return; // Do not move focus
+        }
+        // Default behavior when not dragging
+        const item = tree.getFocusedItem();
+        if (item.isExpanded() || !item.isFolder()) {
+          tree.focusNextItem();
+          tree.updateDomFocus();
+        } else {
+          item.expand();
+        }
+      }
+    },
+    collapseOrUp: {
+      hotkey: "ArrowLeft",
+      canRepeat: true,
+      handler: (e, tree) => {
+        if (tree.getState().dnd) {
+          // If dragging, just collapse the current drag target if it's expanded
+          const target = tree.getDragTarget()?.item || tree.getFocusedItem();
+          if (target && target.isFolder() && target.isExpanded()) {
+            target.collapse();
+          }
+          return; // Do not move focus to parent
+        }
+        // Default behavior when not dragging
+        const item = tree.getFocusedItem();
+        if ((!item.isExpanded() || !item.isFolder()) && item.getItemMeta().level !== 0) {
+          item.getParent()?.setFocused();
+          tree.updateDomFocus();
+        } else {
+          item.collapse();
+        }
+      }
+    },
+    focusFirstItem: {
+      hotkey: "Home",
+      handler: (e, tree) => {
+        if (tree.getState().dnd) return;
+        tree.getItems()[0]?.setFocused();
+        tree.updateDomFocus();
+      }
+    },
+    focusLastItem: {
+      hotkey: "End",
+      handler: (e, tree) => {
+        if (tree.getState().dnd) return;
+        const items = tree.getItems();
+        items[items.length - 1]?.setFocused();
+        tree.updateDomFocus();
+      }
+    }
+  },
+
   features: [
     asyncDataLoaderFeature,
     selectionFeature,
     hotkeysCoreFeature,
     dragAndDropFeature,
+    keyboardDragAndDropFeature,
     renamingFeature,
     customClickBehavior,
   ],
@@ -346,7 +417,7 @@ const waitForTreeItem = async (
 
 // Compute guide lines for each tree item
 const treeGuideLines = computed(() => {
-  const itemsList = items.value;
+  const itemsList = treeItems.value;
   const itemsCount = itemsList.length;
   const guideLines = new Array(itemsCount);
   const activeLevels = new Set();
@@ -445,6 +516,7 @@ onMounted(async () => {
   globalStore.components.folderTree = {
     selectFolder,
     getOpenFolders,
+    startKeyboardDragOnForeignObject,
   };
 
   // Pre-fetch saved path folders to stick in the cache, then expand them
@@ -676,9 +748,37 @@ const getOpenFolders = () => {
   return result;
 };
 
+// Start keyboard-controlled drag and drop from an external source (like LinkList)
+const startKeyboardDragOnForeignObject = (dataTransfer) => {
+  tree.startKeyboardDragOnForeignObject(dataTransfer);
+  tree.updateDomFocus();
+};
+
+// Produce assistive text for keyboard drag and drop
+const assistiveDndText = computed(() => {
+  const dndState = treeState.value.dnd;
+  const assistiveDndState = treeState.value.assistiveDndState;
+
+  if (assistiveDndState === 1 && dndState?.draggedItems?.length) { // Started
+    const itemNames = dndState.draggedItems.map(item => item.getItemName()).join(', ');
+    return `Started dragging ${itemNames}. Use arrow keys to move the drag target, Enter to drop, or Escape to cancel.`;
+  }
+  if (assistiveDndState === 2 && dndState?.dragTarget?.item) { // Dragging
+    return `Dragging over ${dndState.dragTarget.item.getItemName()}.`;
+  }
+  if (assistiveDndState === 3) { // Completed
+    return "Drop completed.";
+  }
+  if (assistiveDndState === 4) { // Aborted
+    return "Drag aborted.";
+  }
+  return "";
+});
+
 defineExpose({
   selectFolder,
   getOpenFolders,
+  startKeyboardDragOnForeignObject,
 });
 </script>
 
@@ -696,7 +796,8 @@ defineExpose({
   </div>
   <div v-bind="containerProps('Folders').attrs" v-on="containerProps('Folders').events"
     :ref="(el) => el && tree.registerElement(el)" id="folder-tree">
-    <template v-for="(item, idx) in items" :key="item.getId()">
+    <div class="sr-only" aria-live="assertive">{{ assistiveDndText }}</div>
+    <template v-for="(item, idx) in treeItems" :key="item.getId()">
       <div class="folder-item-wrapper">
         <span v-for="l in treeGuideLines[idx].ancestors" :key="l" class="tree-guide"
           :style="{ left: levelLineLeft(l) + 'px' }"></span>
