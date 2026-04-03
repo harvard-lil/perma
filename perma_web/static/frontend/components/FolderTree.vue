@@ -19,6 +19,10 @@ const localStorageKey = "perma_selection";
 const savedFoldersState = useLocalStorage(localStorageKey, {});
 const urlParams = useUrlSearchParams("history");
 
+// Tree spacing constants
+const indentPixels = 20;
+const iconSizePixels = 16;
+
 const privateOrgIds = computed(() =>
   globalStore.currentUser.top_level_folders
     .filter((folder) => folder.default_to_private)
@@ -146,8 +150,7 @@ const getFolderRestriction = (item) => {
   return null;
 };
 
-// Allows root so Headless Tree's getDragTarget doesn't short-circuit
-// the "drop INTO child folder" logic when canReorder is false.
+// Determine whether a drag and drop target is valid
 function isValidDropTarget(target) {
   if (target.item.getItemMeta().itemId === "root") return true;
   const data = target.item.getItemData();
@@ -157,8 +160,7 @@ function isValidDropTarget(target) {
   return true;
 }
 
-// --- Tree setup ---
-
+// Initialize tree and related elements
 const {
   tree,
   items,
@@ -171,7 +173,7 @@ const {
   getItemName: (item) => item.getItemData().name,
   isItemFolder: () => true,
   createLoadingItemData: () => ({ name: "Loading...", _loading: true }),
-  indent: 20,
+  indent: indentPixels,
   canReorder: false,
   dataLoader: {
     getItem: (itemId) => {
@@ -204,7 +206,7 @@ const {
     },
   },
 
-  // --- Drag and drop (folder-to-folder) ---
+  // Drag and drop handling
   canDrag: (dragItems) => {
     for (const item of dragItems) {
       const restriction = getFolderRestriction(item);
@@ -257,7 +259,7 @@ const {
     tree.rebuildTree();
   },
 
-  // --- Foreign DnD (links dragged from LinkList) ---
+  // Foreign drag and drop handling for links dragged from LinkList
   canDropForeignDragObject: (_dataTransfer, target) =>
     isValidDropTarget(target),
   canDragForeignDragObjectOver: (_dataTransfer, target) =>
@@ -286,7 +288,7 @@ const {
     globalStore.components.linkList?.fetchLinks();
   },
 
-  // --- Renaming ---
+  // Folder rename handling
   canRename: (item) => !getFolderRestriction(item),
   onRename: async (item, newName) => {
     const folderId = item.getItemMeta().itemId;
@@ -310,7 +312,7 @@ const {
     updateSelectedFolderFromItem(item);
   },
 
-  // --- Selection ---
+  // Folder selection handling
   onPrimaryAction: (item) => {
     updateSelectedFolderFromItem(item);
   },
@@ -325,42 +327,39 @@ const {
   ],
 });
 
-async function waitForTreeItem(
+// Wait for a tree item to be loaded
+const waitForTreeItem = async (
   itemId,
   { maxAttempts = 20, interval = 50 } = {},
-) {
+) => {
   for (let i = 0; i < maxAttempts; i++) {
-    await new Promise((r) => setTimeout(r, interval));
+    await new Promise((resolve) => setTimeout(resolve, interval));
     try {
       const item = tree.getItemInstance(itemId);
       if (item) return item;
     } catch {
-      /* not loaded yet */
+      // No-op: item not loaded yet
     }
   }
   return null;
-}
+};
 
-// --- Tree connector lines ---
-// Computes vertical guide lines and ├/└ connectors for each item.
-// For each item: { isLast: bool, ancestors: number[] }
-//   isLast - whether the item is the last sibling at its level
-//   ancestors - levels where a vertical guide line should continue
-const treeConnectors = computed(() => {
-  const list = items.value;
-  const n = list.length;
-  const result = new Array(n);
+// Compute guide lines for each tree item
+const treeGuideLines = computed(() => {
+  const itemsList = items.value;
+  const itemsCount = itemsList.length;
+  const guideLines = new Array(itemsCount);
   const activeLevels = new Set();
 
-  for (let i = n - 1; i >= 0; i--) {
-    const level = list[i].getItemMeta().level;
+  for (let i = itemsCount - 1; i >= 0; i--) {
+    const level = itemsList[i].getItemMeta().level;
     const ancestors = [];
     for (const l of activeLevels) {
       if (l < level) ancestors.push(l);
     }
-    result[i] = {
-      isLast: !activeLevels.has(level),
-      ancestors: ancestors.sort((a, b) => a - b),
+    guideLines[i] = {
+      isLast: !activeLevels.has(level), // Is this the last sibling at this level?
+      ancestors: ancestors.sort((a, b) => a - b), // Levels at which to place guide lines
     };
     activeLevels.add(level);
     for (const l of [...activeLevels]) {
@@ -368,42 +367,49 @@ const treeConnectors = computed(() => {
     }
   }
 
-  return result;
+  return guideLines;
 });
 
-function levelIndent(level) {
-  return (level + 1) * 20;
-}
+// Compute the indentation level for a tree item level
+const levelIndent = (level) => {
+  return (level + 1) * indentPixels;
+};
 
-function levelLineLeft(level) {
-  return levelIndent(level) - 12;
-}
+// Compute the left position for a tree item level
+const levelLineLeft = (level) => {
+  return levelIndent(level) - (indentPixels - (iconSizePixels / 2));
+};
 
-function getFolderIconClass(item) {
+// Get the folder icon class (open, closed, or shared) for a tree item
+const getFolderIconClass = (item) => {
+  const icons = {
+    open: "icon-folder-open-alt",
+    closed: "icon-folder-close-alt",
+    shared: "icon-sitemap",
+  };
   const data = item.getItemData();
-  if (data?.is_shared_folder) return "icon-sitemap";
-  if (item.isExpanded() && data?.has_children) return "icon-folder-open-alt";
-  return "icon-folder-close-alt";
-}
+  if (data?.is_shared_folder) return icons.shared;
+  return item.isExpanded() && data?.has_children ? icons.open : icons.closed;
+};
 
-// --- Selection handling ---
-
-function buildItemAncestry(item) {
+// Build ancestry path and folder IDs for a tree item
+const buildItemAncestry = (item) => {
   const path = [];
   const folderIds = [];
   let current = item;
   while (current) {
-    const id = current.getItemMeta().itemId;
-    if (id === "root") break;
-    folderIds.unshift(parseInt(id, 10));
+    const folderId = current.getItemMeta().itemId;
+    if (folderId === "root") break;
+    folderIds.unshift(parseInt(folderId, 10));
     const data = current.getItemData();
     if (data?.name) path.unshift(data.name);
     current = current.getParent();
   }
   return { path, folderIds };
-}
+};
 
-function updateSelectedFolderFromItem(item) {
+// Update the global store's selected folder from a tree item
+const updateSelectedFolderFromItem = (item) => {
   const data = item.getItemData();
   if (!data || data._isRoot || data._loading) return;
   if (data.is_sponsored_root_folder) return;
@@ -421,7 +427,7 @@ function updateSelectedFolderFromItem(item) {
   if (folderIds && folderIds.length) {
     urlParams.folder = folderIds.join("-");
   } else {
-    urlParams.folder = null; // Clear from URL if no folder
+    urlParams.folder = null;
   }
 
   globalStore.selectedFolder = {
@@ -433,9 +439,7 @@ function updateSelectedFolderFromItem(item) {
     path,
     isPrivate,
   };
-}
-
-// --- Initial selection ---
+};
 
 onMounted(async () => {
   globalStore.components.folderTree = {
@@ -443,7 +447,7 @@ onMounted(async () => {
     getOpenFolders,
   };
 
-  // Pre-fetch saved path folders so they're in the cache, then expand them
+  // Pre-fetch saved path folders to stick in the cache, then expand them
   const savedIds = getUrlFolderIds() || savedFoldersState.value[currentUser.id]?.folderIds;
   if (savedIds && savedIds.length) {
     const validIds = [];
@@ -468,7 +472,8 @@ onBeforeUnmount(() => {
   globalStore.components.folderTree = null;
 });
 
-async function selectInitialFolder() {
+// Select initial folder after tree has loaded path from URL
+const selectInitialFolder = async () => {
   const savedIds = getUrlFolderIds() || savedFoldersState.value[currentUser.id]?.folderIds;
   let folderToSelect = savedIds && savedIds.length ? savedIds[savedIds.length - 1] : null;
   if (!folderToSelect && currentUser.top_level_folders.length === 1) {
@@ -483,13 +488,12 @@ async function selectInitialFolder() {
     item.setFocused();
     updateSelectedFolderFromItem(item);
   }
-}
+};
 
-// --- Toolbar actions ---
-
+// Toolbar actions: new folder
 let creatingFolder = false;
 
-async function newFolder() {
+const createNewFolder = async () => {
   if (creatingFolder) return;
   creatingFolder = true;
   try {
@@ -551,9 +555,10 @@ async function newFolder() {
   } finally {
     creatingFolder = false;
   }
-}
+};
 
-function editFolder() {
+// Toolbar actions: rename folder
+const renameFolder = () => {
   const selectedItems = tree.getSelectedItems();
   if (!selectedItems.length) return;
   const item = selectedItems[0];
@@ -563,9 +568,10 @@ function editFolder() {
     return;
   }
   item.startRenaming();
-}
+};
 
-async function deleteFolder() {
+// Toolbar actions: delete folder
+const deleteFolder = async () => {
   const selectedItems = tree.getSelectedItems();
   if (!selectedItems.length) return;
   const item = selectedItems[0];
@@ -613,11 +619,12 @@ async function deleteFolder() {
       urlParams.folder = null;
     }
   }
-}
+};
 
-// --- Exposed API for consumers ---
+// Exposed API for component consumers
 
-function selectFolder(folderId) {
+// Select a folder
+const selectFolder = (folderId) => {
   // Called by FolderSelect.vue when user picks a folder from the dropdown
   const idStr = String(folderId);
   try {
@@ -635,7 +642,7 @@ function selectFolder(folderId) {
       return;
     }
   } catch {
-    // fall through
+    // No-op: item not loaded yet
   }
 
   // If item is not yet loaded, save it and reload the tree
@@ -646,11 +653,10 @@ function selectFolder(folderId) {
   };
   urlParams.folder = String(folderId);
   window.location.reload();
-}
+};
 
-function getOpenFolders() {
-  // Returns a flat list of {folderId, name, depth, disabled} for all
-  // currently visible (expanded) folders, used by LinkList's "Move to folder" dropdown
+// Produce an array of objects representing all currently expanded folders for LinkList to use
+const getOpenFolders = () => {
   const result = [];
   for (const item of tree.getItems()) {
     const data = item.getItemData();
@@ -668,7 +674,7 @@ function getOpenFolders() {
     });
   }
   return result;
-}
+};
 
 defineExpose({
   selectFolder,
@@ -680,23 +686,23 @@ defineExpose({
   <div class="panel-heading">
     Folders
     <span class="buttons">
-      <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete Selected Folder"
-        title="Delete Selected Folder" @click.prevent="deleteFolder"></a>
-      <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename Selected Folder"
-        title="Rename Selected Folder" @click.prevent="editFolder"></a>
-      <a href="#" class="pull-right new-folder icon-plus" aria-label="New Folder" title="New Folder"
-        @click.prevent="newFolder"></a>
+      <a href="#" class="pull-right delete-folder icon-trash" aria-label="Delete selected folder"
+        title="Delete selected folder" @click.prevent="deleteFolder"></a>
+      <a href="#" class="pull-right edit-folder icon-edit" aria-label="Rename selected folder"
+        title="Rename selected folder" @click.prevent="renameFolder"></a>
+      <a href="#" class="pull-right new-folder icon-plus" aria-label="New folder" title="New folder"
+        @click.prevent="createNewFolder"></a>
     </span>
   </div>
   <div v-bind="containerProps('Folders').attrs" v-on="containerProps('Folders').events"
     :ref="(el) => el && tree.registerElement(el)" id="folder-tree">
     <template v-for="(item, idx) in items" :key="item.getId()">
       <div class="folder-item-wrapper">
-        <span v-for="l in treeConnectors[idx].ancestors" :key="l" class="tree-guide"
+        <span v-for="l in treeGuideLines[idx].ancestors" :key="l" class="tree-guide"
           :style="{ left: levelLineLeft(l) + 'px' }"></span>
-        <span class="tree-vert" :class="{ 'tree-last': treeConnectors[idx].isLast }"
+        <span class="tree-vertical" :class="{ 'tree-last': treeGuideLines[idx].isLast }"
           :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
-        <span class="tree-horiz" :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
+        <span class="tree-horizontal" :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
         <div v-if="item.isRenaming()" class="folder-item renaming"
           :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }">
           <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
