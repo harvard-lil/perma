@@ -152,7 +152,7 @@ const getFolderRestriction = (item) => {
 };
 
 // Determine whether a drag and drop target is valid
-function isValidDropTarget(target) {
+const isValidDropTarget = (target) => {
   // Prevent dropping "between" items to match canReorder: false behavior
   if ("childIndex" in target) return false;
 
@@ -162,7 +162,7 @@ function isValidDropTarget(target) {
   if (data.is_sponsored_root_folder) return false;
   if (data.read_only) return false;
   return true;
-}
+};
 
 // Initialize tree and related elements
 const {
@@ -479,6 +479,12 @@ const buildItemAncestry = (item) => {
   return { path, folderIds };
 };
 
+// Calculate the full folder path (hyphen-separated) for an item
+const getFolderPath = (item) => {
+  const { folderIds } = buildItemAncestry(item);
+  return folderIds.length ? folderIds.join("-") : null;
+};
+
 // Update the global store's selected folder from a tree item
 const updateSelectedFolderFromItem = (item) => {
   const data = item.getItemData();
@@ -495,11 +501,7 @@ const updateSelectedFolderFromItem = (item) => {
   const { path, folderIds } = buildItemAncestry(item);
 
   savedFoldersState.value[currentUser.id] = { folderIds, orgId };
-  if (folderIds && folderIds.length) {
-    urlParams.folder = folderIds.join("-");
-  } else {
-    urlParams.folder = null;
-  }
+  urlParams.folder = getFolderPath(item);
 
   globalStore.selectedFolder = {
     folderId,
@@ -805,12 +807,14 @@ defineExpose({
           :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
         <span class="tree-horizontal" :style="{ left: levelLineLeft(item.getItemMeta().level) + 'px' }"></span>
         <div v-if="item.isRenaming()" class="folder-item renaming"
+          :data-folder-path="getFolderPath(item)"
           :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }">
           <span v-if="item.getItemData()?.has_children" class="tree-toggle"></span>
           <span class="folder-icon" :class="getFolderIconClass(item)"></span>
           <input v-bind="vueRenameInputProps(item)" :ref="renameInputRef" class="folder-rename-input" />
         </div>
         <button v-else v-bind="itemProps(item).attrs" v-on="itemProps(item).events"
+          :data-folder-path="getFolderPath(item)"
           :ref="(el) => el && item.registerElement(el)"
           :style="{ paddingLeft: levelIndent(item.getItemMeta().level) + 'px' }" :aria-disabled="item.getItemData()?.is_sponsored_root_folder || undefined
             " class="folder-item" :class="{

@@ -182,3 +182,18 @@ def test_sponsored_folder_can_be_focused_but_not_selected(sponsored_folder: Loca
     classes_after_click = sponsored_folder.get_attribute('class').split()
     assert 'focused' in classes_after_click
     expect(sponsored_folder).to_have_attribute('aria-selected', 'false')
+
+
+def test_folder_selection_updates_url(folder_tree_page: Page):
+    url_initial = folder_tree_page.url
+
+    create_folder(folder_tree_page)
+    folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').nth(1)
+    folder.click()
+
+    folder_path = folder.get_attribute('data-folder-path')
+    assert folder_path is not None
+    assert f'folder={folder_path}' not in url_initial
+
+    url_updated = folder_tree_page.url
+    assert f'folder={folder_path}' in url_updated
