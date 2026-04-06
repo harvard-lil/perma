@@ -825,5 +825,36 @@
       },
       "model": "perma.capturejob",
       "pk": 9
+    },
+    {
+      "pk": "A1B2-C3D4",
+      "model": "perma.link",
+      "fields": {
+        "folders": [
+          66
+        ],
+        "is_unlisted": false,
+        "notes": "Test link for drag and drop",
+        "created_by": 24,
+        "submitted_title": "Example Test Link",
+        "submitted_url": "http://example.com/test",
+        "submitted_url_surt": "com,example)/test",
+        "creation_timestamp": "2024-01-01T00:00:00Z",
+        "archive_timestamp": "2024-01-01T00:00:00Z",
+        "organization": null
+      }
+    },
+    {
+      "fields": {
+        "status": "success",
+        "url": "http://example.com/test",
+        "user_upload": false,
+        "record_type": "response",
+        "role": "primary",
+        "content_type": "text/html",
+        "link": "A1B2-C3D4"
+      },
+      "model": "perma.capture",
+      "pk": 20
     }
 ]

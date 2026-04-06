@@ -1,7 +1,7 @@
-import os
-import subprocess
 from dataclasses import dataclass
+import os
 from random import choice
+import subprocess
 
 import boto3
 from django.conf import settings
@@ -18,16 +18,20 @@ from pytest_django.plugin import blocking_manager_key
 # when functional tests fail, which is not presently configurable in pytest-playwright
 # https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249
 _orig = Page.screenshot
+
+
 def full_page_screenshot(*args, **kwargs):
     kwargs['full_page'] = True
     return _orig(*args, **kwargs)
+
+
 Page.screenshot = full_page_screenshot
 
 # Patch Playwright's expect timeout to 15 seconds (default: 5) to avoid spurious failures
 expect.set_options(timeout=15_000)
 
 # Allow setup of live server test cases; see https://github.com/microsoft/playwright-python/issues/439
-os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
+os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 
 
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
@@ -48,17 +52,19 @@ def _create_server(self, connections_override=None):
         certificate=self.certificate_file,
         key=self.key_file,
     )
+
+
 HTTPSLiveServerThread._create_server = _create_server
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def set_up_certs(tmp_path_factory):
-    lock = tmp_path_factory.getbasetemp().parent / "certutil.lock"
+    lock = tmp_path_factory.getbasetemp().parent / 'certutil.lock'
     with FileLock(str(lock)):
         certs = [
-            ("mkcert ca root", f"{settings.PROJECT_ROOT}/rootCA.pem"),
-            ("perma certs", f"{settings.PROJECT_ROOT}/perma-test.crt"),
-            ("minio cert", "/tmp/minio_ssl/public.crt"),
+            ('mkcert ca root', f'{settings.PROJECT_ROOT}/rootCA.pem'),
+            ('perma certs', f'{settings.PROJECT_ROOT}/perma-test.crt'),
+            ('minio cert', '/tmp/minio_ssl/public.crt'),
         ]
 
         for cert in certs:
@@ -70,24 +76,27 @@ def set_up_certs(tmp_path_factory):
             )
             if completed.returncode != 0:
                 print(completed.stderr)
-                raise Exception("Cert installation failed.")
+                raise Exception('Cert installation failed.')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def live_server_ssl_cert(set_up_certs):
     return {
         'crt': f'{settings.PROJECT_ROOT}/perma-test.crt',
-        'key': f'{settings.PROJECT_ROOT}/perma-test.key'
+        'key': f'{settings.PROJECT_ROOT}/perma-test.key',
     }
 
 
 def _load_json_fixtures():
-    call_command('loaddata', *[
-        'fixtures/users.json',
-        'fixtures/api_keys.json',
-        'fixtures/folders.json',
-        'fixtures/archive.json'
-    ])
+    call_command(
+        'loaddata',
+        *[
+            'fixtures/users.json',
+            'fixtures/api_keys.json',
+            'fixtures/folders.json',
+            'fixtures/archive.json',
+        ],
+    )
 
 
 @pytest.fixture(scope='session')
@@ -103,17 +112,20 @@ _db_fixtures_flushed = False
 def _is_transactional_test(item: pytest.Item) -> bool:
     from django.test import TestCase, TransactionTestCase
 
-    marker = item.get_closest_marker("django_db")
+    marker = item.get_closest_marker('django_db')
     item_is_transactional = (
-        hasattr(item, "cls") and item.cls and issubclass(item.cls, TransactionTestCase) and not issubclass(item.cls, TestCase)
+        hasattr(item, 'cls')
+        and item.cls
+        and issubclass(item.cls, TransactionTestCase)
+        and not issubclass(item.cls, TestCase)
     )
 
     match marker:
-        case marker if marker and marker.kwargs.get("transaction"):
+        case marker if marker and marker.kwargs.get('transaction'):
             return True
-        case marker if "transactional_db" in getattr(item, "fixturenames", []):
+        case marker if 'transactional_db' in getattr(item, 'fixturenames', []):
             return True
-        case marker if "live_server_ssl" in getattr(item, "fixturenames", []):
+        case marker if 'live_server_ssl' in getattr(item, 'fixturenames', []):
             return True
         case marker if item_is_transactional:
             return True
@@ -148,7 +160,7 @@ def _live_server_db_helper(request, django_db_blocker):
     resolves after database setup fixtures, preventing `IntegrityError`s
     caused by loading into a not-yet-cleaned database.
     """
-    if "live_server_ssl" in request.fixturenames:
+    if 'live_server_ssl' in request.fixturenames:
         _load_json_fixtures()
 
 
@@ -167,11 +179,11 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item):
     for storage_option in ['default', 'secondary']:
         storage = boto3.resource(
             's3',
-            endpoint_url=settings.STORAGES[storage_option]["OPTIONS"]["endpoint_url"],
-            aws_access_key_id=settings.STORAGES[storage_option]["OPTIONS"]["access_key"],
-            aws_secret_access_key=settings.STORAGES[storage_option]["OPTIONS"]["secret_key"],
-            verify=False
-        ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
+            endpoint_url=settings.STORAGES[storage_option]['OPTIONS']['endpoint_url'],
+            aws_access_key_id=settings.STORAGES[storage_option]['OPTIONS']['access_key'],
+            aws_secret_access_key=settings.STORAGES[storage_option]['OPTIONS']['secret_key'],
+            verify=False,
+        ).Bucket(settings.STORAGES[storage_option]['OPTIONS']['bucket_name'])
         storage.objects.delete()
 
 
@@ -215,7 +227,8 @@ def urls(transactional_db, live_server_ssl, complete_link_with_warc):
         'bookmarklet': reverse('service_bookmarklet_create'),
         'perma_link_with_warc': reverse('single_permalink', args=[complete_link_with_warc.guid]),
     }
-    return URLs(f'https://{settings.HOST}', urls)
+    hostname = settings.HOST.split(':')[0]
+    return URLs(f'https://{hostname}:{live_server_ssl.port}', urls)
 
 
 @dataclass
@@ -226,12 +239,13 @@ class User:
 
 @pytest.fixture
 def user() -> User:
-    return User("functional_test_user@example.com", "pass")
+    return User('functional_test_user@example.com', 'pass')
 
 
 @pytest.fixture
 def log_in_user(urls):
     """A utility to log in the desired user"""
+
     # TODO: if this login fails, the fixture should error out
     def f(page, user):
         page.goto(urls.login)
@@ -241,7 +255,8 @@ def log_in_user(urls):
         password = page.locator('#id_password')
         password.focus()
         password.type(user.password)
-        page.locator("button.btn.login").click()
+        page.locator('button.btn.login').click()
+
     return f
 
 
@@ -256,11 +271,12 @@ from datetime import datetime
 from datetime import timezone as tz
 from decimal import Decimal
 
-import factory
-import humps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+import factory
 from factory.django import DjangoModelFactory, Password
+import humps
+
 from perma.models import (
     Capture,
     CaptureJob,
