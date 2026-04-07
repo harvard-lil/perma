@@ -8,7 +8,7 @@ import {
   selectionFeature,
 } from "@headless-tree/core";
 import { useLocalStorage, useUrlSearchParams } from "@vueuse/core";
-import { computed, onBeforeUnmount, onMounted } from "vue";
+import { computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useTree } from "../composables/useTree";
 import { fetchDataOrError } from "../lib/data";
 import { useGlobalStore } from "../stores/globalStore";
@@ -777,6 +777,29 @@ const assistiveDndText = computed(() => {
   return "";
 });
 
+// Keep DOM focus synced with the drag target during keyboard drag and drop
+watch(
+  () => treeState.value.dnd?.dragTarget?.item,
+  (newItem) => {
+    const assistiveDndState = treeState.value.assistiveDndState;
+    if ((assistiveDndState === 1 || assistiveDndState === 2) && newItem) {
+      newItem.setFocused();
+      tree.updateDomFocus();
+    }
+  }
+);
+
+// Handle focus leaving the folder tree: clean up keyboard drag and drop state
+const handleFocusOut = (e) => {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    const dndState = treeState.value.dnd;
+    const assistiveDndState = treeState.value.assistiveDndState;
+    if (dndState && (assistiveDndState === 1 || assistiveDndState === 2)) {
+      tree.stopKeyboardDrag();
+    }
+  }
+};
+
 defineExpose({
   selectFolder,
   getOpenFolders,
@@ -797,7 +820,7 @@ defineExpose({
     </span>
   </div>
   <div v-bind="containerProps('Folders').attrs" v-on="containerProps('Folders').events"
-    :ref="(el) => el && tree.registerElement(el)" id="folder-tree">
+    :ref="(el) => el && tree.registerElement(el)" id="folder-tree" @focusout="handleFocusOut">
     <div class="sr-only" aria-live="assertive">{{ assistiveDndText }}</div>
     <template v-for="(item, idx) in treeItems" :key="item.getId()">
       <div class="folder-item-wrapper">
