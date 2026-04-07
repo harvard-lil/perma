@@ -114,10 +114,7 @@ def _is_transactional_test(item: pytest.Item) -> bool:
 
     marker = item.get_closest_marker('django_db')
     item_is_transactional = (
-        hasattr(item, 'cls')
-        and item.cls
-        and issubclass(item.cls, TransactionTestCase)
-        and not issubclass(item.cls, TestCase)
+        hasattr(item, 'cls') and item.cls and issubclass(item.cls, TransactionTestCase) and not issubclass(item.cls, TestCase)
     )
 
     match marker:

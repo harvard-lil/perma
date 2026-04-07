@@ -153,7 +153,7 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
     #######
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=13)
+        self.successful_get(self.public_list_url, count=14)
 
     def test_private_download_unauthenticated(self):
         self.rejected_get(self.logged_in_private_link_download_url, expected_status_code=401)

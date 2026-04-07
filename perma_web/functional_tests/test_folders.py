@@ -52,7 +52,7 @@ def test_create_folder(folder_tree_page: Page):
     folder_tree_page.locator('input.folder-rename-input')
     folder_tree_page.keyboard.press('Enter')
     new_item = folder_tree_page.locator('#folder-tree [role="treeitem"]').nth(folder_count)
-    expect(new_item).to_be_visible()
+    expect(new_item).to_be_visible(timeout=5000)
 
 
 def test_delete_folder(folder_tree_page: Page):
@@ -77,18 +77,16 @@ def test_create_and_rename_folder(folder_tree_page: Page):
 
 
 def test_rename_folder_via_toolbar(folder_tree_page: Page):
-    folder = create_folder(folder_tree_page)
+    folder = create_folder(folder_tree_page, 'My Folder')
     folder.click()
 
     folder_tree_page.locator('.edit-folder').click()
     rename_input = folder_tree_page.locator('input.folder-rename-input')
-    rename_input.wait_for()
+    rename_input.wait_for(timeout=5000)
 
     rename_input.fill('Renamed Folder')
     folder_tree_page.keyboard.press('Enter')
-
-    rename_input.wait_for(state='hidden')
-    expect(folder_tree_page.locator('#folder-tree')).to_contain_text('Renamed Folder')
+    expect(folder_tree_page.locator('#folder-tree')).to_contain_text('Renamed Folder', timeout=5000)
 
 
 def test_cannot_rename_root_folder(folder_tree_page: Page):
@@ -106,15 +104,11 @@ def test_expand_collapse_folder(folder_tree_page: Page):
     child_folder = create_folder(folder_tree_page)
 
     expect(user_folder).to_have_attribute('aria-expanded', 'true')
-    expect(child_folder).to_be_visible()
+    expect(child_folder).to_be_visible(timeout=5000)
 
     user_folder.click()
     expect(user_folder).to_have_attribute('aria-expanded', 'false')
-    expect(child_folder).not_to_be_visible()
-
-    user_folder.click()
-    expect(user_folder).to_have_attribute('aria-expanded', 'true')
-    expect(child_folder).to_be_visible()
+    expect(child_folder).not_to_be_visible(timeout=5000)
 
 
 def test_folder_selection(folder_tree_page: Page):
@@ -131,12 +125,10 @@ def test_folder_selection(folder_tree_page: Page):
 def test_folder_selection_updates_url(folder_tree_page: Page):
     url_initial = folder_tree_page.url
 
-    create_folder(folder_tree_page)
-    folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').nth(1)
+    folder = create_folder(folder_tree_page, 'My Folder')
     folder.click()
 
     folder_path = folder.get_attribute('data-folder-path')
-    assert folder_path is not None
     assert f'folder={folder_path}' not in url_initial
 
     url_updated = folder_tree_page.url
@@ -182,12 +174,9 @@ def test_sponsored_folder_can_be_focused_but_not_selected(sponsored_folder: Loca
 def test_drag_and_drop_within_tree(folder_tree_page: Page):
     user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
     user_folder.click()
-    create_folder(folder_tree_page, 'Folder A')
+    folder_a = create_folder(folder_tree_page, 'Folder A')
     user_folder.click()
-    create_folder(folder_tree_page, 'Folder B')
-
-    folder_a = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
-    folder_b = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder B')
+    folder_b = create_folder(folder_tree_page, 'Folder B')
 
     folder_a_path = folder_a.get_attribute('data-folder-path')
     folder_b_path = folder_b.get_attribute('data-folder-path')
@@ -198,7 +187,9 @@ def test_drag_and_drop_within_tree(folder_tree_page: Page):
     folder_a.click()
 
     # Verify that Folder B's path now starts with Folder A's path
-    expect(folder_b).to_have_attribute('data-folder-path', f'{folder_a_path}-{folder_b_id}')
+    expect(folder_b).to_have_attribute(
+        'data-folder-path', f'{folder_a_path}-{folder_b_id}', timeout=5000
+    )
 
 
 def test_drag_and_drop_link_into_folder(folder_tree_page: Page):

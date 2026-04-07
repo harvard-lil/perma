@@ -45426,12 +45426,13 @@ var _hoisted_3 = {
   class: "sr-only",
   "aria-live": "assertive"
 };
-var _hoisted_4 = {
+var _hoisted_4 = ["data-folder-path"];
+var _hoisted_5 = {
   key: 0,
   class: "tree-toggle"
 };
-var _hoisted_5 = ["aria-disabled"];
-var _hoisted_6 = {
+var _hoisted_6 = ["data-folder-path", "aria-disabled"];
+var _hoisted_7 = {
   key: 0,
   class: "tree-toggle"
 };
@@ -45458,7 +45459,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     ref: function ref(el) {
       return el && $setup.tree.registerElement(el);
     },
-    id: "folder-tree"
+    id: "folder-tree",
+    onFocusout: $setup.handleFocusOut
   }), [Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", _hoisted_3, Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])($setup.assistiveDndText), 1 /* TEXT */), (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])(vue__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, Object(vue__WEBPACK_IMPORTED_MODULE_0__["renderList"])($setup.treeItems, function (item, idx) {
     var _item$getItemData, _item$getItemData2, _item$getItemData3, _item$isDragTarget, _item$getItemData4, _item$getItemData5, _item$getItemData6;
     return Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", {
@@ -45487,18 +45489,20 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }, null, 4 /* STYLE */), item.isRenaming() ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("div", {
       key: 0,
       class: "folder-item renaming",
+      "data-folder-path": $setup.getFolderPath(item),
       style: Object(vue__WEBPACK_IMPORTED_MODULE_0__["normalizeStyle"])({
         paddingLeft: $setup.levelIndent(item.getItemMeta().level) + 'px'
       })
-    }, [(_item$getItemData = item.getItemData()) !== null && _item$getItemData !== void 0 && _item$getItemData.has_children ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("span", _hoisted_4)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
+    }, [(_item$getItemData = item.getItemData()) !== null && _item$getItemData !== void 0 && _item$getItemData.has_children ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("span", _hoisted_5)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
       class: Object(vue__WEBPACK_IMPORTED_MODULE_0__["normalizeClass"])(["folder-icon", $setup.getFolderIconClass(item)])
     }, null, 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("input", Object(vue__WEBPACK_IMPORTED_MODULE_0__["mergeProps"])($setup.vueRenameInputProps(item), {
       ref_for: true,
       ref: $setup.renameInputRef,
       class: "folder-rename-input"
-    }), null, 16 /* FULL_PROPS */)], 4 /* STYLE */)) : (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("button", Object(vue__WEBPACK_IMPORTED_MODULE_0__["mergeProps"])({
+    }), null, 16 /* FULL_PROPS */)], 12 /* STYLE, PROPS */, _hoisted_4)) : (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("button", Object(vue__WEBPACK_IMPORTED_MODULE_0__["mergeProps"])({
       key: 1
     }, $setup.itemProps(item).attrs, Object(vue__WEBPACK_IMPORTED_MODULE_0__["toHandlers"])($setup.itemProps(item).events, true), {
+      "data-folder-path": $setup.getFolderPath(item),
       ref_for: true,
       ref: function ref(el) {
         return el && item.registerElement(el);
@@ -45515,9 +45519,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         'is-shared': (_item$getItemData4 = item.getItemData()) === null || _item$getItemData4 === void 0 ? void 0 : _item$getItemData4.is_shared_folder,
         'is-disabled': (_item$getItemData5 = item.getItemData()) === null || _item$getItemData5 === void 0 ? void 0 : _item$getItemData5.is_sponsored_root_folder
       }]
-    }), [(_item$getItemData6 = item.getItemData()) !== null && _item$getItemData6 !== void 0 && _item$getItemData6.has_children ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("span", _hoisted_6)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
+    }), [(_item$getItemData6 = item.getItemData()) !== null && _item$getItemData6 !== void 0 && _item$getItemData6.has_children ? (Object(vue__WEBPACK_IMPORTED_MODULE_0__["openBlock"])(), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementBlock"])("span", _hoisted_7)) : Object(vue__WEBPACK_IMPORTED_MODULE_0__["createCommentVNode"])("v-if", true), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("span", {
       class: Object(vue__WEBPACK_IMPORTED_MODULE_0__["normalizeClass"])(["folder-icon", $setup.getFolderIconClass(item)])
-    }, null, 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])(item.getItemName()), 1 /* TEXT */)], 16 /* FULL_PROPS */, _hoisted_5))]);
+    }, null, 2 /* CLASS */), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createTextVNode"])(" " + Object(vue__WEBPACK_IMPORTED_MODULE_0__["toDisplayString"])(item.getItemName()), 1 /* TEXT */)], 16 /* FULL_PROPS */, _hoisted_6))]);
   }), 128 /* KEYED_FRAGMENT */)), Object(vue__WEBPACK_IMPORTED_MODULE_0__["createElementVNode"])("div", {
     style: Object(vue__WEBPACK_IMPORTED_MODULE_0__["normalizeStyle"])($setup.tree.getDragLineStyle()),
     class: "dragline"
@@ -45778,7 +45782,7 @@ var iconSizePixels = 16;
     };
 
     // Determine whether a drag and drop target is valid
-    function isValidDropTarget(target) {
+    var isValidDropTarget = function isValidDropTarget(target) {
       // Prevent dropping "between" items to match canReorder: false behavior
       if ("childIndex" in target) return false;
       if (target.item.getItemMeta().itemId === "root") return true;
@@ -45787,7 +45791,7 @@ var iconSizePixels = 16;
       if (data.is_sponsored_root_folder) return false;
       if (data.read_only) return false;
       return true;
-    }
+    };
 
     // Initialize tree and related elements
     var _useTree = Object(_composables_useTree__WEBPACK_IMPORTED_MODULE_26__["useTree"])({
@@ -46268,6 +46272,13 @@ var iconSizePixels = 16;
       };
     };
 
+    // Calculate the full folder path (hyphen-separated) for an item
+    var getFolderPath = function getFolderPath(item) {
+      var _buildItemAncestry = buildItemAncestry(item),
+        folderIds = _buildItemAncestry.folderIds;
+      return folderIds.length ? folderIds.join("-") : null;
+    };
+
     // Update the global store's selected folder from a tree item
     var updateSelectedFolderFromItem = function updateSelectedFolderFromItem(item) {
       var _context12;
@@ -46280,18 +46291,14 @@ var iconSizePixels = 16;
       var isReadOnly = !!data.read_only;
       var isPrivate = orgId ? _babel_runtime_corejs3_core_js_stable_instance_includes__WEBPACK_IMPORTED_MODULE_21___default()(_context12 = privateOrgIds.value).call(_context12, orgId) : false;
       var isOutOfLinks = !isReadOnly && !sponsorId && !orgId && !globalStore.linkCreationAllowed;
-      var _buildItemAncestry = buildItemAncestry(item),
-        path = _buildItemAncestry.path,
-        folderIds = _buildItemAncestry.folderIds;
+      var _buildItemAncestry2 = buildItemAncestry(item),
+        path = _buildItemAncestry2.path,
+        folderIds = _buildItemAncestry2.folderIds;
       savedFoldersState.value[currentUser.id] = {
         folderIds: folderIds,
         orgId: orgId
       };
-      if (folderIds && folderIds.length) {
-        urlParams.folder = folderIds.join("-");
-      } else {
-        urlParams.folder = null;
-      }
+      urlParams.folder = getFolderPath(item);
       globalStore.selectedFolder = {
         folderId: folderId,
         orgId: orgId,
@@ -46715,6 +46722,29 @@ var iconSizePixels = 16;
       }
       return "";
     });
+
+    // Keep DOM focus synced with the drag target during keyboard drag and drop
+    Object(vue__WEBPACK_IMPORTED_MODULE_25__["watch"])(function () {
+      var _treeState$value$dnd;
+      return (_treeState$value$dnd = treeState.value.dnd) === null || _treeState$value$dnd === void 0 || (_treeState$value$dnd = _treeState$value$dnd.dragTarget) === null || _treeState$value$dnd === void 0 ? void 0 : _treeState$value$dnd.item;
+    }, function (newItem) {
+      var assistiveDndState = treeState.value.assistiveDndState;
+      if ((assistiveDndState === 1 || assistiveDndState === 2) && newItem) {
+        newItem.setFocused();
+        tree.updateDomFocus();
+      }
+    });
+
+    // Handle focus leaving the folder tree: clean up keyboard drag and drop state
+    var handleFocusOut = function handleFocusOut(e) {
+      if (!e.currentTarget.contains(e.relatedTarget)) {
+        var dndState = treeState.value.dnd;
+        var assistiveDndState = treeState.value.assistiveDndState;
+        if (dndState && (assistiveDndState === 1 || assistiveDndState === 2)) {
+          tree.stopKeyboardDrag();
+        }
+      }
+    };
     __expose({
       selectFolder: selectFolder,
       getOpenFolders: getOpenFolders,
@@ -46750,6 +46780,7 @@ var iconSizePixels = 16;
       levelLineLeft: levelLineLeft,
       getFolderIconClass: getFolderIconClass,
       buildItemAncestry: buildItemAncestry,
+      getFolderPath: getFolderPath,
       updateSelectedFolderFromItem: updateSelectedFolderFromItem,
       selectInitialFolder: selectInitialFolder,
       get creatingFolder() {
@@ -46765,6 +46796,7 @@ var iconSizePixels = 16;
       getOpenFolders: getOpenFolders,
       startKeyboardDragOnForeignObject: startKeyboardDragOnForeignObject,
       assistiveDndText: assistiveDndText,
+      handleFocusOut: handleFocusOut,
       get asyncDataLoaderFeature() {
         return _headless_tree_core__WEBPACK_IMPORTED_MODULE_23__["asyncDataLoaderFeature"];
       },
@@ -46792,6 +46824,7 @@ var iconSizePixels = 16;
       computed: vue__WEBPACK_IMPORTED_MODULE_25__["computed"],
       onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_25__["onBeforeUnmount"],
       onMounted: vue__WEBPACK_IMPORTED_MODULE_25__["onMounted"],
+      watch: vue__WEBPACK_IMPORTED_MODULE_25__["watch"],
       get useTree() {
         return _composables_useTree__WEBPACK_IMPORTED_MODULE_26__["useTree"];
       },
