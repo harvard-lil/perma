@@ -177,3 +177,46 @@ def test_sponsored_folder_can_be_focused_but_not_selected(sponsored_folder: Loca
     classes_after_click = sponsored_folder.get_attribute('class').split()
     assert 'focused' in classes_after_click
     expect(sponsored_folder).to_have_attribute('aria-selected', 'false')
+
+
+def test_drag_and_drop_within_tree(folder_tree_page: Page):
+    user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
+    user_folder.click()
+    create_folder(folder_tree_page, 'Folder A')
+    user_folder.click()
+    create_folder(folder_tree_page, 'Folder B')
+
+    folder_a = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+    folder_b = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder B')
+
+    folder_a_path = folder_a.get_attribute('data-folder-path')
+    folder_b_path = folder_b.get_attribute('data-folder-path')
+    folder_b_id = folder_b_path.split('-')[-1]
+
+    # Drag Folder B into Folder A and expand Folder A
+    folder_b.drag_to(folder_a)
+    folder_a.click()
+
+    # Verify that Folder B's path now starts with Folder A's path
+    expect(folder_b).to_have_attribute('data-folder-path', f'{folder_a_path}-{folder_b_id}')
+
+
+def test_drag_and_drop_link_into_folder(folder_tree_page: Page):
+    user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
+    user_folder.click()
+    create_folder(folder_tree_page, 'Target Folder')
+
+    # Select root folder so its links appear in LinkList
+    user_folder.click()
+
+    target_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Target Folder'
+    )
+    link = folder_tree_page.locator('.item-row._isDraggable').first
+    link.drag_to(target_folder)
+
+    # Verify link no longer appears in LinkList
+    expect(link).not_to_be_visible()
+
+    target_folder.click()
+    expect(link).to_be_visible()
