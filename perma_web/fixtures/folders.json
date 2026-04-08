@@ -855,7 +855,7 @@
       "is_sponsored_root_folder": false,
       "read_only": false,
       "cached_path": "66",
-      "cached_has_children": false,
+      "cached_has_children": true,
       "tree_root": 66
     }
   },
@@ -895,6 +895,44 @@
       "cached_path": "68",
       "cached_has_children": false,
       "tree_root": 68
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 69,
+    "fields": {
+      "name": "Folder A",
+      "parent": 66,
+      "creation_timestamp": "2024-01-01T00:00:00Z",
+      "created_by": 24,
+      "owned_by": 24,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "read_only": false,
+      "cached_path": "66-69",
+      "cached_has_children": false,
+      "tree_root": 66
+    }
+  },
+  {
+    "model": "perma.folder",
+    "pk": 70,
+    "fields": {
+      "name": "Folder B",
+      "parent": 66,
+      "creation_timestamp": "2024-01-01T00:00:00Z",
+      "created_by": 24,
+      "owned_by": 24,
+      "organization": null,
+      "is_shared_folder": false,
+      "is_root_folder": false,
+      "is_sponsored_root_folder": false,
+      "read_only": false,
+      "cached_path": "66-70",
+      "cached_has_children": false,
+      "tree_root": 66
     }
   }
 ]

@@ -31,53 +31,56 @@ def sponsored_folder_tree_page(
 @pytest.fixture
 def sponsored_folder(sponsored_folder_tree_page: Page):
     return sponsored_folder_tree_page.locator(
-        '#folder-tree [role="treeitem"][aria-disabled="true"]'
+        '#folder-tree [role="treeitem"]', has_text='Sponsored Links'
     )
-
-
-def create_folder(folder_tree_page: Page, name: str = None) -> Locator:
-    folder_count = folder_tree_page.locator('#folder-tree [role="treeitem"]').count()
-    folder_tree_page.locator('.new-folder').click()
-    folder_tree_page.locator('input.folder-rename-input')
-    if name:
-        folder_tree_page.locator('input.folder-rename-input').fill(name)
-    folder_tree_page.keyboard.press('Enter')
-    new_item = folder_tree_page.locator('#folder-tree [role="treeitem"]').nth(folder_count)
-    return new_item
 
 
 def test_create_folder(folder_tree_page: Page):
     folder_count = folder_tree_page.locator('#folder-tree [role="treeitem"]').count()
     folder_tree_page.locator('.new-folder').click()
-    folder_tree_page.locator('input.folder-rename-input')
-    folder_tree_page.keyboard.press('Enter')
+    rename_input = folder_tree_page.locator('input.folder-rename-input')
+    rename_input.wait_for(state='visible', timeout=5000)
+
+    rename_input.press('Enter')
+
     new_item = folder_tree_page.locator('#folder-tree [role="treeitem"]').nth(folder_count)
     expect(new_item).to_be_visible(timeout=5000)
 
 
 def test_delete_folder(folder_tree_page: Page):
-    new_folder = create_folder(folder_tree_page)
-    new_folder.click()
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
+    user_folder.click()
+
+    target_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+    target_folder.click()
 
     folder_tree_page.on('dialog', lambda dialog: dialog.accept())
     folder_tree_page.locator('.delete-folder').click()
 
-    expect(new_folder).not_to_be_visible()
+    expect(target_folder).not_to_be_visible()
 
 
 def test_create_and_rename_folder(folder_tree_page: Page):
     folder_tree_page.locator('.new-folder').click()
     rename_input = folder_tree_page.locator('input.folder-rename-input')
+    rename_input.wait_for(state='visible', timeout=5000)
 
     rename_input.fill('My Custom Folder')
-    folder_tree_page.keyboard.press('Enter')
+    rename_input.press('Enter')
 
     expect(rename_input).not_to_be_visible()
     expect(folder_tree_page.locator('#folder-tree')).to_contain_text('My Custom Folder')
 
 
 def test_rename_folder_via_toolbar(folder_tree_page: Page):
-    folder = create_folder(folder_tree_page, 'My Folder')
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
+    user_folder.click()
+
+    folder = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
     folder.click()
 
     folder_tree_page.locator('.edit-folder').click()
@@ -85,7 +88,7 @@ def test_rename_folder_via_toolbar(folder_tree_page: Page):
     rename_input.wait_for(timeout=5000)
 
     rename_input.fill('Renamed Folder')
-    folder_tree_page.keyboard.press('Enter')
+    rename_input.press('Enter')
     expect(folder_tree_page.locator('#folder-tree')).to_contain_text('Renamed Folder', timeout=5000)
 
 
@@ -99,9 +102,12 @@ def test_cannot_rename_root_folder(folder_tree_page: Page):
 
 
 def test_expand_collapse_folder(folder_tree_page: Page):
-    user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
     user_folder.click()
-    child_folder = create_folder(folder_tree_page)
+
+    child_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
 
     expect(user_folder).to_have_attribute('aria-expanded', 'true')
     expect(child_folder).to_be_visible(timeout=5000)
@@ -112,8 +118,13 @@ def test_expand_collapse_folder(folder_tree_page: Page):
 
 
 def test_folder_selection(folder_tree_page: Page):
-    folder_a = create_folder(folder_tree_page, 'Folder A')
-    folder_b = create_folder(folder_tree_page, 'Folder B')
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
+    user_folder.click()
+
+    folder_a = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+    folder_b = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder B')
 
     folder_a.click()
     expect(folder_a).to_have_attribute('aria-selected', 'true')
@@ -125,7 +136,12 @@ def test_folder_selection(folder_tree_page: Page):
 def test_folder_selection_updates_url(folder_tree_page: Page):
     url_initial = folder_tree_page.url
 
-    folder = create_folder(folder_tree_page, 'My Folder')
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
+    user_folder.click()
+
+    folder = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
     folder.click()
 
     folder_path = folder.get_attribute('data-folder-path')
@@ -136,13 +152,15 @@ def test_folder_selection_updates_url(folder_tree_page: Page):
 
 
 def test_keyboard_navigation(folder_tree_page: Page):
-    folder_a = create_folder(folder_tree_page, 'Folder A')
-    folder_b = create_folder(folder_tree_page, 'Folder B')
-
-    items = folder_tree_page.locator('#folder-tree [role="treeitem"]')
-    user_folder = items.nth(0)
-
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
     user_folder.click()
+
+    folder_a = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+    folder_b = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder B')
+
+    expect(folder_a).to_be_visible()
     expect(user_folder).to_be_focused()
 
     folder_tree_page.keyboard.press('ArrowDown')
@@ -172,18 +190,22 @@ def test_sponsored_folder_can_be_focused_but_not_selected(sponsored_folder: Loca
 
 
 def test_drag_and_drop_within_tree(folder_tree_page: Page):
-    user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
+    )
     user_folder.click()
-    folder_a = create_folder(folder_tree_page, 'Folder A')
-    user_folder.click()
-    folder_b = create_folder(folder_tree_page, 'Folder B')
+    folder_a = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+    folder_b = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder B')
 
     folder_a_path = folder_a.get_attribute('data-folder-path')
     folder_b_path = folder_b.get_attribute('data-folder-path')
     folder_b_id = folder_b_path.split('-')[-1]
 
     # Drag Folder B into Folder A and expand Folder A
-    folder_b.drag_to(folder_a)
+    with folder_tree_page.expect_response('**/folders/*/folders/*/') as response_info:
+        folder_b.drag_to(folder_a)
+    assert response_info.value.ok
+
     folder_a.click()
 
     # Verify that Folder B's path now starts with Folder A's path
@@ -193,18 +215,17 @@ def test_drag_and_drop_within_tree(folder_tree_page: Page):
 
 
 def test_drag_and_drop_link_into_folder(folder_tree_page: Page):
-    user_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]').first
-    user_folder.click()
-    create_folder(folder_tree_page, 'Target Folder')
-
-    # Select root folder so its links appear in LinkList
-    user_folder.click()
-
-    target_folder = folder_tree_page.locator(
-        '#folder-tree [role="treeitem"]', has_text='Target Folder'
+    user_folder = folder_tree_page.locator(
+        '#folder-tree [role="treeitem"]', has_text='Personal Links'
     )
-    link = folder_tree_page.locator('.item-row._isDraggable').first
-    link.drag_to(target_folder)
+    user_folder.click()
+
+    target_folder = folder_tree_page.locator('#folder-tree [role="treeitem"]', has_text='Folder A')
+
+    with folder_tree_page.expect_response('**/folders/*/archives/*/') as response_info:
+        link = folder_tree_page.locator('.item-row._isDraggable').first
+        link.drag_to(target_folder)
+    assert response_info.value.ok
 
     # Verify link no longer appears in LinkList
     expect(link).not_to_be_visible()
