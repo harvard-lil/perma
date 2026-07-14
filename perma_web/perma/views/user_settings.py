@@ -176,7 +176,7 @@ def settings_subscription_cancel(request):
     elif account_type == 'Individual':
         customer = request.user
     account = customer.get_subscription_info(timezone.now())
-    if not account['subscription']:
+    if not waffle.switch_is_active('allow_cybersource_transactions') or not account['subscription']:
         return HttpResponseForbidden()
     context = {
         'this_page': 'settings_subscription',
@@ -203,7 +203,7 @@ def settings_subscription_update(request):
     elif account_type == 'Individual':
         customer = request.user
     account = customer.get_subscription_info(timezone.now())
-    if not account['subscription']:
+    if not waffle.switch_is_active('allow_cybersource_transactions') or not account['subscription']:
         return HttpResponseForbidden()
     context = {
         'this_page': 'settings_subscription',
