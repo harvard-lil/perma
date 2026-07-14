@@ -159,7 +159,8 @@ def settings_usage_plan(request):
         'accounts': accounts,
         'purchase_history': purchase_history,
         'bonus_packages': request.user.get_bonus_packages(),
-        'display_cybersource_freeze_message': waffle.switch_is_active('display_cybersource_freeze_message')
+        'display_cybersource_freeze_message': waffle.switch_is_active('display_cybersource_freeze_message'),
+        'allow_cybersource_transactions': waffle.switch_is_active('allow_cybersource_transactions'),
 
     }
     return render(request, 'settings/settings-usage-plan.html', context)
